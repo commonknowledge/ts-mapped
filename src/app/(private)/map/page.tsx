@@ -6,6 +6,7 @@ import { interpolateOrRd } from "d3-scale-chromatic";
 import { useEffect, useRef, useState } from "react";
 import MapGL, { Layer, MapRef, Popup, Source } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { AreaStatsQuery, ColumnType, DataSourcesQuery, MarkersQuery, Operation } from "@/__generated__/types";
 import styles from "./page.module.css";
 import {
   AREA_SET_GROUP_LABELS,
@@ -45,27 +46,29 @@ export default function Map() {
   } = getMapSource(areaSetGroupCode, zoom);
   const requiresBoundingBox = minZoom >= 10;
 
-  const { data: dataSourcesData, loading: dataSourcesLoading } = useQuery(
-    gql`
-      query DataSources {
-        dataSources {
-          id
-          name
-          columnDefs {
+  const { data: dataSourcesData, loading: dataSourcesLoading } =
+    useQuery<DataSourcesQuery>(
+      gql`
+        query DataSources {
+          dataSources {
+            id
             name
-            type
+            columnDefs {
+              name
+              type
+            }
           }
         }
-      }
-    `
-  );
+      `
+    );
 
-  const { data: markersData, loading: markersLoading } = useQuery(
+  const { data: markersData, loading: markersLoading } = useQuery<MarkersQuery>(
     gql`
       query Markers($dataSourceId: String!) {
         markers(dataSourceId: $dataSourceId) {
           type
           features {
+            type
             properties
             geometry {
               type
@@ -87,7 +90,7 @@ export default function Map() {
     data: areaStatsData,
     loading: areaStatsLoading,
     fetchMore: areaStatsFetchMore,
-  } = useQuery(
+  } = useQuery<AreaStatsQuery>(
     gql`
       query AreaStats(
         $areaSetCode: String!
@@ -115,7 +118,7 @@ export default function Map() {
         areaSetCode: areaSetCode,
         dataSourceId: areaDataSourceId,
         column: areaSetColumn,
-        operation: "AVG",
+        operation: Operation.Avg,
         excludeColumns: ["segment", "f1", "f2"],
         // A dummy boundingBox is required here for fetchMore() to update this query's data
         boundingBox: requiresBoundingBox
@@ -139,18 +142,16 @@ export default function Map() {
       });
     }
 
-    areaStatsData.areaStats.forEach(
-      (stat: { areaCode: string; value: string | number }) => {
-        mapRef.current?.setFeatureState(
-          {
-            source: mapboxSourceId,
-            sourceLayer: mapboxLayerId,
-            id: stat.areaCode,
-          },
-          stat
-        );
-      }
-    );
+    areaStatsData.areaStats.forEach((stat) => {
+      mapRef.current?.setFeatureState(
+        {
+          source: mapboxSourceId,
+          sourceLayer: mapboxLayerId,
+          id: stat.areaCode,
+        },
+        stat
+      );
+    });
   }, [areaStatsData, lastLoadedSourceId, mapboxLayerId, mapboxSourceId]);
 
   const getColorStops = () => {
@@ -159,9 +160,7 @@ export default function Map() {
       return defaultStops;
     }
 
-    const values = areaStatsData.areaStats.map(
-      (stat: { value: string | number }) => stat.value
-    );
+    const values = areaStatsData.areaStats.map((stat) => stat.value);
     let minValue = null;
     let maxValue = null;
     for (const v of values) {
@@ -428,7 +427,7 @@ export default function Map() {
           >
             <option value="">Select a data column</option>
             {dataSource.columnDefs
-              .filter((cd: { type: string }) => cd.type === "number")
+              .filter((cd) => cd.type === ColumnType.Number)
               .map((cd: { name: string }) => (
                 <option key={cd.name} value={cd.name}>
                   {cd.name}

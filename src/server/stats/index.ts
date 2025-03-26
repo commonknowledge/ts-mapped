@@ -1,17 +1,12 @@
 import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
+import { AreaStat, ColumnType, Operation } from "@/__generated__/types";
 import { Database } from "@/server/models";
-import { ColumnType } from "@/server/models/DataSource";
 import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getErrorMessage } from "@/server/util";
 import { BoundingBox } from "@/types";
-
-export enum Operation {
-  AVG = "AVG",
-  SUM = "SUM",
-}
 
 export const getAreaStats = async (
   areaSetCode: string,
@@ -20,7 +15,7 @@ export const getAreaStats = async (
   operation: Operation,
   excludeColumns: string[],
   boundingBox: BoundingBox | null = null
-) => {
+): Promise<AreaStat[]> => {
   // Ensure areaSetCode is valid as it will be used in a raw SQL query
   if (!(await findAreaSetByCode(areaSetCode))) {
     return [];
@@ -65,7 +60,7 @@ export const getMaxColumnByArea = async (
   const columnNames = dataSource.columnDefs
     .filter(
       ({ name, type }) =>
-        !excludeColumns.includes(name) && type === ColumnType.number
+        !excludeColumns.includes(name) && type === ColumnType.Number
     )
     .map((c) => c.name);
 
@@ -178,4 +173,4 @@ const filterResult = (result: unknown[]) =>
       "value" in r &&
       r.areaCode !== null &&
       r.value !== null
-  );
+  ) as AreaStat[];

@@ -7,15 +7,7 @@ import {
   Updateable,
 } from "kysely";
 import { z } from "zod";
-
-export enum ColumnType {
-  empty = "empty",
-  boolean = "boolean",
-  object = "object",
-  number = "number",
-  string = "string",
-  unknown = "unknown"
-}
+import { ColumnType } from "@/__generated__/types";
 
 export type ColumnDefs = {
   name: string

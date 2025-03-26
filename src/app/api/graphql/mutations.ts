@@ -1,5 +1,5 @@
+import { DataSource } from "@/__generated__/types";
 import {
-  DataSource,
   DataSourceConfigSchema,
   DataSourceGeocodingConfigSchema
 } from "@/server/models/DataSource";
@@ -7,6 +7,7 @@ import { createDataSource as _createDataSource } from "@/server/repositories/Dat
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import { getErrorMessage } from "@/server/util";
+import { serializeDataSource } from "./serializers";
 
 interface MutationResponse {
   code: number;
@@ -18,7 +19,7 @@ interface CreateDataSourceResponse {
 }
 
 export const createDataSource = async (
-  parent: unknown,
+  _: unknown,
   {
     name,
     rawConfig,
@@ -34,7 +35,7 @@ export const createDataSource = async (
       geocodingConfig: JSON.stringify(geocodingConfig),
       columnDefs: "{}"
     });
-    return { code: 200, result: dataSource };
+    return { code: 200, result: serializeDataSource(dataSource) };
   } catch (e) {
     const error = getErrorMessage(e);
     logger.error(`Could not create data source: ${error}`);
@@ -43,7 +44,7 @@ export const createDataSource = async (
 };
 
 export const triggerImportDataSourceJob = async (
-  parent: unknown,
+  _: unknown,
   { dataSourceId }: { dataSourceId: string }
 ): Promise<MutationResponse> => {
   await enqueue("importDataSource", { dataSourceId });

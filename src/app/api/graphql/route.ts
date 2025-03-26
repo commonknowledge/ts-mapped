@@ -3,21 +3,24 @@ import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { gql } from "graphql-tag";
 import GraphQLJSON from "graphql-type-json";
 import { NextRequest } from "next/server";
+import {
+  GeoJsonFeatureType,
+  GeoJsonGeometryType,
+  GeoJsonType,
+  Operation,
+} from "@/__generated__/types";
+import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import { ColumnType } from "@/server/models/DataSource";
 import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
   listDataSources,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { Operation, getAreaStats } from "@/server/stats";
-import { BoundingBox, CurrentUser } from "@/types";
+import { getAreaStats } from "@/server/stats";
+import { BoundingBox } from "@/types";
 import { createDataSource, triggerImportDataSourceJob } from "./mutations";
-
-interface GraphQLContext {
-  currentUser: CurrentUser | null;
-}
+import { serializeDataSource } from "./serializers";
 
 const typeDefs = gql`
   scalar JSON
@@ -40,7 +43,12 @@ const typeDefs = gql`
   }
 
   enum ColumnType {
-    ${Object.keys(ColumnType).join(", ")}
+    empty
+    boolean
+    object
+    number
+    string
+    unknown
   }
 
   type DataSource {
@@ -51,35 +59,49 @@ const typeDefs = gql`
     createdAt: String!
   }
 
+  enum GeoJSONType {
+    FeatureCollection
+  }
+
   type GeoJSON {
-    type: String!
+    type: GeoJSONType!
     features: [GeoJSONFeature!]!
   }
 
+  enum GeoJSONFeatureType {
+    Feature
+  }
+
   type GeoJSONFeature {
-    properties: JSON
-    geometry: GeoJSONGeometry
+    type: GeoJSONFeatureType!
+    properties: JSON!
+    geometry: GeoJSONGeometry!
+  }
+
+  enum GeoJSONGeometryType {
+    Point
   }
 
   type GeoJSONGeometry {
-    type: String!
+    type: GeoJSONGeometryType!
     coordinates: [Float!]!
   }
 
   enum Operation {
-    ${Object.keys(Operation).join(", ")}
+    AVG
+    SUM
   }
 
   type Query {
     areaStats(
-      areaSetCode: String!,
-      dataSourceId: String!,
-      column: String!,
-      operation: Operation!,
+      areaSetCode: String!
+      dataSourceId: String!
+      column: String!
+      operation: Operation!
       excludeColumns: [String!]!
       boundingBox: BoundingBox
-    ): [AreaStat]!
-    dataSource: DataSource!
+    ): [AreaStat!]!
+    dataSource(id: String!): DataSource
     dataSources: [DataSource!]!
     markers(dataSourceId: String!): GeoJSON!
   }
@@ -94,12 +116,16 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createDataSource(name: String!, rawConfig: JSON!, rawGeocodingConfig: JSON!): CreateDataSourceResponse!
+    createDataSource(
+      name: String!
+      rawConfig: JSON!
+      rawGeocodingConfig: JSON!
+    ): CreateDataSourceResponse!
     triggerImportDataSourceJob(dataSourceId: String!): MutationResponse!
   }
 `;
 
-const resolvers = {
+const resolvers: Resolvers = {
   JSON: GraphQLJSON,
   Query: {
     areaStats: (
@@ -117,7 +143,7 @@ const resolvers = {
         column: string;
         operation: Operation;
         excludeColumns: string[];
-        boundingBox?: BoundingBox;
+        boundingBox?: BoundingBox | null;
       }
     ) =>
       getAreaStats(
@@ -129,22 +155,24 @@ const resolvers = {
         boundingBox
       ),
 
-    dataSource: (
-      _: unknown,
-      { id }: { id: string },
-      context: GraphQLContext
-    ) => {
+    dataSource: async (_: unknown, { id }: { id: string }, context) => {
+      if (!context.currentUser) {
+        return null;
+      }
+      const dataSource = await findDataSourceById(id);
+      if (!dataSource) {
+        return null;
+      }
+      return serializeDataSource(dataSource)
+    },
+
+    dataSources: async (_: unknown, args: unknown, context) => {
       if (!context.currentUser) {
         return [];
       }
-      return findDataSourceById(id);
+      return (await listDataSources()).map(serializeDataSource);
     },
-    dataSources: (_: unknown, args: unknown, context: GraphQLContext) => {
-      if (!context.currentUser) {
-        return [];
-      }
-      return listDataSources();
-    },
+
     markers: async (_: unknown, { dataSourceId }: { dataSourceId: string }) => {
       const dataRecords = await findDataRecordsByDataSource(dataSourceId);
       const features = dataRecords
@@ -153,22 +181,23 @@ const resolvers = {
           const centralPoint = dr.mappedJson.geocodeResult?.centralPoint;
           const coordinates = centralPoint
             ? [centralPoint.lng, centralPoint.lat]
-            : null;
+            : []; // Will never happen because of above filter
           return {
-            type: "Feature",
+            type: GeoJsonFeatureType.Feature,
             properties: dr.json,
             geometry: {
-              type: "Point",
+              type: GeoJsonGeometryType.Point,
               coordinates,
             },
           };
         });
       return {
-        type: "FeatureCollection",
-        features
-      }
+        type: GeoJsonType.FeatureCollection,
+        features,
+      };
     },
   },
+
   Mutation: {
     createDataSource,
     triggerImportDataSourceJob,
@@ -185,7 +214,7 @@ const server = new ApolloServer({
 });
 
 const handler = startServerAndCreateNextHandler(server, {
-  context: async (): Promise<GraphQLContext> => {
+  context: async () => {
     const { currentUser } = await getServerSession();
     return { currentUser };
   },

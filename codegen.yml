@@ -1,0 +1,13 @@
+schema:
+  - http://localhost:3000/api/graphql
+documents:
+  - src/**/*.ts
+  - src/**/*.tsx
+generates:
+  ./src/__generated__/types.ts:
+    config:
+      contextType: ../app/api/graphql/context#GraphQLContext
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-resolvers

@@ -1,6 +1,7 @@
+import { ColumnType } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { mapRecord } from "@/server/mapping";
-import { ColumnDefs, ColumnType, DataSource } from "@/server/models/DataSource";
+import { ColumnDefs, DataSource } from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
@@ -116,9 +117,9 @@ export const typeJson = (
     const value = json[key];
     const columnType = getType(value);
     let typedValue = value;
-    if (columnType === ColumnType.object) {
+    if (columnType === ColumnType.Object) {
       typedValue = typeJson(value as Record<string, unknown>).typedJson;
-    } else if (columnType === ColumnType.number) {
+    } else if (columnType === ColumnType.Number) {
       typedValue = Number(value);
     }
     columnDefs.push({ name: key, type: columnType });
@@ -144,30 +145,30 @@ const getType = (value: unknown): ColumnType => {
    * 3. Default to "unknown"
    */
   if (typeof value === "undefined") {
-    return ColumnType.empty;
+    return ColumnType.Empty;
   }
 
   if (typeof value === "boolean") {
-    return ColumnType.boolean;
+    return ColumnType.Boolean;
   }
 
   if (typeof value === "number" || typeof value === "bigint") {
-    return ColumnType.number;
+    return ColumnType.Number;
   }
 
   if (typeof value === "object") {
-    return value ? ColumnType.object : ColumnType.empty;
+    return value ? ColumnType.Object : ColumnType.Empty;
   }
 
   if (typeof value === "string") {
     const trimmedValue = value.trim();
     if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(trimmedValue)) {
-      return ColumnType.number;
+      return ColumnType.Number;
     }
-    return ColumnType.string;
+    return ColumnType.String;
   }
 
-  return ColumnType.string;
+  return ColumnType.String;
 };
 
 const addColumnDefs = (
@@ -194,8 +195,8 @@ const mergeColumnType = (
   b: ColumnType | undefined
 ): ColumnType => {
   // undefined => "empty"
-  a = a || ColumnType.empty;
-  b = b || ColumnType.empty;
+  a = a || ColumnType.Empty;
+  b = b || ColumnType.Empty;
 
   // identical types => known type
   if (a === b) {
@@ -203,15 +204,15 @@ const mergeColumnType = (
   }
 
   // a or b empty => use the other type
-  if (a !== ColumnType.empty && b === ColumnType.empty) {
+  if (a !== ColumnType.Empty && b === ColumnType.Empty) {
     return a;
   }
-  if (a === ColumnType.empty && b !== ColumnType.empty) {
+  if (a === ColumnType.Empty && b !== ColumnType.Empty) {
     return b;
   }
 
   // different types, not empty => "unknown"
-  return ColumnType.unknown;
+  return ColumnType.Unknown;
 };
 
 export default importDataSource;
