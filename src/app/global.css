@@ -1,0 +1,30 @@
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: var(--width-content);
+  padding: 3rem 1rem;
+  width: 100%;
+}
+
+/* Undo default styles from mvp.css */
+.mapboxgl-popup-close-button {
+  color: unset;
+  font-family: unset;
+  display: unset;
+  font-size: unset;
+  font-weight: unset;
+  line-height: unset;
+  margin: unset;
+  padding: 1px 6px;
+}

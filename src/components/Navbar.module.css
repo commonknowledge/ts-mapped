@@ -1,0 +1,27 @@
+.nav {
+  border-bottom: 1px solid #eee;
+  padding: 1rem;
+}
+
+.form {
+  align-items: center;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0;
+  min-width: auto;
+}
+
+.form input {
+  line-height: 1.25;
+  margin: 0;
+  padding: 0.25rem 1rem;
+}
+
+.form button {
+  border-width: 1px;
+  line-height: 1.25;
+  margin: 0;
+  padding: 0.25rem 1rem;
+}

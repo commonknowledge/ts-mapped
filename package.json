@@ -6,20 +6,51 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint --fix && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
+    "cmd": "tsx --env-file=.env bin/cmd.ts",
+    "kysely": "kysely"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.5",
+    "@apollo/experimental-nextjs-app-support": "^0.11.11",
+    "@as-integrations/next": "^3.2.0",
+    "airtable": "^0.12.2",
+    "commander": "^13.1.0",
+    "csv-parse": "^5.6.0",
+    "d3-scale": "^4.0.2",
+    "d3-scale-chromatic": "^3.1.0",
+    "graphql": "^16.10.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-type-json": "^0.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "kysely": "^0.27.6",
+    "mapbox-gl": "^3.10.0",
+    "next": "15.2.2",
+    "nprogress": "^0.2.0",
+    "pg": "^8.14.0",
+    "pg-boss": "^10.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.2.2"
+    "react-map-gl": "^8.0.1",
+    "tsx": "^4.19.3",
+    "winston": "^3.17.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-scale-chromatic": "^3.1.0",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
+    "@types/nprogress": "^0.2.3",
+    "@types/pg": "^8.11.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
-    "@eslint/eslintrc": "^3"
+    "kysely-ctl": "^0.12.1",
+    "madge": "^8.0.0",
+    "typescript": "^5",
+    "typescript-eslint": "^8.26.1"
   }
 }
