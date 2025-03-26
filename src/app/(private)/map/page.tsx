@@ -3,9 +3,8 @@
 import { gql, useQuery } from "@apollo/client";
 import { scaleLinear, scaleSequential } from "d3-scale";
 import { interpolateOrRd } from "d3-scale-chromatic";
-import { Map as Mapbox } from "mapbox-gl";
-import { useEffect, useState } from "react";
-import MapGL, { Layer, Marker, Popup, Source } from "react-map-gl/mapbox";
+import { useEffect, useRef, useState } from "react";
+import MapGL, { Layer, MapRef, Popup, Source } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import styles from "./page.module.css";
 import {
@@ -17,20 +16,20 @@ import {
 
 interface MarkerData {
   id: number;
-  json: Record<string, unknown>;
-  point: { lat: number; lng: number };
+  properties: Record<string, unknown>;
+  coordinates: number[];
 }
 
 const DEFAULT_ZOOM = 5;
 
 export default function Map() {
+  const mapRef = useRef<MapRef>(null);
   const [markersDataSourceId, setMarkersDataSourceId] = useState<string>("");
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const [areaDataSourceId, setAreaDataSourceId] = useState<string>("");
   const [areaSetGroupCode, setAreaSetGroupCode] =
     useState<AreaSetGroupCode>("WMC24");
   const [areaSetColumn, setAreaSetColumn] = useState<string>("");
-  const [map, setMap] = useState<Mapbox>();
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
   >();
@@ -65,11 +64,13 @@ export default function Map() {
     gql`
       query Markers($dataSourceId: String!) {
         markers(dataSourceId: $dataSourceId) {
-          id
-          json
-          point {
-            lng
-            lat
+          type
+          features {
+            properties
+            geometry {
+              type
+              coordinates
+            }
           }
         }
       }
@@ -127,12 +128,12 @@ export default function Map() {
   );
 
   useEffect(() => {
-    if (!map || !areaStatsData) {
+    if (!areaStatsData) {
       return;
     }
 
-    if (map.getSource(mapboxSourceId)) {
-      map.removeFeatureState({
+    if (mapRef.current?.getSource(mapboxSourceId)) {
+      mapRef.current?.removeFeatureState({
         source: mapboxSourceId,
         sourceLayer: mapboxLayerId,
       });
@@ -140,7 +141,7 @@ export default function Map() {
 
     areaStatsData.areaStats.forEach(
       (stat: { areaCode: string; value: string | number }) => {
-        map.setFeatureState(
+        mapRef.current?.setFeatureState(
           {
             source: mapboxSourceId,
             sourceLayer: mapboxLayerId,
@@ -150,7 +151,7 @@ export default function Map() {
         );
       }
     );
-  }, [areaStatsData, lastLoadedSourceId, map, mapboxLayerId, mapboxSourceId]);
+  }, [areaStatsData, lastLoadedSourceId, mapboxLayerId, mapboxSourceId]);
 
   const getColorStops = () => {
     const defaultStops = [0, "rgba(0, 0, 0, 0)"];
@@ -196,24 +197,52 @@ export default function Map() {
   const dataSource = dataSources.find(
     (ds: { id: string }) => ds.id === areaDataSourceId
   );
-  const markers = markersData?.markers || [];
+  const markers = markersData?.markers || {
+    type: "FeatureCollection",
+    features: [],
+  };
 
   return (
     <div className={styles.map}>
       <MapGL
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         initialViewState={{
           longitude: -4.5481, // 54.2361° N, 4.5481° W
           latitude: 54.2361,
           zoom: DEFAULT_ZOOM,
         }}
+        ref={mapRef}
         style={{ flexGrow: 1 }}
+        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle="mapbox://styles/mapbox/streets-v9"
-        onLoad={(e) => setMap(e.target)}
-        onSourceData={(e) => {
-          if (e.sourceId && MAPBOX_SOURCE_IDS.includes(e.sourceId)) {
-            setLastLoadedSourceId(e.sourceId);
+        onClick={(e) => {
+          const map = e.target;
+          const features = map.queryRenderedFeatures(e.point, {
+            layers: ["markers-pins"],
+          });
+          if (features.length && features[0].geometry.type === "Point") {
+            setSelectedMarker({
+              id: 1,
+              properties: features[0].properties || {},
+              coordinates: features[0].geometry.coordinates,
+            });
+          } else {
+            setSelectedMarker(null);
           }
+        }}
+        onLoad={() => {
+          const map = mapRef.current;
+          if (!map) {
+            return;
+          }
+          const imageURL = "/map-pin.png";
+          map.loadImage(imageURL, (error, image) => {
+            if (error) {
+              console.error(`Could not load image ${imageURL}: ${error}`);
+            }
+            if (image && !map.hasImage("map-pin")) {
+              map.addImage("map-pin", image);
+            }
+          });
         }}
         onMoveEnd={async (e) => {
           setZoom(e.viewState.zoom);
@@ -231,33 +260,13 @@ export default function Map() {
             });
           }
         }}
+        onSourceData={(e) => {
+          // Trigger a re-render when known Map sources load
+          if (e.sourceId && MAPBOX_SOURCE_IDS.includes(e.sourceId)) {
+            setLastLoadedSourceId(e.sourceId);
+          }
+        }}
       >
-        {markers.map((marker: MarkerData) => (
-          <Marker
-            key={marker.id}
-            latitude={marker.point.lat}
-            longitude={marker.point.lng}
-            onClick={(e) => {
-              e.originalEvent.stopPropagation();
-              setSelectedMarker(marker);
-            }}
-          />
-        ))}
-        {selectedMarker ? (
-          <Popup
-            latitude={selectedMarker.point.lat}
-            longitude={selectedMarker.point.lng}
-            onClose={() => setSelectedMarker(null)}
-          >
-            <div>
-              {Object.keys(selectedMarker.json).map((key) => (
-                <div key={key}>
-                  {key}: {String(selectedMarker.json[key])}
-                </div>
-              ))}
-            </div>
-          </Popup>
-        ) : null}
         <Source
           id={mapboxSourceId}
           key={mapboxSourceId}
@@ -313,6 +322,81 @@ export default function Map() {
             }}
           />
         </Source>
+
+        <Source
+          id="markers"
+          key="markers"
+          type="geojson"
+          data={markers}
+          cluster={true}
+          clusterMaxZoom={14}
+          clusterRadius={50}
+        >
+          <Layer
+            id="markers-circles"
+            type="circle"
+            source="markers"
+            filter={["has", "point_count"]}
+            paint={{
+              "circle-color": "rgba(255, 0, 0, 0.25)",
+              "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["get", "point_count"],
+                1,
+                50,
+                1000,
+                100,
+              ],
+            }}
+          />
+          <Layer
+            id="markers-counts"
+            type="symbol"
+            source="markers"
+            filter={["has", "point_count"]}
+            layout={{
+              "text-field": ["get", "point_count_abbreviated"],
+              "text-size": 12,
+            }}
+          />
+          <Layer
+            id="markers-pins"
+            type="symbol"
+            source="markers"
+            filter={["!", ["has", "point_count"]]}
+            layout={{
+              "icon-image": "map-pin",
+              "icon-anchor": "bottom",
+              "icon-size": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0,
+                0.5, // Smaller at low zoom levels
+                10,
+                1.5, // Full size at higher zoom levels
+              ],
+            }}
+          />
+        </Source>
+        {selectedMarker ? (
+          <Popup
+            anchor="top"
+            latitude={selectedMarker.coordinates[1]}
+            longitude={selectedMarker.coordinates[0]}
+            closeOnClick={false}
+            onClose={() => setSelectedMarker(null)}
+          >
+            <div>
+              {Object.keys(selectedMarker.properties).map((key) => (
+                <div key={key}>
+                  {key}: {String(selectedMarker.properties[key])}
+                </div>
+              ))}
+            </div>
+          </Popup>
+        ) : null}
       </MapGL>
       <div className={styles.controls}>
         <select

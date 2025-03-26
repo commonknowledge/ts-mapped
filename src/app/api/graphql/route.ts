@@ -27,6 +27,13 @@ const typeDefs = gql`
     value: JSON!
   }
 
+  input BoundingBox {
+    north: Float!
+    east: Float!
+    south: Float!
+    west: Float!
+  }
+
   type ColumnDef {
     name: String!
     type: ColumnType!
@@ -44,26 +51,23 @@ const typeDefs = gql`
     createdAt: String!
   }
 
-  input BoundingBox {
-    north: Float!
-    east: Float!
-    south: Float!
-    west: Float!
+  type GeoJSON {
+    type: String!
+    features: [GeoJSONFeature!]!
   }
 
-  type Marker {
-    id: Int!
-    json: JSON!
-    point: Point!
+  type GeoJSONFeature {
+    properties: JSON
+    geometry: GeoJSONGeometry
+  }
+
+  type GeoJSONGeometry {
+    type: String!
+    coordinates: [Float!]!
   }
 
   enum Operation {
     ${Object.keys(Operation).join(", ")}
-  }
-
-  type Point {
-    lng: Float!
-    lat: Float!
   }
 
   type Query {
@@ -77,7 +81,7 @@ const typeDefs = gql`
     ): [AreaStat]!
     dataSource: DataSource!
     dataSources: [DataSource!]!
-    markers(dataSourceId: String!): [Marker!]!
+    markers(dataSourceId: String!): GeoJSON!
   }
 
   type CreateDataSourceResponse {
@@ -106,14 +110,14 @@ const resolvers = {
         column,
         operation,
         excludeColumns,
-        boundingBox
+        boundingBox,
       }: {
         areaSetCode: string;
         dataSourceId: string;
         column: string;
         operation: Operation;
         excludeColumns: string[];
-        boundingBox?: BoundingBox
+        boundingBox?: BoundingBox;
       }
     ) =>
       getAreaStats(
@@ -143,13 +147,26 @@ const resolvers = {
     },
     markers: async (_: unknown, { dataSourceId }: { dataSourceId: string }) => {
       const dataRecords = await findDataRecordsByDataSource(dataSourceId);
-      return dataRecords
-        .filter((dr) => dr.mappedJson.geocodeResult)
-        .map((dr) => ({
-          id: dr.id,
-          json: dr.json,
-          point: dr.mappedJson.geocodeResult?.centralPoint,
-        }));
+      const features = dataRecords
+        .filter((dr) => dr.mappedJson.geocodeResult?.centralPoint)
+        .map((dr) => {
+          const centralPoint = dr.mappedJson.geocodeResult?.centralPoint;
+          const coordinates = centralPoint
+            ? [centralPoint.lng, centralPoint.lat]
+            : null;
+          return {
+            type: "Feature",
+            properties: dr.json,
+            geometry: {
+              type: "Point",
+              coordinates,
+            },
+          };
+        });
+      return {
+        type: "FeatureCollection",
+        features
+      }
     },
   },
   Mutation: {
