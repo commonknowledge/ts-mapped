@@ -23,12 +23,10 @@ export function upsertDataRecord(dataRecord: NewDataRecord) {
     .insertInto("dataRecord")
     .values(dataRecord)
     .onConflict((oc) =>
-      oc
-        .columns(["externalId", "dataSourceId"])
-        .doUpdateSet({
-          json: dataRecord.json,
-          mappedJson: dataRecord.mappedJson,
-        }),
+      oc.columns(["externalId", "dataSourceId"]).doUpdateSet({
+        json: dataRecord.json,
+        mappedJson: dataRecord.mappedJson,
+      }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();

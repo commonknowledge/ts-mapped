@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { MarkerData } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls, { MapConfig } from "./components/Controls";
+import Legend from "./components/Legend";
 import Map from "./components/Map";
 import Markers from "./components/Markers";
 import {
@@ -110,6 +111,7 @@ export default function MapPage() {
         mapConfig={mapConfig}
         onChange={(nextConfig) => setMapConfig({ ...mapConfig, ...nextConfig })}
       />
+      <Legend areaStats={areaStatsData?.areaStats} />
       {loading ? (
         <div className={styles.loading}>
           <div></div>
