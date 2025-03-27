@@ -5,17 +5,17 @@ import { MarkerData } from "@/types";
 export default function Markers({
   markers,
   selectedMarker,
-  onCloseSelectedMarker
+  onCloseSelectedMarker,
 }: {
   markers: MarkersQuery["markers"] | undefined;
   selectedMarker: MarkerData | null;
-  onCloseSelectedMarker: () => void
+  onCloseSelectedMarker: () => void;
 }) {
   // Always return a layer - this ensures it is always placed on top
   const safeMarkers = markers || {
     type: "FeatureCollection",
-    features: []
-  }
+    features: [],
+  };
 
   return (
     <>

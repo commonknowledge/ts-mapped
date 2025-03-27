@@ -11,13 +11,13 @@ export default function Map({
   onClickMarker,
   onMoveEnd,
   onSourceLoad,
-  ref
+  ref,
 }: {
   children: ReactNode;
   onClickMarker: (markerData: MarkerData | null) => void;
-  onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void
-  onSourceLoad: (sourceId: string) => void
-  ref: RefObject<MapRef | null>
+  onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void;
+  onSourceLoad: (sourceId: string) => void;
+  ref: RefObject<MapRef | null>;
 }) {
   return (
     <MapGL
@@ -62,13 +62,15 @@ export default function Map({
       }}
       onMoveEnd={async (e) => {
         const bounds = e.target.getBounds();
-        const boundingBox = bounds ? {
-          north: bounds.getNorth(),
-          east: bounds.getEast(),
-          south: bounds.getSouth(),
-          west: bounds.getWest(),
-        } : null
-        onMoveEnd(boundingBox, e.viewState.zoom)
+        const boundingBox = bounds
+          ? {
+              north: bounds.getNorth(),
+              east: bounds.getEast(),
+              south: bounds.getSouth(),
+              west: bounds.getWest(),
+            }
+          : null;
+        onMoveEnd(boundingBox, e.viewState.zoom);
       }}
       onSourceData={(e) => {
         // Trigger a re-render when known Map sources load

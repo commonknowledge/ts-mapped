@@ -15,14 +15,17 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     return null;
   }
 
-  async *fetchAll(): AsyncGenerator<{ externalId: string, json: Record<string, unknown> }> {
+  async *fetchAll(): AsyncGenerator<{
+    externalId: string;
+    json: Record<string, unknown>;
+  }> {
     let offset: string | undefined;
     do {
       const url = new URL(
-        `https://api.airtable.com/v0/${this.baseId}/${this.tableId}`
+        `https://api.airtable.com/v0/${this.baseId}/${this.tableId}`,
       );
       if (offset) {
-        url.searchParams.set("offset", offset)
+        url.searchParams.set("offset", offset);
       }
 
       const response = await fetch(url, {

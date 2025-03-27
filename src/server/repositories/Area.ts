@@ -19,7 +19,7 @@ export interface AreaWithAreaSetCode {
 
 export async function findAreaByCode(
   code: string,
-  areaSetCode: string
+  areaSetCode: string,
 ): Promise<AreaWithPoints | undefined> {
   const query = db
     .selectFrom("area")
@@ -32,7 +32,7 @@ export async function findAreaByCode(
 
 export async function findAreaByName(
   name: string,
-  areaSetCode: string
+  areaSetCode: string,
 ): Promise<AreaWithPoints | undefined> {
   const query = db
     .selectFrom("area")
@@ -43,24 +43,24 @@ export async function findAreaByName(
 }
 
 const applyAreaWithPointsSelect = (
-  query: SelectQueryBuilder<Database, "area" | "areaSet", object>
+  query: SelectQueryBuilder<Database, "area" | "areaSet", object>,
 ) => {
   return query.select([
     "area.id",
     "area.name",
     "area.code",
     sql<string>`ST_AsGeoJson(ST_Centroid(geography::geometry))`.as(
-      "centralPoint"
+      "centralPoint",
     ),
     sql<string>`ST_AsGeoJson(ST_PointOnSurface(geography::geometry))`.as(
-      "samplePoint"
+      "samplePoint",
     ),
   ]);
 };
 
 export async function findAreasByPoint(
   point: string,
-  excludeAreaSetCode: string | null = null
+  excludeAreaSetCode: string | null = null,
 ): Promise<AreaWithAreaSetCode[]> {
   let query = db
     .selectFrom("area")

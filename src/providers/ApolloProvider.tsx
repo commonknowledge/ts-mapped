@@ -11,10 +11,10 @@ import { ServerSessionContext } from "./ServerSessionProvider";
 
 function makeClient(jwt: string | null) {
   const httpLink = new HttpLink({
-    uri: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/graphql`,
+    uri: `${process.env.BACKEND_URL || "http://localhost:3000"}/api/graphql`,
     headers: {
-      cookie: `JWT=${jwt || ''}`
-    }
+      cookie: `JWT=${jwt || ""}`,
+    },
   });
 
   return new ApolloClient({
@@ -60,8 +60,12 @@ function makeClient(jwt: string | null) {
   });
 }
 
-export default function ApolloProvider({ children }: { children: React.ReactNode }) {
-  const { jwt } = useContext(ServerSessionContext)
+export default function ApolloProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { jwt } = useContext(ServerSessionContext);
   return (
     <ApolloNextAppProvider makeClient={() => makeClient(jwt)}>
       {children}

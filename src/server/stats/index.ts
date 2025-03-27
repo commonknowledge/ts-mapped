@@ -14,25 +14,30 @@ export const getAreaStats = async (
   column: string,
   operation: Operation,
   excludeColumns: string[],
-  boundingBox: BoundingBox | null = null
-): Promise<{ column: string, columnType: ColumnType, stats: AreaStat[] }> => {
+  boundingBox: BoundingBox | null = null,
+): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
   // Ensure areaSetCode is valid as it will be used in a raw SQL query
   if (!(await findAreaSetByCode(areaSetCode))) {
     return { column, columnType: ColumnType.Unknown, stats: [] };
   }
 
   if (column === "__maxColumn") {
-    const stats = await getMaxColumnByArea(areaSetCode, dataSourceId, excludeColumns, boundingBox);
-    return { column, columnType: ColumnType.String, stats }
+    const stats = await getMaxColumnByArea(
+      areaSetCode,
+      dataSourceId,
+      excludeColumns,
+      boundingBox,
+    );
+    return { column, columnType: ColumnType.String, stats };
   }
 
   const query = db
     .selectFrom("dataRecord")
     .select([
       sql`mapped_json->'geocodeResult'->'areas'->>${areaSetCode}`.as(
-        "areaCode"
+        "areaCode",
       ),
-      db.fn(operation, [sql`(json->>${column})::float`]).as("value")
+      db.fn(operation, [sql`(json->>${column})::float`]).as("value"),
     ])
     .where("dataRecord.dataSourceId", "=", dataSourceId)
     .where(getBoundingBoxSQL(boundingBox))
@@ -41,7 +46,7 @@ export const getAreaStats = async (
   try {
     const result = await query.execute();
     const stats = filterResult(result);
-    return { column, columnType: ColumnType.Number, stats }
+    return { column, columnType: ColumnType.Number, stats };
   } catch (e) {
     const error = getErrorMessage(e);
     logger.error(`Failed to get area stats: ${error}`);
@@ -53,7 +58,7 @@ export const getMaxColumnByArea = async (
   areaSetCode: string,
   dataSourceId: string,
   excludeColumns: string[],
-  boundingBox: BoundingBox | null = null
+  boundingBox: BoundingBox | null = null,
 ) => {
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
@@ -62,7 +67,7 @@ export const getMaxColumnByArea = async (
   const columnNames = dataSource.columnDefs
     .filter(
       ({ name, type }) =>
-        !excludeColumns.includes(name) && type === ColumnType.Number
+        !excludeColumns.includes(name) && type === ColumnType.Number,
     )
     .map((c) => c.name);
 
@@ -77,16 +82,16 @@ export const getMaxColumnByArea = async (
     caseBuilder:
       | CaseBuilder<Database, keyof Database, unknown, never>
       | CaseWhenBuilder<Database, keyof Database, unknown, string>,
-    column: string
+    column: string,
   ) => {
     return caseBuilder
       .when(
         db.fn(
           "GREATEST",
-          columnNames.map((c) => sql`json->>${c}`)
+          columnNames.map((c) => sql`json->>${c}`),
         ),
         "=",
-        sql`json->>${column}`
+        sql`json->>${column}`,
       )
       .then(column);
   };
@@ -138,12 +143,10 @@ export const getMaxColumnByArea = async (
   return [];
 };
 
-const getBoundingBoxSQL = (
-  boundingBox: BoundingBox | null
-) => {
+const getBoundingBoxSQL = (boundingBox: BoundingBox | null) => {
   // Returning a dummy WHERE statement if boundingBox is null makes for cleaner queries above
   if (!boundingBox) {
-    return sql<boolean>`1 = 1`
+    return sql<boolean>`1 = 1`;
   }
   // ST_MakeEnvelope(xmin, ymin, xmax, ymax, 4326)
   return sql<boolean>`
@@ -163,7 +166,7 @@ const getBoundingBoxSQL = (
           4326
         )
       )
-    `
+    `;
 };
 
 const filterResult = (result: unknown[]) =>
@@ -174,5 +177,5 @@ const filterResult = (result: unknown[]) =>
       "areaCode" in r &&
       "value" in r &&
       r.areaCode !== null &&
-      r.value !== null
+      r.value !== null,
   ) as AreaStat[];

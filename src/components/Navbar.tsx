@@ -3,29 +3,29 @@
 import { SyntheticEvent, useState } from "react";
 import { useCurrentUser } from "@/hooks";
 import { Link } from "./Link";
-import styles from "./Navbar.module.css"
+import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   const user = useCurrentUser();
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     const response = await fetch("/api/auth/login", {
       body: JSON.stringify({ email, password }),
-      method: "POST"
-    })
+      method: "POST",
+    });
     if (response.ok) {
-      location.reload()
+      location.reload();
     }
-  }
+  };
 
   const onSubmitLogout = (e: SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
     document.cookie = "JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-    location.reload()
-  }
+    location.reload();
+  };
 
   return (
     <nav className={styles.nav}>
@@ -34,10 +34,20 @@ export default function Navbar() {
         <form className={styles.form} onSubmit={onSubmitLogout}>
           <button>Logout</button>
         </form>
-      ): (
+      ) : (
         <form className={styles.form} onSubmit={onSubmitLogin}>
-          <input type="email" placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
-          <input type="password" placeholder="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
+          <input
+            type="email"
+            placeholder="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <button>Login</button>
         </form>
       )}

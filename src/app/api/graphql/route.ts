@@ -150,7 +150,7 @@ const resolvers: Resolvers = {
         operation: Operation;
         excludeColumns: string[];
         boundingBox?: BoundingBox | null;
-      }
+      },
     ) =>
       getAreaStats(
         areaSetCode,
@@ -158,7 +158,7 @@ const resolvers: Resolvers = {
         column,
         operation,
         excludeColumns,
-        boundingBox
+        boundingBox,
       ),
 
     dataSource: async (_: unknown, { id }: { id: string }, context) => {
@@ -169,7 +169,7 @@ const resolvers: Resolvers = {
       if (!dataSource) {
         return null;
       }
-      return serializeDataSource(dataSource)
+      return serializeDataSource(dataSource);
     },
 
     dataSources: async (_: unknown, args: unknown, context) => {

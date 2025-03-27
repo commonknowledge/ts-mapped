@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --fix && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
+    "lint": "eslint --fix && prettier --write . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
     "cmd": "tsx --env-file=.env bin/cmd.ts",
     "kysely": "kysely",
     "gql": "graphql-codegen"
@@ -55,6 +55,7 @@
     "eslint-config-next": "15.2.2",
     "kysely-ctl": "^0.12.1",
     "madge": "^8.0.0",
+    "prettier": "^3.5.3",
     "typescript": "^5",
     "typescript-eslint": "^8.26.1"
   }

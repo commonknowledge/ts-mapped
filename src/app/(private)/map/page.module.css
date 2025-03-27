@@ -1,34 +1,34 @@
 .map {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
 }
 
 .loading {
-    align-items: center;
-    display: flex;
-    height: 100%;
-    justify-content: center;
-    position: absolute;
-    width: 100%;
-    z-index: 1;
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
 }
 
 .loading > div {
-    animation: spin 1s linear infinite;
-    border: 2px solid transparent;
-    border-top: 2px solid black;
-    border-radius: 100%;
-    height: 128px;
-    width: 128px;
+  animation: spin 1s linear infinite;
+  border: 2px solid transparent;
+  border-top: 2px solid black;
+  border-radius: 100%;
+  height: 128px;
+  width: 128px;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

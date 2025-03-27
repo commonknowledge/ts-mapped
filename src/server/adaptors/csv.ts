@@ -26,7 +26,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
       getProjectFolder(),
       "resources",
       "dataSets",
-      filename
+      filename,
     );
   }
   async getRecordCount() {
@@ -44,7 +44,10 @@ export class CSVAdaptor implements DataSourceAdaptor {
 
     return Math.max(lineCount - 1, 0); // exclude header row
   }
-  async *fetchAll(): AsyncGenerator<{ externalId: string; json: Record<string, unknown> }> {
+  async *fetchAll(): AsyncGenerator<{
+    externalId: string;
+    json: Record<string, unknown>;
+  }> {
     const content = fs.createReadStream(this.filepath);
     const parser = content.pipe(parse({ columns: true }));
     // Parse the CSV content

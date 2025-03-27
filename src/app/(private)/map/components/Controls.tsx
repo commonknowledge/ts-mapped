@@ -1,5 +1,8 @@
-import { ColumnType, DataSourcesQuery } from "@/__generated__/types";
-import { AREA_SET_GROUP_LABELS, AreaSetGroupCode } from "@/app/(private)/map/sources";
+import { DataSourcesQuery } from "@/__generated__/types";
+import {
+  AREA_SET_GROUP_LABELS,
+  AreaSetGroupCode,
+} from "@/app/(private)/map/sources";
 import styles from "./Controls.module.css";
 
 export class MapConfig {
@@ -19,7 +22,7 @@ export default function Controls({
   onChange: (mapConfig: Partial<MapConfig>) => void;
 }) {
   const dataSource = dataSources.find(
-    (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId
+    (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId,
   );
 
   return (
@@ -53,13 +56,11 @@ export default function Controls({
         >
           <option value="">Select a data column</option>
           <option value="__maxColumn">Highest-value column</option>
-          {dataSource.columnDefs
-            .filter((cd) => cd.type === ColumnType.Number)
-            .map((cd: { name: string }) => (
-              <option key={cd.name} value={cd.name}>
-                {cd.name}
-              </option>
-            ))}
+          {dataSource.columnDefs.map((cd: { name: string }) => (
+            <option key={cd.name} value={cd.name}>
+              {cd.name}
+            </option>
+          ))}
         </select>
       ) : null}
       <select

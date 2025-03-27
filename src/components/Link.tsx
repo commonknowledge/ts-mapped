@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
-import nProgress from "nprogress"
-import { useTransition } from 'react';
+import NextLink from "next/link";
+import { useRouter } from "next/navigation";
+import nProgress from "nprogress";
+import { useTransition } from "react";
 
 /**
  * A custom Link component that wraps Next.js's next/link component.
@@ -18,9 +18,9 @@ export function Link({
   const [isPending, startTransition] = useTransition();
 
   if (isPending) {
-    nProgress.start()
+    nProgress.start();
   } else {
-    nProgress.done()
+    nProgress.done();
   }
 
   return (

@@ -1,7 +1,10 @@
 import fs from "fs";
-import { join } from "path"
+import { join } from "path";
 import { sql } from "kysely";
-import { findAreaSetByCode, insertAreaSet } from "@/server/repositories/AreaSet";
+import {
+  findAreaSetByCode,
+  insertAreaSet,
+} from "@/server/repositories/AreaSet";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getBaseDir } from "@/server/util";
@@ -9,10 +12,15 @@ import { getBaseDir } from "@/server/util";
 const AREA_SET_CODE = "MSOA21";
 
 const importMSOAs = async () => {
-    const msoasGeojsonPath = join(getBaseDir(), "resources", "areaSets", "msoas.geojson")
+  const msoasGeojsonPath = join(
+    getBaseDir(),
+    "resources",
+    "areaSets",
+    "msoas.geojson",
+  );
   if (!fs.existsSync(msoasGeojsonPath)) {
     logger.error(
-      `File not found: ${msoasGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3-2/about`
+      `File not found: ${msoasGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3-2/about`,
     );
     return;
   }

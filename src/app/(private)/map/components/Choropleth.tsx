@@ -14,29 +14,24 @@ export default function Choropleth({
   areaStats: { columnType: ColumnType; stats: AreaStat[] } | undefined;
   choroplethLayerConfig: ChoroplethLayerConfig;
 }) {
-  const getFillColor = (
-  ): DataDrivenPropertyValueSpecification<string> => {
+  const getFillColor = (): DataDrivenPropertyValueSpecification<string> => {
     const defaultFillColor = "rgba(0, 0, 0, 0)";
     if (!areaStats) {
-      return defaultFillColor
+      return defaultFillColor;
     }
 
     if (areaStats.columnType !== ColumnType.Number) {
       const distinctValues = new Set(
-        areaStats.stats.map((v) => String(v.value))
+        areaStats.stats.map((v) => String(v.value)),
       );
       const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
-      const ordinalColorStops = []
+      const ordinalColorStops = [];
       distinctValues.forEach((v) => {
         ordinalColorStops.push(v);
         ordinalColorStops.push(colorScale(v));
       });
-      ordinalColorStops.push(defaultFillColor)
-      return [
-        "match",
-        ["feature-state", "value"],
-        ...ordinalColorStops
-      ];
+      ordinalColorStops.push(defaultFillColor);
+      return ["match", ["feature-state", "value"], ...ordinalColorStops];
     }
 
     const values = areaStats.stats.map((stat) => stat.value);
@@ -64,10 +59,12 @@ export default function Choropleth({
       .domain([minValue, maxValue])
       .interpolator(interpolateOrRd);
 
-    const interpolateColorStops = new Array(numSteps).fill(null).flatMap((_, i) => {
-      const step = stepScale(i);
-      return [step, colorScale(step)];
-    });
+    const interpolateColorStops = new Array(numSteps)
+      .fill(null)
+      .flatMap((_, i) => {
+        const step = stepScale(i);
+        return [step, colorScale(step)];
+      });
 
     return [
       "interpolate",

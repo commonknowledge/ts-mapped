@@ -5,7 +5,10 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     return null;
   }
 
-  async *fetchAll(): AsyncGenerator<{ externalId: string, json: Record<string, unknown> }> {
-    throw new Error("Unimplemented")
+  async *fetchAll(): AsyncGenerator<{
+    externalId: string;
+    json: Record<string, unknown>;
+  }> {
+    throw new Error("Unimplemented");
   }
 }

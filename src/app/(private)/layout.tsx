@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { redirect } from "next/navigation";
 import { useCurrentUser } from "@/hooks";
@@ -10,7 +10,7 @@ export default function PrivateLayout({
 }>) {
   const user = useCurrentUser();
   if (!user) {
-    redirect("/")
+    redirect("/");
   }
-  return <>{children}</>
+  return <>{children}</>;
 }

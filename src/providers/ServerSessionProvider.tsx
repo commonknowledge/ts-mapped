@@ -5,15 +5,19 @@ import { ServerSession } from "@/types";
 
 export const ServerSessionContext = createContext<ServerSession>({
   jwt: null,
-  currentUser: null
+  currentUser: null,
 });
 
 export default function ServerSessionProvider({
   serverSession,
   children,
 }: {
-  serverSession: ServerSession,
+  serverSession: ServerSession;
   children: React.ReactNode;
 }) {
-  return <ServerSessionContext value={serverSession}>{children}</ServerSessionContext>;
+  return (
+    <ServerSessionContext value={serverSession}>
+      {children}
+    </ServerSessionContext>
+  );
 }

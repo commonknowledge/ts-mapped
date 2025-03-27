@@ -20,7 +20,7 @@ interface Point {
 
 export const mapRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: DataSourceGeocodingConfig
+  geocodingConfig: DataSourceGeocodingConfig,
 ): Promise<Record<string, object | null>> => {
   const geocodeResult = await geocodeRecord(dataRecord, geocodingConfig);
   if (!geocodeResult) {
@@ -31,7 +31,7 @@ export const mapRecord = async (
 
 const geocodeRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: DataSourceGeocodingConfig
+  geocodingConfig: DataSourceGeocodingConfig,
 ): Promise<GeocodeResult | null> => {
   const dataRecordJson = dataRecord.json;
   const areaJsonColumn = geocodingConfig.column;
@@ -61,7 +61,7 @@ const geocodeRecord = async (
 
   const mappedAreas = await findAreasByPoint(
     area.samplePoint,
-    geocodingConfig.areaSetCode
+    geocodingConfig.areaSetCode,
   );
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;

@@ -1,7 +1,10 @@
 import fs from "fs";
-import { join } from "path"
+import { join } from "path";
 import { sql } from "kysely";
-import { findAreaSetByCode, insertAreaSet } from "@/server/repositories/AreaSet";
+import {
+  findAreaSetByCode,
+  insertAreaSet,
+} from "@/server/repositories/AreaSet";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getBaseDir } from "@/server/util";
@@ -9,10 +12,15 @@ import { getBaseDir } from "@/server/util";
 const AREA_SET_CODE = "WMC24";
 
 const importConstituencies = async () => {
-    const constituenciesGeojsonPath = join(getBaseDir(), "resources", "areaSets", "constituencies.geojson")
+  const constituenciesGeojsonPath = join(
+    getBaseDir(),
+    "resources",
+    "areaSets",
+    "constituencies.geojson",
+  );
   if (!fs.existsSync(constituenciesGeojsonPath)) {
     logger.error(
-      `File not found: ${constituenciesGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::westminster-parliamentary-constituencies-july-2024-boundaries-uk-bgc-2/about`
+      `File not found: ${constituenciesGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::westminster-parliamentary-constituencies-july-2024-boundaries-uk-bgc-2/about`,
     );
     return;
   }

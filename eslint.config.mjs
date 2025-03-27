@@ -12,7 +12,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: [".next", "src/__generated__"]
+    ignores: [".next", "src/__generated__"],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   ...tseslint.configs.strict,
@@ -51,7 +51,7 @@ const eslintConfig = [
         },
       ],
     },
-  }
+  },
 ];
 
 export default eslintConfig;

@@ -11,7 +11,7 @@ export default function NProgressProvider({
 }) {
   const pathname = usePathname();
   useEffect(() => {
-    nProgress.done()
-  }, [pathname])
-  return children
+    nProgress.done();
+  }, [pathname]);
+  return children;
 }

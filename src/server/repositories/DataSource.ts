@@ -13,7 +13,10 @@ export function listDataSources() {
   return db.selectFrom("dataSource").selectAll().execute();
 }
 
-export async function updateDataSource(id: string, updateWith: DataSourceUpdate) {
+export async function updateDataSource(
+  id: string,
+  updateWith: DataSourceUpdate,
+) {
   await db
     .updateTable("dataSource")
     .set(updateWith)

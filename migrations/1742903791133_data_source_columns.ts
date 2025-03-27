@@ -4,9 +4,7 @@ import { Kysely } from "kysely";
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("dataSource")
-    .addColumn("columnDefs", "jsonb", (col) =>
-      col.notNull().defaultTo("[]")
-    )
+    .addColumn("columnDefs", "jsonb", (col) => col.notNull().defaultTo("[]"))
     .execute();
 }
 

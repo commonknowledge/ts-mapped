@@ -7,9 +7,10 @@ const defaultQueue = process.env.DEFAULT_QUEUE_NAME || "default";
 const boss = new PgBoss(process.env.DATABASE_URL ?? "");
 boss.on("error", logger.error);
 
-const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> = {
-  importDataSource
-}
+const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
+  {
+    importDataSource,
+  };
 
 let startedQueues: Record<string, boolean> | null = null;
 const ensureQueue = async (queue: string) => {
@@ -26,7 +27,7 @@ const ensureQueue = async (queue: string) => {
 export const enqueue = async (
   task: string,
   args: object,
-  queue: string = defaultQueue
+  queue: string = defaultQueue,
 ) => {
   await ensureQueue(queue);
   await boss.send(queue, { task, args });

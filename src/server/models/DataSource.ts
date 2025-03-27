@@ -10,9 +10,9 @@ import { z } from "zod";
 import { ColumnType } from "@/__generated__/types";
 
 export type ColumnDefs = {
-  name: string
-  type: ColumnType
-}[]
+  name: string;
+  type: ColumnType;
+}[];
 
 const AirtableConfigSchema = z.object({
   type: z.literal("airtable"),

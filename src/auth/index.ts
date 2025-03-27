@@ -9,16 +9,16 @@ export const getServerSession = async (): Promise<ServerSession> => {
   const cookieStore = await cookies();
   const authCookie = cookieStore.get("JWT");
   if (!authCookie || !authCookie.value) {
-    return defaultSession
+    return defaultSession;
   }
   try {
     const jwt = verify(authCookie.value, process.env.JWT_SECRET || "");
     if (jwt && typeof jwt === "object") {
-      return { jwt: authCookie.value, currentUser: { id: jwt.id } }
+      return { jwt: authCookie.value, currentUser: { id: jwt.id } };
     }
   } catch (e) {
     const error = getErrorMessage(e);
     logger.warn(`Failed to decode JWT: ${error}`);
   }
-  return defaultSession
+  return defaultSession;
 };

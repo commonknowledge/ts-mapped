@@ -6,7 +6,7 @@ export interface BoundingBox {
 }
 
 export interface CurrentUser {
-  id: string
+  id: string;
 }
 
 export interface GeocodeResult {

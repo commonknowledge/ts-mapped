@@ -1,7 +1,7 @@
 import { Command } from "commander";
-import importConstituencies from "@/server/commands/importConstituencies"
+import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
-import importOutputAreas from "@/server/commands/importOutputAreas"
+import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
 import importDataSource from "@/server/jobs/importDataSource";
 import { db } from "@/server/services/database";
@@ -15,7 +15,6 @@ program
   .action(async () => {
     await importConstituencies();
   });
-
 
 program
   .command("importDataSource <dataSourceId>")
@@ -54,7 +53,7 @@ program
   });
 
 program.hook("postAction", async () => {
-  await db.destroy()
+  await db.destroy();
 });
 
 program.parse(process.argv);

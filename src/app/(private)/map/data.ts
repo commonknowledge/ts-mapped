@@ -7,20 +7,18 @@ import {
 } from "@/__generated__/types";
 
 export const useDataSourcesQuery = () =>
-  useQuery<DataSourcesQuery>(
-    gql`
-      query DataSources {
-        dataSources {
-          id
+  useQuery<DataSourcesQuery>(gql`
+    query DataSources {
+      dataSources {
+        id
+        name
+        columnDefs {
           name
-          columnDefs {
-            name
-            type
-          }
+          type
         }
       }
-    `
-  );
+    }
+  `);
 
 export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) =>
   useQuery<MarkersQuery>(
@@ -44,7 +42,7 @@ export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) =>
         dataSourceId,
       },
       skip: !dataSourceId,
-    }
+    },
   );
 
 export const useAreaStatsQuery = ({
@@ -100,5 +98,5 @@ export const useAreaStatsQuery = ({
       },
       skip: !dataSourceId || !column,
       notifyOnNetworkStatusChange: true,
-    }
+    },
   );

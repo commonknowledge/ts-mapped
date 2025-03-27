@@ -5,11 +5,14 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("dataSource")
     .addColumn("geocodingConfig", "jsonb", (col) =>
-      col.notNull().defaultTo("{}")
+      col.notNull().defaultTo("{}"),
     )
     .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.alterTable("dataSource").dropColumn("geocodingConfig").execute();
+  await db.schema
+    .alterTable("dataSource")
+    .dropColumn("geocodingConfig")
+    .execute();
 }

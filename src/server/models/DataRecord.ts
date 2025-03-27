@@ -11,7 +11,7 @@ export interface DataRecordTable {
   id: Generated<string>;
   externalId: string;
   json: JSONColumnType<Record<string, unknown>>;
-  mappedJson: JSONColumnType<{ geocodeResult: GeocodeResult | null }>
+  mappedJson: JSONColumnType<{ geocodeResult: GeocodeResult | null }>;
   dataSourceId: string;
 }
 

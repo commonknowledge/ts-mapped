@@ -8,6 +8,11 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Unauthorized", { status: 403 });
   }
   const cookieStore = await cookies();
-  cookieStore.set("JWT", sign({ id: "fake" }, process.env.JWT_SECRET || "", { expiresIn: 24 * 60 * 60 }));
+  cookieStore.set(
+    "JWT",
+    sign({ id: "fake" }, process.env.JWT_SECRET || "", {
+      expiresIn: 24 * 60 * 60,
+    }),
+  );
   return new NextResponse();
 }

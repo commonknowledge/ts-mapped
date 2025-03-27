@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useContext } from "react"
-import { ServerSessionContext } from "./providers/ServerSessionProvider"
+import { useContext } from "react";
+import { ServerSessionContext } from "./providers/ServerSessionProvider";
 
 export const useCurrentUser = () => {
-  return useContext(ServerSessionContext).currentUser
-}
+  return useContext(ServerSessionContext).currentUser;
+};

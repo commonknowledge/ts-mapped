@@ -18,13 +18,19 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("name", "text", (col) => col.notNull())
     .addColumn("geography", sql`geography`, (col) => col.notNull())
     .addColumn("areaSetId", "bigint", (col) => col.notNull())
-		.addUniqueConstraint("areaUnique", ["code", "areaSetId"])
-		.addForeignKeyConstraint("areaSetIdFKey", ["areaSetId"], "areaSet", ["id"], 
-      (cb) => cb.onDelete("cascade").onUpdate("cascade")
+    .addUniqueConstraint("areaUnique", ["code", "areaSetId"])
+    .addForeignKeyConstraint(
+      "areaSetIdFKey",
+      ["areaSetId"],
+      "areaSet",
+      ["id"],
+      (cb) => cb.onDelete("cascade").onUpdate("cascade"),
     )
     .execute();
 
-	await sql`CREATE INDEX area_geography_gist ON area USING GIST (geography)`.execute(db);
+  await sql`CREATE INDEX area_geography_gist ON area USING GIST (geography)`.execute(
+    db,
+  );
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

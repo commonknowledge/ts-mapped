@@ -34,7 +34,7 @@ export default function MapPage() {
   // The Map layer is defined by the user config and the zoom level
   const choroplethLayerConfig = getChoroplethLayerConfig(
     mapConfig.areaSetGroupCode,
-    zoom
+    zoom,
   );
 
   /* GraphQL data */
@@ -69,14 +69,14 @@ export default function MapPage() {
       });
     }
 
-    areaStatsData.areaStats.stats.forEach((stat, i) => {
+    areaStatsData.areaStats.stats.forEach((stat) => {
       mapRef.current?.setFeatureState(
         {
           source: choroplethLayerConfig.mapbox.sourceId,
           sourceLayer: choroplethLayerConfig.mapbox.layerId,
           id: stat.areaCode,
         },
-        stat
+        stat,
       );
     });
   }, [areaStatsData, lastLoadedSourceId, choroplethLayerConfig]);

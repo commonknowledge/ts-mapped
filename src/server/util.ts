@@ -1,9 +1,9 @@
-import { dirname } from "path"
+import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 export const getBaseDir = () => {
   return dirname(dirname(dirname(fileURLToPath(import.meta.url))));
-}
+};
 
 export const getErrorMessage = (e: unknown) => {
   if (e && typeof e === "object" && "message" in e && e.message) {

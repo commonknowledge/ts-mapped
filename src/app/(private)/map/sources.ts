@@ -28,7 +28,10 @@ export interface ChoroplethLayerConfig {
 }
 
 // Configs within a group should be in ascending order of minZoom
-const CHOROPLETH_LAYER_CONFIGS: Record<AreaSetGroupCode, ChoroplethLayerConfig[]> = {
+const CHOROPLETH_LAYER_CONFIGS: Record<
+  AreaSetGroupCode,
+  ChoroplethLayerConfig[]
+> = {
   WMC24: [
     {
       areaSetCode: AreaSetCode.WMC24,
@@ -72,13 +75,13 @@ const CHOROPLETH_LAYER_CONFIGS: Record<AreaSetGroupCode, ChoroplethLayerConfig[]
   ],
 };
 
-export const MAPBOX_SOURCE_IDS = Object.values(CHOROPLETH_LAYER_CONFIGS).flatMap(
-  (sources) => sources.map((source) => source.mapbox.sourceId)
-);
+export const MAPBOX_SOURCE_IDS = Object.values(
+  CHOROPLETH_LAYER_CONFIGS,
+).flatMap((sources) => sources.map((source) => source.mapbox.sourceId));
 
 export const getChoroplethLayerConfig = (
   areaSetGroupCode: AreaSetGroupCode,
-  zoom: number
+  zoom: number,
 ) => {
   const sources = CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode] || [];
   for (const source of sources) {
