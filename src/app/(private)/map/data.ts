@@ -24,17 +24,7 @@ export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) =>
   useQuery<MarkersQuery>(
     gql`
       query Markers($dataSourceId: String!) {
-        markers(dataSourceId: $dataSourceId) {
-          type
-          features {
-            type
-            properties
-            geometry {
-              type
-              coordinates
-            }
-          }
-        }
+        markers(dataSourceId: $dataSourceId)
       }
     `,
     {

@@ -4,10 +4,42 @@ import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
 import importDataSource from "@/server/jobs/importDataSource";
+import {
+  DataSourceConfigSchema,
+  DataSourceGeocodingConfigSchema,
+} from "@/server/models/DataSource";
+import { createDataSource } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
+import logger from "@/server/services/logger";
 import { runWorker } from "@/server/services/queue";
 
 const program = new Command();
+
+program
+  .command("createDataSource")
+  .option("--name <name>", "The data source name")
+  .option("--config <config>", "The data source config, as JSON")
+  .option(
+    "--geocoding-config <geocodingConfig>",
+    "The data source geocoding config, as JSON",
+  )
+  .description("Create and import a data source")
+  .action(async (options) => {
+    const parsedConfig = DataSourceConfigSchema.parse(
+      JSON.parse(options.config),
+    );
+    const parsedGeocodingConfig = DataSourceGeocodingConfigSchema.parse(
+      JSON.parse(options.geocodingConfig),
+    );
+    const dataSource = await createDataSource({
+      name: options.name,
+      config: JSON.stringify(parsedConfig),
+      geocodingConfig: JSON.stringify(parsedGeocodingConfig),
+      columnDefs: "{}",
+    });
+    logger.info(`Created data source ${options.name}, ID ${dataSource.id}`);
+    await importDataSource({ dataSourceId: dataSource.id });
+  });
 
 program
   .command("importConstituencies")

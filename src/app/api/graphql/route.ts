@@ -3,12 +3,7 @@ import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { gql } from "graphql-tag";
 import GraphQLJSON from "graphql-type-json";
 import { NextRequest } from "next/server";
-import {
-  GeoJsonFeatureType,
-  GeoJsonGeometryType,
-  GeoJsonType,
-  Operation,
-} from "@/__generated__/types";
+import { Operation } from "@/__generated__/types";
 import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
 import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
@@ -65,34 +60,6 @@ const typeDefs = gql`
     createdAt: String!
   }
 
-  enum GeoJSONType {
-    FeatureCollection
-  }
-
-  type GeoJSON {
-    type: GeoJSONType!
-    features: [GeoJSONFeature!]!
-  }
-
-  enum GeoJSONFeatureType {
-    Feature
-  }
-
-  type GeoJSONFeature {
-    type: GeoJSONFeatureType!
-    properties: JSON!
-    geometry: GeoJSONGeometry!
-  }
-
-  enum GeoJSONGeometryType {
-    Point
-  }
-
-  type GeoJSONGeometry {
-    type: GeoJSONGeometryType!
-    coordinates: [Float!]!
-  }
-
   enum Operation {
     AVG
     SUM
@@ -107,9 +74,16 @@ const typeDefs = gql`
       excludeColumns: [String!]!
       boundingBox: BoundingBox
     ): AreaStats!
+
     dataSource(id: String!): DataSource
     dataSources: [DataSource!]!
-    markers(dataSourceId: String!): GeoJSON!
+
+    """
+    markers is untyped for performance - objects are
+    denormalized in the Apollo client cache, which is slow
+    (and unnecessary) for 100,000+ markers.
+    """
+    markers(dataSourceId: String!): JSON!
   }
 
   type CreateDataSourceResponse {
@@ -189,16 +163,16 @@ const resolvers: Resolvers = {
             ? [centralPoint.lng, centralPoint.lat]
             : []; // Will never happen because of above filter
           return {
-            type: GeoJsonFeatureType.Feature,
+            type: "Feature",
             properties: dr.json,
             geometry: {
-              type: GeoJsonGeometryType.Point,
+              type: "Point",
               coordinates,
             },
           };
         });
       return {
-        type: GeoJsonType.FeatureCollection,
+        type: "FeatureCollection",
         features,
       };
     },
