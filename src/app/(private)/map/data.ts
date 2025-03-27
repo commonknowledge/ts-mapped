@@ -76,8 +76,12 @@ export const useAreaStatsQuery = ({
           excludeColumns: $excludeColumns
           boundingBox: $boundingBox
         ) {
-          areaCode
-          value
+          column
+          columnType
+          stats {
+            areaCode
+            value
+          }
         }
       }
     `,

@@ -52,6 +52,7 @@ export default function Controls({
           onChange={(e) => onChange({ areaDataColumn: e.target.value })}
         >
           <option value="">Select a data column</option>
+          <option value="__maxColumn">Highest-value column</option>
           {dataSource.columnDefs
             .filter((cd) => cd.type === ColumnType.Number)
             .map((cd: { name: string }) => (

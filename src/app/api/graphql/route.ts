@@ -30,6 +30,12 @@ const typeDefs = gql`
     value: JSON!
   }
 
+  type AreaStats {
+    column: String!
+    columnType: ColumnType!
+    stats: [AreaStat!]!
+  }
+
   input BoundingBox {
     north: Float!
     east: Float!
@@ -100,7 +106,7 @@ const typeDefs = gql`
       operation: Operation!
       excludeColumns: [String!]!
       boundingBox: BoundingBox
-    ): [AreaStat!]!
+    ): AreaStats!
     dataSource(id: String!): DataSource
     dataSources: [DataSource!]!
     markers(dataSourceId: String!): GeoJSON!

@@ -69,7 +69,7 @@ export default function MapPage() {
       });
     }
 
-    areaStatsData.areaStats.forEach((stat) => {
+    areaStatsData.areaStats.stats.forEach((stat, i) => {
       mapRef.current?.setFeatureState(
         {
           source: choroplethLayerConfig.mapbox.sourceId,

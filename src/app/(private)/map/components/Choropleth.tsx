@@ -1,7 +1,8 @@
-import { scaleLinear, scaleSequential } from "d3-scale";
-import { interpolateOrRd } from "d3-scale-chromatic";
+import { scaleLinear, scaleOrdinal, scaleSequential } from "d3-scale";
+import { interpolateOrRd, schemeCategory10 } from "d3-scale-chromatic";
+import { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { AreaStat } from "@/__generated__/types";
+import { AreaStat, ColumnType } from "@/__generated__/types";
 import { ChoroplethLayerConfig } from "@/app/(private)/map/sources";
 
 export default function Choropleth({
@@ -10,16 +11,35 @@ export default function Choropleth({
     mapbox: { featureCodeProperty, featureNameProperty, layerId, sourceId },
   },
 }: {
-  areaStats: AreaStat[] | undefined;
+  areaStats: { columnType: ColumnType; stats: AreaStat[] } | undefined;
   choroplethLayerConfig: ChoroplethLayerConfig;
 }) {
-  const getColorStops = (areaStats: AreaStat[] | undefined) => {
-    const defaultStops = [0, "rgba(0, 0, 0, 0)"];
+  const getFillColor = (
+  ): DataDrivenPropertyValueSpecification<string> => {
+    const defaultFillColor = "rgba(0, 0, 0, 0)";
     if (!areaStats) {
-      return defaultStops;
+      return defaultFillColor
     }
 
-    const values = areaStats.map((stat) => stat.value);
+    if (areaStats.columnType !== ColumnType.Number) {
+      const distinctValues = new Set(
+        areaStats.stats.map((v) => String(v.value))
+      );
+      const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
+      const ordinalColorStops = []
+      distinctValues.forEach((v) => {
+        ordinalColorStops.push(v);
+        ordinalColorStops.push(colorScale(v));
+      });
+      ordinalColorStops.push(defaultFillColor)
+      return [
+        "match",
+        ["feature-state", "value"],
+        ...ordinalColorStops
+      ];
+    }
+
+    const values = areaStats.stats.map((stat) => stat.value);
     let minValue = null;
     let maxValue = null;
     for (const v of values) {
@@ -32,7 +52,7 @@ export default function Choropleth({
     }
 
     if (minValue === maxValue) {
-      return defaultStops;
+      return defaultFillColor;
     }
 
     const numSteps = 30;
@@ -44,11 +64,19 @@ export default function Choropleth({
       .domain([minValue, maxValue])
       .interpolator(interpolateOrRd);
 
-    return new Array(numSteps).fill(null).flatMap((_, i) => {
+    const interpolateColorStops = new Array(numSteps).fill(null).flatMap((_, i) => {
       const step = stepScale(i);
       return [step, colorScale(step)];
     });
+
+    return [
+      "interpolate",
+      ["linear"],
+      ["to-number", ["feature-state", "value"], 0],
+      ...interpolateColorStops,
+    ];
   };
+
   return (
     <Source
       id={sourceId}
@@ -64,12 +92,7 @@ export default function Choropleth({
         source-layer={layerId}
         type="fill"
         paint={{
-          "fill-color": [
-            "interpolate",
-            ["linear"],
-            ["to-number", ["feature-state", "value"], 0],
-            ...getColorStops(areaStats),
-          ],
+          "fill-color": getFillColor(),
           "fill-opacity": 0.5,
         }}
       />

@@ -24,6 +24,13 @@ export type AreaStat = {
   value: Scalars['JSON']['output'];
 };
 
+export type AreaStats = {
+  __typename?: 'AreaStats';
+  column: Scalars['String']['output'];
+  columnType: ColumnType;
+  stats: Array<AreaStat>;
+};
+
 export type BoundingBox = {
   east: Scalars['Float']['input'];
   north: Scalars['Float']['input'];
@@ -122,7 +129,7 @@ export enum Operation {
 
 export type Query = {
   __typename?: 'Query';
-  areaStats: Array<AreaStat>;
+  areaStats: AreaStats;
   dataSource?: Maybe<DataSource>;
   dataSources: Array<DataSource>;
   markers: GeoJson;
@@ -151,7 +158,7 @@ export type QueryMarkersArgs = {
 export type ListDataSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListDataSourcesQuery = { __typename?: 'Query', dataSources: Array<{ __typename?: 'DataSource', id: string, name: string, config: any }> };
+export type ListDataSourcesQuery = { __typename?: 'Query', dataSources: Array<{ __typename?: 'DataSource', id: string, name: string, config: any, createdAt: string }> };
 
 export type DataSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -175,7 +182,7 @@ export type AreaStatsQueryVariables = Exact<{
 }>;
 
 
-export type AreaStatsQuery = { __typename?: 'Query', areaStats: Array<{ __typename?: 'AreaStat', areaCode: string, value: any }> };
+export type AreaStatsQuery = { __typename?: 'Query', areaStats: { __typename?: 'AreaStats', column: string, columnType: ColumnType, stats: Array<{ __typename?: 'AreaStat', areaCode: string, value: any }> } };
 
 
 
@@ -249,6 +256,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   AreaStat: ResolverTypeWrapper<AreaStat>;
+  AreaStats: ResolverTypeWrapper<AreaStats>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   BoundingBox: BoundingBox;
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
@@ -274,6 +282,7 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   AreaStat: AreaStat;
+  AreaStats: AreaStats;
   Boolean: Scalars['Boolean']['output'];
   BoundingBox: BoundingBox;
   ColumnDef: ColumnDef;
@@ -294,6 +303,13 @@ export type ResolversParentTypes = {
 export type AreaStatResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['AreaStat'] = ResolversParentTypes['AreaStat']> = {
   areaCode?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   value?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type AreaStatsResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['AreaStats'] = ResolversParentTypes['AreaStats']> = {
+  column?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  columnType?: Resolver<ResolversTypes['ColumnType'], ParentType, ContextType>;
+  stats?: Resolver<Array<ResolversTypes['AreaStat']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -352,7 +368,7 @@ export type MutationResponseResolvers<ContextType = GraphQLContext, ParentType e
 };
 
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  areaStats?: Resolver<Array<ResolversTypes['AreaStat']>, ParentType, ContextType, RequireFields<QueryAreaStatsArgs, 'areaSetCode' | 'column' | 'dataSourceId' | 'excludeColumns' | 'operation'>>;
+  areaStats?: Resolver<ResolversTypes['AreaStats'], ParentType, ContextType, RequireFields<QueryAreaStatsArgs, 'areaSetCode' | 'column' | 'dataSourceId' | 'excludeColumns' | 'operation'>>;
   dataSource?: Resolver<Maybe<ResolversTypes['DataSource']>, ParentType, ContextType, RequireFields<QueryDataSourceArgs, 'id'>>;
   dataSources?: Resolver<Array<ResolversTypes['DataSource']>, ParentType, ContextType>;
   markers?: Resolver<ResolversTypes['GeoJSON'], ParentType, ContextType, RequireFields<QueryMarkersArgs, 'dataSourceId'>>;
@@ -360,6 +376,7 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
 
 export type Resolvers<ContextType = GraphQLContext> = {
   AreaStat?: AreaStatResolvers<ContextType>;
+  AreaStats?: AreaStatsResolvers<ContextType>;
   ColumnDef?: ColumnDefResolvers<ContextType>;
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;

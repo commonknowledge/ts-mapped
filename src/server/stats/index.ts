@@ -15,14 +15,15 @@ export const getAreaStats = async (
   operation: Operation,
   excludeColumns: string[],
   boundingBox: BoundingBox | null = null
-): Promise<AreaStat[]> => {
+): Promise<{ column: string, columnType: ColumnType, stats: AreaStat[] }> => {
   // Ensure areaSetCode is valid as it will be used in a raw SQL query
   if (!(await findAreaSetByCode(areaSetCode))) {
-    return [];
+    return { column, columnType: ColumnType.Unknown, stats: [] };
   }
 
-  if (column === "maxColumn") {
-    return getMaxColumnByArea(areaSetCode, dataSourceId, excludeColumns, boundingBox);
+  if (column === "__maxColumn") {
+    const stats = await getMaxColumnByArea(areaSetCode, dataSourceId, excludeColumns, boundingBox);
+    return { column, columnType: ColumnType.String, stats }
   }
 
   const query = db
@@ -39,12 +40,13 @@ export const getAreaStats = async (
 
   try {
     const result = await query.execute();
-    return filterResult(result);
+    const stats = filterResult(result);
+    return { column, columnType: ColumnType.Number, stats }
   } catch (e) {
     const error = getErrorMessage(e);
     logger.error(`Failed to get area stats: ${error}`);
   }
-  return [];
+  return { column, columnType: ColumnType.Unknown, stats: [] };
 };
 
 export const getMaxColumnByArea = async (

@@ -20,9 +20,9 @@ function makeClient(jwt: string | null) {
   return new ApolloClient({
     cache: new InMemoryCache({
       typePolicies: {
-        Query: {
+        AreaStats: {
           fields: {
-            areaStats: {
+            stats: {
               // Use all argument values except boundingBox
               // so results for different bounding boxes are merged.
               keyArgs: (args) => {
