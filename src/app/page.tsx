@@ -1,6 +1,6 @@
 import { Link } from "@/components/Link";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <div className="container">
       <h1>Hello Mapped</h1>

@@ -1,453 +1,115 @@
 "use client";
 
-import { gql, useQuery } from "@apollo/client";
-import { scaleLinear, scaleSequential } from "d3-scale";
-import { interpolateOrRd } from "d3-scale-chromatic";
 import { useEffect, useRef, useState } from "react";
-import MapGL, { Layer, MapRef, Popup, Source } from "react-map-gl/mapbox";
+import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { AreaStatsQuery, ColumnType, DataSourcesQuery, MarkersQuery, Operation } from "@/__generated__/types";
-import styles from "./page.module.css";
+import { MarkerData } from "@/types";
+import Choropleth from "./Choropleth";
+import Controls, { MapConfig } from "./Controls";
 import {
-  AREA_SET_GROUP_LABELS,
-  AreaSetGroupCode,
-  MAPBOX_SOURCE_IDS,
-  getMapSource,
-} from "./sources";
-
-interface MarkerData {
-  id: number;
-  properties: Record<string, unknown>;
-  coordinates: number[];
-}
+  useAreaStatsQuery,
+  useDataSourcesQuery,
+  useMarkersQuery,
+} from "./data";
+import Map from "./Map";
+import Markers from "./Markers";
+import styles from "./page.module.css";
+import { getChoroplethLayerConfig } from "./sources";
 
 const DEFAULT_ZOOM = 5;
 
-export default function Map() {
+export default function MapPage() {
+  /* Map state */
   const mapRef = useRef<MapRef>(null);
-  const [markersDataSourceId, setMarkersDataSourceId] = useState<string>("");
-  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
-  const [areaDataSourceId, setAreaDataSourceId] = useState<string>("");
-  const [areaSetGroupCode, setAreaSetGroupCode] =
-    useState<AreaSetGroupCode>("WMC24");
-  const [areaSetColumn, setAreaSetColumn] = useState<string>("");
+  // Storing the last loaded source triggers re-renders when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
   >();
+  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
-  const {
-    mapboxSourceId,
-    mapboxLayerId,
-    nameProperty,
-    codeProperty,
-    areaSetCode,
-    minZoom,
-  } = getMapSource(areaSetGroupCode, zoom);
-  const requiresBoundingBox = minZoom >= 10;
+  /* Controls State */
+  const [mapConfig, setMapConfig] = useState<MapConfig>(new MapConfig());
 
-  const { data: dataSourcesData, loading: dataSourcesLoading } =
-    useQuery<DataSourcesQuery>(
-      gql`
-        query DataSources {
-          dataSources {
-            id
-            name
-            columnDefs {
-              name
-              type
-            }
-          }
-        }
-      `
-    );
-
-  const { data: markersData, loading: markersLoading } = useQuery<MarkersQuery>(
-    gql`
-      query Markers($dataSourceId: String!) {
-        markers(dataSourceId: $dataSourceId) {
-          type
-          features {
-            type
-            properties
-            geometry {
-              type
-              coordinates
-            }
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        dataSourceId: markersDataSourceId,
-      },
-      skip: !markersDataSourceId,
-    }
+  // The Map layer is defined by the user config and the zoom level
+  const choroplethLayerConfig = getChoroplethLayerConfig(
+    mapConfig.areaSetGroupCode,
+    zoom
   );
+
+  /* GraphQL data */
+  const { data: dataSourcesData, loading: dataSourcesLoading } =
+    useDataSourcesQuery();
+
+  const { data: markersData, loading: markersLoading } = useMarkersQuery({
+    dataSourceId: mapConfig.markersDataSourceId,
+  });
 
   const {
     data: areaStatsData,
     loading: areaStatsLoading,
     fetchMore: areaStatsFetchMore,
-  } = useQuery<AreaStatsQuery>(
-    gql`
-      query AreaStats(
-        $areaSetCode: String!
-        $dataSourceId: String!
-        $column: String!
-        $operation: Operation!
-        $excludeColumns: [String!]!
-        $boundingBox: BoundingBox
-      ) {
-        areaStats(
-          areaSetCode: $areaSetCode
-          dataSourceId: $dataSourceId
-          column: $column
-          operation: $operation
-          excludeColumns: $excludeColumns
-          boundingBox: $boundingBox
-        ) {
-          areaCode
-          value
-        }
-      }
-    `,
-    {
-      variables: {
-        areaSetCode: areaSetCode,
-        dataSourceId: areaDataSourceId,
-        column: areaSetColumn,
-        operation: Operation.Avg,
-        excludeColumns: ["segment", "f1", "f2"],
-        // A dummy boundingBox is required here for fetchMore() to update this query's data
-        boundingBox: requiresBoundingBox
-          ? { north: 0, east: 0, south: 0, west: 0 }
-          : null,
-      },
-      skip: !areaDataSourceId || !areaSetColumn,
-      notifyOnNetworkStatusChange: true,
-    }
-  );
+  } = useAreaStatsQuery({
+    areaSetCode: choroplethLayerConfig.areaSetCode,
+    dataSourceId: mapConfig.areaDataSourceId,
+    column: mapConfig.areaDataColumn,
+    useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
+  });
 
+  /* Set Mapbox feature state on receiving new AreaStats */
   useEffect(() => {
     if (!areaStatsData) {
       return;
     }
 
-    if (mapRef.current?.getSource(mapboxSourceId)) {
+    if (mapRef.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
       mapRef.current?.removeFeatureState({
-        source: mapboxSourceId,
-        sourceLayer: mapboxLayerId,
+        source: choroplethLayerConfig.mapbox.sourceId,
+        sourceLayer: choroplethLayerConfig.mapbox.layerId,
       });
     }
 
     areaStatsData.areaStats.forEach((stat) => {
       mapRef.current?.setFeatureState(
         {
-          source: mapboxSourceId,
-          sourceLayer: mapboxLayerId,
+          source: choroplethLayerConfig.mapbox.sourceId,
+          sourceLayer: choroplethLayerConfig.mapbox.layerId,
           id: stat.areaCode,
         },
         stat
       );
     });
-  }, [areaStatsData, lastLoadedSourceId, mapboxLayerId, mapboxSourceId]);
-
-  const getColorStops = () => {
-    const defaultStops = [0, "rgba(0, 0, 0, 0)"];
-    if (!areaStatsData) {
-      return defaultStops;
-    }
-
-    const values = areaStatsData.areaStats.map((stat) => stat.value);
-    let minValue = null;
-    let maxValue = null;
-    for (const v of values) {
-      if (minValue === null || v < minValue) {
-        minValue = v;
-      }
-      if (maxValue === null || v > maxValue) {
-        maxValue = v;
-      }
-    }
-
-    if (minValue === maxValue) {
-      return defaultStops;
-    }
-
-    const numSteps = 30;
-    const stepScale = scaleLinear()
-      .domain([0, numSteps - 1])
-      .range([minValue, maxValue]);
-
-    const colorScale = scaleSequential()
-      .domain([minValue, maxValue])
-      .interpolator(interpolateOrRd);
-
-    return new Array(numSteps).fill(null).flatMap((_, i) => {
-      const step = stepScale(i);
-      return [step, colorScale(step)];
-    });
-  };
+  }, [areaStatsData, lastLoadedSourceId, choroplethLayerConfig]);
 
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
-  const dataSources = dataSourcesData?.dataSources || [];
-  const dataSource = dataSources.find(
-    (ds: { id: string }) => ds.id === areaDataSourceId
-  );
-  const markers = markersData?.markers || {
-    type: "FeatureCollection",
-    features: [],
-  };
-
   return (
     <div className={styles.map}>
-      <MapGL
-        initialViewState={{
-          longitude: -4.5481, // 54.2361° N, 4.5481° W
-          latitude: 54.2361,
-          zoom: DEFAULT_ZOOM,
+      <Map
+        onClickMarker={(markerData) => setSelectedMarker(markerData)}
+        onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+        onMoveEnd={async (boundingBox, zoom) => {
+          setZoom(zoom);
+          if (boundingBox && choroplethLayerConfig.requiresBoundingBox) {
+            await areaStatsFetchMore({ variables: { boundingBox } });
+          }
         }}
         ref={mapRef}
-        style={{ flexGrow: 1 }}
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-        mapStyle="mapbox://styles/mapbox/streets-v9"
-        onClick={(e) => {
-          const map = e.target;
-          const features = map.queryRenderedFeatures(e.point, {
-            layers: ["markers-pins"],
-          });
-          if (features.length && features[0].geometry.type === "Point") {
-            setSelectedMarker({
-              id: 1,
-              properties: features[0].properties || {},
-              coordinates: features[0].geometry.coordinates,
-            });
-          } else {
-            setSelectedMarker(null);
-          }
-        }}
-        onLoad={() => {
-          const map = mapRef.current;
-          if (!map) {
-            return;
-          }
-          const imageURL = "/map-pin.png";
-          map.loadImage(imageURL, (error, image) => {
-            if (error) {
-              console.error(`Could not load image ${imageURL}: ${error}`);
-            }
-            if (image && !map.hasImage("map-pin")) {
-              map.addImage("map-pin", image);
-            }
-          });
-        }}
-        onMoveEnd={async (e) => {
-          setZoom(e.viewState.zoom);
-          const bounds = e.target.getBounds();
-          if (bounds && requiresBoundingBox) {
-            await areaStatsFetchMore({
-              variables: {
-                boundingBox: {
-                  north: bounds.getNorth(),
-                  east: bounds.getEast(),
-                  south: bounds.getSouth(),
-                  west: bounds.getWest(),
-                },
-              },
-            });
-          }
-        }}
-        onSourceData={(e) => {
-          // Trigger a re-render when known Map sources load
-          if (e.sourceId && MAPBOX_SOURCE_IDS.includes(e.sourceId)) {
-            setLastLoadedSourceId(e.sourceId);
-          }
-        }}
       >
-        <Source
-          id={mapboxSourceId}
-          key={mapboxSourceId}
-          promoteId={codeProperty}
-          type="vector"
-          url={`mapbox://${mapboxSourceId}`}
-        >
-          {/* Fill Layer */}
-          <Layer
-            id={`${mapboxSourceId}-fill`}
-            source={mapboxSourceId}
-            source-layer={mapboxLayerId}
-            type="fill"
-            paint={{
-              "fill-color": [
-                "interpolate",
-                ["linear"],
-                ["to-number", ["feature-state", "value"], 0],
-                ...getColorStops(),
-              ],
-              "fill-opacity": 0.5,
-            }}
-          />
-
-          {/* Line Layer */}
-          <Layer
-            id={`${mapboxSourceId}-line`}
-            source={mapboxSourceId}
-            source-layer={mapboxLayerId}
-            type="line"
-            paint={{
-              "line-color": "#000",
-              "line-width": 2,
-            }}
-          />
-
-          {/* Symbol Layer (Labels) */}
-          <Layer
-            id={`${mapboxSourceId}-labels`}
-            source={mapboxSourceId}
-            source-layer={mapboxLayerId}
-            type="symbol"
-            layout={{
-              "symbol-placement": "point",
-              "text-field": ["get", nameProperty],
-              "text-size": 14,
-              "text-anchor": "center",
-            }}
-            paint={{
-              "text-color": "#ffffff",
-              "text-halo-color": "#000000",
-              "text-halo-width": 1.5,
-            }}
-          />
-        </Source>
-
-        <Source
-          id="markers"
-          key="markers"
-          type="geojson"
-          data={markers}
-          cluster={true}
-          clusterMaxZoom={14}
-          clusterRadius={50}
-        >
-          <Layer
-            id="markers-circles"
-            type="circle"
-            source="markers"
-            filter={["has", "point_count"]}
-            paint={{
-              "circle-color": "rgba(255, 0, 0, 0.25)",
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "point_count"],
-                1,
-                50,
-                1000,
-                100,
-              ],
-            }}
-          />
-          <Layer
-            id="markers-counts"
-            type="symbol"
-            source="markers"
-            filter={["has", "point_count"]}
-            layout={{
-              "text-field": ["get", "point_count_abbreviated"],
-              "text-size": 12,
-            }}
-          />
-          <Layer
-            id="markers-pins"
-            type="symbol"
-            source="markers"
-            filter={["!", ["has", "point_count"]]}
-            layout={{
-              "icon-image": "map-pin",
-              "icon-anchor": "bottom",
-              "icon-size": [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                0,
-                0.5, // Smaller at low zoom levels
-                10,
-                1.5, // Full size at higher zoom levels
-              ],
-            }}
-          />
-        </Source>
-        {selectedMarker ? (
-          <Popup
-            anchor="top"
-            latitude={selectedMarker.coordinates[1]}
-            longitude={selectedMarker.coordinates[0]}
-            closeOnClick={false}
-            onClose={() => setSelectedMarker(null)}
-          >
-            <div>
-              {Object.keys(selectedMarker.properties).map((key) => (
-                <div key={key}>
-                  {key}: {String(selectedMarker.properties[key])}
-                </div>
-              ))}
-            </div>
-          </Popup>
-        ) : null}
-      </MapGL>
-      <div className={styles.controls}>
-        <select
-          value={markersDataSourceId}
-          onChange={(e) => setMarkersDataSourceId(e.target.value)}
-        >
-          <option value="">Select a markers data source</option>
-          {dataSources.map((ds: { id: string; name: string }) => (
-            <option key={ds.id} value={ds.id}>
-              {ds.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={areaDataSourceId}
-          onChange={(e) => setAreaDataSourceId(e.target.value)}
-        >
-          <option value="">Select an area data source</option>
-          {dataSources.map((ds: { id: string; name: string }) => (
-            <option key={ds.id} value={ds.id}>
-              {ds.name}
-            </option>
-          ))}
-        </select>
-        {dataSource ? (
-          <select
-            value={areaSetColumn}
-            onChange={(e) => setAreaSetColumn(e.target.value)}
-          >
-            <option value="">Select a data column</option>
-            {dataSource.columnDefs
-              .filter((cd) => cd.type === ColumnType.Number)
-              .map((cd: { name: string }) => (
-                <option key={cd.name} value={cd.name}>
-                  {cd.name}
-                </option>
-              ))}
-          </select>
-        ) : null}
-        <select
-          value={areaSetGroupCode}
-          onChange={(e) =>
-            setAreaSetGroupCode(e.target.value as AreaSetGroupCode)
-          }
-        >
-          {Object.keys(AREA_SET_GROUP_LABELS).map((code) => (
-            <option key={code} value={code}>
-              {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
-            </option>
-          ))}
-        </select>
-      </div>
+        <Choropleth
+          areaStats={areaStatsData?.areaStats}
+          choroplethLayerConfig={choroplethLayerConfig}
+        />
+        <Markers
+          markers={markersData?.markers}
+          selectedMarker={selectedMarker}
+          onCloseSelectedMarker={() => setSelectedMarker(null)}
+        />
+      </Map>
+      <Controls
+        dataSources={dataSourcesData?.dataSources || []}
+        mapConfig={mapConfig}
+        onChange={(nextConfig) => setMapConfig({ ...mapConfig, ...nextConfig })}
+      />
       {loading ? (
         <div className={styles.loading}>
           <div></div>

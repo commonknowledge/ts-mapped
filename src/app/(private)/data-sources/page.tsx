@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client"
 import { getClient } from "@/services/ApolloClient";
 
-export default async function DataSources() {
+export default async function DataSourcesPage() {
   const apolloClient = await getClient()
   const { data } = await apolloClient.query({
     query: gql`

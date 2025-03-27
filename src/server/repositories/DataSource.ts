@@ -9,7 +9,7 @@ export async function findDataSourceById(id: string) {
     .executeTakeFirst();
 }
 
-export async function listDataSources() {
+export function listDataSources() {
   return db.selectFrom("dataSource").selectAll().execute();
 }
 
