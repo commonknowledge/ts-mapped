@@ -49,11 +49,13 @@ export const useAreaStatsQuery = ({
   areaSetCode,
   dataSourceId,
   column,
+  excludeColumns,
   useDummyBoundingBox,
 }: {
   areaSetCode: string;
   dataSourceId: string;
   column: string;
+  excludeColumns: string[];
   useDummyBoundingBox: boolean;
 }) =>
   useQuery<AreaStatsQuery>(
@@ -89,7 +91,7 @@ export const useAreaStatsQuery = ({
         dataSourceId,
         column,
         operation: Operation.Avg,
-        excludeColumns: ["segment", "f1", "f2"],
+        excludeColumns,
         // Using a dummy boundingBox is required for fetchMore() to update this query's data.
         // Note: this makes the first query return no data. Only fetchMore() returns data.
         boundingBox: useDummyBoundingBox

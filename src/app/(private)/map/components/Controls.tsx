@@ -3,13 +3,26 @@ import {
   AREA_SET_GROUP_LABELS,
   AreaSetGroupCode,
 } from "@/app/(private)/map/sources";
+import { MAX_COLUMN_KEY } from "@/constants";
 import styles from "./Controls.module.css";
 
 export class MapConfig {
   public areaDataSourceId = "";
   public areaDataColumn = "";
   public areaSetGroupCode: AreaSetGroupCode = "WMC24";
+  public excludeColumnsString = "";
   public markersDataSourceId = "";
+
+  constructor(params: Partial<MapConfig> = {}) {
+    Object.assign(this, params);
+  }
+
+  getExcludeColumns() {
+    return this.excludeColumnsString
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
 }
 
 export default function Controls({
@@ -55,13 +68,25 @@ export default function Controls({
           onChange={(e) => onChange({ areaDataColumn: e.target.value })}
         >
           <option value="">Select a data column</option>
-          <option value="__maxColumn">Highest-value column</option>
+          <option value={MAX_COLUMN_KEY}>Highest-value column</option>
           {dataSource.columnDefs.map((cd: { name: string }) => (
             <option key={cd.name} value={cd.name}>
               {cd.name}
             </option>
           ))}
         </select>
+      ) : null}
+      {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (
+        <input
+          type="text"
+          onChange={(e) =>
+            onChange({
+              excludeColumnsString: e.target.value,
+            })
+          }
+          placeholder="Comma-separated columns to exclude"
+          value={mapConfig.excludeColumnsString}
+        />
       ) : null}
       <select
         value={mapConfig.areaSetGroupCode}

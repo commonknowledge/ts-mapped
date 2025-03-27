@@ -1,5 +1,6 @@
 import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
 import { AreaStat, ColumnType, Operation } from "@/__generated__/types";
+import { MAX_COLUMN_KEY } from "@/constants";
 import { Database } from "@/server/models";
 import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -21,7 +22,7 @@ export const getAreaStats = async (
     return { column, columnType: ColumnType.Unknown, stats: [] };
   }
 
-  if (column === "__maxColumn") {
+  if (column === MAX_COLUMN_KEY) {
     const stats = await getMaxColumnByArea(
       areaSetCode,
       dataSourceId,

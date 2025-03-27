@@ -28,7 +28,7 @@ export const useColorScheme = (
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
-    if (!areaStats) {
+    if (!areaStats || !areaStats.stats.length) {
       return null;
     }
 
@@ -83,7 +83,7 @@ export const useFillColor = (
   const colorScheme = useColorScheme(areaStats);
   // useMemo to cache calculated fillColor
   return useMemo(() => {
-    if (!areaStats || !colorScheme) {
+    if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
     }
 
@@ -115,5 +115,5 @@ export const useFillColor = (
       ["to-number", ["feature-state", "value"], 0],
       ...interpolateColorStops,
     ];
-  }, [areaStats, colorScheme]);
+  }, [colorScheme]);
 };

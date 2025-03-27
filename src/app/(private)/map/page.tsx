@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { BoundingBox } from "@/__generated__/types";
 import { MarkerData } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls, { MapConfig } from "./components/Controls";
@@ -27,6 +28,7 @@ export default function MapPage() {
     string | undefined
   >();
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
+  const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   /* Controls State */
@@ -54,6 +56,7 @@ export default function MapPage() {
     areaSetCode: choroplethLayerConfig.areaSetCode,
     dataSourceId: mapConfig.areaDataSourceId,
     column: mapConfig.areaDataColumn,
+    excludeColumns: mapConfig.getExcludeColumns(),
     useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
   });
 
@@ -82,6 +85,14 @@ export default function MapPage() {
     });
   }, [areaStatsData, lastLoadedSourceId, choroplethLayerConfig]);
 
+  /* Do fetchMore() (if layer needs it) when bounding box or config changes */
+  useEffect(() => {
+    if (!choroplethLayerConfig.requiresBoundingBox) {
+      return;
+    }
+    areaStatsFetchMore({ variables: { boundingBox } });
+  }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
+
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
@@ -89,10 +100,8 @@ export default function MapPage() {
         onClickMarker={(markerData) => setSelectedMarker(markerData)}
         onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
         onMoveEnd={async (boundingBox, zoom) => {
+          setBoundingBox(boundingBox);
           setZoom(zoom);
-          if (boundingBox && choroplethLayerConfig.requiresBoundingBox) {
-            await areaStatsFetchMore({ variables: { boundingBox } });
-          }
         }}
         ref={mapRef}
       >
@@ -109,7 +118,9 @@ export default function MapPage() {
       <Controls
         dataSources={dataSourcesData?.dataSources || []}
         mapConfig={mapConfig}
-        onChange={(nextConfig) => setMapConfig({ ...mapConfig, ...nextConfig })}
+        onChange={(nextConfig) =>
+          setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
+        }
       />
       <Legend areaStats={areaStatsData?.areaStats} />
       {loading ? (

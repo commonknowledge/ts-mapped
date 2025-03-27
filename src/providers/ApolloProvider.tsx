@@ -7,6 +7,7 @@ import {
   InMemoryCache,
 } from "@apollo/experimental-nextjs-app-support";
 import { useContext } from "react";
+import { AreaStat, AreaStats } from "@/__generated__/types";
 import { ServerSessionContext } from "./ServerSessionProvider";
 
 function makeClient(jwt: string | null) {
@@ -20,9 +21,10 @@ function makeClient(jwt: string | null) {
   return new ApolloClient({
     cache: new InMemoryCache({
       typePolicies: {
-        AreaStats: {
+        // This policy has to be on the Query for areaStats().fetchMore() to work
+        Query: {
           fields: {
-            stats: {
+            areaStats: {
               // Use all argument values except boundingBox
               // so results for different bounding boxes are merged.
               keyArgs: (args) => {
@@ -40,16 +42,32 @@ function makeClient(jwt: string | null) {
                 return fullKey;
               },
               // Merge and deduplicate stats for areas in different bounding boxes
-              merge: (existing, incoming, cache) => {
-                const allData = [...(existing || []), ...(incoming || [])];
-                const deduped: Record<string, unknown> = {};
+              merge: (
+                existing: AreaStats | undefined,
+                incoming: AreaStats | undefined,
+                cache,
+              ): AreaStats | undefined => {
+                const result = incoming || existing;
+                if (!result) {
+                  return;
+                }
+
+                const allData = [
+                  ...(existing?.stats || []),
+                  ...(incoming?.stats || []),
+                ];
+                const deduped: Record<string, AreaStat> = {};
                 for (const d of allData) {
                   const areaCode = cache.isReference(d)
                     ? cache.readField("areaCode", d)
                     : d.areaCode;
-                  deduped[areaCode] = d;
+                  if (typeof areaCode === "string") {
+                    deduped[areaCode] = d;
+                  }
                 }
-                return Object.values(deduped);
+                const stats = Object.values(deduped);
+                // Have to return a new object
+                return { ...result, stats };
               },
             },
           },
