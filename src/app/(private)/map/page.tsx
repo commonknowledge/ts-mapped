@@ -4,15 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MarkerData } from "@/types";
-import Choropleth from "./Choropleth";
-import Controls, { MapConfig } from "./Controls";
+import Choropleth from "./components/Choropleth";
+import Controls, { MapConfig } from "./components/Controls";
+import Map from "./components/Map";
+import Markers from "./components/Markers";
 import {
   useAreaStatsQuery,
   useDataSourcesQuery,
   useMarkersQuery,
 } from "./data";
-import Map from "./Map";
-import Markers from "./Markers";
 import styles from "./page.module.css";
 import { getChoroplethLayerConfig } from "./sources";
 

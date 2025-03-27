@@ -1,6 +1,6 @@
 import { ColumnType, DataSourcesQuery } from "@/__generated__/types";
+import { AREA_SET_GROUP_LABELS, AreaSetGroupCode } from "@/app/(private)/map/sources";
 import styles from "./Controls.module.css";
-import { AREA_SET_GROUP_LABELS, AreaSetGroupCode } from "./sources";
 
 export class MapConfig {
   public areaDataSourceId = "";

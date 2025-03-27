@@ -1,8 +1,8 @@
 import { ReactNode, RefObject } from "react";
 import MapGL, { MapRef } from "react-map-gl/mapbox";
 import { BoundingBox } from "@/__generated__/types";
+import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
 import { MarkerData } from "@/types";
-import { MAPBOX_SOURCE_IDS } from "./sources";
 
 const DEFAULT_ZOOM = 5;
 

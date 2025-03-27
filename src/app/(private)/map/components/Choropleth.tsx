@@ -2,7 +2,7 @@ import { scaleLinear, scaleSequential } from "d3-scale";
 import { interpolateOrRd } from "d3-scale-chromatic";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { AreaStat } from "@/__generated__/types";
-import { ChoroplethLayerConfig } from "./sources";
+import { ChoroplethLayerConfig } from "@/app/(private)/map/sources";
 
 export default function Choropleth({
   areaStats,
