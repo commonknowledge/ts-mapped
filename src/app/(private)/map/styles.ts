@@ -6,12 +6,6 @@ export type MapStyle = {
 };
 
 const mapStyles: Record<string, MapStyle> = {
-  "streets-v12": {
-    name: "Streets",
-    slug: "streets-v12",
-    textColor: "#6D6D6D",
-    textHaloColor: "#ffffff",
-  },
   "light-v11": {
     name: "Light",
     slug: "light-v11",
@@ -23,6 +17,12 @@ const mapStyles: Record<string, MapStyle> = {
     slug: "dark-v11",
     textColor: "#ffffff",
     textHaloColor: "#000000",
+  },
+  "streets-v12": {
+    name: "Streets",
+    slug: "streets-v12",
+    textColor: "#6D6D6D",
+    textHaloColor: "#ffffff",
   },
   "satellite-v9": {
     name: "Satellite",

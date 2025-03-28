@@ -4,17 +4,19 @@ import { MarkersQuery } from "@/__generated__/types";
 interface MemberListProps {
   members: MarkersQuery["markers"] | undefined;
   onSelect: (coordinates: [number, number]) => void;
+  showMembers: boolean;
 }
 
 export default function MemberList({
   members = [],
   onSelect,
+  showMembers,
 }: MemberListProps) {
   if (!members) return null;
 
   return (
-    <ScrollArea className="max-h-[200px] w-full rounded-md  p-2">
-      <div className="">
+    <ScrollArea className="max-h-[200px] w-full rounded-md  p-2 ">
+      <div className={`${showMembers ? "opacity-100" : "opacity-50"}`}>
         {members.features?.map((feature: any) => (
           <li
             key={feature.properties.Name}

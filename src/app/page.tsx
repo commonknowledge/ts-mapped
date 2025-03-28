@@ -38,7 +38,7 @@ export default function HomePage() {
           className="absolute -bottom-4 -left-4  z-[-1] rotate-180"
         />
       </div>
-      <div className="container">
+      <div className=" mx-auto max-w-screen-xl py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <h2 className="text-brandBlue font-mono uppercase">Features</h2>
           {features.map((feature) => (
@@ -46,6 +46,20 @@ export default function HomePage() {
               <h2 className="text-2xl tracking-tight">{feature.title}</h2>
               <p className="text-sm text-muted-foreground text-balance">
                 {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className=" mx-auto max-w-screen-xl py-16">
+        <img src="/screenshot.png" alt="screenshot" className="mx-auto " />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <h2 className="text-brandBlue font-mono uppercase">Layers</h2>
+          {layers.map((layer) => (
+            <div key={layer.title} className="flex flex-col gap-2">
+              <h2 className="text-2xl tracking-tight">{layer.title}</h2>
+              <p className="text-sm text-muted-foreground text-balance">
+                {layer.description}
               </p>
             </div>
           ))}
@@ -69,6 +83,25 @@ let features = [
   },
   {
     title: "Collaborate",
+    description: "Invite your team to collaborate on your data sources.",
+    href: "/data-sources",
+  },
+];
+
+let layers = [
+  {
+    title: "Members",
+    description:
+      "Upload a spreadsheet with a column of postcodes to get extra geographic data added on that can help you with your organising efforts.",
+    href: "/data-sources",
+  },
+  {
+    title: "Locations",
+    description: "View and manage your data sources.",
+    href: "/data-sources",
+  },
+  {
+    title: "Turf",
     description: "Invite your team to collaborate on your data sources.",
     href: "/data-sources",
   },

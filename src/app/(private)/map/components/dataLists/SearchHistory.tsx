@@ -16,6 +16,7 @@ interface SearchHistoryProps {
   onSelect: (coordinates: [number, number]) => void;
   onEdit: (index: number, newText: string) => void;
   onDelete: (index: number) => void;
+  showLocations: boolean;
 }
 
 export default function SearchHistory({
@@ -23,6 +24,7 @@ export default function SearchHistory({
   onSelect,
   onEdit,
   onDelete,
+  showLocations,
 }: SearchHistoryProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -31,7 +33,7 @@ export default function SearchHistory({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <ul>
+        <ul className={`${showLocations ? "opacity-100" : "opacity-50"}`}>
           {history.map((result, index) => (
             <li
               key={index}

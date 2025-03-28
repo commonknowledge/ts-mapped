@@ -19,7 +19,8 @@ import styles from "./page.module.css";
 import { getChoroplethLayerConfig } from "./sources";
 import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
 import TurfPolygons from "./components/TurfPolygons";
-
+import { MapStyleSelector } from "./components/MapStyling";
+import SettingsModal from "./components/SettingsModal";
 const DEFAULT_ZOOM = 5;
 
 export default function MapPage() {
@@ -154,6 +155,13 @@ export default function MapPage() {
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
+      <MapStyleSelector
+        mapConfig={mapConfig}
+        onChange={(nextConfig) =>
+          setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
+        }
+        dataSources={dataSourcesData?.dataSources || []}
+      />
       <Controls
         dataSources={dataSourcesData?.dataSources || []}
         mapConfig={mapConfig}
@@ -195,9 +203,13 @@ export default function MapPage() {
           markers={markersData?.markers}
           selectedMarker={selectedMarker}
           onCloseSelectedMarker={() => setSelectedMarker(null)}
+          mapConfig={mapConfig}
         />
-        <SearchHistoryMarkers searchHistory={searchHistory} />
-        <TurfPolygons polygons={TurfHistory} />
+        <SearchHistoryMarkers
+          searchHistory={searchHistory}
+          mapConfig={mapConfig}
+        />
+        <TurfPolygons polygons={TurfHistory} mapConfig={mapConfig} />
       </Map>
       <Legend areaStats={areaStatsData?.areaStats} />
 

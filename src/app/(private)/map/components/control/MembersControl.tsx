@@ -6,31 +6,39 @@ import { MarkerData } from "@/types";
 import { MarkersQuery } from "@/__generated__/types";
 import { Skeleton } from "@/shadcn/components/ui/skeleton";
 import SkeletonGroup from "../SkeletonGroup";
+import { Toggle } from "@/shadcn/components/ui/toggle";
+import { Eye, EyeOff } from "lucide-react";
+import LayerVisibilityToggle from "./LayerVisibilityToggle";
+import LayerHeader from "./LayerHeader";
 
 interface MembersControlProps {
   members: MarkersQuery["markers"] | undefined;
   mapRef: React.RefObject<MapRef | null>;
   isLoading?: boolean;
+  showMembers: boolean;
+  setShowMembers: (showMembers: boolean) => void;
 }
 
 export default function MembersControl({
   members,
   mapRef,
   isLoading = false,
+  showMembers,
+  setShowMembers,
 }: MembersControlProps) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-row gap-2 items-center">
-        <div
-          style={{ backgroundColor: mapColors.member.color }}
-          className="rounded-full w-3 h-3"
-        />
-        <Label>Members</Label>
-      </div>
+      <LayerHeader
+        label="Members"
+        color={mapColors.member.color}
+        showLayer={showMembers}
+        setLayer={setShowMembers}
+      />
       {isLoading ? (
         <SkeletonGroup />
       ) : (
         <MemberList
+          showMembers={showMembers}
           members={members}
           onSelect={(coordinates) => {
             const map = mapRef.current;

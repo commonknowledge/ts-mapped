@@ -47,6 +47,13 @@ import TurfHistory from "./dataLists/TurfHistory";
 import MembersControl from "./control/MembersControl";
 import LocationsControl from "./control/LocationsControl";
 import TurfControl from "./control/TurfControl";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shadcn/components/ui/tooltip";
+import SettingsModal from "./SettingsModal";
 
 export class MapConfig {
   public areaDataSourceId = "";
@@ -56,6 +63,9 @@ export class MapConfig {
   public markersDataSourceId = "634223d3-bc26-48bd-a3f2-58d2b9c62462";
   public mapStyle: MapStyle = mapStyles["light-v11"];
   public showLabels = true;
+  public showMembers = true;
+  public showLocations = true;
+  public showTurf = true;
 
   constructor(params: Partial<MapConfig> = {}) {
     Object.assign(this, params);
@@ -107,10 +117,19 @@ export default function Controls({
   return (
     <div className="flex flex-col bg-white rounded-lg shadow-lg gap-4 absolute top-0 left-0 m-3 p-4 z-10 w-[300px]">
       <Tabs defaultValue="layers">
-        <TabsList>
-          <TabsTrigger value="layers">Layers</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-row gap-2">
+          <TabsList>
+            <TabsTrigger value="layers">Layers</TabsTrigger>
+            <TabsTrigger value="legend">Legend</TabsTrigger>
+          </TabsList>
+          <SettingsModal
+            mapConfig={mapConfig}
+            onChange={(nextConfig) =>
+              onChange(new MapConfig({ ...mapConfig, ...nextConfig }))
+            }
+            dataSources={dataSources}
+          />
+        </div>
         <Separator />
 
         <TabsContent value="layers" className="flex flex-col gap-4 py-2">
@@ -118,6 +137,8 @@ export default function Controls({
             members={members}
             mapRef={mapRef}
             isLoading={loading}
+            showMembers={mapConfig.showMembers}
+            setShowMembers={(value) => onChange({ showMembers: value })}
           />
           <Separator />
           <LocationsControl
@@ -126,6 +147,8 @@ export default function Controls({
             onEdit={onEditSearch}
             onDelete={onDeleteSearch}
             isLoading={loading}
+            showLocations={mapConfig.showLocations}
+            setShowLocations={(value) => onChange({ showLocations: value })}
           />
           <Separator />
           <TurfControl
@@ -133,36 +156,12 @@ export default function Controls({
             mapRef={mapRef}
             setTurfHistory={setTurfHistory}
             isLoading={loading}
+            showTurf={mapConfig.showTurf}
+            setShowTurf={(value) => onChange({ showTurf: value })}
           />
         </TabsContent>
 
-        <TabsContent value="settings" className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="markersDataSourceId">
-              <MapPin className="w-4 h-4 text-muted-foreground" />
-              Markers Data Source
-            </Label>
-            <Select
-              value={mapConfig.markersDataSourceId}
-              onValueChange={(value) =>
-                onChange({ markersDataSourceId: value })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a markers data source" />
-              </SelectTrigger>
-              <SelectContent>
-                {dataSources.map((ds: { id: string; name: string }) => (
-                  <SelectItem key={ds.id} value={ds.id}>
-                    {ds.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
+        <TabsContent value="legend" className="flex flex-col gap-8 py-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="areaDataSourceId">
               <LandPlot className="w-4 h-4 text-muted-foreground" />
@@ -172,7 +171,7 @@ export default function Controls({
               value={mapConfig.areaDataSourceId}
               onValueChange={(value) => onChange({ areaDataSourceId: value })}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full shadow-none">
                 <SelectValue placeholder="Select an area data source" />
               </SelectTrigger>
               <SelectContent>
@@ -184,32 +183,35 @@ export default function Controls({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          {dataSource ? (
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-2 items-center">
-                <CornerDownRight className="ml-2 w-4 h-4 text-muted-foreground" />
-                <Select
-                  value={mapConfig.areaDataColumn}
-                  onValueChange={(value) => onChange({ areaDataColumn: value })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a data column" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={MAX_COLUMN_KEY}>
-                      Highest-value column
-                    </SelectItem>
-                    {dataSource.columnDefs.map((cd: { name: string }) => (
-                      <SelectItem key={cd.name} value={cd.name}>
-                        {cd.name}
+
+            {dataSource ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2 items-center">
+                  <CornerDownRight className="ml-2 w-4 h-4 text-muted-foreground" />
+                  <Select
+                    value={mapConfig.areaDataColumn}
+                    onValueChange={(value) =>
+                      onChange({ areaDataColumn: value })
+                    }
+                  >
+                    <SelectTrigger className="w-full shadow-none">
+                      <SelectValue placeholder="Select a data column" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={MAX_COLUMN_KEY}>
+                        Highest-value column
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      {dataSource.columnDefs.map((cd: { name: string }) => (
+                        <SelectItem key={cd.name} value={cd.name}>
+                          {cd.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
           {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (
             <input
               type="text"
@@ -223,8 +225,6 @@ export default function Controls({
             />
           ) : null}
 
-          <Separator />
-
           <div className="flex flex-col gap-2">
             <Label htmlFor="areaSetGroupCode">
               <SquareStack className="w-4 h-4 text-muted-foreground" />
@@ -236,7 +236,7 @@ export default function Controls({
                 onChange({ areaSetGroupCode: value as AreaSetGroupCode })
               }
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full shadow-none">
                 <SelectValue placeholder="Select a boundary set" />
               </SelectTrigger>
               <SelectContent>
@@ -247,45 +247,6 @@ export default function Controls({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <Separator />
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="mapStyle">
-              <Paintbrush className="w-4 h-4 text-muted-foreground" />
-              Map Style
-            </Label>
-            <div className="flex flex-row gap-2">
-              <Select
-                value={mapConfig.mapStyle.slug}
-                onValueChange={(value) =>
-                  onChange({
-                    mapStyle: mapStyles[value as keyof typeof mapStyles],
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a map style" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(mapStyles).map((code) => (
-                    <SelectItem
-                      key={code}
-                      value={mapStyles[code as keyof typeof mapStyles].slug}
-                    >
-                      {mapStyles[code as keyof typeof mapStyles].name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Toggle
-                pressed={mapConfig.showLabels}
-                onPressedChange={(value) => onChange({ showLabels: value })}
-              >
-                <Type className="w-4 h-4   text-muted-foreground" />
-              </Toggle>
-            </div>
           </div>
         </TabsContent>
       </Tabs>

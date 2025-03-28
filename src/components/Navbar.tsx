@@ -28,7 +28,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center p-4">
+    <nav className="flex justify-between items-center p-4 z-1">
       <Link href="/" className="flex items-center gap-2">
         <img src="/logo.svg" alt="Mapped" width={32} height={32} />
         Mapped

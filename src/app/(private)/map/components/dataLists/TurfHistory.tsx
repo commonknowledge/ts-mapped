@@ -16,6 +16,7 @@ interface TurfHistoryProps {
   onSelect?: (coordinates: [number, number]) => void;
   onEdit?: (index: number, newName: string) => void;
   onDelete?: (index: number) => void;
+  showTurf: boolean;
 }
 
 export default function TurfHistory({
@@ -23,6 +24,7 @@ export default function TurfHistory({
   onSelect,
   onEdit,
   onDelete,
+  showTurf,
 }: TurfHistoryProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -58,7 +60,7 @@ export default function TurfHistory({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <ul>
+        <ul className={`${showTurf ? "opacity-100" : "opacity-50"}`}>
           {polygons.map((polygon, index) => (
             <div
               key={polygon.id}
@@ -91,7 +93,7 @@ export default function TurfHistory({
                       {polygon.name || `Area: ${polygon.area.toFixed(2)}m²`}
                     </div>
                     <div className="text-gray-400 text-xs">
-                      {formattedDates[polygon.id] || ""}
+                      {index === 0 ? "Your Organisation" : `GND Rising`}
                     </div>
                   </div>
                 </>
