@@ -1,7 +1,7 @@
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
 import { MarkersQuery } from "@/__generated__/types";
 import { MarkerData } from "@/types";
-import { mapNodeColors } from "@/lib/mapStyles";
+import { mapColors } from "@/lib/mapStyles";
 
 export default function Markers({
   markers,
@@ -35,7 +35,7 @@ export default function Markers({
           source="markers"
           filter={["has", "point_count"]}
           paint={{
-            "circle-color": mapNodeColors.member.color,
+            "circle-color": mapColors.member.color,
             "circle-radius": [
               "interpolate",
               ["linear"],

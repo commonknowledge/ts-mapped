@@ -36,12 +36,12 @@ const mapStyles: Record<string, MapStyle> = {
 
 export default mapStyles;
 
-export type mapNodeColor = {
+export type mapColor = {
   name: string;
   color: string;
 };
 
-export const mapNodeColors: Record<string, mapNodeColor> = {
+export const mapColors: Record<string, mapColor> = {
   member: {
     name: "Member",
     color: "#678DE3",
@@ -49,5 +49,9 @@ export const mapNodeColors: Record<string, mapNodeColor> = {
   searched: {
     name: "Searched",
     color: "#FF6B6B",
+  },
+  turf: {
+    name: "Turf",
+    color: "#91E17E",
   },
 };

@@ -11,7 +11,6 @@ export default function MemberList({
   onSelect,
 }: MemberListProps) {
   if (!members) return null;
-  console.log(members);
 
   return (
     <ScrollArea className="h-[200px] w-full rounded-md border p-2">

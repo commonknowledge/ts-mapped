@@ -28,16 +28,17 @@ import {
   Type,
 } from "lucide-react";
 import Legend from "./Legend";
-import mapStyles, { mapNodeColors } from "@/lib/mapStyles";
+import mapStyles, { mapColors } from "@/lib/mapStyles";
 import { MapStyle } from "@/lib/mapStyles";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SearchHistory from "./SearchHistory";
 import { useState } from "react";
-import { SearchResult } from "@/types";
+import { DrawnPolygon, SearchResult } from "@/types";
 import { MapRef } from "react-map-gl/mapbox";
 import MemberList from "./MemberList";
 import { MarkerData } from "@/types";
+import TurfHistory from "./TurfHistory";
 
 export class MapConfig {
   public areaDataSourceId = "";
@@ -70,6 +71,9 @@ export default function Controls({
   members,
   selectedMember,
   onSelectMember,
+  onEditSearch,
+  onDeleteSearch,
+  turfHistory,
 }: {
   dataSources: DataSourcesQuery["dataSources"];
   mapConfig: MapConfig;
@@ -80,6 +84,9 @@ export default function Controls({
   members: MarkersQuery["markers"] | undefined;
   selectedMember: MarkerData | null;
   onSelectMember: (member: MarkerData | null) => void;
+  onEditSearch: (index: number, newText: string) => void;
+  onDeleteSearch: (index: number) => void;
+  turfHistory: DrawnPolygon[];
 }) {
   const dataSource = dataSources.find(
     (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId
@@ -87,7 +94,7 @@ export default function Controls({
 
   return (
     <div className="flex flex-col bg-white rounded-lg shadow-lg gap-4 absolute top-0 left-0 m-3 p-4 z-10 w-[300px]">
-      <Tabs defaultValue="settings" className="w-full">
+      <Tabs defaultValue="settings">
         <TabsList>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="layers">Layers</TabsTrigger>
@@ -245,7 +252,7 @@ export default function Controls({
           <div className="flex flex-col gap-1">
             <div className="flex flex-row gap-2 items-center">
               <div
-                style={{ backgroundColor: mapNodeColors.searched.color }}
+                style={{ backgroundColor: mapColors.searched.color }}
                 className="rounded-full w-3 h-3"
               />
               <Label>Search History</Label>
@@ -261,13 +268,15 @@ export default function Controls({
                   });
                 }
               }}
+              onEdit={onEditSearch}
+              onDelete={onDeleteSearch}
             />
           </div>
           <Separator />
           <div className="flex flex-col gap-1">
             <div className="flex flex-row gap-2 items-center">
               <div
-                style={{ backgroundColor: mapNodeColors.member.color }}
+                style={{ backgroundColor: mapColors.member.color }}
                 className="rounded-full w-3 h-3"
               />
               <Label>Members</Label>
@@ -284,6 +293,17 @@ export default function Controls({
                 }
               }}
             />
+          </div>
+          <Separator />
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-row gap-2 items-center">
+              <div
+                style={{ backgroundColor: mapColors.turf.color }}
+                className="rounded-full w-3 h-3"
+              />
+              <Label>Turf</Label>
+            </div>
+            <TurfHistory polygons={turfHistory} />
           </div>
         </TabsContent>
       </Tabs>

@@ -2,15 +2,36 @@ import { ReactNode, RefObject, useEffect, useState } from "react";
 import MapGL, { MapRef } from "react-map-gl/mapbox";
 import { BoundingBox } from "@/__generated__/types";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
-import { MarkerData, SearchResult } from "@/types";
+import {
+  MarkerData,
+  SearchResult,
+  DrawnPolygon,
+  DrawDeleteEvent,
+} from "@/types";
 import { MapConfig } from "./Controls";
+import { mapColors } from "@/lib/mapStyles";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import mapboxgl from "mapbox-gl";
-import SearchHistory from "./SearchHistory";
-import SearchHistoryMarkers from "./SearchHistoryMarkers";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import * as turf from "@turf/turf";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import DrawCreateEvent from "@mapbox/mapbox-gl-draw";
 const DEFAULT_ZOOM = 5;
+
+interface MapProps {
+  children: ReactNode;
+  mapConfig: MapConfig;
+  onClickMarker: (markerData: MarkerData | null) => void;
+  onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void;
+  onSourceLoad: (sourceId: string) => void;
+  ref: RefObject<MapRef | null>;
+  searchHistory: SearchResult[];
+  setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
+  TurfHistory: DrawnPolygon[];
+  setTurfHistory: React.Dispatch<React.SetStateAction<DrawnPolygon[]>>;
+}
 
 export default function Map({
   children,
@@ -21,32 +42,18 @@ export default function Map({
   ref,
   searchHistory,
   setSearchHistory,
-}: {
-  children: ReactNode;
-  mapConfig: MapConfig;
-  onClickMarker: (markerData: MarkerData | null) => void;
-  onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void;
-  onSourceLoad: (sourceId: string) => void;
-  ref: RefObject<MapRef | null>;
-  searchHistory: SearchResult[];
-  setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
-}) {
-  useEffect(() => {
-    const map = ref.current;
-    if (!map) {
-      return;
-    }
+  TurfHistory,
+  setTurfHistory,
+}: MapProps) {
+  const [draw, setDraw] = useState<MapboxDraw | null>(null);
 
-    const imageURL = "/map-pin.png";
-    map.loadImage(imageURL, (error, image) => {
-      if (error) {
-        console.error(`Could not load image ${imageURL}: ${error}`);
+  useEffect(() => {
+    return () => {
+      if (draw && ref.current) {
+        ref.current.getMap().removeControl(draw as any);
       }
-      if (image && !map.hasImage("map-pin")) {
-        map.addImage("map-pin", image);
-      }
-    });
-  }, [ref]);
+    };
+  }, [ref, draw]);
 
   return (
     <MapGL
@@ -76,9 +83,7 @@ export default function Map({
       }}
       onLoad={() => {
         const map = ref.current;
-        if (!map) {
-          return;
-        }
+        if (!map) return;
 
         const geocoder = new MapboxGeocoder({
           accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
@@ -101,6 +106,73 @@ export default function Map({
         });
 
         map.addControl(geocoder, "top-right");
+
+        // Initialize draw if not already done
+        if (!draw) {
+          const newDraw = new MapboxDraw({
+            displayControlsDefault: false,
+            controls: {
+              polygon: true,
+              trash: true,
+            },
+            styles: [
+              // Styling for the polygon fill
+              {
+                id: "gl-draw-polygon-fill",
+                type: "fill",
+                filter: ["all", ["==", "$type", "Polygon"]],
+                paint: {
+                  "fill-color": mapColors.turf.color, // Change this to your desired fill color
+                  "fill-opacity": 0.3, // Adjust opacity as needed
+                },
+              },
+              // Styling for the polygon border
+              {
+                id: "gl-draw-polygon-stroke",
+                type: "line",
+                filter: ["all", ["==", "$type", "Polygon"]],
+                paint: {
+                  "line-color": mapColors.turf.color, // Change this to your desired border color
+                  "line-width": 2, // Adjust border width as needed
+                },
+              },
+            ],
+          });
+          setDraw(newDraw);
+
+          const mapInstance = map.getMap();
+          mapInstance.addControl(newDraw as any, "top-right");
+
+          // Add event listeners for drawing
+          mapInstance.on("draw.create", (e: DrawCreateEvent) => {
+            const data = newDraw.getAll();
+            if (data.features.length > 0) {
+              const feature = data.features[data.features.length - 1];
+              const area = turf.area(feature);
+              const roundedArea = Math.round(area * 100) / 100;
+
+              setTurfHistory((prev) =>
+                [
+                  {
+                    id: feature.id?.toString() || crypto.randomUUID(),
+                    area: roundedArea,
+                    geometry: feature.geometry,
+                    timestamp: new Date(),
+                  },
+                  ...prev,
+                ].slice(0, 10)
+              ); // Keep last 10 polygons
+            }
+          });
+
+          // Add delete handler
+          mapInstance.on("draw.delete", (e: DrawDeleteEvent) => {
+            const deletedIds = e.features.map((f) => f.id);
+            setTurfHistory((prev) =>
+              prev.filter((poly) => !deletedIds.includes(poly.id))
+            );
+          });
+        }
 
         const imageURL = "/map-pin.png";
         map.loadImage(imageURL, (error, image) => {

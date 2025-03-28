@@ -1,25 +1,94 @@
 import { SearchResult } from "@/types";
+import { Check, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 
 interface SearchHistoryProps {
-  history?: SearchResult[];
+  history: SearchResult[];
   onSelect: (coordinates: [number, number]) => void;
+  onEdit: (index: number, newText: string) => void;
+  onDelete: (index: number) => void;
 }
 
 export default function SearchHistory({
-  history = [],
+  history,
   onSelect,
+  onEdit,
+  onDelete,
 }: SearchHistoryProps) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
+  const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
+
   return (
-    <ul className="space-y-2">
-      {history.map((result, index) => (
-        <li
-          key={index}
-          className="text-sm hover:bg-gray-100 p-2 rounded cursor-pointer"
-          onClick={() => onSelect(result.coordinates)}
-        >
-          {result.text}
-        </li>
-      ))}
-    </ul>
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <ul className="space-y-2">
+          {history.map((result, index) => (
+            <li
+              key={index}
+              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded"
+              onContextMenu={() => setContextMenuIndex(index)}
+            >
+              {editingIndex === index ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    onEdit(index, editText);
+                    setEditingIndex(null);
+                  }}
+                  className="w-full flex items-center p-0"
+                >
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    autoFocus
+                  />
+                  <Button className="" type="submit" variant="link">
+                    <Check className="h-4 w-4 text-green-500" />
+                  </Button>
+                </form>
+              ) : (
+                <>
+                  <span
+                    className="flex-grow cursor-pointer text-sm"
+                    onClick={() => onSelect(result.coordinates)}
+                  >
+                    {result.text}
+                  </span>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {contextMenuIndex !== null && (
+          <>
+            <ContextMenuItem
+              onClick={() => {
+                setEditText(history[contextMenuIndex].text);
+                setEditingIndex(contextMenuIndex);
+              }}
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => onDelete(contextMenuIndex)}>
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </ContextMenuItem>
+          </>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }

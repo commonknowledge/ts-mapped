@@ -1,7 +1,7 @@
 import { Layer, Source } from "react-map-gl/mapbox";
 import { SearchResult } from "@/types";
 import { FeatureCollection, Point } from "geojson";
-import { mapNodeColors } from "@/lib/mapStyles";
+import { mapColors } from "@/lib/mapStyles";
 
 interface SearchHistoryMarkersProps {
   searchHistory: SearchResult[];
@@ -32,7 +32,7 @@ export default function SearchHistoryMarkers({
         source="search-history"
         paint={{
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 4, 10, 6],
-          "circle-color": mapNodeColors.searched.color,
+          "circle-color": mapColors.searched.color,
           "circle-opacity": 0.8,
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BoundingBox } from "@/__generated__/types";
-import { MarkerData, SearchResult } from "@/types";
+import { MarkerData, SearchResult, DrawnPolygon } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls, { MapConfig } from "./components/Controls";
 import Legend from "./components/Legend";
@@ -18,6 +18,7 @@ import {
 import styles from "./page.module.css";
 import { getChoroplethLayerConfig } from "./sources";
 import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
+import TurfPolygons from "./components/TurfPolygons";
 
 const DEFAULT_ZOOM = 5;
 
@@ -33,7 +34,6 @@ export default function MapPage() {
     useState<SearchResult | null>(null);
   const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
-
   /* Controls State */
   const [mapConfig, setMapConfig] = useState<MapConfig>(new MapConfig());
 
@@ -104,6 +104,51 @@ export default function MapPage() {
     },
   ]);
 
+  const [TurfHistory, setTurfHistory] = useState<DrawnPolygon[]>([
+    {
+      id: "N90IVwEVjjVuYnJwwtuPSvRgVTAUgLjh",
+      area: 6659289.77,
+      geometry: {
+        coordinates: [
+          [
+            [-0.09890821864360078, 51.466784423169656],
+            [-0.050307845722869615, 51.457615269748146],
+            [-0.06844742153057837, 51.496624718934044],
+            [-0.09890821864360078, 51.466784423169656],
+          ],
+        ],
+        type: "Polygon",
+      },
+      timestamp: new Date(),
+    },
+    {
+      id: "qY9R13eRjlVUZQ5GyHIwroX2C2GZuA9g",
+      area: 14311817.59,
+      geometry: {
+        coordinates: [
+          [
+            [-0.1676382772736531, 51.454985375110425],
+            [-0.1028980072736374, 51.423675158113724],
+            [-0.09285210330847349, 51.476194541881796],
+            [-0.1676382772736531, 51.454985375110425],
+          ],
+        ],
+        type: "Polygon",
+      },
+      timestamp: new Date(),
+    },
+  ]);
+
+  const handleEditSearch = (index: number, newText: string) => {
+    setSearchHistory((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, text: newText } : item))
+    );
+  };
+
+  const handleDeleteSearch = (index: number) => {
+    setSearchHistory((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
@@ -115,10 +160,13 @@ export default function MapPage() {
         }
         areaStatsData={areaStatsData?.areaStats}
         searchHistory={searchHistory}
+        onEditSearch={handleEditSearch}
+        onDeleteSearch={handleDeleteSearch}
         mapRef={mapRef}
         members={markersData?.markers}
         selectedMember={selectedMarker}
         onSelectMember={(member) => setSelectedMarker(member)}
+        turfHistory={TurfHistory}
       />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}
@@ -131,6 +179,8 @@ export default function MapPage() {
         mapConfig={mapConfig}
         searchHistory={searchHistory}
         setSearchHistory={setSearchHistory}
+        TurfHistory={TurfHistory}
+        setTurfHistory={setTurfHistory}
       >
         <Choropleth
           areaStats={areaStatsData?.areaStats}
@@ -142,12 +192,8 @@ export default function MapPage() {
           selectedMarker={selectedMarker}
           onCloseSelectedMarker={() => setSelectedMarker(null)}
         />
-        <SearchHistoryMarkers
-          searchHistory={searchHistory}
-          selectedMarker={selectedSearchMarker}
-          onCloseSelectedMarker={() => setSelectedSearchMarker(null)}
-          onClickMarker={setSelectedSearchMarker}
-        />
+        <SearchHistoryMarkers searchHistory={searchHistory} />
+        <TurfPolygons polygons={TurfHistory} />
       </Map>
       {loading ? (
         <div className={styles.loading}>

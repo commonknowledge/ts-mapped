@@ -31,3 +31,19 @@ export interface SearchResult {
   coordinates: [number, number];
   timestamp: Date;
 }
+
+export interface DrawnPolygon {
+  id: string;
+  area: number;
+  geometry: any; // or use proper GeoJSON type
+  timestamp: Date;
+}
+
+export interface DrawDeleteEvent {
+  features: Array<{
+    id: string;
+    type: string;
+    geometry: any;
+    properties: any;
+  }>;
+}
