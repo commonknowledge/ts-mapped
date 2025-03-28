@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BoundingBox } from "@/__generated__/types";
-import { MarkerData } from "@/types";
+import { MarkerData, SearchResult } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls, { MapConfig } from "./components/Controls";
 import Legend from "./components/Legend";
@@ -17,6 +17,7 @@ import {
 } from "./data";
 import styles from "./page.module.css";
 import { getChoroplethLayerConfig } from "./sources";
+import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
 
 const DEFAULT_ZOOM = 5;
 
@@ -28,6 +29,8 @@ export default function MapPage() {
     string | undefined
   >();
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
+  const [selectedSearchMarker, setSelectedSearchMarker] =
+    useState<SearchResult | null>(null);
   const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
@@ -37,7 +40,7 @@ export default function MapPage() {
   // The Map layer is defined by the user config and the zoom level
   const choroplethLayerConfig = getChoroplethLayerConfig(
     mapConfig.areaSetGroupCode,
-    zoom,
+    zoom
   );
 
   /* GraphQL data */
@@ -80,7 +83,7 @@ export default function MapPage() {
           sourceLayer: choroplethLayerConfig.mapbox.layerId,
           id: stat.areaCode,
         },
-        stat,
+        stat
       );
     });
   }, [areaStatsData, lastLoadedSourceId, choroplethLayerConfig]);
@@ -93,6 +96,14 @@ export default function MapPage() {
     areaStatsFetchMore({ variables: { boundingBox } });
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
 
+  const [searchHistory, setSearchHistory] = useState<SearchResult[]>([
+    {
+      text: "Abbey Road Studios",
+      coordinates: [-0.177331, 51.532005],
+      timestamp: new Date(),
+    },
+  ]);
+
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
@@ -103,6 +114,11 @@ export default function MapPage() {
           setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
         }
         areaStatsData={areaStatsData?.areaStats}
+        searchHistory={searchHistory}
+        mapRef={mapRef}
+        members={markersData?.markers}
+        selectedMember={selectedMarker}
+        onSelectMember={(member) => setSelectedMarker(member)}
       />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}
@@ -113,6 +129,8 @@ export default function MapPage() {
         }}
         ref={mapRef}
         mapConfig={mapConfig}
+        searchHistory={searchHistory}
+        setSearchHistory={setSearchHistory}
       >
         <Choropleth
           areaStats={areaStatsData?.areaStats}
@@ -123,6 +141,12 @@ export default function MapPage() {
           markers={markersData?.markers}
           selectedMarker={selectedMarker}
           onCloseSelectedMarker={() => setSelectedMarker(null)}
+        />
+        <SearchHistoryMarkers
+          searchHistory={searchHistory}
+          selectedMarker={selectedSearchMarker}
+          onCloseSelectedMarker={() => setSelectedSearchMarker(null)}
+          onClickMarker={setSelectedSearchMarker}
         />
       </Map>
       {loading ? (

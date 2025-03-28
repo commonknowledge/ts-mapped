@@ -1,6 +1,7 @@
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
 import { MarkersQuery } from "@/__generated__/types";
 import { MarkerData } from "@/types";
+import { mapNodeColors } from "@/lib/mapStyles";
 
 export default function Markers({
   markers,
@@ -34,7 +35,7 @@ export default function Markers({
           source="markers"
           filter={["has", "point_count"]}
           paint={{
-            "circle-color": "rgba(103, 141, 227, 0.75)",
+            "circle-color": mapNodeColors.member.color,
             "circle-radius": [
               "interpolate",
               ["linear"],
@@ -62,19 +63,19 @@ export default function Markers({
           source="markers"
           filter={["!", ["has", "point_count"]]}
           paint={{
-            'circle-radius': [
+            "circle-radius": [
               "interpolate",
               ["linear"],
               ["zoom"],
               0,
               4, // Smaller radius at low zoom levels
               10,
-              6  // Larger radius at higher zoom levels
+              6, // Larger radius at higher zoom levels
             ],
-            'circle-color': '#678DE3', // You can change this color
-            'circle-opacity': 1,
-            'circle-stroke-width': 1,
-            'circle-stroke-color': '#ffffff'
+            "circle-color": "#678DE3", // You can change this color
+            "circle-opacity": 1,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#ffffff",
           }}
         />
         {/* This layer here for styling purposes as it adds a glow effect to the markers */}
@@ -84,49 +85,63 @@ export default function Markers({
           source="markers"
           paint={{
             // Increase weight based on point count
-            'heatmap-weight': [
-              'interpolate',
-              ['linear'],
-              ['get', 'point_count'],
-              0, 0,
-              10, 1
+            "heatmap-weight": [
+              "interpolate",
+              ["linear"],
+              ["get", "point_count"],
+              0,
+              0,
+              10,
+              1,
             ],
             // Increase intensity as zoom level increases
-            'heatmap-intensity': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              0, 1,
-              15, 3
+            "heatmap-intensity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              0,
+              1,
+              15,
+              3,
             ],
             // Assign colors to heatmap based on density
-            'heatmap-color': [
-              'interpolate',
-              ['linear'],
-              ['heatmap-density'],
-              0, 'rgba(103, 141, 227, 0)',
-              0.2, 'rgba(103, 141, 227, 0.2)',
-              0.4, 'rgba(103, 141, 227, 0.4)',
-              0.6, 'rgba(103, 141, 227, 0.6)',
-              0.8, 'rgba(103, 141, 227, 0.8)',
-              1, 'rgba(103, 141, 227, 1)'
+            "heatmap-color": [
+              "interpolate",
+              ["linear"],
+              ["heatmap-density"],
+              0,
+              "rgba(103, 141, 227, 0)",
+              0.2,
+              "rgba(103, 141, 227, 0.2)",
+              0.4,
+              "rgba(103, 141, 227, 0.4)",
+              0.6,
+              "rgba(103, 141, 227, 0.6)",
+              0.8,
+              "rgba(103, 141, 227, 0.8)",
+              1,
+              "rgba(103, 141, 227, 1)",
             ],
             // Adjust radius based on zoom level
-            'heatmap-radius': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              0, 2,
-              10, 20
+            "heatmap-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              0,
+              2,
+              10,
+              20,
             ],
             // Opacity based on zoom level
-            'heatmap-opacity': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              7, 1,
-              15, 0
-            ]
+            "heatmap-opacity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              7,
+              1,
+              15,
+              0,
+            ],
           }}
         />
       </Source>
