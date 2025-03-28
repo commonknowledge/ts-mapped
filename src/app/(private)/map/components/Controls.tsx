@@ -15,9 +15,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
+} from "@/shadcn/components/ui/select";
+import { Separator } from "@/shadcn/components/ui/separator";
+import { Label } from "@/shadcn/components/ui/label";
 import {
   CornerDownRight,
   LandPlot,
@@ -28,10 +28,15 @@ import {
   Type,
 } from "lucide-react";
 import Legend from "./Legend";
-import mapStyles, { mapColors } from "@/lib/mapStyles";
-import { MapStyle } from "@/lib/mapStyles";
-import { Toggle } from "@/components/ui/toggle";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import mapStyles, { mapColors } from "@/app/(private)/map/styles";
+import { MapStyle } from "@/app/(private)/map/styles";
+import { Toggle } from "@/shadcn/components/ui/toggle";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shadcn/components/ui/tabs";
 import SearchHistory from "./dataLists/SearchHistory";
 import { useState } from "react";
 import { DrawnPolygon, SearchResult } from "@/types";
@@ -203,7 +208,6 @@ export default function Controls({
                   </SelectContent>
                 </Select>
               </div>
-              <Legend areaStats={areaStatsData} />
             </div>
           ) : null}
           {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (

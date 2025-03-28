@@ -1,15 +1,15 @@
 import { SearchResult } from "@/types";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/shadcn/components/ui/input";
+import { Button } from "@/shadcn/components/ui/button";
 
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+} from "@/shadcn/components/ui/context-menu";
 
 interface SearchHistoryProps {
   history: SearchResult[];

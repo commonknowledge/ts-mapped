@@ -24,7 +24,7 @@ export const createDataSource = async (
     name,
     rawConfig,
     rawGeocodingConfig,
-  }: { name: string; rawConfig: object; rawGeocodingConfig: object },
+  }: { name: string; rawConfig: object; rawGeocodingConfig: object }
 ): Promise<CreateDataSourceResponse> => {
   try {
     const config = DataSourceConfigSchema.parse(rawConfig);
@@ -46,7 +46,7 @@ export const createDataSource = async (
 
 export const triggerImportDataSourceJob = async (
   _: unknown,
-  { dataSourceId }: { dataSourceId: string },
+  { dataSourceId }: { dataSourceId: string }
 ): Promise<MutationResponse> => {
   await enqueue("importDataSource", { dataSourceId });
   return { code: 200 };

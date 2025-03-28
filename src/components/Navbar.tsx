@@ -1,7 +1,7 @@
 "use client";
 
 import { SyntheticEvent, useState } from "react";
-import { useCurrentUser } from "@/hooks";
+import { useCurrentUser } from "@/shadcn/hooks";
 import { Link } from "./Link";
 import styles from "./Navbar.module.css";
 
@@ -32,7 +32,7 @@ export default function Navbar() {
       <Link href="/" className="flex items-center gap-2">
         <img src="/logo.svg" alt="Mapped" width={32} height={32} />
         Mapped
-       </Link>
+      </Link>
       {user ? (
         <form className="flex gap-2" onSubmit={onSubmitLogout}>
           <button>Logout</button>

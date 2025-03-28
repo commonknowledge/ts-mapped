@@ -1,10 +1,10 @@
 import MemberList from "../dataLists/MemberList";
-import { Label } from "@/components/ui/label";
-import { mapColors } from "@/lib/mapStyles";
+import { Label } from "@/shadcn/components/ui/label";
+import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
 import { MarkerData } from "@/types";
 import { MarkersQuery } from "@/__generated__/types";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/shadcn/components/ui/skeleton";
 import SkeletonGroup from "../SkeletonGroup";
 
 interface MembersControlProps {

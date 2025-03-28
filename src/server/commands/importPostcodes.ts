@@ -30,11 +30,11 @@ const importPostcodes = async () => {
 
     const postcodeGeojsonPath = join(
       postcodeGeojsonDirPath,
-      `postcodes_${i}.geojsonl`,
+      `postcodes_${i}.geojsonl`
     );
     if (!fs.existsSync(postcodeGeojsonPath)) {
       logger.error(
-        `File not found: ${postcodeGeojsonPath}. Download from the Ordnance Survey website.`,
+        `File not found: ${postcodeGeojsonPath}. Download from the Ordnance Survey website.`
       );
       return;
     }

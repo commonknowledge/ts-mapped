@@ -1,6 +1,6 @@
 import SearchHistory from "../dataLists/SearchHistory";
-import { Label } from "@/components/ui/label";
-import { mapColors } from "@/lib/mapStyles";
+import { Label } from "@/shadcn/components/ui/label";
+import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
 import { SearchResult } from "@/types";
 import SkeletonGroup from "../SkeletonGroup";

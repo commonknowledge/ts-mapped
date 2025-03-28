@@ -1,9 +1,9 @@
 import TurfHistory from "../dataLists/TurfHistory";
-import { Label } from "@/components/ui/label";
-import { mapColors } from "@/lib/mapStyles";
+import { Label } from "@/shadcn/components/ui/label";
+import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
 import { DrawnPolygon } from "@/types";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/shadcn/components/ui/skeleton";
 import SkeletonGroup from "../SkeletonGroup";
 
 interface TurfControlProps {

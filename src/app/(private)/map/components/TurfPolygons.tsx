@@ -1,6 +1,6 @@
 import { Layer, Source } from "react-map-gl/mapbox";
 import { DrawnPolygon } from "@/types";
-import { mapColors } from "@/lib/mapStyles";
+import { mapColors } from "@/app/(private)/map/styles";
 import { FeatureCollection, Feature, Polygon } from "geojson";
 
 interface TurfPolygonsProps {

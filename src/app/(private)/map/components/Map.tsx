@@ -9,7 +9,7 @@ import {
   DrawDeleteEvent,
 } from "@/types";
 import { MapConfig } from "./Controls";
-import { mapColors } from "@/lib/mapStyles";
+import { mapColors } from "@/app/(private)/map/styles";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import mapboxgl from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";

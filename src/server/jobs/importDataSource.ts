@@ -26,7 +26,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   const adaptor = getDataSourceAdaptor(dataSource.config);
   if (!adaptor) {
     logger.error(
-      `Could not get data source adaptor for source ${dataSourceId}, config ${dataSource.config}`,
+      `Could not get data source adaptor for source ${dataSourceId}, config ${dataSource.config}`
     );
     return false;
   }
@@ -44,7 +44,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       if (total) {
         const percentComplete = Math.floor((count * 100) / total);
         logger.info(
-          `Inserted ${count} records of ${total}, ${percentComplete}% complete`,
+          `Inserted ${count} records of ${total}, ${percentComplete}% complete`
         );
       } else {
         logger.info(`Inserted ${count} records`);
@@ -60,7 +60,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   } catch (e) {
     const error = getErrorMessage(e);
     logger.error(
-      `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${error}`,
+      `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${error}`
     );
   }
 
@@ -73,7 +73,7 @@ const batch = async function* (
     unknown,
     unknown
   >,
-  batchSize: number,
+  batchSize: number
 ) {
   let batch = [];
   for await (const record of records) {
@@ -91,7 +91,7 @@ const batch = async function* (
 const importBatch = (
   batch: { externalId: string; json: Record<string, unknown> }[],
   dataSource: DataSource,
-  columnDefsAccumulator: ColumnDefs,
+  columnDefsAccumulator: ColumnDefs
 ) =>
   Promise.all(
     batch.map(async (record) => {
@@ -105,11 +105,11 @@ const importBatch = (
         dataSourceId: dataSource.id,
       });
       logger.info(`Inserted data record ${record.externalId}`);
-    }),
+    })
   );
 
 export const typeJson = (
-  json: Record<string, unknown>,
+  json: Record<string, unknown>
 ): { columnDefs: ColumnDefs; typedJson: Record<string, unknown> } => {
   const columnDefs: ColumnDefs = [];
   const typedJson: Record<string, unknown> = {};
@@ -173,7 +173,7 @@ const getType = (value: unknown): ColumnType => {
 
 const addColumnDefs = (
   columnDefsAccumulator: ColumnDefs,
-  recordColumnDefs: ColumnDefs,
+  recordColumnDefs: ColumnDefs
 ): void => {
   const recordColumnNames = recordColumnDefs.map((c) => c.name);
 
@@ -192,7 +192,7 @@ const addColumnDefs = (
 
 const mergeColumnType = (
   a: ColumnType | undefined,
-  b: ColumnType | undefined,
+  b: ColumnType | undefined
 ): ColumnType => {
   // undefined => "empty"
   a = a || ColumnType.Empty;

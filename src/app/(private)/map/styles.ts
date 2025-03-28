@@ -1,5 +1,3 @@
-import { memo } from "react";
-
 export type MapStyle = {
   name: string;
   slug: string;

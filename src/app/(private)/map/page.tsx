@@ -199,6 +199,8 @@ export default function MapPage() {
         <SearchHistoryMarkers searchHistory={searchHistory} />
         <TurfPolygons polygons={TurfHistory} />
       </Map>
+      <Legend areaStats={areaStatsData?.areaStats} />
+
       {loading ? (
         <div className={styles.loading}>
           <div></div>

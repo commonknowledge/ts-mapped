@@ -16,11 +16,11 @@ const importConstituencies = async () => {
     getBaseDir(),
     "resources",
     "areaSets",
-    "constituencies.geojson",
+    "constituencies.geojson"
   );
   if (!fs.existsSync(constituenciesGeojsonPath)) {
     logger.error(
-      `File not found: ${constituenciesGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::westminster-parliamentary-constituencies-july-2024-boundaries-uk-bgc-2/about`,
+      `File not found: ${constituenciesGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::westminster-parliamentary-constituencies-july-2024-boundaries-uk-bgc-2/about`
     );
     return;
   }

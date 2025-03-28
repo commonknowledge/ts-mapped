@@ -16,11 +16,11 @@ const importOutputAreas = async () => {
     getBaseDir(),
     "resources",
     "areaSets",
-    "outputAreas.geojson",
+    "outputAreas.geojson"
   );
   if (!fs.existsSync(outputAreasGeojsonPath)) {
     logger.error(
-      `File not found: ${outputAreasGeojsonPath}. Download from https://www.data.gov.uk/dataset/4d4e021d-fe98-4a0e-88e2-3ead84538537/output-areas-december-2021-boundaries-ew-bgc-v21`,
+      `File not found: ${outputAreasGeojsonPath}. Download from https://www.data.gov.uk/dataset/4d4e021d-fe98-4a0e-88e2-3ead84538537/output-areas-december-2021-boundaries-ew-bgc-v21`
     );
     return;
   }

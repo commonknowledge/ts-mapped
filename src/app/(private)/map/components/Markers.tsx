@@ -1,7 +1,7 @@
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
 import { MarkersQuery } from "@/__generated__/types";
 import { MarkerData } from "@/types";
-import { mapColors } from "@/lib/mapStyles";
+import { mapColors } from "@/app/(private)/map/styles";
 
 export default function Markers({
   markers,

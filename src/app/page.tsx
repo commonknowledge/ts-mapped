@@ -1,5 +1,5 @@
 import { Link } from "@/components/Link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shadcn/components/ui/button";
 
 export default function HomePage() {
   return (

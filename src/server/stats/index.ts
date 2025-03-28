@@ -15,7 +15,7 @@ export const getAreaStats = async (
   column: string,
   operation: Operation,
   excludeColumns: string[],
-  boundingBox: BoundingBox | null = null,
+  boundingBox: BoundingBox | null = null
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
   // Ensure areaSetCode is valid as it will be used in a raw SQL query
   if (!(await findAreaSetByCode(areaSetCode))) {
@@ -27,7 +27,7 @@ export const getAreaStats = async (
       areaSetCode,
       dataSourceId,
       excludeColumns,
-      boundingBox,
+      boundingBox
     );
     return { column, columnType: ColumnType.String, stats };
   }
@@ -36,7 +36,7 @@ export const getAreaStats = async (
     .selectFrom("dataRecord")
     .select([
       sql`mapped_json->'geocodeResult'->'areas'->>${areaSetCode}`.as(
-        "areaCode",
+        "areaCode"
       ),
       db.fn(operation, [sql`(json->>${column})::float`]).as("value"),
     ])
@@ -59,7 +59,7 @@ export const getMaxColumnByArea = async (
   areaSetCode: string,
   dataSourceId: string,
   excludeColumns: string[],
-  boundingBox: BoundingBox | null = null,
+  boundingBox: BoundingBox | null = null
 ) => {
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
@@ -68,7 +68,7 @@ export const getMaxColumnByArea = async (
   const columnNames = dataSource.columnDefs
     .filter(
       ({ name, type }) =>
-        !excludeColumns.includes(name) && type === ColumnType.Number,
+        !excludeColumns.includes(name) && type === ColumnType.Number
     )
     .map((c) => c.name);
 
@@ -83,16 +83,16 @@ export const getMaxColumnByArea = async (
     caseBuilder:
       | CaseBuilder<Database, keyof Database, unknown, never>
       | CaseWhenBuilder<Database, keyof Database, unknown, string>,
-    column: string,
+    column: string
   ) => {
     return caseBuilder
       .when(
         db.fn(
           "GREATEST",
-          columnNames.map((c) => sql`json->>${c}`),
+          columnNames.map((c) => sql`json->>${c}`)
         ),
         "=",
-        sql`json->>${column}`,
+        sql`json->>${column}`
       )
       .then(column);
   };
@@ -178,5 +178,5 @@ const filterResult = (result: unknown[]) =>
       "areaCode" in r &&
       "value" in r &&
       r.areaCode !== null &&
-      r.value !== null,
+      r.value !== null
   ) as AreaStat[];
