@@ -41,6 +41,7 @@ export default function SearchHistoryMarkers({
       <Layer
         id="search-history-labels"
         type="symbol"
+        minzoom={10}
         source="search-history"
         layout={{
           "text-field": [
@@ -50,10 +51,10 @@ export default function SearchHistoryMarkers({
           ],
           "text-size": 12,
           "text-anchor": "top",
-          "text-offset": [0, 1.5],
+          "text-offset": [0, 0.75],
         }}
         paint={{
-          "text-color": "#000000",
+          "text-color": mapColors.searched.color,
           "text-halo-color": "#ffffff",
           "text-halo-width": 2,
         }}

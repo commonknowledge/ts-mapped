@@ -39,6 +39,7 @@ export default mapStyles;
 export type mapColor = {
   name: string;
   color: string;
+  textColor?: string;
 };
 
 export const mapColors: Record<string, mapColor> = {
@@ -53,5 +54,6 @@ export const mapColors: Record<string, mapColor> = {
   turf: {
     name: "Turf",
     color: "#91E17E",
+    textColor: "#4DAB37",
   },
 };

@@ -37,6 +37,7 @@ export interface DrawnPolygon {
   area: number;
   geometry: any; // or use proper GeoJSON type
   timestamp: Date;
+  name: string;
 }
 
 export interface DrawDeleteEvent {

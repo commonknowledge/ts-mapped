@@ -17,6 +17,7 @@ export default function TurfPolygons({ polygons }: TurfPolygonsProps) {
       properties: {
         area: polygon.area,
         timestamp: polygon.timestamp,
+        name: polygon.name || `${polygon.area.toFixed(2)}m²`,
       },
     })),
   };
@@ -37,6 +38,25 @@ export default function TurfPolygons({ polygons }: TurfPolygonsProps) {
         paint={{
           "line-color": mapColors.turf.color,
           "line-width": 2,
+        }}
+      />
+      <Layer
+        id="turf-polygons-labels"
+        type="symbol"
+        minzoom={10}
+        layout={{
+          "text-field": ["get", "name"],
+          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+          "text-size": 16,
+          "text-anchor": "center",
+          "text-justify": "center",
+          "symbol-placement": "point",
+          "text-allow-overlap": true,
+        }}
+        paint={{
+          "text-color": mapColors.turf.textColor,
+          "text-halo-color": "#fff",
+          "text-halo-width": 1,
         }}
       />
     </Source>

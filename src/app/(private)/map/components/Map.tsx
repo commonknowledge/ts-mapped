@@ -115,6 +115,7 @@ export default function Map({
               polygon: true,
               trash: true,
             },
+
             styles: [
               // Styling for the polygon fill
               {
@@ -158,6 +159,7 @@ export default function Map({
                     area: roundedArea,
                     geometry: feature.geometry,
                     timestamp: new Date(),
+                    name: feature.properties?.name || "",
                   },
                   ...prev,
                 ].slice(0, 10)

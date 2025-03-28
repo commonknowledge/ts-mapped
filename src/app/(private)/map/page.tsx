@@ -100,7 +100,7 @@ export default function MapPage() {
     {
       text: "Abbey Road Studios",
       coordinates: [-0.177331, 51.532005],
-      timestamp: new Date(),
+      timestamp: new Date("2024-03-20T14:30:00Z"),
     },
   ]);
 
@@ -119,7 +119,8 @@ export default function MapPage() {
         ],
         type: "Polygon",
       },
-      timestamp: new Date(),
+      timestamp: new Date("2024-03-20T14:31:00Z"),
+      name: "Anti-austerity campaign area",
     },
     {
       id: "qY9R13eRjlVUZQ5GyHIwroX2C2GZuA9g",
@@ -136,6 +137,7 @@ export default function MapPage() {
         type: "Polygon",
       },
       timestamp: new Date(),
+      name: "Sallys turf",
     },
   ]);
 
@@ -167,6 +169,7 @@ export default function MapPage() {
         selectedMember={selectedMarker}
         onSelectMember={(member) => setSelectedMarker(member)}
         turfHistory={TurfHistory}
+        setTurfHistory={setTurfHistory}
       />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}

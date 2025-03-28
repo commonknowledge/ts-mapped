@@ -45,6 +45,7 @@ export default function Markers({
               1000,
               100,
             ],
+            "circle-opacity": 0.6,
           }}
         />
         <Layer

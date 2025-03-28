@@ -31,7 +31,7 @@ export default function SearchHistory({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <ul className="space-y-2">
+        <ul>
           {history.map((result, index) => (
             <li
               key={index}

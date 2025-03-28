@@ -45,8 +45,8 @@ export class MapConfig {
   public areaDataColumn = "";
   public areaSetGroupCode: AreaSetGroupCode = "WMC24";
   public excludeColumnsString = "";
-  public markersDataSourceId = "";
-  public mapStyle: MapStyle = mapStyles["dark-v11"];
+  public markersDataSourceId = "634223d3-bc26-48bd-a3f2-58d2b9c62462";
+  public mapStyle: MapStyle = mapStyles["light-v11"];
   public showLabels = true;
 
   constructor(params: Partial<MapConfig> = {}) {
@@ -74,6 +74,7 @@ export default function Controls({
   onEditSearch,
   onDeleteSearch,
   turfHistory,
+  setTurfHistory,
 }: {
   dataSources: DataSourcesQuery["dataSources"];
   mapConfig: MapConfig;
@@ -87,6 +88,7 @@ export default function Controls({
   onEditSearch: (index: number, newText: string) => void;
   onDeleteSearch: (index: number) => void;
   turfHistory: DrawnPolygon[];
+  setTurfHistory: React.Dispatch<React.SetStateAction<DrawnPolygon[]>>;
 }) {
   const dataSource = dataSources.find(
     (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId
@@ -94,12 +96,92 @@ export default function Controls({
 
   return (
     <div className="flex flex-col bg-white rounded-lg shadow-lg gap-4 absolute top-0 left-0 m-3 p-4 z-10 w-[300px]">
-      <Tabs defaultValue="settings">
+      <Tabs defaultValue="layers">
         <TabsList>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="layers">Layers</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
         <Separator />
+
+        <TabsContent value="layers" className="flex flex-col gap-4 py-2">
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-row gap-2 items-center mb-2">
+              <div
+                style={{ backgroundColor: mapColors.member.color }}
+                className="rounded-full w-3 h-3"
+              />
+              <Label>Members</Label>
+            </div>
+            <MemberList
+              members={members}
+              onSelect={(coordinates) => {
+                const map = mapRef.current;
+                if (map) {
+                  map.flyTo({
+                    center: coordinates,
+                    zoom: 12,
+                  });
+                }
+              }}
+            />
+          </div>
+          <Separator />
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-row gap-2 items-center">
+              <div
+                style={{ backgroundColor: mapColors.searched.color }}
+                className="rounded-full w-3 h-3"
+              />
+              <Label>Search History</Label>
+            </div>
+            <SearchHistory
+              history={searchHistory}
+              onSelect={(coordinates) => {
+                const map = mapRef.current;
+                if (map) {
+                  map.flyTo({
+                    center: coordinates,
+                    zoom: 12,
+                  });
+                }
+              }}
+              onEdit={onEditSearch}
+              onDelete={onDeleteSearch}
+            />
+          </div>
+          <Separator />
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-row gap-2 items-center mb-2">
+              <div
+                style={{ backgroundColor: mapColors.turf.color }}
+                className="rounded-full w-3 h-3"
+              />
+              <Label>Turf</Label>
+            </div>
+            <TurfHistory
+              polygons={turfHistory}
+              onSelect={(coordinates) => {
+                const map = mapRef.current;
+                if (map) {
+                  map.flyTo({
+                    center: coordinates,
+                    zoom: 12,
+                  });
+                }
+              }}
+              onEdit={(index, newName) => {
+                setTurfHistory((prev) =>
+                  prev.map((poly, i) =>
+                    i === index ? { ...poly, name: newName } : poly
+                  )
+                );
+              }}
+              onDelete={(index) => {
+                setTurfHistory((prev) => prev.filter((_, i) => i !== index));
+              }}
+            />
+          </div>
+        </TabsContent>
         <TabsContent value="settings" className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="markersDataSourceId">
@@ -246,64 +328,6 @@ export default function Controls({
                 <Type className="w-4 h-4   text-muted-foreground" />
               </Toggle>
             </div>
-          </div>
-        </TabsContent>
-        <TabsContent value="layers" className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-2 items-center">
-              <div
-                style={{ backgroundColor: mapColors.searched.color }}
-                className="rounded-full w-3 h-3"
-              />
-              <Label>Search History</Label>
-            </div>
-            <SearchHistory
-              history={searchHistory}
-              onSelect={(coordinates) => {
-                const map = mapRef.current;
-                if (map) {
-                  map.flyTo({
-                    center: coordinates,
-                    zoom: 12,
-                  });
-                }
-              }}
-              onEdit={onEditSearch}
-              onDelete={onDeleteSearch}
-            />
-          </div>
-          <Separator />
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-2 items-center">
-              <div
-                style={{ backgroundColor: mapColors.member.color }}
-                className="rounded-full w-3 h-3"
-              />
-              <Label>Members</Label>
-            </div>
-            <MemberList
-              members={members}
-              onSelect={(coordinates) => {
-                const map = mapRef.current;
-                if (map) {
-                  map.flyTo({
-                    center: coordinates,
-                    zoom: 12,
-                  });
-                }
-              }}
-            />
-          </div>
-          <Separator />
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-2 items-center">
-              <div
-                style={{ backgroundColor: mapColors.turf.color }}
-                className="rounded-full w-3 h-3"
-              />
-              <Label>Turf</Label>
-            </div>
-            <TurfHistory polygons={turfHistory} />
           </div>
         </TabsContent>
       </Tabs>
