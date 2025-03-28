@@ -1,17 +1,46 @@
-import { DataSourcesQuery } from "@/__generated__/types";
+import { AreaStatsQuery, DataSourcesQuery } from "@/__generated__/types";
 import {
   AREA_SET_GROUP_LABELS,
   AreaSetGroupCode,
 } from "@/app/(private)/map/sources";
 import { MAX_COLUMN_KEY } from "@/constants";
 import styles from "./Controls.module.css";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import {
+  CornerDownRight,
+  LandPlot,
+  MapPin,
+  Paintbrush,
+  Pin,
+  SquareStack,
+  Type,
+} from "lucide-react";
+import Legend from "./Legend";
+import mapStyles from "@/lib/mapStyles";
+import { MapStyle } from "@/lib/mapStyles";
+import { Toggle } from "@/components/ui/toggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 export class MapConfig {
   public areaDataSourceId = "";
   public areaDataColumn = "";
   public areaSetGroupCode: AreaSetGroupCode = "WMC24";
   public excludeColumnsString = "";
   public markersDataSourceId = "";
+  public mapStyle: MapStyle = mapStyles["dark-v11"];
+  public showLabels = true;
 
   constructor(params: Partial<MapConfig> = {}) {
     Object.assign(this, params);
@@ -29,52 +58,91 @@ export default function Controls({
   dataSources,
   mapConfig,
   onChange,
+  areaStatsData,
 }: {
   dataSources: DataSourcesQuery["dataSources"];
   mapConfig: MapConfig;
   onChange: (mapConfig: Partial<MapConfig>) => void;
+  areaStatsData: AreaStatsQuery["areaStats"] | undefined;
 }) {
   const dataSource = dataSources.find(
-    (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId,
+    (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId
   );
 
   return (
-    <div className={styles.controls}>
-      <select
-        value={mapConfig.markersDataSourceId}
-        onChange={(e) => onChange({ markersDataSourceId: e.target.value })}
-      >
-        <option value="">Select a markers data source</option>
-        {dataSources.map((ds: { id: string; name: string }) => (
-          <option key={ds.id} value={ds.id}>
-            {ds.name}
-          </option>
-        ))}
-      </select>
-      <select
-        value={mapConfig.areaDataSourceId}
-        onChange={(e) => onChange({ areaDataSourceId: e.target.value })}
-      >
-        <option value="">Select an area data source</option>
-        {dataSources.map((ds: { id: string; name: string }) => (
-          <option key={ds.id} value={ds.id}>
-            {ds.name}
-          </option>
-        ))}
-      </select>
-      {dataSource ? (
-        <select
-          value={mapConfig.areaDataColumn}
-          onChange={(e) => onChange({ areaDataColumn: e.target.value })}
+    <div className="flex flex-col bg-white rounded-lg shadow-lg gap-4 absolute top-0 left-0 m-3 p-4 z-10 w-[300px]">
+      <h2 className="text-lg font-bold">Controls</h2>
+      <Separator />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="markersDataSourceId">
+          <MapPin className="w-4 h-4 text-muted-foreground" />
+          Markers Data Source
+        </Label>
+        <Select
+          value={mapConfig.markersDataSourceId}
+          onValueChange={(value) => onChange({ markersDataSourceId: value })}
         >
-          <option value="">Select a data column</option>
-          <option value={MAX_COLUMN_KEY}>Highest-value column</option>
-          {dataSource.columnDefs.map((cd: { name: string }) => (
-            <option key={cd.name} value={cd.name}>
-              {cd.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a markers data source" />
+          </SelectTrigger>
+          <SelectContent>
+            {dataSources.map((ds: { id: string; name: string }) => (
+              <SelectItem key={ds.id} value={ds.id}>
+                {ds.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Separator />
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="areaDataSourceId">
+          <LandPlot className="w-4 h-4 text-muted-foreground" />
+          Area Data Source
+        </Label>
+        <Select
+          value={mapConfig.areaDataSourceId}
+          onValueChange={(value) => onChange({ areaDataSourceId: value })}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select an area data source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Null">None</SelectItem>
+            {dataSources.map((ds: { id: string; name: string }) => (
+              <SelectItem key={ds.id} value={ds.id}>
+                {ds.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {dataSource ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2 items-center">
+            <CornerDownRight className="ml-2 w-4 h-4 text-muted-foreground" />
+            <Select
+              value={mapConfig.areaDataColumn}
+              onValueChange={(value) => onChange({ areaDataColumn: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a data column" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={MAX_COLUMN_KEY}>
+                  Highest-value column
+                </SelectItem>
+                {dataSource.columnDefs.map((cd: { name: string }) => (
+                  <SelectItem key={cd.name} value={cd.name}>
+                    {cd.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Legend areaStats={areaStatsData} />
+        </div>
       ) : null}
       {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (
         <input
@@ -88,18 +156,65 @@ export default function Controls({
           value={mapConfig.excludeColumnsString}
         />
       ) : null}
-      <select
-        value={mapConfig.areaSetGroupCode}
-        onChange={(e) =>
-          onChange({ areaSetGroupCode: e.target.value as AreaSetGroupCode })
-        }
-      >
-        {Object.keys(AREA_SET_GROUP_LABELS).map((code) => (
-          <option key={code} value={code}>
-            {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
-          </option>
-        ))}
-      </select>
+      <Separator />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="areaSetGroupCode">
+          <SquareStack className="w-4 h-4 text-muted-foreground" />
+          Boundary Set
+        </Label>
+        <Select
+          value={mapConfig.areaSetGroupCode}
+          onValueChange={(value) =>
+            onChange({ areaSetGroupCode: value as AreaSetGroupCode })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a boundary set" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.keys(AREA_SET_GROUP_LABELS).map((code) => (
+              <SelectItem key={code} value={code}>
+                {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Separator />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="mapStyle">
+          <Paintbrush className="w-4 h-4 text-muted-foreground" />
+          Map Style
+        </Label>
+        <div className="flex flex-row gap-2">
+          <Select
+            value={mapConfig.mapStyle.slug}
+            onValueChange={(value) =>
+              onChange({ mapStyle: mapStyles[value as keyof typeof mapStyles] })
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a map style" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(mapStyles).map((code) => (
+                <SelectItem
+                  key={code}
+                  value={mapStyles[code as keyof typeof mapStyles].slug}
+                >
+                  {mapStyles[code as keyof typeof mapStyles].name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Toggle
+            pressed={mapConfig.showLabels}
+            onPressedChange={(value) => onChange({ showLabels: value })}
+          >
+            <Type className="w-4 h-4   text-muted-foreground" />
+          </Toggle>
+        </div>
+      </div>
     </div>
   );
 }

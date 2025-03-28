@@ -28,10 +28,13 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={styles.nav}>
-      <Link href="/">Mapped</Link>
+    <nav className="flex justify-between items-center p-4">
+      <Link href="/" className="flex items-center gap-2">
+        <img src="/logo.svg" alt="Mapped" width={32} height={32} />
+        Mapped
+       </Link>
       {user ? (
-        <form className={styles.form} onSubmit={onSubmitLogout}>
+        <form className="flex gap-2" onSubmit={onSubmitLogout}>
           <button>Logout</button>
         </form>
       ) : (
