@@ -92,6 +92,7 @@ export type Mutation = {
   __typename?: "Mutation";
   createDataSource: CreateDataSourceResponse;
   triggerImportDataSourceJob: MutationResponse;
+  updateGeocodingConfig: MutationResponse;
 };
 
 export type MutationCreateDataSourceArgs = {
@@ -101,6 +102,11 @@ export type MutationCreateDataSourceArgs = {
 
 export type MutationTriggerImportDataSourceJobArgs = {
   dataSourceId: Scalars["String"]["input"];
+};
+
+export type MutationUpdateGeocodingConfigArgs = {
+  id: Scalars["String"]["input"];
+  rawGeocodingConfig: Scalars["JSON"]["input"];
 };
 
 export type MutationResponse = {
@@ -141,6 +147,35 @@ export type QueryDataSourceArgs = {
 
 export type QueryMarkersArgs = {
   dataSourceId: Scalars["String"]["input"];
+};
+
+export type UpdateGeocodingConfigMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  rawGeocodingConfig: Scalars["JSON"]["input"];
+}>;
+
+export type UpdateGeocodingConfigMutation = {
+  __typename?: "Mutation";
+  updateGeocodingConfig: { __typename?: "MutationResponse"; code: number };
+};
+
+export type DataSourceQueryVariables = Exact<{
+  id: Scalars["String"]["input"];
+}>;
+
+export type DataSourceQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    geocodingConfig: any;
+    columnDefs: Array<{
+      __typename?: "ColumnDef";
+      name: string;
+      type: ColumnType;
+    }>;
+  } | null;
 };
 
 export type CreateDataSourceMutationVariables = Exact<{
@@ -440,6 +475,15 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationTriggerImportDataSourceJobArgs, "dataSourceId">
+  >;
+  updateGeocodingConfig?: Resolver<
+    ResolversTypes["MutationResponse"],
+    ParentType,
+    ContextType,
+    RequireFields<
+      MutationUpdateGeocodingConfigArgs,
+      "id" | "rawGeocodingConfig"
+    >
   >;
 };
 

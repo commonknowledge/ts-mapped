@@ -57,17 +57,17 @@ export default function NewDataSourcePage() {
       if (result.errors || !dataSourceId) {
         setError("Could not create data source.");
       } else {
-        router.push(`/data-sources/geocode/${dataSourceId}`);
-        return
+        router.push(`/data-sources/${dataSourceId}/geocode`);
+        return;
       }
     } catch (e) {
-      console.error(`Could not create data source: ${e}`)
+      console.error(`Could not create data source: ${e}`);
     }
 
     setLoading(false);
   };
 
-  const { data: validDataSource } = DataSourceConfigSchema.safeParse(config);
+  const { data: validConfig } = DataSourceConfigSchema.safeParse(config);
   return (
     <div className="container">
       <h1>New Data Source</h1>
@@ -96,7 +96,7 @@ export default function NewDataSourcePage() {
         <AirtableFields config={config} onChange={onChangeConfig} />
         <CSVFields config={config} onChange={onChangeConfig} />
         <MailchimpFields config={config} onChange={onChangeConfig} />
-        <button disabled={!validDataSource || loading}>Submit</button>
+        <button disabled={!validConfig || loading}>Submit</button>
         {error ? (
           <div>
             <small>{error}</small>
@@ -109,7 +109,7 @@ export default function NewDataSourcePage() {
 
 // Take preparatory actions before this data source can be created
 const prepareDataSource = async (
-  clientConfig: NewDataSourceConfig
+  clientConfig: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
   if (clientConfig.type === "") {
     throw new Error("Invalid data source config");

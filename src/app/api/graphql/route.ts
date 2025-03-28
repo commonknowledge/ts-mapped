@@ -14,7 +14,11 @@ import {
 import logger from "@/server/services/logger";
 import { getAreaStats } from "@/server/stats";
 import { BoundingBox } from "@/types";
-import { createDataSource, triggerImportDataSourceJob } from "./mutations";
+import {
+  createDataSource,
+  triggerImportDataSourceJob,
+  updateGeocodingConfig,
+} from "./mutations";
 import { serializeDataSource } from "./serializers";
 
 const typeDefs = gql`
@@ -99,6 +103,10 @@ const typeDefs = gql`
   type Mutation {
     createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
     triggerImportDataSourceJob(dataSourceId: String!): MutationResponse!
+    updateGeocodingConfig(
+      id: String!
+      rawGeocodingConfig: JSON!
+    ): MutationResponse!
   }
 `;
 
@@ -178,6 +186,7 @@ const resolvers: Resolvers = {
   Mutation: {
     createDataSource,
     triggerImportDataSourceJob,
+    updateGeocodingConfig,
   },
 };
 

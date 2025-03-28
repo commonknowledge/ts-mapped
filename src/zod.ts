@@ -40,8 +40,14 @@ const GeocodingOnAddressSchema = z.object({
   column: z.string().nonempty(),
 });
 
+const GeocodingOnAreaSetTypeSchema = z.enum([
+  GeocodingType.name,
+  GeocodingType.code,
+]);
+export const GeocodingOnAreaSetType = GeocodingOnAreaSetTypeSchema.Enum;
+
 const GeocodingOnAreaSetSchema = z.object({
-  type: z.enum([GeocodingType.name, GeocodingType.code]),
+  type: GeocodingOnAreaSetTypeSchema,
   column: z.string().nonempty(),
   areaSetCode: z.nativeEnum(AreaSetCode),
 });

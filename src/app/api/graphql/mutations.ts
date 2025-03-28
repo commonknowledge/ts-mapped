@@ -1,12 +1,20 @@
 import { ColumnType, DataSource } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { ColumnDefs } from "@/server/models/DataSource";
-import { createDataSource as _createDataSource } from "@/server/repositories/DataSource";
+import {
+  createDataSource as _createDataSource,
+  findDataSourceById,
+  updateDataSource,
+} from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import { getErrorMessage } from "@/server/util";
 import { GeocodingType } from "@/types";
-import { DataSourceConfigSchema, DataSourceGeocodingConfig } from "@/zod";
+import {
+  DataSourceConfigSchema,
+  DataSourceGeocodingConfig,
+  DataSourceGeocodingConfigSchema,
+} from "@/zod";
 import { serializeDataSource } from "./serializers";
 
 interface MutationResponse {
@@ -60,4 +68,29 @@ export const triggerImportDataSourceJob = async (
 ): Promise<MutationResponse> => {
   await enqueue("importDataSource", { dataSourceId });
   return { code: 200 };
+};
+
+export const updateGeocodingConfig = async (
+  _: unknown,
+  { id, rawGeocodingConfig }: { id: string; rawGeocodingConfig: object },
+): Promise<MutationResponse> => {
+  try {
+    const dataSource = await findDataSourceById(id);
+    if (!dataSource) {
+      return { code: 404 };
+    }
+    const geocodingConfig =
+      DataSourceGeocodingConfigSchema.parse(rawGeocodingConfig);
+    await updateDataSource(id, {
+      geocodingConfig: JSON.stringify(geocodingConfig),
+    });
+    logger.info(
+      `Updated ${dataSource.config.type} data source geocoding config: ${dataSource.id}`,
+    );
+    return { code: 200 };
+  } catch (e) {
+    const error = getErrorMessage(e);
+    logger.error(`Could not update data source: ${error}`);
+  }
+  return { code: 500 };
 };
