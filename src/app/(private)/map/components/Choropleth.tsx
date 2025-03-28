@@ -37,46 +37,50 @@ export default function Choropleth({
       />
 
       {/* Line Layer */}
-      <Layer
-        id={`${sourceId}-line`}
-        source={sourceId}
-        source-layer={layerId}
-        type="line"
-        paint={{
-          "line-color": "#999",
-          "line-width": 1,
-        }}
-      />
+      {mapConfig.showBoundaryOutline && (
+        <Layer
+          id={`${sourceId}-line`}
+          source={sourceId}
+          source-layer={layerId}
+          type="line"
+          paint={{
+            "line-color": "#999",
+            "line-width": 1,
+          }}
+        />
+      )}
 
       {/* Symbol Layer (Labels) */}
       {mapConfig.showLabels && (
-      <Layer
-        id={`${sourceId}-labels`}
-        source={sourceId}
-        source-layer={layerId}
-        type="symbol"
-        layout={{
-          "symbol-placement": "point",
-          "text-field": ["get", featureNameProperty],
-          "text-size": 14,
-          "text-anchor": "center",
-          "text-allow-overlap": false,
-          "symbol-spacing": 100,
-          "text-max-width": 8,
-          "text-padding": 30,
-          "text-transform": "uppercase",
-          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
-        }}
-        paint={{
-          "text-color": mapConfig.mapStyle.textColor,
-          "text-opacity": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            8, 0.8,
-            10, 0.8
-          ],
-          "text-halo-color": mapConfig.mapStyle.textHaloColor,
+        <Layer
+          id={`${sourceId}-labels`}
+          source={sourceId}
+          source-layer={layerId}
+          type="symbol"
+          layout={{
+            "symbol-placement": "point",
+            "text-field": ["get", featureNameProperty],
+            "text-size": 14,
+            "text-anchor": "center",
+            "text-allow-overlap": false,
+            "symbol-spacing": 100,
+            "text-max-width": 8,
+            "text-padding": 30,
+            "text-transform": "uppercase",
+            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+          }}
+          paint={{
+            "text-color": mapConfig.mapStyle.textColor,
+            "text-opacity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              8,
+              0.8,
+              10,
+              0.8,
+            ],
+            "text-halo-color": mapConfig.mapStyle.textHaloColor,
             "text-halo-width": 1.5,
           }}
         />

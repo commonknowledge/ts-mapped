@@ -11,7 +11,7 @@ import {
 import { Toggle } from "@/shadcn/components/ui/toggle";
 import { Tooltip } from "@/shadcn/components/ui/tooltip";
 import mapStyles from "../styles";
-import { Paintbrush, Type } from "lucide-react";
+import { Paintbrush, Scan, Type } from "lucide-react";
 import {
   TooltipContent,
   TooltipProvider,
@@ -37,7 +37,7 @@ export function MapStyleSelector({
   dataSources: DataSourcesQuery["dataSources"];
 }) {
   return (
-    <div className="absolute left-1/2 -top-20 -translate-x-1/2 m-3 p-4 z-10 w-[300px] bg-white ">
+    <div className="absolute left-1/2 -top-20 -translate-x-1/2 m-3 p-4 z-10  bg-white ">
       <div className="flex gap-2 items-center">
         <TooltipProvider>
           <Tooltip>
@@ -86,6 +86,29 @@ export function MapStyleSelector({
             </TooltipTrigger>
             <TooltipContent>
               <p>{mapConfig.showLabels ? "Hide" : "Show"} labels</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle
+                pressed={mapConfig.showBoundaryOutline}
+                onPressedChange={(value) =>
+                  onChange({ showBoundaryOutline: value })
+                }
+              >
+                <Scan
+                  className={`w-4 h-4  text-muted-foreground ${
+                    mapConfig.showBoundaryOutline ? "opacity-100" : "opacity-50"
+                  }`}
+                />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {mapConfig.showBoundaryOutline ? "Hide" : "Show"} boundary
+                outline
+              </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

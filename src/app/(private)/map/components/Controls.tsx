@@ -8,7 +8,6 @@ import {
   AreaSetGroupCode,
 } from "@/app/(private)/map/sources";
 import { MAX_COLUMN_KEY } from "@/constants";
-import styles from "./Controls.module.css";
 import {
   Select,
   SelectContent,
@@ -18,16 +17,7 @@ import {
 } from "@/shadcn/components/ui/select";
 import { Separator } from "@/shadcn/components/ui/separator";
 import { Label } from "@/shadcn/components/ui/label";
-import {
-  CornerDownRight,
-  LandPlot,
-  MapPin,
-  Paintbrush,
-  Pin,
-  SquareStack,
-  Type,
-} from "lucide-react";
-import Legend from "./Legend";
+import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
 import mapStyles, { mapColors } from "@/app/(private)/map/styles";
 import { MapStyle } from "@/app/(private)/map/styles";
 import { Toggle } from "@/shadcn/components/ui/toggle";
@@ -37,22 +27,14 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/shadcn/components/ui/tabs";
-import SearchHistory from "./dataLists/SearchHistory";
-import { useState } from "react";
+
 import { DrawnPolygon, SearchResult } from "@/types";
 import { MapRef } from "react-map-gl/mapbox";
-import MemberList from "./dataLists/MemberList";
 import { MarkerData } from "@/types";
-import TurfHistory from "./dataLists/TurfHistory";
 import MembersControl from "./control/MembersControl";
 import LocationsControl from "./control/LocationsControl";
 import TurfControl from "./control/TurfControl";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shadcn/components/ui/tooltip";
+
 import SettingsModal from "./SettingsModal";
 
 export class MapConfig {
@@ -63,6 +45,7 @@ export class MapConfig {
   public markersDataSourceId = "634223d3-bc26-48bd-a3f2-58d2b9c62462";
   public mapStyle: MapStyle = mapStyles["light-v11"];
   public showLabels = true;
+  public showBoundaryOutline = false;
   public showMembers = true;
   public showLocations = true;
   public showTurf = true;

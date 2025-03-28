@@ -4,6 +4,7 @@ import { SyntheticEvent, useState } from "react";
 import { useCurrentUser } from "@/shadcn/hooks";
 import { Link } from "./Link";
 import styles from "./Navbar.module.css";
+import { Separator } from "@/shadcn/components/ui/separator";
 
 export default function Navbar() {
   const user = useCurrentUser();
@@ -29,10 +30,25 @@ export default function Navbar() {
 
   return (
     <nav className="flex justify-between items-center p-4 z-1">
-      <Link href="/" className="flex items-center gap-2">
-        <img src="/logo.svg" alt="Mapped" width={32} height={32} />
-        Mapped
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/logo.svg" alt="Mapped" width={32} height={32} />
+          Mapped
+        </Link>
+        <Separator orientation="vertical" />
+        <Link
+          href="/map"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          Map
+        </Link>
+        <Link
+          href="/data-sources"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          Data Sources
+        </Link>
+      </div>
       {user ? (
         <form className="flex gap-2" onSubmit={onSubmitLogout}>
           <button>Logout</button>
