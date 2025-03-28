@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --fix && prettier --write . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
+    "lint": "eslint --fix && tsc --noEmit && prettier --log-level warn --write . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
     "cmd": "tsx --env-file=.env bin/cmd.ts",
     "kysely": "kysely",
     "gql": "graphql-codegen"

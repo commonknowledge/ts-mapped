@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { Link } from "@/components/Link";
 import { getClient } from "@/services/ApolloClient";
 
 export default async function DataSourcesPage() {
@@ -24,6 +25,7 @@ export default async function DataSourcesPage() {
           <li key={id}>{name}</li>
         ))}
       </ul>
+      <Link href="/data-sources/new">Add new</Link>
     </div>
   );
 }

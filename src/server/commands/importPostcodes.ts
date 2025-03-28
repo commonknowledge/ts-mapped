@@ -8,8 +8,9 @@ import {
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getBaseDir } from "@/server/util";
+import { AreaSetCode } from "@/types";
 
-const AREA_SET_CODE = "PC";
+const AREA_SET_CODE = AreaSetCode.PC;
 
 const importPostcodes = async () => {
   const postcodeGeojsonDirPath = join(getBaseDir(), "resources", "areaSets");

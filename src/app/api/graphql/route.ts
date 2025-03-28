@@ -57,6 +57,7 @@ const typeDefs = gql`
     name: String!
     columnDefs: [ColumnDef!]!
     config: JSON!
+    geocodingConfig: JSON!
     createdAt: String!
   }
 
@@ -96,11 +97,7 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createDataSource(
-      name: String!
-      rawConfig: JSON!
-      rawGeocodingConfig: JSON!
-    ): CreateDataSourceResponse!
+    createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
     triggerImportDataSourceJob(dataSourceId: String!): MutationResponse!
   }
 `;

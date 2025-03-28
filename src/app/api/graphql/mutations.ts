@@ -1,12 +1,12 @@
-import { DataSource } from "@/__generated__/types";
-import {
-  DataSourceConfigSchema,
-  DataSourceGeocodingConfigSchema,
-} from "@/server/models/DataSource";
+import { ColumnType, DataSource } from "@/__generated__/types";
+import { getDataSourceAdaptor } from "@/server/adaptors";
+import { ColumnDefs } from "@/server/models/DataSource";
 import { createDataSource as _createDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import { getErrorMessage } from "@/server/util";
+import { GeocodingType } from "@/types";
+import { DataSourceConfigSchema, DataSourceGeocodingConfig } from "@/zod";
 import { serializeDataSource } from "./serializers";
 
 interface MutationResponse {
@@ -20,22 +20,32 @@ interface CreateDataSourceResponse {
 
 export const createDataSource = async (
   _: unknown,
-  {
-    name,
-    rawConfig,
-    rawGeocodingConfig,
-  }: { name: string; rawConfig: object; rawGeocodingConfig: object },
+  { name, rawConfig }: { name: string; rawConfig: object },
 ): Promise<CreateDataSourceResponse> => {
   try {
     const config = DataSourceConfigSchema.parse(rawConfig);
-    const geocodingConfig =
-      DataSourceGeocodingConfigSchema.parse(rawGeocodingConfig);
+    const adaptor = getDataSourceAdaptor(config);
+    const firstRecord = adaptor ? await adaptor.fetchFirst() : null;
+    if (!firstRecord) {
+      return { code: 500 };
+    }
+
+    const columnDefs: ColumnDefs = Object.keys(firstRecord.json).map((key) => ({
+      name: key,
+      type: ColumnType.Unknown,
+    }));
+
+    const geocodingConfig: DataSourceGeocodingConfig = {
+      type: GeocodingType.none,
+    };
     const dataSource = await _createDataSource({
       name,
       config: JSON.stringify(config),
       geocodingConfig: JSON.stringify(geocodingConfig),
-      columnDefs: "{}",
+      columnDefs: JSON.stringify(columnDefs),
     });
+
+    logger.info(`Created ${config.type} data source: ${dataSource.id}`);
     return { code: 200, result: serializeDataSource(dataSource) };
   } catch (e) {
     const error = getErrorMessage(e);

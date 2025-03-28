@@ -3,7 +3,9 @@ import path from "path";
 import readline from "readline";
 import { fileURLToPath } from "url";
 import { parse } from "csv-parse";
-import { DataSourceAdaptor } from "./abstract";
+import logger from "@/server/services/logger";
+import { getErrorMessage } from "../util";
+import { DataSourceAdaptor, ExternalRecord } from "./abstract";
 
 const getProjectFolder = () => {
   let currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -20,6 +22,7 @@ const getProjectFolder = () => {
 export class CSVAdaptor implements DataSourceAdaptor {
   private idColumn: string;
   private filepath: string;
+
   constructor(idColumn: string, filename: string) {
     this.idColumn = idColumn;
     this.filepath = path.join(
@@ -29,6 +32,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
       filename,
     );
   }
+
   async getRecordCount() {
     const fileStream = fs.createReadStream(this.filepath);
     const rl = readline.createInterface({
@@ -44,15 +48,34 @@ export class CSVAdaptor implements DataSourceAdaptor {
 
     return Math.max(lineCount - 1, 0); // exclude header row
   }
-  async *fetchAll(): AsyncGenerator<{
-    externalId: string;
-    json: Record<string, unknown>;
-  }> {
+
+  async *fetchAll(): AsyncGenerator<ExternalRecord> {
     const content = fs.createReadStream(this.filepath);
     const parser = content.pipe(parse({ columns: true }));
     // Parse the CSV content
     for await (const record of parser) {
-      yield { externalId: record[this.idColumn], json: record };
+      if (this.idColumn in record) {
+        yield { externalId: record[this.idColumn], json: record };
+      }
     }
+  }
+
+  async fetchFirst(): Promise<ExternalRecord | null> {
+    try {
+      const content = fs.createReadStream(this.filepath);
+      const parser = content.pipe(parse({ columns: true }));
+      for await (const record of parser) {
+        if (this.idColumn in record) {
+          return { externalId: record[this.idColumn], json: record };
+        }
+        throw new Error(`ID column "${this.idColumn}" missing`);
+      }
+    } catch (e) {
+      const error = getErrorMessage(e);
+      logger.warn(
+        `Could not get first record for CSV ${this.filepath}: ${error}`,
+      );
+    }
+    return null;
   }
 }

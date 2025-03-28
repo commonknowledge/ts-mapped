@@ -1,16 +1,17 @@
-import { DataSourceConfig } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
+import { DataSourceType } from "@/types";
+import { DataSourceConfig } from "@/zod";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 
 export const getDataSourceAdaptor = (config: DataSourceConfig) => {
   const dataSourceType = config.type;
   switch (dataSourceType) {
-    case "airtable":
+    case DataSourceType.Airtable:
       return new AirtableAdaptor(config.apiKey, config.baseId, config.tableId);
-    case "csv":
+    case DataSourceType.CSV:
       return new CSVAdaptor(config.idColumn, config.filename);
-    case "mailchimp":
+    case DataSourceType.Mailchimp:
     default:
       logger.error(`Unimplemented data source type: ${dataSourceType}`);
       return null;

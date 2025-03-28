@@ -4,14 +4,11 @@ import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
 import importDataSource from "@/server/jobs/importDataSource";
-import {
-  DataSourceConfigSchema,
-  DataSourceGeocodingConfigSchema,
-} from "@/server/models/DataSource";
 import { createDataSource } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { runWorker } from "@/server/services/queue";
+import { DataSourceConfigSchema, DataSourceGeocodingConfigSchema } from "@/zod";
 
 const program = new Command();
 
@@ -35,7 +32,7 @@ program
       name: options.name,
       config: JSON.stringify(parsedConfig),
       geocodingConfig: JSON.stringify(parsedGeocodingConfig),
-      columnDefs: "{}",
+      columnDefs: "[]",
     });
     logger.info(`Created data source ${options.name}, ID ${dataSource.id}`);
     await importDataSource({ dataSourceId: dataSource.id });

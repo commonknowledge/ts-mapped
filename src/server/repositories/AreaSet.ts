@@ -1,7 +1,8 @@
 import { NewAreaSet } from "@/server/models/AreaSet";
 import { db } from "@/server/services/database";
+import { AreaSetCode } from "@/types";
 
-export async function findAreaSetByCode(code: string) {
+export async function findAreaSetByCode(code: AreaSetCode) {
   return await db
     .selectFrom("areaSet")
     .where("code", "=", code)

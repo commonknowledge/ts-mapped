@@ -2,12 +2,11 @@ import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
 import { AreaStat, ColumnType, Operation } from "@/__generated__/types";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { Database } from "@/server/models";
-import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getErrorMessage } from "@/server/util";
-import { BoundingBox } from "@/types";
+import { AreaSetCode, BoundingBox } from "@/types";
 
 export const getAreaStats = async (
   areaSetCode: string,
@@ -18,7 +17,7 @@ export const getAreaStats = async (
   boundingBox: BoundingBox | null = null,
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
   // Ensure areaSetCode is valid as it will be used in a raw SQL query
-  if (!(await findAreaSetByCode(areaSetCode))) {
+  if (!(areaSetCode in AreaSetCode)) {
     return { column, columnType: ColumnType.Unknown, stats: [] };
   }
 
