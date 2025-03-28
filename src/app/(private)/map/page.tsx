@@ -170,6 +170,7 @@ export default function MapPage() {
         onSelectMember={(member) => setSelectedMarker(member)}
         turfHistory={TurfHistory}
         setTurfHistory={setTurfHistory}
+        loading={loading}
       />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}

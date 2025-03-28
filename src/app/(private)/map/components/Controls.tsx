@@ -32,13 +32,16 @@ import mapStyles, { mapColors } from "@/lib/mapStyles";
 import { MapStyle } from "@/lib/mapStyles";
 import { Toggle } from "@/components/ui/toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SearchHistory from "./SearchHistory";
+import SearchHistory from "./dataLists/SearchHistory";
 import { useState } from "react";
 import { DrawnPolygon, SearchResult } from "@/types";
 import { MapRef } from "react-map-gl/mapbox";
-import MemberList from "./MemberList";
+import MemberList from "./dataLists/MemberList";
 import { MarkerData } from "@/types";
-import TurfHistory from "./TurfHistory";
+import TurfHistory from "./dataLists/TurfHistory";
+import MembersControl from "./control/MembersControl";
+import LocationsControl from "./control/LocationsControl";
+import TurfControl from "./control/TurfControl";
 
 export class MapConfig {
   public areaDataSourceId = "";
@@ -75,6 +78,7 @@ export default function Controls({
   onDeleteSearch,
   turfHistory,
   setTurfHistory,
+  loading,
 }: {
   dataSources: DataSourcesQuery["dataSources"];
   mapConfig: MapConfig;
@@ -89,6 +93,7 @@ export default function Controls({
   onDeleteSearch: (index: number) => void;
   turfHistory: DrawnPolygon[];
   setTurfHistory: React.Dispatch<React.SetStateAction<DrawnPolygon[]>>;
+  loading?: boolean;
 }) {
   const dataSource = dataSources.find(
     (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId
@@ -104,84 +109,28 @@ export default function Controls({
         <Separator />
 
         <TabsContent value="layers" className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-2 items-center mb-2">
-              <div
-                style={{ backgroundColor: mapColors.member.color }}
-                className="rounded-full w-3 h-3"
-              />
-              <Label>Members</Label>
-            </div>
-            <MemberList
-              members={members}
-              onSelect={(coordinates) => {
-                const map = mapRef.current;
-                if (map) {
-                  map.flyTo({
-                    center: coordinates,
-                    zoom: 12,
-                  });
-                }
-              }}
-            />
-          </div>
+          <MembersControl
+            members={members}
+            mapRef={mapRef}
+            isLoading={loading}
+          />
           <Separator />
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-2 items-center">
-              <div
-                style={{ backgroundColor: mapColors.searched.color }}
-                className="rounded-full w-3 h-3"
-              />
-              <Label>Search History</Label>
-            </div>
-            <SearchHistory
-              history={searchHistory}
-              onSelect={(coordinates) => {
-                const map = mapRef.current;
-                if (map) {
-                  map.flyTo({
-                    center: coordinates,
-                    zoom: 12,
-                  });
-                }
-              }}
-              onEdit={onEditSearch}
-              onDelete={onDeleteSearch}
-            />
-          </div>
+          <LocationsControl
+            searchHistory={searchHistory}
+            mapRef={mapRef}
+            onEdit={onEditSearch}
+            onDelete={onDeleteSearch}
+            isLoading={loading}
+          />
           <Separator />
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-row gap-2 items-center mb-2">
-              <div
-                style={{ backgroundColor: mapColors.turf.color }}
-                className="rounded-full w-3 h-3"
-              />
-              <Label>Turf</Label>
-            </div>
-            <TurfHistory
-              polygons={turfHistory}
-              onSelect={(coordinates) => {
-                const map = mapRef.current;
-                if (map) {
-                  map.flyTo({
-                    center: coordinates,
-                    zoom: 12,
-                  });
-                }
-              }}
-              onEdit={(index, newName) => {
-                setTurfHistory((prev) =>
-                  prev.map((poly, i) =>
-                    i === index ? { ...poly, name: newName } : poly
-                  )
-                );
-              }}
-              onDelete={(index) => {
-                setTurfHistory((prev) => prev.filter((_, i) => i !== index));
-              }}
-            />
-          </div>
+          <TurfControl
+            turfHistory={turfHistory}
+            mapRef={mapRef}
+            setTurfHistory={setTurfHistory}
+            isLoading={loading}
+          />
         </TabsContent>
+
         <TabsContent value="settings" className="flex flex-col gap-4 py-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="markersDataSourceId">
@@ -206,6 +155,7 @@ export default function Controls({
               </SelectContent>
             </Select>
           </div>
+
           <Separator />
 
           <div className="flex flex-col gap-2">
@@ -268,7 +218,9 @@ export default function Controls({
               value={mapConfig.excludeColumnsString}
             />
           ) : null}
+
           <Separator />
+
           <div className="flex flex-col gap-2">
             <Label htmlFor="areaSetGroupCode">
               <SquareStack className="w-4 h-4 text-muted-foreground" />
@@ -292,7 +244,9 @@ export default function Controls({
               </SelectContent>
             </Select>
           </div>
+
           <Separator />
+
           <div className="flex flex-col gap-2">
             <Label htmlFor="mapStyle">
               <Paintbrush className="w-4 h-4 text-muted-foreground" />

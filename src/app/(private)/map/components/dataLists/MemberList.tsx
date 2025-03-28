@@ -13,8 +13,8 @@ export default function MemberList({
   if (!members) return null;
 
   return (
-    <ScrollArea className="h-[200px] w-full rounded-md border p-2">
-      <div className="space-y-2">
+    <ScrollArea className="max-h-[200px] w-full rounded-md  p-2">
+      <div className="">
         {members.features?.map((feature: any) => (
           <li
             key={feature.properties.Name}

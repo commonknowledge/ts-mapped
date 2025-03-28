@@ -55,7 +55,13 @@ export default function Markers({
           filter={["has", "point_count"]}
           layout={{
             "text-field": ["get", "point_count_abbreviated"],
-            "text-size": 12,
+            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 16,
+          }}
+          paint={{
+            "text-color": "#000000",
+            "text-halo-color": "#ffffff",
+            "text-halo-width": 1,
           }}
         />
         <Layer
