@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client";
 import {
-  DataSourceGeocodingConfigQuery,
-  DataSourceGeocodingConfigQueryVariables,
+  DataSourceQuery,
+  DataSourceQueryVariables,
 } from "@/__generated__/types";
 import { query } from "@/services/ApolloClient";
-import GeocodeDataSourceForm from "./GeocodeDataSourceForm";
+import DataSourceDashboard from "./DataSourceDashboard";
 
 export default async function GeocodeDataSourcePage({
   params,
@@ -12,12 +12,9 @@ export default async function GeocodeDataSourcePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await query<
-    DataSourceGeocodingConfigQuery,
-    DataSourceGeocodingConfigQueryVariables
-  >({
+  const result = await query<DataSourceQuery, DataSourceQueryVariables>({
     query: gql`
-      query DataSourceGeocodingConfig($id: String!) {
+      query DataSource($id: String!) {
         dataSource(id: $id) {
           id
           name
@@ -25,7 +22,9 @@ export default async function GeocodeDataSourcePage({
             name
             type
           }
+          config
           geocodingConfig
+          recordCount
         }
       }
     `,
@@ -40,5 +39,5 @@ export default async function GeocodeDataSourcePage({
     );
   }
 
-  return <GeocodeDataSourceForm dataSource={result.data.dataSource} />;
+  return <DataSourceDashboard dataSource={result.data.dataSource} />;
 }

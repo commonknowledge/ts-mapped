@@ -6,7 +6,10 @@ import { NextRequest } from "next/server";
 import { Operation } from "@/__generated__/types";
 import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
+import {
+  countDataRecordsForDataSource,
+  findDataRecordsByDataSource,
+} from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
   listDataSources,
@@ -59,10 +62,11 @@ const typeDefs = gql`
   type DataSource {
     id: String!
     name: String!
+    createdAt: String!
     columnDefs: [ColumnDef!]!
     config: JSON!
     geocodingConfig: JSON!
-    createdAt: String!
+    recordCount: Int
   }
 
   enum Operation {
@@ -111,6 +115,9 @@ const typeDefs = gql`
 `;
 
 const resolvers: Resolvers = {
+  DataSource: {
+    recordCount: ({ id }) => countDataRecordsForDataSource(id),
+  },
   JSON: GraphQLJSON,
   Query: {
     areaStats: (

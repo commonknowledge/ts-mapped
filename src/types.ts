@@ -1,3 +1,5 @@
+// Don't import anything into this file
+
 export enum AreaSetCode {
   OA21 = "OA21",
   PC = "PC",
@@ -17,9 +19,9 @@ export interface CurrentUser {
 }
 
 export enum DataSourceType {
-  Airtable = "Airtable",
-  CSV = "CSV",
-  Mailchimp = "Mailchimp",
+  airtable = "airtable",
+  csv = "csv",
+  mailchimp = "mailchimp",
 }
 
 export interface GeocodeResult {

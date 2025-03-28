@@ -7,6 +7,7 @@ import {
   CreateDataSourceMutation,
   CreateDataSourceMutationVariables,
 } from "@/__generated__/types";
+import { DataSourceTypeLabels } from "@/labels";
 import { DataSourceType, UploadResponseBody } from "@/types";
 import { DataSourceConfig, DataSourceConfigSchema } from "@/zod";
 import AirtableFields from "./fields/AirtableFields";
@@ -55,13 +56,14 @@ export default function NewDataSourcePage() {
 
       const dataSourceId = result.data?.createDataSource.result?.id;
       if (result.errors || !dataSourceId) {
-        setError("Could not create data source.");
+        throw new Error(String(result.errors));
       } else {
         router.push(`/data-sources/${dataSourceId}/geocode`);
         return;
       }
     } catch (e) {
       console.error(`Could not create data source: ${e}`);
+      setError("Could not create data source.");
     }
 
     setLoading(false);
@@ -88,7 +90,7 @@ export default function NewDataSourcePage() {
           <option value="">Choose a type</option>
           {Object.keys(DataSourceType).map((type) => (
             <option key={type} value={type}>
-              {type}
+              {DataSourceTypeLabels[type as DataSourceType]}
             </option>
           ))}
         </select>
@@ -115,7 +117,7 @@ const prepareDataSource = async (
     throw new Error("Invalid data source config");
   }
 
-  if (clientConfig.type !== DataSourceType.CSV) {
+  if (clientConfig.type !== DataSourceType.csv) {
     return clientConfig;
   }
 

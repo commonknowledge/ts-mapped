@@ -86,6 +86,7 @@ export type DataSource = {
   geocodingConfig: Scalars["JSON"]["output"];
   id: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
+  recordCount?: Maybe<Scalars["Int"]["output"]>;
 };
 
 export type Mutation = {
@@ -149,6 +150,15 @@ export type QueryMarkersArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
+export type TriggerImportDataSourceJobMutationVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+}>;
+
+export type TriggerImportDataSourceJobMutation = {
+  __typename?: "Mutation";
+  triggerImportDataSourceJob: { __typename?: "MutationResponse"; code: number };
+};
+
 export type UpdateGeocodingConfigMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   rawGeocodingConfig: Scalars["JSON"]["input"];
@@ -157,6 +167,25 @@ export type UpdateGeocodingConfigMutationVariables = Exact<{
 export type UpdateGeocodingConfigMutation = {
   __typename?: "Mutation";
   updateGeocodingConfig: { __typename?: "MutationResponse"; code: number };
+};
+
+export type DataSourceGeocodingConfigQueryVariables = Exact<{
+  id: Scalars["String"]["input"];
+}>;
+
+export type DataSourceGeocodingConfigQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    geocodingConfig: any;
+    columnDefs: Array<{
+      __typename?: "ColumnDef";
+      name: string;
+      type: ColumnType;
+    }>;
+  } | null;
 };
 
 export type DataSourceQueryVariables = Exact<{
@@ -169,7 +198,9 @@ export type DataSourceQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
+    config: any;
     geocodingConfig: any;
+    recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
@@ -451,6 +482,7 @@ export type DataSourceResolvers<
   geocodingConfig?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

@@ -8,7 +8,7 @@ export default function CSVInputs({
   config: NewDataSourceConfig;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
-  if (config.type !== DataSourceType.CSV) {
+  if (config.type !== DataSourceType.csv) {
     return;
   }
 

@@ -8,7 +8,7 @@ export default function MailchimpInputs({
   config: NewDataSourceConfig;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
-  if (config.type !== DataSourceType.Mailchimp) {
+  if (config.type !== DataSourceType.mailchimp) {
     return null;
   }
 

@@ -1,4 +1,6 @@
-import { AreaSetCode, GeocodingType } from "@/types";
+// Human friendly labels for enums
+
+import { AreaSetCode, DataSourceType, GeocodingType } from "@/types";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "",
@@ -7,6 +9,12 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   OA21: "Census Output Area (2021)",
   MSOA21: "Middle Super Output Area (2021)",
   WMC24: "Westminster Constituency (2024)",
+};
+
+export const DataSourceTypeLabels: Record<DataSourceType, string> = {
+  airtable: "Airtable",
+  csv: "CSV",
+  mailchimp: "Mailchimp",
 };
 
 export const GeocodingTypeLabels: Record<GeocodingType | "postcode", string> = {

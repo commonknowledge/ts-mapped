@@ -8,7 +8,7 @@ export default function AirtableFields({
   config: NewDataSourceConfig;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
-  if (config.type !== DataSourceType.Airtable) {
+  if (config.type !== DataSourceType.airtable) {
     return;
   }
 

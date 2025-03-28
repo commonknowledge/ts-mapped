@@ -7,11 +7,11 @@ import { CSVAdaptor } from "./csv";
 export const getDataSourceAdaptor = (config: DataSourceConfig) => {
   const dataSourceType = config.type;
   switch (dataSourceType) {
-    case DataSourceType.Airtable:
+    case DataSourceType.airtable:
       return new AirtableAdaptor(config.apiKey, config.baseId, config.tableId);
-    case DataSourceType.CSV:
+    case DataSourceType.csv:
       return new CSVAdaptor(config.idColumn, config.filename);
-    case DataSourceType.Mailchimp:
+    case DataSourceType.mailchimp:
     default:
       logger.error(`Unimplemented data source type: ${dataSourceType}`);
       return null;

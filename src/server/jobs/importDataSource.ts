@@ -26,7 +26,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   const adaptor = getDataSourceAdaptor(dataSource.config);
   if (!adaptor) {
     logger.error(
-      `Could not get data source adaptor for source ${dataSourceId}, config ${dataSource.config}`,
+      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`,
     );
     return false;
   }

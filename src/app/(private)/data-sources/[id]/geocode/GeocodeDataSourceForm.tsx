@@ -1,20 +1,25 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
+import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import {
-  DataSourceQuery,
+  DataSourceGeocodingConfigQuery,
   UpdateGeocodingConfigMutation,
   UpdateGeocodingConfigMutationVariables,
 } from "@/__generated__/types";
+import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
 import { AreaSetCode, GeocodingType } from "@/types";
 import { DataSourceGeocodingConfigSchema, GeocodingOnAreaSetType } from "@/zod";
-import { AreaSetCodeLabels, GeocodingTypeLabels } from "./labels";
 
 export default function GeocodeDataSourceForm({
   dataSource,
 }: {
-  dataSource: Exclude<DataSourceQuery["dataSource"], null | undefined>;
+  // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
+  dataSource: Exclude<
+    DataSourceGeocodingConfigQuery["dataSource"],
+    null | undefined
+  >;
 }) {
   const initialState = getInitialState(dataSource);
 
@@ -25,6 +30,7 @@ export default function GeocodeDataSourceForm({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const [updateGeocodingConfig] = useMutation<
     UpdateGeocodingConfigMutation,
@@ -47,61 +53,71 @@ export default function GeocodeDataSourceForm({
     setError("");
 
     try {
-      await updateGeocodingConfig({
+      const result = await updateGeocodingConfig({
         variables: { id: dataSource.id, rawGeocodingConfig: geocodingConfig },
       });
+      if (result.errors) {
+        throw new Error(String(result.errors));
+      } else {
+        router.push(`/data-sources/${dataSource.id}`);
+        return;
+      }
     } catch (e) {
       console.error(`Could not update geocoding config: ${e}`);
+      setError("Could not update geocoding config.");
     }
 
     setLoading(false);
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      <select value={column} onChange={(e) => setColumn(e.target.value)}>
-        <option value="">Select a column to geocode on</option>
-        {dataSource.columnDefs.map((cd) => (
-          <option key={cd.name} value={cd.name}>
-            {cd.name}
-          </option>
-        ))}
-      </select>
-      <select
-        value={type}
-        onChange={(e) => setType(e.target.value as GeocodingType)}
-      >
-        <option value={GeocodingType.none}>What kind of data is this?</option>
-        {Object.keys(GeocodingTypeLabels)
-          .filter((type) => type !== GeocodingType.none)
-          .map((type) => (
-            <option key={type} value={type}>
-              {GeocodingTypeLabels[type as GeocodingType]}
+    <div className="container">
+      <h1>Geocode {dataSource.name}</h1>
+      <form onSubmit={onSubmit}>
+        <select value={column} onChange={(e) => setColumn(e.target.value)}>
+          <option value="">Select a column to geocode on</option>
+          {dataSource.columnDefs.map((cd) => (
+            <option key={cd.name} value={cd.name}>
+              {cd.name}
             </option>
           ))}
-      </select>
-      {type in GeocodingOnAreaSetType ? (
+        </select>
         <select
-          value={areaSetCode}
-          onChange={(e) => setAreaSetCode(e.target.value as AreaSetCode)}
+          value={type}
+          onChange={(e) => setType(e.target.value as GeocodingType)}
         >
-          <option value="">What kind of area is this?</option>
-          {Object.keys(AreaSetCodeLabels)
-            .filter((type) => type !== AreaSetCode.PC)
+          <option value={GeocodingType.none}>What kind of data is this?</option>
+          {Object.keys(GeocodingTypeLabels)
+            .filter((type) => type !== GeocodingType.none)
             .map((type) => (
               <option key={type} value={type}>
-                {AreaSetCodeLabels[type as AreaSetCode]}
+                {GeocodingTypeLabels[type as GeocodingType]}
               </option>
             ))}
         </select>
-      ) : null}
-      <button disabled={!validGeocodingConfig || loading}>Submit</button>
-      {error ? (
-        <div>
-          <small>{error}</small>
-        </div>
-      ) : null}
-    </form>
+        {type in GeocodingOnAreaSetType ? (
+          <select
+            value={areaSetCode}
+            onChange={(e) => setAreaSetCode(e.target.value as AreaSetCode)}
+          >
+            <option value="">What kind of area is this?</option>
+            {Object.keys(AreaSetCodeLabels)
+              .filter((type) => type !== AreaSetCode.PC)
+              .map((type) => (
+                <option key={type} value={type}>
+                  {AreaSetCodeLabels[type as AreaSetCode]}
+                </option>
+              ))}
+          </select>
+        ) : null}
+        <button disabled={!validGeocodingConfig || loading}>Submit</button>
+        {error ? (
+          <div>
+            <small>{error}</small>
+          </div>
+        ) : null}
+      </form>
+    </div>
   );
 }
 

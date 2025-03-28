@@ -1,8 +1,10 @@
+// All zod schemas. Should probably only import from ./types here.
+
 import z from "zod";
 import { AreaSetCode, DataSourceType, GeocodingType } from "./types";
 
 export const AirtableConfigSchema = z.object({
-  type: z.literal(DataSourceType.Airtable),
+  type: z.literal(DataSourceType.airtable),
   apiKey: z.string().nonempty(),
   baseId: z.string().nonempty(),
   tableId: z.string().nonempty(),
@@ -11,7 +13,7 @@ export const AirtableConfigSchema = z.object({
 export type AirtableConfig = z.infer<typeof AirtableConfigSchema>;
 
 export const MailchimpConfigSchema = z.object({
-  type: z.literal(DataSourceType.Mailchimp),
+  type: z.literal(DataSourceType.mailchimp),
   apiKey: z.string().nonempty(),
   listId: z.string().nonempty(),
   serverPrefix: z.string().nonempty(),
@@ -20,7 +22,7 @@ export const MailchimpConfigSchema = z.object({
 export type MailchimpConfig = z.infer<typeof MailchimpConfigSchema>;
 
 export const CSVConfigSchema = z.object({
-  type: z.literal(DataSourceType.CSV),
+  type: z.literal(DataSourceType.csv),
   filename: z.string().nonempty(),
   idColumn: z.string().nonempty(),
 });

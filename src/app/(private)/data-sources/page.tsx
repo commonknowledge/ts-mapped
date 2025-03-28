@@ -22,7 +22,9 @@ export default async function DataSourcesPage() {
       <h1>Data Sources</h1>
       <ul>
         {data.dataSources.map(({ id, name }: { id: string; name: string }) => (
-          <li key={id}>{name}</li>
+          <li key={id}>
+            <Link href={`/data-sources/${id}`}>{name}</Link>
+          </li>
         ))}
       </ul>
       <Link href="/data-sources/new">Add new</Link>
