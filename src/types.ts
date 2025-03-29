@@ -49,6 +49,12 @@ export interface Point {
   lat: number;
 }
 
+export interface SearchResult {
+  text: string;
+  coordinates: [number, number];
+  timestamp: Date;
+}
+
 export interface ServerSession {
   jwt: string | null;
   currentUser: CurrentUser | null;

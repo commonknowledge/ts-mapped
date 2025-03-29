@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BoundingBox } from "@/__generated__/types";
-import { MarkerData } from "@/types";
+import { MarkerData, SearchResult } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls, { MapConfig } from "./components/Controls";
 import Map from "./components/Map";
 import Markers from "./components/Markers";
+import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
 import {
   useAreaStatsQuery,
   useDataSourcesQuery,
@@ -92,6 +93,14 @@ export default function MapPage() {
     areaStatsFetchMore({ variables: { boundingBox } });
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
 
+  const [searchHistory, setSearchHistory] = useState<SearchResult[]>([
+    {
+      text: "Abbey Road Studios",
+      coordinates: [-0.177331, 51.532005],
+      timestamp: new Date(),
+    },
+  ]);
+
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
@@ -102,6 +111,11 @@ export default function MapPage() {
           setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
         }
         areaStatsData={areaStatsData?.areaStats}
+        searchHistory={searchHistory}
+        mapRef={mapRef}
+        members={markersData?.markers}
+        selectedMember={selectedMarker}
+        onSelectMember={(member) => setSelectedMarker(member)}
       />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}
@@ -112,6 +126,8 @@ export default function MapPage() {
         }}
         ref={mapRef}
         mapConfig={mapConfig}
+        searchHistory={searchHistory}
+        setSearchHistory={setSearchHistory}
       >
         <Choropleth
           areaStats={areaStatsData?.areaStats}
@@ -123,6 +139,7 @@ export default function MapPage() {
           selectedMarker={selectedMarker}
           onCloseSelectedMarker={() => setSelectedMarker(null)}
         />
+        <SearchHistoryMarkers searchHistory={searchHistory} />
       </Map>
       {loading ? (
         <div className={styles.loading}>

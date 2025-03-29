@@ -1,9 +1,13 @@
-import { ReactNode, RefObject } from "react";
+import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+import * as mapboxgl from "mapbox-gl";
+import { ReactNode, RefObject, useEffect } from "react";
 import MapGL, { MapRef } from "react-map-gl/mapbox";
 import { BoundingBox } from "@/__generated__/types";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
-import { MarkerData } from "@/types";
+import { MarkerData, SearchResult } from "@/types";
 import { MapConfig } from "./Controls";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
+
 const DEFAULT_ZOOM = 5;
 
 export default function Map({
@@ -13,6 +17,7 @@ export default function Map({
   onMoveEnd,
   onSourceLoad,
   ref,
+  setSearchHistory,
 }: {
   children: ReactNode;
   mapConfig: MapConfig;
@@ -20,7 +25,26 @@ export default function Map({
   onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void;
   onSourceLoad: (sourceId: string) => void;
   ref: RefObject<MapRef | null>;
+  searchHistory: SearchResult[];
+  setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
 }) {
+  useEffect(() => {
+    const map = ref.current;
+    if (!map) {
+      return;
+    }
+
+    const imageURL = "/map-pin.png";
+    map.loadImage(imageURL, (error, image) => {
+      if (error) {
+        console.error(`Could not load image ${imageURL}: ${error}`);
+      }
+      if (image && !map.hasImage("map-pin")) {
+        map.addImage("map-pin", image);
+      }
+    });
+  }, [ref]);
+
   return (
     <MapGL
       initialViewState={{
@@ -52,6 +76,29 @@ export default function Map({
         if (!map) {
           return;
         }
+
+        const geocoder = new MapboxGeocoder({
+          accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
+          mapboxgl: mapboxgl,
+        });
+
+        // Listen for search results
+        geocoder.on("result", (event) => {
+          const result = event.result;
+          setSearchHistory((prev: SearchResult[]) =>
+            [
+              {
+                text: result.place_name,
+                coordinates: result.center as [number, number],
+                timestamp: new Date(),
+              } as SearchResult,
+              ...prev,
+            ].slice(0, 10),
+          ); // Keep last 10 searches
+        });
+
+        map.addControl(geocoder, "top-right");
+
         const imageURL = "/map-pin.png";
         map.loadImage(imageURL, (error, image) => {
           if (error) {
