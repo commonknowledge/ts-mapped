@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shadcn/components/ui/skeleton";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import React from "react";
 import { cn } from "@/shadcn/utils";
 export default function SkeletonGroup() {

@@ -3,9 +3,9 @@ import {
   SelectContent,
   SelectValue,
   SelectTrigger,
-} from "@/shadcn/components/ui/select";
-import { Label } from "@/shadcn/components/ui/label";
-import { Select } from "@/shadcn/components/ui/select";
+} from "@/shadcn/ui/select";
+import { Label } from "@/shadcn/ui/label";
+import { Select } from "@/shadcn/ui/select";
 import { Settings } from "lucide-react";
 import React from "react";
 import { MapConfig } from "./Controls";
@@ -18,9 +18,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/shadcn/components/ui/dialog";
-import { Button } from "@/shadcn/components/ui/button";
-import { Separator } from "@/shadcn/components/ui/separator";
+} from "@/shadcn/ui/dialog";
+import { Button } from "@/shadcn/ui/button";
+import { Separator } from "@/shadcn/ui/separator";
 
 export default function SettingsModal({
   mapConfig,

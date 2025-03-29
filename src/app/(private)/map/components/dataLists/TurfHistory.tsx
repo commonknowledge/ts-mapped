@@ -1,14 +1,14 @@
 import { DrawnPolygon } from "@/types";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Input } from "@/shadcn/components/ui/input";
-import { Button } from "@/shadcn/components/ui/button";
+import { Input } from "@/shadcn/ui/input";
+import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@/shadcn/components/ui/context-menu";
+} from "@/shadcn/ui/context-menu";
 import * as turf from "@turf/turf";
 
 interface TurfHistoryProps {

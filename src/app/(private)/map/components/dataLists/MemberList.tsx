@@ -1,4 +1,4 @@
-import { ScrollArea } from "@/shadcn/components/ui/scroll-area";
+import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import { MarkersQuery } from "@/__generated__/types";
 
 interface MemberListProps {

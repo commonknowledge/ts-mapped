@@ -1,12 +1,12 @@
 import MemberList from "../dataLists/MemberList";
-import { Label } from "@/shadcn/components/ui/label";
+import { Label } from "@/shadcn/ui/label";
 import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
 import { MarkerData } from "@/types";
 import { MarkersQuery } from "@/__generated__/types";
-import { Skeleton } from "@/shadcn/components/ui/skeleton";
+import { Skeleton } from "@/shadcn/ui/skeleton";
 import SkeletonGroup from "../SkeletonGroup";
-import { Toggle } from "@/shadcn/components/ui/toggle";
+import { Toggle } from "@/shadcn/ui/toggle";
 import { Eye, EyeOff } from "lucide-react";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
 import LayerHeader from "./LayerHeader";

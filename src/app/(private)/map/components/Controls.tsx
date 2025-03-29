@@ -14,19 +14,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/shadcn/components/ui/select";
-import { Separator } from "@/shadcn/components/ui/separator";
-import { Label } from "@/shadcn/components/ui/label";
+} from "@/shadcn/ui/select";
+import { Separator } from "@/shadcn/ui/separator";
+import { Label } from "@/shadcn/ui/label";
 import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
 import mapStyles, { mapColors } from "@/app/(private)/map/styles";
 import { MapStyle } from "@/app/(private)/map/styles";
-import { Toggle } from "@/shadcn/components/ui/toggle";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/shadcn/components/ui/tabs";
+import { Toggle } from "@/shadcn/ui/toggle";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
 import { DrawnPolygon, SearchResult } from "@/types";
 import { MapRef } from "react-map-gl/mapbox";

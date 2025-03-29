@@ -1,6 +1,6 @@
 import React from "react";
 import { mapColors } from "../../styles";
-import { Label } from "@/shadcn/components/ui/label";
+import { Label } from "@/shadcn/ui/label";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
 
 export default function LayerHeader({

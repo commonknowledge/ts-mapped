@@ -1,10 +1,10 @@
 "use client";
 
 import { SyntheticEvent, useState } from "react";
-import { useCurrentUser } from "@/shadcn/hooks";
+import { useCurrentUser } from "@/hooks";
 import { Link } from "./Link";
 import styles from "./Navbar.module.css";
-import { Separator } from "@/shadcn/components/ui/separator";
+import { Separator } from "@/shadcn/ui/separator";
 
 export default function Navbar() {
   const user = useCurrentUser();

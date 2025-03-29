@@ -1,5 +1,5 @@
 import SearchHistory from "../dataLists/SearchHistory";
-import { Label } from "@/shadcn/components/ui/label";
+import { Label } from "@/shadcn/ui/label";
 import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
 import { SearchResult } from "@/types";

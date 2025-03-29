@@ -1,22 +1,22 @@
 import { DataSourcesQuery } from "@/__generated__/types";
 import { MapConfig } from "./Controls";
-import { Label } from "@/shadcn/components/ui/label";
+import { Label } from "@/shadcn/ui/label";
 import {
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
   SelectValue,
-} from "@/shadcn/components/ui/select";
-import { Toggle } from "@/shadcn/components/ui/toggle";
-import { Tooltip } from "@/shadcn/components/ui/tooltip";
+} from "@/shadcn/ui/select";
+import { Toggle } from "@/shadcn/ui/toggle";
+import { Tooltip } from "@/shadcn/ui/tooltip";
 import mapStyles from "../styles";
 import { Paintbrush, Scan, Type } from "lucide-react";
 import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/shadcn/components/ui/tooltip";
+} from "@/shadcn/ui/tooltip";
 
 import {
   DropdownMenu,
@@ -25,7 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shadcn/components/ui/dropdown-menu";
+} from "@/shadcn/ui/dropdown-menu";
 
 export function MapStyleSelector({
   mapConfig,

@@ -1,7 +1,7 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { useCurrentUser } from "@/shadcn/hooks";
+import { useCurrentUser } from "@/hooks";
 
 export default function PrivateLayout({
   children,
