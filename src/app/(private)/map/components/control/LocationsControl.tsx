@@ -6,6 +6,8 @@ import { SearchResult } from "@/types";
 import SkeletonGroup from "../SkeletonGroup";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
 import LayerHeader from "./LayerHeader";
+import PublicDataLibrary from "@/app/(private)/library/components/PublicDataLibrary";
+
 interface LocationsControlProps {
   searchHistory: SearchResult[];
   mapRef: React.RefObject<MapRef | null>;
@@ -26,12 +28,13 @@ export default function LocationsControl({
   setShowLocations,
 }: LocationsControlProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col">
       <LayerHeader
         label="Locations"
         color={mapColors.searched.color}
         showLayer={showLocations}
         setLayer={setShowLocations}
+        addLayerModal={<PublicDataLibrary />}
       />
       {isLoading ? (
         <SkeletonGroup />

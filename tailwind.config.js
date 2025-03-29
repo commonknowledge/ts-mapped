@@ -21,7 +21,9 @@ module.exports = {
     },
     extend: {
       colors: {
-        brandBlue: "oklch(var(--brandBlue))",
+        brand: {
+          blue: "oklch(var(--brandBlue))",
+        },
         border: "oklch(var(--border))",
         input: "oklch(var(--input))",
         ring: "oklch(var(--ring))",

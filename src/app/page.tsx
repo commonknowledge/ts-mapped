@@ -7,7 +7,7 @@ export default function HomePage() {
       <div className="flex flex-col items-center justify-center relative bg-[#678DE312] py-16 p-4">
         <img src="/hero.svg" alt="Mapped" />
         <p className="text-5xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8">
-          Making the right connections for organisers & activists
+          Empowering collective action for organisers & activists
         </p>
         <div className="flex gap-4 items-center justify-center">
           <Button size="lg">
@@ -40,7 +40,7 @@ export default function HomePage() {
       </div>
       <div className=" mx-auto max-w-screen-xl py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <h2 className="text-brandBlue font-mono uppercase">Features</h2>
+          <h2 className="text-brand-blue font-mono uppercase">Features</h2>
           {features.map((feature) => (
             <div key={feature.title} className="flex flex-col gap-2">
               <h2 className="text-2xl tracking-tight">{feature.title}</h2>
@@ -54,7 +54,7 @@ export default function HomePage() {
       <div className=" mx-auto max-w-screen-xl py-16">
         <img src="/screenshot.png" alt="screenshot" className="mx-auto " />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <h2 className="text-brandBlue font-mono uppercase">Layers</h2>
+          <h2 className="text-brand-blue font-mono uppercase">Layers</h2>
           {layers.map((layer) => (
             <div key={layer.title} className="flex flex-col gap-2">
               <h2 className="text-2xl tracking-tight">{layer.title}</h2>

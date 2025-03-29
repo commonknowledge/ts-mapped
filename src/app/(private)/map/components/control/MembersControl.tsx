@@ -27,7 +27,7 @@ export default function MembersControl({
   setShowMembers,
 }: MembersControlProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col">
       <LayerHeader
         label="Members"
         color={mapColors.member.color}

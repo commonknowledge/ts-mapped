@@ -16,6 +16,9 @@ import { getAreaStats } from "@/server/stats";
 import { BoundingBox } from "@/types";
 import { createDataSource, triggerImportDataSourceJob } from "./mutations";
 import { serializeDataSource } from "./serializers";
+import { createPublishedLayer } from "@/server/repositories/PublishedLayers";
+import { db } from "@/server/services/database";
+import { sql } from "kysely";
 
 const typeDefs = gql`
   scalar JSON
@@ -84,6 +87,8 @@ const typeDefs = gql`
     (and unnecessary) for 100,000+ markers.
     """
     markers(dataSourceId: String!): JSON!
+
+    publishedLayers: [PublishedLayer!]!
   }
 
   type CreateDataSourceResponse {
@@ -95,6 +100,19 @@ const typeDefs = gql`
     code: Int!
   }
 
+  type PublishedLayer {
+    id: Int!
+    name: String!
+    type: String!
+    geography: JSON!
+  }
+
+  input CreatePublishedLayerInput {
+    name: String!
+    type: String!
+    geography: JSON!
+  }
+
   type Mutation {
     createDataSource(
       name: String!
@@ -102,6 +120,7 @@ const typeDefs = gql`
       rawGeocodingConfig: JSON!
     ): CreateDataSourceResponse!
     triggerImportDataSourceJob(dataSourceId: String!): MutationResponse!
+    createPublishedLayer(input: CreatePublishedLayerInput!): PublishedLayer!
   }
 `;
 
@@ -124,7 +143,7 @@ const resolvers: Resolvers = {
         operation: Operation;
         excludeColumns: string[];
         boundingBox?: BoundingBox | null;
-      },
+      }
     ) =>
       getAreaStats(
         areaSetCode,
@@ -132,7 +151,7 @@ const resolvers: Resolvers = {
         column,
         operation,
         excludeColumns,
-        boundingBox,
+        boundingBox
       ),
 
     dataSource: async (_: unknown, { id }: { id: string }, context) => {
@@ -176,11 +195,46 @@ const resolvers: Resolvers = {
         features,
       };
     },
+
+    publishedLayers: async () => {
+      const layers = await db
+        .selectFrom("publishedLayer")
+        .select([
+          "id",
+          "name",
+          "type",
+          sql<string>`ST_AsGeoJSON(geography)`.as("geography"),
+        ])
+        .execute();
+
+      return layers.map((layer) => ({
+        ...layer,
+        geography: JSON.parse(layer.geography),
+      }));
+    },
   },
 
   Mutation: {
     createDataSource,
     triggerImportDataSourceJob,
+    createPublishedLayer: async (_, { input }) => {
+      await db
+        .insertInto("publishedLayer")
+        .values({
+          name: input.name,
+          type: input.type,
+          geography: sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(input.geography)}), 4326)::geography`,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .execute();
+
+      return await db
+        .selectFrom("publishedLayer")
+        .where("name", "=", input.name)
+        .selectAll()
+        .executeTakeFirstOrThrow();
+    },
   },
 };
 

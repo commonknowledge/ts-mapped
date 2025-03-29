@@ -1,5 +1,5 @@
 import { DrawnPolygon } from "@/types";
-import { Check, Pencil, Trash2 } from "lucide-react";
+import { Check, Globe, Pencil, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/shadcn/components/ui/input";
 import { Button } from "@/shadcn/components/ui/button";
@@ -10,6 +10,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/components/ui/context-menu";
 import * as turf from "@turf/turf";
+import PublishTurf from "../actions/PublishTurf";
 
 interface TurfHistoryProps {
   polygons: DrawnPolygon[];
@@ -64,7 +65,7 @@ export default function TurfHistory({
           {polygons.map((polygon, index) => (
             <div
               key={polygon.id}
-              className="flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer text-sm"
+              className="group flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer text-sm"
               onClick={() => handleFlyTo(polygon)}
               onContextMenu={() => setContextMenuIndex(index)}
             >
@@ -87,8 +88,8 @@ export default function TurfHistory({
                   </Button>
                 </form>
               ) : (
-                <>
-                  <div>
+                <div className="flex w-full">
+                  <div className="">
                     <div>
                       {polygon.name || `Area: ${polygon.area.toFixed(2)}m²`}
                     </div>
@@ -96,7 +97,10 @@ export default function TurfHistory({
                       {index === 0 ? "Your Organisation" : `GND Rising`}
                     </div>
                   </div>
-                </>
+                  <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <PublishTurf polygon={polygon} />
+                  </div>
+                </div>
               )}
             </div>
           ))}

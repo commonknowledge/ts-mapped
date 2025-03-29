@@ -115,7 +115,7 @@ export default function Controls({
         </div>
         <Separator />
 
-        <TabsContent value="layers" className="flex flex-col gap-4 py-2">
+        <TabsContent value="layers" className="flex flex-col gap-4 ">
           <MembersControl
             members={members}
             mapRef={mapRef}

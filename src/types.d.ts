@@ -48,3 +48,16 @@ export interface DrawDeleteEvent {
     properties: any;
   }>;
 }
+
+export interface PublicDataSource {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  config: {
+    type: string;
+  };
+  image: string;
+  author: string;
+  url: string;
+}

@@ -23,7 +23,7 @@ export default function TurfControl({
   setShowTurf,
 }: TurfControlProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col">
       <LayerHeader
         label="Turf"
         color={mapColors.turf.color}

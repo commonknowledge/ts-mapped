@@ -59,6 +59,12 @@ export type CreateDataSourceResponse = {
   result?: Maybe<DataSource>;
 };
 
+export type CreatePublishedLayerInput = {
+  geography: Scalars['JSON']['input'];
+  name: Scalars['String']['input'];
+  type: Scalars['String']['input'];
+};
+
 export type DataSource = {
   __typename?: 'DataSource';
   columnDefs: Array<ColumnDef>;
@@ -71,6 +77,7 @@ export type DataSource = {
 export type Mutation = {
   __typename?: 'Mutation';
   createDataSource: CreateDataSourceResponse;
+  createPublishedLayer: PublishedLayer;
   triggerImportDataSourceJob: MutationResponse;
 };
 
@@ -79,6 +86,11 @@ export type MutationCreateDataSourceArgs = {
   name: Scalars['String']['input'];
   rawConfig: Scalars['JSON']['input'];
   rawGeocodingConfig: Scalars['JSON']['input'];
+};
+
+
+export type MutationCreatePublishedLayerArgs = {
+  input: CreatePublishedLayerInput;
 };
 
 
@@ -96,6 +108,14 @@ export enum Operation {
   Sum = 'SUM'
 }
 
+export type PublishedLayer = {
+  __typename?: 'PublishedLayer';
+  geography: Scalars['JSON']['output'];
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   areaStats: AreaStats;
@@ -107,6 +127,7 @@ export type Query = {
    * (and unnecessary) for 100,000+ markers.
    */
   markers: Scalars['JSON']['output'];
+  publishedLayers: Array<PublishedLayer>;
 };
 
 
@@ -133,6 +154,13 @@ export type ListDataSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ListDataSourcesQuery = { __typename?: 'Query', dataSources: Array<{ __typename?: 'DataSource', id: string, name: string, config: any, createdAt: string }> };
+
+export type CreatePublishedLayerMutationVariables = Exact<{
+  input: CreatePublishedLayerInput;
+}>;
+
+
+export type CreatePublishedLayerMutation = { __typename?: 'Mutation', createPublishedLayer: { __typename?: 'PublishedLayer', id: number, name: string, type: string, geography: any } };
 
 export type DataSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -236,6 +264,7 @@ export type ResolversTypes = {
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
   ColumnType: ColumnType;
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
+  CreatePublishedLayerInput: CreatePublishedLayerInput;
   DataSource: ResolverTypeWrapper<DataSource>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -243,6 +272,7 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
+  PublishedLayer: ResolverTypeWrapper<PublishedLayer>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 };
@@ -255,12 +285,14 @@ export type ResolversParentTypes = {
   BoundingBox: BoundingBox;
   ColumnDef: ColumnDef;
   CreateDataSourceResponse: CreateDataSourceResponse;
+  CreatePublishedLayerInput: CreatePublishedLayerInput;
   DataSource: DataSource;
   Float: Scalars['Float']['output'];
   Int: Scalars['Int']['output'];
   JSON: Scalars['JSON']['output'];
   Mutation: {};
   MutationResponse: MutationResponse;
+  PublishedLayer: PublishedLayer;
   Query: {};
   String: Scalars['String']['output'];
 };
@@ -305,6 +337,7 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 
 export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createDataSource?: Resolver<ResolversTypes['CreateDataSourceResponse'], ParentType, ContextType, RequireFields<MutationCreateDataSourceArgs, 'name' | 'rawConfig' | 'rawGeocodingConfig'>>;
+  createPublishedLayer?: Resolver<ResolversTypes['PublishedLayer'], ParentType, ContextType, RequireFields<MutationCreatePublishedLayerArgs, 'input'>>;
   triggerImportDataSourceJob?: Resolver<ResolversTypes['MutationResponse'], ParentType, ContextType, RequireFields<MutationTriggerImportDataSourceJobArgs, 'dataSourceId'>>;
 };
 
@@ -313,11 +346,20 @@ export type MutationResponseResolvers<ContextType = GraphQLContext, ParentType e
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PublishedLayerResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['PublishedLayer'] = ResolversParentTypes['PublishedLayer']> = {
+  geography?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   areaStats?: Resolver<ResolversTypes['AreaStats'], ParentType, ContextType, RequireFields<QueryAreaStatsArgs, 'areaSetCode' | 'column' | 'dataSourceId' | 'excludeColumns' | 'operation'>>;
   dataSource?: Resolver<Maybe<ResolversTypes['DataSource']>, ParentType, ContextType, RequireFields<QueryDataSourceArgs, 'id'>>;
   dataSources?: Resolver<Array<ResolversTypes['DataSource']>, ParentType, ContextType>;
   markers?: Resolver<ResolversTypes['JSON'], ParentType, ContextType, RequireFields<QueryMarkersArgs, 'dataSourceId'>>;
+  publishedLayers?: Resolver<Array<ResolversTypes['PublishedLayer']>, ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = GraphQLContext> = {
@@ -329,6 +371,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   JSON?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
+  PublishedLayer?: PublishedLayerResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
 };
 
