@@ -63,12 +63,14 @@ export function PublicDataSourceCard({ dataSource }: DataSourceCardProps) {
         <CardDescription>{dataSource.description}</CardDescription>
         <div className="flex  gap-2 justify-between">
           <div className="flex flex-col">
-            <Link
+            <a
               href={dataSource.url || ""}
               className="text-sm text-muted-foreground underline"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               {dataSource.author}
-            </Link>
+            </a>
           </div>
           {dataSource.type && (
             <Badge variant="outline" className="text-sm text-muted-foreground">
