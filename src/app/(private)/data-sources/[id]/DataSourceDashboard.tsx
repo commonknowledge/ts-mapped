@@ -27,6 +27,7 @@ import MailchimpFields from "../new/fields/MailchimpFields";
 import CSVFields from "../new/fields/CSVFields";
 import { Badge } from "@/shadcn/ui/badge";
 import DataListRow from "@/components/DataListRow";
+import { LoaderPinwheel } from "lucide-react";
 export default function DataSourceDashboard({
   // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
@@ -132,7 +133,11 @@ export default function DataSourceDashboard({
           <div>
             <p className="text-muted-foreground text-sm mb-4">Record count:</p>
             <p className="text-4xl ">
-              {importing ? "Importing..." : recordCount}
+              {importing ? (
+                <LoaderPinwheel className="animate-spin" />
+              ) : (
+                recordCount
+              )}
             </p>
           </div>
           <div className="flex flex-col items-center gap-2">
@@ -164,7 +169,7 @@ export default function DataSourceDashboard({
       ) : null}
 
       <div className="grid grid-cols-2 gap-10 mb-10">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col ">
           <Label className="text-lg">Config</Label>
           <DataListRow
             label="Type"
@@ -179,25 +184,23 @@ export default function DataSourceDashboard({
             border
           />
         </div>
-        <div className="gap-4">
-          <div>
-            <Label className="text-lg">Geocoding config</Label>
-            <DataListRow
-              label="Type"
-              value={dataSource.geocodingConfig.type}
-              border
-            />
-            <DataListRow
-              label="Column"
-              value={dataSource.geocodingConfig.column}
-              border
-            />
-            <DataListRow
-              label="Area Set Code"
-              value={dataSource.geocodingConfig.areaSetCode}
-              border
-            />
-          </div>
+        <div>
+          <Label className="text-lg">Geocoding config</Label>
+          <DataListRow
+            label="Type"
+            value={dataSource.geocodingConfig.type}
+            border
+          />
+          <DataListRow
+            label="Column"
+            value={dataSource.geocodingConfig.column}
+            border
+          />
+          <DataListRow
+            label="Area Set Code"
+            value={dataSource.geocodingConfig.areaSetCode}
+            border
+          />
         </div>
       </div>
     </div>

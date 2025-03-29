@@ -15,7 +15,7 @@ export default function MemberList({
   if (!members) return null;
 
   return (
-    <ScrollArea className="max-h-[200px] w-full rounded-md  p-2 ">
+    <ScrollArea className="max-h-[200px] w-full rounded-md  p-2 overflow-y-auto">
       <div className={`${showMembers ? "opacity-100" : "opacity-50"}`}>
         {members.features?.map((feature: any) => (
           <li
