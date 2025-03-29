@@ -7,7 +7,7 @@ export default function HomePage() {
       <div className="flex flex-col items-center justify-center relative bg-[#678DE312] py-16 p-4">
         <img src="/hero.svg" alt="Mapped" />
         <p className="text-5xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8">
-          Making the right connections for organisers & activists
+          Empowering collective action through materialist geography
         </p>
         <div className="flex gap-4 items-center justify-center">
           <Button size="lg">
