@@ -5,7 +5,7 @@ import { Database } from "@/server/models";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/util";
+import { getErrorMessage } from "@/server/utils";
 import { AreaSetCode, BoundingBox } from "@/types";
 
 export const getAreaStats = async (

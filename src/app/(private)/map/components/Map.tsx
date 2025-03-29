@@ -3,17 +3,19 @@ import MapGL, { MapRef } from "react-map-gl/mapbox";
 import { BoundingBox } from "@/__generated__/types";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
 import { MarkerData } from "@/types";
-
+import { MapConfig } from "./Controls";
 const DEFAULT_ZOOM = 5;
 
 export default function Map({
   children,
+  mapConfig,
   onClickMarker,
   onMoveEnd,
   onSourceLoad,
   ref,
 }: {
   children: ReactNode;
+  mapConfig: MapConfig;
   onClickMarker: (markerData: MarkerData | null) => void;
   onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void;
   onSourceLoad: (sourceId: string) => void;
@@ -29,7 +31,7 @@ export default function Map({
       ref={ref}
       style={{ flexGrow: 1 }}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-      mapStyle="mapbox://styles/mapbox/streets-v9"
+      mapStyle={`mapbox://styles/mapbox/${mapConfig.mapStyle.slug}`}
       onClick={(e) => {
         const map = e.target;
         const features = map.queryRenderedFeatures(e.point, {

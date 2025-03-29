@@ -7,7 +7,6 @@ import { BoundingBox } from "@/__generated__/types";
 import { MarkerData } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls, { MapConfig } from "./components/Controls";
-import Legend from "./components/Legend";
 import Map from "./components/Map";
 import Markers from "./components/Markers";
 import {
@@ -96,6 +95,14 @@ export default function MapPage() {
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
+      <Controls
+        dataSources={dataSourcesData?.dataSources || []}
+        mapConfig={mapConfig}
+        onChange={(nextConfig) =>
+          setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
+        }
+        areaStatsData={areaStatsData?.areaStats}
+      />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}
         onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
@@ -104,10 +111,12 @@ export default function MapPage() {
           setZoom(zoom);
         }}
         ref={mapRef}
+        mapConfig={mapConfig}
       >
         <Choropleth
           areaStats={areaStatsData?.areaStats}
           choroplethLayerConfig={choroplethLayerConfig}
+          mapConfig={mapConfig}
         />
         <Markers
           markers={markersData?.markers}
@@ -115,14 +124,6 @@ export default function MapPage() {
           onCloseSelectedMarker={() => setSelectedMarker(null)}
         />
       </Map>
-      <Controls
-        dataSources={dataSourcesData?.dataSources || []}
-        mapConfig={mapConfig}
-        onChange={(nextConfig) =>
-          setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
-        }
-      />
-      <Legend areaStats={areaStatsData?.areaStats} />
       {loading ? (
         <div className={styles.loading}>
           <div></div>

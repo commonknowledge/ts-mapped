@@ -34,7 +34,7 @@ export default function Markers({
           source="markers"
           filter={["has", "point_count"]}
           paint={{
-            "circle-color": "rgba(255, 0, 0, 0.25)",
+            "circle-color": "rgba(103, 141, 227, 0.75)",
             "circle-radius": [
               "interpolate",
               ["linear"],
@@ -58,27 +58,95 @@ export default function Markers({
         />
         <Layer
           id="markers-pins"
-          type="symbol"
+          type="circle"
           source="markers"
           filter={["!", ["has", "point_count"]]}
-          layout={{
-            "icon-image": "map-pin",
-            "icon-anchor": "bottom",
-            "icon-size": [
+          paint={{
+            "circle-radius": [
               "interpolate",
               ["linear"],
               ["zoom"],
               0,
-              0.5, // Smaller at low zoom levels
+              4, // Smaller radius at low zoom levels
               10,
-              1.5, // Full size at higher zoom levels
+              6, // Larger radius at higher zoom levels
+            ],
+            "circle-color": "#678DE3", // You can change this color
+            "circle-opacity": 1,
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#ffffff",
+          }}
+        />
+        {/* This layer here for styling purposes as it adds a glow effect to the markers */}
+        <Layer
+          id="markers-heatmap"
+          type="heatmap"
+          source="markers"
+          paint={{
+            // Increase weight based on point count
+            "heatmap-weight": [
+              "interpolate",
+              ["linear"],
+              ["get", "point_count"],
+              0,
+              0,
+              10,
+              1,
+            ],
+            // Increase intensity as zoom level increases
+            "heatmap-intensity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              0,
+              1,
+              15,
+              3,
+            ],
+            // Assign colors to heatmap based on density
+            "heatmap-color": [
+              "interpolate",
+              ["linear"],
+              ["heatmap-density"],
+              0,
+              "rgba(103, 141, 227, 0)",
+              0.2,
+              "rgba(103, 141, 227, 0.2)",
+              0.4,
+              "rgba(103, 141, 227, 0.4)",
+              0.6,
+              "rgba(103, 141, 227, 0.6)",
+              0.8,
+              "rgba(103, 141, 227, 0.8)",
+              1,
+              "rgba(103, 141, 227, 1)",
+            ],
+            // Adjust radius based on zoom level
+            "heatmap-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              0,
+              2,
+              10,
+              20,
+            ],
+            // Opacity based on zoom level
+            "heatmap-opacity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              7,
+              1,
+              15,
+              0,
             ],
           }}
         />
       </Source>
       {selectedMarker ? (
         <Popup
-          anchor="top"
+          anchor="bottom"
           latitude={selectedMarker.coordinates[1]}
           longitude={selectedMarker.coordinates[0]}
           closeOnClick={false}

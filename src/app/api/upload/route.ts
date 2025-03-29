@@ -2,7 +2,7 @@ import { writeFile } from "fs/promises";
 import { join } from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
-import { getBaseDir } from "@/server/util";
+import { getBaseDir } from "@/server/utils";
 import { UploadResponseBody } from "@/types";
 
 export async function POST(

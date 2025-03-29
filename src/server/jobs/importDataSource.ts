@@ -9,7 +9,7 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import pubSub from "@/server/services/pubsub";
-import { getErrorMessage } from "@/server/util";
+import { getErrorMessage } from "@/server/utils";
 
 const BATCH_SIZE = 100;
 

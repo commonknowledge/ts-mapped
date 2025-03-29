@@ -8,7 +8,7 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
-import { getErrorMessage } from "@/server/util";
+import { getErrorMessage } from "@/server/utils";
 import { GeocodingType } from "@/types";
 import {
   DataSourceConfigSchema,

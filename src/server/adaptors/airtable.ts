@@ -1,5 +1,5 @@
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/util";
+import { getErrorMessage } from "@/server/utils";
 import { DataSourceAdaptor, ExternalRecord } from "./abstract";
 
 export class AirtableAdaptor implements DataSourceAdaptor {

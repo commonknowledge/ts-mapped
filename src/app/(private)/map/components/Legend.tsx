@@ -1,7 +1,6 @@
 import { scaleLinear } from "d3-scale";
 import { AreaStats, ColumnType } from "@/__generated__/types";
 import { useColorScheme } from "../colors";
-import styles from "./Legend.module.css";
 
 export default function Legend({
   areaStats,
@@ -24,18 +23,28 @@ export default function Legend({
       const step = stepScale(i);
       const color = colorScheme.colorScale(step);
       return (
-        <div key={i} style={{ backgroundColor: color }}>
-          {Math.round(step * 100) / 100}
+        <div
+          className="p-1 w-full items-center justify-center flex text-xs"
+          key={i}
+          style={{ backgroundColor: color, color: color }}
+        >
+          <p className="mix-blend-exclusion text-white">
+            {Math.round(step * 100) / 100}
+          </p>
         </div>
       );
     });
   } else {
     bars = Object.keys(colorScheme.colorMap).map((key) => (
-      <div key={key} style={{ backgroundColor: colorScheme.colorMap[key] }}>
+      <div
+        className=""
+        key={key}
+        style={{ backgroundColor: colorScheme.colorMap[key] }}
+      >
         {key}
       </div>
     ));
   }
 
-  return <div className={styles.legend}>{bars}</div>;
+  return <div className="flex rounded-sm overflow-hidden">{bars}</div>;
 }
