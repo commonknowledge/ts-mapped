@@ -73,6 +73,8 @@ export default function Controls({
   turfHistory,
   setTurfHistory,
   loading,
+  editingPolygon,
+  setEditingPolygon,
 }: {
   dataSources: DataSourcesQuery["dataSources"];
   mapConfig: MapConfig;
@@ -88,6 +90,8 @@ export default function Controls({
   turfHistory: DrawnPolygon[];
   setTurfHistory: React.Dispatch<React.SetStateAction<DrawnPolygon[]>>;
   loading?: boolean;
+  editingPolygon: DrawnPolygon | null;
+  setEditingPolygon: (polygon: DrawnPolygon | null) => void;
 }) {
   const dataSource = dataSources.find(
     (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId
@@ -101,13 +105,6 @@ export default function Controls({
             <TabsTrigger value="layers">Layers</TabsTrigger>
             <TabsTrigger value="legend">Legend</TabsTrigger>
           </TabsList>
-          <SettingsModal
-            mapConfig={mapConfig}
-            onChange={(nextConfig) =>
-              onChange(new MapConfig({ ...mapConfig, ...nextConfig }))
-            }
-            dataSources={dataSources}
-          />
         </div>
         <Separator />
 
@@ -118,6 +115,9 @@ export default function Controls({
             isLoading={loading}
             showMembers={mapConfig.showMembers}
             setShowMembers={(value) => onChange({ showMembers: value })}
+            mapConfig={mapConfig}
+            onChange={onChange}
+            dataSources={dataSources}
           />
           <Separator />
           <LocationsControl
@@ -137,6 +137,8 @@ export default function Controls({
             isLoading={loading}
             showTurf={mapConfig.showTurf}
             setShowTurf={(value) => onChange({ showTurf: value })}
+            editingPolygon={editingPolygon}
+            setEditingPolygon={setEditingPolygon}
           />
         </TabsContent>
 

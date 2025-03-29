@@ -3,14 +3,21 @@ import { DrawnPolygon } from "@/types";
 import { mapColors } from "@/app/(private)/map/styles";
 import { FeatureCollection, Feature, Polygon } from "geojson";
 import { MapConfig } from "./Controls";
+
 interface TurfPolygonsProps {
   polygons: DrawnPolygon[];
   mapConfig: MapConfig;
+  onEdit?: (polygon: DrawnPolygon) => void;
+  editingPolygon: DrawnPolygon | null;
+  setEditingPolygon: (polygon: DrawnPolygon | null) => void;
 }
 
 export default function TurfPolygons({
   polygons,
   mapConfig,
+  onEdit,
+  editingPolygon,
+  setEditingPolygon,
 }: TurfPolygonsProps) {
   const features: FeatureCollection<Polygon> = {
     type: "FeatureCollection",

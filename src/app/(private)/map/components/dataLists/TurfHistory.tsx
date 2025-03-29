@@ -17,6 +17,8 @@ interface TurfHistoryProps {
   onEdit?: (index: number, newName: string) => void;
   onDelete?: (index: number) => void;
   showTurf: boolean;
+  editingPolygon: DrawnPolygon | null;
+  setEditingPolygon: (polygon: DrawnPolygon | null) => void;
 }
 
 export default function TurfHistory({
@@ -25,6 +27,8 @@ export default function TurfHistory({
   onEdit,
   onDelete,
   showTurf,
+  editingPolygon,
+  setEditingPolygon,
 }: TurfHistoryProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -112,6 +116,7 @@ export default function TurfHistory({
                   polygon.name || `Area: ${polygon.area.toFixed(2)}m²`
                 );
                 setEditingIndex(contextMenuIndex);
+                setEditingPolygon(polygon);
               }}
             >
               <Pencil className="h-4 w-4" />

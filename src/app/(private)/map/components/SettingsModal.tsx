@@ -21,7 +21,7 @@ import {
 } from "@/shadcn/ui/dialog";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 export default function SettingsModal({
   mapConfig,
   onChange,
@@ -33,14 +33,14 @@ export default function SettingsModal({
 }) {
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="ml-auto">
-          <Settings className="w-4 h-4 text-muted-foreground" />
-        </Button>
+      <DialogTrigger>
+        <IconButtonWithTooltip tooltip="Settings">
+          <Settings className="w-4 h-4" />
+        </IconButtonWithTooltip>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>Member Settings</DialogTitle>
         </DialogHeader>
         <DialogDescription>Adjust the map settings</DialogDescription>
         <Separator />

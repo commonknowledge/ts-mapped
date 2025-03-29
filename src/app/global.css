@@ -146,3 +146,9 @@ main {
   padding: 0.75rem !important;
 }
 
+.mapboxgl-ctrl-geocoder--input:focus {
+  outline: none !important;
+  box-shadow: 0 0 15px #FF6B6B !important;  /* inner glow */
+  transition: all 0.2s ease-in-out !important; 
+  border-radius: 0.25rem;
+}

@@ -6,6 +6,8 @@ import { SearchResult } from "@/types";
 import SkeletonGroup from "../SkeletonGroup";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
 import LayerHeader from "./LayerHeader";
+import { PlusIcon } from "lucide-react";
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 interface LocationsControlProps {
   searchHistory: SearchResult[];
   mapRef: React.RefObject<MapRef | null>;
@@ -32,7 +34,22 @@ export default function LocationsControl({
         color={mapColors.searched.color}
         showLayer={showLocations}
         setLayer={setShowLocations}
-      />
+      >
+        <IconButtonWithTooltip
+          tooltip="Add Location"
+          onClick={() => {
+            // Find the geocoder input element and focus it
+            const geocoderInput = document.querySelector(
+              ".mapboxgl-ctrl-geocoder--input"
+            ) as HTMLInputElement;
+            if (geocoderInput) {
+              geocoderInput.focus();
+            }
+          }}
+        >
+          <PlusIcon className="w-4 h-4" />
+        </IconButtonWithTooltip>
+      </LayerHeader>
       {isLoading ? (
         <SkeletonGroup />
       ) : (

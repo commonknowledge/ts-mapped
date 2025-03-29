@@ -58,7 +58,7 @@ export default function Map({
   return (
     <MapGL
       initialViewState={{
-        longitude: -4.5481, // 54.2361° N, 4.5481° W
+        longitude: -4.5481,
         latitude: 54.2361,
         zoom: DEFAULT_ZOOM,
       }}
@@ -102,7 +102,7 @@ export default function Map({
               } as SearchResult,
               ...prev,
             ].slice(0, 10)
-          ); // Keep last 10 searches
+          );
         });
 
         map.addControl(geocoder, "top-right");
@@ -115,26 +115,32 @@ export default function Map({
               polygon: true,
               trash: true,
             },
-
+            userProperties: true,
             styles: [
-              // Styling for the polygon fill
               {
                 id: "gl-draw-polygon-fill",
                 type: "fill",
-                filter: ["all", ["==", "$type", "Polygon"]],
+                filter: [
+                  "all",
+                  ["==", "$type", "Polygon"],
+                  ["!=", "mode", "draw"],
+                ],
                 paint: {
-                  "fill-color": mapColors.turf.color, // Change this to your desired fill color
-                  "fill-opacity": 0.3, // Adjust opacity as needed
+                  "fill-color": mapColors.turf.color,
+                  "fill-opacity": 0.3,
                 },
               },
-              // Styling for the polygon border
               {
                 id: "gl-draw-polygon-stroke",
                 type: "line",
-                filter: ["all", ["==", "$type", "Polygon"]],
+                filter: [
+                  "all",
+                  ["==", "$type", "Polygon"],
+                  ["!=", "mode", "draw"],
+                ],
                 paint: {
-                  "line-color": mapColors.turf.color, // Change this to your desired border color
-                  "line-width": 2, // Adjust border width as needed
+                  "line-color": mapColors.turf.color,
+                  "line-width": 2,
                 },
               },
             ],
@@ -163,7 +169,9 @@ export default function Map({
                   },
                   ...prev,
                 ].slice(0, 10)
-              ); // Keep last 10 polygons
+              );
+
+              newDraw.deleteAll();
             }
           });
 
@@ -199,7 +207,6 @@ export default function Map({
         onMoveEnd(boundingBox, e.viewState.zoom);
       }}
       onSourceData={(e) => {
-        // Trigger a re-render when known Map sources load
         if (e.sourceId && MAPBOX_SOURCE_IDS.includes(e.sourceId)) {
           onSourceLoad(e.sourceId);
         }

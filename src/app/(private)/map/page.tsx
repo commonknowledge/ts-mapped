@@ -152,6 +152,13 @@ export default function MapPage() {
     setSearchHistory((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const [editingPolygon, setEditingPolygon] = useState<DrawnPolygon | null>(
+    null
+  );
+  const handleEditPolygon = (polygon: DrawnPolygon) => {
+    setEditingPolygon(polygon);
+  };
+
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
@@ -179,6 +186,8 @@ export default function MapPage() {
         turfHistory={TurfHistory}
         setTurfHistory={setTurfHistory}
         loading={loading}
+        editingPolygon={editingPolygon}
+        setEditingPolygon={setEditingPolygon}
       />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}
@@ -209,7 +218,12 @@ export default function MapPage() {
           searchHistory={searchHistory}
           mapConfig={mapConfig}
         />
-        <TurfPolygons polygons={TurfHistory} mapConfig={mapConfig} />
+        <TurfPolygons
+          polygons={TurfHistory}
+          mapConfig={mapConfig}
+          editingPolygon={editingPolygon}
+          setEditingPolygon={setEditingPolygon}
+        />
       </Map>
       <Legend areaStats={areaStatsData?.areaStats} />
 
