@@ -1,6 +1,17 @@
 import { NewDataRecord } from "@/server/models/DataRecord";
 import { db } from "@/server/services/database";
 
+export async function countDataRecordsForDataSource(
+  dataSourceId: string,
+): Promise<number> {
+  const result = await db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .select(({ fn }) => [fn.countAll().as("count")])
+    .executeTakeFirst();
+  return Number(result?.count) || 0;
+}
+
 export function getFirstDataRecord(dataSourceId: string) {
   return db
     .selectFrom("dataRecord")

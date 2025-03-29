@@ -6,51 +6,13 @@ import {
   Selectable,
   Updateable,
 } from "kysely";
-import { z } from "zod";
 import { ColumnType } from "@/__generated__/types";
+import { DataSourceConfig, DataSourceGeocodingConfig } from "@/zod";
 
 export type ColumnDefs = {
   name: string;
   type: ColumnType;
 }[];
-
-const AirtableConfigSchema = z.object({
-  type: z.literal("airtable"),
-  apiKey: z.string(),
-  baseId: z.string(),
-  tableId: z.string(),
-});
-
-const MailchimpConfigSchema = z.object({
-  type: z.literal("mailchimp"),
-  apiKey: z.string(),
-  listId: z.string(),
-  serverPrefix: z.string(),
-});
-
-const CSVConfigSchema = z.object({
-  type: z.literal("csv"),
-  filename: z.string(),
-  idColumn: z.string(),
-});
-
-export const DataSourceConfigSchema = z.discriminatedUnion("type", [
-  AirtableConfigSchema,
-  MailchimpConfigSchema,
-  CSVConfigSchema,
-]);
-
-export type DataSourceConfig = z.infer<typeof DataSourceConfigSchema>;
-
-export const DataSourceGeocodingConfigSchema = z.object({
-  type: z.enum(["code", "name"]),
-  column: z.string(),
-  areaSetCode: z.string(),
-});
-
-export type DataSourceGeocodingConfig = z.infer<
-  typeof DataSourceGeocodingConfigSchema
->;
 
 export interface DataSourceTable {
   id: Generated<string>;

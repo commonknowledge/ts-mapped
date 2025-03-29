@@ -1,9 +1,9 @@
-export type MapStyle = {
+export interface MapStyle {
   name: string;
   slug: string;
   textColor: string;
   textHaloColor: string;
-};
+}
 
 const mapStyles: Record<string, MapStyle> = {
   "light-v11": {

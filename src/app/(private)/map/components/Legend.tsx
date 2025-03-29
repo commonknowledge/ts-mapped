@@ -1,7 +1,6 @@
 import { scaleLinear } from "d3-scale";
 import { AreaStats, ColumnType } from "@/__generated__/types";
 import { useColorScheme } from "../colors";
-import styles from "./Legend.module.css";
 
 export default function Legend({
   areaStats,

@@ -7,7 +7,6 @@ import { BoundingBox } from "@/__generated__/types";
 import { MarkerData, SearchResult, DrawnPolygon } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls, { MapConfig } from "./components/Controls";
-import Legend from "./components/Legend";
 import Map from "./components/Map";
 import Markers from "./components/Markers";
 import {
@@ -21,6 +20,7 @@ import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
 import TurfPolygons from "./components/TurfPolygons";
 import { MapStyleSelector } from "./components/MapStyling";
 import SettingsModal from "./components/SettingsModal";
+import Legend from "./components/Legend";
 const DEFAULT_ZOOM = 5;
 
 export default function MapPage() {

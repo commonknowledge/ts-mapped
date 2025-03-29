@@ -1,8 +1,10 @@
 import { gql, useQuery } from "@apollo/client";
 import {
   AreaStatsQuery,
+  AreaStatsQueryVariables,
   DataSourcesQuery,
   MarkersQuery,
+  MarkersQueryVariables,
   Operation,
 } from "@/__generated__/types";
 
@@ -21,7 +23,7 @@ export const useDataSourcesQuery = () =>
   `);
 
 export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) =>
-  useQuery<MarkersQuery>(
+  useQuery<MarkersQuery, MarkersQueryVariables>(
     gql`
       query Markers($dataSourceId: String!) {
         markers(dataSourceId: $dataSourceId)
@@ -48,7 +50,7 @@ export const useAreaStatsQuery = ({
   excludeColumns: string[];
   useDummyBoundingBox: boolean;
 }) =>
-  useQuery<AreaStatsQuery>(
+  useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
     gql`
       query AreaStats(
         $areaSetCode: String!

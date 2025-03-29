@@ -7,9 +7,10 @@ import {
 } from "@/server/repositories/AreaSet";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { getBaseDir } from "@/server/util";
+import { getBaseDir } from "@/server/utils";
+import { AreaSetCode } from "@/types";
 
-const AREA_SET_CODE = "WMC24";
+const AREA_SET_CODE = AreaSetCode.WMC24;
 
 const importConstituencies = async () => {
   const constituenciesGeojsonPath = join(

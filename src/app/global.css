@@ -123,7 +123,6 @@
   }
 }
 
-
 body {
   display: flex;
   flex-direction: column;
@@ -141,18 +140,6 @@ main {
   max-width: var(--width-content);
   padding: 3rem 1rem;
   width: 100%;
-}
-
-/* Undo default styles from mvp.css */
-.mapboxgl-popup-close-button {
-  color: unset;
-  font-family: unset;
-  display: unset;
-  font-size: unset;
-  font-weight: unset;
-  line-height: unset;
-  margin: unset;
-  padding: 1px 6px;
 }
 
 .mapboxgl-popup-content {

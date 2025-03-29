@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { SyntheticEvent, useState } from "react";
 import { useCurrentUser } from "@/hooks";
 import { Link } from "./Link";

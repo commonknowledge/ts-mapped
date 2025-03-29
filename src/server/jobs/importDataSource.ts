@@ -8,7 +8,8 @@ import {
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/util";
+import pubSub from "@/server/services/pubsub";
+import { getErrorMessage } from "@/server/utils";
 
 const BATCH_SIZE = 100;
 
@@ -26,7 +27,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   const adaptor = getDataSourceAdaptor(dataSource.config);
   if (!adaptor) {
     logger.error(
-      `Could not get data source adaptor for source ${dataSourceId}, config ${dataSource.config}`
+      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`
     );
     return false;
   }
@@ -49,16 +50,44 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       } else {
         logger.info(`Inserted ${count} records`);
       }
+      pubSub.publish("dataSourceEvent", {
+        dataSourceEvent: {
+          dataSourceId: dataSource.id,
+          recordsImported: {
+            at: new Date().toISOString(),
+            count,
+          },
+        },
+      });
     }
 
     await updateDataSource(dataSource.id, {
       columnDefs: JSON.stringify(columnDefsAccumulator),
     });
 
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        importComplete: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);
     return true;
   } catch (e) {
     const error = getErrorMessage(e);
+
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        importFailed: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     logger.error(
       `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${error}`
     );

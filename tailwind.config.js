@@ -2,10 +2,10 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
   theme: {
     container: {
@@ -16,8 +16,8 @@ module.exports = {
       },
     },
     fontFamily: {
-      sans: ['var(--font-ibm-plex-sans)', 'sans-serif'],
-      mono: ['var(--font-ibm-plex-mono)', 'monospace'],
+      sans: ["var(--font-ibm-plex-sans)", "sans-serif"],
+      mono: ["var(--font-ibm-plex-mono)", "monospace"],
     },
     extend: {
       colors: {
@@ -74,4 +74,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};

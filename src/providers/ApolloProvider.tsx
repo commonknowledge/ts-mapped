@@ -2,21 +2,82 @@
 
 import { HttpLink } from "@apollo/client";
 import {
+  ApolloLink,
+  FetchResult,
+  Observable,
+  Operation,
+  split,
+} from "@apollo/client/core";
+import { getMainDefinition } from "@apollo/client/utilities";
+import {
   ApolloClient,
   ApolloNextAppProvider,
   InMemoryCache,
 } from "@apollo/experimental-nextjs-app-support";
+import { print } from "graphql";
+import {
+  Client,
+  ClientOptions,
+  ExecutionResult,
+  createClient,
+} from "graphql-sse";
 import { useContext } from "react";
 import { AreaStat, AreaStats } from "@/__generated__/types";
 import { ServerSessionContext } from "./ServerSessionProvider";
 
+class SSELink extends ApolloLink {
+  private client: Client;
+
+  constructor(options: ClientOptions) {
+    super();
+    this.client = createClient(options);
+  }
+
+  public request(
+    operation: Operation,
+  ): Observable<ExecutionResult<FetchResult>> {
+    return new Observable((sink) => {
+      return this.client.subscribe<FetchResult>(
+        { ...operation, query: print(operation.query) },
+        {
+          next: sink.next.bind(sink),
+          complete: sink.complete.bind(sink),
+          error: sink.error.bind(sink),
+        },
+      );
+    });
+  }
+}
+
 function makeClient(jwt: string | null) {
+  const uri = `${process.env.BACKEND_URL || "http://localhost:3000"}/api/graphql`;
+
   const httpLink = new HttpLink({
-    uri: `${process.env.BACKEND_URL || "http://localhost:3000"}/api/graphql`,
+    uri,
     headers: {
       cookie: `JWT=${jwt || ""}`,
     },
   });
+
+  const sseLink = new SSELink({
+    url: uri,
+    headers: {
+      cookie: `JWT=${jwt || ""}`,
+    },
+  });
+
+  // Send subscriptions over SSE, everything else over HTTP
+  const splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === "OperationDefinition" &&
+        definition.operation === "subscription"
+      );
+    },
+    sseLink,
+    httpLink,
+  );
 
   return new ApolloClient({
     cache: new InMemoryCache({
@@ -74,7 +135,7 @@ function makeClient(jwt: string | null) {
         },
       },
     }),
-    link: httpLink,
+    link: splitLink,
   });
 }
 

@@ -23,7 +23,8 @@ import { MapStyle } from "@/app/(private)/map/styles";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
-import { DrawnPolygon, SearchResult } from "@/types";
+import { SearchResult, DrawnPolygon } from "@/types";
+
 import { MapRef } from "react-map-gl/mapbox";
 import { MarkerData } from "@/types";
 import MembersControl from "./control/MembersControl";
