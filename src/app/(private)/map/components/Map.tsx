@@ -113,7 +113,6 @@ export default function Map({
             displayControlsDefault: false,
             controls: {
               polygon: true,
-              trash: true,
             },
             userProperties: true,
             styles: [
