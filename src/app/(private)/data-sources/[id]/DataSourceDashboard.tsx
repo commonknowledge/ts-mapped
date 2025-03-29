@@ -11,7 +11,22 @@ import {
   ImportStatus,
 } from "@/__generated__/types";
 import styles from "./DataSourceDashboard.module.css";
-
+import PageHeader from "@/components/PageHeader";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/shadcn/ui/breadcrumb";
+import { Link } from "@/components/Link";
+import { Separator } from "@/shadcn/ui/separator";
+import { Button } from "@/shadcn/ui/button";
+import { Label } from "@/shadcn/ui/label";
+import AirtableFields from "../new/fields/AirtableFields";
+import MailchimpFields from "../new/fields/MailchimpFields";
+import CSVFields from "../new/fields/CSVFields";
+import { Badge } from "@/shadcn/ui/badge";
+import DataListRow from "@/components/DataListRow";
 export default function DataSourceDashboard({
   // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
@@ -22,7 +37,7 @@ export default function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastImported || null,
+    dataSource.importInfo?.lastImported || null
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -56,7 +71,7 @@ export default function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -97,32 +112,94 @@ export default function DataSourceDashboard({
   };
 
   return (
-    <div className="container">
-      <h1>{dataSource.name}</h1>
-      <div>
-        <h2>Record count: {recordCount}</h2>
-        {lastImported ? (
-          <h3>Last imported: {new Date(lastImported).toLocaleString()}</h3>
-        ) : null}
-        <button
-          type="button"
-          onClick={onClickImportRecords}
-          disabled={importing}
-        >
-          {importing ? "Importing" : "Import"} records
-        </button>
-        {importError ? (
+    <div className="p-4 mx-auto max-w-5xl w-full">
+      <div className="grid grid-cols-2 gap-12 mb-8">
+        <div className="border-r border-border/50 pr-4">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <Link href="/data-sources">Data sources</Link>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <h1 className="text-4xl font-medium tracking-tight">
+            {dataSource.name}
+          </h1>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <small>{importError}</small>
+            <p className="text-muted-foreground text-sm mb-4">Record count:</p>
+            <p className="text-4xl ">
+              {importing ? "Importing..." : recordCount}
+            </p>
           </div>
-        ) : null}
+          <div className="flex flex-col items-center gap-2">
+            <Button
+              type="button"
+              onClick={onClickImportRecords}
+              disabled={importing}
+              size="lg"
+            >
+              {importing ? "Importing" : "Import"} records
+            </Button>
+            {importError ? (
+              <div>
+                <small>{importError}</small>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
-      <label>Config</label>
-      <pre className={styles.config}>{JSON.stringify(dataSource.config)}</pre>
-      <label>Geocoding Config</label>
-      <pre className={styles.config}>
-        {JSON.stringify(dataSource.geocodingConfig)}
-      </pre>
+      <Separator className="my-4" />
+      {lastImported ? (
+        <>
+          <DataListRow
+            label="Last imported"
+            value={new Date(lastImported).toLocaleString()}
+          />
+          <Separator className="my-4" />
+        </>
+      ) : null}
+
+      <div className="grid grid-cols-2 gap-10 mb-10">
+        <div className="flex flex-col gap-2">
+          <Label className="text-lg">Config</Label>
+          <DataListRow
+            label="Type"
+            value={dataSource.config.type}
+            badge
+            border
+          />
+          <DataListRow label="File Name" value={dataSource.name} border />
+          <DataListRow
+            label="ID column"
+            value={dataSource.config.idColumn}
+            border
+          />
+        </div>
+        <div className="gap-4">
+          <div>
+            <Label className="text-lg">Geocoding config</Label>
+            <DataListRow
+              label="Type"
+              value={dataSource.geocodingConfig.type}
+              border
+            />
+            <DataListRow
+              label="Column"
+              value={dataSource.geocodingConfig.column}
+              border
+            />
+            <DataListRow
+              label="Area Set Code"
+              value={dataSource.geocodingConfig.areaSetCode}
+              border
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -131,7 +208,7 @@ const isImporting = (dataSource: DataSourceQuery["dataSource"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [ImportStatus.Importing, ImportStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+        dataSource.importInfo?.status
+      )
   );
 };
