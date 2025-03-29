@@ -85,6 +85,7 @@ export type DataSource = {
   createdAt: Scalars["String"]["output"];
   geocodingConfig: Scalars["JSON"]["output"];
   id: Scalars["String"]["output"];
+  importInfo?: Maybe<ImportInfo>;
   name: Scalars["String"]["output"];
   recordCount?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -93,6 +94,7 @@ export type DataSourceEvent = {
   __typename?: "DataSourceEvent";
   dataSourceId: Scalars["String"]["output"];
   importComplete?: Maybe<ImportCompleteEvent>;
+  importFailed?: Maybe<ImportFailedEvent>;
   recordsImported?: Maybe<RecordsImportedEvent>;
 };
 
@@ -101,10 +103,29 @@ export type ImportCompleteEvent = {
   at: Scalars["String"]["output"];
 };
 
+export type ImportFailedEvent = {
+  __typename?: "ImportFailedEvent";
+  at: Scalars["String"]["output"];
+};
+
+export type ImportInfo = {
+  __typename?: "ImportInfo";
+  lastImported?: Maybe<Scalars["String"]["output"]>;
+  status?: Maybe<ImportStatus>;
+};
+
+export enum ImportStatus {
+  Failed = "Failed",
+  Imported = "Imported",
+  Importing = "Importing",
+  None = "None",
+  Pending = "Pending",
+}
+
 export type Mutation = {
   __typename?: "Mutation";
   createDataSource: CreateDataSourceResponse;
-  triggerImportDataSourceJob: MutationResponse;
+  enqueueImportDataSourceJob: MutationResponse;
   updateGeocodingConfig: MutationResponse;
 };
 
@@ -113,7 +134,7 @@ export type MutationCreateDataSourceArgs = {
   rawConfig: Scalars["JSON"]["input"];
 };
 
-export type MutationTriggerImportDataSourceJobArgs = {
+export type MutationEnqueueImportDataSourceJobArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
@@ -177,13 +198,13 @@ export type SubscriptionDataSourceEventArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
-export type TriggerImportDataSourceJobMutationVariables = Exact<{
+export type EnqueueImportDataSourceJobMutationVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
 }>;
 
-export type TriggerImportDataSourceJobMutation = {
+export type EnqueueImportDataSourceJobMutation = {
   __typename?: "Mutation";
-  triggerImportDataSourceJob: { __typename?: "MutationResponse"; code: number };
+  enqueueImportDataSourceJob: { __typename?: "MutationResponse"; code: number };
 };
 
 export type DataSourceEventSubscriptionVariables = Exact<{
@@ -195,6 +216,7 @@ export type DataSourceEventSubscription = {
   dataSourceEvent: {
     __typename?: "DataSourceEvent";
     importComplete?: { __typename?: "ImportCompleteEvent"; at: string } | null;
+    importFailed?: { __typename?: "ImportFailedEvent"; at: string } | null;
     recordsImported?: {
       __typename?: "RecordsImportedEvent";
       count: number;
@@ -249,6 +271,11 @@ export type DataSourceQuery = {
       name: string;
       type: ColumnType;
     }>;
+    importInfo?: {
+      __typename?: "ImportInfo";
+      lastImported?: string | null;
+      status?: ImportStatus | null;
+    } | null;
   } | null;
 };
 
@@ -440,6 +467,9 @@ export type ResolversTypes = {
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
   ImportCompleteEvent: ResolverTypeWrapper<ImportCompleteEvent>;
+  ImportFailedEvent: ResolverTypeWrapper<ImportFailedEvent>;
+  ImportInfo: ResolverTypeWrapper<ImportInfo>;
+  ImportStatus: ImportStatus;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
   Mutation: ResolverTypeWrapper<{}>;
@@ -463,6 +493,8 @@ export type ResolversParentTypes = {
   DataSourceEvent: DataSourceEvent;
   Float: Scalars["Float"]["output"];
   ImportCompleteEvent: ImportCompleteEvent;
+  ImportFailedEvent: ImportFailedEvent;
+  ImportInfo: ImportInfo;
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
   Mutation: {};
@@ -532,6 +564,11 @@ export type DataSourceResolvers<
   createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   geocodingConfig?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  importInfo?: Resolver<
+    Maybe<ResolversTypes["ImportInfo"]>,
+    ParentType,
+    ContextType
+  >;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -545,6 +582,11 @@ export type DataSourceEventResolvers<
   dataSourceId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   importComplete?: Resolver<
     Maybe<ResolversTypes["ImportCompleteEvent"]>,
+    ParentType,
+    ContextType
+  >;
+  importFailed?: Resolver<
+    Maybe<ResolversTypes["ImportFailedEvent"]>,
     ParentType,
     ContextType
   >;
@@ -565,6 +607,33 @@ export type ImportCompleteEventResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type ImportFailedEventResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["ImportFailedEvent"] = ResolversParentTypes["ImportFailedEvent"],
+> = {
+  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ImportInfoResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["ImportInfo"] = ResolversParentTypes["ImportInfo"],
+> = {
+  lastImported?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  status?: Resolver<
+    Maybe<ResolversTypes["ImportStatus"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface JsonScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes["JSON"], any> {
   name: "JSON";
@@ -581,11 +650,11 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationCreateDataSourceArgs, "name" | "rawConfig">
   >;
-  triggerImportDataSourceJob?: Resolver<
+  enqueueImportDataSourceJob?: Resolver<
     ResolversTypes["MutationResponse"],
     ParentType,
     ContextType,
-    RequireFields<MutationTriggerImportDataSourceJobArgs, "dataSourceId">
+    RequireFields<MutationEnqueueImportDataSourceJobArgs, "dataSourceId">
   >;
   updateGeocodingConfig?: Resolver<
     ResolversTypes["MutationResponse"],
@@ -672,6 +741,8 @@ export type Resolvers<ContextType = GraphQLContext> = {
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
   ImportCompleteEvent?: ImportCompleteEventResolvers<ContextType>;
+  ImportFailedEvent?: ImportFailedEventResolvers<ContextType>;
+  ImportInfo?: ImportInfoResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;

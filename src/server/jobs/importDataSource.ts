@@ -78,6 +78,16 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     return true;
   } catch (e) {
     const error = getErrorMessage(e);
+
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        importFailed: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     logger.error(
       `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${error}`,
     );

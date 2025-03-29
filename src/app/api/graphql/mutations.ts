@@ -62,7 +62,7 @@ export const createDataSource = async (
   return { code: 500 };
 };
 
-export const triggerImportDataSourceJob = async (
+export const enqueueImportDataSourceJob = async (
   _: unknown,
   { dataSourceId }: { dataSourceId: string },
 ): Promise<MutationResponse> => {

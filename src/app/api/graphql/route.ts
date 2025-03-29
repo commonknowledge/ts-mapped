@@ -9,6 +9,7 @@ import {
 } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
+  getImportInfo,
   listDataSources,
 } from "@/server/repositories/DataSource";
 import pubSub from "@/server/services/pubsub";
@@ -17,7 +18,7 @@ import { BoundingBox } from "@/types";
 import { GraphQLContext } from "./context";
 import {
   createDataSource,
-  triggerImportDataSourceJob,
+  enqueueImportDataSourceJob,
   updateGeocodingConfig,
 } from "./mutations";
 import { serializeDataSource } from "./serializers";
@@ -64,7 +65,22 @@ const typeDefs = `
     columnDefs: [ColumnDef!]!
     config: JSON!
     geocodingConfig: JSON!
+
+    importInfo: ImportInfo
     recordCount: Int
+  }
+
+  type ImportInfo {
+    lastImported: String
+    status: ImportStatus
+  }
+
+  enum ImportStatus {
+    None
+    Failed
+    Importing
+    Imported
+    Pending
   }
 
   enum Operation {
@@ -104,26 +120,31 @@ const typeDefs = `
 
   type Mutation {
     createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
-    triggerImportDataSourceJob(dataSourceId: String!): MutationResponse!
+    enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse!
     updateGeocodingConfig(
       id: String!
       rawGeocodingConfig: JSON!
     ): MutationResponse!
   }
 
+  type DataSourceEvent {
+    dataSourceId: String!
+    importComplete: ImportCompleteEvent
+    importFailed: ImportFailedEvent
+    recordsImported: RecordsImportedEvent
+  }
+
   type ImportCompleteEvent {
+    at: String!
+  }
+
+  type ImportFailedEvent {
     at: String!
   }
 
   type RecordsImportedEvent {
     at: String!
     count: Int!
-  }
-
-  type DataSourceEvent {
-    dataSourceId: String!
-    importComplete: ImportCompleteEvent
-    recordsImported: RecordsImportedEvent
   }
 
   type Subscription {
@@ -133,6 +154,7 @@ const typeDefs = `
 
 const resolvers: Resolvers = {
   DataSource: {
+    importInfo: ({ id }) => getImportInfo(id),
     recordCount: ({ id }) => countDataRecordsForDataSource(id),
   },
   JSON: GraphQLJSON,
@@ -209,7 +231,7 @@ const resolvers: Resolvers = {
 
   Mutation: {
     createDataSource,
-    triggerImportDataSourceJob,
+    enqueueImportDataSourceJob,
     updateGeocodingConfig,
   },
 

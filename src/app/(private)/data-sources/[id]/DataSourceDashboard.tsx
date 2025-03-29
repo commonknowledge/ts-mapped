@@ -6,8 +6,9 @@ import {
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
   DataSourceQuery,
-  TriggerImportDataSourceJobMutation,
-  TriggerImportDataSourceJobMutationVariables,
+  EnqueueImportDataSourceJobMutation,
+  EnqueueImportDataSourceJobMutationVariables,
+  ImportStatus,
 } from "@/__generated__/types";
 import styles from "./DataSourceDashboard.module.css";
 
@@ -18,16 +19,19 @@ export default function DataSourceDashboard({
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
   dataSource: Exclude<DataSourceQuery["dataSource"], null | undefined>;
 }) {
-  const [importing, setImporting] = useState(false);
+  const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
+  const [lastImported, setLastImported] = useState(
+    dataSource.importInfo?.lastImported || null,
+  );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
-  const [triggerImportDataSourceJob] = useMutation<
-    TriggerImportDataSourceJobMutation,
-    TriggerImportDataSourceJobMutationVariables
+  const [enqueueImportDataSourceJob] = useMutation<
+    EnqueueImportDataSourceJobMutation,
+    EnqueueImportDataSourceJobMutationVariables
   >(gql`
-    mutation TriggerImportDataSourceJob($dataSourceId: String!) {
-      triggerImportDataSourceJob(dataSourceId: $dataSourceId) {
+    mutation EnqueueImportDataSourceJob($dataSourceId: String!) {
+      enqueueImportDataSourceJob(dataSourceId: $dataSourceId) {
         code
       }
     }
@@ -41,6 +45,9 @@ export default function DataSourceDashboard({
       subscription DataSourceEvent($dataSourceId: String!) {
         dataSourceEvent(dataSourceId: $dataSourceId) {
           importComplete {
+            at
+          }
+          importFailed {
             at
           }
           recordsImported {
@@ -61,8 +68,13 @@ export default function DataSourceDashboard({
     if (dataSourceEvent.recordsImported?.count) {
       setRecordCount(dataSourceEvent.recordsImported?.count);
     }
+    if (dataSourceEvent.importFailed) {
+      setImporting(false);
+      setImportError("Failed to import this data source.");
+    }
     if (dataSourceEvent.importComplete) {
       setImporting(false);
+      setLastImported(dataSourceEvent.importComplete.at);
     }
   }, [dataSourceEvent]);
 
@@ -71,15 +83,15 @@ export default function DataSourceDashboard({
     setImportError("");
 
     try {
-      const result = await triggerImportDataSourceJob({
+      const result = await enqueueImportDataSourceJob({
         variables: { dataSourceId: dataSource.id },
       });
       if (result.errors) {
         throw new Error(String(result.errors));
       }
     } catch (e) {
-      console.error(`Could not trigger import job: ${e}`);
-      setImportError("Could not trigger import job.");
+      console.error(`Could not schedule import job: ${e}`);
+      setImportError("Could not schedule import job.");
       setImporting(false);
     }
   };
@@ -89,6 +101,9 @@ export default function DataSourceDashboard({
       <h1>{dataSource.name}</h1>
       <div>
         <h2>Record count: {recordCount}</h2>
+        {lastImported ? (
+          <h3>Last imported: {new Date(lastImported).toLocaleString()}</h3>
+        ) : null}
         <button
           type="button"
           onClick={onClickImportRecords}
@@ -111,3 +126,12 @@ export default function DataSourceDashboard({
     </div>
   );
 }
+
+const isImporting = (dataSource: DataSourceQuery["dataSource"]) => {
+  return Boolean(
+    dataSource?.importInfo?.status &&
+      [ImportStatus.Importing, ImportStatus.Pending].includes(
+        dataSource.importInfo?.status,
+      ),
+  );
+};

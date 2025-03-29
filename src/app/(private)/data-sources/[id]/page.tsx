@@ -24,6 +24,10 @@ export default async function GeocodeDataSourcePage({
           }
           config
           geocodingConfig
+          importInfo {
+            lastImported
+            status
+          }
           recordCount
         }
       }
