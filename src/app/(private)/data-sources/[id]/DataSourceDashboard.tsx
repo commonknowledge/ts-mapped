@@ -140,7 +140,7 @@ export default function DataSourceDashboard({
               )}
             </p>
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-end gap-2 ">
             <Button
               type="button"
               onClick={onClickImportRecords}
