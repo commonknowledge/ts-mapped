@@ -89,6 +89,18 @@ export type DataSource = {
   recordCount?: Maybe<Scalars["Int"]["output"]>;
 };
 
+export type DataSourceEvent = {
+  __typename?: "DataSourceEvent";
+  dataSourceId: Scalars["String"]["output"];
+  importComplete?: Maybe<ImportCompleteEvent>;
+  recordsImported?: Maybe<RecordsImportedEvent>;
+};
+
+export type ImportCompleteEvent = {
+  __typename?: "ImportCompleteEvent";
+  at: Scalars["String"]["output"];
+};
+
 export type Mutation = {
   __typename?: "Mutation";
   createDataSource: CreateDataSourceResponse;
@@ -150,6 +162,21 @@ export type QueryMarkersArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
+export type RecordsImportedEvent = {
+  __typename?: "RecordsImportedEvent";
+  at: Scalars["String"]["output"];
+  count: Scalars["Int"]["output"];
+};
+
+export type Subscription = {
+  __typename?: "Subscription";
+  dataSourceEvent: DataSourceEvent;
+};
+
+export type SubscriptionDataSourceEventArgs = {
+  dataSourceId: Scalars["String"]["input"];
+};
+
 export type TriggerImportDataSourceJobMutationVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
 }>;
@@ -157,6 +184,22 @@ export type TriggerImportDataSourceJobMutationVariables = Exact<{
 export type TriggerImportDataSourceJobMutation = {
   __typename?: "Mutation";
   triggerImportDataSourceJob: { __typename?: "MutationResponse"; code: number };
+};
+
+export type DataSourceEventSubscriptionVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+}>;
+
+export type DataSourceEventSubscription = {
+  __typename?: "Subscription";
+  dataSourceEvent: {
+    __typename?: "DataSourceEvent";
+    importComplete?: { __typename?: "ImportCompleteEvent"; at: string } | null;
+    recordsImported?: {
+      __typename?: "RecordsImportedEvent";
+      count: number;
+    } | null;
+  };
 };
 
 export type UpdateGeocodingConfigMutationVariables = Exact<{
@@ -394,14 +437,18 @@ export type ResolversTypes = {
   ColumnType: ColumnType;
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
   DataSource: ResolverTypeWrapper<DataSource>;
+  DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
+  ImportCompleteEvent: ResolverTypeWrapper<ImportCompleteEvent>;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
   Query: ResolverTypeWrapper<{}>;
+  RecordsImportedEvent: ResolverTypeWrapper<RecordsImportedEvent>;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
+  Subscription: ResolverTypeWrapper<{}>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -413,13 +460,17 @@ export type ResolversParentTypes = {
   ColumnDef: ColumnDef;
   CreateDataSourceResponse: CreateDataSourceResponse;
   DataSource: DataSource;
+  DataSourceEvent: DataSourceEvent;
   Float: Scalars["Float"]["output"];
+  ImportCompleteEvent: ImportCompleteEvent;
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
   Mutation: {};
   MutationResponse: MutationResponse;
   Query: {};
+  RecordsImportedEvent: RecordsImportedEvent;
   String: Scalars["String"]["output"];
+  Subscription: {};
 };
 
 export type AreaStatResolvers<
@@ -483,6 +534,34 @@ export type DataSourceResolvers<
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DataSourceEventResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["DataSourceEvent"] = ResolversParentTypes["DataSourceEvent"],
+> = {
+  dataSourceId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  importComplete?: Resolver<
+    Maybe<ResolversTypes["ImportCompleteEvent"]>,
+    ParentType,
+    ContextType
+  >;
+  recordsImported?: Resolver<
+    Maybe<ResolversTypes["RecordsImportedEvent"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ImportCompleteEventResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["ImportCompleteEvent"] = ResolversParentTypes["ImportCompleteEvent"],
+> = {
+  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -561,14 +640,42 @@ export type QueryResolvers<
   >;
 };
 
+export type RecordsImportedEventResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["RecordsImportedEvent"] = ResolversParentTypes["RecordsImportedEvent"],
+> = {
+  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  count?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SubscriptionResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["Subscription"] = ResolversParentTypes["Subscription"],
+> = {
+  dataSourceEvent?: SubscriptionResolver<
+    ResolversTypes["DataSourceEvent"],
+    "dataSourceEvent",
+    ParentType,
+    ContextType,
+    RequireFields<SubscriptionDataSourceEventArgs, "dataSourceId">
+  >;
+};
+
 export type Resolvers<ContextType = GraphQLContext> = {
   AreaStat?: AreaStatResolvers<ContextType>;
   AreaStats?: AreaStatsResolvers<ContextType>;
   ColumnDef?: ColumnDefResolvers<ContextType>;
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
+  DataSourceEvent?: DataSourceEventResolvers<ContextType>;
+  ImportCompleteEvent?: ImportCompleteEventResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  RecordsImportedEvent?: RecordsImportedEventResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
 };

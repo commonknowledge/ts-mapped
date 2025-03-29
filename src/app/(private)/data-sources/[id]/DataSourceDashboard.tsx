@@ -1,8 +1,10 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
-import { useState } from "react";
+import { gql, useMutation, useSubscription } from "@apollo/client";
+import { useEffect, useState } from "react";
 import {
+  DataSourceEventSubscription,
+  DataSourceEventSubscriptionVariables,
   DataSourceQuery,
   TriggerImportDataSourceJobMutation,
   TriggerImportDataSourceJobMutationVariables,
@@ -18,6 +20,7 @@ export default function DataSourceDashboard({
 }) {
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState("");
+  const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
   const [triggerImportDataSourceJob] = useMutation<
     TriggerImportDataSourceJobMutation,
@@ -29,6 +32,39 @@ export default function DataSourceDashboard({
       }
     }
   `);
+
+  const { data: dataSourceEventData } = useSubscription<
+    DataSourceEventSubscription,
+    DataSourceEventSubscriptionVariables
+  >(
+    gql`
+      subscription DataSourceEvent($dataSourceId: String!) {
+        dataSourceEvent(dataSourceId: $dataSourceId) {
+          importComplete {
+            at
+          }
+          recordsImported {
+            count
+          }
+        }
+      }
+    `,
+    { variables: { dataSourceId: dataSource.id } },
+  );
+
+  const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
+
+  useEffect(() => {
+    if (!dataSourceEvent) {
+      return;
+    }
+    if (dataSourceEvent.recordsImported?.count) {
+      setRecordCount(dataSourceEvent.recordsImported?.count);
+    }
+    if (dataSourceEvent.importComplete) {
+      setImporting(false);
+    }
+  }, [dataSourceEvent]);
 
   const onClickImportRecords = async () => {
     setImporting(true);
@@ -52,7 +88,7 @@ export default function DataSourceDashboard({
     <div className="container">
       <h1>{dataSource.name}</h1>
       <div>
-        <h2>Record count: {dataSource.recordCount}</h2>
+        <h2>Record count: {recordCount}</h2>
         <button
           type="button"
           onClick={onClickImportRecords}

@@ -8,6 +8,7 @@ import {
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
+import pubSub from "@/server/services/pubsub";
 import { getErrorMessage } from "@/server/util";
 
 const BATCH_SIZE = 100;
@@ -49,10 +50,28 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       } else {
         logger.info(`Inserted ${count} records`);
       }
+      pubSub.publish("dataSourceEvent", {
+        dataSourceEvent: {
+          dataSourceId: dataSource.id,
+          recordsImported: {
+            at: new Date().toISOString(),
+            count,
+          },
+        },
+      });
     }
 
     await updateDataSource(dataSource.id, {
       columnDefs: JSON.stringify(columnDefsAccumulator),
+    });
+
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        importComplete: {
+          at: new Date().toISOString(),
+        },
+      },
     });
 
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);

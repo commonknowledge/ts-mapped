@@ -4,7 +4,7 @@ import readline from "readline";
 import { fileURLToPath } from "url";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "../util";
+import { getErrorMessage } from "@/server/util";
 import { DataSourceAdaptor, ExternalRecord } from "./abstract";
 
 const getProjectFolder = () => {
