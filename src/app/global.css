@@ -142,18 +142,6 @@ main {
   width: 100%;
 }
 
-/* Undo default styles from mvp.css */
-.mapboxgl-popup-close-button {
-  color: unset;
-  font-family: unset;
-  display: unset;
-  font-size: unset;
-  font-weight: unset;
-  line-height: unset;
-  margin: unset;
-  padding: 1px 6px;
-}
-
 .mapboxgl-popup-content {
   padding: 0.75rem !important;
 }

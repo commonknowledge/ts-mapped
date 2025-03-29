@@ -1,5 +1,4 @@
 import "nprogress/nprogress.css";
-// import "./mvp.css";
 import "./global.css";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { getServerSession } from "@/auth";
