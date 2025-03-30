@@ -1,3 +1,5 @@
+import DataListRow from "@/components/DataListRow";
+import { Input } from "@/shadcn/ui/input";
 import { DataSourceType } from "@/types";
 import { NewDataSourceConfig } from "../types";
 
@@ -14,24 +16,30 @@ export default function MailchimpInputs({
 
   return (
     <>
-      <input
-        type="text"
-        placeholder="List ID"
-        value={config.listId || ""}
-        onChange={(e) => onChange({ listId: e.target.value })}
-      />
-      <input
-        type="text"
-        placeholder="Server Prefix"
-        value={config.serverPrefix || ""}
-        onChange={(e) => onChange({ serverPrefix: e.target.value })}
-      />
-      <input
-        type="text"
-        placeholder="API Key"
-        value={config.apiKey || ""}
-        onChange={(e) => onChange({ apiKey: e.target.value })}
-      />
+      <DataListRow label="List ID">
+        <Input
+          type="text"
+          placeholder="List ID"
+          value={config.listId || ""}
+          onChange={(e) => onChange({ listId: e.target.value })}
+        />
+      </DataListRow>
+      <DataListRow label="Server Prefix">
+        <Input
+          type="text"
+          placeholder="Server Prefix"
+          value={config.serverPrefix || ""}
+          onChange={(e) => onChange({ serverPrefix: e.target.value })}
+        />
+      </DataListRow>
+      <DataListRow label="API Key">
+        <Input
+          type="text"
+          placeholder="API Key"
+          value={config.apiKey || ""}
+          onChange={(e) => onChange({ apiKey: e.target.value })}
+        />
+      </DataListRow>
     </>
   );
 }

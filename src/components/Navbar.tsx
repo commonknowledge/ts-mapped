@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { SyntheticEvent, useState } from "react";
 import { useCurrentUser } from "@/hooks";
+import { Separator } from "@/shadcn/ui/separator";
 import { Link } from "./Link";
 import styles from "./Navbar.module.css";
 
@@ -29,11 +30,26 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center p-4">
-      <Link href="/" className="flex items-center gap-2">
-        <Image src="/logo.svg" alt="Mapped" width={32} height={32} />
-        Mapped
-      </Link>
+    <nav className="flex justify-between items-center p-4 z-1">
+      <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.svg" alt="Mapped" width={32} height={32} />
+          Mapped
+        </Link>
+        <Separator orientation="vertical" />
+        <Link
+          href="/map"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          Map
+        </Link>
+        <Link
+          href="/data-sources"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          Data Sources
+        </Link>
+      </div>
       {user ? (
         <form className="flex gap-2" onSubmit={onSubmitLogout}>
           <button>Logout</button>

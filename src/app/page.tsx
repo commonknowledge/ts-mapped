@@ -6,24 +6,22 @@ export default function HomePage() {
   return (
     <div className="overflow-hidden">
       <div className="flex flex-col items-center justify-center relative bg-[#678DE312] py-16 p-4">
-        <Image src="/hero.svg" alt="Mapped" height={456} width={1024} priority={true} />
+        <Image
+          src="/hero.svg"
+          alt="Mapped"
+          height={456}
+          width={1024}
+          priority={true}
+        />
         <p className="text-5xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8">
           Making the right connections for organisers & activists
         </p>
         <div className="flex gap-4 items-center justify-center">
           <Button size="lg" asChild={true}>
-            <Link
-              href="map"
-            >
-              Map
-            </Link>
+            <Link href="map">Map</Link>
           </Button>
           <Button size="lg" asChild={true}>
-            <Link
-              href="data-sources"
-            >
-              Data Sources
-            </Link>
+            <Link href="data-sources">Data Sources</Link>
           </Button>
         </div>
         <Image
