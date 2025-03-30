@@ -8,7 +8,25 @@ import {
   UpdateGeocodingConfigMutation,
   UpdateGeocodingConfigMutationVariables,
 } from "@/__generated__/types";
+import DataListRow from "@/components/DataListRow";
+import { Link } from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/shadcn/ui/breadcrumb";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import { Separator } from "@/shadcn/ui/separator";
 import { AreaSetCode, GeocodingType } from "@/types";
 import { DataSourceGeocodingConfigSchema, GeocodingOnAreaSetType } from "@/zod";
 
@@ -21,7 +39,7 @@ export default function GeocodeDataSourceForm({
     null | undefined
   >;
 }) {
-  const initialState = getInitialState(dataSource);
+  const initialState = getInitialState(dataSource.geocodingConfig);
 
   const [column, setColumn] = useState(initialState.column);
   const [type, setType] = useState<GeocodingType>(initialState.type);
@@ -71,46 +89,87 @@ export default function GeocodeDataSourceForm({
   };
 
   return (
-    <div className="container">
-      <h1>Geocode {dataSource.name}</h1>
-      <form onSubmit={onSubmit}>
-        <select value={column} onChange={(e) => setColumn(e.target.value)}>
-          <option value="">Select a column to geocode on</option>
-          {dataSource.columnDefs.map((cd) => (
-            <option key={cd.name} value={cd.name}>
-              {cd.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as GeocodingType)}
-        >
-          <option value={GeocodingType.none}>What kind of data is this?</option>
-          {Object.keys(GeocodingTypeLabels)
-            .filter((type) => type !== GeocodingType.none)
-            .map((type) => (
-              <option key={type} value={type}>
-                {GeocodingTypeLabels[type as GeocodingType]}
-              </option>
-            ))}
-        </select>
-        {type in GeocodingOnAreaSetType ? (
-          <select
-            value={areaSetCode}
-            onChange={(e) => setAreaSetCode(e.target.value as AreaSetCode)}
-          >
-            <option value="">What kind of area is this?</option>
-            {Object.keys(AreaSetCodeLabels)
-              .filter((type) => type !== AreaSetCode.PC)
-              .map((type) => (
-                <option key={type} value={type}>
-                  {AreaSetCodeLabels[type as AreaSetCode]}
-                </option>
+    <div className="p-4 mx-auto max-w-5xl w-full">
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <Link href="/data-sources">Data sources</Link>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <Link href={`/data-sources/${dataSource.id}`}>
+              {dataSource.name}
+            </Link>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>Geocode</BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <PageHeader
+        title={`Geocode ${dataSource.name}`}
+        description="Set up geocoding so we know where your data is."
+      />
+      <Separator className="my-4" />
+      <form onSubmit={onSubmit} className="max-w-2xl ">
+        <DataListRow label="Column">
+          <Select value={column} onValueChange={(c) => setColumn(c)}>
+            <SelectTrigger className="w-[360px]">
+              <SelectValue placeholder="Select a column to geocode on" />
+            </SelectTrigger>
+            <SelectContent>
+              {dataSource.columnDefs.map((cd) => (
+                <SelectItem key={cd.name} value={cd.name}>
+                  {cd.name}
+                </SelectItem>
               ))}
-          </select>
+            </SelectContent>
+          </Select>
+        </DataListRow>
+
+        <DataListRow label="Data type">
+          <Select
+            // Make the trigger display when type === 'none'
+            value={type === GeocodingType.none ? "" : type}
+            onValueChange={(t) => setType(t as GeocodingType)}
+          >
+            <SelectTrigger className="w-[360px]">
+              <SelectValue placeholder="What kind of data is this?" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(GeocodingTypeLabels)
+                .filter((type) => type !== GeocodingType.none)
+                .map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {GeocodingTypeLabels[type as GeocodingType]}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </DataListRow>
+
+        {type in GeocodingOnAreaSetType ? (
+          <DataListRow label="Area type">
+            <Select
+              value={areaSetCode}
+              onValueChange={(t) => setAreaSetCode(t as AreaSetCode)}
+            >
+              <SelectTrigger className="w-[360px]">
+                <SelectValue placeholder="What kind of area is this?" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(AreaSetCodeLabels)
+                  .filter((type) => type !== AreaSetCode.PC)
+                  .map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {AreaSetCodeLabels[type as AreaSetCode]}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </DataListRow>
         ) : null}
-        <button disabled={!validGeocodingConfig || loading}>Submit</button>
+
+        <Button disabled={!validGeocodingConfig || loading}>Submit</Button>
         {error ? (
           <div>
             <small>{error}</small>

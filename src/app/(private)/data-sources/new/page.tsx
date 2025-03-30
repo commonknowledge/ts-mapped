@@ -1,20 +1,38 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import {
   CreateDataSourceMutation,
   CreateDataSourceMutationVariables,
 } from "@/__generated__/types";
+import DataListRow from "@/components/DataListRow";
+import PageHeader from "@/components/PageHeader";
 import { DataSourceTypeLabels } from "@/labels";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/shadcn/ui/breadcrumb";
+import { Button } from "@/shadcn/ui/button";
+import { Input } from "@/shadcn/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType, UploadResponseBody } from "@/types";
 import { DataSourceConfig, DataSourceConfigSchema } from "@/zod";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import MailchimpFields from "./fields/MailchimpFields";
 import { NewDataSourceConfig } from "./types";
-
 export default function NewDataSourcePage() {
   const [name, setName] = useState("");
   const [config, setConfig] = useState<NewDataSourceConfig>({
@@ -71,34 +89,58 @@ export default function NewDataSourcePage() {
 
   const { data: validConfig } = DataSourceConfigSchema.safeParse(config);
   return (
-    <div className="container">
-      <h1>New Data Source</h1>
-      <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <select
-          value={config.type}
-          onChange={(e) =>
-            onChangeConfig({ type: e.target.value as DataSourceType })
-          }
-        >
-          <option value="">Choose a type</option>
-          {Object.keys(DataSourceType).map((type) => (
-            <option key={type} value={type}>
-              {DataSourceTypeLabels[type as DataSourceType]}
-            </option>
-          ))}
-        </select>
+    <div className="p-4 mx-auto max-w-5xl w-full">
+      <Breadcrumb className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <Link href="/data-sources">Data sources</Link>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>New</BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <PageHeader
+        title="New Data Source"
+        description="Create a new data source to import into your maps."
+      />
+      <Separator className="my-4" />
+      <form onSubmit={onSubmit} className="max-w-2xl ">
+        <DataListRow label="Name">
+          <Input
+            type="text"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </DataListRow>
+        <DataListRow label="Type" border>
+          <Select
+            value={config.type}
+            onValueChange={(value) =>
+              onChangeConfig({ type: value as DataSourceType })
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Choose a type" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(DataSourceType).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {DataSourceTypeLabels[type as DataSourceType]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </DataListRow>
+
         {/* Each field set only displays if config.type matches */}
-        <AirtableFields config={config} onChange={onChangeConfig} />
-        <CSVFields config={config} onChange={onChangeConfig} />
-        <MailchimpFields config={config} onChange={onChangeConfig} />
-        <button disabled={!validConfig || loading}>Submit</button>
+        <div className="mb-10">
+          <AirtableFields config={config} onChange={onChangeConfig} />
+          <CSVFields config={config} onChange={onChangeConfig} />
+          <MailchimpFields config={config} onChange={onChangeConfig} />
+        </div>
+        <Button disabled={!validConfig || loading}>Submit</Button>
         {error ? (
           <div>
             <small>{error}</small>
