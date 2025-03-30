@@ -1,23 +1,22 @@
-import { ReactNode, RefObject, useEffect, useState } from "react";
-import MapGL, { MapRef } from "react-map-gl/mapbox";
 import { BoundingBox } from "@/__generated__/types";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
+import { mapColors } from "@/app/(private)/map/styles";
 import {
+  DrawDeleteEvent,
+  DrawnPolygon,
   MarkerData,
   SearchResult,
-  DrawnPolygon,
-  DrawDeleteEvent,
 } from "@/types";
-import { MapConfig } from "./Controls";
-import { mapColors } from "@/app/(private)/map/styles";
-import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-import mapboxgl from "mapbox-gl";
-import MapboxDraw from "@mapbox/mapbox-gl-draw";
-import * as turf from "@turf/turf";
+import MapboxDraw, { DrawCreateEvent } from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
-
+import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import DrawCreateEvent from "@mapbox/mapbox-gl-draw";
+import * as turf from "@turf/turf";
+import mapboxgl from "mapbox-gl";
+import { ReactNode, RefObject, useEffect, useState } from "react";
+import MapGL, { MapRef } from "react-map-gl/mapbox";
+import { MapConfig } from "./Controls";
+
 const DEFAULT_ZOOM = 5;
 
 interface MapProps {

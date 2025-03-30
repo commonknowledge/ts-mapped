@@ -1,7 +1,5 @@
 "use client";
 
-import { gql, useMutation, useSubscription } from "@apollo/client";
-import { useEffect, useState } from "react";
 import {
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
@@ -10,23 +8,20 @@ import {
   EnqueueImportDataSourceJobMutationVariables,
   ImportStatus,
 } from "@/__generated__/types";
-import styles from "./DataSourceDashboard.module.css";
-import PageHeader from "@/components/PageHeader";
+import { gql, useMutation, useSubscription } from "@apollo/client";
+import { useEffect, useState } from "react";
+
+import DataListRow from "@/components/DataListRow";
+import { Link } from "@/components/Link";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
-import { Link } from "@/components/Link";
-import { Separator } from "@/shadcn/ui/separator";
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
-import AirtableFields from "../new/fields/AirtableFields";
-import MailchimpFields from "../new/fields/MailchimpFields";
-import CSVFields from "../new/fields/CSVFields";
-import { Badge } from "@/shadcn/ui/badge";
-import DataListRow from "@/components/DataListRow";
+import { Separator } from "@/shadcn/ui/separator";
 import { LoaderPinwheel } from "lucide-react";
 export default function DataSourceDashboard({
   // Mark dataSource as not null or undefined (this is checked in the parent page)
