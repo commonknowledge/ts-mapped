@@ -1,4 +1,4 @@
-import TurfHistory from "../dataLists/TurfHistory";
+import TurfHistory from "../dataLists/TurfList";
 import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
 import { DrawnPolygon } from "@/types";

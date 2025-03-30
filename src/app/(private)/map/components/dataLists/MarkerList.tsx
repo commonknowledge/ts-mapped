@@ -27,7 +27,7 @@ interface SearchHistoryProps {
   activeDataSources: string[];
 }
 
-export default function SearchHistory({
+export default function MarkerList({
   history,
   onSelect,
   onEdit,
@@ -88,7 +88,7 @@ export default function SearchHistory({
             >
               <AccordionItem value="item-1">
                 <AccordionTrigger className="font-normal pb-0">
-                  Datasource {dataSource}
+                  {dataSource}
                 </AccordionTrigger>
                 <AccordionContent>
                   <ul className="">

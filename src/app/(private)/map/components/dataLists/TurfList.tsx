@@ -11,7 +11,7 @@ import * as turf from "@turf/turf";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-interface TurfHistoryProps {
+interface TurfListProps {
   polygons: DrawnPolygon[];
   onSelect?: (coordinates: [number, number]) => void;
   onEdit?: (index: number, newName: string) => void;
@@ -21,7 +21,7 @@ interface TurfHistoryProps {
   setEditingPolygon: (polygon: DrawnPolygon | null) => void;
 }
 
-export default function TurfHistory({
+export default function TurfList({
   polygons,
   onSelect,
   onEdit,
@@ -29,7 +29,7 @@ export default function TurfHistory({
   showTurf,
   editingPolygon,
   setEditingPolygon,
-}: TurfHistoryProps) {
+}: TurfListProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);

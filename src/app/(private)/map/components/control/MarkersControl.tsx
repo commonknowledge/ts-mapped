@@ -1,4 +1,4 @@
-import SearchHistory from "../dataLists/SearchHistory";
+import MarkerList from "../dataLists/MarkerList";
 import { Label } from "@/shadcn/ui/label";
 import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
@@ -121,7 +121,7 @@ export default function MarkersControl({
       {isLoading ? (
         <SkeletonGroup />
       ) : (
-        <SearchHistory
+        <MarkerList
           history={searchHistory}
           onSelect={(coordinates) => {
             const map = mapRef.current;
@@ -156,27 +156,42 @@ function DataSourcesModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild></DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Your data sources</DialogTitle>
+          <DialogTitle>Add data to map</DialogTitle>
+          <DialogDescription>
+            Select data sources to display their locations on the map
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           {dummyDataSourcesList.map((dataSource) => (
-            <div key={dataSource.id} className="flex items-center gap-2">
+            <label
+              key={dataSource.id}
+              className="flex items-center gap-4 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer"
+            >
               <Checkbox
-                className="flex items-center gap-2"
+                id={`ds-${dataSource.id}`}
                 onCheckedChange={(checked) => {
                   if (checked) {
                     setActiveDataSources([
                       ...activeDataSources,
-                      dataSource.id,
-                    ] as Array<string>);
+                      dataSource.name,
+                    ]);
+                  } else {
+                    setActiveDataSources(
+                      activeDataSources.filter((id) => id !== dataSource.name)
+                    );
                   }
                 }}
-                checked={activeDataSources.includes(dataSource.id)}
+                checked={activeDataSources.includes(dataSource.name)}
               />
-              <p>{dataSource.name}</p>
-            </div>
+              <div className="flex flex-col flex-1">
+                <span className="font-medium">{dataSource.name}</span>
+                <span className="text-sm text-muted-foreground">
+                  {dataSource.recordCount || 0} locations
+                </span>
+              </div>
+            </label>
           ))}
         </div>
       </DialogContent>
@@ -184,41 +199,26 @@ function DataSourcesModal({
   );
 }
 
-let dummyDataSourcesList = [
+const dummyDataSourcesList = [
   {
-    id: "1",
-    name: "Data Source 1",
-    config: {
-      type: "csv",
-      createdAt: new Date(),
-    },
+    id: "schools",
+    name: "London Schools",
+    recordCount: 342,
+    config: { type: "csv" },
     createdAt: new Date(),
   },
   {
-    id: "2",
-    name: "Data Source 2",
-    config: {
-      type: "csv",
-      createdAt: new Date(),
-    },
+    id: "hospitals",
+    name: "NHS Hospitals",
+    recordCount: 168,
+    config: { type: "csv" },
     createdAt: new Date(),
   },
   {
-    id: "3",
-    name: "Data Source 3",
-    config: {
-      type: "csv",
-      createdAt: new Date(),
-    },
-    createdAt: new Date(),
-  },
-  {
-    id: "4",
-    name: "Data Source 4",
-    config: {
-      type: "csv",
-      createdAt: new Date(),
-    },
+    id: "parks",
+    name: "Public Parks & Gardens",
+    recordCount: 523,
+    config: { type: "csv" },
     createdAt: new Date(),
   },
 ];
