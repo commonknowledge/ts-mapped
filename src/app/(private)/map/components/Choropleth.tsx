@@ -2,7 +2,7 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { AreaStats } from "@/__generated__/types";
 import { useFillColor } from "@/app/(private)/map/colors";
 import { ChoroplethLayerConfig } from "@/app/(private)/map/sources";
-import { MapConfig } from "./Controls";
+import { MapConfig } from "./Settings";
 
 export default function Choropleth({
   areaStats,

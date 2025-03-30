@@ -1,12 +1,12 @@
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as mapboxgl from "mapbox-gl";
-import { ReactNode, RefObject, useEffect } from "react";
+import { ReactNode, RefObject } from "react";
 import MapGL, { MapRef } from "react-map-gl/mapbox";
 import { BoundingBox } from "@/__generated__/types";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
 import { MarkerData, SearchResult } from "@/types";
-import { MapConfig } from "./Controls";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import { MapConfig } from "./Settings";
 
 const DEFAULT_ZOOM = 5;
 
@@ -16,7 +16,7 @@ export default function Map({
   onClickMarker,
   onMoveEnd,
   onSourceLoad,
-  ref,
+  mapRef,
   setSearchHistory,
 }: {
   children: ReactNode;
@@ -24,27 +24,10 @@ export default function Map({
   onClickMarker: (markerData: MarkerData | null) => void;
   onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void;
   onSourceLoad: (sourceId: string) => void;
-  ref: RefObject<MapRef | null>;
+  mapRef: RefObject<MapRef | null>;
   searchHistory: SearchResult[];
   setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
 }) {
-  useEffect(() => {
-    const map = ref.current;
-    if (!map) {
-      return;
-    }
-
-    const imageURL = "/map-pin.png";
-    map.loadImage(imageURL, (error, image) => {
-      if (error) {
-        console.error(`Could not load image ${imageURL}: ${error}`);
-      }
-      if (image && !map.hasImage("map-pin")) {
-        map.addImage("map-pin", image);
-      }
-    });
-  }, [ref]);
-
   return (
     <MapGL
       initialViewState={{
@@ -52,7 +35,7 @@ export default function Map({
         latitude: 54.2361,
         zoom: DEFAULT_ZOOM,
       }}
-      ref={ref}
+      ref={mapRef}
       style={{ flexGrow: 1 }}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
       mapStyle={`mapbox://styles/mapbox/${mapConfig.mapStyle.slug}`}
@@ -72,7 +55,7 @@ export default function Map({
         }
       }}
       onLoad={() => {
-        const map = ref.current;
+        const map = mapRef.current;
         if (!map) {
           return;
         }
@@ -98,16 +81,6 @@ export default function Map({
         });
 
         map.addControl(geocoder, "top-right");
-
-        const imageURL = "/map-pin.png";
-        map.loadImage(imageURL, (error, image) => {
-          if (error) {
-            console.error(`Could not load image ${imageURL}: ${error}`);
-          }
-          if (image && !map.hasImage("map-pin")) {
-            map.addImage("map-pin", image);
-          }
-        });
       }}
       onMoveEnd={async (e) => {
         const bounds = e.target.getBounds();

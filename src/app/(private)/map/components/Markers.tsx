@@ -35,7 +35,7 @@ export default function Markers({
           source="markers"
           filter={["has", "point_count"]}
           paint={{
-            "circle-color": mapNodeColors.member.color,
+            "circle-color": mapNodeColors.marker.color,
             "circle-radius": [
               "interpolate",
               ["linear"],

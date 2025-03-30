@@ -37,9 +37,9 @@ export interface mapNodeColor {
   color: string;
 }
 
-export const mapNodeColors: Record<string, mapNodeColor> = {
-  member: {
-    name: "Member",
+export const mapNodeColors: Record<"marker" | "searched", mapNodeColor> = {
+  marker: {
+    name: "Marker",
     color: "#678DE3",
   },
   searched: {

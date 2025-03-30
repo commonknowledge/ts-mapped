@@ -13,7 +13,6 @@ import {
 import styles from "./DataSourceDashboard.module.css";
 
 export default function DataSourceDashboard({
-  // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)

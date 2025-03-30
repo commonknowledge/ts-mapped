@@ -1,20 +1,22 @@
 import { MarkersQuery } from "@/__generated__/types";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 
-interface MemberListProps {
-  members: MarkersQuery["markers"] | undefined;
+interface MarkerListProps {
+  markers: MarkersQuery["markers"] | undefined;
+  markersLabel: string;
   onSelect: (coordinates: [number, number]) => void;
 }
 
-export default function MemberList({
-  members = [],
+export default function MarkerList({
+  markers = [],
+  markersLabel,
   onSelect,
-}: MemberListProps) {
-  if (!members) return null;
+}: MarkerListProps) {
+  if (!markers) return null;
   return (
     <ScrollArea className="h-[200px] w-full rounded-md border p-2">
       <div className="space-y-2">
-        {members.features?.map(
+        {markers.features?.map(
           (feature: {
             properties: Record<string, string>;
             geometry: { coordinates: [number, number] };
@@ -30,9 +32,9 @@ export default function MemberList({
             </li>
           ),
         )}
-        {(!members.features || members.features.length === 0) && (
+        {(!markers.features || markers.features.length === 0) && (
           <div className="text-sm text-muted-foreground p-2">
-            No members found - check your settings
+            No markers found in {markersLabel} data source
           </div>
         )}
       </div>
