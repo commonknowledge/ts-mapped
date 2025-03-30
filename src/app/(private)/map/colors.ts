@@ -112,7 +112,7 @@ export const useFillColor = (
     return [
       "interpolate",
       ["linear"],
-      ["to-number", ["feature-state", "value"], 0],
+      ["feature-state", "value"],
       ...interpolateColorStops,
     ];
   }, [colorScheme]);

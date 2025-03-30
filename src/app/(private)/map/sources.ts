@@ -1,9 +1,4 @@
-// TODO: share this with the backend?
-enum AreaSetCode {
-  WMC24 = "WMC24",
-  OA21 = "OA21",
-  MSOA21 = "MSOA21",
-}
+import { AreaSetCode } from "@/types";
 
 export const AREA_SET_GROUP_LABELS = {
   WMC24: "Westminster Constituencies 2024",

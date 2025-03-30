@@ -40,20 +40,20 @@ export const runWorker = async (queue: string = defaultQueue) => {
   await boss.work(queue, async ([job]) => {
     logger.info(`Received job ${job.id} with data ${JSON.stringify(job.data)}`);
     if (typeof job.data !== "object" || job.data === null) {
-      logger.error(`Malformed job ${job.id}`);
-      return;
+      throw Error(`Malformed job ${job.id}`);
     }
     const args = "args" in job.data ? job.data.args : null;
     if (typeof args !== "object") {
-      logger.error(`Bad job ${job.id}: args is not an object`);
-      return;
+      throw Error(`Bad job ${job.id}: args is not an object`);
     }
     const task = "task" in job.data ? job.data.task : null;
     if (typeof task !== "string" || !(task in taskHandlers)) {
-      logger.error(`Bad job ${job.id}: no ${task} handler`);
-      return;
+      throw Error(`Bad job ${job.id}: no ${task} handler`);
     }
-    await taskHandlers[task](args);
+    const success = await taskHandlers[task](args);
+    if (!success) {
+      throw Error(`Failed job ${job.id}`);
+    }
   });
 
   logger.info(`Started worker on queue "${queue}"`);

@@ -1,6 +1,7 @@
 import { SelectQueryBuilder, sql } from "kysely";
 import { Database } from "@/server/models";
 import { db } from "@/server/services/database";
+import { AreaSetCode } from "@/types";
 
 export interface AreaWithPoints {
   id: number;
@@ -19,7 +20,7 @@ export interface AreaWithAreaSetCode {
 
 export async function findAreaByCode(
   code: string,
-  areaSetCode: string,
+  areaSetCode: AreaSetCode,
 ): Promise<AreaWithPoints | undefined> {
   const query = db
     .selectFrom("area")
@@ -32,7 +33,7 @@ export async function findAreaByCode(
 
 export async function findAreaByName(
   name: string,
-  areaSetCode: string,
+  areaSetCode: AreaSetCode,
 ): Promise<AreaWithPoints | undefined> {
   const query = db
     .selectFrom("area")
@@ -60,7 +61,7 @@ const applyAreaWithPointsSelect = (
 
 export async function findAreasByPoint(
   point: string,
-  excludeAreaSetCode: string | null = null,
+  excludeAreaSetCode: AreaSetCode | null = null,
 ): Promise<AreaWithAreaSetCode[]> {
   let query = db
     .selectFrom("area")

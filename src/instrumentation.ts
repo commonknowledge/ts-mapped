@@ -5,6 +5,10 @@ export async function register() {
       logger.error("Failed to start: missing JWT_SECRET environment variable");
       process.exit(1);
     }
+
+    const { runWorker } = await import("./server/services/queue");
+    await runWorker();
+
     logger.info("Started");
   }
 }

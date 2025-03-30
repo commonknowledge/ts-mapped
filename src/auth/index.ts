@@ -1,7 +1,7 @@
 import { verify } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/util";
+import { getErrorMessage } from "@/server/utils";
 import { ServerSession } from "@/types";
 
 export const getServerSession = async (): Promise<ServerSession> => {

@@ -1,21 +1,15 @@
-import { DataSourceGeocodingConfig } from "@/server/models/DataSource";
 import {
   findAreaByCode,
   findAreaByName,
   findAreasByPoint,
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
-import { GeocodeResult } from "@/types";
+import { GeocodeResult, Point } from "@/types";
+import { DataSourceGeocodingConfig } from "@/zod";
 
 interface MappingDataRecord {
   externalId: string;
   json: Record<string, unknown>;
-}
-
-// Property names taken from Mapbox standard
-interface Point {
-  lng: number;
-  lat: number;
 }
 
 export const mapRecord = async (
@@ -34,26 +28,32 @@ const geocodeRecord = async (
   geocodingConfig: DataSourceGeocodingConfig,
 ): Promise<GeocodeResult | null> => {
   const dataRecordJson = dataRecord.json;
-  const areaJsonColumn = geocodingConfig.column;
-  if (!(areaJsonColumn in dataRecordJson)) {
+  // TODO: Implement the other types
+  if (geocodingConfig.type !== "code") {
     return null;
   }
-  let dataRecordArea = String(dataRecordJson[areaJsonColumn]);
+
+  const { column: areaColumn, areaSetCode } = geocodingConfig;
+  if (!(areaColumn in dataRecordJson)) {
+    return null;
+  }
+
+  let dataRecordArea = String(dataRecordJson[areaColumn]);
   let area = null;
   if (geocodingConfig.type === "code") {
     if (geocodingConfig.areaSetCode === "PC") {
       dataRecordArea = dataRecordArea.replace(/\s+/g, "").toUpperCase();
     }
-    area = await findAreaByCode(dataRecordArea, geocodingConfig.areaSetCode);
+    area = await findAreaByCode(dataRecordArea, areaSetCode);
   } else {
-    area = await findAreaByName(dataRecordArea, geocodingConfig.areaSetCode);
+    area = await findAreaByName(dataRecordArea, areaSetCode);
   }
   if (!area) {
     return null;
   }
   const geocodeResult: GeocodeResult = {
     areas: {
-      [geocodingConfig.areaSetCode]: area.code,
+      [areaSetCode]: area.code,
     },
     centralPoint: geojsonPointToPoint(area.centralPoint),
     samplePoint: geojsonPointToPoint(area.samplePoint),

@@ -1,105 +1,42 @@
-import { DataSourcesQuery } from "@/__generated__/types";
-import {
-  AREA_SET_GROUP_LABELS,
-  AreaSetGroupCode,
-} from "@/app/(private)/map/sources";
-import { MAX_COLUMN_KEY } from "@/constants";
-import styles from "./Controls.module.css";
-
-export class MapConfig {
-  public areaDataSourceId = "";
-  public areaDataColumn = "";
-  public areaSetGroupCode: AreaSetGroupCode = "WMC24";
-  public excludeColumnsString = "";
-  public markersDataSourceId = "";
-
-  constructor(params: Partial<MapConfig> = {}) {
-    Object.assign(this, params);
-  }
-
-  getExcludeColumns() {
-    return this.excludeColumnsString
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean);
-  }
-}
+import { ReactElement } from "react";
+import { Separator } from "@/shadcn/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { ControlsTabProps } from "./ControlsTab";
 
 export default function Controls({
-  dataSources,
-  mapConfig,
-  onChange,
+  children,
 }: {
-  dataSources: DataSourcesQuery["dataSources"];
-  mapConfig: MapConfig;
-  onChange: (mapConfig: Partial<MapConfig>) => void;
+  children: ReactElement<ControlsTabProps> | ReactElement<ControlsTabProps>[];
 }) {
-  const dataSource = dataSources.find(
-    (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId,
-  );
+  const childArray = Array.isArray(children) ? children : [children];
+  if (!childArray.length) {
+    return null;
+  }
 
+  const tabs = childArray.map((child) => ({ label: child.props.label, child }));
   return (
-    <div className={styles.controls}>
-      <select
-        value={mapConfig.markersDataSourceId}
-        onChange={(e) => onChange({ markersDataSourceId: e.target.value })}
-      >
-        <option value="">Select a markers data source</option>
-        {dataSources.map((ds: { id: string; name: string }) => (
-          <option key={ds.id} value={ds.id}>
-            {ds.name}
-          </option>
-        ))}
-      </select>
-      <select
-        value={mapConfig.areaDataSourceId}
-        onChange={(e) => onChange({ areaDataSourceId: e.target.value })}
-      >
-        <option value="">Select an area data source</option>
-        {dataSources.map((ds: { id: string; name: string }) => (
-          <option key={ds.id} value={ds.id}>
-            {ds.name}
-          </option>
-        ))}
-      </select>
-      {dataSource ? (
-        <select
-          value={mapConfig.areaDataColumn}
-          onChange={(e) => onChange({ areaDataColumn: e.target.value })}
-        >
-          <option value="">Select a data column</option>
-          <option value={MAX_COLUMN_KEY}>Highest-value column</option>
-          {dataSource.columnDefs.map((cd: { name: string }) => (
-            <option key={cd.name} value={cd.name}>
-              {cd.name}
-            </option>
+    <div className="flex flex-col bg-white rounded-lg shadow-lg gap-4 absolute top-0 left-0 m-3 p-4 z-10 w-[300px]">
+      <Tabs defaultValue={tabs[0].label} className="w-full">
+        <TabsList>
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.label} value={tab.label}>
+              {tab.label}
+            </TabsTrigger>
           ))}
-        </select>
-      ) : null}
-      {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (
-        <input
-          type="text"
-          onChange={(e) =>
-            onChange({
-              excludeColumnsString: e.target.value,
-            })
-          }
-          placeholder="Comma-separated columns to exclude"
-          value={mapConfig.excludeColumnsString}
-        />
-      ) : null}
-      <select
-        value={mapConfig.areaSetGroupCode}
-        onChange={(e) =>
-          onChange({ areaSetGroupCode: e.target.value as AreaSetGroupCode })
-        }
-      >
-        {Object.keys(AREA_SET_GROUP_LABELS).map((code) => (
-          <option key={code} value={code}>
-            {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
-          </option>
-        ))}
-      </select>
+        </TabsList>
+        <Separator />
+        {tabs.map((tab) => {
+          return (
+            <TabsContent
+              key={tab.label}
+              value={tab.label}
+              className="flex flex-col gap-4 py-2"
+            >
+              {tab.child}
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     </div>
   );
 }

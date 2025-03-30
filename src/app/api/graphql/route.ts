@@ -1,23 +1,29 @@
-import { ApolloServer } from "@apollo/server";
-import { startServerAndCreateNextHandler } from "@as-integrations/next";
-import { gql } from "graphql-tag";
 import GraphQLJSON from "graphql-type-json";
-import { NextRequest } from "next/server";
+import { createSchema, createYoga, filter, pipe } from "graphql-yoga";
 import { Operation } from "@/__generated__/types";
 import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
+import {
+  countDataRecordsForDataSource,
+  findDataRecordsByDataSource,
+} from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
+  getImportInfo,
   listDataSources,
 } from "@/server/repositories/DataSource";
-import logger from "@/server/services/logger";
+import pubSub from "@/server/services/pubsub";
 import { getAreaStats } from "@/server/stats";
 import { BoundingBox } from "@/types";
-import { createDataSource, triggerImportDataSourceJob } from "./mutations";
+import { GraphQLContext } from "./context";
+import {
+  createDataSource,
+  enqueueImportDataSourceJob,
+  updateGeocodingConfig,
+} from "./mutations";
 import { serializeDataSource } from "./serializers";
 
-const typeDefs = gql`
+const typeDefs = `
   scalar JSON
 
   type AreaStat {
@@ -55,9 +61,26 @@ const typeDefs = gql`
   type DataSource {
     id: String!
     name: String!
+    createdAt: String!
     columnDefs: [ColumnDef!]!
     config: JSON!
-    createdAt: String!
+    geocodingConfig: JSON!
+
+    importInfo: ImportInfo
+    recordCount: Int
+  }
+
+  type ImportInfo {
+    lastImported: String
+    status: ImportStatus
+  }
+
+  enum ImportStatus {
+    None
+    Failed
+    Importing
+    Imported
+    Pending
   }
 
   enum Operation {
@@ -96,16 +119,44 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createDataSource(
-      name: String!
-      rawConfig: JSON!
+    createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
+    enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse!
+    updateGeocodingConfig(
+      id: String!
       rawGeocodingConfig: JSON!
-    ): CreateDataSourceResponse!
-    triggerImportDataSourceJob(dataSourceId: String!): MutationResponse!
+    ): MutationResponse!
+  }
+
+  type DataSourceEvent {
+    dataSourceId: String!
+    importComplete: ImportCompleteEvent
+    importFailed: ImportFailedEvent
+    recordsImported: RecordsImportedEvent
+  }
+
+  type ImportCompleteEvent {
+    at: String!
+  }
+
+  type ImportFailedEvent {
+    at: String!
+  }
+
+  type RecordsImportedEvent {
+    at: String!
+    count: Int!
+  }
+
+  type Subscription {
+    dataSourceEvent(dataSourceId: String!): DataSourceEvent!
   }
 `;
 
 const resolvers: Resolvers = {
+  DataSource: {
+    importInfo: ({ id }) => getImportInfo(id),
+    recordCount: ({ id }) => countDataRecordsForDataSource(id),
+  },
   JSON: GraphQLJSON,
   Query: {
     areaStats: (
@@ -180,30 +231,42 @@ const resolvers: Resolvers = {
 
   Mutation: {
     createDataSource,
-    triggerImportDataSourceJob,
+    enqueueImportDataSourceJob,
+    updateGeocodingConfig,
+  },
+
+  Subscription: {
+    dataSourceEvent: {
+      subscribe: (_: unknown, { dataSourceId }: { dataSourceId: string }) =>
+        pipe(
+          pubSub.subscribe("dataSourceEvent"),
+          filter(
+            (event) => event.dataSourceEvent.dataSourceId === dataSourceId,
+          ),
+        ),
+    },
   },
 };
 
-const server = new ApolloServer({
-  resolvers,
-  typeDefs,
-  formatError: (formattedError, error) => {
-    logger.error(`GraphQL error: ${error}`);
-    return formattedError;
-  },
-});
-
-const handler = startServerAndCreateNextHandler(server, {
+const { handleRequest } = createYoga<GraphQLContext>({
   context: async () => {
-    const { currentUser } = await getServerSession();
-    return { currentUser };
+    return getServerSession();
   },
+
+  schema: createSchema({
+    typeDefs,
+    resolvers,
+  }),
+
+  // While using Next.js file convention for routing, we need to configure Yoga to use the correct endpoint
+  graphqlEndpoint: "/api/graphql",
+
+  // Yoga needs to know how to create a valid Next response
+  fetchAPI: { Response },
 });
 
-export async function GET(request: NextRequest) {
-  return handler(request);
-}
-
-export async function POST(request: NextRequest) {
-  return handler(request);
-}
+export {
+  handleRequest as GET,
+  handleRequest as POST,
+  handleRequest as OPTIONS,
+};

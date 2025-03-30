@@ -2,15 +2,18 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { AreaStats } from "@/__generated__/types";
 import { useFillColor } from "@/app/(private)/map/colors";
 import { ChoroplethLayerConfig } from "@/app/(private)/map/sources";
+import { MapConfig } from "./Settings";
 
 export default function Choropleth({
   areaStats,
   choroplethLayerConfig: {
     mapbox: { featureCodeProperty, featureNameProperty, layerId, sourceId },
   },
+  mapConfig,
 }: {
   areaStats: AreaStats | undefined;
   choroplethLayerConfig: ChoroplethLayerConfig;
+  mapConfig: MapConfig;
 }) {
   const fillColor = useFillColor(areaStats);
   return (
@@ -40,29 +43,46 @@ export default function Choropleth({
         source-layer={layerId}
         type="line"
         paint={{
-          "line-color": "#000",
-          "line-width": 2,
+          "line-color": "#999",
+          "line-width": 1,
         }}
       />
 
       {/* Symbol Layer (Labels) */}
-      <Layer
-        id={`${sourceId}-labels`}
-        source={sourceId}
-        source-layer={layerId}
-        type="symbol"
-        layout={{
-          "symbol-placement": "point",
-          "text-field": ["get", featureNameProperty],
-          "text-size": 14,
-          "text-anchor": "center",
-        }}
-        paint={{
-          "text-color": "#ffffff",
-          "text-halo-color": "#000000",
-          "text-halo-width": 1.5,
-        }}
-      />
+      {mapConfig.showLabels && (
+        <Layer
+          id={`${sourceId}-labels`}
+          source={sourceId}
+          source-layer={layerId}
+          type="symbol"
+          layout={{
+            "symbol-placement": "point",
+            "text-field": ["get", featureNameProperty],
+            "text-size": 14,
+            "text-anchor": "center",
+            "text-allow-overlap": false,
+            "symbol-spacing": 100,
+            "text-max-width": 8,
+            "text-padding": 30,
+            "text-transform": "uppercase",
+            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+          }}
+          paint={{
+            "text-color": mapConfig.mapStyle.textColor,
+            "text-opacity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              8,
+              0.8,
+              10,
+              0.8,
+            ],
+            "text-halo-color": mapConfig.mapStyle.textHaloColor,
+            "text-halo-width": 1.5,
+          }}
+        />
+      )}
     </Source>
   );
 }
