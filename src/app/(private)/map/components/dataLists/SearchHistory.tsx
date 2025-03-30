@@ -10,13 +10,21 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-
+import { Label } from "@/shadcn/ui/label";
+import { Separator } from "@/shadcn/ui/separator";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/shadcn/ui/accordion";
 interface SearchHistoryProps {
   history: SearchResult[];
   onSelect: (coordinates: [number, number]) => void;
   onEdit: (index: number, newText: string) => void;
   onDelete: (index: number) => void;
   showLocations: boolean;
+  activeDataSources: string[];
 }
 
 export default function SearchHistory({
@@ -25,6 +33,7 @@ export default function SearchHistory({
   onEdit,
   onDelete,
   showLocations,
+  activeDataSources,
 }: SearchHistoryProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -69,6 +78,39 @@ export default function SearchHistory({
                 </>
               )}
             </li>
+          ))}
+          {activeDataSources.map((dataSource) => (
+            <Accordion
+              type="single"
+              collapsible
+              className="pl-2"
+              key={dataSource}
+            >
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="font-normal pb-0">
+                  Datasource {dataSource}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="">
+                    <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                      <span className="flex-grow cursor-pointer text-sm">
+                        Oliver Goldsmith Primary School
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                      <span className="flex-grow cursor-pointer text-sm">
+                        St. Mary's Catholic Primary School
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                      <span className="flex-grow cursor-pointer text-sm">
+                        John Dunne Primary School
+                      </span>
+                    </li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           ))}
         </ul>
       </ContextMenuTrigger>

@@ -9,18 +9,20 @@ import {
 import { Badge } from "@/shadcn/ui/badge";
 import { DataSourceType } from "@/types";
 import Link from "next/link";
-import { DotIcon, PencilIcon } from "lucide-react";
+import { DotIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/shadcn/ui/button";
 export function UserDataSourceCard({
   id,
   name,
   config,
   createdAt,
+  editIcon,
 }: {
   id: string;
   name: string;
   config: { type: DataSourceType; createdAt: Date };
   createdAt: Date;
+  editIcon?: boolean;
 }) {
   return (
     <Link href={`/data-sources/${id}`}>
@@ -39,9 +41,11 @@ export function UserDataSourceCard({
                 day: "numeric",
               })}
             </span>
-            <div className="opacity-0 group-hover:opacity-100 transition-all duration-300s flex items-center gap-2 text-base ml-auto">
-              <PencilIcon className="w-4 h-4 text-muted-foreground" />
-            </div>
+            {editIcon && (
+              <div className="opacity-0 group-hover:opacity-100 transition-all duration-300s flex items-center gap-2 text-base ml-auto">
+                <PencilIcon className="w-4 h-4 text-muted-foreground" />
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-5 h-full">

@@ -28,10 +28,8 @@ import { SearchResult, DrawnPolygon } from "@/types";
 import { MapRef } from "react-map-gl/mapbox";
 import { MarkerData } from "@/types";
 import MembersControl from "./control/MembersControl";
-import LocationsControl from "./control/LocationsControl";
+import MarkersControl from "./control/MarkersControl";
 import TurfControl from "./control/TurfControl";
-
-import SettingsModal from "./SettingsModal";
 
 export class MapConfig {
   public areaDataSourceId = "";
@@ -120,7 +118,7 @@ export default function Controls({
             dataSources={dataSources}
           />
           <Separator />
-          <LocationsControl
+          <MarkersControl
             searchHistory={searchHistory}
             mapRef={mapRef}
             onEdit={onEditSearch}
