@@ -1,5 +1,5 @@
 import { SearchResult } from "@/types";
-import { Check, Pencil, Trash2 } from "lucide-react";
+import { Check, Database, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/shadcn/ui/input";
 import { Button } from "@/shadcn/ui/button";
@@ -79,39 +79,48 @@ export default function MarkerList({
               )}
             </li>
           ))}
-          {activeDataSources.map((dataSource) => (
-            <Accordion
-              type="single"
-              collapsible
-              className="pl-2"
-              key={dataSource}
-            >
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="font-normal pb-0">
-                  {dataSource}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ul className="">
-                    <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
-                      <span className="flex-grow cursor-pointer text-sm">
-                        Oliver Goldsmith Primary School
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
-                      <span className="flex-grow cursor-pointer text-sm">
-                        St. Mary's Catholic Primary School
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
-                      <span className="flex-grow cursor-pointer text-sm">
-                        John Dunne Primary School
-                      </span>
-                    </li>
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          ))}
+          {activeDataSources.length > 0 && (
+            <div className=" gap-2 p-2 mt-3 bg-muted rounded">
+              <div className="flex items-center gap-2">
+                <Database className="h-3 w-3 text-muted-foreground shrink-0" />
+                <p className="text-xs text-muted-foreground whitespace-nowrap">
+                  Data sources
+                </p>
+              </div>
+
+              {activeDataSources.map((dataSource) => (
+                <Accordion type="single" collapsible key={dataSource}>
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger
+                      className="font-normal pb-0 gap-1"
+                      chevronPosition="start"
+                    >
+                      {dataSource}
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-0">
+                      <ul className="">
+                        <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                          <span className="flex-grow cursor-pointer text-sm">
+                            Oliver Goldsmith Primary School
+                          </span>
+                        </li>
+                        <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                          <span className="flex-grow cursor-pointer text-sm">
+                            St. Mary's Catholic Primary School
+                          </span>
+                        </li>
+                        <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                          <span className="flex-grow cursor-pointer text-sm">
+                            John Dunne Primary School
+                          </span>
+                        </li>
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))}
+            </div>
+          )}
         </ul>
       </ContextMenuTrigger>
       <ContextMenuContent>
