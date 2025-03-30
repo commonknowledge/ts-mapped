@@ -72,7 +72,7 @@ export default function Settings({
             onChangeConfig({ markersDataSourceId: value })
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full" id="markersDataSourceId">
             <SelectValue placeholder="Select a markers data source" />
           </SelectTrigger>
           <SelectContent>
@@ -95,7 +95,7 @@ export default function Settings({
           value={mapConfig.areaDataSourceId}
           onValueChange={(value) => onChangeConfig({ areaDataSourceId: value })}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full" id="areaDataSourceId">
             <SelectValue placeholder="Select an area data source" />
           </SelectTrigger>
           <SelectContent>
@@ -108,7 +108,7 @@ export default function Settings({
           </SelectContent>
         </Select>
       </div>
-      {areaDataSource ? (
+      {areaDataSource && (
         <div className="flex flex-col gap-3">
           <div className="flex gap-2 items-center">
             <CornerDownRight className="ml-2 w-4 h-4 text-muted-foreground" />
@@ -135,8 +135,8 @@ export default function Settings({
           </div>
           {children}
         </div>
-      ) : null}
-      {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (
+      )}
+      {mapConfig.areaDataColumn === MAX_COLUMN_KEY && (
         <input
           type="text"
           onChange={(e) =>
@@ -147,7 +147,7 @@ export default function Settings({
           placeholder="Comma-separated columns to exclude"
           value={mapConfig.excludeColumnsString}
         />
-      ) : null}
+      )}
       <Separator />
       <div className="flex flex-col gap-2">
         <Label htmlFor="areaSetGroupCode">
@@ -160,7 +160,7 @@ export default function Settings({
             onChangeConfig({ areaSetGroupCode: value as AreaSetGroupCode })
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full" id="areaSetGroupCode">
             <SelectValue placeholder="Select a boundary set" />
           </SelectTrigger>
           <SelectContent>
@@ -187,7 +187,7 @@ export default function Settings({
               })
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full" id="mapStyle">
               <SelectValue placeholder="Select a map style" />
             </SelectTrigger>
             <SelectContent>

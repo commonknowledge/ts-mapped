@@ -5,7 +5,6 @@ import { Database } from "@/server/models";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/utils";
 import { AreaSetCode, BoundingBox } from "@/types";
 
 export const getAreaStats = async (
@@ -48,8 +47,7 @@ export const getAreaStats = async (
     const stats = filterResult(result);
     return { column, columnType: ColumnType.Number, stats };
   } catch (e) {
-    const error = getErrorMessage(e);
-    logger.error(`Failed to get area stats: ${error}`);
+    logger.error(`Failed to get area stats: ${e}`);
   }
   return { column, columnType: ColumnType.Unknown, stats: [] };
 };
@@ -137,8 +135,7 @@ export const getMaxColumnByArea = async (
     const result = await q.execute(db);
     return filterResult(result.rows);
   } catch (e) {
-    const error = getErrorMessage(e);
-    logger.error(`Failed to get area max column by area: ${error}`);
+    logger.error(`Failed to get area max column by area: ${e}`);
   }
   return [];
 };

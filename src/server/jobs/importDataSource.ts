@@ -1,7 +1,7 @@
-import { ColumnType } from "@/__generated__/types";
+import { ColumnDef, ColumnType } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { mapRecord } from "@/server/mapping";
-import { ColumnDefs, DataSource } from "@/server/models/DataSource";
+import { DataSource } from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
@@ -9,7 +9,6 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import pubSub from "@/server/services/pubsub";
-import { getErrorMessage } from "@/server/utils";
 
 const BATCH_SIZE = 100;
 
@@ -34,7 +33,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
 
   try {
     let count = 0;
-    const columnDefsAccumulator: ColumnDefs = [];
+    const columnDefsAccumulator: ColumnDef[] = [];
     const total = await adaptor.getRecordCount();
     const records = adaptor.fetchAll();
     const batches = batch(records, BATCH_SIZE);
@@ -77,8 +76,6 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);
     return true;
   } catch (e) {
-    const error = getErrorMessage(e);
-
     pubSub.publish("dataSourceEvent", {
       dataSourceEvent: {
         dataSourceId: dataSource.id,
@@ -89,7 +86,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     });
 
     logger.error(
-      `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${error}`,
+      `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${e}`,
     );
   }
 
@@ -120,7 +117,7 @@ const batch = async function* (
 const importBatch = (
   batch: { externalId: string; json: Record<string, unknown> }[],
   dataSource: DataSource,
-  columnDefsAccumulator: ColumnDefs,
+  columnDefsAccumulator: ColumnDef[],
 ) =>
   Promise.all(
     batch.map(async (record) => {
@@ -139,8 +136,8 @@ const importBatch = (
 
 export const typeJson = (
   json: Record<string, unknown>,
-): { columnDefs: ColumnDefs; typedJson: Record<string, unknown> } => {
-  const columnDefs: ColumnDefs = [];
+): { columnDefs: ColumnDef[]; typedJson: Record<string, unknown> } => {
+  const columnDefs: ColumnDef[] = [];
   const typedJson: Record<string, unknown> = {};
   for (const key of Object.keys(json)) {
     const value = json[key];
@@ -201,8 +198,8 @@ const getType = (value: unknown): ColumnType => {
 };
 
 const addColumnDefs = (
-  columnDefsAccumulator: ColumnDefs,
-  recordColumnDefs: ColumnDefs,
+  columnDefsAccumulator: ColumnDef[],
+  recordColumnDefs: ColumnDef[],
 ): void => {
   const recordColumnNames = recordColumnDefs.map((c) => c.name);
 

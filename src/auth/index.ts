@@ -1,7 +1,6 @@
 import { verify } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/utils";
 import { ServerSession } from "@/types";
 
 export const getServerSession = async (): Promise<ServerSession> => {
@@ -17,8 +16,7 @@ export const getServerSession = async (): Promise<ServerSession> => {
       return { jwt: authCookie.value, currentUser: { id: jwt.id } };
     }
   } catch (e) {
-    const error = getErrorMessage(e);
-    logger.warn(`Failed to decode JWT: ${error}`);
+    logger.warn(`Failed to decode JWT: ${e}`);
   }
   return defaultSession;
 };

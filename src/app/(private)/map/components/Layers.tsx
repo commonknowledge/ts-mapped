@@ -1,6 +1,6 @@
 import { RefObject } from "react";
 import { MapRef } from "react-map-gl/mapbox";
-import { DataSourcesQuery, MarkersQuery } from "@/__generated__/types";
+import { MarkersQuery } from "@/__generated__/types";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 import { SearchResult } from "@/types";
@@ -9,13 +9,11 @@ import MarkerList from "./MarkerList";
 import SearchHistory from "./SearchHistory";
 
 export default function Layers({
-  markers,
   markersDataSource,
   mapRef,
   searchHistory,
 }: {
-  markers: MarkersQuery["markers"] | undefined;
-  markersDataSource: DataSourcesQuery["dataSources"][0] | undefined;
+  markersDataSource: MarkersQuery["dataSource"] | undefined;
   mapRef: RefObject<MapRef | null>;
   searchHistory: SearchResult[];
 }) {
@@ -52,8 +50,7 @@ export default function Layers({
           <Label>{markersDataSource?.name || "Markers"}</Label>
         </div>
         <MarkerList
-          markers={markers}
-          markersLabel={markersDataSource?.name || "markers"}
+          dataSource={markersDataSource}
           onSelect={(coordinates: [number, number]) => {
             const map = mapRef.current;
             if (map) {

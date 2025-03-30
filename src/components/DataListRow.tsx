@@ -28,7 +28,9 @@ export default function DataListRow({
           {value}
         </Badge>
       ) : (
-        <p>{value}</p>
+        <p className="max-w-[180px] overflow-hidden overflow-ellipsis">
+          {value}
+        </p>
       )}
       <div>{children}</div>
     </div>

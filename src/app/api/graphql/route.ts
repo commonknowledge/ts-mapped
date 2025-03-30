@@ -3,6 +3,7 @@ import { createSchema, createYoga, filter, pipe } from "graphql-yoga";
 import { Operation } from "@/__generated__/types";
 import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
+import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import {
   countDataRecordsForDataSource,
   findDataRecordsByDataSource,
@@ -19,35 +20,12 @@ import { GraphQLContext } from "./context";
 import {
   createDataSource,
   enqueueImportDataSourceJob,
-  updateGeocodingConfig,
+  updateDataSourceConfig,
 } from "./mutations";
 import { serializeDataSource } from "./serializers";
 
 const typeDefs = `
   scalar JSON
-
-  type AreaStat {
-    areaCode: String!
-    value: JSON!
-  }
-
-  type AreaStats {
-    column: String!
-    columnType: ColumnType!
-    stats: [AreaStat!]!
-  }
-
-  input BoundingBox {
-    north: Float!
-    east: Float!
-    south: Float!
-    west: Float!
-  }
-
-  type ColumnDef {
-    name: String!
-    type: ColumnType!
-  }
 
   enum ColumnType {
     empty
@@ -56,23 +34,6 @@ const typeDefs = `
     number
     string
     unknown
-  }
-
-  type DataSource {
-    id: String!
-    name: String!
-    createdAt: String!
-    columnDefs: [ColumnDef!]!
-    config: JSON!
-    geocodingConfig: JSON!
-
-    importInfo: ImportInfo
-    recordCount: Int
-  }
-
-  type ImportInfo {
-    lastImported: String
-    status: ImportStatus
   }
 
   enum ImportStatus {
@@ -88,6 +49,63 @@ const typeDefs = `
     SUM
   }
 
+  input BoundingBoxInput {
+    north: Float!
+    east: Float!
+    south: Float!
+    west: Float!
+  }
+
+  input ColumnsConfigInput {
+    nameColumn: String!
+  }
+
+  type AreaStat {
+    areaCode: String!
+    value: JSON!
+  }
+
+  type AreaStats {
+    column: String!
+    columnType: ColumnType!
+    stats: [AreaStat!]!
+  }
+
+  type ColumnDef {
+    name: String!
+    type: ColumnType!
+  }
+
+  type DataSource {
+    id: String!
+    name: String!
+    createdAt: String!
+    columnDefs: [ColumnDef!]!
+    config: JSON!
+    columnsConfig: ColumnsConfig!
+    geocodingConfig: JSON!
+
+    importInfo: ImportInfo
+
+    """
+    markers is untyped for performance - objects are
+    denormalized in the Apollo client cache, which is slow
+    (and unnecessary) for 100,000+ markers.
+    """
+    markers: JSON
+
+    recordCount: Int
+  }
+
+  type ColumnsConfig {
+    nameColumn: String!
+  }
+
+  type ImportInfo {
+    lastImported: String
+    status: ImportStatus
+  }
+
   type Query {
     areaStats(
       areaSetCode: String!
@@ -95,18 +113,11 @@ const typeDefs = `
       column: String!
       operation: Operation!
       excludeColumns: [String!]!
-      boundingBox: BoundingBox
+      boundingBox: BoundingBoxInput
     ): AreaStats!
 
     dataSource(id: String!): DataSource
     dataSources: [DataSource!]!
-
-    """
-    markers is untyped for performance - objects are
-    denormalized in the Apollo client cache, which is slow
-    (and unnecessary) for 100,000+ markers.
-    """
-    markers(dataSourceId: String!): JSON!
   }
 
   type CreateDataSourceResponse {
@@ -121,8 +132,9 @@ const typeDefs = `
   type Mutation {
     createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse!
-    updateGeocodingConfig(
+    updateDataSourceConfig(
       id: String!
+      columnsConfig: ColumnsConfigInput!
       rawGeocodingConfig: JSON!
     ): MutationResponse!
   }
@@ -155,6 +167,36 @@ const typeDefs = `
 const resolvers: Resolvers = {
   DataSource: {
     importInfo: ({ id }) => getImportInfo(id),
+    markers: async (dataSource) => {
+      const dataRecords = await findDataRecordsByDataSource(dataSource.id);
+      const features = dataRecords
+        .filter((dr) => dr.mappedJson.geocodeResult?.centralPoint)
+        .map((dr) => {
+          const centralPoint = dr.mappedJson.geocodeResult?.centralPoint;
+          const coordinates = centralPoint
+            ? [centralPoint.lng, centralPoint.lat]
+            : []; // Will never happen because of above filter
+          const nameColumn =
+            dataSource?.columnsConfig.nameColumn ||
+            dataSource?.columnDefs[0].name;
+          return {
+            type: "Feature",
+            properties: {
+              ...dr.json,
+              [MARKER_ID_KEY]: dr.externalId,
+              [MARKER_NAME_KEY]: dr.json[nameColumn],
+            },
+            geometry: {
+              type: "Point",
+              coordinates,
+            },
+          };
+        });
+      return {
+        type: "FeatureCollection",
+        features,
+      };
+    },
     recordCount: ({ id }) => countDataRecordsForDataSource(id),
   },
   JSON: GraphQLJSON,
@@ -203,36 +245,12 @@ const resolvers: Resolvers = {
       }
       return (await listDataSources()).map(serializeDataSource);
     },
-
-    markers: async (_: unknown, { dataSourceId }: { dataSourceId: string }) => {
-      const dataRecords = await findDataRecordsByDataSource(dataSourceId);
-      const features = dataRecords
-        .filter((dr) => dr.mappedJson.geocodeResult?.centralPoint)
-        .map((dr) => {
-          const centralPoint = dr.mappedJson.geocodeResult?.centralPoint;
-          const coordinates = centralPoint
-            ? [centralPoint.lng, centralPoint.lat]
-            : []; // Will never happen because of above filter
-          return {
-            type: "Feature",
-            properties: dr.json,
-            geometry: {
-              type: "Point",
-              coordinates,
-            },
-          };
-        });
-      return {
-        type: "FeatureCollection",
-        features,
-      };
-    },
   },
 
   Mutation: {
     createDataSource,
     enqueueImportDataSourceJob,
-    updateGeocodingConfig,
+    updateDataSourceConfig,
   },
 
   Subscription: {

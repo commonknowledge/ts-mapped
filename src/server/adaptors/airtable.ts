@@ -1,5 +1,4 @@
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/utils";
 import { DataSourceAdaptor, ExternalRecord } from "./abstract";
 
 export class AirtableAdaptor implements DataSourceAdaptor {
@@ -44,9 +43,8 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         json: record.fields,
       };
     } catch (e) {
-      const error = getErrorMessage(e);
       logger.warn(
-        `Could not get first record for Airtable ${this.baseId}: ${error}`,
+        `Could not get first record for Airtable ${this.baseId}: ${e}`,
       );
     }
     return null;

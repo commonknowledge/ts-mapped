@@ -26,7 +26,10 @@ export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) =>
   useQuery<MarkersQuery, MarkersQueryVariables>(
     gql`
       query Markers($dataSourceId: String!) {
-        markers(dataSourceId: $dataSourceId)
+        dataSource(id: $dataSourceId) {
+          name
+          markers
+        }
       }
     `,
     {
@@ -58,7 +61,7 @@ export const useAreaStatsQuery = ({
         $column: String!
         $operation: Operation!
         $excludeColumns: [String!]!
-        $boundingBox: BoundingBox
+        $boundingBox: BoundingBoxInput
       ) {
         areaStats(
           areaSetCode: $areaSetCode

@@ -4,7 +4,6 @@ import readline from "readline";
 import { fileURLToPath } from "url";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
-import { getErrorMessage } from "@/server/utils";
 import { DataSourceAdaptor, ExternalRecord } from "./abstract";
 
 const getProjectFolder = () => {
@@ -71,10 +70,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
         throw new Error(`ID column "${this.idColumn}" missing`);
       }
     } catch (e) {
-      const error = getErrorMessage(e);
-      logger.warn(
-        `Could not get first record for CSV ${this.filepath}: ${error}`,
-      );
+      logger.warn(`Could not get first record for CSV ${this.filepath}: ${e}`);
     }
     return null;
   }

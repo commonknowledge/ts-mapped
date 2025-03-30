@@ -14,6 +14,11 @@ import {
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
 import {
+  AreaSetCodeLabels,
+  DataSourceConfigLabels,
+  GeocodingTypeLabels,
+} from "@/labels";
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
@@ -22,6 +27,7 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
+import { AreaSetCode, GeocodingType } from "@/types";
 export default function DataSourceDashboard({
   // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
@@ -91,6 +97,7 @@ export default function DataSourceDashboard({
   const onClickImportRecords = async () => {
     setImporting(true);
     setImportError("");
+    setRecordCount(0);
 
     try {
       const result = await enqueueImportDataSourceJob({
@@ -105,6 +112,9 @@ export default function DataSourceDashboard({
       setImporting(false);
     }
   };
+
+  const isPostcodeData =
+    dataSource.geocodingConfig.areaSetCode === AreaSetCode.PC;
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -126,12 +136,12 @@ export default function DataSourceDashboard({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-muted-foreground text-sm mb-4">Record count:</p>
-            <p className="text-4xl ">
+            <p className="text-4xl">
               {importing ? (
-                <div className="flex items-center gap-2">
+                <span className="flex items-center gap-2">
                   <LoaderPinwheel className="animate-spin" />
                   {recordCount}
-                </div>
+                </span>
               ) : (
                 recordCount
               )}
@@ -146,16 +156,16 @@ export default function DataSourceDashboard({
             >
               {importing ? "Importing" : "Import"} records
             </Button>
-            {importError ? (
+            {importError && (
               <div>
                 <small>{importError}</small>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </div>
       <Separator className="my-4" />
-      {lastImported ? (
+      {lastImported && (
         <>
           <DataListRow
             label="Last imported"
@@ -163,41 +173,71 @@ export default function DataSourceDashboard({
           />
           <Separator className="my-4" />
         </>
-      ) : null}
+      )}
 
       <div className="grid grid-cols-2 gap-10 mb-10">
         <div className="flex flex-col ">
-          <Label className="text-lg">Config</Label>
-          <DataListRow
-            label="Type"
-            value={dataSource.config.type}
-            badge
-            border
-          />
-          <DataListRow label="File Name" value={dataSource.name} border />
-          <DataListRow
-            label="ID column"
-            value={dataSource.config.idColumn}
-            border
-          />
+          <Label className="text-xl">Import config</Label>
+          {Object.keys(dataSource.config).map((k) => (
+            <DataListRow
+              key={k}
+              label={
+                k in DataSourceConfigLabels
+                  ? DataSourceConfigLabels[
+                      k as keyof typeof DataSourceConfigLabels
+                    ]
+                  : k
+              }
+              value={dataSource.config[k]}
+              badge={k === "type"}
+              border
+            />
+          ))}
         </div>
         <div>
-          <Label className="text-lg">Geocoding config</Label>
+          <div className="mb-4 flex justify-between">
+            <Label className="text-xl">Data config</Label>
+
+            <Button asChild={true}>
+              <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
+            </Button>
+          </div>
+          <div className="mb-4">
+            <Label className="text-lg">Columns</Label>
+            <DataListRow
+              label="Name column"
+              value={`"${dataSource.columnsConfig.nameColumn}"`}
+              border
+            />
+          </div>
+          <Label className="text-lg">Geocoding</Label>
           <DataListRow
-            label="Type"
-            value={dataSource.geocodingConfig.type}
+            label="Geocoding type"
+            value={
+              isPostcodeData
+                ? GeocodingTypeLabels.postcode
+                : GeocodingTypeLabels[
+                    dataSource.geocodingConfig.type as GeocodingType
+                  ]
+            }
             border
           />
           <DataListRow
-            label="Column"
-            value={dataSource.geocodingConfig.column}
+            label="Location column"
+            value={`"${dataSource.geocodingConfig.column}"`}
             border
           />
-          <DataListRow
-            label="Area Set Code"
-            value={dataSource.geocodingConfig.areaSetCode}
-            border
-          />
+          {!isPostcodeData && (
+            <DataListRow
+              label="Area type"
+              value={
+                AreaSetCodeLabels[
+                  dataSource.geocodingConfig.areaSetCode as AreaSetCode
+                ]
+              }
+              border
+            />
+          )}
         </div>
       </div>
     </div>

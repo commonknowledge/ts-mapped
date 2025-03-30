@@ -50,7 +50,7 @@ export type AreaStats = {
   stats: Array<AreaStat>;
 };
 
-export type BoundingBox = {
+export type BoundingBoxInput = {
   east: Scalars["Float"]["input"];
   north: Scalars["Float"]["input"];
   south: Scalars["Float"]["input"];
@@ -72,6 +72,15 @@ export enum ColumnType {
   Unknown = "unknown",
 }
 
+export type ColumnsConfig = {
+  __typename?: "ColumnsConfig";
+  nameColumn: Scalars["String"]["output"];
+};
+
+export type ColumnsConfigInput = {
+  nameColumn: Scalars["String"]["input"];
+};
+
 export type CreateDataSourceResponse = {
   __typename?: "CreateDataSourceResponse";
   code: Scalars["Int"]["output"];
@@ -81,11 +90,18 @@ export type CreateDataSourceResponse = {
 export type DataSource = {
   __typename?: "DataSource";
   columnDefs: Array<ColumnDef>;
+  columnsConfig: ColumnsConfig;
   config: Scalars["JSON"]["output"];
   createdAt: Scalars["String"]["output"];
   geocodingConfig: Scalars["JSON"]["output"];
   id: Scalars["String"]["output"];
   importInfo?: Maybe<ImportInfo>;
+  /**
+   * markers is untyped for performance - objects are
+   * denormalized in the Apollo client cache, which is slow
+   * (and unnecessary) for 100,000+ markers.
+   */
+  markers?: Maybe<Scalars["JSON"]["output"]>;
   name: Scalars["String"]["output"];
   recordCount?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -126,7 +142,7 @@ export type Mutation = {
   __typename?: "Mutation";
   createDataSource: CreateDataSourceResponse;
   enqueueImportDataSourceJob: MutationResponse;
-  updateGeocodingConfig: MutationResponse;
+  updateDataSourceConfig: MutationResponse;
 };
 
 export type MutationCreateDataSourceArgs = {
@@ -138,7 +154,8 @@ export type MutationEnqueueImportDataSourceJobArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
-export type MutationUpdateGeocodingConfigArgs = {
+export type MutationUpdateDataSourceConfigArgs = {
+  columnsConfig: ColumnsConfigInput;
   id: Scalars["String"]["input"];
   rawGeocodingConfig: Scalars["JSON"]["input"];
 };
@@ -158,17 +175,11 @@ export type Query = {
   areaStats: AreaStats;
   dataSource?: Maybe<DataSource>;
   dataSources: Array<DataSource>;
-  /**
-   * markers is untyped for performance - objects are
-   * denormalized in the Apollo client cache, which is slow
-   * (and unnecessary) for 100,000+ markers.
-   */
-  markers: Scalars["JSON"]["output"];
 };
 
 export type QueryAreaStatsArgs = {
   areaSetCode: Scalars["String"]["input"];
-  boundingBox?: InputMaybe<BoundingBox>;
+  boundingBox?: InputMaybe<BoundingBoxInput>;
   column: Scalars["String"]["input"];
   dataSourceId: Scalars["String"]["input"];
   excludeColumns: Array<Scalars["String"]["input"]>;
@@ -177,10 +188,6 @@ export type QueryAreaStatsArgs = {
 
 export type QueryDataSourceArgs = {
   id: Scalars["String"]["input"];
-};
-
-export type QueryMarkersArgs = {
-  dataSourceId: Scalars["String"]["input"];
 };
 
 export type RecordsImportedEvent = {
@@ -224,21 +231,22 @@ export type DataSourceEventSubscription = {
   };
 };
 
-export type UpdateGeocodingConfigMutationVariables = Exact<{
+export type UpdateDataSourceConfigMutationVariables = Exact<{
   id: Scalars["String"]["input"];
+  columnsConfig: ColumnsConfigInput;
   rawGeocodingConfig: Scalars["JSON"]["input"];
 }>;
 
-export type UpdateGeocodingConfigMutation = {
+export type UpdateDataSourceConfigMutation = {
   __typename?: "Mutation";
-  updateGeocodingConfig: { __typename?: "MutationResponse"; code: number };
+  updateDataSourceConfig: { __typename?: "MutationResponse"; code: number };
 };
 
-export type DataSourceGeocodingConfigQueryVariables = Exact<{
+export type DataSourceConfigQueryVariables = Exact<{
   id: Scalars["String"]["input"];
 }>;
 
-export type DataSourceGeocodingConfigQuery = {
+export type DataSourceConfigQuery = {
   __typename?: "Query";
   dataSource?: {
     __typename?: "DataSource";
@@ -250,6 +258,7 @@ export type DataSourceGeocodingConfigQuery = {
       name: string;
       type: ColumnType;
     }>;
+    columnsConfig: { __typename?: "ColumnsConfig"; nameColumn: string };
   } | null;
 };
 
@@ -271,6 +280,7 @@ export type DataSourceQuery = {
       name: string;
       type: ColumnType;
     }>;
+    columnsConfig: { __typename?: "ColumnsConfig"; nameColumn: string };
     importInfo?: {
       __typename?: "ImportInfo";
       lastImported?: string | null;
@@ -326,7 +336,14 @@ export type MarkersQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
 }>;
 
-export type MarkersQuery = { __typename?: "Query"; markers: any };
+export type MarkersQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    name: string;
+    markers?: any | null;
+  } | null;
+};
 
 export type AreaStatsQueryVariables = Exact<{
   areaSetCode: Scalars["String"]["input"];
@@ -336,7 +353,7 @@ export type AreaStatsQueryVariables = Exact<{
   excludeColumns:
     | Array<Scalars["String"]["input"]>
     | Scalars["String"]["input"];
-  boundingBox?: InputMaybe<BoundingBox>;
+  boundingBox?: InputMaybe<BoundingBoxInput>;
 }>;
 
 export type AreaStatsQuery = {
@@ -459,9 +476,11 @@ export type ResolversTypes = {
   AreaStat: ResolverTypeWrapper<AreaStat>;
   AreaStats: ResolverTypeWrapper<AreaStats>;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]["output"]>;
-  BoundingBox: BoundingBox;
+  BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
   ColumnType: ColumnType;
+  ColumnsConfig: ResolverTypeWrapper<ColumnsConfig>;
+  ColumnsConfigInput: ColumnsConfigInput;
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
   DataSource: ResolverTypeWrapper<DataSource>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
@@ -486,8 +505,10 @@ export type ResolversParentTypes = {
   AreaStat: AreaStat;
   AreaStats: AreaStats;
   Boolean: Scalars["Boolean"]["output"];
-  BoundingBox: BoundingBox;
+  BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ColumnDef;
+  ColumnsConfig: ColumnsConfig;
+  ColumnsConfigInput: ColumnsConfigInput;
   CreateDataSourceResponse: CreateDataSourceResponse;
   DataSource: DataSource;
   DataSourceEvent: DataSourceEvent;
@@ -536,6 +557,15 @@ export type ColumnDefResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type ColumnsConfigResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["ColumnsConfig"] = ResolversParentTypes["ColumnsConfig"],
+> = {
+  nameColumn?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type CreateDataSourceResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -560,6 +590,11 @@ export type DataSourceResolvers<
     ParentType,
     ContextType
   >;
+  columnsConfig?: Resolver<
+    ResolversTypes["ColumnsConfig"],
+    ParentType,
+    ContextType
+  >;
   config?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   geocodingConfig?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
@@ -569,6 +604,7 @@ export type DataSourceResolvers<
     ParentType,
     ContextType
   >;
+  markers?: Resolver<Maybe<ResolversTypes["JSON"]>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -656,13 +692,13 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationEnqueueImportDataSourceJobArgs, "dataSourceId">
   >;
-  updateGeocodingConfig?: Resolver<
+  updateDataSourceConfig?: Resolver<
     ResolversTypes["MutationResponse"],
     ParentType,
     ContextType,
     RequireFields<
-      MutationUpdateGeocodingConfigArgs,
-      "id" | "rawGeocodingConfig"
+      MutationUpdateDataSourceConfigArgs,
+      "columnsConfig" | "id" | "rawGeocodingConfig"
     >
   >;
 };
@@ -701,12 +737,6 @@ export type QueryResolvers<
     ParentType,
     ContextType
   >;
-  markers?: Resolver<
-    ResolversTypes["JSON"],
-    ParentType,
-    ContextType,
-    RequireFields<QueryMarkersArgs, "dataSourceId">
-  >;
 };
 
 export type RecordsImportedEventResolvers<
@@ -737,6 +767,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   AreaStat?: AreaStatResolvers<ContextType>;
   AreaStats?: AreaStatsResolvers<ContextType>;
   ColumnDef?: ColumnDefResolvers<ContextType>;
+  ColumnsConfig?: ColumnsConfigResolvers<ContextType>;
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;

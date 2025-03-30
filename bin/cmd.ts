@@ -31,6 +31,7 @@ program
     const dataSource = await createDataSource({
       name: options.name,
       config: JSON.stringify(parsedConfig),
+      columnsConfig: "{}",
       geocodingConfig: JSON.stringify(parsedGeocodingConfig),
       columnDefs: "[]",
     });
