@@ -6,22 +6,20 @@ export default function HomePage() {
   return (
     <div className="overflow-hidden">
       <div className="flex flex-col items-center justify-center relative bg-[#678DE312] py-16 p-4">
-        <Image src="/hero.svg" alt="Mapped" height={456} width={1024} />
+        <Image src="/hero.svg" alt="Mapped" height={456} width={1024} priority={true} />
         <p className="text-5xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8">
           Making the right connections for organisers & activists
         </p>
         <div className="flex gap-4 items-center justify-center">
-          <Button size="lg">
+          <Button size="lg" asChild={true}>
             <Link
-              className="h-full w-full flex items-center justify-center"
               href="map"
             >
               Map
             </Link>
           </Button>
-          <Button size="lg">
+          <Button size="lg" asChild={true}>
             <Link
-              className="h-full w-full flex items-center justify-center"
               href="data-sources"
             >
               Data Sources
@@ -31,15 +29,15 @@ export default function HomePage() {
         <Image
           src="/pattern.svg"
           alt="Mapped"
-          className="absolute -top-4 -right-4  z-[-1]"
-          height={532}
+          className="absolute -top-4 -right-4 z-[-1]"
+          height={533}
           width={512}
         />
         <Image
           src="/pattern.svg"
           alt="Mapped"
-          className="absolute -bottom-4 -left-4  z-[-1] rotate-180"
-          height={532}
+          className="absolute -bottom-4 -left-4 z-[-1] rotate-180"
+          height={533}
           width={512}
         />
       </div>
