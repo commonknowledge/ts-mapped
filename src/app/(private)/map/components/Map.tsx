@@ -111,6 +111,7 @@ export default function Map({
           const newDraw = new MapboxDraw({
             displayControlsDefault: false,
             controls: {
+              point: true,
               polygon: true,
             },
             userProperties: true,

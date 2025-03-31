@@ -159,6 +159,10 @@ export default function MapPage() {
     setEditingPolygon(polygon);
   };
 
+  const handleAddMarker = (marker: SearchResult) => {
+    setSearchHistory((prev) => [marker, ...prev]);
+  };
+
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
   return (
     <div className={styles.map}>
@@ -177,6 +181,7 @@ export default function MapPage() {
         }
         areaStatsData={areaStatsData?.areaStats}
         searchHistory={searchHistory}
+        setSearchHistory={setSearchHistory}
         onEditSearch={handleEditSearch}
         onDeleteSearch={handleDeleteSearch}
         mapRef={mapRef}
@@ -188,6 +193,7 @@ export default function MapPage() {
         loading={loading}
         editingPolygon={editingPolygon}
         setEditingPolygon={setEditingPolygon}
+        onAddMarker={handleAddMarker}
       />
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}

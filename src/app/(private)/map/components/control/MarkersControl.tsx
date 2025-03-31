@@ -34,6 +34,8 @@ interface LocationsControlProps {
   isLoading?: boolean;
   showLocations: boolean;
   setShowLocations: (showLocations: boolean) => void;
+  onAdd: (marker: SearchResult) => void;
+  setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
 }
 
 export default function MarkersControl({
@@ -44,6 +46,8 @@ export default function MarkersControl({
   isLoading = false,
   showLocations,
   setShowLocations,
+  onAdd,
+  setSearchHistory,
 }: LocationsControlProps) {
   const [activeDataSources, setActiveDataSources] = useState<Array<string>>([]);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
@@ -91,13 +95,44 @@ export default function MarkersControl({
                 }, 200);
               },
             },
-            // {
-            //   label: "Import from Mapped Data Library",
-            //   icon: <LibraryIcon className="w-4 h-4" />,
-            //   onClick: () => {
-            //     null;
-            //   },
-            // },
+            {
+              label: "Drop a pin on the map",
+              icon: <MapPinIcon className="w-4 h-4" />,
+              onClick: () => {
+                const map = mapRef.current;
+                if (map) {
+                  map.getCanvas().style.cursor = "crosshair";
+
+                  const clickHandler = (e: mapboxgl.MapMouseEvent) => {
+                    const coordinates: [number, number] = [
+                      e.lngLat.lng,
+                      e.lngLat.lat,
+                    ];
+
+                    const newMarker: SearchResult = {
+                      text: `Dropped Pin (${coordinates[0].toFixed(4)}, ${coordinates[1].toFixed(4)})`,
+                      coordinates: coordinates,
+                      timestamp: new Date(),
+                    };
+
+                    // Add to beginning of search history
+                    setSearchHistory((prev) => [newMarker, ...prev]);
+
+                    // Reset cursor
+                    map.getCanvas().style.cursor = "";
+                    map.off("click", clickHandler);
+
+                    // Fly to the new marker
+                    map.flyTo({
+                      center: coordinates,
+                      zoom: 14,
+                    });
+                  };
+
+                  map.once("click", clickHandler);
+                }
+              },
+            },
             {
               label: "Import from your datasources",
               icon: <DatabaseIcon className="w-4 h-4" />,
@@ -173,17 +208,14 @@ function DataSourcesModal({
                 id={`ds-${dataSource.id}`}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setActiveDataSources([
-                      ...activeDataSources,
-                      dataSource.name,
-                    ]);
+                    setActiveDataSources([...activeDataSources, dataSource.id]);
                   } else {
                     setActiveDataSources(
-                      activeDataSources.filter((id) => id !== dataSource.name)
+                      activeDataSources.filter((id) => id !== dataSource.id)
                     );
                   }
                 }}
-                checked={activeDataSources.includes(dataSource.name)}
+                checked={activeDataSources.includes(dataSource.id)}
               />
               <div className="flex flex-col flex-1">
                 <span className="font-medium">{dataSource.name}</span>

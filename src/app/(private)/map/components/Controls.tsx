@@ -73,6 +73,7 @@ export default function Controls({
   loading,
   editingPolygon,
   setEditingPolygon,
+  setSearchHistory,
 }: {
   dataSources: DataSourcesQuery["dataSources"];
   mapConfig: MapConfig;
@@ -90,6 +91,7 @@ export default function Controls({
   loading?: boolean;
   editingPolygon: DrawnPolygon | null;
   setEditingPolygon: (polygon: DrawnPolygon | null) => void;
+  setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
 }) {
   const dataSource = dataSources.find(
     (ds: { id: string }) => ds.id === mapConfig.areaDataSourceId
@@ -126,6 +128,10 @@ export default function Controls({
             isLoading={loading}
             showLocations={mapConfig.showLocations}
             setShowLocations={(value) => onChange({ showLocations: value })}
+            setSearchHistory={setSearchHistory}
+            onAdd={(marker) => {
+              onEditSearch(0, marker.text);
+            }}
           />
           <Separator />
           <TurfControl

@@ -6,7 +6,8 @@ import {
 } from "@/shadcn/ui/select";
 import { Label } from "@/shadcn/ui/label";
 import { Select } from "@/shadcn/ui/select";
-import { Settings } from "lucide-react";
+import { PlusIcon, Settings } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 import { MapConfig } from "./Controls";
 import { DataSourcesQuery } from "@/__generated__/types";
@@ -46,6 +47,7 @@ export default function SettingsModal({
         <Separator />
         <div className="flex flex-col gap-2">
           <Label htmlFor="markersDataSourceId">Markers Data Source</Label>
+
           <Select
             value={mapConfig.markersDataSourceId}
             onValueChange={(value) => onChange({ markersDataSourceId: value })}
@@ -61,6 +63,12 @@ export default function SettingsModal({
               ))}
             </SelectContent>
           </Select>
+          <Button asChild>
+            <Link href="/data-sources/new">
+              <PlusIcon className="w-4 h-4" />
+              Add new data source
+            </Link>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

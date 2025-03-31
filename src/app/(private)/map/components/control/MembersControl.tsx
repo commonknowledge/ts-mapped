@@ -51,12 +51,6 @@ export default function MembersControl({
           }
           dataSources={dataSources}
         />
-
-        <IconButtonWithTooltip tooltip="Add Data">
-          <Link href="/data-sources/new">
-            <PlusIcon className="w-4 h-4" />
-          </Link>
-        </IconButtonWithTooltip>
       </LayerHeader>
       {isLoading ? (
         <SkeletonGroup />
