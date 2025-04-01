@@ -46,8 +46,8 @@ export const getAreaStats = async (
     const result = await query.execute();
     const stats = filterResult(result);
     return { column, columnType: ColumnType.Number, stats };
-  } catch (e) {
-    logger.error(`Failed to get area stats: ${e}`);
+  } catch (error) {
+    logger.error(`Failed to get area stats`, { error });
   }
   return { column, columnType: ColumnType.Unknown, stats: [] };
 };
@@ -134,8 +134,8 @@ export const getMaxColumnByArea = async (
   try {
     const result = await q.execute(db);
     return filterResult(result.rows);
-  } catch (e) {
-    logger.error(`Failed to get area max column by area: ${e}`);
+  } catch (error) {
+    logger.error(`Failed to get area max column by area`, { error });
   }
   return [];
 };

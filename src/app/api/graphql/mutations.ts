@@ -62,8 +62,8 @@ export const createDataSource = async (
 
     logger.info(`Created ${config.type} data source: ${dataSource.id}`);
     return { code: 200, result: serializeDataSource(dataSource) };
-  } catch (e) {
-    logger.error(`Could not create data source: ${e}`);
+  } catch (error) {
+    logger.error(`Could not create data source`, { error });
   }
   return { code: 500 };
 };
@@ -103,8 +103,8 @@ export const updateDataSourceConfig = async (
       `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
     );
     return { code: 200 };
-  } catch (e) {
-    logger.error(`Could not update data source: ${e}`);
+  } catch (error) {
+    logger.error(`Could not update data source`, { error });
   }
   return { code: 500 };
 };

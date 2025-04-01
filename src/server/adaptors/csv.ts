@@ -70,8 +70,10 @@ export class CSVAdaptor implements DataSourceAdaptor {
         }
         throw new Error(`ID column "${this.idColumn}" missing`);
       }
-    } catch (e) {
-      logger.warn(`Could not get first record for CSV ${this.filepath}: ${e}`);
+    } catch (error) {
+      logger.warn(`Could not get first record for CSV ${this.filepath}`, {
+        error,
+      });
     }
     return null;
   }

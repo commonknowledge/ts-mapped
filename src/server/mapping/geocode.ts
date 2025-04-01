@@ -18,8 +18,10 @@ export const geocodeRecord = async (
 ): Promise<GeocodeResult | null> => {
   try {
     return await _geocodeRecord(dataRecord, geocodingConfig);
-  } catch (e) {
-    logger.warn(`Could not geocode record ${dataRecord.externalId}`, { error: e });
+  } catch (error) {
+    logger.warn(`Could not geocode record ${dataRecord.externalId}`, {
+      error,
+    });
   }
   return null;
 };

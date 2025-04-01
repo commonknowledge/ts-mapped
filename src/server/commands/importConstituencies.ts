@@ -55,6 +55,7 @@ const importConstituencies = async () => {
       )
       ON CONFLICT (code, area_set_id) DO UPDATE SET geography = EXCLUDED.geography;
     `.execute(db);
+
     const percentComplete = Math.floor((i * 100) / count);
     logger.info(`Inserted area ${code}. ${percentComplete}% complete`);
   }

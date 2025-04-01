@@ -75,9 +75,10 @@ const getEnrichedColumn = async (
         enrichmentColumnConfig,
       );
     }
-  } catch (e) {
+  } catch (error) {
     logger.warn(
-      `${enrichmentColumnConfig.sourceType} enrichment error for record ${record.externalId}: ${e}`,
+      `${enrichmentColumnConfig.sourceType} enrichment error for record ${record.externalId}`,
+      { error },
     );
   }
   return null;

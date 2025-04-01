@@ -22,11 +22,19 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       `https://api.airtable.com/v0/meta/bases/${this.baseId}/tables/${this.tableId}/fields`,
     );
 
-    const body: Record<string, string | object> = {
+    const body: {
+      name: string;
+      type: string;
+      description: string;
+      options?: {
+        precision: number;
+      };
+    } = {
       name,
       type: "singleLineText",
-      description: "Mapped-managed field"
+      description: "Mapped-managed field",
     };
+
     switch (type) {
       case ColumnType.Number:
         body.type = "number";
@@ -132,10 +140,10 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         externalId: record.id,
         json: record.fields,
       };
-    } catch (e) {
-      logger.warn(
-        `Could not get first record for Airtable ${this.baseId}: ${e}`,
-      );
+    } catch (error) {
+      logger.warn(`Could not get first record for Airtable ${this.baseId}`, {
+        error,
+      });
     }
     return null;
   }
