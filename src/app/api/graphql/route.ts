@@ -1,5 +1,6 @@
 import GraphQLJSON from "graphql-type-json";
 import { createSchema, createYoga, filter, pipe } from "graphql-yoga";
+import { NextRequest } from "next/server";
 import { Operation } from "@/__generated__/types";
 import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
@@ -82,7 +83,7 @@ const typeDefs = `
     createdAt: String!
     columnDefs: [ColumnDef!]!
     config: JSON!
-    columnsConfig: ColumnsConfig!
+    columnsConfig: DataSourceColumnsConfig!
     geocodingConfig: JSON!
 
     importInfo: ImportInfo
@@ -97,8 +98,8 @@ const typeDefs = `
     recordCount: Int
   }
 
-  type ColumnsConfig {
-    nameColumn: String!
+  type DataSourceColumnsConfig {
+    nameColumn: String
   }
 
   type ImportInfo {
@@ -141,20 +142,26 @@ const typeDefs = `
 
   type DataSourceEvent {
     dataSourceId: String!
-    importComplete: ImportCompleteEvent
-    importFailed: ImportFailedEvent
-    recordsImported: RecordsImportedEvent
+
+    enrichmentComplete: JobCompleteEvent
+    enrichmentFailed: JobFailedEvent
+
+    importComplete: JobCompleteEvent
+    importFailed: JobFailedEvent
+
+    recordsEnriched: RecordsProcessedEvent
+    recordsImported: RecordsProcessedEvent
   }
 
-  type ImportCompleteEvent {
+  type JobCompleteEvent {
     at: String!
   }
 
-  type ImportFailedEvent {
+  type JobFailedEvent {
     at: String!
   }
 
-  type RecordsImportedEvent {
+  type RecordsProcessedEvent {
     at: String!
     count: Int!
   }
@@ -165,26 +172,28 @@ const typeDefs = `
 `;
 
 const resolvers: Resolvers = {
+  JSON: GraphQLJSON,
   DataSource: {
     importInfo: ({ id }) => getImportInfo(id),
     markers: async (dataSource) => {
       const dataRecords = await findDataRecordsByDataSource(dataSource.id);
       const features = dataRecords
-        .filter((dr) => dr.mappedJson.geocodeResult?.centralPoint)
+        .filter((dr) => dr.geocodeResult?.centralPoint)
         .map((dr) => {
-          const centralPoint = dr.mappedJson.geocodeResult?.centralPoint;
+          const centralPoint = dr.geocodeResult?.centralPoint;
           const coordinates = centralPoint
             ? [centralPoint.lng, centralPoint.lat]
             : []; // Will never happen because of above filter
-          const nameColumn =
-            dataSource?.columnsConfig.nameColumn ||
-            dataSource?.columnDefs[0].name;
+          const nameColumn = dataSource?.columnsConfig.nameColumn;
           return {
             type: "Feature",
             properties: {
               ...dr.json,
               [MARKER_ID_KEY]: dr.externalId,
-              [MARKER_NAME_KEY]: dr.json[nameColumn],
+              // If no name column is specified, show the ID as the marker name instead
+              [MARKER_NAME_KEY]: nameColumn
+                ? dr.json[nameColumn]
+                : dr.externalId,
             },
             geometry: {
               type: "Point",
@@ -199,7 +208,6 @@ const resolvers: Resolvers = {
     },
     recordCount: ({ id }) => countDataRecordsForDataSource(id),
   },
-  JSON: GraphQLJSON,
   Query: {
     areaStats: (
       _: unknown,
@@ -283,8 +291,13 @@ const { handleRequest } = createYoga<GraphQLContext>({
   fetchAPI: { Response },
 });
 
+// Return NextJS expected route handler type.
+// The dummy context argument to handleRequest is replaced with the context function in createYoga.
+const handleNextRequest = (request: NextRequest) =>
+  handleRequest(request, { currentUser: null });
+
 export {
-  handleRequest as GET,
-  handleRequest as POST,
-  handleRequest as OPTIONS,
+  handleNextRequest as GET,
+  handleNextRequest as POST,
+  handleNextRequest as OPTIONS,
 };

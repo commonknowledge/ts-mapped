@@ -55,6 +55,7 @@ export const createDataSource = async (
       name,
       config: JSON.stringify(config),
       columnsConfig: JSON.stringify({}),
+      enrichmentConfig: JSON.stringify({}),
       geocodingConfig: JSON.stringify(geocodingConfig),
       columnDefs: JSON.stringify(columnDefs),
     });

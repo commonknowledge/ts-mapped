@@ -12,30 +12,31 @@ interface MappingDataRecord {
   json: Record<string, unknown>;
 }
 
-export const mapRecord = async (
-  dataRecord: MappingDataRecord,
-  geocodingConfig: DataSourceGeocodingConfig,
-): Promise<Record<string, object | null>> => {
-  const geocodeResult = await geocodeRecord(dataRecord, geocodingConfig);
-  if (!geocodeResult) {
-    logger.warn(`Could not geocode record ${dataRecord.externalId}`);
-  }
-  return { geocodeResult };
-};
-
-const geocodeRecord = async (
+export const geocodeRecord = async (
   dataRecord: MappingDataRecord,
   geocodingConfig: DataSourceGeocodingConfig,
 ): Promise<GeocodeResult | null> => {
+  try {
+    return await _geocodeRecord(dataRecord, geocodingConfig);
+  } catch (e) {
+    logger.warn(`Could not geocode record ${dataRecord.externalId}`, { error: e });
+  }
+  return null;
+};
+
+const _geocodeRecord = async (
+  dataRecord: MappingDataRecord,
+  geocodingConfig: DataSourceGeocodingConfig,
+): Promise<GeocodeResult> => {
   const dataRecordJson = dataRecord.json;
   // TODO: Implement the other types
   if (geocodingConfig.type !== "code") {
-    return null;
+    throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
   }
 
   const { column: areaColumn, areaSetCode } = geocodingConfig;
   if (!(areaColumn in dataRecordJson)) {
-    return null;
+    throw new Error(`Missing area column "${areaColumn}" in row`);
   }
 
   let dataRecordArea = String(dataRecordJson[areaColumn]);
@@ -49,7 +50,9 @@ const geocodeRecord = async (
     area = await findAreaByName(dataRecordArea, areaSetCode);
   }
   if (!area) {
-    return null;
+    throw new Error(
+      `Area not found in area set ${areaSetCode}: ${dataRecordArea}`,
+    );
   }
   const geocodeResult: GeocodeResult = {
     areas: {

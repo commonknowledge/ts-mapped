@@ -24,6 +24,11 @@ export enum DataSourceType {
   mailchimp = "mailchimp",
 }
 
+export interface ExternalRecord {
+  externalId: string;
+  json: Record<string, unknown>;
+}
+
 export interface GeocodeResult {
   areas: Record<string, string>;
   centralPoint: Point | null;

@@ -4,7 +4,8 @@ import readline from "readline";
 import { fileURLToPath } from "url";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
-import { DataSourceAdaptor, ExternalRecord } from "./abstract";
+import { ExternalRecord } from "@/types";
+import { DataSourceAdaptor } from "./abstract";
 
 const getProjectFolder = () => {
   let currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -73,5 +74,9 @@ export class CSVAdaptor implements DataSourceAdaptor {
       logger.warn(`Could not get first record for CSV ${this.filepath}: ${e}`);
     }
     return null;
+  }
+
+  updateRecords(): Promise<void> {
+    throw new Error("CSVs are not updatable.");
   }
 }

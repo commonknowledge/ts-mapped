@@ -21,8 +21,8 @@ export default function DataSourceConfigForm({
   dataSource: Exclude<DataSourceConfigQuery["dataSource"], null | undefined>;
 }) {
   // Columns config
-  const [nameColumn, setNameColumn] = useState(
-    dataSource.columnsConfig.nameColumn,
+  const [nameColumn, setNameColumn] = useState<string>(
+    dataSource.columnsConfig.nameColumn || "",
   );
 
   // Geocoding config

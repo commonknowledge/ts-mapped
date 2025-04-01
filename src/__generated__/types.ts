@@ -72,11 +72,6 @@ export enum ColumnType {
   Unknown = "unknown",
 }
 
-export type ColumnsConfig = {
-  __typename?: "ColumnsConfig";
-  nameColumn: Scalars["String"]["output"];
-};
-
 export type ColumnsConfigInput = {
   nameColumn: Scalars["String"]["input"];
 };
@@ -90,7 +85,7 @@ export type CreateDataSourceResponse = {
 export type DataSource = {
   __typename?: "DataSource";
   columnDefs: Array<ColumnDef>;
-  columnsConfig: ColumnsConfig;
+  columnsConfig: DataSourceColumnsConfig;
   config: Scalars["JSON"]["output"];
   createdAt: Scalars["String"]["output"];
   geocodingConfig: Scalars["JSON"]["output"];
@@ -106,22 +101,20 @@ export type DataSource = {
   recordCount?: Maybe<Scalars["Int"]["output"]>;
 };
 
+export type DataSourceColumnsConfig = {
+  __typename?: "DataSourceColumnsConfig";
+  nameColumn?: Maybe<Scalars["String"]["output"]>;
+};
+
 export type DataSourceEvent = {
   __typename?: "DataSourceEvent";
   dataSourceId: Scalars["String"]["output"];
-  importComplete?: Maybe<ImportCompleteEvent>;
-  importFailed?: Maybe<ImportFailedEvent>;
-  recordsImported?: Maybe<RecordsImportedEvent>;
-};
-
-export type ImportCompleteEvent = {
-  __typename?: "ImportCompleteEvent";
-  at: Scalars["String"]["output"];
-};
-
-export type ImportFailedEvent = {
-  __typename?: "ImportFailedEvent";
-  at: Scalars["String"]["output"];
+  enrichmentComplete?: Maybe<JobCompleteEvent>;
+  enrichmentFailed?: Maybe<JobFailedEvent>;
+  importComplete?: Maybe<JobCompleteEvent>;
+  importFailed?: Maybe<JobFailedEvent>;
+  recordsEnriched?: Maybe<RecordsProcessedEvent>;
+  recordsImported?: Maybe<RecordsProcessedEvent>;
 };
 
 export type ImportInfo = {
@@ -137,6 +130,16 @@ export enum ImportStatus {
   None = "None",
   Pending = "Pending",
 }
+
+export type JobCompleteEvent = {
+  __typename?: "JobCompleteEvent";
+  at: Scalars["String"]["output"];
+};
+
+export type JobFailedEvent = {
+  __typename?: "JobFailedEvent";
+  at: Scalars["String"]["output"];
+};
 
 export type Mutation = {
   __typename?: "Mutation";
@@ -190,8 +193,8 @@ export type QueryDataSourceArgs = {
   id: Scalars["String"]["input"];
 };
 
-export type RecordsImportedEvent = {
-  __typename?: "RecordsImportedEvent";
+export type RecordsProcessedEvent = {
+  __typename?: "RecordsProcessedEvent";
   at: Scalars["String"]["output"];
   count: Scalars["Int"]["output"];
 };
@@ -222,10 +225,10 @@ export type DataSourceEventSubscription = {
   __typename?: "Subscription";
   dataSourceEvent: {
     __typename?: "DataSourceEvent";
-    importComplete?: { __typename?: "ImportCompleteEvent"; at: string } | null;
-    importFailed?: { __typename?: "ImportFailedEvent"; at: string } | null;
+    importComplete?: { __typename?: "JobCompleteEvent"; at: string } | null;
+    importFailed?: { __typename?: "JobFailedEvent"; at: string } | null;
     recordsImported?: {
-      __typename?: "RecordsImportedEvent";
+      __typename?: "RecordsProcessedEvent";
       count: number;
     } | null;
   };
@@ -258,7 +261,10 @@ export type DataSourceConfigQuery = {
       name: string;
       type: ColumnType;
     }>;
-    columnsConfig: { __typename?: "ColumnsConfig"; nameColumn: string };
+    columnsConfig: {
+      __typename?: "DataSourceColumnsConfig";
+      nameColumn?: string | null;
+    };
   } | null;
 };
 
@@ -280,7 +286,10 @@ export type DataSourceQuery = {
       name: string;
       type: ColumnType;
     }>;
-    columnsConfig: { __typename?: "ColumnsConfig"; nameColumn: string };
+    columnsConfig: {
+      __typename?: "DataSourceColumnsConfig";
+      nameColumn?: string | null;
+    };
     importInfo?: {
       __typename?: "ImportInfo";
       lastImported?: string | null;
@@ -479,23 +488,23 @@ export type ResolversTypes = {
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
   ColumnType: ColumnType;
-  ColumnsConfig: ResolverTypeWrapper<ColumnsConfig>;
   ColumnsConfigInput: ColumnsConfigInput;
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
   DataSource: ResolverTypeWrapper<DataSource>;
+  DataSourceColumnsConfig: ResolverTypeWrapper<DataSourceColumnsConfig>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
-  ImportCompleteEvent: ResolverTypeWrapper<ImportCompleteEvent>;
-  ImportFailedEvent: ResolverTypeWrapper<ImportFailedEvent>;
   ImportInfo: ResolverTypeWrapper<ImportInfo>;
   ImportStatus: ImportStatus;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
+  JobCompleteEvent: ResolverTypeWrapper<JobCompleteEvent>;
+  JobFailedEvent: ResolverTypeWrapper<JobFailedEvent>;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
   Query: ResolverTypeWrapper<{}>;
-  RecordsImportedEvent: ResolverTypeWrapper<RecordsImportedEvent>;
+  RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
 };
@@ -507,21 +516,21 @@ export type ResolversParentTypes = {
   Boolean: Scalars["Boolean"]["output"];
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ColumnDef;
-  ColumnsConfig: ColumnsConfig;
   ColumnsConfigInput: ColumnsConfigInput;
   CreateDataSourceResponse: CreateDataSourceResponse;
   DataSource: DataSource;
+  DataSourceColumnsConfig: DataSourceColumnsConfig;
   DataSourceEvent: DataSourceEvent;
   Float: Scalars["Float"]["output"];
-  ImportCompleteEvent: ImportCompleteEvent;
-  ImportFailedEvent: ImportFailedEvent;
   ImportInfo: ImportInfo;
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
+  JobCompleteEvent: JobCompleteEvent;
+  JobFailedEvent: JobFailedEvent;
   Mutation: {};
   MutationResponse: MutationResponse;
   Query: {};
-  RecordsImportedEvent: RecordsImportedEvent;
+  RecordsProcessedEvent: RecordsProcessedEvent;
   String: Scalars["String"]["output"];
   Subscription: {};
 };
@@ -557,15 +566,6 @@ export type ColumnDefResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ColumnsConfigResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["ColumnsConfig"] = ResolversParentTypes["ColumnsConfig"],
-> = {
-  nameColumn?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type CreateDataSourceResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -591,7 +591,7 @@ export type DataSourceResolvers<
     ContextType
   >;
   columnsConfig?: Resolver<
-    ResolversTypes["ColumnsConfig"],
+    ResolversTypes["DataSourceColumnsConfig"],
     ParentType,
     ContextType
   >;
@@ -610,45 +610,55 @@ export type DataSourceResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type DataSourceColumnsConfigResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["DataSourceColumnsConfig"] = ResolversParentTypes["DataSourceColumnsConfig"],
+> = {
+  nameColumn?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type DataSourceEventResolvers<
   ContextType = GraphQLContext,
   ParentType extends
     ResolversParentTypes["DataSourceEvent"] = ResolversParentTypes["DataSourceEvent"],
 > = {
   dataSourceId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  enrichmentComplete?: Resolver<
+    Maybe<ResolversTypes["JobCompleteEvent"]>,
+    ParentType,
+    ContextType
+  >;
+  enrichmentFailed?: Resolver<
+    Maybe<ResolversTypes["JobFailedEvent"]>,
+    ParentType,
+    ContextType
+  >;
   importComplete?: Resolver<
-    Maybe<ResolversTypes["ImportCompleteEvent"]>,
+    Maybe<ResolversTypes["JobCompleteEvent"]>,
     ParentType,
     ContextType
   >;
   importFailed?: Resolver<
-    Maybe<ResolversTypes["ImportFailedEvent"]>,
+    Maybe<ResolversTypes["JobFailedEvent"]>,
+    ParentType,
+    ContextType
+  >;
+  recordsEnriched?: Resolver<
+    Maybe<ResolversTypes["RecordsProcessedEvent"]>,
     ParentType,
     ContextType
   >;
   recordsImported?: Resolver<
-    Maybe<ResolversTypes["RecordsImportedEvent"]>,
+    Maybe<ResolversTypes["RecordsProcessedEvent"]>,
     ParentType,
     ContextType
   >;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type ImportCompleteEventResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["ImportCompleteEvent"] = ResolversParentTypes["ImportCompleteEvent"],
-> = {
-  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type ImportFailedEventResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["ImportFailedEvent"] = ResolversParentTypes["ImportFailedEvent"],
-> = {
-  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -674,6 +684,24 @@ export interface JsonScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes["JSON"], any> {
   name: "JSON";
 }
+
+export type JobCompleteEventResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["JobCompleteEvent"] = ResolversParentTypes["JobCompleteEvent"],
+> = {
+  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type JobFailedEventResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["JobFailedEvent"] = ResolversParentTypes["JobFailedEvent"],
+> = {
+  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
 
 export type MutationResolvers<
   ContextType = GraphQLContext,
@@ -739,10 +767,10 @@ export type QueryResolvers<
   >;
 };
 
-export type RecordsImportedEventResolvers<
+export type RecordsProcessedEventResolvers<
   ContextType = GraphQLContext,
   ParentType extends
-    ResolversParentTypes["RecordsImportedEvent"] = ResolversParentTypes["RecordsImportedEvent"],
+    ResolversParentTypes["RecordsProcessedEvent"] = ResolversParentTypes["RecordsProcessedEvent"],
 > = {
   at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   count?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
@@ -767,17 +795,17 @@ export type Resolvers<ContextType = GraphQLContext> = {
   AreaStat?: AreaStatResolvers<ContextType>;
   AreaStats?: AreaStatsResolvers<ContextType>;
   ColumnDef?: ColumnDefResolvers<ContextType>;
-  ColumnsConfig?: ColumnsConfigResolvers<ContextType>;
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
+  DataSourceColumnsConfig?: DataSourceColumnsConfigResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
-  ImportCompleteEvent?: ImportCompleteEventResolvers<ContextType>;
-  ImportFailedEvent?: ImportFailedEventResolvers<ContextType>;
   ImportInfo?: ImportInfoResolvers<ContextType>;
   JSON?: GraphQLScalarType;
+  JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;
+  JobFailedEvent?: JobFailedEventResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  RecordsImportedEvent?: RecordsImportedEventResolvers<ContextType>;
+  RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
 };

@@ -1,4 +1,5 @@
-// All zod schemas. Should probably only import from ./types here.
+// All zod schemas.
+// Should probably only import from ./types and __generated__ here.
 
 import z from "zod";
 import { AreaSetCode, DataSourceType, GeocodingType } from "./types";
@@ -36,6 +37,37 @@ export const DataSourceConfigSchema = z.discriminatedUnion("type", [
 ]);
 
 export type DataSourceConfig = z.infer<typeof DataSourceConfigSchema>;
+
+const AreaEnrichmentColumnConfigSchema = z.object({
+  sourceType: z.literal("Area"),
+  areaSetCode: z.nativeEnum(AreaSetCode),
+  areaProperty: z.enum(["code", "name"]),
+});
+
+export type AreaEnrichmentColumnConfig = z.infer<
+  typeof AreaEnrichmentColumnConfigSchema
+>;
+
+const DataSourceEnrichmentColumnConfigSchema = z.object({
+  sourceType: z.literal("DataSource"),
+  dataSourceId: z.string().nonempty(),
+  dataSourceColumn: z.string().nonempty(),
+});
+
+export type DataSourceEnrichmentColumnConfig = z.infer<
+  typeof DataSourceEnrichmentColumnConfigSchema
+>;
+
+export const EnrichmentColumnConfigSchema = z.discriminatedUnion("sourceType", [
+  AreaEnrichmentColumnConfigSchema,
+  DataSourceEnrichmentColumnConfigSchema,
+]);
+
+export type EnrichmentColumnConfig = z.infer<
+  typeof EnrichmentColumnConfigSchema
+>;
+
+export type DatasourceEnrichmentConfig = EnrichmentColumnConfig[];
 
 const GeocodingOnAddressSchema = z.object({
   type: z.literal(GeocodingType.address),
