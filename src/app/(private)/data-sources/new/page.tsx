@@ -76,7 +76,7 @@ export default function NewDataSourcePage() {
       if (result.errors || !dataSourceId) {
         throw new Error(String(result.errors));
       } else {
-        router.push(`/data-sources/${dataSourceId}/geocode`);
+        router.push(`/data-sources/${dataSourceId}/config`);
         return;
       }
     } catch (e) {
@@ -141,11 +141,11 @@ export default function NewDataSourcePage() {
           <MailchimpFields config={config} onChange={onChangeConfig} />
         </div>
         <Button disabled={!validConfig || loading}>Submit</Button>
-        {error ? (
+        {error && (
           <div>
             <small>{error}</small>
           </div>
-        ) : null}
+        )}
       </form>
     </div>
   );

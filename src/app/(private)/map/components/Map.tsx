@@ -2,7 +2,7 @@ import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as mapboxgl from "mapbox-gl";
 import { ReactNode, RefObject } from "react";
 import MapGL, { MapRef } from "react-map-gl/mapbox";
-import { BoundingBox } from "@/__generated__/types";
+import { BoundingBoxInput } from "@/__generated__/types";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
 import { MarkerData, SearchResult } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -22,7 +22,7 @@ export default function Map({
   children: ReactNode;
   mapConfig: MapConfig;
   onClickMarker: (markerData: MarkerData | null) => void;
-  onMoveEnd: (boundingBox: BoundingBox | null, zoom: number) => void;
+  onMoveEnd: (boundingBox: BoundingBoxInput | null, zoom: number) => void;
   onSourceLoad: (sourceId: string) => void;
   mapRef: RefObject<MapRef | null>;
   searchHistory: SearchResult[];

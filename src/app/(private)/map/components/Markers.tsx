@@ -4,16 +4,16 @@ import { MarkerData } from "@/types";
 import { mapNodeColors } from "../styles";
 
 export default function Markers({
-  markers,
+  dataSource,
   selectedMarker,
   onCloseSelectedMarker,
 }: {
-  markers: MarkersQuery["markers"] | undefined;
+  dataSource: MarkersQuery["dataSource"];
   selectedMarker: MarkerData | null;
   onCloseSelectedMarker: () => void;
 }) {
   // Always return a layer - this ensures it is always placed on top
-  const safeMarkers = markers || {
+  const safeMarkers = dataSource?.markers || {
     type: "FeatureCollection",
     features: [],
   };
@@ -145,7 +145,7 @@ export default function Markers({
           }}
         />
       </Source>
-      {selectedMarker ? (
+      {selectedMarker && (
         <Popup
           anchor="bottom"
           latitude={selectedMarker.coordinates[1]}
@@ -161,7 +161,7 @@ export default function Markers({
             ))}
           </div>
         </Popup>
-      ) : null}
+      )}
     </>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { BoundingBox } from "@/__generated__/types";
+import { BoundingBoxInput } from "@/__generated__/types";
 import { MarkerData, SearchResult } from "@/types";
 import Choropleth from "./components/Choropleth";
 import Controls from "./components/Controls";
@@ -32,7 +32,7 @@ export default function MapPage() {
     string | undefined
   >();
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
-  const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
+  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   /* Settings state */
@@ -107,9 +107,6 @@ export default function MapPage() {
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
 
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
-  const markersDataSource = (dataSourcesData?.dataSources || []).find(
-    (ds: { id: string }) => ds.id === mapConfig.markersDataSourceId,
-  );
 
   return (
     <div className={styles.map}>
@@ -128,8 +125,7 @@ export default function MapPage() {
         <ControlsTab label="Layers">
           <Layers
             mapRef={mapRef}
-            markers={markersData?.markers}
-            markersDataSource={markersDataSource}
+            markersDataSource={markersData?.dataSource}
             searchHistory={searchHistory}
           />
         </ControlsTab>
@@ -152,17 +148,17 @@ export default function MapPage() {
           mapConfig={mapConfig}
         />
         <Markers
-          markers={markersData?.markers}
+          dataSource={markersData?.dataSource}
           selectedMarker={selectedMarker}
           onCloseSelectedMarker={() => setSelectedMarker(null)}
         />
         <SearchHistoryMarkers searchHistory={searchHistory} />
       </Map>
-      {loading ? (
+      {loading && (
         <div className={styles.loading}>
           <div></div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

@@ -6,19 +6,15 @@ import {
   Selectable,
   Updateable,
 } from "kysely";
-import { ColumnType } from "@/__generated__/types";
+import { ColumnDef, ColumnsConfig } from "@/__generated__/types";
 import { DataSourceConfig, DataSourceGeocodingConfig } from "@/zod";
-
-export type ColumnDefs = {
-  name: string;
-  type: ColumnType;
-}[];
 
 export interface DataSourceTable {
   id: Generated<string>;
   name: string;
-  columnDefs: JSONColumnType<ColumnDefs>;
+  columnDefs: JSONColumnType<ColumnDef[]>;
   config: JSONColumnType<DataSourceConfig>;
+  columnsConfig: JSONColumnType<ColumnsConfig>;
   geocodingConfig: JSONColumnType<DataSourceGeocodingConfig>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }

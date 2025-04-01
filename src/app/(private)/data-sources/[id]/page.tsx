@@ -23,6 +23,9 @@ export default async function GeocodeDataSourcePage({
             type
           }
           config
+          columnsConfig {
+            nameColumn
+          }
           geocodingConfig
           importInfo {
             lastImported

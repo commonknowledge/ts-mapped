@@ -1,41 +1,58 @@
+import { useState } from "react";
 import { MarkersQuery } from "@/__generated__/types";
+import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 
 interface MarkerListProps {
-  markers: MarkersQuery["markers"] | undefined;
-  markersLabel: string;
+  dataSource: MarkersQuery["dataSource"];
   onSelect: (coordinates: [number, number]) => void;
 }
 
-export default function MarkerList({
-  markers = [],
-  markersLabel,
-  onSelect,
-}: MarkerListProps) {
-  if (!markers) return null;
+export default function MarkerList({ dataSource, onSelect }: MarkerListProps) {
+  const [limit, setLimit] = useState(100);
+  if (!dataSource) {
+    return null;
+  }
+
+  const features = dataSource?.markers?.features || [];
+  const showMore = limit < features.length;
+
   return (
     <ScrollArea className="h-[200px] w-full rounded-md border p-2">
       <div className="space-y-2">
-        {markers.features?.map(
-          (feature: {
-            properties: Record<string, string>;
-            geometry: { coordinates: [number, number] };
-          }) => (
-            <li
-              key={feature.properties.Name}
-              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-              onClick={() => onSelect(feature.geometry.coordinates)}
-            >
-              <span className="text-sm">
-                {feature.properties?.Name || "Unnamed"}
-              </span>
-            </li>
-          ),
+        <ul className="space-y-2">
+          {features
+            .slice(0, limit)
+            .map(
+              (feature: {
+                properties: Record<string, string>;
+                geometry: { coordinates: [number, number] };
+              }) => (
+                <li
+                  key={feature.properties[MARKER_ID_KEY]}
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
+                  onClick={() => onSelect(feature.geometry.coordinates)}
+                >
+                  <span className="text-sm">
+                    {feature.properties?.[MARKER_NAME_KEY] || "Unnamed"}
+                  </span>
+                </li>
+              ),
+            )}
+        </ul>
+        {showMore && (
+          <button
+            className="w-full text-left p-2 hover:bg-gray-100 rounded cursor-pointer"
+            type="button"
+            onClick={() => setLimit(limit + 100)}
+          >
+            Show more
+          </button>
         )}
-        {(!markers.features || markers.features.length === 0) && (
-          <div className="text-sm text-muted-foreground p-2">
-            No markers found in {markersLabel} data source
-          </div>
+        {features.length === 0 && (
+          <span className="block p-2 text-sm text-muted-foreground">
+            No markers found in {dataSource.name} data source
+          </span>
         )}
       </div>
     </ScrollArea>
