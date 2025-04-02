@@ -11,15 +11,17 @@ import {
 } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
-  getImportInfo,
+  findDataSourcesByIds,
+  getJobInfo,
   listDataSources,
 } from "@/server/repositories/DataSource";
 import pubSub from "@/server/services/pubsub";
 import { getAreaStats } from "@/server/stats";
-import { BoundingBox } from "@/types";
+import { BoundingBox, EnrichmentSourceType } from "@/types";
 import { GraphQLContext } from "./context";
 import {
   createDataSource,
+  enqueueEnrichDataSourceJob,
   enqueueImportDataSourceJob,
   updateDataSourceConfig,
 } from "./mutations";
@@ -37,11 +39,11 @@ const typeDefs = `
     unknown
   }
 
-  enum ImportStatus {
+  enum JobStatus {
     None
     Failed
-    Importing
-    Imported
+    Running
+    Complete
     Pending
   }
 
@@ -84,9 +86,12 @@ const typeDefs = `
     columnDefs: [ColumnDef!]!
     config: JSON!
     columnsConfig: DataSourceColumnsConfig!
+    enrichmentColumns: [JSON!]!
     geocodingConfig: JSON!
 
-    importInfo: ImportInfo
+    enrichmentDataSources: [DataSource!]
+    enrichmentInfo: JobInfo
+    importInfo: JobInfo
 
     """
     markers is untyped for performance - objects are
@@ -102,9 +107,9 @@ const typeDefs = `
     nameColumn: String
   }
 
-  type ImportInfo {
-    lastImported: String
-    status: ImportStatus
+  type JobInfo {
+    lastCompleted: String
+    status: JobStatus
   }
 
   type Query {
@@ -132,11 +137,13 @@ const typeDefs = `
 
   type Mutation {
     createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
+    enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse!
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse!
     updateDataSourceConfig(
       id: String!
-      columnsConfig: ColumnsConfigInput!
-      rawGeocodingConfig: JSON!
+      columnsConfig: ColumnsConfigInput
+      rawEnrichmentColumns: [JSON!]
+      rawGeocodingConfig: JSON
     ): MutationResponse!
   }
 
@@ -174,7 +181,16 @@ const typeDefs = `
 const resolvers: Resolvers = {
   JSON: GraphQLJSON,
   DataSource: {
-    importInfo: ({ id }) => getImportInfo(id),
+    enrichmentInfo: ({ id }) => getJobInfo(id, "enrichDataSource"),
+    importInfo: ({ id }) => getJobInfo(id, "importDataSource"),
+    enrichmentDataSources: async (dataSource) => {
+      const dataSources = await findDataSourcesByIds(
+        dataSource.enrichmentColumns
+          .filter((c) => c.sourceType === EnrichmentSourceType.DataSource)
+          .map((c) => c.dataSourceId),
+      );
+      return dataSources.map(serializeDataSource);
+    },
     markers: async (dataSource) => {
       const dataRecords = await findDataRecordsByDataSource(dataSource.id);
       const features = dataRecords
@@ -257,6 +273,7 @@ const resolvers: Resolvers = {
 
   Mutation: {
     createDataSource,
+    enqueueEnrichDataSourceJob,
     enqueueImportDataSourceJob,
     updateDataSourceConfig,
   },

@@ -10,15 +10,20 @@ import {
 } from "@/__generated__/types";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceGeocodingConfigSchema } from "@/zod";
+import {
+  DataSourceGeocodingConfig,
+  DataSourceGeocodingConfigSchema,
+} from "@/zod";
 import ColumnsConfigFields from "./ColumnsConfigFields";
 import GeocodingConfigFields from "./GeocodingConfigFields";
 
 export default function DataSourceConfigForm({
   dataSource,
+  initialGeocodingConfig,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
   dataSource: Exclude<DataSourceConfigQuery["dataSource"], null | undefined>;
+  initialGeocodingConfig: DataSourceGeocodingConfig;
 }) {
   // Columns config
   const [nameColumn, setNameColumn] = useState<string>(
@@ -27,7 +32,7 @@ export default function DataSourceConfigForm({
 
   // Geocoding config
   const [geocodingConfig, setGeocodingConfig] = useState(
-    dataSource.geocodingConfig,
+    initialGeocodingConfig,
   );
 
   // Form state
@@ -72,8 +77,8 @@ export default function DataSourceConfigForm({
           rawGeocodingConfig: geocodingConfig,
         },
       });
-      if (result.errors) {
-        throw new Error(String(result.errors));
+      if (result.data?.updateDataSourceConfig.code !== 200) {
+        throw new Error(String(result.errors || "Unknown error"));
       } else {
         router.push(`/data-sources/${dataSource.id}`);
         return;
@@ -100,7 +105,9 @@ export default function DataSourceConfigForm({
         dataSource={dataSource}
         geocodingConfig={geocodingConfig}
         onChange={(nextGeocodingConfig) =>
-          setGeocodingConfig({ ...geocodingConfig, ...nextGeocodingConfig })
+          setGeocodingConfig(
+            Object.assign({}, geocodingConfig, nextGeocodingConfig),
+          )
         }
       />
       <Button disabled={!validGeocodingConfig || loading}>Submit</Button>

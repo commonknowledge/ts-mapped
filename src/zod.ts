@@ -38,36 +38,38 @@ export const DataSourceConfigSchema = z.discriminatedUnion("type", [
 
 export type DataSourceConfig = z.infer<typeof DataSourceConfigSchema>;
 
-const AreaEnrichmentColumnConfigSchema = z.object({
+const AreaEnrichmentColumnSchema = z.object({
   sourceType: z.literal("Area"),
   areaSetCode: z.nativeEnum(AreaSetCode),
   areaProperty: z.enum(["code", "name"]),
 });
 
-export type AreaEnrichmentColumnConfig = z.infer<
-  typeof AreaEnrichmentColumnConfigSchema
->;
+export type AreaEnrichmentColumn = z.infer<typeof AreaEnrichmentColumnSchema>;
 
-const DataSourceEnrichmentColumnConfigSchema = z.object({
+const DataSourceEnrichmentColumnSchema = z.object({
   sourceType: z.literal("DataSource"),
   dataSourceId: z.string().nonempty(),
   dataSourceColumn: z.string().nonempty(),
 });
 
-export type DataSourceEnrichmentColumnConfig = z.infer<
-  typeof DataSourceEnrichmentColumnConfigSchema
+export type DataSourceEnrichmentColumn = z.infer<
+  typeof DataSourceEnrichmentColumnSchema
 >;
 
-export const EnrichmentColumnConfigSchema = z.discriminatedUnion("sourceType", [
-  AreaEnrichmentColumnConfigSchema,
-  DataSourceEnrichmentColumnConfigSchema,
+export const EnrichmentColumnSchema = z.discriminatedUnion("sourceType", [
+  AreaEnrichmentColumnSchema,
+  DataSourceEnrichmentColumnSchema,
 ]);
 
-export type EnrichmentColumnConfig = z.infer<
-  typeof EnrichmentColumnConfigSchema
->;
+export type EnrichmentColumn = z.infer<typeof EnrichmentColumnSchema>;
 
-export type DatasourceEnrichmentConfig = EnrichmentColumnConfig[];
+export const DataSourceEnrichmentColumnsSchema = z.array(
+  EnrichmentColumnSchema,
+);
+
+export type DataSourceEnrichmentColumns = z.infer<
+  typeof DataSourceEnrichmentColumnsSchema
+>;
 
 const GeocodingOnAddressSchema = z.object({
   type: z.literal(GeocodingType.address),

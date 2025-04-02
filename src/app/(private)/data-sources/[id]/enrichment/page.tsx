@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import {
-  DataSourceConfigQuery,
-  DataSourceConfigQueryVariables,
+  DataSourceEnrichmentQuery,
+  DataSourceEnrichmentQueryVariables,
 } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
@@ -13,33 +13,32 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
-import { GeocodingType } from "@/types";
-import { DataSourceGeocodingConfigSchema } from "@/zod";
-import DataSourceConfigForm from "./DataSourceConfigForm";
+import { DataSourceEnrichmentColumnsSchema } from "@/zod";
+import DataSourceEnrichmentForm from "./DataSourceEnrichmentForm";
 
-export default async function DataSourceConfigPage({
+export default async function DataSourceEnrichmentPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const result = await query<
-    DataSourceConfigQuery,
-    DataSourceConfigQueryVariables
+    DataSourceEnrichmentQuery,
+    DataSourceEnrichmentQueryVariables
   >({
     query: gql`
-      query DataSourceConfig($id: String!) {
+      query DataSourceEnrichment($id: String!) {
         dataSource(id: $id) {
+          id
+          name
+          enrichmentColumns
+        }
+        dataSources {
           id
           name
           columnDefs {
             name
-            type
           }
-          columnsConfig {
-            nameColumn
-          }
-          geocodingConfig
         }
       }
     `,
@@ -54,12 +53,11 @@ export default async function DataSourceConfigPage({
     );
   }
 
-  const { data: geocodingConfig } = DataSourceGeocodingConfigSchema.safeParse(
-    result.data.dataSource.geocodingConfig,
-  );
-  const initialGeocodingConfig = geocodingConfig || {
-    type: GeocodingType.none,
-  };
+  const { data: enrichmentColumns } =
+    DataSourceEnrichmentColumnsSchema.safeParse(
+      result.data.dataSource.enrichmentColumns,
+    );
+  const initialEnrichmentColumns = enrichmentColumns || [];
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -75,17 +73,18 @@ export default async function DataSourceConfigPage({
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Config</BreadcrumbItem>
+          <BreadcrumbItem>Enrichment</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <PageHeader
-        title={`Configure ${result.data.dataSource.name}`}
-        description="Tell us about your data to take full advantage of Mapped."
+        title={`Enrich ${result.data.dataSource.name}`}
+        description="Add data to your CRM"
       />
       <Separator className="my-4" />
-      <DataSourceConfigForm
+      <DataSourceEnrichmentForm
         dataSource={result.data.dataSource}
-        initialGeocodingConfig={initialGeocodingConfig}
+        dataSources={result.data.dataSources}
+        initialEnrichmentColumns={initialEnrichmentColumns}
       />
     </div>
   );

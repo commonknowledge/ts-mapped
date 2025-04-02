@@ -24,6 +24,16 @@ export enum DataSourceType {
   mailchimp = "mailchimp",
 }
 
+export const EditableDataSourceTypes = [
+  DataSourceType.airtable,
+  DataSourceType.mailchimp,
+];
+
+export enum EnrichmentSourceType {
+  Area = "Area",
+  DataSource = "DataSource",
+}
+
 export interface ExternalRecord {
   externalId: string;
   json: Record<string, unknown>;

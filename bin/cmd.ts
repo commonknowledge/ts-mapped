@@ -33,10 +33,10 @@ program
     const dataSource = await createDataSource({
       name: options.name,
       config: JSON.stringify(parsedConfig),
-      columnsConfig: "{}",
-      enrichmentConfig: "{}",
-      geocodingConfig: JSON.stringify(parsedGeocodingConfig),
       columnDefs: "[]",
+      columnsConfig: "{}",
+      enrichmentColumns: "[]",
+      geocodingConfig: JSON.stringify(parsedGeocodingConfig),
     });
     logger.info(`Created data source ${options.name}, ID ${dataSource.id}`);
     await importDataSource({ dataSourceId: dataSource.id });

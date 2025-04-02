@@ -9,8 +9,8 @@ import {
 import { ColumnDef, DataSourceColumnsConfig } from "@/__generated__/types";
 import {
   DataSourceConfig,
+  DataSourceEnrichmentColumns,
   DataSourceGeocodingConfig,
-  DatasourceEnrichmentConfig,
 } from "@/zod";
 
 export interface DataSourceTable {
@@ -19,7 +19,7 @@ export interface DataSourceTable {
   columnDefs: JSONColumnType<ColumnDef[]>;
   config: JSONColumnType<DataSourceConfig>;
   columnsConfig: JSONColumnType<DataSourceColumnsConfig>;
-  enrichmentConfig: JSONColumnType<DatasourceEnrichmentConfig>;
+  enrichmentColumns: JSONColumnType<DataSourceEnrichmentColumns>;
   geocodingConfig: JSONColumnType<DataSourceGeocodingConfig>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }

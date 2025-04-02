@@ -1,6 +1,11 @@
 // Human friendly labels for enums
 
-import { AreaSetCode, DataSourceType, GeocodingType } from "@/types";
+import {
+  AreaSetCode,
+  DataSourceType,
+  EnrichmentSourceType,
+  GeocodingType,
+} from "@/types";
 import { AirtableConfig, CSVConfig, MailchimpConfig } from "./zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
@@ -31,6 +36,12 @@ export const DataSourceTypeLabels: Record<DataSourceType, string> = {
   csv: "CSV",
   mailchimp: "Mailchimp",
 };
+
+export const EnrichmentSourceTypeLabels: Record<EnrichmentSourceType, string> =
+  {
+    Area: "Geocoded area",
+    DataSource: "Mapped data source",
+  };
 
 export const GeocodingTypeLabels: Record<GeocodingType | "postcode", string> = {
   address: 'Address, e.g. "113-115 Fonthill Road, N4 3HH"',

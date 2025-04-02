@@ -88,9 +88,12 @@ export type DataSource = {
   columnsConfig: DataSourceColumnsConfig;
   config: Scalars["JSON"]["output"];
   createdAt: Scalars["String"]["output"];
+  enrichmentColumns: Array<Scalars["JSON"]["output"]>;
+  enrichmentDataSources?: Maybe<Array<DataSource>>;
+  enrichmentInfo?: Maybe<JobInfo>;
   geocodingConfig: Scalars["JSON"]["output"];
   id: Scalars["String"]["output"];
-  importInfo?: Maybe<ImportInfo>;
+  importInfo?: Maybe<JobInfo>;
   /**
    * markers is untyped for performance - objects are
    * denormalized in the Apollo client cache, which is slow
@@ -117,20 +120,6 @@ export type DataSourceEvent = {
   recordsImported?: Maybe<RecordsProcessedEvent>;
 };
 
-export type ImportInfo = {
-  __typename?: "ImportInfo";
-  lastImported?: Maybe<Scalars["String"]["output"]>;
-  status?: Maybe<ImportStatus>;
-};
-
-export enum ImportStatus {
-  Failed = "Failed",
-  Imported = "Imported",
-  Importing = "Importing",
-  None = "None",
-  Pending = "Pending",
-}
-
 export type JobCompleteEvent = {
   __typename?: "JobCompleteEvent";
   at: Scalars["String"]["output"];
@@ -141,9 +130,24 @@ export type JobFailedEvent = {
   at: Scalars["String"]["output"];
 };
 
+export type JobInfo = {
+  __typename?: "JobInfo";
+  lastCompleted?: Maybe<Scalars["String"]["output"]>;
+  status?: Maybe<JobStatus>;
+};
+
+export enum JobStatus {
+  Complete = "Complete",
+  Failed = "Failed",
+  None = "None",
+  Pending = "Pending",
+  Running = "Running",
+}
+
 export type Mutation = {
   __typename?: "Mutation";
   createDataSource: CreateDataSourceResponse;
+  enqueueEnrichDataSourceJob: MutationResponse;
   enqueueImportDataSourceJob: MutationResponse;
   updateDataSourceConfig: MutationResponse;
 };
@@ -153,14 +157,19 @@ export type MutationCreateDataSourceArgs = {
   rawConfig: Scalars["JSON"]["input"];
 };
 
+export type MutationEnqueueEnrichDataSourceJobArgs = {
+  dataSourceId: Scalars["String"]["input"];
+};
+
 export type MutationEnqueueImportDataSourceJobArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
 export type MutationUpdateDataSourceConfigArgs = {
-  columnsConfig: ColumnsConfigInput;
+  columnsConfig?: InputMaybe<ColumnsConfigInput>;
   id: Scalars["String"]["input"];
-  rawGeocodingConfig: Scalars["JSON"]["input"];
+  rawEnrichmentColumns?: InputMaybe<Array<Scalars["JSON"]["input"]>>;
+  rawGeocodingConfig?: InputMaybe<Scalars["JSON"]["input"]>;
 };
 
 export type MutationResponse = {
@@ -234,6 +243,32 @@ export type DataSourceEventSubscription = {
   };
 };
 
+export type EnqueueEnrichDataSourceJobMutationVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+}>;
+
+export type EnqueueEnrichDataSourceJobMutation = {
+  __typename?: "Mutation";
+  enqueueEnrichDataSourceJob: { __typename?: "MutationResponse"; code: number };
+};
+
+export type DataSourceEnrichmentEventSubscriptionVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+}>;
+
+export type DataSourceEnrichmentEventSubscription = {
+  __typename?: "Subscription";
+  dataSourceEvent: {
+    __typename?: "DataSourceEvent";
+    enrichmentComplete?: { __typename?: "JobCompleteEvent"; at: string } | null;
+    enrichmentFailed?: { __typename?: "JobFailedEvent"; at: string } | null;
+    recordsEnriched?: {
+      __typename?: "RecordsProcessedEvent";
+      count: number;
+    } | null;
+  };
+};
+
 export type UpdateDataSourceConfigMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   columnsConfig: ColumnsConfigInput;
@@ -268,6 +303,38 @@ export type DataSourceConfigQuery = {
   } | null;
 };
 
+export type UpdateDataSourceEnrichmentMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  rawEnrichmentColumns?: InputMaybe<
+    Array<Scalars["JSON"]["input"]> | Scalars["JSON"]["input"]
+  >;
+}>;
+
+export type UpdateDataSourceEnrichmentMutation = {
+  __typename?: "Mutation";
+  updateDataSourceConfig: { __typename?: "MutationResponse"; code: number };
+};
+
+export type DataSourceEnrichmentQueryVariables = Exact<{
+  id: Scalars["String"]["input"];
+}>;
+
+export type DataSourceEnrichmentQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    enrichmentColumns: Array<any>;
+  } | null;
+  dataSources: Array<{
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    columnDefs: Array<{ __typename?: "ColumnDef"; name: string }>;
+  }>;
+};
+
 export type DataSourceQueryVariables = Exact<{
   id: Scalars["String"]["input"];
 }>;
@@ -279,6 +346,7 @@ export type DataSourceQuery = {
     id: string;
     name: string;
     config: any;
+    enrichmentColumns: Array<any>;
     geocodingConfig: any;
     recordCount?: number | null;
     columnDefs: Array<{
@@ -290,10 +358,20 @@ export type DataSourceQuery = {
       __typename?: "DataSourceColumnsConfig";
       nameColumn?: string | null;
     };
+    enrichmentDataSources?: Array<{
+      __typename?: "DataSource";
+      id: string;
+      name: string;
+    }> | null;
+    enrichmentInfo?: {
+      __typename?: "JobInfo";
+      lastCompleted?: string | null;
+      status?: JobStatus | null;
+    } | null;
     importInfo?: {
-      __typename?: "ImportInfo";
-      lastImported?: string | null;
-      status?: ImportStatus | null;
+      __typename?: "JobInfo";
+      lastCompleted?: string | null;
+      status?: JobStatus | null;
     } | null;
   } | null;
 };
@@ -494,12 +572,12 @@ export type ResolversTypes = {
   DataSourceColumnsConfig: ResolverTypeWrapper<DataSourceColumnsConfig>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
-  ImportInfo: ResolverTypeWrapper<ImportInfo>;
-  ImportStatus: ImportStatus;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
   JobCompleteEvent: ResolverTypeWrapper<JobCompleteEvent>;
   JobFailedEvent: ResolverTypeWrapper<JobFailedEvent>;
+  JobInfo: ResolverTypeWrapper<JobInfo>;
+  JobStatus: JobStatus;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
@@ -522,11 +600,11 @@ export type ResolversParentTypes = {
   DataSourceColumnsConfig: DataSourceColumnsConfig;
   DataSourceEvent: DataSourceEvent;
   Float: Scalars["Float"]["output"];
-  ImportInfo: ImportInfo;
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
   JobCompleteEvent: JobCompleteEvent;
   JobFailedEvent: JobFailedEvent;
+  JobInfo: JobInfo;
   Mutation: {};
   MutationResponse: MutationResponse;
   Query: {};
@@ -597,10 +675,25 @@ export type DataSourceResolvers<
   >;
   config?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  enrichmentColumns?: Resolver<
+    Array<ResolversTypes["JSON"]>,
+    ParentType,
+    ContextType
+  >;
+  enrichmentDataSources?: Resolver<
+    Maybe<Array<ResolversTypes["DataSource"]>>,
+    ParentType,
+    ContextType
+  >;
+  enrichmentInfo?: Resolver<
+    Maybe<ResolversTypes["JobInfo"]>,
+    ParentType,
+    ContextType
+  >;
   geocodingConfig?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   importInfo?: Resolver<
-    Maybe<ResolversTypes["ImportInfo"]>,
+    Maybe<ResolversTypes["JobInfo"]>,
     ParentType,
     ContextType
   >;
@@ -662,24 +755,6 @@ export type DataSourceEventResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ImportInfoResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["ImportInfo"] = ResolversParentTypes["ImportInfo"],
-> = {
-  lastImported?: Resolver<
-    Maybe<ResolversTypes["String"]>,
-    ParentType,
-    ContextType
-  >;
-  status?: Resolver<
-    Maybe<ResolversTypes["ImportStatus"]>,
-    ParentType,
-    ContextType
-  >;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export interface JsonScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes["JSON"], any> {
   name: "JSON";
@@ -703,6 +778,24 @@ export type JobFailedEventResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type JobInfoResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["JobInfo"] = ResolversParentTypes["JobInfo"],
+> = {
+  lastCompleted?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  status?: Resolver<
+    Maybe<ResolversTypes["JobStatus"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MutationResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -714,6 +807,12 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationCreateDataSourceArgs, "name" | "rawConfig">
   >;
+  enqueueEnrichDataSourceJob?: Resolver<
+    ResolversTypes["MutationResponse"],
+    ParentType,
+    ContextType,
+    RequireFields<MutationEnqueueEnrichDataSourceJobArgs, "dataSourceId">
+  >;
   enqueueImportDataSourceJob?: Resolver<
     ResolversTypes["MutationResponse"],
     ParentType,
@@ -724,10 +823,7 @@ export type MutationResolvers<
     ResolversTypes["MutationResponse"],
     ParentType,
     ContextType,
-    RequireFields<
-      MutationUpdateDataSourceConfigArgs,
-      "columnsConfig" | "id" | "rawGeocodingConfig"
-    >
+    RequireFields<MutationUpdateDataSourceConfigArgs, "id">
   >;
 };
 
@@ -799,10 +895,10 @@ export type Resolvers<ContextType = GraphQLContext> = {
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceColumnsConfig?: DataSourceColumnsConfigResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
-  ImportInfo?: ImportInfoResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;
   JobFailedEvent?: JobFailedEventResolvers<ContextType>;
+  JobInfo?: JobInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

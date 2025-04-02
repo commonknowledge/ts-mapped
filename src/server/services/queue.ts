@@ -1,5 +1,6 @@
 import PgBoss from "pg-boss";
 import importDataSource from "@/server/jobs/importDataSource";
+import enrichDataSource from "../jobs/enrichDataSource";
 import logger from "./logger";
 
 const defaultQueue = process.env.DEFAULT_QUEUE_NAME || "default";
@@ -9,6 +10,7 @@ boss.on("error", logger.error);
 
 const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
   {
+    enrichDataSource,
     importDataSource,
   };
 
@@ -38,21 +40,27 @@ export const runWorker = async (queue: string = defaultQueue) => {
   await ensureQueue(queue);
 
   await boss.work(queue, async ([job]) => {
-    logger.info(`Received job ${job.id} with data ${JSON.stringify(job.data)}`);
-    if (typeof job.data !== "object" || job.data === null) {
-      throw Error(`Malformed job ${job.id}`);
-    }
-    const args = "args" in job.data ? job.data.args : null;
-    if (typeof args !== "object") {
-      throw Error(`Bad job ${job.id}: args is not an object`);
-    }
-    const task = "task" in job.data ? job.data.task : null;
-    if (typeof task !== "string" || !(task in taskHandlers)) {
-      throw Error(`Bad job ${job.id}: no ${task} handler`);
-    }
-    const success = await taskHandlers[task](args);
-    if (!success) {
-      throw Error(`Failed job ${job.id}`);
+    try {
+      logger.info(
+        `Received job ${job.id} with data ${JSON.stringify(job.data)}`,
+      );
+      if (typeof job.data !== "object" || job.data === null) {
+        throw Error(`Malformed job data`);
+      }
+      const args = "args" in job.data ? job.data.args : null;
+      if (typeof args !== "object") {
+        throw Error(`Job args was not an object`);
+      }
+      const task = "task" in job.data ? job.data.task : null;
+      if (typeof task !== "string" || !(task in taskHandlers)) {
+        throw Error(`Missing handler for task ${task}`);
+      }
+      const success = await taskHandlers[task](args);
+      if (!success) {
+        throw Error(`Handler ${task} not complete successfully`);
+      }
+    } catch (error) {
+      logger.error(`Failed job ${job.id}`, { error });
     }
   });
 

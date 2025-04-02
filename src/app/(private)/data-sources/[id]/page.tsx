@@ -5,6 +5,7 @@ import {
 } from "@/__generated__/types";
 import { query } from "@/services/ApolloClient";
 import DataSourceDashboard from "./DataSourceDashboard";
+import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";
 
 export default async function GeocodeDataSourcePage({
   params,
@@ -26,9 +27,18 @@ export default async function GeocodeDataSourcePage({
           columnsConfig {
             nameColumn
           }
+          enrichmentColumns
+          enrichmentDataSources {
+            id
+            name
+          }
           geocodingConfig
+          enrichmentInfo {
+            lastCompleted
+            status
+          }
           importInfo {
-            lastImported
+            lastCompleted
             status
           }
           recordCount
@@ -46,5 +56,10 @@ export default async function GeocodeDataSourcePage({
     );
   }
 
-  return <DataSourceDashboard dataSource={result.data.dataSource} />;
+  return (
+    <>
+      <DataSourceDashboard dataSource={result.data.dataSource} />
+      <DataSourceEnrichmentDashboard dataSource={result.data.dataSource} />
+    </>
+  );
 }

@@ -9,7 +9,7 @@ import {
   DataSourceQuery,
   EnqueueImportDataSourceJobMutation,
   EnqueueImportDataSourceJobMutationVariables,
-  ImportStatus,
+  JobStatus,
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
@@ -28,6 +28,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 import { AreaSetCode, GeocodingType } from "@/types";
+
 export default function DataSourceDashboard({
   // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
@@ -38,7 +39,7 @@ export default function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastImported || null,
+    dataSource.importInfo?.lastCompleted || null,
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -103,8 +104,8 @@ export default function DataSourceDashboard({
       const result = await enqueueImportDataSourceJob({
         variables: { dataSourceId: dataSource.id },
       });
-      if (result.errors) {
-        throw new Error(String(result.errors));
+      if (result.data?.enqueueImportDataSourceJob.code !== 200) {
+        throw new Error(String(result.errors || "Unknown error"));
       }
     } catch (e) {
       console.error(`Could not schedule import job: ${e}`);
@@ -210,34 +211,36 @@ export default function DataSourceDashboard({
               border
             />
           </div>
-          <Label className="text-lg">Geocoding</Label>
-          <DataListRow
-            label="Geocoding type"
-            value={
-              isPostcodeData
-                ? GeocodingTypeLabels.postcode
-                : GeocodingTypeLabels[
-                    dataSource.geocodingConfig.type as GeocodingType
-                  ]
-            }
-            border
-          />
-          <DataListRow
-            label="Location column"
-            value={`"${dataSource.geocodingConfig.column}"`}
-            border
-          />
-          {!isPostcodeData && (
+          <div className="mb-4">
+            <Label className="text-lg">Geocoding</Label>
             <DataListRow
-              label="Area type"
+              label="Geocoding type"
               value={
-                AreaSetCodeLabels[
-                  dataSource.geocodingConfig.areaSetCode as AreaSetCode
-                ]
+                isPostcodeData
+                  ? GeocodingTypeLabels.postcode
+                  : GeocodingTypeLabels[
+                      dataSource.geocodingConfig.type as GeocodingType
+                    ]
               }
               border
             />
-          )}
+            <DataListRow
+              label="Location column"
+              value={`"${dataSource.geocodingConfig.column}"`}
+              border
+            />
+            {!isPostcodeData && (
+              <DataListRow
+                label="Area type"
+                value={
+                  AreaSetCodeLabels[
+                    dataSource.geocodingConfig.areaSetCode as AreaSetCode
+                  ]
+                }
+                border
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -247,7 +250,7 @@ export default function DataSourceDashboard({
 const isImporting = (dataSource: DataSourceQuery["dataSource"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
-      [ImportStatus.Importing, ImportStatus.Pending].includes(
+      [JobStatus.Running, JobStatus.Pending].includes(
         dataSource.importInfo?.status,
       ),
   );

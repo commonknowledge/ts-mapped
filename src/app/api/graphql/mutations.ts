@@ -15,6 +15,7 @@ import { enqueue } from "@/server/services/queue";
 import { GeocodingType } from "@/types";
 import {
   DataSourceConfigSchema,
+  DataSourceEnrichmentColumnsSchema,
   DataSourceGeocodingConfig,
   DataSourceGeocodingConfigSchema,
 } from "@/zod";
@@ -55,7 +56,7 @@ export const createDataSource = async (
       name,
       config: JSON.stringify(config),
       columnsConfig: JSON.stringify({}),
-      enrichmentConfig: JSON.stringify({}),
+      enrichmentColumns: JSON.stringify([]),
       geocodingConfig: JSON.stringify(geocodingConfig),
       columnDefs: JSON.stringify(columnDefs),
     });
@@ -66,6 +67,14 @@ export const createDataSource = async (
     logger.error(`Could not create data source`, { error });
   }
   return { code: 500 };
+};
+
+export const enqueueEnrichDataSourceJob = async (
+  _: unknown,
+  { dataSourceId }: { dataSourceId: string },
+): Promise<MutationResponse> => {
+  await enqueue("enrichDataSource", { dataSourceId });
+  return { code: 200 };
 };
 
 export const enqueueImportDataSourceJob = async (
@@ -81,11 +90,13 @@ export const updateDataSourceConfig = async (
   {
     id,
     columnsConfig,
+    rawEnrichmentColumns,
     rawGeocodingConfig,
   }: {
     id: string;
-    columnsConfig: ColumnsConfigInput;
-    rawGeocodingConfig: object;
+    columnsConfig?: ColumnsConfigInput | null;
+    rawEnrichmentColumns?: object | null;
+    rawGeocodingConfig?: object | null;
   },
 ): Promise<MutationResponse> => {
   try {
@@ -93,12 +104,30 @@ export const updateDataSourceConfig = async (
     if (!dataSource) {
       return { code: 404 };
     }
-    const geocodingConfig =
-      DataSourceGeocodingConfigSchema.parse(rawGeocodingConfig);
-    await updateDataSource(id, {
-      columnsConfig: JSON.stringify(columnsConfig),
-      geocodingConfig: JSON.stringify(geocodingConfig),
-    });
+
+    const update: {
+      columnsConfig?: string;
+      enrichmentColumns?: string;
+      geocodingConfig?: string;
+    } = {};
+
+    if (columnsConfig) {
+      update.columnsConfig = JSON.stringify(columnsConfig);
+    }
+
+    if (rawEnrichmentColumns) {
+      const enrichmentColumns =
+        DataSourceEnrichmentColumnsSchema.parse(rawEnrichmentColumns);
+      update.enrichmentColumns = JSON.stringify(enrichmentColumns);
+    }
+
+    if (rawGeocodingConfig) {
+      const geocodingConfig =
+        DataSourceGeocodingConfigSchema.parse(rawGeocodingConfig);
+      update.geocodingConfig = JSON.stringify(geocodingConfig);
+    }
+
+    await updateDataSource(id, update);
     logger.info(
       `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
     );
