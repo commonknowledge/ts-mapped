@@ -10,19 +10,12 @@ import {
 } from "@/__generated__/types";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import {
-  DataSourceEnrichmentColumns,
-  DataSourceEnrichmentColumnsSchema,
-  EnrichmentColumn,
-} from "@/zod";
-import EnrichmentColumnFields, {
-  NewEnrichmentColumn,
-} from "./EnrichmentColumnFields";
+import { EnrichmentSchema } from "@/zod";
+import EnrichmentFields, { NewEnrichment } from "./EnrichmentFields";
 
 export default function DataSourceEnrichmentForm({
   dataSource,
   dataSources,
-  initialEnrichmentColumns,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
   dataSource: Exclude<
@@ -30,15 +23,12 @@ export default function DataSourceEnrichmentForm({
     null | undefined
   >;
   dataSources: DataSourceEnrichmentQuery["dataSources"];
-  initialEnrichmentColumns: DataSourceEnrichmentColumns;
 }) {
-  const [enrichmentColumns, setEnrichmentColumns] = useState<
-    NewEnrichmentColumn[]
-  >(
-    // Add a blank column config if the initial columns are empty
+  const [enrichments, setEnrichments] = useState<NewEnrichment[]>(
+    // Add a blank enrichment config if the initial enrichments are empty
     // to encourage users to get started
-    initialEnrichmentColumns.length
-      ? initialEnrichmentColumns
+    dataSource.enrichments.length
+      ? dataSource.enrichments
       : [{ sourceType: "" }],
   );
 
@@ -47,25 +37,30 @@ export default function DataSourceEnrichmentForm({
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const [updateColumnsConfig] = useMutation<
+  const [updateEnrichments] = useMutation<
     UpdateDataSourceEnrichmentMutation,
     UpdateDataSourceEnrichmentMutationVariables
   >(gql`
     mutation UpdateDataSourceEnrichment(
       $id: String!
-      $rawEnrichmentColumns: [JSON!]
+      $mixedEnrichments: [MixedEnrichmentInput!]
     ) {
-      updateDataSourceConfig(
-        id: $id
-        rawEnrichmentColumns: $rawEnrichmentColumns
-      ) {
+      updateDataSourceConfig(id: $id, mixedEnrichments: $mixedEnrichments) {
         code
       }
     }
   `);
 
-  const { data: validEnrichmentColumns } =
-    DataSourceEnrichmentColumnsSchema.safeParse(enrichmentColumns);
+  let validEnrichments = [];
+  for (const enrichment of enrichments) {
+    const { data: validEnrichment } = EnrichmentSchema.safeParse(enrichment);
+    // If an invalid enrichment is found, mark the whole form as invalid
+    if (!validEnrichment) {
+      validEnrichments = [];
+      break;
+    }
+    validEnrichments.push(validEnrichment);
+  }
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,10 +68,10 @@ export default function DataSourceEnrichmentForm({
     setError("");
 
     try {
-      const result = await updateColumnsConfig({
+      const result = await updateEnrichments({
         variables: {
           id: dataSource.id,
-          rawEnrichmentColumns: validEnrichmentColumns,
+          mixedEnrichments: validEnrichments,
         },
       });
       if (result.data?.updateDataSourceConfig.code !== 200) {
@@ -93,34 +88,31 @@ export default function DataSourceEnrichmentForm({
     setLoading(false);
   };
 
-  const setEnrichmentColumnConfig = (
-    i: number,
-    config: Partial<EnrichmentColumn>,
-  ) => {
-    const column = enrichmentColumns[i];
+  const setEnrichmentConfig = (i: number, config: Partial<NewEnrichment>) => {
+    const column = enrichments[i];
     if (column) {
       Object.assign(column, config);
     }
-    setEnrichmentColumns([...enrichmentColumns]);
+    setEnrichments([...enrichments]);
   };
 
   const addColumn = () => {
-    setEnrichmentColumns([...enrichmentColumns, { sourceType: "" }]);
+    setEnrichments([...enrichments, { sourceType: "" }]);
   };
 
   const removeColumn = (i: number) => {
-    enrichmentColumns.splice(i, 1);
-    setEnrichmentColumns([...enrichmentColumns]);
+    enrichments.splice(i, 1);
+    setEnrichments([...enrichments]);
   };
 
   return (
     <form onSubmit={onSubmit} className="max-w-2xl">
-      {enrichmentColumns.map((column, i) => (
+      {enrichments.map((enrichment, i) => (
         <Fragment key={i}>
-          <EnrichmentColumnFields
-            column={column}
+          <EnrichmentFields
+            enrichment={enrichment}
             dataSources={dataSources}
-            onChange={(config) => setEnrichmentColumnConfig(i, config)}
+            onChange={(config) => setEnrichmentConfig(i, config)}
           />
           <Button
             variant="destructive"
@@ -138,7 +130,7 @@ export default function DataSourceEnrichmentForm({
         </Button>
       </div>
       <Separator className="my-4" />
-      <Button disabled={!validEnrichmentColumns || loading}>Submit</Button>
+      <Button disabled={!validEnrichments.length || loading}>Submit</Button>
       {error && (
         <div>
           <small>{error}</small>

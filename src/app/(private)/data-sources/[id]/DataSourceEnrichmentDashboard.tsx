@@ -4,11 +4,13 @@ import { gql, useMutation, useSubscription } from "@apollo/client";
 import { LoaderPinwheel } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
+  AreaSetCode,
   DataSourceEnrichmentEventSubscription,
   DataSourceEnrichmentEventSubscriptionVariables,
   DataSourceQuery,
   EnqueueEnrichDataSourceJobMutation,
   EnqueueEnrichDataSourceJobMutationVariables,
+  EnrichmentSourceType,
   JobStatus,
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
@@ -17,8 +19,7 @@ import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
-import { EditableDataSourceTypes, EnrichmentSourceType } from "@/types";
-import { EnrichmentColumn } from "@/zod";
+
 export default function DataSourceEnrichmentDashboard({
   // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
@@ -161,64 +162,61 @@ export default function DataSourceEnrichmentDashboard({
       )}
 
       <div className="flex flex-col ">
-        {EditableDataSourceTypes.includes(dataSource.config.type) && (
-          <>
-            <div className="mb-4 flex justify-between">
-              <Label className="text-xl">Enrichment config</Label>
-              <Button asChild={true}>
-                <Link href={`/data-sources/${dataSource.id}/enrichment`}>
-                  Edit
-                </Link>
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {dataSource.enrichmentColumns.map((c: EnrichmentColumn, i) => (
-                <div className="mb-4" key={i}>
-                  <Label className="text-lg">
-                    +&nbsp;
-                    {
-                      EnrichmentSourceTypeLabels[
-                        c.sourceType as EnrichmentSourceType
-                      ]
+        <div className="mb-4 flex justify-between">
+          <Label className="text-xl">Enrichment config</Label>
+          <Button asChild={true}>
+            <Link href={`/data-sources/${dataSource.id}/enrichment`}>Edit</Link>
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {dataSource.enrichments.map((enrichment, i) => (
+            <div className="mb-4" key={i}>
+              <Label className="text-lg">
+                +&nbsp;
+                {
+                  EnrichmentSourceTypeLabels[
+                    enrichment.sourceType as EnrichmentSourceType
+                  ]
+                }
+              </Label>
+              {enrichment.sourceType === EnrichmentSourceType.Area && (
+                <>
+                  <DataListRow
+                    label="Area type"
+                    value={
+                      AreaSetCodeLabels[enrichment.areaSetCode as AreaSetCode]
                     }
-                  </Label>
-                  {c.sourceType === EnrichmentSourceType.Area && (
-                    <>
-                      <DataListRow
-                        label="Area type"
-                        value={AreaSetCodeLabels[c.areaSetCode]}
-                        border
-                      />
-                      <DataListRow
-                        label="Area info"
-                        value={`Area ${c.areaProperty}`}
-                        border
-                      />
-                    </>
-                  )}
-                  {c.sourceType === EnrichmentSourceType.DataSource && (
-                    <>
-                      <DataListRow
-                        label="Data source"
-                        value={
-                          dataSource.enrichmentDataSources?.find(
-                            (dataSource) => dataSource.id === c.dataSourceId,
-                          )?.name || "Unknown"
-                        }
-                        border
-                      />
-                      <DataListRow
-                        label="Data source column"
-                        value={c.dataSourceColumn}
-                        border
-                      />
-                    </>
-                  )}
-                </div>
-              ))}
+                    border
+                  />
+                  <DataListRow
+                    label="Area info"
+                    value={`Area ${enrichment.areaProperty}`}
+                    border
+                  />
+                </>
+              )}
+              {enrichment.sourceType === EnrichmentSourceType.DataSource && (
+                <>
+                  <DataListRow
+                    label="Data source"
+                    value={
+                      dataSource.enrichmentDataSources?.find(
+                        (dataSource) =>
+                          dataSource.id === enrichment.dataSourceId,
+                      )?.name || "Unknown"
+                    }
+                    border
+                  />
+                  <DataListRow
+                    label="Data source column"
+                    value={enrichment.dataSourceColumn || ""}
+                    border
+                  />
+                </>
+              )}
             </div>
-          </>
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );

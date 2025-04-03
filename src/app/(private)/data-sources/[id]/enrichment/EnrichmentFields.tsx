@@ -1,5 +1,10 @@
 import { Select } from "@radix-ui/react-select";
-import { DataSourceEnrichmentQuery } from "@/__generated__/types";
+import {
+  AreaSetCode,
+  DataSourceEnrichmentQuery,
+  EnrichmentSourceType,
+  MixedEnrichment,
+} from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
 import {
@@ -8,23 +13,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { AreaSetCode, EnrichmentSourceType } from "@/types";
-import { EnrichmentColumn } from "@/zod";
 
-export type NewEnrichmentColumn = EnrichmentColumn | { sourceType: "" };
-export default function EnrichmentColumnFields({
-  column,
+// Extend the GraphQL type with a placeholder for new enrichments
+export type NewEnrichment = MixedEnrichment | { sourceType: "" };
+
+export default function EnrichmentFields({
+  enrichment,
   dataSources,
   onChange,
 }: {
-  column: NewEnrichmentColumn;
+  enrichment: NewEnrichment;
   dataSources: DataSourceEnrichmentQuery["dataSources"];
-  onChange: (column: Partial<EnrichmentColumn>) => void;
+  onChange: (enrichment: Partial<NewEnrichment>) => void;
 }) {
   const dataSource = dataSources.find(
     (dataSource) =>
-      column.sourceType === EnrichmentSourceType.DataSource &&
-      dataSource.id === column.dataSourceId,
+      enrichment.sourceType === EnrichmentSourceType.DataSource &&
+      dataSource.id === enrichment.dataSourceId,
   );
   const dataSourceColumns = dataSource?.columnDefs || [];
 
@@ -32,7 +37,7 @@ export default function EnrichmentColumnFields({
     <>
       <DataListRow label="Source type">
         <Select
-          value={column?.sourceType || ""}
+          value={enrichment?.sourceType || ""}
           onValueChange={(sourceType) =>
             onChange({ sourceType } as { sourceType: EnrichmentSourceType })
           }
@@ -55,11 +60,11 @@ export default function EnrichmentColumnFields({
           </SelectContent>
         </Select>
       </DataListRow>
-      {column.sourceType === EnrichmentSourceType.Area && (
+      {enrichment.sourceType === EnrichmentSourceType.Area && (
         <>
           <DataListRow label="Area type">
             <Select
-              value={column.areaSetCode}
+              value={enrichment.areaSetCode || ""}
               onValueChange={(areaSetCode) =>
                 onChange({ areaSetCode } as { areaSetCode: AreaSetCode })
               }
@@ -78,7 +83,7 @@ export default function EnrichmentColumnFields({
           </DataListRow>
           <DataListRow label="Area property">
             <Select
-              value={column.areaProperty}
+              value={enrichment.areaProperty || ""}
               onValueChange={(areaProperty) =>
                 onChange({ areaProperty } as { areaProperty: "code" | "name" })
               }
@@ -98,11 +103,11 @@ export default function EnrichmentColumnFields({
           </DataListRow>
         </>
       )}
-      {column.sourceType === EnrichmentSourceType.DataSource && (
+      {enrichment.sourceType === EnrichmentSourceType.DataSource && (
         <>
           <DataListRow label="Data source">
             <Select
-              value={column.dataSourceId}
+              value={enrichment.dataSourceId || ""}
               onValueChange={(dataSourceId) => onChange({ dataSourceId })}
             >
               <SelectTrigger className="w-[360px]">
@@ -117,15 +122,15 @@ export default function EnrichmentColumnFields({
               </SelectContent>
             </Select>
           </DataListRow>
-          <DataListRow label="Data source">
+          <DataListRow label="Column">
             <Select
-              value={column.dataSourceColumn}
+              value={enrichment.dataSourceColumn || ""}
               onValueChange={(dataSourceColumn) =>
                 onChange({ dataSourceColumn })
               }
             >
               <SelectTrigger className="w-[360px]">
-                <SelectValue placeholder="Select a data source" />
+                <SelectValue placeholder="Select a column" />
               </SelectTrigger>
               <SelectContent>
                 {dataSourceColumns.map((column) => (

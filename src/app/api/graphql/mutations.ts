@@ -1,8 +1,9 @@
 import {
   ColumnDef,
   ColumnType,
-  ColumnsConfigInput,
   DataSource,
+  GeocodingType,
+  MutationUpdateDataSourceConfigArgs,
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
@@ -12,12 +13,11 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
-import { GeocodingType } from "@/types";
 import {
   DataSourceConfigSchema,
-  DataSourceEnrichmentColumnsSchema,
-  DataSourceGeocodingConfig,
-  DataSourceGeocodingConfigSchema,
+  EnrichmentSchema,
+  GeocodingConfig,
+  GeocodingConfigSchema,
 } from "@/zod";
 import { serializeDataSource } from "./serializers";
 
@@ -49,14 +49,14 @@ export const createDataSource = async (
       }),
     );
 
-    const geocodingConfig: DataSourceGeocodingConfig = {
-      type: GeocodingType.none,
+    const geocodingConfig: GeocodingConfig = {
+      type: GeocodingType.None,
     };
     const dataSource = await _createDataSource({
       name,
       config: JSON.stringify(config),
-      columnsConfig: JSON.stringify({}),
-      enrichmentColumns: JSON.stringify([]),
+      columnRoles: JSON.stringify({}),
+      enrichments: JSON.stringify([]),
       geocodingConfig: JSON.stringify(geocodingConfig),
       columnDefs: JSON.stringify(columnDefs),
     });
@@ -89,15 +89,10 @@ export const updateDataSourceConfig = async (
   _: unknown,
   {
     id,
-    columnsConfig,
-    rawEnrichmentColumns,
-    rawGeocodingConfig,
-  }: {
-    id: string;
-    columnsConfig?: ColumnsConfigInput | null;
-    rawEnrichmentColumns?: object | null;
-    rawGeocodingConfig?: object | null;
-  },
+    columnRoles,
+    mixedEnrichments,
+    mixedGeocodingConfig,
+  }: MutationUpdateDataSourceConfigArgs,
 ): Promise<MutationResponse> => {
   try {
     const dataSource = await findDataSourceById(id);
@@ -106,24 +101,25 @@ export const updateDataSourceConfig = async (
     }
 
     const update: {
-      columnsConfig?: string;
-      enrichmentColumns?: string;
+      columnRoles?: string;
+      enrichments?: string;
       geocodingConfig?: string;
     } = {};
 
-    if (columnsConfig) {
-      update.columnsConfig = JSON.stringify(columnsConfig);
+    if (columnRoles) {
+      update.columnRoles = JSON.stringify(columnRoles);
     }
 
-    if (rawEnrichmentColumns) {
-      const enrichmentColumns =
-        DataSourceEnrichmentColumnsSchema.parse(rawEnrichmentColumns);
-      update.enrichmentColumns = JSON.stringify(enrichmentColumns);
+    if (mixedEnrichments) {
+      const enrichments = [];
+      for (const enrichment of mixedEnrichments) {
+        enrichments.push(EnrichmentSchema.parse(enrichment));
+      }
+      update.enrichments = JSON.stringify(enrichments);
     }
 
-    if (rawGeocodingConfig) {
-      const geocodingConfig =
-        DataSourceGeocodingConfigSchema.parse(rawGeocodingConfig);
+    if (mixedGeocodingConfig) {
+      const geocodingConfig = GeocodingConfigSchema.parse(mixedGeocodingConfig);
       update.geocodingConfig = JSON.stringify(geocodingConfig);
     }
 

@@ -13,7 +13,6 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceEnrichmentColumnsSchema } from "@/zod";
 import DataSourceEnrichmentForm from "./DataSourceEnrichmentForm";
 
 export default async function DataSourceEnrichmentPage({
@@ -31,7 +30,13 @@ export default async function DataSourceEnrichmentPage({
         dataSource(id: $id) {
           id
           name
-          enrichmentColumns
+          enrichments {
+            sourceType
+            areaSetCode
+            areaProperty
+            dataSourceId
+            dataSourceColumn
+          }
         }
         dataSources {
           id
@@ -52,12 +57,6 @@ export default async function DataSourceEnrichmentPage({
       </div>
     );
   }
-
-  const { data: enrichmentColumns } =
-    DataSourceEnrichmentColumnsSchema.safeParse(
-      result.data.dataSource.enrichmentColumns,
-    );
-  const initialEnrichmentColumns = enrichmentColumns || [];
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -84,7 +83,6 @@ export default async function DataSourceEnrichmentPage({
       <DataSourceEnrichmentForm
         dataSource={result.data.dataSource}
         dataSources={result.data.dataSources}
-        initialEnrichmentColumns={initialEnrichmentColumns}
       />
     </div>
   );

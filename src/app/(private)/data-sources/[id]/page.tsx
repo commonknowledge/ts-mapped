@@ -4,6 +4,7 @@ import {
   DataSourceQueryVariables,
 } from "@/__generated__/types";
 import { query } from "@/services/ApolloClient";
+import { EditableDataSourceTypes } from "@/types";
 import DataSourceDashboard from "./DataSourceDashboard";
 import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";
 
@@ -24,15 +25,25 @@ export default async function GeocodeDataSourcePage({
             type
           }
           config
-          columnsConfig {
+          columnRoles {
             nameColumn
           }
-          enrichmentColumns
+          enrichments {
+            sourceType
+            areaSetCode
+            areaProperty
+            dataSourceId
+            dataSourceColumn
+          }
           enrichmentDataSources {
             id
             name
           }
-          geocodingConfig
+          geocodingConfig {
+            type
+            column
+            areaSetCode
+          }
           enrichmentInfo {
             lastCompleted
             status
@@ -59,7 +70,9 @@ export default async function GeocodeDataSourcePage({
   return (
     <>
       <DataSourceDashboard dataSource={result.data.dataSource} />
-      <DataSourceEnrichmentDashboard dataSource={result.data.dataSource} />
+      {EditableDataSourceTypes.includes(result.data.dataSource.config.type) && (
+        <DataSourceEnrichmentDashboard dataSource={result.data.dataSource} />
+      )}
     </>
   );
 }

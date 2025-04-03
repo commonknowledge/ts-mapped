@@ -10,29 +10,24 @@ import {
 } from "@/__generated__/types";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import {
-  DataSourceGeocodingConfig,
-  DataSourceGeocodingConfigSchema,
-} from "@/zod";
-import ColumnsConfigFields from "./ColumnsConfigFields";
+import { GeocodingConfigSchema } from "@/zod";
+import ColumnRoleFields from "./ColumnRoleFields";
 import GeocodingConfigFields from "./GeocodingConfigFields";
 
 export default function DataSourceConfigForm({
   dataSource,
-  initialGeocodingConfig,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
   dataSource: Exclude<DataSourceConfigQuery["dataSource"], null | undefined>;
-  initialGeocodingConfig: DataSourceGeocodingConfig;
 }) {
   // Columns config
   const [nameColumn, setNameColumn] = useState<string>(
-    dataSource.columnsConfig.nameColumn || "",
+    dataSource.columnRoles.nameColumn || "",
   );
 
   // Geocoding config
   const [geocodingConfig, setGeocodingConfig] = useState(
-    initialGeocodingConfig,
+    dataSource.geocodingConfig,
   );
 
   // Form state
@@ -40,29 +35,29 @@ export default function DataSourceConfigForm({
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const [updateColumnsConfig] = useMutation<
+  const [updateColumnRoles] = useMutation<
     UpdateDataSourceConfigMutation,
     UpdateDataSourceConfigMutationVariables
   >(gql`
     mutation UpdateDataSourceConfig(
       $id: String!
-      $columnsConfig: ColumnsConfigInput!
-      $rawGeocodingConfig: JSON!
+      $columnRoles: ColumnRolesInput!
+      $mixedGeocodingConfig: MixedGeocodingConfigInput
     ) {
       updateDataSourceConfig(
         id: $id
-        columnsConfig: $columnsConfig
-        rawGeocodingConfig: $rawGeocodingConfig
+        columnRoles: $columnRoles
+        mixedGeocodingConfig: $mixedGeocodingConfig
       ) {
         code
       }
     }
   `);
 
-  const columnsConfig = { nameColumn };
+  const columnRoles = { nameColumn };
 
   const { data: validGeocodingConfig } =
-    DataSourceGeocodingConfigSchema.safeParse(geocodingConfig);
+    GeocodingConfigSchema.safeParse(geocodingConfig);
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,11 +65,11 @@ export default function DataSourceConfigForm({
     setError("");
 
     try {
-      const result = await updateColumnsConfig({
+      const result = await updateColumnRoles({
         variables: {
           id: dataSource.id,
-          columnsConfig,
-          rawGeocodingConfig: geocodingConfig,
+          columnRoles,
+          mixedGeocodingConfig: validGeocodingConfig,
         },
       });
       if (result.data?.updateDataSourceConfig.code !== 200) {
@@ -94,7 +89,7 @@ export default function DataSourceConfigForm({
   return (
     <form onSubmit={onSubmit} className="max-w-2xl">
       <h2 className="text-xl tracking-tight font-light">Data setup</h2>
-      <ColumnsConfigFields
+      <ColumnRoleFields
         dataSource={dataSource}
         nameColumn={nameColumn}
         setNameColumn={setNameColumn}
@@ -105,9 +100,7 @@ export default function DataSourceConfigForm({
         dataSource={dataSource}
         geocodingConfig={geocodingConfig}
         onChange={(nextGeocodingConfig) =>
-          setGeocodingConfig(
-            Object.assign({}, geocodingConfig, nextGeocodingConfig),
-          )
+          setGeocodingConfig({ ...geocodingConfig, ...nextGeocodingConfig })
         }
       />
       <Button disabled={!validGeocodingConfig || loading}>Submit</Button>

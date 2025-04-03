@@ -6,11 +6,7 @@ import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/Dat
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { ExternalRecord, GeocodeResult } from "@/types";
-import {
-  AreaEnrichmentColumn,
-  DataSourceEnrichmentColumn,
-  EnrichmentColumn,
-} from "@/zod";
+import { AreaEnrichment, DataSourceEnrichment, Enrichment } from "@/zod";
 import { geocodeRecord } from "./geocode";
 
 export interface EnrichedRecord {
@@ -34,11 +30,11 @@ export const enrichRecord = async (
   }
 
   const enrichedColumns = [];
-  for (const enrichmentColumn of dataSource.enrichmentColumns) {
+  for (const enrichmentCo of dataSource.enrichments) {
     const enrichedColumn = await getEnrichedColumn(
       record,
       geocodeResult,
-      enrichmentColumn,
+      enrichmentCo,
     );
     if (enrichedColumn) {
       enrichedColumns.push({
@@ -60,21 +56,21 @@ export const enrichRecord = async (
 const getEnrichedColumn = async (
   record: ExternalRecord,
   recordGeocodeResult: GeocodeResult,
-  enrichmentColumn: EnrichmentColumn,
+  enrichmentCo: Enrichment,
 ): Promise<EnrichedRecord["columns"][0] | null> => {
   try {
-    if (enrichmentColumn.sourceType === "Area") {
-      return await getAreaEnrichedColumn(recordGeocodeResult, enrichmentColumn);
+    if (enrichmentCo.sourceType === "Area") {
+      return await getAreaEnrichedColumn(recordGeocodeResult, enrichmentCo);
     }
-    if (enrichmentColumn.sourceType === "DataSource") {
+    if (enrichmentCo.sourceType === "DataSource") {
       return await getDataSourceEnrichedColumn(
         recordGeocodeResult,
-        enrichmentColumn,
+        enrichmentCo,
       );
     }
   } catch (error) {
     logger.warn(
-      `${enrichmentColumn.sourceType} enrichment error for record ${record.externalId}`,
+      `${enrichmentCo.sourceType} enrichment error for record ${record.externalId}`,
       { error },
     );
   }
@@ -83,12 +79,12 @@ const getEnrichedColumn = async (
 
 const getAreaEnrichedColumn = async (
   recordGeocodeResult: GeocodeResult,
-  enrichmentColumn: AreaEnrichmentColumn,
+  enrichmentCo: AreaEnrichment,
 ): Promise<EnrichedRecord["columns"][0]> => {
-  const areaSet = await findAreaSetByCode(enrichmentColumn.areaSetCode);
+  const areaSet = await findAreaSetByCode(enrichmentCo.areaSetCode);
   if (!areaSet) {
     throw new Error(
-      `Could not find area set with code ${enrichmentColumn.areaSetCode}`,
+      `Could not find area set with code ${enrichmentCo.areaSetCode}`,
     );
   }
 
@@ -102,7 +98,7 @@ const getAreaEnrichedColumn = async (
   const area = await findAreaByCode(areaCode, areaSet.code);
   if (!area) {
     throw new Error(
-      `Could not find area with code "${areaCode}" from requested set ${enrichmentColumn.areaSetCode}`,
+      `Could not find area with code "${areaCode}" from requested set ${enrichmentCo.areaSetCode}`,
     );
   }
 
@@ -111,13 +107,13 @@ const getAreaEnrichedColumn = async (
       name: areaSet.name,
       type: ColumnType.String,
     },
-    value: area[enrichmentColumn.areaProperty],
+    value: area[enrichmentCo.areaProperty],
   };
 };
 
 const getDataSourceEnrichedColumn = async (
   recordGeocodeResult: GeocodeResult,
-  { dataSourceId, dataSourceColumn }: DataSourceEnrichmentColumn,
+  { dataSourceId, dataSourceColumn }: DataSourceEnrichment,
 ): Promise<EnrichedRecord["columns"][0]> => {
   // TODO: security
   const dataSource = await findDataSourceById(dataSourceId);

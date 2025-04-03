@@ -1,4 +1,9 @@
-import { DataSourceConfigQuery } from "@/__generated__/types";
+import {
+  AreaSetCode,
+  DataSourceConfigQuery,
+  GeocodingType,
+  MixedGeocodingConfig,
+} from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
 import {
@@ -8,33 +13,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { AreaSetCode, GeocodingType } from "@/types";
-import { DataSourceGeocodingConfig, GeocodingOnAreaSetType } from "@/zod";
+import { GeocodingOnAreaSetType } from "@/zod";
 
 /**
  * This is a little complicated as it includes a front-end only
- * "postcode" option for the "Geocoding type" dropdown.
+ * "Postcode" option for the "Geocoding type" dropdown.
  *
  * There is code to detect when this should be selected, and
  * to convert into a valid geocoding config.
  */
+type FriendlyGeocodingType = GeocodingType | "Postcode";
+
 export default function GeocodingConfigFields({
   dataSource,
   geocodingConfig,
   onChange,
 }: {
   dataSource: DataSourceConfigQuery["dataSource"];
-  geocodingConfig: DataSourceGeocodingConfig;
-  onChange: (config: Partial<DataSourceGeocodingConfig>) => void;
+  geocodingConfig: MixedGeocodingConfig;
+  onChange: (config: Partial<MixedGeocodingConfig>) => void;
 }) {
-  const column = "column" in geocodingConfig ? geocodingConfig.column : "";
-  const areaSetCode =
-    "areaSetCode" in geocodingConfig ? geocodingConfig.areaSetCode : "";
+  const column = geocodingConfig.column || "";
+  const areaSetCode = geocodingConfig.areaSetCode || "";
 
-  // Convert "postcode" type to a valid geocoding config
-  const onTypeChange = (type: GeocodingType | "postcode") => {
-    if (type === "postcode") {
-      onChange({ type: GeocodingType.code, areaSetCode: AreaSetCode.PC });
+  // Convert "Postcode" type to a valid geocoding config
+  const onTypeChange = (type: FriendlyGeocodingType) => {
+    if (type === "Postcode") {
+      onChange({ type: GeocodingType.Code, areaSetCode: AreaSetCode.PC });
     } else if (areaSetCode === AreaSetCode.PC) {
       // Reset the areaSetCode if changing from postcode to other type
       onChange({ type, areaSetCode: dataSource?.geocodingConfig.areaSetCode });
@@ -43,11 +48,11 @@ export default function GeocodingConfigFields({
     }
   };
 
-  let typeSelectValue: GeocodingType | "postcode" | "" = geocodingConfig.type;
-  if (typeSelectValue === GeocodingType.none) {
+  let typeSelectValue: FriendlyGeocodingType | "" = geocodingConfig.type;
+  if (typeSelectValue === GeocodingType.None) {
     typeSelectValue = ""; // The select value needs to be "" to show the placeholder
   } else if (areaSetCode === AreaSetCode.PC) {
-    typeSelectValue = "postcode"; // Detect "postcode" config
+    typeSelectValue = "Postcode"; // Detect "Postcode" config
   }
 
   return (
@@ -74,7 +79,7 @@ export default function GeocodingConfigFields({
           </SelectTrigger>
           <SelectContent>
             {Object.keys(GeocodingTypeLabels)
-              .filter((type) => type !== GeocodingType.none)
+              .filter((type) => type !== GeocodingType.None)
               .map((type) => (
                 <SelectItem key={type} value={type}>
                   {GeocodingTypeLabels[type as GeocodingType]}

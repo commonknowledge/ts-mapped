@@ -7,6 +7,8 @@ generates:
   ./src/__generated__/types.ts:
     config:
       contextType: ../app/api/graphql/context#GraphQLContext
+      namingConvention:
+        enumValues: keep
     plugins:
       - typescript
       - typescript-operations

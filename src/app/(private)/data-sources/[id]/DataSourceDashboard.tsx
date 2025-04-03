@@ -4,11 +4,13 @@ import { gql, useMutation, useSubscription } from "@apollo/client";
 import { LoaderPinwheel } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
+  AreaSetCode,
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
   DataSourceQuery,
   EnqueueImportDataSourceJobMutation,
   EnqueueImportDataSourceJobMutationVariables,
+  GeocodingType,
   JobStatus,
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
@@ -27,7 +29,7 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
-import { AreaSetCode, GeocodingType } from "@/types";
+import { GeocodingOnAreaSetType } from "@/zod";
 
 export default function DataSourceDashboard({
   // Mark dataSource as not null or undefined (this is checked in the parent page)
@@ -116,6 +118,7 @@ export default function DataSourceDashboard({
 
   const isPostcodeData =
     dataSource.geocodingConfig.areaSetCode === AreaSetCode.PC;
+  const isAreaData = dataSource.geocodingConfig.type in GeocodingOnAreaSetType;
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -207,7 +210,7 @@ export default function DataSourceDashboard({
             <Label className="text-lg">Columns</Label>
             <DataListRow
               label="Name column"
-              value={`"${dataSource.columnsConfig.nameColumn}"`}
+              value={`"${dataSource.columnRoles.nameColumn}"`}
               border
             />
           </div>
@@ -217,7 +220,7 @@ export default function DataSourceDashboard({
               label="Geocoding type"
               value={
                 isPostcodeData
-                  ? GeocodingTypeLabels.postcode
+                  ? GeocodingTypeLabels.Postcode
                   : GeocodingTypeLabels[
                       dataSource.geocodingConfig.type as GeocodingType
                     ]
@@ -226,16 +229,20 @@ export default function DataSourceDashboard({
             />
             <DataListRow
               label="Location column"
-              value={`"${dataSource.geocodingConfig.column}"`}
+              value={
+                dataSource.geocodingConfig.column
+                  ? `"${dataSource.geocodingConfig.column}"`
+                  : "None"
+              }
               border
             />
-            {!isPostcodeData && (
+            {isAreaData && !isPostcodeData && (
               <DataListRow
                 label="Area type"
                 value={
                   AreaSetCodeLabels[
                     dataSource.geocodingConfig.areaSetCode as AreaSetCode
-                  ]
+                  ] || "None"
                 }
                 border
               />

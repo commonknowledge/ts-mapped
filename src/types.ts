@@ -1,19 +1,5 @@
 // Don't import anything into this file
 
-export enum AreaSetCode {
-  OA21 = "OA21",
-  PC = "PC",
-  MSOA21 = "MSOA21",
-  WMC24 = "WMC24",
-}
-
-export interface BoundingBox {
-  north: number;
-  east: number;
-  south: number;
-  west: number;
-}
-
 export interface CurrentUser {
   id: string;
 }
@@ -29,11 +15,6 @@ export const EditableDataSourceTypes = [
   DataSourceType.mailchimp,
 ];
 
-export enum EnrichmentSourceType {
-  Area = "Area",
-  DataSource = "DataSource",
-}
-
 export interface ExternalRecord {
   externalId: string;
   json: Record<string, unknown>;
@@ -43,13 +24,6 @@ export interface GeocodeResult {
   areas: Record<string, string>;
   centralPoint: Point | null;
   samplePoint: Point | null;
-}
-
-export enum GeocodingType {
-  address = "address",
-  code = "code",
-  name = "name",
-  none = "none",
 }
 
 export interface MarkerData {

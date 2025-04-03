@@ -13,8 +13,6 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
-import { GeocodingType } from "@/types";
-import { DataSourceGeocodingConfigSchema } from "@/zod";
 import DataSourceConfigForm from "./DataSourceConfigForm";
 
 export default async function DataSourceConfigPage({
@@ -36,10 +34,14 @@ export default async function DataSourceConfigPage({
             name
             type
           }
-          columnsConfig {
+          columnRoles {
             nameColumn
           }
-          geocodingConfig
+          geocodingConfig {
+            type
+            column
+            areaSetCode
+          }
         }
       }
     `,
@@ -53,13 +55,6 @@ export default async function DataSourceConfigPage({
       </div>
     );
   }
-
-  const { data: geocodingConfig } = DataSourceGeocodingConfigSchema.safeParse(
-    result.data.dataSource.geocodingConfig,
-  );
-  const initialGeocodingConfig = geocodingConfig || {
-    type: GeocodingType.none,
-  };
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -83,10 +78,7 @@ export default async function DataSourceConfigPage({
         description="Tell us about your data to take full advantage of Mapped."
       />
       <Separator className="my-4" />
-      <DataSourceConfigForm
-        dataSource={result.data.dataSource}
-        initialGeocodingConfig={initialGeocodingConfig}
-      />
+      <DataSourceConfigForm dataSource={result.data.dataSource} />
     </div>
   );
 }

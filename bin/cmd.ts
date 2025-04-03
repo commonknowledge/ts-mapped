@@ -10,7 +10,7 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { quit as quitRedis } from "@/server/services/pubsub";
 import { runWorker } from "@/server/services/queue";
-import { DataSourceConfigSchema, DataSourceGeocodingConfigSchema } from "@/zod";
+import { DataSourceConfigSchema, GeocodingConfigSchema } from "@/zod";
 
 const program = new Command();
 
@@ -27,15 +27,15 @@ program
     const parsedConfig = DataSourceConfigSchema.parse(
       JSON.parse(options.config),
     );
-    const parsedGeocodingConfig = DataSourceGeocodingConfigSchema.parse(
+    const parsedGeocodingConfig = GeocodingConfigSchema.parse(
       JSON.parse(options.geocodingConfig),
     );
     const dataSource = await createDataSource({
       name: options.name,
       config: JSON.stringify(parsedConfig),
       columnDefs: "[]",
-      columnsConfig: "{}",
-      enrichmentColumns: "[]",
+      columnRoles: "{}",
+      enrichments: "[]",
       geocodingConfig: JSON.stringify(parsedGeocodingConfig),
     });
     logger.info(`Created data source ${options.name}, ID ${dataSource.id}`);
