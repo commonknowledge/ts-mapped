@@ -2,8 +2,8 @@ import {
   AreaSetCode,
   EnrichmentSourceType,
   GeocodingType,
-  MixedEnrichment,
-  MixedGeocodingConfig,
+  LooseEnrichment,
+  LooseGeocodingConfig,
 } from "@/__generated__/types";
 import { Enrichment, GeocodingConfig } from "@/zod";
 
@@ -18,7 +18,7 @@ import { Enrichment, GeocodingConfig } from "@/zod";
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const enrichmentTypeChecks: Record<EnrichmentSourceType, MixedEnrichment> = {
+const enrichmentTypeChecks: Record<EnrichmentSourceType, LooseEnrichment> = {
   [EnrichmentSourceType.Area]: {
     sourceType: EnrichmentSourceType.Area,
     areaSetCode: AreaSetCode.MSOA21,
@@ -32,7 +32,7 @@ const enrichmentTypeChecks: Record<EnrichmentSourceType, MixedEnrichment> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const geocodingTypeChecks: Record<GeocodingType, MixedGeocodingConfig> = {
+const geocodingTypeChecks: Record<GeocodingType, LooseGeocodingConfig> = {
   [GeocodingType.Address]: {
     type: GeocodingType.Address,
     column: "test",

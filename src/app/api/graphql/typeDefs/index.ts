@@ -53,13 +53,13 @@ const typeDefs = `
     nameColumn: String!
   }
 
-  input MixedGeocodingConfigInput {
+  input LooseGeocodingConfigInput {
     type: GeocodingType!
     column: String
     areaSetCode: AreaSetCode
   }
 
-  input MixedEnrichmentInput {
+  input LooseEnrichmentInput {
     sourceType: EnrichmentSourceType!
     areaSetCode: AreaSetCode
     areaProperty: String
@@ -90,8 +90,8 @@ const typeDefs = `
     columnDefs: [ColumnDef!]!
     config: JSON!
     columnRoles: ColumnRoles!
-    enrichments: [MixedEnrichment!]!
-    geocodingConfig: MixedGeocodingConfig!
+    enrichments: [LooseEnrichment!]!
+    geocodingConfig: LooseGeocodingConfig!
 
     enrichmentDataSources: [DataSource!]
     enrichmentInfo: JobInfo
@@ -118,16 +118,16 @@ const typeDefs = `
 
   """
   GraphQL doesn't have discriminated union types like Typescript.
-  Instead, Mixed types contain all possible properties, and data
+  Instead, Loose types contain all possible properties, and data
   should be validated with the corresponding Zod type before use.
   """
-  type MixedGeocodingConfig {
+  type LooseGeocodingConfig {
     type: GeocodingType!
     column: String
     areaSetCode: AreaSetCode
   }
 
-  type MixedEnrichment {
+  type LooseEnrichment {
     sourceType: EnrichmentSourceType!
     areaSetCode: AreaSetCode
     areaProperty: String
@@ -165,8 +165,8 @@ const typeDefs = `
     updateDataSourceConfig(
       id: String!
       columnRoles: ColumnRolesInput
-      mixedGeocodingConfig: MixedGeocodingConfigInput
-      mixedEnrichments: [MixedEnrichmentInput!]
+      looseGeocodingConfig: LooseGeocodingConfigInput
+      looseEnrichments: [LooseEnrichmentInput!]
     ): MutationResponse!
   }
 

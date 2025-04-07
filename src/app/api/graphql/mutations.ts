@@ -90,8 +90,8 @@ export const updateDataSourceConfig = async (
   {
     id,
     columnRoles,
-    mixedEnrichments,
-    mixedGeocodingConfig,
+    looseEnrichments,
+    looseGeocodingConfig,
   }: MutationUpdateDataSourceConfigArgs,
 ): Promise<MutationResponse> => {
   try {
@@ -110,16 +110,16 @@ export const updateDataSourceConfig = async (
       update.columnRoles = JSON.stringify(columnRoles);
     }
 
-    if (mixedEnrichments) {
+    if (looseEnrichments) {
       const enrichments = [];
-      for (const enrichment of mixedEnrichments) {
+      for (const enrichment of looseEnrichments) {
         enrichments.push(EnrichmentSchema.parse(enrichment));
       }
       update.enrichments = JSON.stringify(enrichments);
     }
 
-    if (mixedGeocodingConfig) {
-      const geocodingConfig = GeocodingConfigSchema.parse(mixedGeocodingConfig);
+    if (looseGeocodingConfig) {
+      const geocodingConfig = GeocodingConfigSchema.parse(looseGeocodingConfig);
       update.geocodingConfig = JSON.stringify(geocodingConfig);
     }
 

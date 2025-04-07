@@ -43,9 +43,9 @@ export default function DataSourceEnrichmentForm({
   >(gql`
     mutation UpdateDataSourceEnrichment(
       $id: String!
-      $mixedEnrichments: [MixedEnrichmentInput!]
+      $looseEnrichments: [LooseEnrichmentInput!]
     ) {
-      updateDataSourceConfig(id: $id, mixedEnrichments: $mixedEnrichments) {
+      updateDataSourceConfig(id: $id, looseEnrichments: $looseEnrichments) {
         code
       }
     }
@@ -71,7 +71,7 @@ export default function DataSourceEnrichmentForm({
       const result = await updateEnrichments({
         variables: {
           id: dataSource.id,
-          mixedEnrichments: validEnrichments,
+          looseEnrichments: validEnrichments,
         },
       });
       if (result.data?.updateDataSourceConfig.code !== 200) {

@@ -42,12 +42,12 @@ export default function DataSourceConfigForm({
     mutation UpdateDataSourceConfig(
       $id: String!
       $columnRoles: ColumnRolesInput!
-      $mixedGeocodingConfig: MixedGeocodingConfigInput
+      $looseGeocodingConfig: LooseGeocodingConfigInput
     ) {
       updateDataSourceConfig(
         id: $id
         columnRoles: $columnRoles
-        mixedGeocodingConfig: $mixedGeocodingConfig
+        looseGeocodingConfig: $looseGeocodingConfig
       ) {
         code
       }
@@ -69,7 +69,7 @@ export default function DataSourceConfigForm({
         variables: {
           id: dataSource.id,
           columnRoles,
-          mixedGeocodingConfig: validGeocodingConfig,
+          looseGeocodingConfig: validGeocodingConfig,
         },
       });
       if (result.data?.updateDataSourceConfig.code !== 200) {

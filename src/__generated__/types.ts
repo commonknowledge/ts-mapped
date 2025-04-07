@@ -102,8 +102,8 @@ export type DataSource = {
   createdAt: Scalars["String"]["output"];
   enrichmentDataSources?: Maybe<Array<DataSource>>;
   enrichmentInfo?: Maybe<JobInfo>;
-  enrichments: Array<MixedEnrichment>;
-  geocodingConfig: MixedGeocodingConfig;
+  enrichments: Array<LooseEnrichment>;
+  geocodingConfig: LooseGeocodingConfig;
   id: Scalars["String"]["output"];
   importInfo?: Maybe<JobInfo>;
   /**
@@ -163,8 +163,8 @@ export enum JobStatus {
   Running = "Running",
 }
 
-export type MixedEnrichment = {
-  __typename?: "MixedEnrichment";
+export type LooseEnrichment = {
+  __typename?: "LooseEnrichment";
   areaProperty?: Maybe<Scalars["String"]["output"]>;
   areaSetCode?: Maybe<AreaSetCode>;
   dataSourceColumn?: Maybe<Scalars["String"]["output"]>;
@@ -172,7 +172,7 @@ export type MixedEnrichment = {
   sourceType: EnrichmentSourceType;
 };
 
-export type MixedEnrichmentInput = {
+export type LooseEnrichmentInput = {
   areaProperty?: InputMaybe<Scalars["String"]["input"]>;
   areaSetCode?: InputMaybe<AreaSetCode>;
   dataSourceColumn?: InputMaybe<Scalars["String"]["input"]>;
@@ -182,17 +182,17 @@ export type MixedEnrichmentInput = {
 
 /**
  * GraphQL doesn't have discriminated union types like Typescript.
- * Instead, Mixed types contain all possible properties, and data
+ * Instead, Loose types contain all possible properties, and data
  * should be validated with the corresponding Zod type before use.
  */
-export type MixedGeocodingConfig = {
-  __typename?: "MixedGeocodingConfig";
+export type LooseGeocodingConfig = {
+  __typename?: "LooseGeocodingConfig";
   areaSetCode?: Maybe<AreaSetCode>;
   column?: Maybe<Scalars["String"]["output"]>;
   type: GeocodingType;
 };
 
-export type MixedGeocodingConfigInput = {
+export type LooseGeocodingConfigInput = {
   areaSetCode?: InputMaybe<AreaSetCode>;
   column?: InputMaybe<Scalars["String"]["input"]>;
   type: GeocodingType;
@@ -222,8 +222,8 @@ export type MutationEnqueueImportDataSourceJobArgs = {
 export type MutationUpdateDataSourceConfigArgs = {
   columnRoles?: InputMaybe<ColumnRolesInput>;
   id: Scalars["String"]["input"];
-  mixedEnrichments?: InputMaybe<Array<MixedEnrichmentInput>>;
-  mixedGeocodingConfig?: InputMaybe<MixedGeocodingConfigInput>;
+  looseEnrichments?: InputMaybe<Array<LooseEnrichmentInput>>;
+  looseGeocodingConfig?: InputMaybe<LooseGeocodingConfigInput>;
 };
 
 export type MutationResponse = {
@@ -326,7 +326,7 @@ export type DataSourceEnrichmentEventSubscription = {
 export type UpdateDataSourceConfigMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   columnRoles: ColumnRolesInput;
-  mixedGeocodingConfig?: InputMaybe<MixedGeocodingConfigInput>;
+  looseGeocodingConfig?: InputMaybe<LooseGeocodingConfigInput>;
 }>;
 
 export type UpdateDataSourceConfigMutation = {
@@ -351,7 +351,7 @@ export type DataSourceConfigQuery = {
     }>;
     columnRoles: { __typename?: "ColumnRoles"; nameColumn?: string | null };
     geocodingConfig: {
-      __typename?: "MixedGeocodingConfig";
+      __typename?: "LooseGeocodingConfig";
       type: GeocodingType;
       column?: string | null;
       areaSetCode?: AreaSetCode | null;
@@ -361,8 +361,8 @@ export type DataSourceConfigQuery = {
 
 export type UpdateDataSourceEnrichmentMutationVariables = Exact<{
   id: Scalars["String"]["input"];
-  mixedEnrichments?: InputMaybe<
-    Array<MixedEnrichmentInput> | MixedEnrichmentInput
+  looseEnrichments?: InputMaybe<
+    Array<LooseEnrichmentInput> | LooseEnrichmentInput
   >;
 }>;
 
@@ -382,7 +382,7 @@ export type DataSourceEnrichmentQuery = {
     id: string;
     name: string;
     enrichments: Array<{
-      __typename?: "MixedEnrichment";
+      __typename?: "LooseEnrichment";
       sourceType: EnrichmentSourceType;
       areaSetCode?: AreaSetCode | null;
       areaProperty?: string | null;
@@ -417,7 +417,7 @@ export type DataSourceQuery = {
     }>;
     columnRoles: { __typename?: "ColumnRoles"; nameColumn?: string | null };
     enrichments: Array<{
-      __typename?: "MixedEnrichment";
+      __typename?: "LooseEnrichment";
       sourceType: EnrichmentSourceType;
       areaSetCode?: AreaSetCode | null;
       areaProperty?: string | null;
@@ -430,7 +430,7 @@ export type DataSourceQuery = {
       name: string;
     }> | null;
     geocodingConfig: {
-      __typename?: "MixedGeocodingConfig";
+      __typename?: "LooseGeocodingConfig";
       type: GeocodingType;
       column?: string | null;
       areaSetCode?: AreaSetCode | null;
@@ -653,10 +653,10 @@ export type ResolversTypes = {
   JobFailedEvent: ResolverTypeWrapper<JobFailedEvent>;
   JobInfo: ResolverTypeWrapper<JobInfo>;
   JobStatus: JobStatus;
-  MixedEnrichment: ResolverTypeWrapper<MixedEnrichment>;
-  MixedEnrichmentInput: MixedEnrichmentInput;
-  MixedGeocodingConfig: ResolverTypeWrapper<MixedGeocodingConfig>;
-  MixedGeocodingConfigInput: MixedGeocodingConfigInput;
+  LooseEnrichment: ResolverTypeWrapper<LooseEnrichment>;
+  LooseEnrichmentInput: LooseEnrichmentInput;
+  LooseGeocodingConfig: ResolverTypeWrapper<LooseGeocodingConfig>;
+  LooseGeocodingConfigInput: LooseGeocodingConfigInput;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
@@ -684,10 +684,10 @@ export type ResolversParentTypes = {
   JobCompleteEvent: JobCompleteEvent;
   JobFailedEvent: JobFailedEvent;
   JobInfo: JobInfo;
-  MixedEnrichment: MixedEnrichment;
-  MixedEnrichmentInput: MixedEnrichmentInput;
-  MixedGeocodingConfig: MixedGeocodingConfig;
-  MixedGeocodingConfigInput: MixedGeocodingConfigInput;
+  LooseEnrichment: LooseEnrichment;
+  LooseEnrichmentInput: LooseEnrichmentInput;
+  LooseGeocodingConfig: LooseGeocodingConfig;
+  LooseGeocodingConfigInput: LooseGeocodingConfigInput;
   Mutation: {};
   MutationResponse: MutationResponse;
   Query: {};
@@ -782,12 +782,12 @@ export type DataSourceResolvers<
     ContextType
   >;
   enrichments?: Resolver<
-    Array<ResolversTypes["MixedEnrichment"]>,
+    Array<ResolversTypes["LooseEnrichment"]>,
     ParentType,
     ContextType
   >;
   geocodingConfig?: Resolver<
-    ResolversTypes["MixedGeocodingConfig"],
+    ResolversTypes["LooseGeocodingConfig"],
     ParentType,
     ContextType
   >;
@@ -883,10 +883,10 @@ export type JobInfoResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MixedEnrichmentResolvers<
+export type LooseEnrichmentResolvers<
   ContextType = GraphQLContext,
   ParentType extends
-    ResolversParentTypes["MixedEnrichment"] = ResolversParentTypes["MixedEnrichment"],
+    ResolversParentTypes["LooseEnrichment"] = ResolversParentTypes["LooseEnrichment"],
 > = {
   areaProperty?: Resolver<
     Maybe<ResolversTypes["String"]>,
@@ -916,10 +916,10 @@ export type MixedEnrichmentResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MixedGeocodingConfigResolvers<
+export type LooseGeocodingConfigResolvers<
   ContextType = GraphQLContext,
   ParentType extends
-    ResolversParentTypes["MixedGeocodingConfig"] = ResolversParentTypes["MixedGeocodingConfig"],
+    ResolversParentTypes["LooseGeocodingConfig"] = ResolversParentTypes["LooseGeocodingConfig"],
 > = {
   areaSetCode?: Resolver<
     Maybe<ResolversTypes["AreaSetCode"]>,
@@ -1034,8 +1034,8 @@ export type Resolvers<ContextType = GraphQLContext> = {
   JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;
   JobFailedEvent?: JobFailedEventResolvers<ContextType>;
   JobInfo?: JobInfoResolvers<ContextType>;
-  MixedEnrichment?: MixedEnrichmentResolvers<ContextType>;
-  MixedGeocodingConfig?: MixedGeocodingConfigResolvers<ContextType>;
+  LooseEnrichment?: LooseEnrichmentResolvers<ContextType>;
+  LooseGeocodingConfig?: LooseGeocodingConfigResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

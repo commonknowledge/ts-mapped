@@ -2,7 +2,7 @@ import {
   AreaSetCode,
   DataSourceConfigQuery,
   GeocodingType,
-  MixedGeocodingConfig,
+  LooseGeocodingConfig,
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
@@ -30,8 +30,8 @@ export default function GeocodingConfigFields({
   onChange,
 }: {
   dataSource: DataSourceConfigQuery["dataSource"];
-  geocodingConfig: MixedGeocodingConfig;
-  onChange: (config: Partial<MixedGeocodingConfig>) => void;
+  geocodingConfig: LooseGeocodingConfig;
+  onChange: (config: Partial<LooseGeocodingConfig>) => void;
 }) {
   const column = geocodingConfig.column || "";
   const areaSetCode = geocodingConfig.areaSetCode || "";
