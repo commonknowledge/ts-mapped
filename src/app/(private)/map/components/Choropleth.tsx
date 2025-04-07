@@ -2,7 +2,7 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { AreaStats } from "@/__generated__/types";
 import { useFillColor } from "@/app/(private)/map/colors";
 import { ChoroplethLayerConfig } from "@/app/(private)/map/sources";
-import { MapConfig } from "./Settings";
+import { MapConfig } from "./Controls";
 
 export default function Choropleth({
   areaStats,
@@ -37,16 +37,18 @@ export default function Choropleth({
       />
 
       {/* Line Layer */}
-      <Layer
-        id={`${sourceId}-line`}
-        source={sourceId}
-        source-layer={layerId}
-        type="line"
-        paint={{
-          "line-color": "#999",
-          "line-width": 1,
-        }}
-      />
+      {mapConfig.showBoundaryOutline && (
+        <Layer
+          id={`${sourceId}-line`}
+          source={sourceId}
+          source-layer={layerId}
+          type="line"
+          paint={{
+            "line-color": "#999",
+            "line-width": 1,
+          }}
+        />
+      )}
 
       {/* Symbol Layer (Labels) */}
       {mapConfig.showLabels && (

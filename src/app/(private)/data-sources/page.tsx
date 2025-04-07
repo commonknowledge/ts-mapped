@@ -7,6 +7,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { DataSourceCard } from "./components/DataSourceCard";
+
 export default async function DataSourcesPage() {
   const apolloClient = await getClient();
   const { data } = await apolloClient.query({
