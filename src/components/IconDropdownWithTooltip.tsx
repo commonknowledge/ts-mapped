@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,13 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { Button } from "@/shadcn/ui/button";
 import {
+  Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@radix-ui/react-tooltip";
-import { Tooltip } from "@/shadcn/ui/tooltip";
+} from "@/shadcn/ui/tooltip";
 
 interface DropdownItem {
   label: string;
@@ -68,7 +68,7 @@ export default function IconDropdownWithTooltip({
                     {item.icon && item.icon}
                     {item.label}
                   </DropdownMenuItem>
-                )
+                ),
               )}
             </DropdownMenuContent>
           </DropdownMenu>

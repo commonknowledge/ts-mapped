@@ -1,23 +1,21 @@
-import { SearchResult } from "@/types";
 import { Check, Database, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Input } from "@/shadcn/ui/input";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/shadcn/ui/accordion";
 import { Button } from "@/shadcn/ui/button";
-
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-import { Label } from "@/shadcn/ui/label";
-import { Separator } from "@/shadcn/ui/separator";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/shadcn/ui/accordion";
+import { Input } from "@/shadcn/ui/input";
+
+import { SearchResult } from "@/types";
 interface SearchHistoryProps {
   history: SearchResult[];
   onSelect: (coordinates: [number, number]) => void;
@@ -106,7 +104,7 @@ export default function MarkerList({
                         </li>
                         <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
                           <span className="flex-grow cursor-pointer text-sm">
-                            St. Mary's Catholic Primary School
+                            {"St. Mary's Catholic Primary School"}
                           </span>
                         </li>
                         <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">

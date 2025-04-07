@@ -1,3 +1,4 @@
+import { Geometry } from "geojson";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { DrawnPolygon } from "@/types";
 
@@ -7,11 +8,11 @@ interface PolygonsProps {
 
 export default function Polygons({ polygons }: PolygonsProps) {
   const features = {
-    type: "FeatureCollection",
+    type: "FeatureCollection" as const,
     features: polygons.map((polygon) => ({
-      type: "Feature",
+      type: "Feature" as const,
       id: polygon.id,
-      geometry: polygon.geometry,
+      geometry: polygon.geometry as Geometry,
       properties: {
         area: polygon.area,
         timestamp: polygon.timestamp,

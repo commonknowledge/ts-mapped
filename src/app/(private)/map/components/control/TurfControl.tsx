@@ -1,11 +1,12 @@
-import TurfHistory from "../dataLists/TurfList";
-import { mapColors } from "@/app/(private)/map/styles";
+import { PlusIcon } from "lucide-react";
 import { MapRef } from "react-map-gl/mapbox";
+import { mapColors } from "@/app/(private)/map/styles";
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DrawnPolygon } from "@/types";
+import TurfHistory from "../dataLists/TurfList";
 import SkeletonGroup from "../SkeletonGroup";
 import LayerHeader from "./LayerHeader";
-import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import { PlusIcon } from "lucide-react";
+
 interface TurfControlProps {
   turfHistory: DrawnPolygon[];
   mapRef: React.RefObject<MapRef | null>;
@@ -13,7 +14,6 @@ interface TurfControlProps {
   isLoading?: boolean;
   showTurf: boolean;
   setShowTurf: (showTurf: boolean) => void;
-  editingPolygon: DrawnPolygon | null;
   setEditingPolygon: (polygon: DrawnPolygon | null) => void;
 }
 
@@ -24,7 +24,6 @@ export default function TurfControl({
   isLoading = false,
   showTurf,
   setShowTurf,
-  editingPolygon,
   setEditingPolygon,
 }: TurfControlProps) {
   return (
@@ -42,7 +41,7 @@ export default function TurfControl({
             if (map) {
               // Find the polygon draw button and click it
               const drawButton = document.querySelector(
-                ".mapbox-gl-draw_polygon"
+                ".mapbox-gl-draw_polygon",
               ) as HTMLButtonElement;
               if (drawButton) {
                 drawButton.click();
@@ -58,7 +57,6 @@ export default function TurfControl({
       ) : (
         <TurfHistory
           polygons={turfHistory}
-          editingPolygon={editingPolygon}
           setEditingPolygon={setEditingPolygon}
           showTurf={showTurf}
           onSelect={(coordinates) => {
@@ -73,8 +71,8 @@ export default function TurfControl({
           onEdit={(index, newName) => {
             setTurfHistory((prev) =>
               prev.map((poly, i) =>
-                i === index ? { ...poly, name: newName } : poly
-              )
+                i === index ? { ...poly, name: newName } : poly,
+              ),
             );
           }}
           onDelete={(index) => {

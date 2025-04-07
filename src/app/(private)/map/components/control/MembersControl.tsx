@@ -1,22 +1,14 @@
-import MemberList from "../dataLists/MemberList";
-import { Label } from "@/shadcn/ui/label";
-import { mapColors } from "@/app/(private)/map/styles";
 import { MapRef } from "react-map-gl/mapbox";
-import { MarkerData } from "@/types";
 import { DataSourcesQuery, MarkersQuery } from "@/__generated__/types";
-import { Skeleton } from "@/shadcn/ui/skeleton";
-import SkeletonGroup from "../SkeletonGroup";
-import { Eye, EyeOff, PlusIcon } from "lucide-react";
-import LayerVisibilityToggle from "./LayerVisibilityToggle";
-import LayerHeader from "./LayerHeader";
-import SettingsModal from "../SettingsModal";
+import { mapColors } from "@/app/(private)/map/styles";
 import { MapConfig } from "../Controls";
-import { Button } from "@/shadcn/ui/button";
-import Link from "next/link";
-import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import MemberList from "../dataLists/MemberList";
+import SettingsModal from "../SettingsModal";
+import SkeletonGroup from "../SkeletonGroup";
+import LayerHeader from "./LayerHeader";
 
 interface MembersControlProps {
-  members: MarkersQuery["markers"] | undefined;
+  dataSource: MarkersQuery["dataSource"] | undefined;
   mapRef: React.RefObject<MapRef | null>;
   isLoading?: boolean;
   showMembers: boolean;
@@ -27,7 +19,7 @@ interface MembersControlProps {
 }
 
 export default function MembersControl({
-  members,
+  dataSource,
   mapRef,
   isLoading = false,
   showMembers,
@@ -57,7 +49,7 @@ export default function MembersControl({
       ) : (
         <MemberList
           showMembers={showMembers}
-          members={members}
+          dataSource={dataSource}
           onSelect={(coordinates) => {
             const map = mapRef.current;
             if (map) {

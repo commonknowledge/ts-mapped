@@ -1,40 +1,27 @@
-import { DataSourcesQuery } from "@/__generated__/types";
-import { MapConfig } from "./Controls";
+import { Paintbrush, Scan, Type } from "lucide-react";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectValue,
+  SelectTrigger,
 } from "@/shadcn/ui/select";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { Tooltip } from "@/shadcn/ui/tooltip";
-import mapStyles from "../styles";
-import { Paintbrush, Scan, Type } from "lucide-react";
 import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shadcn/ui/dropdown-menu";
+import mapStyles from "../styles";
+import { MapConfig } from "./Controls";
 
 export function MapStyleSelector({
   mapConfig,
   onChange,
-  dataSources,
 }: {
   mapConfig: MapConfig;
   onChange: (mapConfig: Partial<MapConfig>) => void;
-  dataSources: DataSourcesQuery["dataSources"];
 }) {
   return (
     <div className="absolute left-1/2 -top-20 -translate-x-1/2 m-3 p-4 z-10  bg-white ">

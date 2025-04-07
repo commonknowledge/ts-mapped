@@ -1,6 +1,6 @@
-import { Skeleton } from "@/shadcn/ui/skeleton";
 import React from "react";
-import { cn } from "@/shadcn/utils";
+import { Skeleton } from "@/shadcn/ui/skeleton";
+
 export default function SkeletonGroup() {
   return (
     <div className="space-y-2">

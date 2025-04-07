@@ -1,7 +1,7 @@
+import { FeatureCollection, Polygon } from "geojson";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { DrawnPolygon } from "@/types";
 import { mapColors } from "@/app/(private)/map/styles";
-import { FeatureCollection, Feature, Polygon } from "geojson";
+import { DrawnPolygon } from "@/types";
 import { MapConfig } from "./Controls";
 
 interface TurfPolygonsProps {
@@ -15,16 +15,13 @@ interface TurfPolygonsProps {
 export default function TurfPolygons({
   polygons,
   mapConfig,
-  onEdit,
-  editingPolygon,
-  setEditingPolygon,
 }: TurfPolygonsProps) {
   const features: FeatureCollection<Polygon> = {
     type: "FeatureCollection",
     features: polygons.map((polygon) => ({
       type: "Feature" as const,
       id: polygon.id,
-      geometry: polygon.geometry,
+      geometry: polygon.geometry as Polygon,
       properties: {
         area: polygon.area,
         timestamp: polygon.timestamp,

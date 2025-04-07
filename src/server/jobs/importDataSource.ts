@@ -1,7 +1,8 @@
-import { ColumnType } from "@/__generated__/types";
+import { ColumnDef, ColumnType } from "@/__generated__/types";
+import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import { mapRecord } from "@/server/mapping";
-import { ColumnDefs, DataSource } from "@/server/models/DataSource";
+import { geocodeRecord } from "@/server/mapping/geocode";
+import { DataSource } from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
@@ -9,15 +10,17 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import pubSub from "@/server/services/pubsub";
-import { getErrorMessage } from "@/server/utils";
-
-const BATCH_SIZE = 100;
+import { batchAsync } from "@/server/utils";
+import { ExternalRecord } from "@/types";
 
 const importDataSource = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {
     return false;
   }
   const dataSourceId = String(args.dataSourceId);
+
+  logger.info(`Importing data source ${dataSourceId}`);
+
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
     logger.info(`Data source ${dataSourceId} not found.`);
@@ -27,17 +30,17 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   const adaptor = getDataSourceAdaptor(dataSource.config);
   if (!adaptor) {
     logger.error(
-      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`
+      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`,
     );
     return false;
   }
 
   try {
     let count = 0;
-    const columnDefsAccumulator: ColumnDefs = [];
+    const columnDefsAccumulator: ColumnDef[] = [];
     const total = await adaptor.getRecordCount();
     const records = adaptor.fetchAll();
-    const batches = batch(records, BATCH_SIZE);
+    const batches = batchAsync(records, DATA_SOURCE_JOB_BATCH_SIZE);
 
     for await (const batch of batches) {
       await importBatch(batch, dataSource, columnDefsAccumulator);
@@ -45,7 +48,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       if (total) {
         const percentComplete = Math.floor((count * 100) / total);
         logger.info(
-          `Inserted ${count} records of ${total}, ${percentComplete}% complete`
+          `Inserted ${count} records of ${total}, ${percentComplete}% complete`,
         );
       } else {
         logger.info(`Inserted ${count} records`);
@@ -76,9 +79,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
 
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);
     return true;
-  } catch (e) {
-    const error = getErrorMessage(e);
-
+  } catch (error) {
     pubSub.publish("dataSourceEvent", {
       dataSourceEvent: {
         dataSourceId: dataSource.id,
@@ -89,58 +90,41 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     });
 
     logger.error(
-      `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${error}`
+      `Failed to import records for ${dataSource.config.type} ${dataSourceId}`,
+      { error },
     );
   }
 
   return false;
 };
 
-const batch = async function* (
-  records: AsyncGenerator<
-    { externalId: string; json: Record<string, unknown> },
-    unknown,
-    unknown
-  >,
-  batchSize: number
-) {
-  let batch = [];
-  for await (const record of records) {
-    batch.push(record);
-    if (batch.length === batchSize) {
-      yield batch;
-      batch = [];
-    }
-  }
-  if (batch.length) {
-    yield batch;
-  }
-};
-
 const importBatch = (
-  batch: { externalId: string; json: Record<string, unknown> }[],
+  batch: ExternalRecord[],
   dataSource: DataSource,
-  columnDefsAccumulator: ColumnDefs
+  columnDefsAccumulator: ColumnDef[],
 ) =>
   Promise.all(
     batch.map(async (record) => {
       const { columnDefs, typedJson } = typeJson(record.json);
       addColumnDefs(columnDefsAccumulator, columnDefs);
-      const mappedJson = await mapRecord(record, dataSource.geocodingConfig);
+      const geocodeResult = await geocodeRecord(
+        record,
+        dataSource.geocodingConfig,
+      );
       await upsertDataRecord({
         externalId: record.externalId,
         json: JSON.stringify(typedJson),
-        mappedJson: JSON.stringify(mappedJson),
+        geocodeResult: JSON.stringify(geocodeResult),
         dataSourceId: dataSource.id,
       });
       logger.info(`Inserted data record ${record.externalId}`);
-    })
+    }),
   );
 
 export const typeJson = (
-  json: Record<string, unknown>
-): { columnDefs: ColumnDefs; typedJson: Record<string, unknown> } => {
-  const columnDefs: ColumnDefs = [];
+  json: Record<string, unknown>,
+): { columnDefs: ColumnDef[]; typedJson: Record<string, unknown> } => {
+  const columnDefs: ColumnDef[] = [];
   const typedJson: Record<string, unknown> = {};
   for (const key of Object.keys(json)) {
     const value = json[key];
@@ -201,8 +185,8 @@ const getType = (value: unknown): ColumnType => {
 };
 
 const addColumnDefs = (
-  columnDefsAccumulator: ColumnDefs,
-  recordColumnDefs: ColumnDefs
+  columnDefsAccumulator: ColumnDef[],
+  recordColumnDefs: ColumnDef[],
 ): void => {
   const recordColumnNames = recordColumnDefs.map((c) => c.name);
 
@@ -221,7 +205,7 @@ const addColumnDefs = (
 
 const mergeColumnType = (
   a: ColumnType | undefined,
-  b: ColumnType | undefined
+  b: ColumnType | undefined,
 ): ColumnType => {
   // undefined => "empty"
   a = a || ColumnType.Empty;

@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { SyntheticEvent, useState } from "react";
 import { useCurrentUser } from "@/hooks";
+import { Separator } from "@/shadcn/ui/separator";
 import { Link } from "./Link";
 import styles from "./Navbar.module.css";
-import { Separator } from "@/shadcn/ui/separator";
 
 export default function Navbar() {
   const user = useCurrentUser();
@@ -33,7 +33,7 @@ export default function Navbar() {
     <nav className="flex justify-between items-center p-4 z-1">
       <div className="flex items-center gap-2">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.svg" alt="Mapped" width={32} height={32} />
+          <Image src="/logo.svg" alt="Mapped" width={32} height={32} />
           Mapped
         </Link>
         <Separator orientation="vertical" />

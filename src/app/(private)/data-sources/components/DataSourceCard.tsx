@@ -1,4 +1,7 @@
+import { DotIcon, PencilIcon } from "lucide-react";
 import React from "react";
+import { Link } from "@/components/Link";
+import { Badge } from "@/shadcn/ui/badge";
 import {
   Card,
   CardContent,
@@ -6,12 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shadcn/ui/card";
-import { Badge } from "@/shadcn/ui/badge";
 import { DataSourceType } from "@/types";
-import Link from "next/link";
-import { DotIcon, PencilIcon, PlusIcon } from "lucide-react";
-import { Button } from "@/shadcn/ui/button";
-export function UserDataSourceCard({
+
+export function DataSourceCard({
   id,
   name,
   config,

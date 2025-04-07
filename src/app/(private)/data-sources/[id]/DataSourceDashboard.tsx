@@ -1,18 +1,25 @@
 "use client";
 
+import { gql, useMutation, useSubscription } from "@apollo/client";
+import { LoaderPinwheel } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
+  AreaSetCode,
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
   DataSourceQuery,
   EnqueueImportDataSourceJobMutation,
   EnqueueImportDataSourceJobMutationVariables,
-  ImportStatus,
+  GeocodingType,
+  JobStatus,
 } from "@/__generated__/types";
-import { gql, useMutation, useSubscription } from "@apollo/client";
-import { useEffect, useState } from "react";
-
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
+import {
+  AreaSetCodeLabels,
+  DataSourceConfigLabels,
+  GeocodingTypeLabels,
+} from "@/labels";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,9 +29,9 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
-import { LoaderPinwheel } from "lucide-react";
+import { GeocodingOnAreaSetType } from "@/zod";
+
 export default function DataSourceDashboard({
-  // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
@@ -33,7 +40,7 @@ export default function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastImported || null
+    dataSource.importInfo?.lastCompleted || null,
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -67,7 +74,7 @@ export default function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } }
+    { variables: { dataSourceId: dataSource.id } },
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -92,13 +99,14 @@ export default function DataSourceDashboard({
   const onClickImportRecords = async () => {
     setImporting(true);
     setImportError("");
+    setRecordCount(0);
 
     try {
       const result = await enqueueImportDataSourceJob({
         variables: { dataSourceId: dataSource.id },
       });
-      if (result.errors) {
-        throw new Error(String(result.errors));
+      if (result.data?.enqueueImportDataSourceJob.code !== 200) {
+        throw new Error(String(result.errors || "Unknown error"));
       }
     } catch (e) {
       console.error(`Could not schedule import job: ${e}`);
@@ -106,6 +114,10 @@ export default function DataSourceDashboard({
       setImporting(false);
     }
   };
+
+  const isPostcodeData =
+    dataSource.geocodingConfig.areaSetCode === AreaSetCode.PC;
+  const isAreaData = dataSource.geocodingConfig.type in GeocodingOnAreaSetType;
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -127,9 +139,12 @@ export default function DataSourceDashboard({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-muted-foreground text-sm mb-4">Record count:</p>
-            <p className="text-4xl ">
+            <p className="text-4xl">
               {importing ? (
-                <LoaderPinwheel className="animate-spin" />
+                <span className="flex items-center gap-2">
+                  <LoaderPinwheel className="animate-spin" />
+                  {recordCount}
+                </span>
               ) : (
                 recordCount
               )}
@@ -144,16 +159,16 @@ export default function DataSourceDashboard({
             >
               {importing ? "Importing" : "Import"} records
             </Button>
-            {importError ? (
+            {importError && (
               <div>
                 <small>{importError}</small>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </div>
       <Separator className="my-4" />
-      {lastImported ? (
+      {lastImported && (
         <>
           <DataListRow
             label="Last imported"
@@ -161,41 +176,77 @@ export default function DataSourceDashboard({
           />
           <Separator className="my-4" />
         </>
-      ) : null}
+      )}
 
       <div className="grid grid-cols-2 gap-10 mb-10">
         <div className="flex flex-col ">
-          <Label className="text-lg">Config</Label>
-          <DataListRow
-            label="Type"
-            value={dataSource.config.type}
-            badge
-            border
-          />
-          <DataListRow label="File Name" value={dataSource.name} border />
-          <DataListRow
-            label="ID column"
-            value={dataSource.config.idColumn}
-            border
-          />
+          <Label className="text-xl">Import config</Label>
+          {Object.keys(dataSource.config).map((k) => (
+            <DataListRow
+              key={k}
+              label={
+                k in DataSourceConfigLabels
+                  ? DataSourceConfigLabels[
+                      k as keyof typeof DataSourceConfigLabels
+                    ]
+                  : k
+              }
+              value={dataSource.config[k]}
+              badge={k === "type"}
+              border
+            />
+          ))}
         </div>
         <div>
-          <Label className="text-lg">Geocoding config</Label>
-          <DataListRow
-            label="Type"
-            value={dataSource.geocodingConfig.type}
-            border
-          />
-          <DataListRow
-            label="Column"
-            value={dataSource.geocodingConfig.column}
-            border
-          />
-          <DataListRow
-            label="Area Set Code"
-            value={dataSource.geocodingConfig.areaSetCode}
-            border
-          />
+          <div className="mb-4 flex justify-between">
+            <Label className="text-xl">Data config</Label>
+
+            <Button asChild={true}>
+              <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
+            </Button>
+          </div>
+          <div className="mb-4">
+            <Label className="text-lg">Columns</Label>
+            <DataListRow
+              label="Name column"
+              value={`"${dataSource.columnRoles.nameColumn}"`}
+              border
+            />
+          </div>
+          <div className="mb-4">
+            <Label className="text-lg">Geocoding</Label>
+            <DataListRow
+              label="Geocoding type"
+              value={
+                isPostcodeData
+                  ? GeocodingTypeLabels.Postcode
+                  : GeocodingTypeLabels[
+                      dataSource.geocodingConfig.type as GeocodingType
+                    ]
+              }
+              border
+            />
+            <DataListRow
+              label="Location column"
+              value={
+                dataSource.geocodingConfig.column
+                  ? `"${dataSource.geocodingConfig.column}"`
+                  : "None"
+              }
+              border
+            />
+            {isAreaData && !isPostcodeData && (
+              <DataListRow
+                label="Area type"
+                value={
+                  AreaSetCodeLabels[
+                    dataSource.geocodingConfig.areaSetCode as AreaSetCode
+                  ] || "None"
+                }
+                border
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -205,8 +256,8 @@ export default function DataSourceDashboard({
 const isImporting = (dataSource: DataSourceQuery["dataSource"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
-      [ImportStatus.Importing, ImportStatus.Pending].includes(
-        dataSource.importInfo?.status
-      )
+      [JobStatus.Running, JobStatus.Pending].includes(
+        dataSource.importInfo?.status,
+      ),
   );
 };

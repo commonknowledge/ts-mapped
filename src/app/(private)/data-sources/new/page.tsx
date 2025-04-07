@@ -7,17 +7,18 @@ import {
   CreateDataSourceMutation,
   CreateDataSourceMutationVariables,
 } from "@/__generated__/types";
-import { DataSourceTypeLabels } from "@/labels";
-import { DataSourceType, UploadResponseBody } from "@/types";
-import { DataSourceConfig, DataSourceConfigSchema } from "@/zod";
-import AirtableFields from "./fields/AirtableFields";
-import CSVFields from "./fields/CSVFields";
-import MailchimpFields from "./fields/MailchimpFields";
-import { NewDataSourceConfig } from "./types";
-import PageHeader from "@/components/PageHeader";
-import { Separator } from "@/shadcn/ui/separator";
-import { Input } from "@/shadcn/ui/input";
 import DataListRow from "@/components/DataListRow";
+import { Link } from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
+import { DataSourceTypeLabels } from "@/labels";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/shadcn/ui/breadcrumb";
+import { Button } from "@/shadcn/ui/button";
+import { Input } from "@/shadcn/ui/input";
 import {
   Select,
   SelectContent,
@@ -25,14 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { Button } from "@/shadcn/ui/button";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/shadcn/ui/breadcrumb";
-import Link from "next/link";
+import { Separator } from "@/shadcn/ui/separator";
+import { DataSourceType, UploadResponseBody } from "@/types";
+import { DataSourceConfig, DataSourceConfigSchema } from "@/zod";
+import AirtableFields from "./fields/AirtableFields";
+import CSVFields from "./fields/CSVFields";
+import MailchimpFields from "./fields/MailchimpFields";
+import { NewDataSourceConfig } from "./types";
+
 export default function NewDataSourcePage() {
   const [name, setName] = useState("");
   const [config, setConfig] = useState<NewDataSourceConfig>({
@@ -76,7 +77,7 @@ export default function NewDataSourcePage() {
       if (result.errors || !dataSourceId) {
         throw new Error(String(result.errors));
       } else {
-        router.push(`/data-sources/${dataSourceId}/geocode`);
+        router.push(`/data-sources/${dataSourceId}/config`);
         return;
       }
     } catch (e) {
@@ -141,11 +142,11 @@ export default function NewDataSourcePage() {
           <MailchimpFields config={config} onChange={onChangeConfig} />
         </div>
         <Button disabled={!validConfig || loading}>Submit</Button>
-        {error ? (
+        {error && (
           <div>
             <small>{error}</small>
           </div>
-        ) : null}
+        )}
       </form>
     </div>
   );
@@ -153,7 +154,7 @@ export default function NewDataSourcePage() {
 
 // Take preparatory actions before this data source can be created
 const prepareDataSource = async (
-  clientConfig: NewDataSourceConfig
+  clientConfig: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
   if (clientConfig.type === "") {
     throw new Error("Invalid data source config");

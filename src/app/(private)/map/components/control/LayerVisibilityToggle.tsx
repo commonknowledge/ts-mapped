@@ -1,7 +1,7 @@
 import { Eye } from "lucide-react";
-import { Toggle } from "@/shadcn/ui/toggle";
 import { EyeOff } from "lucide-react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/shadcn/ui/tooltip";
+import { Toggle } from "@/shadcn/ui/toggle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { TooltipProvider } from "@/shadcn/ui/tooltip";
 
 export default function LayerVisibilityToggle({

@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/shadcn/ui/badge";
-import { cn } from "@/shadcn/utils";
 import { Label } from "@/shadcn/ui/label";
+import { cn } from "@/shadcn/utils";
 export default function DataListRow({
   label,
   value,
@@ -19,7 +19,7 @@ export default function DataListRow({
     <div
       className={cn(
         "flex gap-2 items-center py-4",
-        border && "border-b border-border/50 "
+        border && "border-b border-border/50 ",
       )}
     >
       <Label className="w-44">{label}</Label>
@@ -28,7 +28,9 @@ export default function DataListRow({
           {value}
         </Badge>
       ) : (
-        <p>{value}</p>
+        <p className="max-w-[180px] overflow-hidden overflow-ellipsis">
+          {value}
+        </p>
       )}
       <div>{children}</div>
     </div>

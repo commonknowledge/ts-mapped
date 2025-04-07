@@ -1,5 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import {
+  AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
   DataSourcesQuery,
@@ -26,7 +27,10 @@ export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) =>
   useQuery<MarkersQuery, MarkersQueryVariables>(
     gql`
       query Markers($dataSourceId: String!) {
-        markers(dataSourceId: $dataSourceId)
+        dataSource(id: $dataSourceId) {
+          name
+          markers
+        }
       }
     `,
     {
@@ -44,7 +48,7 @@ export const useAreaStatsQuery = ({
   excludeColumns,
   useDummyBoundingBox,
 }: {
-  areaSetCode: string;
+  areaSetCode: AreaSetCode;
   dataSourceId: string;
   column: string;
   excludeColumns: string[];
@@ -53,12 +57,12 @@ export const useAreaStatsQuery = ({
   useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
     gql`
       query AreaStats(
-        $areaSetCode: String!
+        $areaSetCode: AreaSetCode!
         $dataSourceId: String!
         $column: String!
         $operation: Operation!
         $excludeColumns: [String!]!
-        $boundingBox: BoundingBox
+        $boundingBox: BoundingBoxInput
       ) {
         areaStats(
           areaSetCode: $areaSetCode
@@ -82,7 +86,7 @@ export const useAreaStatsQuery = ({
         areaSetCode,
         dataSourceId,
         column,
-        operation: Operation.Avg,
+        operation: Operation.AVG,
         excludeColumns,
         // Using a dummy boundingBox is required for fetchMore() to update this query's data.
         // Note: this makes the first query return no data. Only fetchMore() returns data.

@@ -1,21 +1,10 @@
-import MarkerList from "../dataLists/MarkerList";
-import { Label } from "@/shadcn/ui/label";
-import { mapColors } from "@/app/(private)/map/styles";
-import { MapRef } from "react-map-gl/mapbox";
-import { SearchResult } from "@/types";
-import SkeletonGroup from "../SkeletonGroup";
-import LayerHeader from "./LayerHeader";
-import {
-  PlusIcon,
-  SearchIcon,
-  MapPinIcon,
-  DatabaseIcon,
-  LibraryIcon,
-  UploadIcon,
-} from "lucide-react";
-import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
-import { useState } from "react";
+import { DatabaseIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { MapRef } from "react-map-gl/mapbox";
+import { mapColors } from "@/app/(private)/map/styles";
+import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
+import { Checkbox } from "@/shadcn/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -24,8 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
-import { UserDataSourceCard } from "@/app/(private)/data-sources/components/DataSourceCard";
-import { Checkbox } from "@/shadcn/ui/checkbox";
+import { SearchResult } from "@/types";
+import MarkerList from "../dataLists/MarkerList";
+import SkeletonGroup from "../SkeletonGroup";
+import LayerHeader from "./LayerHeader";
 interface LocationsControlProps {
   searchHistory: SearchResult[];
   mapRef: React.RefObject<MapRef | null>;
@@ -46,10 +37,9 @@ export default function MarkersControl({
   isLoading = false,
   showLocations,
   setShowLocations,
-  onAdd,
   setSearchHistory,
 }: LocationsControlProps) {
-  const [activeDataSources, setActiveDataSources] = useState<Array<string>>([]);
+  const [activeDataSources, setActiveDataSources] = useState<string[]>([]);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
   const router = useRouter();
@@ -79,7 +69,7 @@ export default function MarkersControl({
               onClick: () => {
                 setTimeout(() => {
                   const geocoderInput = document.querySelector(
-                    ".mapboxgl-ctrl-geocoder--input"
+                    ".mapboxgl-ctrl-geocoder--input",
                   ) as HTMLInputElement;
                   if (geocoderInput) {
                     geocoderInput.focus();
@@ -89,7 +79,7 @@ export default function MarkersControl({
                         e.preventDefault();
                         geocoderInput.focus();
                       },
-                      { once: true }
+                      { once: true },
                     );
                   }
                 }, 200);
@@ -185,8 +175,8 @@ function DataSourcesModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  setActiveDataSources: (activeDataSources: Array<string>) => void;
-  activeDataSources: Array<string>;
+  setActiveDataSources: (activeDataSources: string[]) => void;
+  activeDataSources: string[];
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -211,7 +201,7 @@ function DataSourcesModal({
                     setActiveDataSources([...activeDataSources, dataSource.id]);
                   } else {
                     setActiveDataSources(
-                      activeDataSources.filter((id) => id !== dataSource.id)
+                      activeDataSources.filter((id) => id !== dataSource.id),
                     );
                   }
                 }}

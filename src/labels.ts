@@ -1,14 +1,34 @@
 // Human friendly labels for enums
 
-import { AreaSetCode, DataSourceType, GeocodingType } from "@/types";
+import { DataSourceType } from "@/types";
+import {
+  AreaSetCode,
+  EnrichmentSourceType,
+  GeocodingType,
+} from "./__generated__/types";
+import { AirtableConfig, CSVConfig, MailchimpConfig } from "./zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
-  PC: "",
-  // PC is excluded from the area set dropdown, as a convenience
-  // top-level option of type: "postcode" is provided to users
+  PC: "UK Postcode",
   OA21: "Census Output Area (2021)",
   MSOA21: "Middle Super Output Area (2021)",
   WMC24: "Westminster Constituency (2024)",
+};
+
+type DataSourceConfigKey =
+  | keyof AirtableConfig
+  | keyof CSVConfig
+  | keyof MailchimpConfig;
+
+export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
+  apiKey: "API Key",
+  baseId: "Base ID",
+  filename: "Filename",
+  idColumn: "ID Column",
+  listId: "List ID",
+  tableId: "Table ID",
+  type: "Type",
+  serverPrefix: "Server Prefix",
 };
 
 export const DataSourceTypeLabels: Record<DataSourceType, string> = {
@@ -17,10 +37,16 @@ export const DataSourceTypeLabels: Record<DataSourceType, string> = {
   mailchimp: "Mailchimp",
 };
 
-export const GeocodingTypeLabels: Record<GeocodingType | "postcode", string> = {
-  address: 'Address, e.g. "113-115 Fonthill Road, N4 3HH"',
-  code: 'Area code, e.g. "E14001305"',
-  name: 'Area name, e.g. "Islington North"',
-  postcode: "UK Postcode",
-  none: "", // This is excluded from the dropdown, but here for type safety
+export const EnrichmentSourceTypeLabels: Record<EnrichmentSourceType, string> =
+  {
+    Area: "Geocoded area",
+    DataSource: "Mapped data source",
+  };
+
+export const GeocodingTypeLabels: Record<GeocodingType | "Postcode", string> = {
+  Address: 'Address, e.g. "113-115 Fonthill Road, N4 3HH"',
+  Code: 'Area code, e.g. "E14001305"',
+  Name: 'Area name, e.g. "Islington North"',
+  Postcode: "UK Postcode", // Front-end only
+  None: "Disabled",
 };

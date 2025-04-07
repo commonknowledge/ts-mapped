@@ -1,47 +1,74 @@
 "use client";
 
+import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { BoundingBox } from "@/__generated__/types";
-import { MarkerData, SearchResult, DrawnPolygon } from "@/types";
+import { BoundingBoxInput } from "@/__generated__/types";
+import { MAX_COLUMN_KEY } from "@/constants";
+import { Label } from "@/shadcn/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import { Separator } from "@/shadcn/ui/separator";
+import { DrawnPolygon, MarkerData, SearchResult } from "@/types";
 import Choropleth from "./components/Choropleth";
+import MarkersControl from "./components/control/MarkersControl";
+import MembersControl from "./components/control/MembersControl";
+import TurfControl from "./components/control/TurfControl";
 import Controls, { MapConfig } from "./components/Controls";
+import ControlsTab from "./components/ControlsTab";
+import Legend from "./components/Legend";
 import Map from "./components/Map";
+import { MapStyleSelector } from "./components/MapStyling";
 import Markers from "./components/Markers";
+import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
+import TurfPolygons from "./components/TurfPolygons";
 import {
   useAreaStatsQuery,
   useDataSourcesQuery,
   useMarkersQuery,
 } from "./data";
 import styles from "./page.module.css";
-import { getChoroplethLayerConfig } from "./sources";
-import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
-import TurfPolygons from "./components/TurfPolygons";
-import { MapStyleSelector } from "./components/MapStyling";
-import SettingsModal from "./components/SettingsModal";
-import Legend from "./components/Legend";
+import {
+  AREA_SET_GROUP_LABELS,
+  AreaSetGroupCode,
+  getChoroplethLayerConfig,
+} from "./sources";
+
 const DEFAULT_ZOOM = 5;
 
 export default function MapPage() {
   /* Map state */
   const mapRef = useRef<MapRef>(null);
-  // Storing the last loaded source triggers re-renders when Mapbox layers load
+  // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
   >();
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
-  const [selectedSearchMarker, setSelectedSearchMarker] =
-    useState<SearchResult | null>(null);
-  const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
+  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
-  /* Controls State */
+
+  /* Settings state */
   const [mapConfig, setMapConfig] = useState<MapConfig>(new MapConfig());
+
+  /* Layers state */
+  const [searchHistory, setSearchHistory] = useState<SearchResult[]>([
+    {
+      text: "Abbey Road Studios",
+      coordinates: [-0.177331, 51.532005],
+      timestamp: new Date(),
+    },
+  ]);
 
   // The Map layer is defined by the user config and the zoom level
   const choroplethLayerConfig = getChoroplethLayerConfig(
     mapConfig.areaSetGroupCode,
-    zoom
+    zoom,
   );
 
   /* GraphQL data */
@@ -84,7 +111,7 @@ export default function MapPage() {
           sourceLayer: choroplethLayerConfig.mapbox.layerId,
           id: stat.areaCode,
         },
-        stat
+        stat,
       );
     });
   }, [areaStatsData, lastLoadedSourceId, choroplethLayerConfig]);
@@ -97,15 +124,7 @@ export default function MapPage() {
     areaStatsFetchMore({ variables: { boundingBox } });
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
 
-  const [searchHistory, setSearchHistory] = useState<SearchResult[]>([
-    {
-      text: "Abbey Road Studios",
-      coordinates: [-0.177331, 51.532005],
-      timestamp: new Date("2024-03-20T14:30:00Z"),
-    },
-  ]);
-
-  const [TurfHistory, setTurfHistory] = useState<DrawnPolygon[]>([
+  const [turfHistory, setTurfHistory] = useState<DrawnPolygon[]>([
     {
       id: "N90IVwEVjjVuYnJwwtuPSvRgVTAUgLjh",
       area: 6659289.77,
@@ -144,7 +163,7 @@ export default function MapPage() {
 
   const handleEditSearch = (index: number, newText: string) => {
     setSearchHistory((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, text: newText } : item))
+      prev.map((item, i) => (i === index ? { ...item, text: newText } : item)),
     );
   };
 
@@ -153,48 +172,152 @@ export default function MapPage() {
   };
 
   const [editingPolygon, setEditingPolygon] = useState<DrawnPolygon | null>(
-    null
+    null,
   );
-  const handleEditPolygon = (polygon: DrawnPolygon) => {
-    setEditingPolygon(polygon);
-  };
-
-  const handleAddMarker = (marker: SearchResult) => {
-    setSearchHistory((prev) => [marker, ...prev]);
-  };
 
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
+  const onChangeConfig = (nextConfig: Partial<MapConfig>) => {
+    setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }));
+  };
+  const dataSource = (dataSourcesData?.dataSources || []).find(
+    (ds) => ds.id === mapConfig.areaDataSourceId,
+  );
+
   return (
     <div className={styles.map}>
-      <MapStyleSelector
-        mapConfig={mapConfig}
-        onChange={(nextConfig) =>
-          setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
-        }
-        dataSources={dataSourcesData?.dataSources || []}
-      />
-      <Controls
-        dataSources={dataSourcesData?.dataSources || []}
-        mapConfig={mapConfig}
-        onChange={(nextConfig) =>
-          setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
-        }
-        areaStatsData={areaStatsData?.areaStats}
-        searchHistory={searchHistory}
-        setSearchHistory={setSearchHistory}
-        onEditSearch={handleEditSearch}
-        onDeleteSearch={handleDeleteSearch}
-        mapRef={mapRef}
-        members={markersData?.markers}
-        selectedMember={selectedMarker}
-        onSelectMember={(member) => setSelectedMarker(member)}
-        turfHistory={TurfHistory}
-        setTurfHistory={setTurfHistory}
-        loading={loading}
-        editingPolygon={editingPolygon}
-        setEditingPolygon={setEditingPolygon}
-        onAddMarker={handleAddMarker}
-      />
+      <MapStyleSelector mapConfig={mapConfig} onChange={onChangeConfig} />
+      <Controls>
+        <ControlsTab label="Layers">
+          <MembersControl
+            dataSource={markersData?.dataSource}
+            mapRef={mapRef}
+            isLoading={loading}
+            showMembers={mapConfig.showMembers}
+            setShowMembers={(value) => onChangeConfig({ showMembers: value })}
+            mapConfig={mapConfig}
+            onChange={onChangeConfig}
+            dataSources={dataSourcesData?.dataSources || []}
+          />
+          <Separator />
+          <MarkersControl
+            searchHistory={searchHistory}
+            mapRef={mapRef}
+            onEdit={handleEditSearch}
+            onDelete={handleDeleteSearch}
+            isLoading={loading}
+            showLocations={mapConfig.showLocations}
+            setShowLocations={(value) =>
+              onChangeConfig({ showLocations: value })
+            }
+            setSearchHistory={setSearchHistory}
+            onAdd={(marker) => {
+              handleEditSearch(0, marker.text);
+            }}
+          />
+          <Separator />
+          <TurfControl
+            turfHistory={turfHistory}
+            mapRef={mapRef}
+            setTurfHistory={setTurfHistory}
+            isLoading={loading}
+            showTurf={mapConfig.showTurf}
+            setShowTurf={(value) => onChangeConfig({ showTurf: value })}
+            setEditingPolygon={setEditingPolygon}
+          />
+        </ControlsTab>
+        <ControlsTab label="Legend">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="areaDataSourceId">
+              <LandPlot className="w-4 h-4 text-muted-foreground" />
+              Area Data Source
+            </Label>
+            <Select
+              value={mapConfig.areaDataSourceId}
+              onValueChange={(value) =>
+                onChangeConfig({ areaDataSourceId: value })
+              }
+            >
+              <SelectTrigger className="w-full shadow-none">
+                <SelectValue placeholder="Select an area data source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Null">None</SelectItem>
+                {(dataSourcesData?.dataSources || []).map(
+                  (ds: { id: string; name: string }) => (
+                    <SelectItem key={ds.id} value={ds.id}>
+                      {ds.name}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+
+            {dataSource ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2 items-center">
+                  <CornerDownRight className="ml-2 w-4 h-4 text-muted-foreground" />
+                  <Select
+                    value={mapConfig.areaDataColumn}
+                    onValueChange={(value) =>
+                      onChangeConfig({ areaDataColumn: value })
+                    }
+                  >
+                    <SelectTrigger className="w-full shadow-none">
+                      <SelectValue placeholder="Select a data column" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={MAX_COLUMN_KEY}>
+                        Highest-value column
+                      </SelectItem>
+                      {dataSource.columnDefs.map((cd: { name: string }) => (
+                        <SelectItem key={cd.name} value={cd.name}>
+                          {cd.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (
+            <input
+              type="text"
+              onChange={(e) =>
+                onChangeConfig({
+                  excludeColumnsString: e.target.value,
+                })
+              }
+              placeholder="Comma-separated columns to exclude"
+              value={mapConfig.excludeColumnsString}
+            />
+          ) : null}
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="areaSetGroupCode">
+              <SquareStack className="w-4 h-4 text-muted-foreground" />
+              Boundary Set
+            </Label>
+            <Select
+              value={mapConfig.areaSetGroupCode}
+              onValueChange={(value) =>
+                onChangeConfig({ areaSetGroupCode: value as AreaSetGroupCode })
+              }
+            >
+              <SelectTrigger className="w-full shadow-none">
+                <SelectValue placeholder="Select a boundary set" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(AREA_SET_GROUP_LABELS).map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </ControlsTab>
+      </Controls>
       <Map
         onClickMarker={(markerData) => setSelectedMarker(markerData)}
         onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
@@ -202,11 +325,10 @@ export default function MapPage() {
           setBoundingBox(boundingBox);
           setZoom(zoom);
         }}
-        ref={mapRef}
+        mapRef={mapRef}
         mapConfig={mapConfig}
         searchHistory={searchHistory}
         setSearchHistory={setSearchHistory}
-        TurfHistory={TurfHistory}
         setTurfHistory={setTurfHistory}
       >
         <Choropleth
@@ -215,7 +337,7 @@ export default function MapPage() {
           mapConfig={mapConfig}
         />
         <Markers
-          markers={markersData?.markers}
+          dataSource={markersData?.dataSource}
           selectedMarker={selectedMarker}
           onCloseSelectedMarker={() => setSelectedMarker(null)}
           mapConfig={mapConfig}
@@ -225,7 +347,7 @@ export default function MapPage() {
           mapConfig={mapConfig}
         />
         <TurfPolygons
-          polygons={TurfHistory}
+          polygons={turfHistory}
           mapConfig={mapConfig}
           editingPolygon={editingPolygon}
           setEditingPolygon={setEditingPolygon}
@@ -233,11 +355,11 @@ export default function MapPage() {
       </Map>
       <Legend areaStats={areaStatsData?.areaStats} />
 
-      {loading ? (
+      {loading && (
         <div className={styles.loading}>
           <div></div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

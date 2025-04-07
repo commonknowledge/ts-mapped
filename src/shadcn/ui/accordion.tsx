@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@/shadcn/utils";
 
@@ -44,7 +44,7 @@ function AccordionTrigger({
         className={cn(
           "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start gap-4 rounded-md py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
           chevronPosition === "end" ? "justify-between" : "justify-start",
-          className
+          className,
         )}
         {...props}
       >

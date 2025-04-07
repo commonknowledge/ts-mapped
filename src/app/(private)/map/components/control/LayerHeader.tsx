@@ -1,10 +1,6 @@
 import React from "react";
-import { mapColors } from "../../styles";
 import { Label } from "@/shadcn/ui/label";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
-import { PlusIcon } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/shadcn/ui/button";
 export default function LayerHeader({
   label,
   color,

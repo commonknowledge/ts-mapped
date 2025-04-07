@@ -1,7 +1,7 @@
-import { Layer, Source } from "react-map-gl/mapbox";
-import { SearchResult } from "@/types";
 import { FeatureCollection, Point } from "geojson";
+import { Layer, Source } from "react-map-gl/mapbox";
 import { mapColors } from "@/app/(private)/map/styles";
+import { SearchResult } from "@/types";
 import { MapConfig } from "./Controls";
 
 interface SearchHistoryMarkersProps {

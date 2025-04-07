@@ -32,13 +32,29 @@ const mapStyles: Record<string, MapStyle> = {
   },
 };
 
+export interface mapNodeColor {
+  name: string;
+  color: string;
+}
+
+export const mapNodeColors: Record<"marker" | "searched", mapNodeColor> = {
+  marker: {
+    name: "Marker",
+    color: "#678DE3",
+  },
+  searched: {
+    name: "Searched",
+    color: "#FF6B6B",
+  },
+};
+
 export default mapStyles;
 
-export type mapColor = {
+export interface mapColor {
   name: string;
   color: string;
   textColor?: string;
-};
+}
 
 export const mapColors: Record<string, mapColor> = {
   member: {

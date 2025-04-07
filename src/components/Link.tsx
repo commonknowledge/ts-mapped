@@ -27,6 +27,10 @@ export function Link({
     <NextLink
       href={href}
       onClick={(e) => {
+        // Don't modify modified click behavior
+        if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+          return;
+        }
         e.preventDefault();
         startTransition(() => {
           const url = href.toString();

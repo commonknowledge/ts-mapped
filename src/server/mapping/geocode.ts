@@ -5,42 +5,45 @@ import {
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
 import { GeocodeResult, Point } from "@/types";
-import { DataSourceGeocodingConfig } from "@/zod";
+import { GeocodingConfig } from "@/zod";
 
 interface MappingDataRecord {
   externalId: string;
   json: Record<string, unknown>;
 }
 
-export const mapRecord = async (
+export const geocodeRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: DataSourceGeocodingConfig,
-): Promise<Record<string, object | null>> => {
-  const geocodeResult = await geocodeRecord(dataRecord, geocodingConfig);
-  if (!geocodeResult) {
-    logger.warn(`Could not geocode record ${dataRecord.externalId}`);
+  geocodingConfig: GeocodingConfig,
+): Promise<GeocodeResult | null> => {
+  try {
+    return await _geocodeRecord(dataRecord, geocodingConfig);
+  } catch (error) {
+    logger.warn(`Could not geocode record ${dataRecord.externalId}`, {
+      error,
+    });
   }
-  return { geocodeResult };
+  return null;
 };
 
-const geocodeRecord = async (
+const _geocodeRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: DataSourceGeocodingConfig,
-): Promise<GeocodeResult | null> => {
+  geocodingConfig: GeocodingConfig,
+): Promise<GeocodeResult> => {
   const dataRecordJson = dataRecord.json;
   // TODO: Implement the other types
-  if (geocodingConfig.type !== "code") {
-    return null;
+  if (geocodingConfig.type !== "Code") {
+    throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
   }
 
   const { column: areaColumn, areaSetCode } = geocodingConfig;
   if (!(areaColumn in dataRecordJson)) {
-    return null;
+    throw new Error(`Missing area column "${areaColumn}" in row`);
   }
 
   let dataRecordArea = String(dataRecordJson[areaColumn]);
   let area = null;
-  if (geocodingConfig.type === "code") {
+  if (geocodingConfig.type === "Code") {
     if (geocodingConfig.areaSetCode === "PC") {
       dataRecordArea = dataRecordArea.replace(/\s+/g, "").toUpperCase();
     }
@@ -49,7 +52,9 @@ const geocodeRecord = async (
     area = await findAreaByName(dataRecordArea, areaSetCode);
   }
   if (!area) {
-    return null;
+    throw new Error(
+      `Area not found in area set ${areaSetCode}: ${dataRecordArea}`,
+    );
   }
   const geocodeResult: GeocodeResult = {
     areas: {

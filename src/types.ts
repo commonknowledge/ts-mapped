@@ -1,18 +1,5 @@
-// Don't import anything into this file
-
-export enum AreaSetCode {
-  OA21 = "OA21",
-  PC = "PC",
-  MSOA21 = "MSOA21",
-  WMC24 = "WMC24",
-}
-
-export interface BoundingBox {
-  north: number;
-  east: number;
-  south: number;
-  west: number;
-}
+// Only import library types into this file
+import { Geometry } from "geojson";
 
 export interface CurrentUser {
   id: string;
@@ -24,17 +11,20 @@ export enum DataSourceType {
   mailchimp = "mailchimp",
 }
 
+export const EditableDataSourceTypes = [
+  DataSourceType.airtable,
+  DataSourceType.mailchimp,
+];
+
+export interface ExternalRecord {
+  externalId: string;
+  json: Record<string, unknown>;
+}
+
 export interface GeocodeResult {
   areas: Record<string, string>;
   centralPoint: Point | null;
   samplePoint: Point | null;
-}
-
-export enum GeocodingType {
-  address = "address",
-  code = "code",
-  name = "name",
-  none = "none",
 }
 
 export interface MarkerData {
@@ -47,6 +37,12 @@ export interface MarkerData {
 export interface Point {
   lng: number;
   lat: number;
+}
+
+export interface SearchResult {
+  text: string;
+  coordinates: [number, number];
+  timestamp: Date;
 }
 
 export interface ServerSession {
@@ -67,16 +63,16 @@ export interface SearchResult {
 export interface DrawnPolygon {
   id: string;
   area: number;
-  geometry: any; // or use proper GeoJSON type
+  geometry: Geometry;
   timestamp: Date;
   name: string;
 }
 
 export interface DrawDeleteEvent {
-  features: Array<{
+  features: {
     id: string;
     type: string;
-    geometry: any;
-    properties: any;
-  }>;
+    geometry: Geometry;
+    properties: Record<string, unknown>;
+  }[];
 }

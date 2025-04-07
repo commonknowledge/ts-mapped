@@ -1,3 +1,6 @@
+import * as turf from "@turf/turf";
+import { Check, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -7,9 +10,6 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import { DrawnPolygon } from "@/types";
-import * as turf from "@turf/turf";
-import { Check, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
 
 interface TurfListProps {
   polygons: DrawnPolygon[];
@@ -17,7 +17,6 @@ interface TurfListProps {
   onEdit?: (index: number, newName: string) => void;
   onDelete?: (index: number) => void;
   showTurf: boolean;
-  editingPolygon: DrawnPolygon | null;
   setEditingPolygon: (polygon: DrawnPolygon | null) => void;
 }
 
@@ -27,16 +26,14 @@ export default function TurfList({
   onEdit,
   onDelete,
   showTurf,
-  editingPolygon,
   setEditingPolygon,
 }: TurfListProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
-  const [formattedDates, setFormattedDates] = useState<{
-    [key: string]: string;
-  }>({});
+  const [, setFormattedDates] = useState<Record<string, string>>({});
 
+  // TODO: display these dates somewhere
   useEffect(() => {
     // Format dates only on client-side
     const dates = polygons.reduce(
@@ -47,7 +44,7 @@ export default function TurfList({
           .replace("T", " ");
         return acc;
       },
-      {} as { [key: string]: string }
+      {} as Record<string, string>,
     );
 
     setFormattedDates(dates);
@@ -113,7 +110,7 @@ export default function TurfList({
               onClick={() => {
                 const polygon = polygons[contextMenuIndex];
                 setEditText(
-                  polygon.name || `Area: ${polygon.area.toFixed(2)}m²`
+                  polygon.name || `Area: ${polygon.area.toFixed(2)}m²`,
                 );
                 setEditingIndex(contextMenuIndex);
                 setEditingPolygon(polygon);

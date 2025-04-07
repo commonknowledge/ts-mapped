@@ -1,7 +1,7 @@
-import { DataSourceType } from "@/types";
-import { NewDataSourceConfig } from "../types";
 import DataListRow from "@/components/DataListRow";
 import { Input } from "@/shadcn/ui/input";
+import { DataSourceType } from "@/types";
+import { NewDataSourceConfig } from "../types";
 
 export default function AirtableFields({
   config,

@@ -1,17 +1,10 @@
-import {
-  SelectItem,
-  SelectContent,
-  SelectValue,
-  SelectTrigger,
-} from "@/shadcn/ui/select";
-import { Label } from "@/shadcn/ui/label";
-import { Select } from "@/shadcn/ui/select";
 import { PlusIcon, Settings } from "lucide-react";
-import Link from "next/link";
 import React from "react";
-import { MapConfig } from "./Controls";
 import { DataSourcesQuery } from "@/__generated__/types";
 
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { Link } from "@/components/Link";
+import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +13,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
-import { Button } from "@/shadcn/ui/button";
+import { Label } from "@/shadcn/ui/label";
+import { Select } from "@/shadcn/ui/select";
+import {
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
-import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { MapConfig } from "./Controls";
 export default function SettingsModal({
   mapConfig,
   onChange,

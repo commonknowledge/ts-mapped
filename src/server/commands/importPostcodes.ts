@@ -1,6 +1,7 @@
 import fs from "fs";
 import { join } from "path";
 import { sql } from "kysely";
+import { AreaSetCode } from "@/__generated__/types";
 import {
   findAreaSetByCode,
   insertAreaSet,
@@ -8,7 +9,6 @@ import {
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getBaseDir } from "@/server/utils";
-import { AreaSetCode } from "@/types";
 
 const AREA_SET_CODE = AreaSetCode.PC;
 
@@ -31,11 +31,11 @@ const importPostcodes = async () => {
 
     const postcodeGeojsonPath = join(
       postcodeGeojsonDirPath,
-      `postcodes_${i}.geojsonl`
+      `postcodes_${i}.geojsonl`,
     );
     if (!fs.existsSync(postcodeGeojsonPath)) {
       logger.error(
-        `File not found: ${postcodeGeojsonPath}. Download from the Ordnance Survey website.`
+        `File not found: ${postcodeGeojsonPath}. Download from the Ordnance Survey website.`,
       );
       return;
     }

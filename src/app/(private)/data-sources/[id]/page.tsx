@@ -4,7 +4,9 @@ import {
   DataSourceQueryVariables,
 } from "@/__generated__/types";
 import { query } from "@/services/ApolloClient";
+import { EditableDataSourceTypes } from "@/types";
 import DataSourceDashboard from "./DataSourceDashboard";
+import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";
 
 export default async function GeocodeDataSourcePage({
   params,
@@ -23,9 +25,31 @@ export default async function GeocodeDataSourcePage({
             type
           }
           config
-          geocodingConfig
+          columnRoles {
+            nameColumn
+          }
+          enrichments {
+            sourceType
+            areaSetCode
+            areaProperty
+            dataSourceId
+            dataSourceColumn
+          }
+          enrichmentDataSources {
+            id
+            name
+          }
+          geocodingConfig {
+            type
+            column
+            areaSetCode
+          }
+          enrichmentInfo {
+            lastCompleted
+            status
+          }
           importInfo {
-            lastImported
+            lastCompleted
             status
           }
           recordCount
@@ -43,5 +67,12 @@ export default async function GeocodeDataSourcePage({
     );
   }
 
-  return <DataSourceDashboard dataSource={result.data.dataSource} />;
+  return (
+    <>
+      <DataSourceDashboard dataSource={result.data.dataSource} />
+      {EditableDataSourceTypes.includes(result.data.dataSource.config.type) && (
+        <DataSourceEnrichmentDashboard dataSource={result.data.dataSource} />
+      )}
+    </>
+  );
 }

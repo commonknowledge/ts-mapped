@@ -62,13 +62,13 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       animation: {
-        shimmer: 'shimmer 2s infinite linear',
+        shimmer: "shimmer 2s infinite linear",
       },
       keyframes: {
         shimmer: {
-          '0%': { opacity: 0.5 },
-          '50%': { opacity: 1 },
-          '100%': { opacity: 0.5 },
+          "0%": { opacity: 0.5 },
+          "50%": { opacity: 1 },
+          "100%": { opacity: 0.5 },
         },
       },
     },
