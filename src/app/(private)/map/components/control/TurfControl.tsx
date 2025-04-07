@@ -3,7 +3,7 @@ import { MapRef } from "react-map-gl/mapbox";
 import { mapColors } from "@/app/(private)/map/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DrawnPolygon } from "@/types";
-import TurfHistory from "../dataLists/TurfList";
+import TurfHistory from "../lists/TurfList";
 import SkeletonGroup from "../SkeletonGroup";
 import LayerHeader from "./LayerHeader";
 

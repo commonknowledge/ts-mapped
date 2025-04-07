@@ -14,29 +14,29 @@ import {
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
 import { SearchResult } from "@/types";
-import MarkerList from "../dataLists/MarkerList";
+import MarkerList from "../lists/MarkerList";
 import SkeletonGroup from "../SkeletonGroup";
 import LayerHeader from "./LayerHeader";
+
 interface LocationsControlProps {
-  searchHistory: SearchResult[];
+  isLoading?: boolean;
   mapRef: React.RefObject<MapRef | null>;
   onEdit: (index: number, newText: string) => void;
   onDelete: (index: number) => void;
-  isLoading?: boolean;
   showLocations: boolean;
-  setShowLocations: (showLocations: boolean) => void;
-  onAdd: (marker: SearchResult) => void;
+  setShowLocations: (show: boolean) => void;
+  searchHistory: SearchResult[];
   setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
 }
 
 export default function MarkersControl({
-  searchHistory,
   mapRef,
   onEdit,
   onDelete,
   isLoading = false,
   showLocations,
   setShowLocations,
+  searchHistory,
   setSearchHistory,
 }: LocationsControlProps) {
   const [activeDataSources, setActiveDataSources] = useState<string[]>([]);

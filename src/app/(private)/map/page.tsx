@@ -1,22 +1,13 @@
 "use client";
 
-import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BoundingBoxInput } from "@/__generated__/types";
-import { MAX_COLUMN_KEY } from "@/constants";
-import { Label } from "@/shadcn/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
 import { DrawnPolygon, MarkerData, SearchResult } from "@/types";
 import Choropleth from "./components/Choropleth";
+import ChoroplethControl from "./components/control/ChoroplethControl";
 import MarkersControl from "./components/control/MarkersControl";
 import MembersControl from "./components/control/MembersControl";
 import TurfControl from "./components/control/TurfControl";
@@ -34,11 +25,7 @@ import {
   useMarkersQuery,
 } from "./data";
 import styles from "./page.module.css";
-import {
-  AREA_SET_GROUP_LABELS,
-  AreaSetGroupCode,
-  getChoroplethLayerConfig,
-} from "./sources";
+import { getChoroplethLayerConfig } from "./sources";
 
 const DEFAULT_ZOOM = 5;
 
@@ -176,12 +163,10 @@ export default function MapPage() {
   );
 
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
+
   const onChangeConfig = (nextConfig: Partial<MapConfig>) => {
     setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }));
   };
-  const dataSource = (dataSourcesData?.dataSources || []).find(
-    (ds) => ds.id === mapConfig.areaDataSourceId,
-  );
 
   return (
     <div className={styles.map}>
@@ -192,10 +177,8 @@ export default function MapPage() {
             dataSource={markersData?.dataSource}
             mapRef={mapRef}
             isLoading={loading}
-            showMembers={mapConfig.showMembers}
-            setShowMembers={(value) => onChangeConfig({ showMembers: value })}
             mapConfig={mapConfig}
-            onChange={onChangeConfig}
+            onChangeConfig={onChangeConfig}
             dataSources={dataSourcesData?.dataSources || []}
           />
           <Separator />
@@ -210,9 +193,6 @@ export default function MapPage() {
               onChangeConfig({ showLocations: value })
             }
             setSearchHistory={setSearchHistory}
-            onAdd={(marker) => {
-              handleEditSearch(0, marker.text);
-            }}
           />
           <Separator />
           <TurfControl
@@ -226,96 +206,11 @@ export default function MapPage() {
           />
         </ControlsTab>
         <ControlsTab label="Legend">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="areaDataSourceId">
-              <LandPlot className="w-4 h-4 text-muted-foreground" />
-              Area Data Source
-            </Label>
-            <Select
-              value={mapConfig.areaDataSourceId}
-              onValueChange={(value) =>
-                onChangeConfig({ areaDataSourceId: value })
-              }
-            >
-              <SelectTrigger className="w-full shadow-none">
-                <SelectValue placeholder="Select an area data source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Null">None</SelectItem>
-                {(dataSourcesData?.dataSources || []).map(
-                  (ds: { id: string; name: string }) => (
-                    <SelectItem key={ds.id} value={ds.id}>
-                      {ds.name}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-
-            {dataSource ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex gap-2 items-center">
-                  <CornerDownRight className="ml-2 w-4 h-4 text-muted-foreground" />
-                  <Select
-                    value={mapConfig.areaDataColumn}
-                    onValueChange={(value) =>
-                      onChangeConfig({ areaDataColumn: value })
-                    }
-                  >
-                    <SelectTrigger className="w-full shadow-none">
-                      <SelectValue placeholder="Select a data column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={MAX_COLUMN_KEY}>
-                        Highest-value column
-                      </SelectItem>
-                      {dataSource.columnDefs.map((cd: { name: string }) => (
-                        <SelectItem key={cd.name} value={cd.name}>
-                          {cd.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            ) : null}
-          </div>
-          {mapConfig.areaDataColumn === MAX_COLUMN_KEY ? (
-            <input
-              type="text"
-              onChange={(e) =>
-                onChangeConfig({
-                  excludeColumnsString: e.target.value,
-                })
-              }
-              placeholder="Comma-separated columns to exclude"
-              value={mapConfig.excludeColumnsString}
-            />
-          ) : null}
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="areaSetGroupCode">
-              <SquareStack className="w-4 h-4 text-muted-foreground" />
-              Boundary Set
-            </Label>
-            <Select
-              value={mapConfig.areaSetGroupCode}
-              onValueChange={(value) =>
-                onChangeConfig({ areaSetGroupCode: value as AreaSetGroupCode })
-              }
-            >
-              <SelectTrigger className="w-full shadow-none">
-                <SelectValue placeholder="Select a boundary set" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.keys(AREA_SET_GROUP_LABELS).map((code) => (
-                  <SelectItem key={code} value={code}>
-                    {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <ChoroplethControl
+            dataSources={dataSourcesData?.dataSources || []}
+            mapConfig={mapConfig}
+            onChangeConfig={onChangeConfig}
+          />
         </ControlsTab>
       </Controls>
       <Map

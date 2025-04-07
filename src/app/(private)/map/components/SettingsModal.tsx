@@ -25,11 +25,11 @@ import { Separator } from "@/shadcn/ui/separator";
 import { MapConfig } from "./Controls";
 export default function SettingsModal({
   mapConfig,
-  onChange,
+  onChangeConfig,
   dataSources,
 }: {
   mapConfig: MapConfig;
-  onChange: (mapConfig: Partial<MapConfig>) => void;
+  onChangeConfig: (mapConfig: Partial<MapConfig>) => void;
   dataSources: DataSourcesQuery["dataSources"];
 }) {
   return (
@@ -50,7 +50,9 @@ export default function SettingsModal({
 
           <Select
             value={mapConfig.markersDataSourceId}
-            onValueChange={(value) => onChange({ markersDataSourceId: value })}
+            onValueChange={(value) =>
+              onChangeConfig({ markersDataSourceId: value })
+            }
           >
             <SelectTrigger className="w-full shadow-none">
               <SelectValue placeholder="Select a markers data source" />

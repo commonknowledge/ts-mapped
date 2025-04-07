@@ -38,9 +38,7 @@ export const getAreaStats = async (
   const query = db
     .selectFrom("dataRecord")
     .select([
-      sql`geocode_result->'areas'->>${areaSetCode}`.as(
-        "areaCode",
-      ),
+      sql`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
       db.fn(operation, [sql`(json->>${column})::float`]).as("value"),
     ])
     .where("dataRecord.dataSourceId", "=", dataSourceId)

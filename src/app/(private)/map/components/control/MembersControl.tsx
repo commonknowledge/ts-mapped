@@ -2,7 +2,7 @@ import { MapRef } from "react-map-gl/mapbox";
 import { DataSourcesQuery, MarkersQuery } from "@/__generated__/types";
 import { mapColors } from "@/app/(private)/map/styles";
 import { MapConfig } from "../Controls";
-import MemberList from "../dataLists/MemberList";
+import MemberList from "../lists/MemberList";
 import SettingsModal from "../SettingsModal";
 import SkeletonGroup from "../SkeletonGroup";
 import LayerHeader from "./LayerHeader";
@@ -11,10 +11,8 @@ interface MembersControlProps {
   dataSource: MarkersQuery["dataSource"] | undefined;
   mapRef: React.RefObject<MapRef | null>;
   isLoading?: boolean;
-  showMembers: boolean;
-  setShowMembers: (showMembers: boolean) => void;
   mapConfig: MapConfig;
-  onChange: (mapConfig: MapConfig) => void;
+  onChangeConfig: (mapConfig: Partial<MapConfig>) => void;
   dataSources: DataSourcesQuery["dataSources"];
 }
 
@@ -22,10 +20,8 @@ export default function MembersControl({
   dataSource,
   mapRef,
   isLoading = false,
-  showMembers,
-  setShowMembers,
   mapConfig,
-  onChange,
+  onChangeConfig,
   dataSources,
 }: MembersControlProps) {
   return (
@@ -33,14 +29,12 @@ export default function MembersControl({
       <LayerHeader
         label="Members"
         color={mapColors.member.color}
-        showLayer={showMembers}
-        setLayer={setShowMembers}
+        showLayer={mapConfig.showMembers}
+        setLayer={(show) => onChangeConfig({ showMembers: show })}
       >
         <SettingsModal
           mapConfig={mapConfig}
-          onChange={(nextConfig) =>
-            onChange(new MapConfig({ ...mapConfig, ...nextConfig }))
-          }
+          onChangeConfig={onChangeConfig}
           dataSources={dataSources}
         />
       </LayerHeader>
@@ -48,7 +42,7 @@ export default function MembersControl({
         <SkeletonGroup />
       ) : (
         <MemberList
-          showMembers={showMembers}
+          showMembers={mapConfig.showMembers}
           dataSource={dataSource}
           onSelect={(coordinates) => {
             const map = mapRef.current;
