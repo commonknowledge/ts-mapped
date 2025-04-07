@@ -79,7 +79,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
 
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);
     return true;
-  } catch (e) {
+  } catch (error) {
     pubSub.publish("dataSourceEvent", {
       dataSourceEvent: {
         dataSourceId: dataSource.id,
@@ -90,7 +90,8 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     });
 
     logger.error(
-      `Failed to import records for ${dataSource.config.type} ${dataSourceId}: ${e}`,
+      `Failed to import records for ${dataSource.config.type} ${dataSourceId}`,
+      { error },
     );
   }
 

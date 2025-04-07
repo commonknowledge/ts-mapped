@@ -1,6 +1,7 @@
 import fs from "fs";
 import { join } from "path";
 import { sql } from "kysely";
+import { AreaSetCode } from "@/__generated__/types";
 import {
   findAreaSetByCode,
   insertAreaSet,
@@ -8,7 +9,6 @@ import {
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getBaseDir } from "@/server/utils";
-import { AreaSetCode } from "@/types";
 
 const AREA_SET_CODE = AreaSetCode.WMC24;
 
@@ -55,6 +55,7 @@ const importConstituencies = async () => {
       )
       ON CONFLICT (code, area_set_id) DO UPDATE SET geography = EXCLUDED.geography;
     `.execute(db);
+
     const percentComplete = Math.floor((i * 100) / count);
     logger.info(`Inserted area ${code}. ${percentComplete}% complete`);
   }

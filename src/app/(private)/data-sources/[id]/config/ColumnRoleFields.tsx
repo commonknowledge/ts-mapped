@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 
-export default function ColumnsConfigFields({
+export default function ColumnRoleFields({
   dataSource,
   nameColumn,
   setNameColumn,

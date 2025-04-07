@@ -1,7 +1,7 @@
 import { SelectQueryBuilder, sql } from "kysely";
+import { AreaSetCode } from "@/__generated__/types";
 import { Database } from "@/server/models";
 import { db } from "@/server/services/database";
-import { AreaSetCode } from "@/types";
 
 export interface AreaWithPoints {
   id: number;

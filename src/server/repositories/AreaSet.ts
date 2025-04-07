@@ -1,6 +1,6 @@
+import { AreaSetCode } from "@/__generated__/types";
 import { NewAreaSet } from "@/server/models/AreaSet";
 import { db } from "@/server/services/database";
-import { AreaSetCode } from "@/types";
 
 export async function findAreaSetByCode(code: AreaSetCode) {
   return await db

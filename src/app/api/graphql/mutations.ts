@@ -1,8 +1,9 @@
 import {
   ColumnDef,
   ColumnType,
-  ColumnsConfigInput,
   DataSource,
+  GeocodingType,
+  MutationUpdateDataSourceConfigArgs,
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
@@ -12,11 +13,11 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
-import { GeocodingType } from "@/types";
 import {
   DataSourceConfigSchema,
-  DataSourceGeocodingConfig,
-  DataSourceGeocodingConfigSchema,
+  EnrichmentSchema,
+  GeocodingConfig,
+  GeocodingConfigSchema,
 } from "@/zod";
 import { serializeDataSource } from "./serializers";
 
@@ -48,24 +49,32 @@ export const createDataSource = async (
       }),
     );
 
-    const geocodingConfig: DataSourceGeocodingConfig = {
-      type: GeocodingType.none,
+    const geocodingConfig: GeocodingConfig = {
+      type: GeocodingType.None,
     };
     const dataSource = await _createDataSource({
       name,
       config: JSON.stringify(config),
-      columnsConfig: JSON.stringify({}),
-      enrichmentConfig: JSON.stringify({}),
+      columnRoles: JSON.stringify({}),
+      enrichments: JSON.stringify([]),
       geocodingConfig: JSON.stringify(geocodingConfig),
       columnDefs: JSON.stringify(columnDefs),
     });
 
     logger.info(`Created ${config.type} data source: ${dataSource.id}`);
     return { code: 200, result: serializeDataSource(dataSource) };
-  } catch (e) {
-    logger.error(`Could not create data source: ${e}`);
+  } catch (error) {
+    logger.error(`Could not create data source`, { error });
   }
   return { code: 500 };
+};
+
+export const enqueueEnrichDataSourceJob = async (
+  _: unknown,
+  { dataSourceId }: { dataSourceId: string },
+): Promise<MutationResponse> => {
+  await enqueue("enrichDataSource", { dataSourceId });
+  return { code: 200 };
 };
 
 export const enqueueImportDataSourceJob = async (
@@ -80,31 +89,47 @@ export const updateDataSourceConfig = async (
   _: unknown,
   {
     id,
-    columnsConfig,
-    rawGeocodingConfig,
-  }: {
-    id: string;
-    columnsConfig: ColumnsConfigInput;
-    rawGeocodingConfig: object;
-  },
+    columnRoles,
+    looseEnrichments,
+    looseGeocodingConfig,
+  }: MutationUpdateDataSourceConfigArgs,
 ): Promise<MutationResponse> => {
   try {
     const dataSource = await findDataSourceById(id);
     if (!dataSource) {
       return { code: 404 };
     }
-    const geocodingConfig =
-      DataSourceGeocodingConfigSchema.parse(rawGeocodingConfig);
-    await updateDataSource(id, {
-      columnsConfig: JSON.stringify(columnsConfig),
-      geocodingConfig: JSON.stringify(geocodingConfig),
-    });
+
+    const update: {
+      columnRoles?: string;
+      enrichments?: string;
+      geocodingConfig?: string;
+    } = {};
+
+    if (columnRoles) {
+      update.columnRoles = JSON.stringify(columnRoles);
+    }
+
+    if (looseEnrichments) {
+      const enrichments = [];
+      for (const enrichment of looseEnrichments) {
+        enrichments.push(EnrichmentSchema.parse(enrichment));
+      }
+      update.enrichments = JSON.stringify(enrichments);
+    }
+
+    if (looseGeocodingConfig) {
+      const geocodingConfig = GeocodingConfigSchema.parse(looseGeocodingConfig);
+      update.geocodingConfig = JSON.stringify(geocodingConfig);
+    }
+
+    await updateDataSource(id, update);
     logger.info(
       `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
     );
     return { code: 200 };
-  } catch (e) {
-    logger.error(`Could not update data source: ${e}`);
+  } catch (error) {
+    logger.error(`Could not update data source`, { error });
   }
   return { code: 500 };
 };

@@ -3,7 +3,7 @@ import winston from "winston";
 const errorFormatter = winston.format((info) => {
   if (info.error) {
     info.message = `${info.message} (${getErrorMessage(info.error)})`;
-    delete info.error
+    delete info.error;
   }
   return info;
 });

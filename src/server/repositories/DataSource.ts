@@ -1,5 +1,5 @@
 import { sql } from "kysely";
-import { ImportInfo, ImportStatus } from "@/__generated__/types";
+import { JobInfo, JobStatus } from "@/__generated__/types";
 import { DataSourceUpdate, NewDataSource } from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
 
@@ -19,10 +19,10 @@ export async function deleteDataSource(id: string) {
     .executeTakeFirst();
 }
 
-export async function getImportInfo(id: string): Promise<ImportInfo> {
+export async function getJobInfo(id: string, task: string): Promise<JobInfo> {
   const latestJob = await db
     .selectFrom("pgboss.job")
-    .where(sql`data->>'task'`, "=", "importDataSource")
+    .where(sql`data->>'task'`, "=", task)
     .where(sql`data->'args'->>'dataSourceId'`, "=", id)
     .orderBy("completedOn", "desc")
     .limit(1)
@@ -31,31 +31,31 @@ export async function getImportInfo(id: string): Promise<ImportInfo> {
 
   if (!latestJob) {
     return {
-      status: ImportStatus.None,
+      status: JobStatus.None,
     };
   }
 
   if (latestJob.state === "failed") {
     return {
-      status: ImportStatus.Failed,
+      status: JobStatus.Failed,
     };
   }
 
   if (!latestJob.startedOn) {
     return {
-      status: ImportStatus.Pending,
+      status: JobStatus.Pending,
     };
   }
 
   if (!latestJob.completedOn) {
     return {
-      status: ImportStatus.Importing,
+      status: JobStatus.Running,
     };
   }
 
   return {
-    lastImported: latestJob.completedOn.toISOString(),
-    status: ImportStatus.Imported,
+    lastCompleted: latestJob.completedOn.toISOString(),
+    status: JobStatus.Complete,
   };
 }
 
@@ -65,6 +65,17 @@ export async function findDataSourceById(id: string) {
     .where("id", "=", id)
     .selectAll()
     .executeTakeFirst();
+}
+
+export async function findDataSourcesByIds(ids: string[]) {
+  if (!ids.length) {
+    return [];
+  }
+  return await db
+    .selectFrom("dataSource")
+    .where("id", "in", ids)
+    .selectAll()
+    .execute();
 }
 
 export function listDataSources() {

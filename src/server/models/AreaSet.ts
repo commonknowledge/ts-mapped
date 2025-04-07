@@ -1,5 +1,5 @@
 import { Generated, Insertable, Selectable, Updateable } from "kysely";
-import { AreaSetCode } from "@/types";
+import { AreaSetCode } from "@/__generated__/types";
 
 export interface AreaSetTable {
   id: Generated<number>;

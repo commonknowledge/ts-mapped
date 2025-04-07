@@ -1,11 +1,16 @@
 import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
-import { AreaStat, ColumnType, Operation } from "@/__generated__/types";
+import {
+  AreaSetCode,
+  AreaStat,
+  BoundingBoxInput,
+  ColumnType,
+  Operation,
+} from "@/__generated__/types";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { Database } from "@/server/models";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { AreaSetCode, BoundingBox } from "@/types";
 
 export const getAreaStats = async (
   areaSetCode: string,
@@ -13,7 +18,7 @@ export const getAreaStats = async (
   column: string,
   operation: Operation,
   excludeColumns: string[],
-  boundingBox: BoundingBox | null = null,
+  boundingBox: BoundingBoxInput | null = null,
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
   // Ensure areaSetCode is valid as it will be used in a raw SQL query
   if (!(areaSetCode in AreaSetCode)) {
@@ -46,8 +51,8 @@ export const getAreaStats = async (
     const result = await query.execute();
     const stats = filterResult(result);
     return { column, columnType: ColumnType.Number, stats };
-  } catch (e) {
-    logger.error(`Failed to get area stats: ${e}`);
+  } catch (error) {
+    logger.error(`Failed to get area stats`, { error });
   }
   return { column, columnType: ColumnType.Unknown, stats: [] };
 };
@@ -56,7 +61,7 @@ export const getMaxColumnByArea = async (
   areaSetCode: string,
   dataSourceId: string,
   excludeColumns: string[],
-  boundingBox: BoundingBox | null = null,
+  boundingBox: BoundingBoxInput | null = null,
 ) => {
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
@@ -134,13 +139,13 @@ export const getMaxColumnByArea = async (
   try {
     const result = await q.execute(db);
     return filterResult(result.rows);
-  } catch (e) {
-    logger.error(`Failed to get area max column by area: ${e}`);
+  } catch (error) {
+    logger.error(`Failed to get area max column by area`, { error });
   }
   return [];
 };
 
-const getBoundingBoxSQL = (boundingBox: BoundingBox | null) => {
+const getBoundingBoxSQL = (boundingBox: BoundingBoxInput | null) => {
   // Returning a dummy WHERE statement if boundingBox is null makes for cleaner queries above
   if (!boundingBox) {
     return sql<boolean>`1 = 1`;

@@ -2,7 +2,12 @@
 // Should probably only import from ./types and __generated__ here.
 
 import z from "zod";
-import { AreaSetCode, DataSourceType, GeocodingType } from "./types";
+import {
+  AreaSetCode,
+  EnrichmentSourceType,
+  GeocodingType,
+} from "./__generated__/types";
+import { DataSourceType } from "./types";
 
 export const AirtableConfigSchema = z.object({
   type: z.literal(DataSourceType.airtable),
@@ -38,45 +43,37 @@ export const DataSourceConfigSchema = z.discriminatedUnion("type", [
 
 export type DataSourceConfig = z.infer<typeof DataSourceConfigSchema>;
 
-const AreaEnrichmentColumnConfigSchema = z.object({
-  sourceType: z.literal("Area"),
+const AreaEnrichmentSchema = z.object({
+  sourceType: z.literal(EnrichmentSourceType.Area),
   areaSetCode: z.nativeEnum(AreaSetCode),
   areaProperty: z.enum(["code", "name"]),
 });
 
-export type AreaEnrichmentColumnConfig = z.infer<
-  typeof AreaEnrichmentColumnConfigSchema
->;
+export type AreaEnrichment = z.infer<typeof AreaEnrichmentSchema>;
 
-const DataSourceEnrichmentColumnConfigSchema = z.object({
-  sourceType: z.literal("DataSource"),
+const DataSourceEnrichmentSchema = z.object({
+  sourceType: z.literal(EnrichmentSourceType.DataSource),
   dataSourceId: z.string().nonempty(),
   dataSourceColumn: z.string().nonempty(),
 });
 
-export type DataSourceEnrichmentColumnConfig = z.infer<
-  typeof DataSourceEnrichmentColumnConfigSchema
->;
+export type DataSourceEnrichment = z.infer<typeof DataSourceEnrichmentSchema>;
 
-export const EnrichmentColumnConfigSchema = z.discriminatedUnion("sourceType", [
-  AreaEnrichmentColumnConfigSchema,
-  DataSourceEnrichmentColumnConfigSchema,
+export const EnrichmentSchema = z.discriminatedUnion("sourceType", [
+  AreaEnrichmentSchema,
+  DataSourceEnrichmentSchema,
 ]);
 
-export type EnrichmentColumnConfig = z.infer<
-  typeof EnrichmentColumnConfigSchema
->;
-
-export type DatasourceEnrichmentConfig = EnrichmentColumnConfig[];
+export type Enrichment = z.infer<typeof EnrichmentSchema>;
 
 const GeocodingOnAddressSchema = z.object({
-  type: z.literal(GeocodingType.address),
+  type: z.literal(GeocodingType.Address),
   column: z.string().nonempty(),
 });
 
 const GeocodingOnAreaSetTypeSchema = z.enum([
-  GeocodingType.name,
-  GeocodingType.code,
+  GeocodingType.Name,
+  GeocodingType.Code,
 ]);
 export const GeocodingOnAreaSetType = GeocodingOnAreaSetTypeSchema.Enum;
 
@@ -87,15 +84,13 @@ const GeocodingOnAreaSetSchema = z.object({
 });
 
 const GeocodingDisabledSchema = z.object({
-  type: z.literal(GeocodingType.none),
+  type: z.literal(GeocodingType.None),
 });
 
-export const DataSourceGeocodingConfigSchema = z.discriminatedUnion("type", [
+export const GeocodingConfigSchema = z.discriminatedUnion("type", [
   GeocodingOnAddressSchema,
   GeocodingOnAreaSetSchema,
   GeocodingDisabledSchema,
 ]);
 
-export type DataSourceGeocodingConfig = z.infer<
-  typeof DataSourceGeocodingConfigSchema
->;
+export type GeocodingConfig = z.infer<typeof GeocodingConfigSchema>;

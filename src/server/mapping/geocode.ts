@@ -5,7 +5,7 @@ import {
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
 import { GeocodeResult, Point } from "@/types";
-import { DataSourceGeocodingConfig } from "@/zod";
+import { GeocodingConfig } from "@/zod";
 
 interface MappingDataRecord {
   externalId: string;
@@ -14,23 +14,25 @@ interface MappingDataRecord {
 
 export const geocodeRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: DataSourceGeocodingConfig,
+  geocodingConfig: GeocodingConfig,
 ): Promise<GeocodeResult | null> => {
   try {
     return await _geocodeRecord(dataRecord, geocodingConfig);
-  } catch (e) {
-    logger.warn(`Could not geocode record ${dataRecord.externalId}`, { error: e });
+  } catch (error) {
+    logger.warn(`Could not geocode record ${dataRecord.externalId}`, {
+      error,
+    });
   }
   return null;
 };
 
 const _geocodeRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: DataSourceGeocodingConfig,
+  geocodingConfig: GeocodingConfig,
 ): Promise<GeocodeResult> => {
   const dataRecordJson = dataRecord.json;
   // TODO: Implement the other types
-  if (geocodingConfig.type !== "code") {
+  if (geocodingConfig.type !== "Code") {
     throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
   }
 
@@ -41,7 +43,7 @@ const _geocodeRecord = async (
 
   let dataRecordArea = String(dataRecordJson[areaColumn]);
   let area = null;
-  if (geocodingConfig.type === "code") {
+  if (geocodingConfig.type === "Code") {
     if (geocodingConfig.areaSetCode === "PC") {
       dataRecordArea = dataRecordArea.replace(/\s+/g, "").toUpperCase();
     }

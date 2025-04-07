@@ -37,6 +37,13 @@ export type Scalars = {
   JSON: { input: any; output: any };
 };
 
+export enum AreaSetCode {
+  MSOA21 = "MSOA21",
+  OA21 = "OA21",
+  PC = "PC",
+  WMC24 = "WMC24",
+}
+
 export type AreaStat = {
   __typename?: "AreaStat";
   areaCode: Scalars["String"]["output"];
@@ -63,18 +70,23 @@ export type ColumnDef = {
   type: ColumnType;
 };
 
-export enum ColumnType {
-  Boolean = "boolean",
-  Empty = "empty",
-  Number = "number",
-  Object = "object",
-  String = "string",
-  Unknown = "unknown",
-}
+export type ColumnRoles = {
+  __typename?: "ColumnRoles";
+  nameColumn?: Maybe<Scalars["String"]["output"]>;
+};
 
-export type ColumnsConfigInput = {
+export type ColumnRolesInput = {
   nameColumn: Scalars["String"]["input"];
 };
+
+export enum ColumnType {
+  Boolean = "Boolean",
+  Empty = "Empty",
+  Number = "Number",
+  Object = "Object",
+  String = "String",
+  Unknown = "Unknown",
+}
 
 export type CreateDataSourceResponse = {
   __typename?: "CreateDataSourceResponse";
@@ -85,12 +97,15 @@ export type CreateDataSourceResponse = {
 export type DataSource = {
   __typename?: "DataSource";
   columnDefs: Array<ColumnDef>;
-  columnsConfig: DataSourceColumnsConfig;
+  columnRoles: ColumnRoles;
   config: Scalars["JSON"]["output"];
   createdAt: Scalars["String"]["output"];
-  geocodingConfig: Scalars["JSON"]["output"];
+  enrichmentDataSources?: Maybe<Array<DataSource>>;
+  enrichmentInfo?: Maybe<JobInfo>;
+  enrichments: Array<LooseEnrichment>;
+  geocodingConfig: LooseGeocodingConfig;
   id: Scalars["String"]["output"];
-  importInfo?: Maybe<ImportInfo>;
+  importInfo?: Maybe<JobInfo>;
   /**
    * markers is untyped for performance - objects are
    * denormalized in the Apollo client cache, which is slow
@@ -99,11 +114,6 @@ export type DataSource = {
   markers?: Maybe<Scalars["JSON"]["output"]>;
   name: Scalars["String"]["output"];
   recordCount?: Maybe<Scalars["Int"]["output"]>;
-};
-
-export type DataSourceColumnsConfig = {
-  __typename?: "DataSourceColumnsConfig";
-  nameColumn?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type DataSourceEvent = {
@@ -117,18 +127,16 @@ export type DataSourceEvent = {
   recordsImported?: Maybe<RecordsProcessedEvent>;
 };
 
-export type ImportInfo = {
-  __typename?: "ImportInfo";
-  lastImported?: Maybe<Scalars["String"]["output"]>;
-  status?: Maybe<ImportStatus>;
-};
+export enum EnrichmentSourceType {
+  Area = "Area",
+  DataSource = "DataSource",
+}
 
-export enum ImportStatus {
-  Failed = "Failed",
-  Imported = "Imported",
-  Importing = "Importing",
+export enum GeocodingType {
+  Address = "Address",
+  Code = "Code",
+  Name = "Name",
   None = "None",
-  Pending = "Pending",
 }
 
 export type JobCompleteEvent = {
@@ -141,9 +149,59 @@ export type JobFailedEvent = {
   at: Scalars["String"]["output"];
 };
 
+export type JobInfo = {
+  __typename?: "JobInfo";
+  lastCompleted?: Maybe<Scalars["String"]["output"]>;
+  status?: Maybe<JobStatus>;
+};
+
+export enum JobStatus {
+  Complete = "Complete",
+  Failed = "Failed",
+  None = "None",
+  Pending = "Pending",
+  Running = "Running",
+}
+
+export type LooseEnrichment = {
+  __typename?: "LooseEnrichment";
+  areaProperty?: Maybe<Scalars["String"]["output"]>;
+  areaSetCode?: Maybe<AreaSetCode>;
+  dataSourceColumn?: Maybe<Scalars["String"]["output"]>;
+  dataSourceId?: Maybe<Scalars["String"]["output"]>;
+  sourceType: EnrichmentSourceType;
+};
+
+export type LooseEnrichmentInput = {
+  areaProperty?: InputMaybe<Scalars["String"]["input"]>;
+  areaSetCode?: InputMaybe<AreaSetCode>;
+  dataSourceColumn?: InputMaybe<Scalars["String"]["input"]>;
+  dataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  sourceType: EnrichmentSourceType;
+};
+
+/**
+ * GraphQL doesn't have discriminated union types like Typescript.
+ * Instead, Loose types contain all possible properties, and data
+ * should be validated with the corresponding Zod type before use.
+ */
+export type LooseGeocodingConfig = {
+  __typename?: "LooseGeocodingConfig";
+  areaSetCode?: Maybe<AreaSetCode>;
+  column?: Maybe<Scalars["String"]["output"]>;
+  type: GeocodingType;
+};
+
+export type LooseGeocodingConfigInput = {
+  areaSetCode?: InputMaybe<AreaSetCode>;
+  column?: InputMaybe<Scalars["String"]["input"]>;
+  type: GeocodingType;
+};
+
 export type Mutation = {
   __typename?: "Mutation";
   createDataSource: CreateDataSourceResponse;
+  enqueueEnrichDataSourceJob: MutationResponse;
   enqueueImportDataSourceJob: MutationResponse;
   updateDataSourceConfig: MutationResponse;
 };
@@ -153,14 +211,19 @@ export type MutationCreateDataSourceArgs = {
   rawConfig: Scalars["JSON"]["input"];
 };
 
+export type MutationEnqueueEnrichDataSourceJobArgs = {
+  dataSourceId: Scalars["String"]["input"];
+};
+
 export type MutationEnqueueImportDataSourceJobArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
 export type MutationUpdateDataSourceConfigArgs = {
-  columnsConfig: ColumnsConfigInput;
+  columnRoles?: InputMaybe<ColumnRolesInput>;
   id: Scalars["String"]["input"];
-  rawGeocodingConfig: Scalars["JSON"]["input"];
+  looseEnrichments?: InputMaybe<Array<LooseEnrichmentInput>>;
+  looseGeocodingConfig?: InputMaybe<LooseGeocodingConfigInput>;
 };
 
 export type MutationResponse = {
@@ -169,8 +232,8 @@ export type MutationResponse = {
 };
 
 export enum Operation {
-  Avg = "AVG",
-  Sum = "SUM",
+  AVG = "AVG",
+  SUM = "SUM",
 }
 
 export type Query = {
@@ -181,7 +244,7 @@ export type Query = {
 };
 
 export type QueryAreaStatsArgs = {
-  areaSetCode: Scalars["String"]["input"];
+  areaSetCode: AreaSetCode;
   boundingBox?: InputMaybe<BoundingBoxInput>;
   column: Scalars["String"]["input"];
   dataSourceId: Scalars["String"]["input"];
@@ -234,10 +297,36 @@ export type DataSourceEventSubscription = {
   };
 };
 
+export type EnqueueEnrichDataSourceJobMutationVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+}>;
+
+export type EnqueueEnrichDataSourceJobMutation = {
+  __typename?: "Mutation";
+  enqueueEnrichDataSourceJob: { __typename?: "MutationResponse"; code: number };
+};
+
+export type DataSourceEnrichmentEventSubscriptionVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+}>;
+
+export type DataSourceEnrichmentEventSubscription = {
+  __typename?: "Subscription";
+  dataSourceEvent: {
+    __typename?: "DataSourceEvent";
+    enrichmentComplete?: { __typename?: "JobCompleteEvent"; at: string } | null;
+    enrichmentFailed?: { __typename?: "JobFailedEvent"; at: string } | null;
+    recordsEnriched?: {
+      __typename?: "RecordsProcessedEvent";
+      count: number;
+    } | null;
+  };
+};
+
 export type UpdateDataSourceConfigMutationVariables = Exact<{
   id: Scalars["String"]["input"];
-  columnsConfig: ColumnsConfigInput;
-  rawGeocodingConfig: Scalars["JSON"]["input"];
+  columnRoles: ColumnRolesInput;
+  looseGeocodingConfig?: InputMaybe<LooseGeocodingConfigInput>;
 }>;
 
 export type UpdateDataSourceConfigMutation = {
@@ -255,17 +344,58 @@ export type DataSourceConfigQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
-    geocodingConfig: any;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
       type: ColumnType;
     }>;
-    columnsConfig: {
-      __typename?: "DataSourceColumnsConfig";
-      nameColumn?: string | null;
+    columnRoles: { __typename?: "ColumnRoles"; nameColumn?: string | null };
+    geocodingConfig: {
+      __typename?: "LooseGeocodingConfig";
+      type: GeocodingType;
+      column?: string | null;
+      areaSetCode?: AreaSetCode | null;
     };
   } | null;
+};
+
+export type UpdateDataSourceEnrichmentMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  looseEnrichments?: InputMaybe<
+    Array<LooseEnrichmentInput> | LooseEnrichmentInput
+  >;
+}>;
+
+export type UpdateDataSourceEnrichmentMutation = {
+  __typename?: "Mutation";
+  updateDataSourceConfig: { __typename?: "MutationResponse"; code: number };
+};
+
+export type DataSourceEnrichmentQueryVariables = Exact<{
+  id: Scalars["String"]["input"];
+}>;
+
+export type DataSourceEnrichmentQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    enrichments: Array<{
+      __typename?: "LooseEnrichment";
+      sourceType: EnrichmentSourceType;
+      areaSetCode?: AreaSetCode | null;
+      areaProperty?: string | null;
+      dataSourceId?: string | null;
+      dataSourceColumn?: string | null;
+    }>;
+  } | null;
+  dataSources: Array<{
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    columnDefs: Array<{ __typename?: "ColumnDef"; name: string }>;
+  }>;
 };
 
 export type DataSourceQueryVariables = Exact<{
@@ -279,21 +409,41 @@ export type DataSourceQuery = {
     id: string;
     name: string;
     config: any;
-    geocodingConfig: any;
     recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
       type: ColumnType;
     }>;
-    columnsConfig: {
-      __typename?: "DataSourceColumnsConfig";
-      nameColumn?: string | null;
+    columnRoles: { __typename?: "ColumnRoles"; nameColumn?: string | null };
+    enrichments: Array<{
+      __typename?: "LooseEnrichment";
+      sourceType: EnrichmentSourceType;
+      areaSetCode?: AreaSetCode | null;
+      areaProperty?: string | null;
+      dataSourceId?: string | null;
+      dataSourceColumn?: string | null;
+    }>;
+    enrichmentDataSources?: Array<{
+      __typename?: "DataSource";
+      id: string;
+      name: string;
+    }> | null;
+    geocodingConfig: {
+      __typename?: "LooseGeocodingConfig";
+      type: GeocodingType;
+      column?: string | null;
+      areaSetCode?: AreaSetCode | null;
     };
+    enrichmentInfo?: {
+      __typename?: "JobInfo";
+      lastCompleted?: string | null;
+      status?: JobStatus | null;
+    } | null;
     importInfo?: {
-      __typename?: "ImportInfo";
-      lastImported?: string | null;
-      status?: ImportStatus | null;
+      __typename?: "JobInfo";
+      lastCompleted?: string | null;
+      status?: JobStatus | null;
     } | null;
   } | null;
 };
@@ -355,7 +505,7 @@ export type MarkersQuery = {
 };
 
 export type AreaStatsQueryVariables = Exact<{
-  areaSetCode: Scalars["String"]["input"];
+  areaSetCode: AreaSetCode;
   dataSourceId: Scalars["String"]["input"];
   column: Scalars["String"]["input"];
   operation: Operation;
@@ -482,24 +632,31 @@ export type DirectiveResolverFn<
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  AreaSetCode: AreaSetCode;
   AreaStat: ResolverTypeWrapper<AreaStat>;
   AreaStats: ResolverTypeWrapper<AreaStats>;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]["output"]>;
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
+  ColumnRoles: ResolverTypeWrapper<ColumnRoles>;
+  ColumnRolesInput: ColumnRolesInput;
   ColumnType: ColumnType;
-  ColumnsConfigInput: ColumnsConfigInput;
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
   DataSource: ResolverTypeWrapper<DataSource>;
-  DataSourceColumnsConfig: ResolverTypeWrapper<DataSourceColumnsConfig>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
+  EnrichmentSourceType: EnrichmentSourceType;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
-  ImportInfo: ResolverTypeWrapper<ImportInfo>;
-  ImportStatus: ImportStatus;
+  GeocodingType: GeocodingType;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
   JobCompleteEvent: ResolverTypeWrapper<JobCompleteEvent>;
   JobFailedEvent: ResolverTypeWrapper<JobFailedEvent>;
+  JobInfo: ResolverTypeWrapper<JobInfo>;
+  JobStatus: JobStatus;
+  LooseEnrichment: ResolverTypeWrapper<LooseEnrichment>;
+  LooseEnrichmentInput: LooseEnrichmentInput;
+  LooseGeocodingConfig: ResolverTypeWrapper<LooseGeocodingConfig>;
+  LooseGeocodingConfigInput: LooseGeocodingConfigInput;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
@@ -516,17 +673,21 @@ export type ResolversParentTypes = {
   Boolean: Scalars["Boolean"]["output"];
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ColumnDef;
-  ColumnsConfigInput: ColumnsConfigInput;
+  ColumnRoles: ColumnRoles;
+  ColumnRolesInput: ColumnRolesInput;
   CreateDataSourceResponse: CreateDataSourceResponse;
   DataSource: DataSource;
-  DataSourceColumnsConfig: DataSourceColumnsConfig;
   DataSourceEvent: DataSourceEvent;
   Float: Scalars["Float"]["output"];
-  ImportInfo: ImportInfo;
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
   JobCompleteEvent: JobCompleteEvent;
   JobFailedEvent: JobFailedEvent;
+  JobInfo: JobInfo;
+  LooseEnrichment: LooseEnrichment;
+  LooseEnrichmentInput: LooseEnrichmentInput;
+  LooseGeocodingConfig: LooseGeocodingConfig;
+  LooseGeocodingConfigInput: LooseGeocodingConfigInput;
   Mutation: {};
   MutationResponse: MutationResponse;
   Query: {};
@@ -566,6 +727,19 @@ export type ColumnDefResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type ColumnRolesResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["ColumnRoles"] = ResolversParentTypes["ColumnRoles"],
+> = {
+  nameColumn?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type CreateDataSourceResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -590,36 +764,42 @@ export type DataSourceResolvers<
     ParentType,
     ContextType
   >;
-  columnsConfig?: Resolver<
-    ResolversTypes["DataSourceColumnsConfig"],
+  columnRoles?: Resolver<
+    ResolversTypes["ColumnRoles"],
     ParentType,
     ContextType
   >;
   config?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  geocodingConfig?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
+  enrichmentDataSources?: Resolver<
+    Maybe<Array<ResolversTypes["DataSource"]>>,
+    ParentType,
+    ContextType
+  >;
+  enrichmentInfo?: Resolver<
+    Maybe<ResolversTypes["JobInfo"]>,
+    ParentType,
+    ContextType
+  >;
+  enrichments?: Resolver<
+    Array<ResolversTypes["LooseEnrichment"]>,
+    ParentType,
+    ContextType
+  >;
+  geocodingConfig?: Resolver<
+    ResolversTypes["LooseGeocodingConfig"],
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   importInfo?: Resolver<
-    Maybe<ResolversTypes["ImportInfo"]>,
+    Maybe<ResolversTypes["JobInfo"]>,
     ParentType,
     ContextType
   >;
   markers?: Resolver<Maybe<ResolversTypes["JSON"]>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type DataSourceColumnsConfigResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["DataSourceColumnsConfig"] = ResolversParentTypes["DataSourceColumnsConfig"],
-> = {
-  nameColumn?: Resolver<
-    Maybe<ResolversTypes["String"]>,
-    ParentType,
-    ContextType
-  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -662,24 +842,6 @@ export type DataSourceEventResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ImportInfoResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["ImportInfo"] = ResolversParentTypes["ImportInfo"],
-> = {
-  lastImported?: Resolver<
-    Maybe<ResolversTypes["String"]>,
-    ParentType,
-    ContextType
-  >;
-  status?: Resolver<
-    Maybe<ResolversTypes["ImportStatus"]>,
-    ParentType,
-    ContextType
-  >;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export interface JsonScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes["JSON"], any> {
   name: "JSON";
@@ -703,6 +865,72 @@ export type JobFailedEventResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type JobInfoResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["JobInfo"] = ResolversParentTypes["JobInfo"],
+> = {
+  lastCompleted?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  status?: Resolver<
+    Maybe<ResolversTypes["JobStatus"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type LooseEnrichmentResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["LooseEnrichment"] = ResolversParentTypes["LooseEnrichment"],
+> = {
+  areaProperty?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  areaSetCode?: Resolver<
+    Maybe<ResolversTypes["AreaSetCode"]>,
+    ParentType,
+    ContextType
+  >;
+  dataSourceColumn?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  dataSourceId?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  sourceType?: Resolver<
+    ResolversTypes["EnrichmentSourceType"],
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type LooseGeocodingConfigResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["LooseGeocodingConfig"] = ResolversParentTypes["LooseGeocodingConfig"],
+> = {
+  areaSetCode?: Resolver<
+    Maybe<ResolversTypes["AreaSetCode"]>,
+    ParentType,
+    ContextType
+  >;
+  column?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  type?: Resolver<ResolversTypes["GeocodingType"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MutationResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -714,6 +942,12 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationCreateDataSourceArgs, "name" | "rawConfig">
   >;
+  enqueueEnrichDataSourceJob?: Resolver<
+    ResolversTypes["MutationResponse"],
+    ParentType,
+    ContextType,
+    RequireFields<MutationEnqueueEnrichDataSourceJobArgs, "dataSourceId">
+  >;
   enqueueImportDataSourceJob?: Resolver<
     ResolversTypes["MutationResponse"],
     ParentType,
@@ -724,10 +958,7 @@ export type MutationResolvers<
     ResolversTypes["MutationResponse"],
     ParentType,
     ContextType,
-    RequireFields<
-      MutationUpdateDataSourceConfigArgs,
-      "columnsConfig" | "id" | "rawGeocodingConfig"
-    >
+    RequireFields<MutationUpdateDataSourceConfigArgs, "id">
   >;
 };
 
@@ -795,14 +1026,16 @@ export type Resolvers<ContextType = GraphQLContext> = {
   AreaStat?: AreaStatResolvers<ContextType>;
   AreaStats?: AreaStatsResolvers<ContextType>;
   ColumnDef?: ColumnDefResolvers<ContextType>;
+  ColumnRoles?: ColumnRolesResolvers<ContextType>;
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
-  DataSourceColumnsConfig?: DataSourceColumnsConfigResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
-  ImportInfo?: ImportInfoResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;
   JobFailedEvent?: JobFailedEventResolvers<ContextType>;
+  JobInfo?: JobInfoResolvers<ContextType>;
+  LooseEnrichment?: LooseEnrichmentResolvers<ContextType>;
+  LooseGeocodingConfig?: LooseGeocodingConfigResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
