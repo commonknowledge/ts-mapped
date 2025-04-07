@@ -30,11 +30,11 @@ export const enrichRecord = async (
   }
 
   const enrichedColumns = [];
-  for (const enrichmentCo of dataSource.enrichments) {
+  for (const enrichment of dataSource.enrichments) {
     const enrichedColumn = await getEnrichedColumn(
       record,
       geocodeResult,
-      enrichmentCo,
+      enrichment,
     );
     if (enrichedColumn) {
       enrichedColumns.push({
@@ -56,21 +56,18 @@ export const enrichRecord = async (
 const getEnrichedColumn = async (
   record: ExternalRecord,
   recordGeocodeResult: GeocodeResult,
-  enrichmentCo: Enrichment,
+  enrichment: Enrichment,
 ): Promise<EnrichedRecord["columns"][0] | null> => {
   try {
-    if (enrichmentCo.sourceType === "Area") {
-      return await getAreaEnrichedColumn(recordGeocodeResult, enrichmentCo);
+    if (enrichment.sourceType === "Area") {
+      return await getAreaEnrichedColumn(recordGeocodeResult, enrichment);
     }
-    if (enrichmentCo.sourceType === "DataSource") {
-      return await getDataSourceEnrichedColumn(
-        recordGeocodeResult,
-        enrichmentCo,
-      );
+    if (enrichment.sourceType === "DataSource") {
+      return await getDataSourceEnrichedColumn(recordGeocodeResult, enrichment);
     }
   } catch (error) {
     logger.warn(
-      `${enrichmentCo.sourceType} enrichment error for record ${record.externalId}`,
+      `${enrichment.sourceType} enrichment error for record ${record.externalId}`,
       { error },
     );
   }
@@ -79,12 +76,12 @@ const getEnrichedColumn = async (
 
 const getAreaEnrichedColumn = async (
   recordGeocodeResult: GeocodeResult,
-  enrichmentCo: AreaEnrichment,
+  enrichment: AreaEnrichment,
 ): Promise<EnrichedRecord["columns"][0]> => {
-  const areaSet = await findAreaSetByCode(enrichmentCo.areaSetCode);
+  const areaSet = await findAreaSetByCode(enrichment.areaSetCode);
   if (!areaSet) {
     throw new Error(
-      `Could not find area set with code ${enrichmentCo.areaSetCode}`,
+      `Could not find area set with code ${enrichment.areaSetCode}`,
     );
   }
 
@@ -98,7 +95,7 @@ const getAreaEnrichedColumn = async (
   const area = await findAreaByCode(areaCode, areaSet.code);
   if (!area) {
     throw new Error(
-      `Could not find area with code "${areaCode}" from requested set ${enrichmentCo.areaSetCode}`,
+      `Could not find area with code "${areaCode}" from requested set ${enrichment.areaSetCode}`,
     );
   }
 
@@ -107,7 +104,7 @@ const getAreaEnrichedColumn = async (
       name: areaSet.name,
       type: ColumnType.String,
     },
-    value: area[enrichmentCo.areaProperty],
+    value: area[enrichment.areaProperty],
   };
 };
 

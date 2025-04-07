@@ -10,7 +10,7 @@ import {
 } from "@/__generated__/types";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { EnrichmentSchema } from "@/zod";
+import { Enrichment, EnrichmentSchema } from "@/zod";
 import EnrichmentFields, { NewEnrichment } from "./EnrichmentFields";
 
 export default function DataSourceEnrichmentForm({
@@ -51,15 +51,15 @@ export default function DataSourceEnrichmentForm({
     }
   `);
 
-  let validEnrichments = [];
+  let formValid = true;
+  const validEnrichments: Enrichment[] = [];
   for (const enrichment of enrichments) {
     const { data: validEnrichment } = EnrichmentSchema.safeParse(enrichment);
-    // If an invalid enrichment is found, mark the whole form as invalid
-    if (!validEnrichment) {
-      validEnrichments = [];
-      break;
+    if (validEnrichment) {
+      validEnrichments.push(validEnrichment);
+    } else {
+      formValid = false;
     }
-    validEnrichments.push(validEnrichment);
   }
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -130,7 +130,7 @@ export default function DataSourceEnrichmentForm({
         </Button>
       </div>
       <Separator className="my-4" />
-      <Button disabled={!validEnrichments.length || loading}>Submit</Button>
+      <Button disabled={!formValid || loading}>Submit</Button>
       {error && (
         <div>
           <small>{error}</small>

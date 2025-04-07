@@ -21,7 +21,6 @@ import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 
 export default function DataSourceEnrichmentDashboard({
-  // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)

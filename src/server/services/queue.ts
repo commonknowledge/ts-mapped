@@ -1,6 +1,6 @@
 import PgBoss from "pg-boss";
+import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
-import enrichDataSource from "../jobs/enrichDataSource";
 import logger from "./logger";
 
 const defaultQueue = process.env.DEFAULT_QUEUE_NAME || "default";
@@ -61,6 +61,8 @@ export const runWorker = async (queue: string = defaultQueue) => {
       }
     } catch (error) {
       logger.error(`Failed job ${job.id}`, { error });
+      // Re-throw so PgBoss knows the job failed
+      throw error;
     }
   });
 

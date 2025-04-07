@@ -11,10 +11,10 @@ import { Enrichment, GeocodingConfig } from "@/zod";
  * This file is used for compile-type checking that GraphQL
  * and Zod types for objects are aligned. Is there a better way?
  *
- * To make sure a discriminated union has a check for each
- * union type, a Record that maps the discriminator to
- * a sample object can be used. TypeScript will error
- * if any valid discriminators are missing.
+ * To make sure a discriminated union has all necessary checks,
+ * a Record that maps each possible discriminator value to a
+ * sample object can be used. TypeScript will error if any
+ * valid discriminators are missing.
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

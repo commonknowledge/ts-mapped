@@ -32,7 +32,6 @@ import { Separator } from "@/shadcn/ui/separator";
 import { GeocodingOnAreaSetType } from "@/zod";
 
 export default function DataSourceDashboard({
-  // Mark dataSource as not null or undefined (this is checked in the parent page)
   dataSource,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
