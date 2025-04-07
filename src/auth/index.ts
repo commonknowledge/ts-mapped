@@ -15,8 +15,8 @@ export const getServerSession = async (): Promise<ServerSession> => {
     if (jwt && typeof jwt === "object") {
       return { jwt: authCookie.value, currentUser: { id: jwt.id } };
     }
-  } catch (e) {
-    logger.warn(`Failed to decode JWT: ${e}`);
+  } catch (error) {
+    logger.warn(`Failed to decode JWT`, { error });
   }
   return defaultSession;
 };

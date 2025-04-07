@@ -29,6 +29,25 @@ export function findDataRecordsByDataSource(dataSourceId: string) {
     .execute();
 }
 
+export async function findDataRecordByDataSourceAndAreaCode(
+  dataSourceId: string,
+  areaSetCode: string,
+  areaCode: string,
+) {
+  return db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .where(({ eb, ref }) => {
+      return eb(
+        ref("geocodeResult", "->>").key("areas").key(areaSetCode),
+        "=",
+        areaCode,
+      );
+    })
+    .selectAll()
+    .executeTakeFirst();
+}
+
 export function upsertDataRecord(dataRecord: NewDataRecord) {
   return db
     .insertInto("dataRecord")
@@ -36,7 +55,7 @@ export function upsertDataRecord(dataRecord: NewDataRecord) {
     .onConflict((oc) =>
       oc.columns(["externalId", "dataSourceId"]).doUpdateSet({
         json: dataRecord.json,
-        mappedJson: dataRecord.mappedJson,
+        geocodeResult: dataRecord.geocodeResult,
       }),
     )
     .returningAll()

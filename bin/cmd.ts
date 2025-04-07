@@ -3,12 +3,14 @@ import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
+import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import { createDataSource } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
+import { quit as quitRedis } from "@/server/services/pubsub";
 import { runWorker } from "@/server/services/queue";
-import { DataSourceConfigSchema, DataSourceGeocodingConfigSchema } from "@/zod";
+import { DataSourceConfigSchema, GeocodingConfigSchema } from "@/zod";
 
 const program = new Command();
 
@@ -25,18 +27,26 @@ program
     const parsedConfig = DataSourceConfigSchema.parse(
       JSON.parse(options.config),
     );
-    const parsedGeocodingConfig = DataSourceGeocodingConfigSchema.parse(
+    const parsedGeocodingConfig = GeocodingConfigSchema.parse(
       JSON.parse(options.geocodingConfig),
     );
     const dataSource = await createDataSource({
       name: options.name,
       config: JSON.stringify(parsedConfig),
-      columnsConfig: "{}",
-      geocodingConfig: JSON.stringify(parsedGeocodingConfig),
       columnDefs: "[]",
+      columnRoles: "{}",
+      enrichments: "[]",
+      geocodingConfig: JSON.stringify(parsedGeocodingConfig),
     });
     logger.info(`Created data source ${options.name}, ID ${dataSource.id}`);
     await importDataSource({ dataSourceId: dataSource.id });
+  });
+
+program
+  .command("enrichDataSource <dataSourceId>")
+  .description("Enrich the source CMS of a data source by its Mapped ID")
+  .action(async (dataSourceId) => {
+    await enrichDataSource({ dataSourceId });
   });
 
 program
@@ -83,7 +93,9 @@ program
   });
 
 program.hook("postAction", async () => {
+  logger.info("Done.");
   await db.destroy();
+  await quitRedis();
 });
 
 program.parse(process.argv);

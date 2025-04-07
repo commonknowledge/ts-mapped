@@ -10,8 +10,8 @@ import {
 } from "@/__generated__/types";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceGeocodingConfigSchema } from "@/zod";
-import ColumnsConfigFields from "./ColumnsConfigFields";
+import { GeocodingConfigSchema } from "@/zod";
+import ColumnRoleFields from "./ColumnRoleFields";
 import GeocodingConfigFields from "./GeocodingConfigFields";
 
 export default function DataSourceConfigForm({
@@ -21,8 +21,8 @@ export default function DataSourceConfigForm({
   dataSource: Exclude<DataSourceConfigQuery["dataSource"], null | undefined>;
 }) {
   // Columns config
-  const [nameColumn, setNameColumn] = useState(
-    dataSource.columnsConfig.nameColumn,
+  const [nameColumn, setNameColumn] = useState<string>(
+    dataSource.columnRoles.nameColumn || "",
   );
 
   // Geocoding config
@@ -35,29 +35,29 @@ export default function DataSourceConfigForm({
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const [updateColumnsConfig] = useMutation<
+  const [updateColumnRoles] = useMutation<
     UpdateDataSourceConfigMutation,
     UpdateDataSourceConfigMutationVariables
   >(gql`
     mutation UpdateDataSourceConfig(
       $id: String!
-      $columnsConfig: ColumnsConfigInput!
-      $rawGeocodingConfig: JSON!
+      $columnRoles: ColumnRolesInput!
+      $looseGeocodingConfig: LooseGeocodingConfigInput
     ) {
       updateDataSourceConfig(
         id: $id
-        columnsConfig: $columnsConfig
-        rawGeocodingConfig: $rawGeocodingConfig
+        columnRoles: $columnRoles
+        looseGeocodingConfig: $looseGeocodingConfig
       ) {
         code
       }
     }
   `);
 
-  const columnsConfig = { nameColumn };
+  const columnRoles = { nameColumn };
 
   const { data: validGeocodingConfig } =
-    DataSourceGeocodingConfigSchema.safeParse(geocodingConfig);
+    GeocodingConfigSchema.safeParse(geocodingConfig);
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,15 +65,15 @@ export default function DataSourceConfigForm({
     setError("");
 
     try {
-      const result = await updateColumnsConfig({
+      const result = await updateColumnRoles({
         variables: {
           id: dataSource.id,
-          columnsConfig,
-          rawGeocodingConfig: geocodingConfig,
+          columnRoles,
+          looseGeocodingConfig: validGeocodingConfig,
         },
       });
-      if (result.errors) {
-        throw new Error(String(result.errors));
+      if (result.data?.updateDataSourceConfig.code !== 200) {
+        throw new Error(String(result.errors || "Unknown error"));
       } else {
         router.push(`/data-sources/${dataSource.id}`);
         return;
@@ -89,7 +89,7 @@ export default function DataSourceConfigForm({
   return (
     <form onSubmit={onSubmit} className="max-w-2xl">
       <h2 className="text-xl tracking-tight font-light">Data setup</h2>
-      <ColumnsConfigFields
+      <ColumnRoleFields
         dataSource={dataSource}
         nameColumn={nameColumn}
         setNameColumn={setNameColumn}

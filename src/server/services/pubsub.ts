@@ -15,4 +15,9 @@ const pubSub = createPubSub<{
   dataSourceEvent: [{ dataSourceEvent: DataSourceEvent }];
 }>({ eventTarget });
 
+export const quit = async () => {
+  await publishClient.quit();
+  await subscribeClient.quit();
+};
+
 export default pubSub;

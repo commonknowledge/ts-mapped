@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 import {
-  DataSourceConfigQuery,
-  DataSourceConfigQueryVariables,
+  DataSourceEnrichmentQuery,
+  DataSourceEnrichmentQueryVariables,
 } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
@@ -13,34 +13,36 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
-import DataSourceConfigForm from "./DataSourceConfigForm";
+import DataSourceEnrichmentForm from "./DataSourceEnrichmentForm";
 
-export default async function DataSourceConfigPage({
+export default async function DataSourceEnrichmentPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const result = await query<
-    DataSourceConfigQuery,
-    DataSourceConfigQueryVariables
+    DataSourceEnrichmentQuery,
+    DataSourceEnrichmentQueryVariables
   >({
     query: gql`
-      query DataSourceConfig($id: String!) {
+      query DataSourceEnrichment($id: String!) {
         dataSource(id: $id) {
+          id
+          name
+          enrichments {
+            sourceType
+            areaSetCode
+            areaProperty
+            dataSourceId
+            dataSourceColumn
+          }
+        }
+        dataSources {
           id
           name
           columnDefs {
             name
-            type
-          }
-          columnRoles {
-            nameColumn
-          }
-          geocodingConfig {
-            type
-            column
-            areaSetCode
           }
         }
       }
@@ -70,15 +72,18 @@ export default async function DataSourceConfigPage({
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Config</BreadcrumbItem>
+          <BreadcrumbItem>Enrichment</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <PageHeader
-        title={`Configure ${result.data.dataSource.name}`}
-        description="Tell us about your data to take full advantage of Mapped."
+        title={`Enrich ${result.data.dataSource.name}`}
+        description="Add data to your CRM"
       />
       <Separator className="my-4" />
-      <DataSourceConfigForm dataSource={result.data.dataSource} />
+      <DataSourceEnrichmentForm
+        dataSource={result.data.dataSource}
+        dataSources={result.data.dataSources}
+      />
     </div>
   );
 }

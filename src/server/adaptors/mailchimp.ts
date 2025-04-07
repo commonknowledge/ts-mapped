@@ -1,4 +1,5 @@
-import { DataSourceAdaptor, ExternalRecord } from "./abstract";
+import { ExternalRecord } from "@/types";
+import { DataSourceAdaptor } from "./abstract";
 
 export class MailchimpAdaptor implements DataSourceAdaptor {
   async getRecordCount() {
@@ -14,5 +15,9 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
   async fetchFirst(): Promise<ExternalRecord> {
     throw new Error("Unimplemented");
+  }
+
+  updateRecords(): Promise<void> {
+    throw new Error("Unimplemented.");
   }
 }

@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Fix build warning caused by graphql-yoga
+  serverExternalPackages: ["@whatwg-node"],
 };
 
 export default nextConfig;

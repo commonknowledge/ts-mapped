@@ -1,4 +1,4 @@
-import { AreaSetCode } from "@/types";
+import { AreaSetCode } from "@/__generated__/types";
 
 export const AREA_SET_GROUP_LABELS = {
   WMC24: "Westminster Constituencies 2024",

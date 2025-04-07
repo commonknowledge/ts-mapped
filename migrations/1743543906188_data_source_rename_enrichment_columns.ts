@@ -4,13 +4,21 @@ import { Kysely } from "kysely";
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("dataSource")
-    .addColumn("columnsConfig", "jsonb", (col) => col.notNull().defaultTo("{}"))
+    .renameColumn("enrichmentConfig", "enrichments")
+    .execute();
+  await db.schema
+    .alterTable("dataSource")
+    .renameColumn("columnsConfig", "columnRoles")
     .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("dataSource")
-    .dropColumn("columnsConfig")
+    .renameColumn("enrichments", "enrichmentConfig")
+    .execute();
+  await db.schema
+    .alterTable("dataSource")
+    .renameColumn("columnRoles", "columnsConfig")
     .execute();
 }

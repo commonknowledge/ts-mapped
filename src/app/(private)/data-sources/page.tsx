@@ -6,7 +6,7 @@ import { getClient } from "@/services/ApolloClient";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
-import { UserDataSourceCard } from "./components/DataSourceCard";
+import { DataSourceCard } from "./components/DataSourceCard";
 export default async function DataSourcesPage() {
   const apolloClient = await getClient();
   const { data } = await apolloClient.query({
@@ -50,7 +50,7 @@ export default async function DataSourcesPage() {
             config: { type: DataSourceType; createdAt: Date };
             createdAt: Date;
           }) => (
-            <UserDataSourceCard
+            <DataSourceCard
               key={id}
               id={id}
               name={name}
