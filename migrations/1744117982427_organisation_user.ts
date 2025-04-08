@@ -4,9 +4,9 @@ import { Kysely } from "kysely";
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable("organisationUser")
-    .addColumn("id", "bigserial")
-    .addColumn("organisationId", "uuid")
-    .addColumn("userId", "uuid")
+    .addColumn("id", "bigserial", (col) => col.notNull())
+    .addColumn("organisationId", "uuid", (col) => col.notNull())
+    .addColumn("userId", "uuid", (col) => col.notNull())
     .addUniqueConstraint("organisationUserUnique", ["organisationId", "userId"])
     .addForeignKeyConstraint(
       "organisationUserOrganisationIdFKey",

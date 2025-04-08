@@ -4,10 +4,10 @@ import { Kysely, sql } from "kysely";
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable("dataRecord")
-    .addColumn("id", "bigserial")
+    .addColumn("id", "bigserial", (col) => col.notNull())
     .addColumn("externalId", "text", (col) => col.notNull())
     .addColumn("json", "jsonb", (col) => col.notNull().defaultTo("{}"))
-    .addColumn("dataSourceId", "uuid")
+    .addColumn("dataSourceId", "uuid", (col) => col.notNull())
     .addColumn("createdAt", "text", (col) =>
       col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull(),
     )

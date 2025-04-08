@@ -15,6 +15,7 @@ import {
   getJobInfo,
   listDataSources,
 } from "@/server/repositories/DataSource";
+import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import pubSub from "@/server/services/pubsub";
 import { getAreaStats } from "@/server/stats";
 import { GraphQLContext } from "./context";
@@ -116,6 +117,13 @@ const resolvers: Resolvers = {
         return [];
       }
       return (await listDataSources()).map(serializeDataSource);
+    },
+
+    organisations: async (_: unknown, args: unknown, context) => {
+      if (!context.currentUser) {
+        return [];
+      }
+      return findOrganisationsByUserId(context.currentUser.id);
     },
   },
 

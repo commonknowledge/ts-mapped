@@ -10,3 +10,15 @@ export async function createOrganisationUser(
     .returningAll()
     .executeTakeFirstOrThrow();
 }
+
+export async function findOrganisationUser(
+  organisationId: string,
+  userId: string,
+) {
+  return await db
+    .selectFrom("organisationUser")
+    .where("organisationId", "=", organisationId)
+    .where("userId", "=", userId)
+    .selectAll()
+    .executeTakeFirst();
+}

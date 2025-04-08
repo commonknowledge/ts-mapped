@@ -1,11 +1,14 @@
 import "nprogress/nprogress.css";
 import "./global.css";
+import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { getServerSession } from "@/auth";
 import Navbar from "@/components/Navbar";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
+import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
+import { getClient } from "@/services/ApolloClient";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -30,6 +33,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const serverSession = await getServerSession();
+  const organisations = await getOrganisations();
   return (
     <html
       lang="en"
@@ -37,14 +41,31 @@ export default async function RootLayout({
     >
       <body className={ibmPlexSans.className}>
         <ServerSessionProvider serverSession={serverSession}>
-          <ApolloProvider>
-            <NProgressProvider>
-              <Navbar />
-              <main>{children}</main>
-            </NProgressProvider>
-          </ApolloProvider>
+          <OrganisationsProvider organisations={organisations}>
+            <ApolloProvider>
+              <NProgressProvider>
+                <Navbar />
+                <main>{children}</main>
+              </NProgressProvider>
+            </ApolloProvider>
+          </OrganisationsProvider>
         </ServerSessionProvider>
       </body>
     </html>
   );
 }
+
+const getOrganisations = async () => {
+  const apolloClient = await getClient();
+  const { data } = await apolloClient.query({
+    query: gql`
+      query ListOrganisations {
+        organisations {
+          id
+          name
+        }
+      }
+    `,
+  });
+  return data.organisations || [];
+};

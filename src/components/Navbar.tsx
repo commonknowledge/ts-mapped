@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useContext, useState } from "react";
 import { useCurrentUser } from "@/hooks";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Link } from "./Link";
@@ -12,6 +13,8 @@ export default function Navbar() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { organisations, organisationId, setOrganisationId } =
+    useContext(OrganisationsContext);
 
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -59,9 +62,21 @@ export default function Navbar() {
         </Link>
       </div>
       {user ? (
-        <form className="flex gap-2" onSubmit={onSubmitLogout}>
-          <button>Logout</button>
-        </form>
+        <div className="flex gap-4">
+          <select
+            onChange={(e) => setOrganisationId(e.target.value)}
+            value={organisationId || ""}
+          >
+            {organisations.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+          <form onSubmit={onSubmitLogout}>
+            <button>Logout</button>
+          </form>
+        </div>
       ) : (
         <form onSubmit={onSubmitLogin}>
           <input

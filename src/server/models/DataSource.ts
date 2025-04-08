@@ -17,6 +17,7 @@ export interface DataSourceTable {
   columnRoles: JSONColumnType<ColumnRoles>;
   enrichments: JSONColumnType<Enrichment[]>;
   geocodingConfig: JSONColumnType<GeocodingConfig>;
+  organisationId: string;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }
 

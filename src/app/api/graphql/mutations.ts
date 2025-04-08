@@ -11,6 +11,7 @@ import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
+import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import {
@@ -19,6 +20,7 @@ import {
   GeocodingConfig,
   GeocodingConfigSchema,
 } from "@/zod";
+import { GraphQLContext } from "./context";
 import { serializeDataSource } from "./serializers";
 
 interface MutationResponse {
@@ -32,9 +34,26 @@ interface CreateDataSourceResponse {
 
 export const createDataSource = async (
   _: unknown,
-  { name, rawConfig }: { name: string; rawConfig: object },
+  {
+    name,
+    organisationId,
+    rawConfig,
+  }: { name: string; organisationId: string; rawConfig: unknown },
+  context: GraphQLContext,
 ): Promise<CreateDataSourceResponse> => {
   try {
+    if (!context.currentUser?.id) {
+      return { code: 403 };
+    }
+
+    const orgUser = await findOrganisationUser(
+      organisationId,
+      context.currentUser.id,
+    );
+    if (!orgUser) {
+      return { code: 403 };
+    }
+
     const config = DataSourceConfigSchema.parse(rawConfig);
     const adaptor = getDataSourceAdaptor(config);
     const firstRecord = adaptor ? await adaptor.fetchFirst() : null;
@@ -54,6 +73,7 @@ export const createDataSource = async (
     };
     const dataSource = await _createDataSource({
       name,
+      organisationId,
       config: JSON.stringify(config),
       columnRoles: JSON.stringify({}),
       enrichments: JSON.stringify([]),

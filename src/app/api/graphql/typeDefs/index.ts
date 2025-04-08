@@ -83,6 +83,10 @@ const typeDefs = `
     type: ColumnType!
   }
 
+  type ColumnRoles {
+    nameColumn: String
+  }
+
   type DataSource {
     id: String!
     name: String!
@@ -105,10 +109,6 @@ const typeDefs = `
     markers: JSON
 
     recordCount: Int
-  }
-
-  type ColumnRoles {
-    nameColumn: String
   }
 
   type JobInfo {
@@ -135,6 +135,11 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
+  type Organisation {
+    id: String!
+    name: String!
+  }
+
   type Query {
     areaStats(
       areaSetCode: AreaSetCode!
@@ -147,6 +152,8 @@ const typeDefs = `
 
     dataSource(id: String!): DataSource
     dataSources: [DataSource!]!
+
+    organisations: [Organisation!]!
   }
 
   type CreateDataSourceResponse {
@@ -159,7 +166,11 @@ const typeDefs = `
   }
 
   type Mutation {
-    createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
+    createDataSource(
+      name: String!
+      organisationId: String!
+      rawConfig: JSON!
+    ): CreateDataSourceResponse!
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse!
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse!
     updateDataSourceConfig(

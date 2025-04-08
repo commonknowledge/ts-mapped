@@ -208,6 +208,7 @@ export type Mutation = {
 
 export type MutationCreateDataSourceArgs = {
   name: Scalars["String"]["input"];
+  organisationId: Scalars["String"]["input"];
   rawConfig: Scalars["JSON"]["input"];
 };
 
@@ -236,11 +237,18 @@ export enum Operation {
   SUM = "SUM",
 }
 
+export type Organisation = {
+  __typename?: "Organisation";
+  id: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+};
+
 export type Query = {
   __typename?: "Query";
   areaStats: AreaStats;
   dataSource?: Maybe<DataSource>;
   dataSources: Array<DataSource>;
+  organisations: Array<Organisation>;
 };
 
 export type QueryAreaStatsArgs = {
@@ -450,6 +458,7 @@ export type DataSourceQuery = {
 
 export type CreateDataSourceMutationVariables = Exact<{
   name: Scalars["String"]["input"];
+  organisationId: Scalars["String"]["input"];
   rawConfig: Scalars["JSON"]["input"];
 }>;
 
@@ -523,6 +532,17 @@ export type AreaStatsQuery = {
     columnType: ColumnType;
     stats: Array<{ __typename?: "AreaStat"; areaCode: string; value: any }>;
   };
+};
+
+export type ListOrganisationsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type ListOrganisationsQuery = {
+  __typename?: "Query";
+  organisations: Array<{
+    __typename?: "Organisation";
+    id: string;
+    name: string;
+  }>;
 };
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -660,6 +680,7 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
+  Organisation: ResolverTypeWrapper<Organisation>;
   Query: ResolverTypeWrapper<{}>;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
@@ -690,6 +711,7 @@ export type ResolversParentTypes = {
   LooseGeocodingConfigInput: LooseGeocodingConfigInput;
   Mutation: {};
   MutationResponse: MutationResponse;
+  Organisation: Organisation;
   Query: {};
   RecordsProcessedEvent: RecordsProcessedEvent;
   String: Scalars["String"]["output"];
@@ -940,7 +962,10 @@ export type MutationResolvers<
     ResolversTypes["CreateDataSourceResponse"],
     ParentType,
     ContextType,
-    RequireFields<MutationCreateDataSourceArgs, "name" | "rawConfig">
+    RequireFields<
+      MutationCreateDataSourceArgs,
+      "name" | "organisationId" | "rawConfig"
+    >
   >;
   enqueueEnrichDataSourceJob?: Resolver<
     ResolversTypes["MutationResponse"],
@@ -971,6 +996,16 @@ export type MutationResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type OrganisationResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["Organisation"] = ResolversParentTypes["Organisation"],
+> = {
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -993,6 +1028,11 @@ export type QueryResolvers<
   >;
   dataSources?: Resolver<
     Array<ResolversTypes["DataSource"]>,
+    ParentType,
+    ContextType
+  >;
+  organisations?: Resolver<
+    Array<ResolversTypes["Organisation"]>,
     ParentType,
     ContextType
   >;
@@ -1038,6 +1078,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   LooseGeocodingConfig?: LooseGeocodingConfigResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
+  Organisation?: OrganisationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
