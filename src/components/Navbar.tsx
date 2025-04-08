@@ -3,23 +3,31 @@
 import Image from "next/image";
 import { SyntheticEvent, useState } from "react";
 import { useCurrentUser } from "@/hooks";
+import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Link } from "./Link";
-import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   const user = useCurrentUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await fetch("/api/auth/login", {
-      body: JSON.stringify({ email, password }),
-      method: "POST",
-    });
-    if (response.ok) {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        body: JSON.stringify({ email, password }),
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error(`Response code ${response.status}`);
+      }
       location.reload();
+    } catch (e) {
+      console.error(`Login failed: ${e}`);
+      setLoading(false);
     }
   };
 
@@ -55,7 +63,7 @@ export default function Navbar() {
           <button>Logout</button>
         </form>
       ) : (
-        <form className={styles.form} onSubmit={onSubmitLogin}>
+        <form onSubmit={onSubmitLogin}>
           <input
             type="email"
             placeholder="email"
@@ -68,7 +76,7 @@ export default function Navbar() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button>Login</button>
+          <Button disabled={loading}>Login</Button>
         </form>
       )}
     </nav>

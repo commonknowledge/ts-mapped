@@ -6,6 +6,9 @@ import importPostcodes from "@/server/commands/importPostcodes";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import { createDataSource } from "@/server/repositories/DataSource";
+import { upsertOrganisation } from "@/server/repositories/Organisation";
+import { createOrganisationUser } from "@/server/repositories/OrganisationUser";
+import { createUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { quit as quitRedis } from "@/server/services/pubsub";
@@ -40,6 +43,29 @@ program
     });
     logger.info(`Created data source ${options.name}, ID ${dataSource.id}`);
     await importDataSource({ dataSourceId: dataSource.id });
+  });
+
+program
+  .command("createUser")
+  .option("--email <email>")
+  .option("--password <password>")
+  .option(
+    "--org <organisation>",
+    "The name of an organisation this user belongs to",
+  )
+  .description("Create a new user")
+  .action(async (options) => {
+    try {
+      const org = await upsertOrganisation({ name: options.org });
+      const user = await createUser({
+        email: options.email,
+        password: options.password,
+      });
+      await createOrganisationUser({ organisationId: org.id, userId: user.id });
+      logger.info(`Created user ${options.email}, ID ${user.id}`);
+    } catch (error) {
+      logger.error("Could not create user", { error });
+    }
   });
 
 program

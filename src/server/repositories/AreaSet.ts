@@ -10,7 +10,7 @@ export async function findAreaSetByCode(code: AreaSetCode) {
     .executeTakeFirst();
 }
 
-export function insertAreaSet(areaSet: NewAreaSet) {
+export function createAreaSet(areaSet: NewAreaSet) {
   return db
     .insertInto("areaSet")
     .values(areaSet)
