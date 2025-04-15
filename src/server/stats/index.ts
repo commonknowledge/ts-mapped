@@ -38,7 +38,7 @@ export const getAreaStats = async (
   const query = db
     .selectFrom("dataRecord")
     .select([
-      sql`mapped_json->'geocodeResult'->'areas'->>${areaSetCode}`.as(
+      sql`geocode_result->'areas'->>${areaSetCode}`.as(
         "areaCode",
       ),
       db.fn(operation, [sql`(json->>${column})::float`]).as("value"),
@@ -120,7 +120,7 @@ export const getMaxColumnByArea = async (
   const q = sql`
     WITH data_record_with_max_column AS (
       SELECT 
-        mapped_json->'geocodeResult'->'areas'->>${areaSetCode} as area_code,
+        geocode_result->'areas'->>${areaSetCode} as area_code,
         ${caseWhen.end()} AS max_column
       FROM data_record
       WHERE data_source_id = ${dataSourceId}
@@ -162,8 +162,8 @@ const getBoundingBoxSQL = (boundingBox: BoundingBoxInput | null) => {
         ),
         ST_SetSRID(
           ST_MakePoint(
-            (mapped_json->'geocodeResult'->'centralPoint'->>'lng')::float,
-            (mapped_json->'geocodeResult'->'centralPoint'->>'lat')::float
+            (geocode_result->'centralPoint'->>'lng')::float,
+            (geocode_result->'centralPoint'->>'lat')::float
           ),
           4326
         )
