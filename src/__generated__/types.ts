@@ -275,11 +275,6 @@ export type RecordsProcessedEvent = {
   count: Scalars["Int"]["output"];
 };
 
-export enum Role {
-  DataSourceAccess = "DataSourceAccess",
-  User = "User",
-}
-
 export type Subscription = {
   __typename?: "Subscription";
   dataSourceEvent?: Maybe<DataSourceEvent>;
@@ -706,7 +701,6 @@ export type ResolversTypes = {
   Organisation: ResolverTypeWrapper<Organisation>;
   Query: ResolverTypeWrapper<{}>;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
-  Role: Role;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
 };

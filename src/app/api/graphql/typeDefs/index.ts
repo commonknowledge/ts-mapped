@@ -44,11 +44,6 @@ const typeDefs = `
     SUM
   }
 
-  enum Role {
-    DataSourceAccess
-    User
-  }
-
   input BoundingBoxInput {
     north: Float!
     east: Float!

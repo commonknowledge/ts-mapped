@@ -19,6 +19,8 @@ export function upsertOrganisation(organisation: NewOrganisation) {
     .insertInto("organisation")
     .values(organisation)
     .onConflict((oc) =>
+      // This is a dummy on conflict statement, because
+      // ON CONFLICT DO NOTHING doesn't return anything.
       oc.columns(["name"]).doUpdateSet({
         name: organisation.name,
       }),

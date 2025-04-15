@@ -6,8 +6,8 @@ import importPostcodes from "@/server/commands/importPostcodes";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { createOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { createUser } from "@/server/repositories/User";
+import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
+import { upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { quit as quitRedis } from "@/server/services/pubsub";
@@ -16,7 +16,7 @@ import { runWorker } from "@/server/services/queue";
 const program = new Command();
 
 program
-  .command("createUser")
+  .command("upsertUser")
   .option("--email <email>")
   .option("--password <password>")
   .option(
@@ -27,11 +27,11 @@ program
   .action(async (options) => {
     try {
       const org = await upsertOrganisation({ name: options.org });
-      const user = await createUser({
+      const user = await upsertUser({
         email: options.email,
         password: options.password,
       });
-      await createOrganisationUser({ organisationId: org.id, userId: user.id });
+      await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
       logger.info(`Created user ${options.email}, ID ${user.id}`);
     } catch (error) {
       logger.error("Could not create user", { error });
