@@ -1,4 +1,3 @@
-import { sql } from "kysely";
 import { JobInfo, JobStatus } from "@/__generated__/types";
 import { DataSourceUpdate, NewDataSource } from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
@@ -25,8 +24,16 @@ export async function getJobInfo(
 ): Promise<JobInfo> {
   const latestJob = await db
     .selectFrom("pgboss.job")
-    .where(sql`data->>'task'`, "=", task)
-    .where(sql`data->'args'->>'dataSourceId'`, "=", dataSourceId)
+    .where(({ eb, ref }) => {
+      return eb(ref("data", "->>").key("task"), "=", task);
+    })
+    .where(({ eb, ref }) => {
+      return eb(
+        ref("data", "->>").key("args").key("dataSourceId"),
+        "=",
+        dataSourceId,
+      );
+    })
     .orderBy("completedOn", "desc")
     .limit(1)
     .selectAll()

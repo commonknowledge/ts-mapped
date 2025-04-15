@@ -73,18 +73,20 @@ export default function MapPage() {
     useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
   });
 
+  // Keep track of set feature states. When the data changes,
+  // only features that aren't updated are removed. This
+  // fixes a bug where features with value === 0 were
+  // set to null somewhere inside MapBox.
+  const setFeatures = useRef(new Set<string>());
+
   /* Set Mapbox feature state on receiving new AreaStats */
   useEffect(() => {
     if (!areaStatsData) {
       return;
     }
 
-    if (mapRef.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
-      mapRef.current?.removeFeatureState({
-        source: choroplethLayerConfig.mapbox.sourceId,
-        sourceLayer: choroplethLayerConfig.mapbox.layerId,
-      });
-    }
+    const prevFeatures = new Set(setFeatures.current);
+    const nextFeatures = new Set<string>();
 
     areaStatsData.areaStats?.stats.forEach((stat) => {
       mapRef.current?.setFeatureState(
@@ -95,7 +97,21 @@ export default function MapPage() {
         },
         stat,
       );
+      prevFeatures.delete(stat.areaCode);
+      nextFeatures.add(stat.areaCode);
     });
+
+    if (mapRef.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
+      for (const featureId of prevFeatures) {
+        mapRef.current?.removeFeatureState({
+          source: choroplethLayerConfig.mapbox.sourceId,
+          sourceLayer: choroplethLayerConfig.mapbox.layerId,
+          id: featureId,
+        });
+      }
+    }
+
+    setFeatures.current = nextFeatures;
   }, [areaStatsData, lastLoadedSourceId, choroplethLayerConfig]);
 
   /* Do fetchMore() (if layer needs it) when bounding box or config changes */
