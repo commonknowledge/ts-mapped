@@ -10,7 +10,7 @@ export function findOrganisationsByUserId(userId: string) {
       "organisationUser.organisationId",
     )
     .where("organisationUser.userId", "=", userId)
-    .select(["organisation.id", "organisation.name"])
+    .selectAll("organisation")
     .execute();
 }
 

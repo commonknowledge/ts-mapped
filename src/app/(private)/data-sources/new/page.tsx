@@ -87,7 +87,7 @@ export default function NewDataSourcePage() {
         variables: { name, organisationId, rawConfig: preparedConfig },
       });
 
-      const dataSourceId = result.data?.createDataSource.result?.id;
+      const dataSourceId = result.data?.createDataSource?.result?.id;
       if (result.errors || !dataSourceId) {
         throw new Error(String(result.errors));
       } else {

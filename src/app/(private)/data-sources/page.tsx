@@ -1,5 +1,9 @@
 import { gql } from "@apollo/client";
 import { PlusIcon } from "lucide-react";
+import {
+  ListDataSourcesQuery,
+  ListDataSourcesQueryVariables,
+} from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { getClient } from "@/services/ApolloClient";
@@ -7,9 +11,13 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { DataSourceCard } from "./components/DataSourceCard";
+
 export default async function DataSourcesPage() {
   const apolloClient = await getClient();
-  const { data } = await apolloClient.query({
+  const { data } = await apolloClient.query<
+    ListDataSourcesQuery,
+    ListDataSourcesQueryVariables
+  >({
     query: gql`
       query ListDataSources {
         dataSources {
@@ -21,6 +29,7 @@ export default async function DataSourcesPage() {
       }
     `,
   });
+  const dataSources = data?.dataSources || [];
 
   return (
     <div className="p-4 mx-auto max-w-6xl w-full">
@@ -38,7 +47,7 @@ export default async function DataSourcesPage() {
       </div>
       <Separator className="my-4" />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto w-full">
-        {data.dataSources.map(
+        {dataSources.map(
           ({
             id,
             name,
@@ -47,8 +56,8 @@ export default async function DataSourcesPage() {
           }: {
             id: string;
             name: string;
-            config: { type: DataSourceType; createdAt: Date };
-            createdAt: Date;
+            config: { type: DataSourceType };
+            createdAt: string;
           }) => (
             <DataSourceCard
               key={id}

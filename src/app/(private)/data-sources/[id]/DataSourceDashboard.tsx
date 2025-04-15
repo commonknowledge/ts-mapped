@@ -105,7 +105,7 @@ export default function DataSourceDashboard({
       const result = await enqueueImportDataSourceJob({
         variables: { dataSourceId: dataSource.id },
       });
-      if (result.data?.enqueueImportDataSourceJob.code !== 200) {
+      if (result.data?.enqueueImportDataSourceJob?.code !== 200) {
         throw new Error(String(result.errors || "Unknown error"));
       }
     } catch (e) {

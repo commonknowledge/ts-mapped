@@ -48,5 +48,5 @@ export const batchAsync = async function* <T>(
  * (containing bin, src, public, resources, etc).
  */
 export const getBaseDir = () => {
-  return dirname(dirname(dirname(fileURLToPath(import.meta.url))));
+  return dirname(dirname(dirname(dirname(fileURLToPath(import.meta.url)))));
 };

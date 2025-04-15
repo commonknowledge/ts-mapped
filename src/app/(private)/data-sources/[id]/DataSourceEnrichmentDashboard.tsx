@@ -94,7 +94,7 @@ export default function DataSourceEnrichmentDashboard({
       const result = await enqueueEnrichDataSourceJob({
         variables: { dataSourceId: dataSource.id },
       });
-      if (result.data?.enqueueEnrichDataSourceJob.code !== 200) {
+      if (result.data?.enqueueEnrichDataSourceJob?.code !== 200) {
         throw new Error(String(result.errors || "Unknown error"));
       }
     } catch (e) {

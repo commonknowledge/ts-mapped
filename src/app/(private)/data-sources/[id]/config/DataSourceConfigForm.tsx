@@ -72,7 +72,7 @@ export default function DataSourceConfigForm({
           looseGeocodingConfig: validGeocodingConfig,
         },
       });
-      if (result.data?.updateDataSourceConfig.code !== 200) {
+      if (result.data?.updateDataSourceConfig?.code !== 200) {
         throw new Error(String(result.errors || "Unknown error"));
       } else {
         router.push(`/data-sources/${dataSource.id}`);

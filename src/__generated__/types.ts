@@ -57,6 +57,11 @@ export type AreaStats = {
   stats: Array<AreaStat>;
 };
 
+export type ArgNames = {
+  dataSourceIdArg?: InputMaybe<Scalars["String"]["input"]>;
+  organisationIdArg?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type BoundingBoxInput = {
   east: Scalars["Float"]["input"];
   north: Scalars["Float"]["input"];
@@ -200,10 +205,10 @@ export type LooseGeocodingConfigInput = {
 
 export type Mutation = {
   __typename?: "Mutation";
-  createDataSource: CreateDataSourceResponse;
-  enqueueEnrichDataSourceJob: MutationResponse;
-  enqueueImportDataSourceJob: MutationResponse;
-  updateDataSourceConfig: MutationResponse;
+  createDataSource?: Maybe<CreateDataSourceResponse>;
+  enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
+  enqueueImportDataSourceJob?: Maybe<MutationResponse>;
+  updateDataSourceConfig?: Maybe<MutationResponse>;
 };
 
 export type MutationCreateDataSourceArgs = {
@@ -245,10 +250,10 @@ export type Organisation = {
 
 export type Query = {
   __typename?: "Query";
-  areaStats: AreaStats;
+  areaStats?: Maybe<AreaStats>;
   dataSource?: Maybe<DataSource>;
-  dataSources: Array<DataSource>;
-  organisations: Array<Organisation>;
+  dataSources?: Maybe<Array<DataSource>>;
+  organisations?: Maybe<Array<Organisation>>;
 };
 
 export type QueryAreaStatsArgs = {
@@ -270,9 +275,14 @@ export type RecordsProcessedEvent = {
   count: Scalars["Int"]["output"];
 };
 
+export enum Role {
+  DataSourceAccess = "DataSourceAccess",
+  User = "User",
+}
+
 export type Subscription = {
   __typename?: "Subscription";
-  dataSourceEvent: DataSourceEvent;
+  dataSourceEvent?: Maybe<DataSourceEvent>;
 };
 
 export type SubscriptionDataSourceEventArgs = {
@@ -285,7 +295,10 @@ export type EnqueueImportDataSourceJobMutationVariables = Exact<{
 
 export type EnqueueImportDataSourceJobMutation = {
   __typename?: "Mutation";
-  enqueueImportDataSourceJob: { __typename?: "MutationResponse"; code: number };
+  enqueueImportDataSourceJob?: {
+    __typename?: "MutationResponse";
+    code: number;
+  } | null;
 };
 
 export type DataSourceEventSubscriptionVariables = Exact<{
@@ -294,7 +307,7 @@ export type DataSourceEventSubscriptionVariables = Exact<{
 
 export type DataSourceEventSubscription = {
   __typename?: "Subscription";
-  dataSourceEvent: {
+  dataSourceEvent?: {
     __typename?: "DataSourceEvent";
     importComplete?: { __typename?: "JobCompleteEvent"; at: string } | null;
     importFailed?: { __typename?: "JobFailedEvent"; at: string } | null;
@@ -302,7 +315,7 @@ export type DataSourceEventSubscription = {
       __typename?: "RecordsProcessedEvent";
       count: number;
     } | null;
-  };
+  } | null;
 };
 
 export type EnqueueEnrichDataSourceJobMutationVariables = Exact<{
@@ -311,7 +324,10 @@ export type EnqueueEnrichDataSourceJobMutationVariables = Exact<{
 
 export type EnqueueEnrichDataSourceJobMutation = {
   __typename?: "Mutation";
-  enqueueEnrichDataSourceJob: { __typename?: "MutationResponse"; code: number };
+  enqueueEnrichDataSourceJob?: {
+    __typename?: "MutationResponse";
+    code: number;
+  } | null;
 };
 
 export type DataSourceEnrichmentEventSubscriptionVariables = Exact<{
@@ -320,7 +336,7 @@ export type DataSourceEnrichmentEventSubscriptionVariables = Exact<{
 
 export type DataSourceEnrichmentEventSubscription = {
   __typename?: "Subscription";
-  dataSourceEvent: {
+  dataSourceEvent?: {
     __typename?: "DataSourceEvent";
     enrichmentComplete?: { __typename?: "JobCompleteEvent"; at: string } | null;
     enrichmentFailed?: { __typename?: "JobFailedEvent"; at: string } | null;
@@ -328,7 +344,7 @@ export type DataSourceEnrichmentEventSubscription = {
       __typename?: "RecordsProcessedEvent";
       count: number;
     } | null;
-  };
+  } | null;
 };
 
 export type UpdateDataSourceConfigMutationVariables = Exact<{
@@ -339,7 +355,10 @@ export type UpdateDataSourceConfigMutationVariables = Exact<{
 
 export type UpdateDataSourceConfigMutation = {
   __typename?: "Mutation";
-  updateDataSourceConfig: { __typename?: "MutationResponse"; code: number };
+  updateDataSourceConfig?: {
+    __typename?: "MutationResponse";
+    code: number;
+  } | null;
 };
 
 export type DataSourceConfigQueryVariables = Exact<{
@@ -376,7 +395,10 @@ export type UpdateDataSourceEnrichmentMutationVariables = Exact<{
 
 export type UpdateDataSourceEnrichmentMutation = {
   __typename?: "Mutation";
-  updateDataSourceConfig: { __typename?: "MutationResponse"; code: number };
+  updateDataSourceConfig?: {
+    __typename?: "MutationResponse";
+    code: number;
+  } | null;
 };
 
 export type DataSourceEnrichmentQueryVariables = Exact<{
@@ -398,12 +420,12 @@ export type DataSourceEnrichmentQuery = {
       dataSourceColumn?: string | null;
     }>;
   } | null;
-  dataSources: Array<{
+  dataSources?: Array<{
     __typename?: "DataSource";
     id: string;
     name: string;
     columnDefs: Array<{ __typename?: "ColumnDef"; name: string }>;
-  }>;
+  }> | null;
 };
 
 export type DataSourceQueryVariables = Exact<{
@@ -464,31 +486,31 @@ export type CreateDataSourceMutationVariables = Exact<{
 
 export type CreateDataSourceMutation = {
   __typename?: "Mutation";
-  createDataSource: {
+  createDataSource?: {
     __typename?: "CreateDataSourceResponse";
     code: number;
     result?: { __typename?: "DataSource"; id: string } | null;
-  };
+  } | null;
 };
 
 export type ListDataSourcesQueryVariables = Exact<{ [key: string]: never }>;
 
 export type ListDataSourcesQuery = {
   __typename?: "Query";
-  dataSources: Array<{
+  dataSources?: Array<{
     __typename?: "DataSource";
     id: string;
     name: string;
     config: any;
     createdAt: string;
-  }>;
+  }> | null;
 };
 
 export type DataSourcesQueryVariables = Exact<{ [key: string]: never }>;
 
 export type DataSourcesQuery = {
   __typename?: "Query";
-  dataSources: Array<{
+  dataSources?: Array<{
     __typename?: "DataSource";
     id: string;
     name: string;
@@ -497,7 +519,7 @@ export type DataSourcesQuery = {
       name: string;
       type: ColumnType;
     }>;
-  }>;
+  }> | null;
 };
 
 export type MarkersQueryVariables = Exact<{
@@ -526,23 +548,23 @@ export type AreaStatsQueryVariables = Exact<{
 
 export type AreaStatsQuery = {
   __typename?: "Query";
-  areaStats: {
+  areaStats?: {
     __typename?: "AreaStats";
     column: string;
     columnType: ColumnType;
     stats: Array<{ __typename?: "AreaStat"; areaCode: string; value: any }>;
-  };
+  } | null;
 };
 
 export type ListOrganisationsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type ListOrganisationsQuery = {
   __typename?: "Query";
-  organisations: Array<{
+  organisations?: Array<{
     __typename?: "Organisation";
     id: string;
     name: string;
-  }>;
+  }> | null;
 };
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -655,6 +677,7 @@ export type ResolversTypes = {
   AreaSetCode: AreaSetCode;
   AreaStat: ResolverTypeWrapper<AreaStat>;
   AreaStats: ResolverTypeWrapper<AreaStats>;
+  ArgNames: ArgNames;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]["output"]>;
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
@@ -683,6 +706,7 @@ export type ResolversTypes = {
   Organisation: ResolverTypeWrapper<Organisation>;
   Query: ResolverTypeWrapper<{}>;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
+  Role: Role;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
 };
@@ -691,6 +715,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   AreaStat: AreaStat;
   AreaStats: AreaStats;
+  ArgNames: ArgNames;
   Boolean: Scalars["Boolean"]["output"];
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ColumnDef;
@@ -717,6 +742,18 @@ export type ResolversParentTypes = {
   String: Scalars["String"]["output"];
   Subscription: {};
 };
+
+export type AuthDirectiveArgs = {
+  read?: Maybe<ArgNames>;
+  write?: Maybe<ArgNames>;
+};
+
+export type AuthDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = GraphQLContext,
+  Args = AuthDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
 export type AreaStatResolvers<
   ContextType = GraphQLContext,
@@ -959,7 +996,7 @@ export type MutationResolvers<
     ResolversParentTypes["Mutation"] = ResolversParentTypes["Mutation"],
 > = {
   createDataSource?: Resolver<
-    ResolversTypes["CreateDataSourceResponse"],
+    Maybe<ResolversTypes["CreateDataSourceResponse"]>,
     ParentType,
     ContextType,
     RequireFields<
@@ -968,19 +1005,19 @@ export type MutationResolvers<
     >
   >;
   enqueueEnrichDataSourceJob?: Resolver<
-    ResolversTypes["MutationResponse"],
+    Maybe<ResolversTypes["MutationResponse"]>,
     ParentType,
     ContextType,
     RequireFields<MutationEnqueueEnrichDataSourceJobArgs, "dataSourceId">
   >;
   enqueueImportDataSourceJob?: Resolver<
-    ResolversTypes["MutationResponse"],
+    Maybe<ResolversTypes["MutationResponse"]>,
     ParentType,
     ContextType,
     RequireFields<MutationEnqueueImportDataSourceJobArgs, "dataSourceId">
   >;
   updateDataSourceConfig?: Resolver<
-    ResolversTypes["MutationResponse"],
+    Maybe<ResolversTypes["MutationResponse"]>,
     ParentType,
     ContextType,
     RequireFields<MutationUpdateDataSourceConfigArgs, "id">
@@ -1012,7 +1049,7 @@ export type QueryResolvers<
     ResolversParentTypes["Query"] = ResolversParentTypes["Query"],
 > = {
   areaStats?: Resolver<
-    ResolversTypes["AreaStats"],
+    Maybe<ResolversTypes["AreaStats"]>,
     ParentType,
     ContextType,
     RequireFields<
@@ -1027,12 +1064,12 @@ export type QueryResolvers<
     RequireFields<QueryDataSourceArgs, "id">
   >;
   dataSources?: Resolver<
-    Array<ResolversTypes["DataSource"]>,
+    Maybe<Array<ResolversTypes["DataSource"]>>,
     ParentType,
     ContextType
   >;
   organisations?: Resolver<
-    Array<ResolversTypes["Organisation"]>,
+    Maybe<Array<ResolversTypes["Organisation"]>>,
     ParentType,
     ContextType
   >;
@@ -1054,7 +1091,7 @@ export type SubscriptionResolvers<
     ResolversParentTypes["Subscription"] = ResolversParentTypes["Subscription"],
 > = {
   dataSourceEvent?: SubscriptionResolver<
-    ResolversTypes["DataSourceEvent"],
+    Maybe<ResolversTypes["DataSourceEvent"]>,
     "dataSourceEvent",
     ParentType,
     ContextType,
@@ -1082,4 +1119,8 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Query?: QueryResolvers<ContextType>;
   RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
+};
+
+export type DirectiveResolvers<ContextType = GraphQLContext> = {
+  auth?: AuthDirectiveResolver<any, any, ContextType>;
 };

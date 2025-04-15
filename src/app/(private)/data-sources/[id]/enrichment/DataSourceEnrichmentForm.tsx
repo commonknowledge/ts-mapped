@@ -22,7 +22,10 @@ export default function DataSourceEnrichmentForm({
     DataSourceEnrichmentQuery["dataSource"],
     null | undefined
   >;
-  dataSources: DataSourceEnrichmentQuery["dataSources"];
+  dataSources: Exclude<
+    DataSourceEnrichmentQuery["dataSources"],
+    null | undefined
+  >;
 }) {
   const [enrichments, setEnrichments] = useState<NewEnrichment[]>(
     // Add a blank enrichment config if the initial enrichments are empty
@@ -74,7 +77,7 @@ export default function DataSourceEnrichmentForm({
           looseEnrichments: validEnrichments,
         },
       });
-      if (result.data?.updateDataSourceConfig.code !== 200) {
+      if (result.data?.updateDataSourceConfig?.code !== 200) {
         throw new Error(String(result.errors || "Unknown error"));
       } else {
         router.push(`/data-sources/${dataSource.id}`);

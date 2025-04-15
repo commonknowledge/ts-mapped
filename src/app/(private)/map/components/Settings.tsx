@@ -50,7 +50,7 @@ export default function Settings({
   onChangeConfig,
   children,
 }: {
-  dataSources: DataSourcesQuery["dataSources"];
+  dataSources: Exclude<DataSourcesQuery["dataSources"], null | undefined>;
   mapConfig: MapConfig;
   onChangeConfig: (mc: Partial<MapConfig>) => void;
   children: ReactElement<typeof Legend>;

@@ -23,7 +23,10 @@ export default function EnrichmentFields({
   onChange,
 }: {
   enrichment: NewEnrichment;
-  dataSources: DataSourceEnrichmentQuery["dataSources"];
+  dataSources: Exclude<
+    DataSourceEnrichmentQuery["dataSources"],
+    null | undefined
+  >;
   onChange: (enrichment: Partial<NewEnrichment>) => void;
 }) {
   const dataSource = dataSources.find(

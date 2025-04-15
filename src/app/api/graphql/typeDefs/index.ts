@@ -1,4 +1,6 @@
 const typeDefs = `
+  directive @auth(read: ArgNames, write: ArgNames) on FIELD_DEFINITION
+
   scalar JSON
 
   enum AreaSetCode {
@@ -42,6 +44,11 @@ const typeDefs = `
     SUM
   }
 
+  enum Role {
+    DataSourceAccess
+    User
+  }
+
   input BoundingBoxInput {
     north: Float!
     east: Float!
@@ -51,6 +58,11 @@ const typeDefs = `
 
   input ColumnRolesInput {
     nameColumn: String!
+  }
+
+  input ArgNames {
+    dataSourceIdArg: String
+    organisationIdArg: String
   }
 
   input LooseGeocodingConfigInput {
@@ -148,12 +160,12 @@ const typeDefs = `
       operation: Operation!
       excludeColumns: [String!]!
       boundingBox: BoundingBoxInput
-    ): AreaStats!
+    ): AreaStats @auth(read: { dataSourceIdArg: "dataSourceId" })
 
-    dataSource(id: String!): DataSource
-    dataSources: [DataSource!]!
+    dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
+    dataSources: [DataSource!] @auth
 
-    organisations: [Organisation!]!
+    organisations: [Organisation!] @auth
   }
 
   type CreateDataSourceResponse {
@@ -170,15 +182,15 @@ const typeDefs = `
       name: String!
       organisationId: String!
       rawConfig: JSON!
-    ): CreateDataSourceResponse!
-    enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse!
-    enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse!
+    ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
+    enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
+    enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     updateDataSourceConfig(
       id: String!
       columnRoles: ColumnRolesInput
       looseGeocodingConfig: LooseGeocodingConfigInput
       looseEnrichments: [LooseEnrichmentInput!]
-    ): MutationResponse!
+    ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
   }
 
   type DataSourceEvent {
@@ -208,7 +220,7 @@ const typeDefs = `
   }
 
   type Subscription {
-    dataSourceEvent(dataSourceId: String!): DataSourceEvent!
+    dataSourceEvent(dataSourceId: String!): DataSourceEvent @auth(read: { dataSourceIdArg: "dataSourceId" })
   }
 `;
 

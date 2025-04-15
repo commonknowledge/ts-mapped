@@ -2,6 +2,10 @@ import "nprogress/nprogress.css";
 import "./global.css";
 import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import {
+  ListOrganisationsQuery,
+  ListOrganisationsQueryVariables,
+} from "@/__generated__/types";
 import { getServerSession } from "@/auth";
 import Navbar from "@/components/Navbar";
 import ApolloProvider from "@/providers/ApolloProvider";
@@ -57,7 +61,10 @@ export default async function RootLayout({
 
 const getOrganisations = async () => {
   const apolloClient = await getClient();
-  const { data } = await apolloClient.query({
+  const { data } = await apolloClient.query<
+    ListOrganisationsQuery,
+    ListOrganisationsQueryVariables
+  >({
     query: gql`
       query ListOrganisations {
         organisations {
@@ -67,5 +74,5 @@ const getOrganisations = async () => {
       }
     `,
   });
-  return data.organisations || [];
+  return data?.organisations || [];
 };

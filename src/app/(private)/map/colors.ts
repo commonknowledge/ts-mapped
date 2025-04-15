@@ -24,7 +24,7 @@ export interface NumericColorScheme {
 const DEFAULT_FILL_COLOR = "rgba(0, 0, 0, 0)";
 
 export const useColorScheme = (
-  areaStats: AreaStats | undefined,
+  areaStats: AreaStats | null | undefined,
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
@@ -78,7 +78,7 @@ export const useColorScheme = (
 };
 
 export const useFillColor = (
-  areaStats: AreaStats | undefined,
+  areaStats: AreaStats | null | undefined,
 ): DataDrivenPropertyValueSpecification<string> => {
   const colorScheme = useColorScheme(areaStats);
   // useMemo to cache calculated fillColor

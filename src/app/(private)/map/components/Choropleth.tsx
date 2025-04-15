@@ -11,7 +11,7 @@ export default function Choropleth({
   },
   mapConfig,
 }: {
-  areaStats: AreaStats | undefined;
+  areaStats: AreaStats | null | undefined;
   choroplethLayerConfig: ChoroplethLayerConfig;
   mapConfig: MapConfig;
 }) {

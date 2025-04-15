@@ -25,6 +25,10 @@ import { useContext } from "react";
 import { AreaStat, AreaStats } from "@/__generated__/types";
 import { ServerSessionContext } from "./ServerSessionProvider";
 
+/**
+ * A server-side-events link for GraphQL subscriptions.
+ * https://the-guild.dev/graphql/sse/recipes#with-apollo
+ */
 class SSELink extends ApolloLink {
   private client: Client;
 
@@ -135,6 +139,20 @@ function makeClient(jwt: string | null) {
         },
       },
     }),
+    // Don't throw exceptions on errors, instead use the { errors }
+    // property of the result. Exceptions in components lead to
+    // complicated code.
+    defaultOptions: {
+      watchQuery: {
+        errorPolicy: "all", // for useQuery
+      },
+      query: {
+        errorPolicy: "all", // for client.query()
+      },
+      mutate: {
+        errorPolicy: "all", // for client.mutate()
+      },
+    },
     link: splitLink,
   });
 }
