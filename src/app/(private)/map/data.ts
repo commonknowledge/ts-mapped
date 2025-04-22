@@ -8,6 +8,7 @@ import {
   MarkersQueryVariables,
   Operation,
 } from "@/__generated__/types";
+import { useDebounced } from "@/hooks";
 
 export const useDataSourcesQuery = () =>
   useQuery<DataSourcesQuery>(gql`
@@ -53,8 +54,9 @@ export const useAreaStatsQuery = ({
   column: string;
   excludeColumns: string[];
   useDummyBoundingBox: boolean;
-}) =>
-  useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
+}) => {
+  const debouncedExcludeColumns = useDebounced(excludeColumns);
+  return useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
     gql`
       query AreaStats(
         $areaSetCode: AreaSetCode!
@@ -87,7 +89,7 @@ export const useAreaStatsQuery = ({
         dataSourceId,
         column,
         operation: Operation.AVG,
-        excludeColumns,
+        excludeColumns: debouncedExcludeColumns,
         // Using a dummy boundingBox is required for fetchMore() to update this query's data.
         // Note: this makes the first query return no data. Only fetchMore() returns data.
         boundingBox: useDummyBoundingBox
@@ -98,3 +100,4 @@ export const useAreaStatsQuery = ({
       notifyOnNetworkStatusChange: true,
     },
   );
+};
