@@ -16,6 +16,4 @@
 5. Install dependencies with `npm i`
 6. Start the server with `npm run dev`
 7. View the site at `http://localhost:3000`
-
-Currently the authentication is fake, you can log in with any email / password
-combination.
+8. Log in with username `joaquimds@gmail.com` and password `1234`.
