@@ -48,13 +48,18 @@ const QueryResolvers: QueryResolversType = {
     return serializeDataSource(dataSource);
   },
 
-  dataSources: async (_: unknown, args: unknown, context: GraphQLContext) => {
+  dataSources: async (
+    _: unknown,
+    { organisationId }: { organisationId?: string | null },
+    context: GraphQLContext,
+  ) => {
     if (!context.currentUser) {
       return [];
     }
-    return (await findDataSourcesByUserId(context.currentUser.id)).map(
-      serializeDataSource,
-    );
+    const dataSources = await findDataSourcesByUserId(context.currentUser.id);
+    return dataSources
+      .filter((ds) => !organisationId || ds.organisationId === organisationId)
+      .map(serializeDataSource);
   },
 
   organisations: async (_: unknown, args: unknown, context: GraphQLContext) => {

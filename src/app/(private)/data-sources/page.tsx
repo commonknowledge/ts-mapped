@@ -1,26 +1,29 @@
-import { gql } from "@apollo/client";
-import { PlusIcon } from "lucide-react";
+"use client";
+
+import { gql, useQuery } from "@apollo/client";
+import { LoaderPinwheel, PlusIcon } from "lucide-react";
+import { useContext } from "react";
 import {
   ListDataSourcesQuery,
   ListDataSourcesQueryVariables,
 } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import { getClient } from "@/services/ApolloClient";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { DataSourceCard } from "./components/DataSourceCard";
 
-export default async function DataSourcesPage() {
-  const apolloClient = await getClient();
-  const { data } = await apolloClient.query<
+export default function DataSourcesPage() {
+  const { organisationId } = useContext(OrganisationsContext);
+  const { data, loading } = useQuery<
     ListDataSourcesQuery,
     ListDataSourcesQueryVariables
-  >({
-    query: gql`
-      query ListDataSources {
-        dataSources {
+  >(
+    gql`
+      query ListDataSources($organisationId: String) {
+        dataSources(organisationId: $organisationId) {
           id
           name
           config
@@ -28,7 +31,8 @@ export default async function DataSourcesPage() {
         }
       }
     `,
-  });
+    { variables: { organisationId }, skip: !organisationId },
+  );
   const dataSources = data?.dataSources || [];
 
   return (
@@ -46,29 +50,33 @@ export default async function DataSourcesPage() {
         </Link>
       </div>
       <Separator className="my-4" />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto w-full">
-        {dataSources.map(
-          ({
-            id,
-            name,
-            config,
-            createdAt,
-          }: {
-            id: string;
-            name: string;
-            config: { type: DataSourceType };
-            createdAt: string;
-          }) => (
-            <DataSourceCard
-              key={id}
-              id={id}
-              name={name}
-              config={config}
-              createdAt={createdAt}
-            />
-          ),
-        )}
-      </div>
+      {loading ? (
+        <LoaderPinwheel className="animate-spin" />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto w-full">
+          {dataSources.map(
+            ({
+              id,
+              name,
+              config,
+              createdAt,
+            }: {
+              id: string;
+              name: string;
+              config: { type: DataSourceType };
+              createdAt: string;
+            }) => (
+              <DataSourceCard
+                key={id}
+                id={id}
+                name={name}
+                config={config}
+                createdAt={createdAt}
+              />
+            ),
+          )}
+        </div>
+      )}
     </div>
   );
 }

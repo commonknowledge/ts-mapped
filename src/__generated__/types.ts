@@ -269,6 +269,10 @@ export type QueryDataSourceArgs = {
   id: Scalars["String"]["input"];
 };
 
+export type QueryDataSourcesArgs = {
+  organisationId?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type RecordsProcessedEvent = {
   __typename?: "RecordsProcessedEvent";
   at: Scalars["String"]["output"];
@@ -282,6 +286,21 @@ export type Subscription = {
 
 export type SubscriptionDataSourceEventArgs = {
   dataSourceId: Scalars["String"]["input"];
+};
+
+export type ListDataSourcesQueryVariables = Exact<{
+  organisationId?: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type ListDataSourcesQuery = {
+  __typename?: "Query";
+  dataSources?: Array<{
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    config: any;
+    createdAt: string;
+  }> | null;
 };
 
 export type EnqueueImportDataSourceJobMutationVariables = Exact<{
@@ -486,19 +505,6 @@ export type CreateDataSourceMutation = {
     code: number;
     result?: { __typename?: "DataSource"; id: string } | null;
   } | null;
-};
-
-export type ListDataSourcesQueryVariables = Exact<{ [key: string]: never }>;
-
-export type ListDataSourcesQuery = {
-  __typename?: "Query";
-  dataSources?: Array<{
-    __typename?: "DataSource";
-    id: string;
-    name: string;
-    config: any;
-    createdAt: string;
-  }> | null;
 };
 
 export type DataSourcesQueryVariables = Exact<{ [key: string]: never }>;
@@ -1060,7 +1066,8 @@ export type QueryResolvers<
   dataSources?: Resolver<
     Maybe<Array<ResolversTypes["DataSource"]>>,
     ParentType,
-    ContextType
+    ContextType,
+    Partial<QueryDataSourcesArgs>
   >;
   organisations?: Resolver<
     Maybe<Array<ResolversTypes["Organisation"]>>,

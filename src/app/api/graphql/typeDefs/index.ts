@@ -158,7 +158,7 @@ const typeDefs = `
     ): AreaStats @auth(read: { dataSourceIdArg: "dataSourceId" })
 
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
-    dataSources: [DataSource!] @auth
+    dataSources(organisationId: String): [DataSource!] @auth
 
     organisations: [Organisation!] @auth
   }
