@@ -17,3 +17,10 @@
 6. Start the server with `npm run dev`
 7. View the site at `http://localhost:3000`
 8. Log in with username `joaquimds@gmail.com` and password `1234`.
+
+### End-to-end Tests
+
+1. Start the database with `docker compose up`.
+2. Build the project with `npm run build`.
+3. Start the test runner with `npx playwright test --ui`.
+4. Run the tests through the test runner.

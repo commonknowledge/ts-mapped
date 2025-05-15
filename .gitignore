@@ -49,3 +49,10 @@ next-env.d.ts
 
 # database backup
 ts-mapped.psql
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
