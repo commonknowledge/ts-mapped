@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+credentials.json
 
 # next.js
 /.next/
@@ -34,9 +35,11 @@ yarn-error.log*
 .env*
 !.env.example
 
+# area data
 resources/areaSets/*
 !resources/areaSets/.gitkeep
 
+# data sources
 resources/dataSets/*
 !resources/dataSets/.gitkeep
 
