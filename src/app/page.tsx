@@ -18,10 +18,10 @@ export default function HomePage() {
         </p>
         <div className="flex gap-4 items-center justify-center">
           <Button size="lg" asChild={true}>
-            <Link href="map">Map</Link>
+            <Link href="/map">Map</Link>
           </Button>
           <Button size="lg" asChild={true}>
-            <Link href="data-sources">Data Sources</Link>
+            <Link href="/data-sources">Data Sources</Link>
           </Button>
         </div>
         <Image

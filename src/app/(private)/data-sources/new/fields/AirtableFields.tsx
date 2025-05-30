@@ -16,7 +16,7 @@ export default function AirtableFields({
 
   return (
     <>
-      <DataListRow label="Base ID">
+      <DataListRow label="Base ID" id="airtable-base-id">
         <Input
           type="text"
           placeholder="Base ID"
@@ -24,7 +24,7 @@ export default function AirtableFields({
           onChange={(e) => onChange({ baseId: e.target.value })}
         />
       </DataListRow>
-      <DataListRow label="Table ID">
+      <DataListRow label="Table ID" id="airtable-table-id">
         <Input
           type="text"
           placeholder="Table ID"
@@ -32,7 +32,7 @@ export default function AirtableFields({
           onChange={(e) => onChange({ tableId: e.target.value })}
         />
       </DataListRow>
-      <DataListRow label="API Key">
+      <DataListRow label="API Key" id="airtable-api-key">
         <Input
           type="text"
           placeholder="API Key"

@@ -209,7 +209,7 @@ export default function DataSourceDashboard({
             <Label className="text-lg">Columns</Label>
             <DataListRow
               label="Name column"
-              value={`"${dataSource.columnRoles.nameColumn}"`}
+              value={dataSource.columnRoles.nameColumn ? `"${dataSource.columnRoles.nameColumn}"` : "None"}
               border
             />
           </div>

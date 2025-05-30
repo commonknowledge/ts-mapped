@@ -120,7 +120,7 @@ export default function NewDataSourcePage() {
       />
       <Separator className="my-4" />
       <form onSubmit={onSubmit} className="max-w-2xl ">
-        <DataListRow label="Name">
+        <DataListRow label="Name" id="data-source-name">
           <Input
             type="text"
             placeholder="Name"
@@ -129,7 +129,7 @@ export default function NewDataSourcePage() {
             required
           />
         </DataListRow>
-        <DataListRow label="Type" border>
+        <DataListRow label="Type" border id="data-source-type">
           <Select
             value={config.type}
             onValueChange={(value) =>
@@ -155,7 +155,7 @@ export default function NewDataSourcePage() {
           <CSVFields config={config} onChange={onChangeConfig} />
           <MailchimpFields config={config} onChange={onChangeConfig} />
         </div>
-        <Button disabled={!validConfig || loading}>Submit</Button>
+        <Button id="data-source-submit" disabled={!validConfig || loading}>Submit</Button>
         {error && (
           <div>
             <small>{error}</small>

@@ -74,24 +74,26 @@ export default function Navbar() {
             ))}
           </select>
           <form onSubmit={onSubmitLogout}>
-            <button>Logout</button>
+            <Button id="navbar-logout">Logout</Button>
           </form>
         </div>
       ) : (
         <form onSubmit={onSubmitLogin}>
           <input
+            name="email"
             type="email"
             placeholder="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
+            name="password"
             type="password"
             placeholder="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button disabled={loading}>Login</Button>
+          <Button id="navbar-login" disabled={loading}>Login</Button>
         </form>
       )}
     </nav>
