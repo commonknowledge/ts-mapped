@@ -2,7 +2,6 @@ import {
   DataSource,
   DataSourceResolvers as DataSourceResolversType,
 } from "@/__generated__/types";
-import { serializeDataSource } from "@/app/api/graphql/serializers";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import {
   countDataRecordsForDataSource,
@@ -21,7 +20,7 @@ const DataSourceResolvers: DataSourceResolversType = {
       .map((e) => e.dataSourceId)
       .filter((id) => typeof id === "string");
     const dataSources = await findDataSourcesByIds(dataSourceIds);
-    return dataSources.map(serializeDataSource);
+    return dataSources.map((ds) => ({ name: ds.name, id: ds.id }));
   },
   markers: async (dataSource: DataSource) => {
     const dataRecords = await findDataRecordsByDataSource(dataSource.id);

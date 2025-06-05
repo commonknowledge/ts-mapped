@@ -9,6 +9,7 @@ import {
 } from "@/__generated__/types";
 import { serializeDataSource } from "@/app/api/graphql/serializers";
 import { getDataSourceAdaptor } from "@/server/adaptors";
+import { WebhookType } from "@/server/adaptors/types";
 import {
   createDataSource,
   findDataSourceById,
@@ -53,6 +54,8 @@ const MutationResolvers: MutationResolversType = {
       const dataSource = await createDataSource({
         name,
         organisationId,
+        autoEnrich: false,
+        autoImport: false,
         config: JSON.stringify(config),
         columnRoles: JSON.stringify({}),
         enrichments: JSON.stringify([]),
@@ -88,6 +91,8 @@ const MutationResolvers: MutationResolversType = {
       columnRoles,
       looseEnrichments,
       looseGeocodingConfig,
+      autoEnrich,
+      autoImport,
     }: MutationUpdateDataSourceConfigArgs,
   ): Promise<MutationResponse> => {
     try {
@@ -96,11 +101,31 @@ const MutationResolvers: MutationResolversType = {
         return { code: 404 };
       }
 
+      const adaptor = getDataSourceAdaptor(dataSource.config);
+
       const update: {
         columnRoles?: string;
         enrichments?: string;
         geocodingConfig?: string;
+        autoEnrich?: boolean;
+        autoImport?: boolean;
       } = {};
+
+      if (typeof autoEnrich === "boolean") {
+        update.autoEnrich = autoEnrich;
+        if (!adaptor) {
+          return { code: 500 };
+        }
+        await adaptor.toggleWebhook(dataSource, WebhookType.Enrich, autoEnrich);
+      }
+
+      if (typeof autoImport === "boolean") {
+        update.autoImport = autoImport;
+        if (!adaptor) {
+          return { code: 500 };
+        }
+        await adaptor.toggleWebhook(dataSource, WebhookType.Enrich, autoImport);
+      }
 
       if (columnRoles) {
         update.columnRoles = JSON.stringify(columnRoles);

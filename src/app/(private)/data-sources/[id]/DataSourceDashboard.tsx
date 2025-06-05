@@ -15,6 +15,7 @@ import {
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
+import { DataSourceFeatures } from "@/features";
 import {
   AreaSetCodeLabels,
   DataSourceConfigLabels,
@@ -29,6 +30,7 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
+import { DataSourceType } from "@/types";
 import { GeocodingOnAreaSetType } from "@/zod";
 
 export default function DataSourceDashboard({
@@ -118,6 +120,8 @@ export default function DataSourceDashboard({
   const isPostcodeData =
     dataSource.geocodingConfig.areaSetCode === AreaSetCode.PC;
   const isAreaData = dataSource.geocodingConfig.type in GeocodingOnAreaSetType;
+
+  const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -247,6 +251,15 @@ export default function DataSourceDashboard({
               />
             )}
           </div>
+          {features.autoImport && (
+            <div className="mb-4">
+              <Label className="text-lg">Auto-import</Label>
+              <DataListRow
+                label="Enabled"
+                value={dataSource.autoImport ? "Yes" : "No"}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

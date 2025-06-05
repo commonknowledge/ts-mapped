@@ -1,9 +1,20 @@
 import { ColumnType } from "@/__generated__/types";
 import { EnrichedRecord } from "@/server/mapping/enrich";
+import { DataSource } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
+import { getPublicUrl } from "@/server/services/publicUrl";
 import { batch } from "@/server/utils";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
+import { WebhookType } from "./types";
+
+interface Webhook {
+  id: string;
+  specification: { options: unknown[] };
+  notificationUrl: string;
+  isHookEnabled: boolean;
+  expirationTime: Date;
+}
 
 export class AirtableAdaptor implements DataSourceAdaptor {
   private apiKey: string;
@@ -19,7 +30,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
 
   async createField(name: string, type: ColumnType) {
     const url = new URL(
-      `https://api.airtable.com/v0/meta/bases/${this.baseId}/tables/${this.tableId}/fields`,
+      `https://api.airtable.com/v0/meta/bases/${this.baseId}/tables/${this.tableId}/fields`
     );
 
     const body: {
@@ -59,7 +70,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const responseText = await response.text();
       throw Error(
-        `Bad create field response: ${response.status}, ${responseText}`,
+        `Bad create field response: ${response.status}, ${responseText}`
       );
     }
 
@@ -72,7 +83,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
 
     const url = new URL(
-      `https://api.airtable.com/v0/meta/bases/${this.baseId}/tables`,
+      `https://api.airtable.com/v0/meta/bases/${this.baseId}/tables`
     );
 
     const response = await fetch(url, {
@@ -84,20 +95,20 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const responseText = await response.text();
       throw Error(
-        `Bad get fields response: ${response.status}, ${responseText}`,
+        `Bad get fields response: ${response.status}, ${responseText}`
       );
     }
 
     const json = await response.json();
     const table = json.tables.find(
-      (table: { id: string }) => table.id === this.tableId,
+      (table: { id: string }) => table.id === this.tableId
     );
     if (!table) {
       return [];
     }
 
     const cachedFieldNames = table.fields.map(
-      (field: { name: string }) => field.name,
+      (field: { name: string }) => field.name
     );
     this.cachedFieldNames = cachedFieldNames;
 
@@ -110,7 +121,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
 
   getURL() {
     return new URL(
-      `https://api.airtable.com/v0/${this.baseId}/${this.tableId}`,
+      `https://api.airtable.com/v0/${this.baseId}/${this.tableId}`
     );
   }
 
@@ -170,7 +181,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const responseText = await response.text();
       throw Error(
-        `Bad fetch page response: ${response.status}, ${responseText}`,
+        `Bad fetch page response: ${response.status}, ${responseText}`
       );
     }
 
@@ -180,6 +191,109 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
 
     return json;
+  }
+
+  async listWebhooks(): Promise<Webhook[]> {
+    const url = `https://api.airtable.com/v0/bases/${this.baseId}/webhooks`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw Error(`Bad webhooks response: ${response.status}, ${responseText}`);
+    }
+
+    const json = await response.json();
+    if (typeof json !== "object") {
+      throw Error(`Bad webhooks response body: ${response.json}`);
+    }
+
+    const notificationUrl = await getPublicUrl("/api/webhook");
+    return json.webhooks
+      .filter((wh: Webhook) => wh.notificationUrl === notificationUrl)
+      .map((wh: Webhook) => ({
+        ...wh,
+        expirationTime: new Date(wh.expirationTime),
+      }));
+  }
+
+  async toggleWebhook(
+    dataSource: DataSource,
+    webhookType: WebhookType,
+    enable: boolean
+  ): Promise<void> {
+    const webhooks = await this.listWebhooks();
+
+    // Remove webhooks on user request
+    if (!enable) {
+      await this.removeWebhooks(webhooks);
+      return;
+    }
+
+    // Skip recreating valid webhook
+    const now = new Date();
+    if (
+      webhooks.length === 1 &&
+      webhooks[0].isHookEnabled &&
+      now < webhooks[0].expirationTime
+    ) {
+      return;
+    }
+
+    // Cleanup expired webhooks
+    await this.removeWebhooks(webhooks);
+
+    const url = `https://api.airtable.com/v0/bases/${this.baseId}/webhooks`;
+    const notificationUrl = await getPublicUrl("/api/webhook");
+
+    console.log("notif url", notificationUrl);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        notificationUrl,
+        specification: {
+          options: {
+            filters: {
+              dataTypes: ["tableData"],
+              recordChangeScope: this.tableId,
+            },
+          },
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw Error(`Bad webhooks response: ${response.status}, ${responseText}`);
+    }
+  }
+
+  async removeWebhooks(webhooks: Webhook[]): Promise<void> {
+    for (const webhook of webhooks) {
+      const url = `https://api.airtable.com/v0/bases/${this.baseId}/webhooks/${webhook.id}`;
+
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw Error(
+          `Bad webhooks response: ${response.status}, ${responseText}`
+        );
+      }
+    }
   }
 
   async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
@@ -231,7 +345,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const responseText = await response.text();
         throw Error(
-          `Bad update records response: ${response.status}, ${responseText}`,
+          `Bad update records response: ${response.status}, ${responseText}`
         );
       }
     }

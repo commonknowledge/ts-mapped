@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Fix build warning caused by graphql-yoga
-  serverExternalPackages: ["@whatwg-node"],
+  // Packages that can't be bundled in the NextJS build
+  serverExternalPackages: ["@whatwg-node", "@ngrok/ngrok"],
 };
 
 export default nextConfig;

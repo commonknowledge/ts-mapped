@@ -9,6 +9,11 @@ export async function register() {
     const { runWorker } = await import("./server/services/queue");
     await runWorker();
 
+    if (process.env.NODE_ENV !== "production") {
+      const { startPublicTunnel } = await import("./server/services/publicUrl");
+      await startPublicTunnel()
+    }
+
     logger.info("Started");
   }
 }

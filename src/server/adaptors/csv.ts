@@ -3,9 +3,11 @@ import path from "path";
 import readline from "readline";
 import { fileURLToPath } from "url";
 import { parse } from "csv-parse";
+import { DataSource } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
+import { WebhookType } from "./types";
 
 const getProjectFolder = () => {
   let currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -47,6 +49,17 @@ export class CSVAdaptor implements DataSourceAdaptor {
     }
 
     return Math.max(lineCount - 1, 0); // exclude header row
+  }
+
+  async toggleWebhook(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dataSource: DataSource,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    webhookType: WebhookType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    enable: boolean,
+  ): Promise<void> {
+    throw new Error("Unimplemented");
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
