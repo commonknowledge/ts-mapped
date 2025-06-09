@@ -1,25 +1,36 @@
 "use client";
 
 import Image from "next/image";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useContext, useState } from "react";
 import { useCurrentUser } from "@/hooks";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Link } from "./Link";
-import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   const user = useCurrentUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { organisations, organisationId, setOrganisationId } =
+    useContext(OrganisationsContext);
 
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await fetch("/api/auth/login", {
-      body: JSON.stringify({ email, password }),
-      method: "POST",
-    });
-    if (response.ok) {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/login", {
+        body: JSON.stringify({ email, password }),
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error(`Response code ${response.status}`);
+      }
       location.reload();
+    } catch (e) {
+      console.error(`Login failed: ${e}`);
+      setLoading(false);
     }
   };
 
@@ -51,11 +62,23 @@ export default function Navbar() {
         </Link>
       </div>
       {user ? (
-        <form className="flex gap-2" onSubmit={onSubmitLogout}>
-          <button>Logout</button>
-        </form>
+        <div className="flex gap-4">
+          <select
+            onChange={(e) => setOrganisationId(e.target.value)}
+            value={organisationId || ""}
+          >
+            {organisations.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+          <form onSubmit={onSubmitLogout}>
+            <button>Logout</button>
+          </form>
+        </div>
       ) : (
-        <form className={styles.form} onSubmit={onSubmitLogin}>
+        <form onSubmit={onSubmitLogin}>
           <input
             type="email"
             placeholder="email"
@@ -68,7 +91,7 @@ export default function Navbar() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button>Login</button>
+          <Button disabled={loading}>Login</Button>
         </form>
       )}
     </nav>

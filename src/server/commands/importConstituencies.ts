@@ -3,8 +3,8 @@ import { join } from "path";
 import { sql } from "kysely";
 import { AreaSetCode } from "@/__generated__/types";
 import {
+  createAreaSet,
   findAreaSetByCode,
-  insertAreaSet,
 } from "@/server/repositories/AreaSet";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
@@ -27,7 +27,7 @@ const importConstituencies = async () => {
   }
   let areaSet = await findAreaSetByCode(AREA_SET_CODE);
   if (!areaSet) {
-    areaSet = await insertAreaSet({
+    areaSet = await createAreaSet({
       name: "Westminster Constituencies 2024",
       code: AREA_SET_CODE,
     });

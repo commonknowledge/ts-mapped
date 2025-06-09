@@ -21,7 +21,7 @@ export default function ChoroplethControl({
   onChangeConfig: (config: Partial<MapConfig>) => void;
   dataSources: DataSourcesQuery["dataSources"];
 }) {
-  const dataSource = dataSources.find(
+  const dataSource = (dataSources || []).find(
     (ds) => ds.id === mapConfig.areaDataSourceId,
   );
   return (
@@ -39,8 +39,8 @@ export default function ChoroplethControl({
             <SelectValue placeholder="Select an area data source" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Null">None</SelectItem>
-            {dataSources.map((ds: { id: string; name: string }) => (
+            <SelectItem value="">None</SelectItem>
+            {(dataSources || []).map((ds: { id: string; name: string }) => (
               <SelectItem key={ds.id} value={ds.id}>
                 {ds.name}
               </SelectItem>

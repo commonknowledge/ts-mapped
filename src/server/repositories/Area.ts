@@ -26,8 +26,7 @@ export async function findAreaByCode(
     .selectFrom("area")
     .innerJoin("areaSet", "area.areaSetId", "areaSet.id")
     .where("area.code", "=", code)
-    .where("areaSet.code", "=", areaSetCode)
-    .select([]);
+    .where("areaSet.code", "=", areaSetCode);
   return applyAreaWithPointsSelect(query).executeTakeFirst();
 }
 

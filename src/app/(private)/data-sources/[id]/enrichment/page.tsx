@@ -82,7 +82,7 @@ export default async function DataSourceEnrichmentPage({
       <Separator className="my-4" />
       <DataSourceEnrichmentForm
         dataSource={result.data.dataSource}
-        dataSources={result.data.dataSources}
+        dataSources={result.data.dataSources || []}
       />
     </div>
   );

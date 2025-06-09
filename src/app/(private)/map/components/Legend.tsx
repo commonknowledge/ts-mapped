@@ -5,7 +5,7 @@ import { useColorScheme } from "../colors";
 export default function Legend({
   areaStats,
 }: {
-  areaStats: AreaStats | undefined;
+  areaStats: AreaStats | null | undefined;
 }) {
   const colorScheme = useColorScheme(areaStats);
   if (!colorScheme) {

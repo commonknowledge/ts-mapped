@@ -2,7 +2,7 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useContext, useState } from "react";
 import {
   CreateDataSourceMutation,
   CreateDataSourceMutationVariables,
@@ -11,6 +11,7 @@ import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceTypeLabels } from "@/labels";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -42,6 +43,7 @@ export default function NewDataSourcePage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { organisationId } = useContext(OrganisationsContext);
 
   const onChangeConfig = (update: Partial<NewDataSourceConfig>) => {
     setConfig(Object.assign({}, config, update));
@@ -51,8 +53,16 @@ export default function NewDataSourcePage() {
     CreateDataSourceMutation,
     CreateDataSourceMutationVariables
   >(gql`
-    mutation CreateDataSource($name: String!, $rawConfig: JSON!) {
-      createDataSource(name: $name, rawConfig: $rawConfig) {
+    mutation CreateDataSource(
+      $name: String!
+      $organisationId: String!
+      $rawConfig: JSON!
+    ) {
+      createDataSource(
+        name: $name
+        organisationId: $organisationId
+        rawConfig: $rawConfig
+      ) {
         result {
           id
         }
@@ -67,13 +77,17 @@ export default function NewDataSourcePage() {
     setLoading(true);
 
     try {
+      if (!organisationId) {
+        throw new Error("No organisation selected");
+      }
+
       const preparedConfig = await prepareDataSource(config);
 
       const result = await createDataSource({
-        variables: { name, rawConfig: preparedConfig },
+        variables: { name, organisationId, rawConfig: preparedConfig },
       });
 
-      const dataSourceId = result.data?.createDataSource.result?.id;
+      const dataSourceId = result.data?.createDataSource?.result?.id;
       if (result.errors || !dataSourceId) {
         throw new Error(String(result.errors));
       } else {

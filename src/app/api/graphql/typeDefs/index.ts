@@ -1,4 +1,6 @@
 const typeDefs = `
+  directive @auth(read: ArgNames, write: ArgNames) on FIELD_DEFINITION
+
   scalar JSON
 
   enum AreaSetCode {
@@ -53,6 +55,11 @@ const typeDefs = `
     nameColumn: String!
   }
 
+  input ArgNames {
+    dataSourceIdArg: String
+    organisationIdArg: String
+  }
+
   input LooseGeocodingConfigInput {
     type: GeocodingType!
     column: String
@@ -83,6 +90,10 @@ const typeDefs = `
     type: ColumnType!
   }
 
+  type ColumnRoles {
+    nameColumn: String
+  }
+
   type DataSource {
     id: String!
     name: String!
@@ -105,10 +116,6 @@ const typeDefs = `
     markers: JSON
 
     recordCount: Int
-  }
-
-  type ColumnRoles {
-    nameColumn: String
   }
 
   type JobInfo {
@@ -135,6 +142,11 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
+  type Organisation {
+    id: String!
+    name: String!
+  }
+
   type Query {
     areaStats(
       areaSetCode: AreaSetCode!
@@ -143,10 +155,12 @@ const typeDefs = `
       operation: Operation!
       excludeColumns: [String!]!
       boundingBox: BoundingBoxInput
-    ): AreaStats!
+    ): AreaStats @auth(read: { dataSourceIdArg: "dataSourceId" })
 
-    dataSource(id: String!): DataSource
-    dataSources: [DataSource!]!
+    dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
+    dataSources(organisationId: String): [DataSource!] @auth
+
+    organisations: [Organisation!] @auth
   }
 
   type CreateDataSourceResponse {
@@ -159,15 +173,19 @@ const typeDefs = `
   }
 
   type Mutation {
-    createDataSource(name: String!, rawConfig: JSON!): CreateDataSourceResponse!
-    enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse!
-    enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse!
+    createDataSource(
+      name: String!
+      organisationId: String!
+      rawConfig: JSON!
+    ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
+    enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
+    enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     updateDataSourceConfig(
       id: String!
       columnRoles: ColumnRolesInput
       looseGeocodingConfig: LooseGeocodingConfigInput
       looseEnrichments: [LooseEnrichmentInput!]
-    ): MutationResponse!
+    ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
   }
 
   type DataSourceEvent {
@@ -197,7 +215,7 @@ const typeDefs = `
   }
 
   type Subscription {
-    dataSourceEvent(dataSourceId: String!): DataSourceEvent!
+    dataSourceEvent(dataSourceId: String!): DataSourceEvent @auth(read: { dataSourceIdArg: "dataSourceId" })
   }
 `;
 

@@ -1,6 +1,5 @@
 import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
 import {
-  AreaSetCode,
   AreaStat,
   BoundingBoxInput,
   ColumnType,
@@ -20,11 +19,6 @@ export const getAreaStats = async (
   excludeColumns: string[],
   boundingBox: BoundingBoxInput | null = null,
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
-  // Ensure areaSetCode is valid as it will be used in a raw SQL query
-  if (!(areaSetCode in AreaSetCode)) {
-    return { column, columnType: ColumnType.Unknown, stats: [] };
-  }
-
   if (column === MAX_COLUMN_KEY) {
     const stats = await getMaxColumnByArea(
       areaSetCode,

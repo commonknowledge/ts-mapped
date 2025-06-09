@@ -134,12 +134,16 @@ export class AirtableAdaptor implements DataSourceAdaptor {
 
   async fetchFirst(): Promise<ExternalRecord | null> {
     try {
-      const pageData = await this.fetchPage({ limit: 1 });
-      const record = pageData.records[0];
-      return {
-        externalId: record.id,
-        json: record.fields,
-      };
+      const pageData = await this.fetchPage({});
+      for (const record of pageData.records) {
+        // Return the first non-empty row
+        if (Object.keys(record.fields).length > 0) {
+          return {
+            externalId: record.id,
+            json: record.fields,
+          };
+        }
+      }
     } catch (error) {
       logger.warn(`Could not get first record for Airtable ${this.baseId}`, {
         error,

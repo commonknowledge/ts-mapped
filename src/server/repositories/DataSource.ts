@@ -19,11 +19,14 @@ export async function deleteDataSource(id: string) {
     .executeTakeFirst();
 }
 
-export async function getJobInfo(id: string, task: string): Promise<JobInfo> {
+export async function getJobInfo(
+  dataSourceId: string,
+  task: string,
+): Promise<JobInfo> {
   const latestJob = await db
     .selectFrom("pgboss.job")
     .where(sql`data->>'task'`, "=", task)
-    .where(sql`data->'args'->>'dataSourceId'`, "=", id)
+    .where(sql`data->'args'->>'dataSourceId'`, "=", dataSourceId)
     .orderBy("completedOn", "desc")
     .limit(1)
     .selectAll()
@@ -67,6 +70,21 @@ export async function findDataSourceById(id: string) {
     .executeTakeFirst();
 }
 
+export function findDataSourceByIdAndUserId(id: string, userId: string) {
+  return db
+    .selectFrom("dataSource")
+    .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
+    .innerJoin(
+      "organisationUser",
+      "organisation.id",
+      "organisationUser.organisationId",
+    )
+    .where("dataSource.id", "=", id)
+    .where("organisationUser.userId", "=", userId)
+    .selectAll("dataSource")
+    .execute();
+}
+
 export async function findDataSourcesByIds(ids: string[]) {
   if (!ids.length) {
     return [];
@@ -78,8 +96,18 @@ export async function findDataSourcesByIds(ids: string[]) {
     .execute();
 }
 
-export function listDataSources() {
-  return db.selectFrom("dataSource").selectAll().execute();
+export function findDataSourcesByUserId(userId: string) {
+  return db
+    .selectFrom("dataSource")
+    .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
+    .innerJoin(
+      "organisationUser",
+      "organisation.id",
+      "organisationUser.organisationId",
+    )
+    .where("organisationUser.userId", "=", userId)
+    .selectAll("dataSource")
+    .execute();
 }
 
 export async function updateDataSource(

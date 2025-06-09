@@ -58,7 +58,7 @@ export default function SettingsModal({
               <SelectValue placeholder="Select a markers data source" />
             </SelectTrigger>
             <SelectContent>
-              {dataSources.map((ds: { id: string; name: string }) => (
+              {(dataSources || []).map((ds: { id: string; name: string }) => (
                 <SelectItem key={ds.id} value={ds.id}>
                   {ds.name}
                 </SelectItem>

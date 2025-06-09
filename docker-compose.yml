@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgis/postgis:16-3.5
-    container_name: postgres
+    container_name: ts-mapped-postgres
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
@@ -18,7 +18,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis
+    container_name: ts-mapped-redis
     ports:
       - "6380:6379"
 

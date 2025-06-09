@@ -16,6 +16,15 @@
 5. Install dependencies with `npm i`
 6. Start the server with `npm run dev`
 7. View the site at `http://localhost:3000`
+8. Log in with username `joaquimds@gmail.com` and password `1234`.
 
-Currently the authentication is fake, you can log in with any email / password
-combination.
+### Migrations
+
+- Create with `npm run kysely migrate:make [name]`
+- Run with `npm run kysely migrate:latest`
+
+### Commands
+
+- The [Commander](https://www.npmjs.com/package/commander) library has been used to create a CLI for this project.
+- Add commands to `bin/cmd.ts`.
+- Run commands with `npm run cmd -- [command] [...args]`

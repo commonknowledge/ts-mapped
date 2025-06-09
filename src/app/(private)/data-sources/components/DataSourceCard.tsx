@@ -20,8 +20,8 @@ export function DataSourceCard({
 }: {
   id: string;
   name: string;
-  config: { type: DataSourceType; createdAt: Date };
-  createdAt: Date;
+  config: { type: DataSourceType };
+  createdAt: string;
   editIcon?: boolean;
 }) {
   return (
