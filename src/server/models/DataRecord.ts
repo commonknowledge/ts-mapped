@@ -5,13 +5,14 @@ import {
   Selectable,
   Updateable,
 } from "kysely";
-import { GeocodeResult } from "@/types";
+import { GeocodeResult, Point } from "@/types";
 
 export interface DataRecordTable {
   id: Generated<string>;
   externalId: string;
   json: JSONColumnType<Record<string, unknown>>;
   geocodeResult: JSONColumnType<GeocodeResult | null>;
+  geocodePoint: Point | null;
   dataSourceId: string;
 }
 

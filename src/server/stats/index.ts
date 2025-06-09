@@ -152,13 +152,7 @@ const getBoundingBoxSQL = (boundingBox: BoundingBoxInput | null) => {
           ${boundingBox.north},
           4326
         ),
-        ST_SetSRID(
-          ST_MakePoint(
-            (geocode_result->'centralPoint'->>'lng')::float,
-            (geocode_result->'centralPoint'->>'lat')::float
-          ),
-          4326
-        )
+        geocode_point
       )
     `;
 };

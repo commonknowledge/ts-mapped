@@ -56,6 +56,7 @@ export function upsertDataRecord(dataRecord: NewDataRecord) {
       oc.columns(["externalId", "dataSourceId"]).doUpdateSet({
         json: dataRecord.json,
         geocodeResult: dataRecord.geocodeResult,
+        geocodePoint: dataRecord.geocodePoint,
       }),
     )
     .returningAll()

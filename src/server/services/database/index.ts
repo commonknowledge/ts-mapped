@@ -1,6 +1,7 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import { Database } from "@/server/models";
+import { PointPlugin } from "./plugins";
 
 const dialect = new PostgresDialect({
   pool: new Pool({
@@ -10,6 +11,9 @@ const dialect = new PostgresDialect({
 
 export const db = new Kysely<Database>({
   dialect,
-  plugins: [new CamelCasePlugin()], // Database `field_name` to TypeScript `fieldName`
-  log: ["query", "error"],
+  plugins: [
+    new CamelCasePlugin(), // Database `field_name` to TypeScript `fieldName`
+    new PointPlugin(),
+  ],
+  log: ["error"],
 });
