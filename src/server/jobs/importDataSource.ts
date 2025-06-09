@@ -115,6 +115,7 @@ const importBatch = (
         externalId: record.externalId,
         json: JSON.stringify(typedJson),
         geocodeResult: JSON.stringify(geocodeResult),
+        geocodePoint: geocodeResult?.centralPoint,
         dataSourceId: dataSource.id,
       });
       logger.info(`Inserted data record ${record.externalId}`);
