@@ -1,6 +1,6 @@
 import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
 import { DataSourcesQuery } from "@/__generated__/types";
-import { MAX_COLUMN_KEY } from "@/constants";
+import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -39,7 +39,7 @@ export default function ChoroplethControl({
             <SelectValue placeholder="Select an area data source" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">None</SelectItem>
+            <SelectItem value={NULL_UUID}>None</SelectItem>
             {(dataSources || []).map((ds: { id: string; name: string }) => (
               <SelectItem key={ds.id} value={ds.id}>
                 {ds.name}
