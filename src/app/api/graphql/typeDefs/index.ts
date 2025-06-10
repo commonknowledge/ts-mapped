@@ -108,13 +108,6 @@ const typeDefs = `
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    """
-    markers is untyped for performance - objects are
-    denormalized in the Apollo client cache, which is slow
-    (and unnecessary) for 100,000+ markers.
-    """
-    markers: JSON
-
     recordCount: Int
   }
 

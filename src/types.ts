@@ -32,6 +32,12 @@ export interface MarkerData {
   coordinates: number[];
 }
 
+export interface PointFeature {
+  type: "Feature";
+  properties: Record<string, string>;
+  geometry: { coordinates: [number, number]; type: "Point" };
+}
+
 // Property names taken from Mapbox standard
 export interface Point {
   lng: number;

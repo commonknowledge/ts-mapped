@@ -111,12 +111,6 @@ export type DataSource = {
   geocodingConfig: LooseGeocodingConfig;
   id: Scalars["String"]["output"];
   importInfo?: Maybe<JobInfo>;
-  /**
-   * markers is untyped for performance - objects are
-   * denormalized in the Apollo client cache, which is slow
-   * (and unnecessary) for 100,000+ markers.
-   */
-  markers?: Maybe<Scalars["JSON"]["output"]>;
   name: Scalars["String"]["output"];
   recordCount?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -286,21 +280,6 @@ export type Subscription = {
 
 export type SubscriptionDataSourceEventArgs = {
   dataSourceId: Scalars["String"]["input"];
-};
-
-export type ListDataSourcesQueryVariables = Exact<{
-  organisationId?: InputMaybe<Scalars["String"]["input"]>;
-}>;
-
-export type ListDataSourcesQuery = {
-  __typename?: "Query";
-  dataSources?: Array<{
-    __typename?: "DataSource";
-    id: string;
-    name: string;
-    config: any;
-    createdAt: string;
-  }> | null;
 };
 
 export type EnqueueImportDataSourceJobMutationVariables = Exact<{
@@ -507,6 +486,21 @@ export type CreateDataSourceMutation = {
   } | null;
 };
 
+export type ListDataSourcesQueryVariables = Exact<{
+  organisationId?: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type ListDataSourcesQuery = {
+  __typename?: "Query";
+  dataSources?: Array<{
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    config: any;
+    createdAt: string;
+  }> | null;
+};
+
 export type DataSourcesQueryVariables = Exact<{ [key: string]: never }>;
 
 export type DataSourcesQuery = {
@@ -521,19 +515,6 @@ export type DataSourcesQuery = {
       type: ColumnType;
     }>;
   }> | null;
-};
-
-export type MarkersQueryVariables = Exact<{
-  dataSourceId: Scalars["String"]["input"];
-}>;
-
-export type MarkersQuery = {
-  __typename?: "Query";
-  dataSource?: {
-    __typename?: "DataSource";
-    name: string;
-    markers?: any | null;
-  } | null;
 };
 
 export type AreaStatsQueryVariables = Exact<{
@@ -856,7 +837,6 @@ export type DataSourceResolvers<
     ParentType,
     ContextType
   >;
-  markers?: Resolver<Maybe<ResolversTypes["JSON"]>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

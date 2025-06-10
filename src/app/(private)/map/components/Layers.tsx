@@ -1,9 +1,8 @@
 import { RefObject } from "react";
 import { MapRef } from "react-map-gl/mapbox";
-import { MarkersQuery } from "@/__generated__/types";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
-import { SearchResult } from "@/types";
+import { PointFeature, SearchResult } from "@/types";
 import { mapNodeColors } from "../styles";
 import MarkerList from "./MarkerList";
 import SearchHistory from "./SearchHistory";
@@ -13,7 +12,9 @@ export default function Layers({
   mapRef,
   searchHistory,
 }: {
-  markersDataSource: MarkersQuery["dataSource"] | undefined;
+  markersDataSource:
+    | { name: string; markers: { features: PointFeature[] } }
+    | undefined;
   mapRef: RefObject<MapRef | null>;
   searchHistory: SearchResult[];
 }) {
