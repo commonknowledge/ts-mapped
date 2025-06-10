@@ -26,7 +26,7 @@ export const useDataSourcesQuery = () =>
 // Use API request instead of GraphQL to avoid server memory load
 // TODO: replace with gql @stream directive when Apollo client supports it
 export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState<{
     dataSource: {
       id: string;
