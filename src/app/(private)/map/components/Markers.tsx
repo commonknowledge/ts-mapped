@@ -1,7 +1,6 @@
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
-import { MarkersQuery } from "@/__generated__/types";
 import { mapColors } from "@/app/(private)/map/styles";
-import { MarkerData } from "@/types";
+import { MarkerData, PointFeature } from "@/types";
 import { MapConfig } from "./Controls";
 
 export default function Markers({
@@ -10,7 +9,12 @@ export default function Markers({
   onCloseSelectedMarker,
   mapConfig,
 }: {
-  dataSource: MarkersQuery["dataSource"];
+  dataSource:
+    | {
+        name: string;
+        markers: { type: "FeatureCollection"; features: PointFeature[] };
+      }
+    | undefined;
   selectedMarker: MarkerData | null;
   onCloseSelectedMarker: () => void;
   mapConfig: MapConfig;

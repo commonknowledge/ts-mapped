@@ -1,13 +1,13 @@
 import { gql, useQuery } from "@apollo/client";
+import { useEffect, useState } from "react";
 import {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
   DataSourcesQuery,
-  MarkersQuery,
-  MarkersQueryVariables,
   Operation,
 } from "@/__generated__/types";
+import { PointFeature } from "@/types";
 
 export const useDataSourcesQuery = () =>
   useQuery<DataSourcesQuery>(gql`
@@ -23,23 +23,45 @@ export const useDataSourcesQuery = () =>
     }
   `);
 
-export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) =>
-  useQuery<MarkersQuery, MarkersQueryVariables>(
-    gql`
-      query Markers($dataSourceId: String!) {
-        dataSource(id: $dataSourceId) {
-          name
-          markers
+// Use API request instead of GraphQL to avoid server memory load
+// TODO: replace with gql @stream directive when Apollo client supports it
+export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) => {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<{
+    dataSource: {
+      id: string;
+      name: string;
+      markers: { type: "FeatureCollection"; features: PointFeature[] };
+    };
+  } | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!dataSourceId) {
+      return;
+    }
+
+    const fetchMarkers = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/data-sources/${dataSourceId}/markers`,
+        );
+        if (!response.ok) {
+          throw new Error(`Bad response: ${response.status}`);
         }
+        const dataSource = await response.json();
+        setData(dataSource);
+      } catch (e) {
+        console.error("Fetch markers error", e);
+        setError("Failed");
       }
-    `,
-    {
-      variables: {
-        dataSourceId,
-      },
-      skip: !dataSourceId,
-    },
-  );
+      setLoading(false);
+    };
+
+    fetchMarkers();
+  }, [dataSourceId]);
+  return { loading, data, error };
+};
 
 export const useAreaStatsQuery = ({
   areaSetCode,

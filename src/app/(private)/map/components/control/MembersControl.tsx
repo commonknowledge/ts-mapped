@@ -1,6 +1,7 @@
 import { MapRef } from "react-map-gl/mapbox";
-import { DataSourcesQuery, MarkersQuery } from "@/__generated__/types";
+import { DataSourcesQuery } from "@/__generated__/types";
 import { mapColors } from "@/app/(private)/map/styles";
+import { PointFeature } from "@/types";
 import { MapConfig } from "../Controls";
 import MemberList from "../lists/MemberList";
 import SettingsModal from "../SettingsModal";
@@ -8,7 +9,9 @@ import SkeletonGroup from "../SkeletonGroup";
 import LayerHeader from "./LayerHeader";
 
 interface MembersControlProps {
-  dataSource: MarkersQuery["dataSource"] | undefined;
+  dataSource:
+    | { name: string; markers: { features: PointFeature[] } }
+    | undefined;
   mapRef: React.RefObject<MapRef | null>;
   isLoading?: boolean;
   mapConfig: MapConfig;
