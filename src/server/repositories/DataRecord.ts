@@ -21,12 +21,12 @@ export function getFirstDataRecord(dataSourceId: string) {
     .executeTakeFirst();
 }
 
-export function findDataRecordsByDataSource(dataSourceId: string) {
+export function streamDataRecordsByDataSource(dataSourceId: string) {
   return db
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .selectAll()
-    .execute();
+    .stream();
 }
 
 export async function findDataRecordByDataSourceAndAreaCode(
@@ -56,6 +56,7 @@ export function upsertDataRecord(dataRecord: NewDataRecord) {
       oc.columns(["externalId", "dataSourceId"]).doUpdateSet({
         json: dataRecord.json,
         geocodeResult: dataRecord.geocodeResult,
+        geocodePoint: dataRecord.geocodePoint,
       }),
     )
     .returningAll()

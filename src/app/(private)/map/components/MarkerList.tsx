@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { MarkersQuery } from "@/__generated__/types";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
+import { PointFeature } from "@/types";
 
 interface MarkerListProps {
-  dataSource: MarkersQuery["dataSource"];
+  dataSource:
+    | { name: string; markers: { features: PointFeature[] } }
+    | undefined;
   onSelect: (coordinates: [number, number]) => void;
 }
 

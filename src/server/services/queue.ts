@@ -32,7 +32,7 @@ export const enqueue = async (
   queue: string = defaultQueue,
 ) => {
   await ensureQueue(queue);
-  await boss.send(queue, { task, args });
+  await boss.send(queue, { task, args }, { expireInHours: 8 });
   logger.info(`Enqueued job: ${JSON.stringify(args)}`);
 };
 
