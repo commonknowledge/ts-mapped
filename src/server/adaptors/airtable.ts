@@ -371,12 +371,13 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       return;
     }
 
-    // Skip recreating valid webhook
-    const now = new Date();
+    // Skip recreating webhook that has at least 2 days of validity
+    const twoDaysFromNow = new Date();
+    twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2)
     if (
       webhooks.length === 1 &&
       webhooks[0].isHookEnabled &&
-      now < webhooks[0].expirationTime
+      webhooks[0].expirationTime > twoDaysFromNow
     ) {
       return;
     }
