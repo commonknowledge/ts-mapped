@@ -53,6 +53,8 @@ const MutationResolvers: MutationResolversType = {
       const dataSource = await createDataSource({
         name,
         organisationId,
+        autoEnrich: false,
+        autoImport: false,
         config: JSON.stringify(config),
         columnRoles: JSON.stringify({}),
         enrichments: JSON.stringify([]),
@@ -88,6 +90,8 @@ const MutationResolvers: MutationResolversType = {
       columnRoles,
       looseEnrichments,
       looseGeocodingConfig,
+      autoEnrich,
+      autoImport,
     }: MutationUpdateDataSourceConfigArgs,
   ): Promise<MutationResponse> => {
     try {
@@ -96,11 +100,39 @@ const MutationResolvers: MutationResolversType = {
         return { code: 404 };
       }
 
+      const adaptor = getDataSourceAdaptor(dataSource.config);
+
       const update: {
         columnRoles?: string;
         enrichments?: string;
         geocodingConfig?: string;
+        autoEnrich?: boolean;
+        autoImport?: boolean;
       } = {};
+
+      // Keep track of whether webhooks need to be enabled/disabled
+      const nextAutoStatus = {
+        autoEnrich: dataSource.autoEnrich,
+        autoImport: dataSource.autoImport,
+        changed: false,
+      };
+
+      if (typeof autoEnrich === "boolean") {
+        update.autoEnrich = autoEnrich;
+        nextAutoStatus.changed = dataSource.autoEnrich !== autoEnrich;
+        nextAutoStatus.autoEnrich = autoEnrich;
+      }
+
+      if (typeof autoImport === "boolean") {
+        update.autoImport = autoImport;
+        nextAutoStatus.changed = dataSource.autoImport !== autoImport;
+        nextAutoStatus.autoImport = autoImport;
+      }
+
+      if (nextAutoStatus.changed) {
+        const enable = nextAutoStatus.autoEnrich || nextAutoStatus.autoImport;
+        await adaptor?.toggleWebhook(dataSource.id, enable);
+      }
 
       if (columnRoles) {
         update.columnRoles = JSON.stringify(columnRoles);

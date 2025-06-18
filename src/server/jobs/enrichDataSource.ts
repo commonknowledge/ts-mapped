@@ -89,7 +89,7 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
   return false;
 };
 
-const enrichBatch = (batch: ExternalRecord[], dataSource: DataSource) =>
+export const enrichBatch = (batch: ExternalRecord[], dataSource: DataSource) =>
   Promise.all(
     batch.map(async (record) => {
       return enrichRecord(record, dataSource);

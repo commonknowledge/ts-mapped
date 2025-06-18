@@ -8,8 +8,10 @@ import {
   UpdateDataSourceConfigMutation,
   UpdateDataSourceConfigMutationVariables,
 } from "@/__generated__/types";
+import DataListRow from "@/components/DataListRow";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { Switch } from "@/shadcn/ui/switch";
 import { GeocodingConfigSchema } from "@/zod";
 import ColumnRoleFields from "./ColumnRoleFields";
 import GeocodingConfigFields from "./GeocodingConfigFields";
@@ -30,6 +32,8 @@ export default function DataSourceConfigForm({
     dataSource.geocodingConfig,
   );
 
+  const [autoImport, setAutoImport] = useState(dataSource.autoImport);
+
   // Form state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,11 +47,13 @@ export default function DataSourceConfigForm({
       $id: String!
       $columnRoles: ColumnRolesInput!
       $looseGeocodingConfig: LooseGeocodingConfigInput
+      $autoImport: Boolean!
     ) {
       updateDataSourceConfig(
         id: $id
         columnRoles: $columnRoles
         looseGeocodingConfig: $looseGeocodingConfig
+        autoImport: $autoImport
       ) {
         code
       }
@@ -70,6 +76,7 @@ export default function DataSourceConfigForm({
           id: dataSource.id,
           columnRoles,
           looseGeocodingConfig: validGeocodingConfig,
+          autoImport,
         },
       });
       if (result.data?.updateDataSourceConfig?.code !== 200) {
@@ -103,6 +110,14 @@ export default function DataSourceConfigForm({
           setGeocodingConfig({ ...geocodingConfig, ...nextGeocodingConfig })
         }
       />
+      <Separator className="mb-4" />
+      <h2 className="text-xl tracking-tight font-light">Auto-import</h2>
+      <DataListRow label="Import new records automatically">
+        <Switch
+          checked={autoImport}
+          onCheckedChange={(v) => setAutoImport(v)}
+        />
+      </DataListRow>
       <Button disabled={!validGeocodingConfig || loading}>Submit</Button>
       {error && (
         <div>

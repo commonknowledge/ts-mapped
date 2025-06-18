@@ -3,6 +3,7 @@ import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
+import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
@@ -78,6 +79,14 @@ program
   .description("Import Postcodes")
   .action(async () => {
     await importPostcodes();
+  });
+
+program
+  .command("removeDevWebhooks")
+  .description("Remove development environment webhooks from a data source")
+  .option("--id <id>", "The data source ID")
+  .action(async (options) => {
+    await removeDevWebhooks(options.id);
   });
 
 program

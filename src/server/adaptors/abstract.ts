@@ -2,8 +2,14 @@ import { EnrichedRecord } from "@/server/mapping/enrich";
 import { ExternalRecord } from "@/types";
 
 export interface DataSourceAdaptor {
+  extractExternalRecordIdsFromWebhookBody(
+    body: unknown,
+  ): AsyncGenerator<string>;
   getRecordCount(): Promise<number | null>;
   fetchAll(): AsyncGenerator<ExternalRecord>;
   fetchFirst(): Promise<ExternalRecord | null>;
+  fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]>;
+  removeDevWebhooks(dataSourceId: string): Promise<void>;
+  toggleWebhook(dataSourceId: string, enable: boolean): Promise<void>;
   updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void>;
 }

@@ -3,8 +3,9 @@ import {
   DataSourceQuery,
   DataSourceQueryVariables,
 } from "@/__generated__/types";
+import { DataSourceFeatures } from "@/features";
 import { query } from "@/services/ApolloClient";
-import { EditableDataSourceTypes } from "@/types";
+import { DataSourceType } from "@/types";
 import DataSourceDashboard from "./DataSourceDashboard";
 import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";
 
@@ -20,6 +21,8 @@ export default async function GeocodeDataSourcePage({
         dataSource(id: $id) {
           id
           name
+          autoEnrich
+          autoImport
           columnDefs {
             name
             type
@@ -59,7 +62,8 @@ export default async function GeocodeDataSourcePage({
     variables: { id },
   });
 
-  if (!result.data.dataSource) {
+  const dataSource = result.data.dataSource;
+  if (!dataSource) {
     return (
       <div className="container">
         <h1>Not found</h1>
@@ -67,11 +71,12 @@ export default async function GeocodeDataSourcePage({
     );
   }
 
+  const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
   return (
     <>
-      <DataSourceDashboard dataSource={result.data.dataSource} />
-      {EditableDataSourceTypes.includes(result.data.dataSource.config.type) && (
-        <DataSourceEnrichmentDashboard dataSource={result.data.dataSource} />
+      <DataSourceDashboard dataSource={dataSource} />
+      {features.enrichment && (
+        <DataSourceEnrichmentDashboard dataSource={dataSource} />
       )}
     </>
   );

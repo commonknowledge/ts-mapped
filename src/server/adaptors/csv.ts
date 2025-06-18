@@ -33,6 +33,13 @@ export class CSVAdaptor implements DataSourceAdaptor {
     );
   }
 
+  extractExternalRecordIdsFromWebhookBody(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    body: unknown,
+  ): AsyncGenerator<string> {
+    throw new Error("Method not implemented.");
+  }
+
   async getRecordCount() {
     const fileStream = fs.createReadStream(this.filepath);
     const rl = readline.createInterface({
@@ -76,6 +83,25 @@ export class CSVAdaptor implements DataSourceAdaptor {
       });
     }
     return null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  removeDevWebhooks(dataSourceId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async toggleWebhook(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dataSourceId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    enable: boolean,
+  ): Promise<void> {
+    throw new Error("Unimplemented");
   }
 
   updateRecords(): Promise<void> {

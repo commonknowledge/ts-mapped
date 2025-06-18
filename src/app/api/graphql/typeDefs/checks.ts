@@ -13,7 +13,7 @@ import { Enrichment, GeocodingConfig } from "@/zod";
  *
  * To make sure a discriminated union has all necessary checks,
  * a Record that maps each possible discriminator value to a
- * sample object can be used. TypeScript will error if any
+ * sample object is used. TypeScript will error if any
  * valid discriminators are missing.
  */
 

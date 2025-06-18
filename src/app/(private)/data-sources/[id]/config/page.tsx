@@ -30,6 +30,7 @@ export default async function DataSourceConfigPage({
         dataSource(id: $id) {
           id
           name
+          autoImport
           columnDefs {
             name
             type

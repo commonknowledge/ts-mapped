@@ -1,5 +1,7 @@
 // All zod schemas.
 // Should probably only import from ./types and __generated__ here.
+// If adding a new discriminated union with an associated GraphQL type,
+// update src/app/api/graphql/typeDefs/checks.ts with compile-time equivalence checks.
 
 import z from "zod";
 import {

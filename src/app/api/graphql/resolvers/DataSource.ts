@@ -2,7 +2,6 @@ import {
   DataSource,
   DataSourceResolvers as DataSourceResolversType,
 } from "@/__generated__/types";
-import { serializeDataSource } from "@/app/api/graphql/serializers";
 import { countDataRecordsForDataSource } from "@/server/repositories/DataRecord";
 import {
   findDataSourcesByIds,
@@ -17,7 +16,7 @@ const DataSourceResolvers: DataSourceResolversType = {
       .map((e) => e.dataSourceId)
       .filter((id) => typeof id === "string");
     const dataSources = await findDataSourcesByIds(dataSourceIds);
-    return dataSources.map(serializeDataSource);
+    return dataSources.map((ds) => ({ name: ds.name, id: ds.id }));
   },
   recordCount: ({ id }: DataSource) => countDataRecordsForDataSource(id),
 };

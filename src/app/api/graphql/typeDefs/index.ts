@@ -97,6 +97,8 @@ const typeDefs = `
   type DataSource {
     id: String!
     name: String!
+    autoEnrich: Boolean!
+    autoImport: Boolean!
     createdAt: String!
     columnDefs: [ColumnDef!]!
     config: JSON!
@@ -104,11 +106,20 @@ const typeDefs = `
     enrichments: [LooseEnrichment!]!
     geocodingConfig: LooseGeocodingConfig!
 
-    enrichmentDataSources: [DataSource!]
+    enrichmentDataSources: [EnrichmentDataSource!]
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
     recordCount: Int
+  }
+
+  """
+  Used to display a list of connected sources
+  in the data source dashboard.
+  """
+  type EnrichmentDataSource {
+    id: String!
+    name: String!
   }
 
   type JobInfo {
@@ -175,6 +186,8 @@ const typeDefs = `
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     updateDataSourceConfig(
       id: String!
+      autoEnrich: Boolean
+      autoImport: Boolean
       columnRoles: ColumnRolesInput
       looseGeocodingConfig: LooseGeocodingConfigInput
       looseEnrichments: [LooseEnrichmentInput!]

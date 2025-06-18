@@ -101,11 +101,13 @@ export type CreateDataSourceResponse = {
 
 export type DataSource = {
   __typename?: "DataSource";
+  autoEnrich: Scalars["Boolean"]["output"];
+  autoImport: Scalars["Boolean"]["output"];
   columnDefs: Array<ColumnDef>;
   columnRoles: ColumnRoles;
   config: Scalars["JSON"]["output"];
   createdAt: Scalars["String"]["output"];
-  enrichmentDataSources?: Maybe<Array<DataSource>>;
+  enrichmentDataSources?: Maybe<Array<EnrichmentDataSource>>;
   enrichmentInfo?: Maybe<JobInfo>;
   enrichments: Array<LooseEnrichment>;
   geocodingConfig: LooseGeocodingConfig;
@@ -124,6 +126,16 @@ export type DataSourceEvent = {
   importFailed?: Maybe<JobFailedEvent>;
   recordsEnriched?: Maybe<RecordsProcessedEvent>;
   recordsImported?: Maybe<RecordsProcessedEvent>;
+};
+
+/**
+ * Used to display a list of connected sources
+ * in the data source dashboard.
+ */
+export type EnrichmentDataSource = {
+  __typename?: "EnrichmentDataSource";
+  id: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
 };
 
 export enum EnrichmentSourceType {
@@ -220,6 +232,8 @@ export type MutationEnqueueImportDataSourceJobArgs = {
 };
 
 export type MutationUpdateDataSourceConfigArgs = {
+  autoEnrich?: InputMaybe<Scalars["Boolean"]["input"]>;
+  autoImport?: InputMaybe<Scalars["Boolean"]["input"]>;
   columnRoles?: InputMaybe<ColumnRolesInput>;
   id: Scalars["String"]["input"];
   looseEnrichments?: InputMaybe<Array<LooseEnrichmentInput>>;
@@ -344,6 +358,7 @@ export type UpdateDataSourceConfigMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   columnRoles: ColumnRolesInput;
   looseGeocodingConfig?: InputMaybe<LooseGeocodingConfigInput>;
+  autoImport: Scalars["Boolean"]["input"];
 }>;
 
 export type UpdateDataSourceConfigMutation = {
@@ -364,6 +379,7 @@ export type DataSourceConfigQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
+    autoImport: boolean;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
@@ -431,6 +447,8 @@ export type DataSourceQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
+    autoEnrich: boolean;
+    autoImport: boolean;
     config: any;
     recordCount?: number | null;
     columnDefs: Array<{
@@ -448,7 +466,7 @@ export type DataSourceQuery = {
       dataSourceColumn?: string | null;
     }>;
     enrichmentDataSources?: Array<{
-      __typename?: "DataSource";
+      __typename?: "EnrichmentDataSource";
       id: string;
       name: string;
     }> | null;
@@ -669,6 +687,7 @@ export type ResolversTypes = {
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
   DataSource: ResolverTypeWrapper<DataSource>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
+  EnrichmentDataSource: ResolverTypeWrapper<EnrichmentDataSource>;
   EnrichmentSourceType: EnrichmentSourceType;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
   GeocodingType: GeocodingType;
@@ -705,6 +724,7 @@ export type ResolversParentTypes = {
   CreateDataSourceResponse: CreateDataSourceResponse;
   DataSource: DataSource;
   DataSourceEvent: DataSourceEvent;
+  EnrichmentDataSource: EnrichmentDataSource;
   Float: Scalars["Float"]["output"];
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
@@ -799,6 +819,8 @@ export type DataSourceResolvers<
   ParentType extends
     ResolversParentTypes["DataSource"] = ResolversParentTypes["DataSource"],
 > = {
+  autoEnrich?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  autoImport?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   columnDefs?: Resolver<
     Array<ResolversTypes["ColumnDef"]>,
     ParentType,
@@ -812,7 +834,7 @@ export type DataSourceResolvers<
   config?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   enrichmentDataSources?: Resolver<
-    Maybe<Array<ResolversTypes["DataSource"]>>,
+    Maybe<Array<ResolversTypes["EnrichmentDataSource"]>>,
     ParentType,
     ContextType
   >;
@@ -878,6 +900,16 @@ export type DataSourceEventResolvers<
     ParentType,
     ContextType
   >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type EnrichmentDataSourceResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["EnrichmentDataSource"] = ResolversParentTypes["EnrichmentDataSource"],
+> = {
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1088,6 +1120,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
+  EnrichmentDataSource?: EnrichmentDataSourceResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;
   JobFailedEvent?: JobFailedEventResolvers<ContextType>;
