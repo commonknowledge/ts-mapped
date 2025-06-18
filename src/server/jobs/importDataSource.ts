@@ -98,7 +98,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   return false;
 };
 
-const importBatch = (
+export const importBatch = (
   batch: ExternalRecord[],
   dataSource: DataSource,
   columnDefsAccumulator: ColumnDef[],

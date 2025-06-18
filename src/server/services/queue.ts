@@ -1,6 +1,9 @@
 import PgBoss from "pg-boss";
+import enrichDataRecords from "@/server/jobs/enrichDataRecords";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
+import importDataRecords from "@/server/jobs/importDataRecords";
 import importDataSource from "@/server/jobs/importDataSource";
+import refreshWebhooks from "@/server/jobs/refreshWebhooks";
 import logger from "./logger";
 
 const defaultQueue = process.env.DEFAULT_QUEUE_NAME || "default";
@@ -11,7 +14,10 @@ boss.on("error", logger.error);
 const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
   {
     enrichDataSource,
+    enrichDataRecords,
     importDataSource,
+    importDataRecords,
+    refreshWebhooks,
   };
 
 let startedQueues: Record<string, boolean> | null = null;
@@ -33,7 +39,7 @@ export const enqueue = async (
 ) => {
   await ensureQueue(queue);
   await boss.send(queue, { task, args }, { expireInHours: 8 });
-  logger.info(`Enqueued job: ${JSON.stringify(args)}`);
+  logger.info(`Enqueued job: ${task}, ${JSON.stringify(args)}`);
 };
 
 export const runWorker = async (queue: string = defaultQueue) => {
@@ -59,6 +65,9 @@ export const runWorker = async (queue: string = defaultQueue) => {
       if (!success) {
         throw Error(`Handler ${task} not complete successfully`);
       }
+      logger.info(
+        `Completed job ${job.id} with data ${JSON.stringify(job.data)}`,
+      );
     } catch (error) {
       logger.error(`Failed job ${job.id}`, { error });
       // Re-throw so PgBoss knows the job failed
@@ -67,4 +76,15 @@ export const runWorker = async (queue: string = defaultQueue) => {
   });
 
   logger.info(`Started worker on queue "${queue}"`);
+};
+
+export const schedule = async (
+  cronSpec: string,
+  task: string,
+  args: object,
+  queue: string = defaultQueue,
+) => {
+  await ensureQueue(queue);
+  await boss.schedule(queue, cronSpec, { task, args });
+  logger.info(`Scheduled job: ${cronSpec}, ${task}, ${JSON.stringify(args)}`);
 };

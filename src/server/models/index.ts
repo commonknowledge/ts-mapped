@@ -1,3 +1,4 @@
+import { AirtableWebhookTable } from "./AirtableWebhook";
 import { AreaTable } from "./Area";
 import { AreaSetTable } from "./AreaSet";
 import { DataRecordTable } from "./DataRecord";
@@ -8,6 +9,7 @@ import { OrganisationUserTable } from "./OrganisationUser";
 import { UserTable } from "./User";
 
 export interface Database {
+  airtableWebhook: AirtableWebhookTable;
   area: AreaTable;
   areaSet: AreaSetTable;
   dataSource: DataSourceTable;

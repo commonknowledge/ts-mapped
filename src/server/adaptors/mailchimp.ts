@@ -1,22 +1,12 @@
-import { DataSource } from "@/server/models/DataSource";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
-import { WebhookType } from "./types";
 
 export class MailchimpAdaptor implements DataSourceAdaptor {
-  async getRecordCount() {
-    return null;
-  }
-
-  async toggleWebhook(
+  async *extractExternalRecordIdsFromWebhookBody(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dataSource: DataSource,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    webhookType: WebhookType,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    enable: boolean,
-  ): Promise<void> {
-    throw new Error("Unimplemented");
+    body: unknown,
+  ): AsyncGenerator<string> {
+    throw new Error("Method not implemented.");
   }
 
   async *fetchAll(): AsyncGenerator<{
@@ -27,6 +17,29 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
   }
 
   async fetchFirst(): Promise<ExternalRecord> {
+    throw new Error("Unimplemented");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getRecordCount() {
+    return null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  removeDevWebhooks(dataSourceId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async toggleWebhook(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dataSourceId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    enable: boolean,
+  ): Promise<void> {
     throw new Error("Unimplemented");
   }
 

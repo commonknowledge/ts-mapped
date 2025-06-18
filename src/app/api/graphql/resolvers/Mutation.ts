@@ -9,7 +9,6 @@ import {
 } from "@/__generated__/types";
 import { serializeDataSource } from "@/app/api/graphql/serializers";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import { WebhookType } from "@/server/adaptors/types";
 import {
   createDataSource,
   findDataSourceById,
@@ -111,20 +110,28 @@ const MutationResolvers: MutationResolversType = {
         autoImport?: boolean;
       } = {};
 
+      // Keep track of whether webhooks need to be enabled/disabled
+      const nextAutoStatus = {
+        autoEnrich: dataSource.autoEnrich,
+        autoImport: dataSource.autoImport,
+        changed: false,
+      };
+
       if (typeof autoEnrich === "boolean") {
         update.autoEnrich = autoEnrich;
-        if (!adaptor) {
-          return { code: 500 };
-        }
-        await adaptor.toggleWebhook(dataSource, WebhookType.Enrich, autoEnrich);
+        nextAutoStatus.changed = dataSource.autoEnrich !== autoEnrich;
+        nextAutoStatus.autoEnrich = autoEnrich;
       }
 
       if (typeof autoImport === "boolean") {
         update.autoImport = autoImport;
-        if (!adaptor) {
-          return { code: 500 };
-        }
-        await adaptor.toggleWebhook(dataSource, WebhookType.Enrich, autoImport);
+        nextAutoStatus.changed = dataSource.autoImport !== autoImport;
+        nextAutoStatus.autoImport = autoImport;
+      }
+
+      if (nextAutoStatus.changed) {
+        const enable = nextAutoStatus.autoEnrich || nextAutoStatus.autoImport;
+        await adaptor?.toggleWebhook(dataSource.id, enable);
       }
 
       if (columnRoles) {

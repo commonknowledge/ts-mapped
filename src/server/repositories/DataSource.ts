@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { JobInfo, JobStatus } from "@/__generated__/types";
 import { DataSourceUpdate, NewDataSource } from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
+import { DataSourceType } from "@/types";
 
 export async function createDataSource(dataSource: NewDataSource) {
   return await db
@@ -92,6 +93,16 @@ export async function findDataSourcesByIds(ids: string[]) {
   return await db
     .selectFrom("dataSource")
     .where("id", "in", ids)
+    .selectAll()
+    .execute();
+}
+
+export async function findDataSourcesByType(type: DataSourceType) {
+  return await db
+    .selectFrom("dataSource")
+    .where(({ eb, ref }) => {
+      return eb(ref("config", "->>").key("type"), "=", type);
+    })
     .selectAll()
     .execute();
 }

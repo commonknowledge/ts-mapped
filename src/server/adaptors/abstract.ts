@@ -1,16 +1,15 @@
 import { EnrichedRecord } from "@/server/mapping/enrich";
-import { DataSource } from "@/server/models/DataSource";
 import { ExternalRecord } from "@/types";
-import { WebhookType } from "./types";
 
 export interface DataSourceAdaptor {
+  extractExternalRecordIdsFromWebhookBody(
+    body: unknown,
+  ): AsyncGenerator<string>;
   getRecordCount(): Promise<number | null>;
   fetchAll(): AsyncGenerator<ExternalRecord>;
   fetchFirst(): Promise<ExternalRecord | null>;
-  toggleWebhook(
-    dataSource: DataSource,
-    webhookType: WebhookType,
-    enable: boolean,
-  ): Promise<void>;
+  fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]>;
+  removeDevWebhooks(dataSourceId: string): Promise<void>;
+  toggleWebhook(dataSourceId: string, enable: boolean): Promise<void>;
   updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void>;
 }

@@ -6,10 +6,7 @@ import {
   Selectable,
   Updateable,
 } from "kysely";
-import {
-  ColumnDef,
-  ColumnRoles,
-} from "@/__generated__/types";
+import { ColumnDef, ColumnRoles } from "@/__generated__/types";
 import { DataSourceType } from "@/types";
 import { DataSourceConfig, Enrichment, GeocodingConfig } from "@/zod";
 

@@ -3,11 +3,9 @@ import path from "path";
 import readline from "readline";
 import { fileURLToPath } from "url";
 import { parse } from "csv-parse";
-import { DataSource } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
-import { WebhookType } from "./types";
 
 const getProjectFolder = () => {
   let currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -35,6 +33,13 @@ export class CSVAdaptor implements DataSourceAdaptor {
     );
   }
 
+  extractExternalRecordIdsFromWebhookBody(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    body: unknown,
+  ): AsyncGenerator<string> {
+    throw new Error("Method not implemented.");
+  }
+
   async getRecordCount() {
     const fileStream = fs.createReadStream(this.filepath);
     const rl = readline.createInterface({
@@ -49,17 +54,6 @@ export class CSVAdaptor implements DataSourceAdaptor {
     }
 
     return Math.max(lineCount - 1, 0); // exclude header row
-  }
-
-  async toggleWebhook(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dataSource: DataSource,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    webhookType: WebhookType,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    enable: boolean,
-  ): Promise<void> {
-    throw new Error("Unimplemented");
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
@@ -89,6 +83,25 @@ export class CSVAdaptor implements DataSourceAdaptor {
       });
     }
     return null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  removeDevWebhooks(dataSourceId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async toggleWebhook(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dataSourceId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    enable: boolean,
+  ): Promise<void> {
+    throw new Error("Unimplemented");
   }
 
   updateRecords(): Promise<void> {
