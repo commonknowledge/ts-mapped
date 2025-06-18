@@ -1,24 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { MapRef } from "react-map-gl/mapbox";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { MapRef } from "react-map-gl/mapbox";
 import { BoundingBoxInput } from "@/__generated__/types";
-import { Separator } from "@/shadcn/ui/separator";
+import { MapConfig, MapContext } from "@/app/(private)/map/context/MapContext";
+import { DEFAULT_ZOOM } from "@/constants";
 import { DrawnPolygon, MarkerData, SearchResult } from "@/types";
-import Choropleth from "./components/Choropleth";
-import ChoroplethControl from "./components/control/ChoroplethControl";
-import MarkersControl from "./components/control/MarkersControl";
-import MembersControl from "./components/control/MembersControl";
-import TurfControl from "./components/control/TurfControl";
-import Controls, { MapConfig } from "./components/Controls";
-import ControlsTab from "./components/ControlsTab";
+import Controls from "./components/controls/Controls";
 import Legend from "./components/Legend";
 import Map from "./components/Map";
-import { MapStyleSelector } from "./components/MapStyling";
-import Markers from "./components/Markers";
-import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
-import TurfPolygons from "./components/TurfPolygons";
+import MapStyleSelector from "./components/MapStyleSelector";
 import {
   useAreaStatsQuery,
   useDataSourcesQuery,
@@ -27,23 +19,20 @@ import {
 import styles from "./page.module.css";
 import { getChoroplethLayerConfig } from "./sources";
 
-const DEFAULT_ZOOM = 5;
-
 export default function MapPage() {
-  /* Map state */
+  /* Map Ref */
   const mapRef = useRef<MapRef>(null);
+
+  /* Map State */
+  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
+  const [editingPolygon, setEditingPolygon] = useState<DrawnPolygon | null>(
+    null,
+  );
   // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
   >();
-  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
-  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
-  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
-
-  /* Settings state */
-  const [mapConfig, setMapConfig] = useState<MapConfig>(new MapConfig());
-
-  /* Layers state */
+  const [mapConfig, setMapConfig] = useState(new MapConfig());
   const [searchHistory, setSearchHistory] = useState<SearchResult[]>([
     {
       text: "Abbey Road Studios",
@@ -51,66 +40,7 @@ export default function MapPage() {
       timestamp: new Date(),
     },
   ]);
-
-  // The Map layer is defined by the user config and the zoom level
-  const choroplethLayerConfig = getChoroplethLayerConfig(
-    mapConfig.areaSetGroupCode,
-    zoom,
-  );
-
-  /* GraphQL data */
-  const { data: dataSourcesData, loading: dataSourcesLoading } =
-    useDataSourcesQuery();
-
-  const { data: markersData, loading: markersLoading } = useMarkersQuery({
-    dataSourceId: mapConfig.markersDataSourceId,
-  });
-
-  const {
-    data: areaStatsData,
-    loading: areaStatsLoading,
-    fetchMore: areaStatsFetchMore,
-  } = useAreaStatsQuery({
-    areaSetCode: choroplethLayerConfig.areaSetCode,
-    dataSourceId: mapConfig.areaDataSourceId,
-    column: mapConfig.areaDataColumn,
-    excludeColumns: mapConfig.getExcludeColumns(),
-    useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
-  });
-
-  /* Set Mapbox feature state on receiving new AreaStats */
-  useEffect(() => {
-    if (!areaStatsData) {
-      return;
-    }
-
-    if (mapRef.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
-      mapRef.current?.removeFeatureState({
-        source: choroplethLayerConfig.mapbox.sourceId,
-        sourceLayer: choroplethLayerConfig.mapbox.layerId,
-      });
-    }
-
-    areaStatsData.areaStats?.stats.forEach((stat) => {
-      mapRef.current?.setFeatureState(
-        {
-          source: choroplethLayerConfig.mapbox.sourceId,
-          sourceLayer: choroplethLayerConfig.mapbox.layerId,
-          id: stat.areaCode,
-        },
-        stat,
-      );
-    });
-  }, [areaStatsData, lastLoadedSourceId, choroplethLayerConfig]);
-
-  /* Do fetchMore() (if layer needs it) when bounding box or config changes */
-  useEffect(() => {
-    if (!choroplethLayerConfig.requiresBoundingBox) {
-      return;
-    }
-    areaStatsFetchMore({ variables: { boundingBox } });
-  }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
-
+  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const [turfHistory, setTurfHistory] = useState<DrawnPolygon[]>([
     {
       id: "N90IVwEVjjVuYnJwwtuPSvRgVTAUgLjh",
@@ -147,114 +77,110 @@ export default function MapPage() {
       name: "Sallys turf",
     },
   ]);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
-  const handleEditSearch = (index: number, newText: string) => {
-    setSearchHistory((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, text: newText } : item)),
-    );
+  /* Derived State */
+  const choroplethLayerConfig = useMemo(() => {
+    return getChoroplethLayerConfig(mapConfig.areaSetGroupCode, zoom);
+  }, [mapConfig.areaSetGroupCode, zoom]);
+
+  const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
+    setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
   };
 
-  const handleDeleteSearch = (index: number) => {
-    setSearchHistory((prev) => prev.filter((_, i) => i !== index));
-  };
+  /* GraphQL Data */
+  const dataSourcesQuery = useDataSourcesQuery();
 
-  const [editingPolygon, setEditingPolygon] = useState<DrawnPolygon | null>(
-    null,
-  );
+  const markersQuery = useMarkersQuery({
+    dataSourceId: mapConfig.markersDataSourceId,
+  });
 
-  const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
+  const areaStatsQuery = useAreaStatsQuery({
+    areaSetCode: choroplethLayerConfig.areaSetCode,
+    dataSourceId: mapConfig.areaDataSourceId,
+    column: mapConfig.areaDataColumn,
+    excludeColumns: mapConfig.getExcludeColumns(),
+    useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
+  });
 
-  const onChangeConfig = (nextConfig: Partial<MapConfig>) => {
-    setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }));
-  };
+  const { data: areaStatsData, fetchMore: areaStatsFetchMore } = areaStatsQuery;
+
+  /* Set Mapbox feature state on receiving new AreaStats */
+  useEffect(() => {
+    if (!areaStatsData) {
+      return;
+    }
+
+    if (mapRef?.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
+      mapRef?.current?.removeFeatureState({
+        source: choroplethLayerConfig.mapbox.sourceId,
+        sourceLayer: choroplethLayerConfig.mapbox.layerId,
+      });
+    }
+
+    areaStatsData.areaStats?.stats.forEach((stat) => {
+      mapRef?.current?.setFeatureState(
+        {
+          source: choroplethLayerConfig.mapbox.sourceId,
+          sourceLayer: choroplethLayerConfig.mapbox.layerId,
+          id: stat.areaCode,
+        },
+        stat,
+      );
+    });
+  }, [areaStatsData, choroplethLayerConfig, lastLoadedSourceId, mapRef]);
+
+  /* Do fetchMore() (if layer needs it) when bounding box or config changes */
+  useEffect(() => {
+    if (!choroplethLayerConfig.requiresBoundingBox || !areaStatsFetchMore) {
+      return;
+    }
+    areaStatsFetchMore({ variables: { boundingBox } });
+  }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
+
+  const loading =
+    areaStatsQuery?.loading ||
+    dataSourcesQuery?.loading ||
+    markersQuery?.loading;
 
   return (
-    <div className={styles.map}>
-      <MapStyleSelector mapConfig={mapConfig} onChange={onChangeConfig} />
-      <Controls>
-        <ControlsTab label="Layers">
-          <MembersControl
-            dataSource={markersData?.dataSource}
-            mapRef={mapRef}
-            isLoading={loading}
-            mapConfig={mapConfig}
-            onChangeConfig={onChangeConfig}
-            dataSources={dataSourcesData?.dataSources || []}
-          />
-          <Separator />
-          <MarkersControl
-            searchHistory={searchHistory}
-            mapRef={mapRef}
-            onEdit={handleEditSearch}
-            onDelete={handleDeleteSearch}
-            isLoading={loading}
-            showLocations={mapConfig.showLocations}
-            setShowLocations={(value) =>
-              onChangeConfig({ showLocations: value })
-            }
-            setSearchHistory={setSearchHistory}
-          />
-          <Separator />
-          <TurfControl
-            turfHistory={turfHistory}
-            mapRef={mapRef}
-            setTurfHistory={setTurfHistory}
-            isLoading={loading}
-            showTurf={mapConfig.showTurf}
-            setShowTurf={(value) => onChangeConfig({ showTurf: value })}
-            setEditingPolygon={setEditingPolygon}
-          />
-        </ControlsTab>
-        <ControlsTab label="Legend">
-          <ChoroplethControl
-            dataSources={dataSourcesData?.dataSources || []}
-            mapConfig={mapConfig}
-            onChangeConfig={onChangeConfig}
-          />
-        </ControlsTab>
-      </Controls>
-      <Map
-        onClickMarker={(markerData) => setSelectedMarker(markerData)}
-        onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
-        onMoveEnd={async (boundingBox, zoom) => {
-          setBoundingBox(boundingBox);
-          setZoom(zoom);
-        }}
-        mapRef={mapRef}
-        mapConfig={mapConfig}
-        searchHistory={searchHistory}
-        setSearchHistory={setSearchHistory}
-        setTurfHistory={setTurfHistory}
-      >
-        <Choropleth
-          areaStats={areaStatsData?.areaStats}
-          choroplethLayerConfig={choroplethLayerConfig}
-          mapConfig={mapConfig}
-        />
-        <Markers
-          dataSource={markersData?.dataSource}
-          selectedMarker={selectedMarker}
-          onCloseSelectedMarker={() => setSelectedMarker(null)}
-          mapConfig={mapConfig}
-        />
-        <SearchHistoryMarkers
-          searchHistory={searchHistory}
-          mapConfig={mapConfig}
-        />
-        <TurfPolygons
-          polygons={turfHistory}
-          mapConfig={mapConfig}
-          editingPolygon={editingPolygon}
-          setEditingPolygon={setEditingPolygon}
-        />
-      </Map>
-      <Legend areaStats={areaStatsData?.areaStats} />
+    <MapContext
+      value={{
+        mapRef,
 
-      {loading && (
-        <div className={styles.loading}>
-          <div></div>
-        </div>
-      )}
-    </div>
+        boundingBox,
+        setBoundingBox,
+        editingPolygon,
+        setEditingPolygon,
+        mapConfig,
+        searchHistory,
+        setSearchHistory,
+        selectedMarker,
+        setSelectedMarker,
+        turfHistory,
+        setTurfHistory,
+        zoom,
+        setZoom,
+
+        areaStatsQuery,
+        dataSourcesQuery,
+        markersQuery,
+
+        choroplethLayerConfig,
+        updateMapConfig,
+      }}
+    >
+      <div className={styles.map}>
+        <MapStyleSelector />
+        <Controls />
+        <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
+        <Legend areaStats={areaStatsData?.areaStats} />
+        {loading && (
+          <div className={styles.loading}>
+            <div></div>
+          </div>
+        )}
+      </div>
+    </MapContext>
   );
 }

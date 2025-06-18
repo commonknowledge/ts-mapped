@@ -4,48 +4,37 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
-import { ReactNode, RefObject, useEffect, useState } from "react";
-import MapGL, { MapRef } from "react-map-gl/mapbox";
-import { BoundingBoxInput } from "@/__generated__/types";
+import { useContext, useEffect, useState } from "react";
+import MapGL from "react-map-gl/mapbox";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
 import { mapColors } from "@/app/(private)/map/styles";
-import {
-  DrawDeleteEvent,
-  DrawnPolygon,
-  MarkerData,
-  SearchResult,
-} from "@/types";
+import { DEFAULT_ZOOM } from "@/constants";
+import { DrawDeleteEvent, SearchResult } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import { MapConfig } from "./Controls";
-
-const DEFAULT_ZOOM = 5;
-
-interface MapProps {
-  children: ReactNode;
-  mapConfig: MapConfig;
-  onClickMarker: (markerData: MarkerData | null) => void;
-  onMoveEnd: (boundingBox: BoundingBoxInput | null, zoom: number) => void;
-  onSourceLoad: (sourceId: string) => void;
-  mapRef: RefObject<MapRef | null>;
-  searchHistory: SearchResult[];
-  setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
-  setTurfHistory: React.Dispatch<React.SetStateAction<DrawnPolygon[]>>;
-}
+import Choropleth from "./Choropleth";
+import Markers from "./Markers";
+import SearchHistoryMarkers from "./SearchHistoryMarkers";
+import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
-  children,
-  mapConfig,
-  onClickMarker,
-  onMoveEnd,
   onSourceLoad,
-  mapRef,
-  setSearchHistory,
-  setTurfHistory,
-}: MapProps) {
+}: {
+  onSourceLoad: (sourceId: string) => void;
+}) {
+  const {
+    mapRef,
+    mapConfig,
+    setBoundingBox,
+    setSelectedMarker,
+    setSearchHistory,
+    setTurfHistory,
+    setZoom,
+  } = useContext(MapContext);
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
 
   useEffect(() => {
-    const map = mapRef.current;
+    const map = mapRef?.current;
     return () => {
       if (draw && map) {
         map.getMap().removeControl(draw);
@@ -70,17 +59,17 @@ export default function Map({
           layers: ["markers-pins"],
         });
         if (features.length && features[0].geometry.type === "Point") {
-          onClickMarker({
+          setSelectedMarker({
             id: 1,
             properties: features[0].properties || {},
             coordinates: features[0].geometry.coordinates,
           });
         } else {
-          onClickMarker(null);
+          setSelectedMarker(null);
         }
       }}
       onLoad={() => {
-        const map = mapRef.current;
+        const map = mapRef?.current;
         if (!map) {
           return;
         }
@@ -194,7 +183,8 @@ export default function Map({
               west: bounds.getWest(),
             }
           : null;
-        onMoveEnd(boundingBox, e.viewState.zoom);
+        setBoundingBox(boundingBox);
+        setZoom(e.viewState.zoom);
       }}
       onSourceData={(e) => {
         if (e.sourceId && MAPBOX_SOURCE_IDS.includes(e.sourceId)) {
@@ -202,7 +192,10 @@ export default function Map({
         }
       }}
     >
-      {children}
+      <Choropleth />
+      <Markers />
+      <SearchHistoryMarkers />
+      <TurfPolygons />
     </MapGL>
   );
 }

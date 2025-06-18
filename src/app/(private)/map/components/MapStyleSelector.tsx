@@ -1,4 +1,6 @@
 import { Paintbrush, Scan, Type } from "lucide-react";
+import { useContext } from "react";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -14,15 +16,9 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import mapStyles from "../styles";
-import { MapConfig } from "./Controls";
 
-export function MapStyleSelector({
-  mapConfig,
-  onChange,
-}: {
-  mapConfig: MapConfig;
-  onChange: (mapConfig: Partial<MapConfig>) => void;
-}) {
+export default function MapStyleSelector() {
+  const { mapConfig, updateMapConfig } = useContext(MapContext);
   return (
     <div className="absolute left-1/2 -top-20 -translate-x-1/2 m-3 p-4 z-10  bg-white ">
       <div className="flex gap-2 items-center">
@@ -31,7 +27,7 @@ export function MapStyleSelector({
             <Select
               value={mapConfig.mapStyle.slug}
               onValueChange={(value) =>
-                onChange({
+                updateMapConfig({
                   mapStyle: mapStyles[value as keyof typeof mapStyles],
                 })
               }
@@ -62,7 +58,9 @@ export function MapStyleSelector({
             <TooltipTrigger asChild>
               <Toggle
                 pressed={mapConfig.showLabels}
-                onPressedChange={(value) => onChange({ showLabels: value })}
+                onPressedChange={(value) =>
+                  updateMapConfig({ showLabels: value })
+                }
               >
                 <Type
                   className={`w-4 h-4  text-muted-foreground ${
@@ -81,7 +79,7 @@ export function MapStyleSelector({
               <Toggle
                 pressed={mapConfig.showBoundaryOutline}
                 onPressedChange={(value) =>
-                  onChange({ showBoundaryOutline: value })
+                  updateMapConfig({ showBoundaryOutline: value })
                 }
               >
                 <Scan

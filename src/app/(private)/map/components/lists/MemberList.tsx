@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
-import { PointFeature } from "@/types";
+import SkeletonGroup from "../SkeletonGroup";
 
 interface GEOJSONPoint {
   properties: Record<string, number | string>;
@@ -10,35 +11,40 @@ interface GEOJSONPoint {
   };
 }
 
-interface MemberListProps {
-  dataSource:
-    | { name: string; markers: { features: PointFeature[] } }
-    | undefined;
-  onSelect: (coordinates: [number, number]) => void;
-  showMembers: boolean;
-}
-
-export default function MemberList({
-  dataSource,
-  onSelect,
-  showMembers,
-}: MemberListProps) {
+export default function MemberList() {
   const [limit, setLimit] = useState(10);
 
-  if (!dataSource) return null;
+  const { mapRef, markersQuery, mapConfig } = useContext(MapContext);
+  const dataSource = markersQuery?.data?.dataSource;
+
+  if (markersQuery?.loading) {
+    return <SkeletonGroup />;
+  }
+
+  if (!dataSource) {
+    return null;
+  }
 
   const hasMore = limit < dataSource.markers.features.length;
 
   return (
     <ScrollArea className="max-h-[200px] w-full rounded-md p-2 overflow-y-auto">
-      <ul className={`${showMembers ? "opacity-100" : "opacity-50"}`}>
+      <ul className={`${mapConfig.showMembers ? "opacity-100" : "opacity-50"}`}>
         {dataSource.markers.features
           ?.slice(0, limit)
           .map((feature: GEOJSONPoint) => (
             <li
               key={feature.properties[MARKER_ID_KEY]}
               className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-              onClick={() => onSelect(feature.geometry.coordinates)}
+              onClick={() => {
+                const map = mapRef?.current;
+                if (map) {
+                  map.flyTo({
+                    center: feature.geometry.coordinates,
+                    zoom: 12,
+                  });
+                }
+              }}
             >
               <span className="text-sm">
                 {feature.properties[MARKER_NAME_KEY] || "Unnamed"}

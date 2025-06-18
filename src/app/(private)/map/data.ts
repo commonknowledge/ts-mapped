@@ -8,6 +8,7 @@ import {
   Operation,
 } from "@/__generated__/types";
 import { PointFeature } from "@/types";
+import { MarkersQueryResult } from "./types";
 
 export const useDataSourcesQuery = () =>
   useQuery<DataSourcesQuery>(gql`
@@ -25,7 +26,11 @@ export const useDataSourcesQuery = () =>
 
 // Use API request instead of GraphQL to avoid server memory load
 // TODO: replace with gql @stream directive when Apollo client supports it
-export const useMarkersQuery = ({ dataSourceId }: { dataSourceId: string }) => {
+export const useMarkersQuery = ({
+  dataSourceId,
+}: {
+  dataSourceId: string;
+}): MarkersQueryResult => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<{
     dataSource: {

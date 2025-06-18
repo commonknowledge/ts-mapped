@@ -1,7 +1,7 @@
 import { PlusIcon, Settings } from "lucide-react";
-import React from "react";
-import { DataSourcesQuery } from "@/__generated__/types";
+import React, { useContext } from "react";
 
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
@@ -22,16 +22,12 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
-import { MapConfig } from "./Controls";
-export default function SettingsModal({
-  mapConfig,
-  onChangeConfig,
-  dataSources,
-}: {
-  mapConfig: MapConfig;
-  onChangeConfig: (mapConfig: Partial<MapConfig>) => void;
-  dataSources: DataSourcesQuery["dataSources"];
-}) {
+
+export default function SettingsModal() {
+  const { dataSourcesQuery, mapConfig, updateMapConfig } =
+    useContext(MapContext);
+  const dataSources = dataSourcesQuery?.data?.dataSources || [];
+
   return (
     <Dialog>
       <DialogTrigger>
@@ -51,7 +47,7 @@ export default function SettingsModal({
           <Select
             value={mapConfig.markersDataSourceId}
             onValueChange={(value) =>
-              onChangeConfig({ markersDataSourceId: value })
+              updateMapConfig({ markersDataSourceId: value })
             }
           >
             <SelectTrigger className="w-full shadow-none">

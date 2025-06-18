@@ -1,26 +1,13 @@
+import { useContext } from "react";
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { mapColors } from "@/app/(private)/map/styles";
-import { MarkerData, PointFeature } from "@/types";
-import { MapConfig } from "./Controls";
 
-export default function Markers({
-  dataSource,
-  selectedMarker,
-  onCloseSelectedMarker,
-  mapConfig,
-}: {
-  dataSource:
-    | {
-        name: string;
-        markers: { type: "FeatureCollection"; features: PointFeature[] };
-      }
-    | undefined;
-  selectedMarker: MarkerData | null;
-  onCloseSelectedMarker: () => void;
-  mapConfig: MapConfig;
-}) {
+export default function Markers() {
+  const { markersQuery, mapConfig, selectedMarker, setSelectedMarker } =
+    useContext(MapContext);
   // Always return a layer - this ensures it is always placed on top
-  const safeMarkers = dataSource?.markers || {
+  const safeMarkers = markersQuery?.data?.dataSource?.markers || {
     type: "FeatureCollection",
     features: [],
   };
@@ -167,7 +154,7 @@ export default function Markers({
           latitude={selectedMarker.coordinates[1]}
           longitude={selectedMarker.coordinates[0]}
           closeOnClick={false}
-          onClose={() => onCloseSelectedMarker()}
+          onClose={() => setSelectedMarker(null)}
         >
           <div>
             {Object.keys(selectedMarker.properties).map((key) => (
