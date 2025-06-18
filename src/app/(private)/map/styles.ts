@@ -6,12 +6,6 @@ export interface MapStyle {
 }
 
 const mapStyles: Record<string, MapStyle> = {
-  "streets-v12": {
-    name: "Streets",
-    slug: "streets-v12",
-    textColor: "#6D6D6D",
-    textHaloColor: "#ffffff",
-  },
   "light-v11": {
     name: "Light",
     slug: "light-v11",
@@ -23,6 +17,12 @@ const mapStyles: Record<string, MapStyle> = {
     slug: "dark-v11",
     textColor: "#ffffff",
     textHaloColor: "#000000",
+  },
+  "streets-v12": {
+    name: "Streets",
+    slug: "streets-v12",
+    textColor: "#6D6D6D",
+    textHaloColor: "#ffffff",
   },
   "satellite-v9": {
     name: "Satellite",
@@ -49,3 +49,25 @@ export const mapNodeColors: Record<"marker" | "searched", mapNodeColor> = {
 };
 
 export default mapStyles;
+
+export interface mapColor {
+  name: string;
+  color: string;
+  textColor?: string;
+}
+
+export const mapColors: Record<string, mapColor> = {
+  member: {
+    name: "Member",
+    color: "#678DE3",
+  },
+  searched: {
+    name: "Searched",
+    color: "#FF6B6B",
+  },
+  turf: {
+    name: "Turf",
+    color: "#91E17E",
+    textColor: "#4DAB37",
+  },
+};

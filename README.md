@@ -16,7 +16,18 @@
 5. Install dependencies with `npm i`
 6. Start the server with `npm run dev`
 7. View the site at `http://localhost:3000`
-8. Log in with username `joaquimds@gmail.com` and password `1234`.
+8. Log in with username `hello@commonknowledge.coop` and password `1234`.
+
+### Seed Data
+
+The SQL import includes the following:
+
+- Data sources:
+  - Seed Airtable: https://airtable.com/appMdYSgvrFYZcr4k/tblSy67uoOyoeUb50/viwXlZr9qcFowFCJR?blocks=hide
+  - Hope Not Hate vote share CSV
+- Area sets:
+  - Constituencies (2024)
+  - Census Output Areas and MSOAs (2021)
 
 ### Migrations
 

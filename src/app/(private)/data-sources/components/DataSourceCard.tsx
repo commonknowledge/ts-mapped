@@ -16,11 +16,13 @@ export function DataSourceCard({
   name,
   config,
   createdAt,
+  editIcon,
 }: {
   id: string;
   name: string;
   config: { type: DataSourceType };
   createdAt: string;
+  editIcon?: boolean;
 }) {
   return (
     <Link href={`/data-sources/${id}`}>
@@ -39,9 +41,11 @@ export function DataSourceCard({
                 day: "numeric",
               })}
             </span>
-            <div className="opacity-0 group-hover:opacity-100 transition-all duration-300s flex items-center gap-2 text-base ml-auto">
-              <PencilIcon className="w-4 h-4 text-muted-foreground" />
-            </div>
+            {editIcon && (
+              <div className="opacity-0 group-hover:opacity-100 transition-all duration-300s flex items-center gap-2 text-base ml-auto">
+                <PencilIcon className="w-4 h-4 text-muted-foreground" />
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-5 h-full">

@@ -73,7 +73,6 @@ export async function GET(
       controller.close();
     },
   });
-
   return new NextResponse(stream, {
     headers: {
       "Content-Type": "application/json",

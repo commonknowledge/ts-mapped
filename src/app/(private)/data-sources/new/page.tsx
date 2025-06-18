@@ -1,7 +1,6 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SyntheticEvent, useContext, useState } from "react";
 import {
@@ -9,6 +8,7 @@ import {
   CreateDataSourceMutationVariables,
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
+import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";

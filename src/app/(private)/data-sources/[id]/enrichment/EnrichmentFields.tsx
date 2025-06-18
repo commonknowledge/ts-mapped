@@ -1,4 +1,3 @@
-import { Select } from "@radix-ui/react-select";
 import {
   AreaSetCode,
   DataSourceEnrichmentQuery,
@@ -8,6 +7,7 @@ import {
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,

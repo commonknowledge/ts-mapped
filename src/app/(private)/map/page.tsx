@@ -4,16 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BoundingBoxInput } from "@/__generated__/types";
-import { MarkerData, SearchResult } from "@/types";
+import { Separator } from "@/shadcn/ui/separator";
+import { DrawnPolygon, MarkerData, SearchResult } from "@/types";
 import Choropleth from "./components/Choropleth";
-import Controls from "./components/Controls";
+import ChoroplethControl from "./components/control/ChoroplethControl";
+import MarkersControl from "./components/control/MarkersControl";
+import MembersControl from "./components/control/MembersControl";
+import TurfControl from "./components/control/TurfControl";
+import Controls, { MapConfig } from "./components/Controls";
 import ControlsTab from "./components/ControlsTab";
-import Layers from "./components/Layers";
 import Legend from "./components/Legend";
 import Map from "./components/Map";
+import { MapStyleSelector } from "./components/MapStyling";
 import Markers from "./components/Markers";
 import SearchHistoryMarkers from "./components/SearchHistoryMarkers";
-import Settings, { MapConfig } from "./components/Settings";
+import TurfPolygons from "./components/TurfPolygons";
 import {
   useAreaStatsQuery,
   useDataSourcesQuery,
@@ -106,27 +111,105 @@ export default function MapPage() {
     areaStatsFetchMore({ variables: { boundingBox } });
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
 
+  const [turfHistory, setTurfHistory] = useState<DrawnPolygon[]>([
+    {
+      id: "N90IVwEVjjVuYnJwwtuPSvRgVTAUgLjh",
+      area: 6659289.77,
+      geometry: {
+        coordinates: [
+          [
+            [-0.09890821864360078, 51.466784423169656],
+            [-0.050307845722869615, 51.457615269748146],
+            [-0.06844742153057837, 51.496624718934044],
+            [-0.09890821864360078, 51.466784423169656],
+          ],
+        ],
+        type: "Polygon",
+      },
+      timestamp: new Date("2024-03-20T14:31:00Z"),
+      name: "Anti-austerity campaign area",
+    },
+    {
+      id: "qY9R13eRjlVUZQ5GyHIwroX2C2GZuA9g",
+      area: 14311817.59,
+      geometry: {
+        coordinates: [
+          [
+            [-0.1676382772736531, 51.454985375110425],
+            [-0.1028980072736374, 51.423675158113724],
+            [-0.09285210330847349, 51.476194541881796],
+            [-0.1676382772736531, 51.454985375110425],
+          ],
+        ],
+        type: "Polygon",
+      },
+      timestamp: new Date(),
+      name: "Sallys turf",
+    },
+  ]);
+
+  const handleEditSearch = (index: number, newText: string) => {
+    setSearchHistory((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, text: newText } : item)),
+    );
+  };
+
+  const handleDeleteSearch = (index: number) => {
+    setSearchHistory((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const [editingPolygon, setEditingPolygon] = useState<DrawnPolygon | null>(
+    null,
+  );
+
   const loading = areaStatsLoading || dataSourcesLoading || markersLoading;
+
+  const onChangeConfig = (nextConfig: Partial<MapConfig>) => {
+    setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }));
+  };
 
   return (
     <div className={styles.map}>
+      <MapStyleSelector mapConfig={mapConfig} onChange={onChangeConfig} />
       <Controls>
-        <ControlsTab label="Settings">
-          <Settings
+        <ControlsTab label="Layers">
+          <MembersControl
+            dataSource={markersData?.dataSource}
+            mapRef={mapRef}
+            isLoading={loading}
+            mapConfig={mapConfig}
+            onChangeConfig={onChangeConfig}
+            dataSources={dataSourcesData?.dataSources || []}
+          />
+          <Separator />
+          <MarkersControl
+            searchHistory={searchHistory}
+            mapRef={mapRef}
+            onEdit={handleEditSearch}
+            onDelete={handleDeleteSearch}
+            isLoading={loading}
+            showLocations={mapConfig.showLocations}
+            setShowLocations={(value) =>
+              onChangeConfig({ showLocations: value })
+            }
+            setSearchHistory={setSearchHistory}
+          />
+          <Separator />
+          <TurfControl
+            turfHistory={turfHistory}
+            mapRef={mapRef}
+            setTurfHistory={setTurfHistory}
+            isLoading={loading}
+            showTurf={mapConfig.showTurf}
+            setShowTurf={(value) => onChangeConfig({ showTurf: value })}
+            setEditingPolygon={setEditingPolygon}
+          />
+        </ControlsTab>
+        <ControlsTab label="Legend">
+          <ChoroplethControl
             dataSources={dataSourcesData?.dataSources || []}
             mapConfig={mapConfig}
-            onChangeConfig={(nextConfig) =>
-              setMapConfig(new MapConfig({ ...mapConfig, ...nextConfig }))
-            }
-          >
-            <Legend areaStats={areaStatsData?.areaStats} />
-          </Settings>
-        </ControlsTab>
-        <ControlsTab label="Layers">
-          <Layers
-            mapRef={mapRef}
-            markersDataSource={markersData?.dataSource}
-            searchHistory={searchHistory}
+            onChangeConfig={onChangeConfig}
           />
         </ControlsTab>
       </Controls>
@@ -141,6 +224,7 @@ export default function MapPage() {
         mapConfig={mapConfig}
         searchHistory={searchHistory}
         setSearchHistory={setSearchHistory}
+        setTurfHistory={setTurfHistory}
       >
         <Choropleth
           areaStats={areaStatsData?.areaStats}
@@ -151,9 +235,21 @@ export default function MapPage() {
           dataSource={markersData?.dataSource}
           selectedMarker={selectedMarker}
           onCloseSelectedMarker={() => setSelectedMarker(null)}
+          mapConfig={mapConfig}
         />
-        <SearchHistoryMarkers searchHistory={searchHistory} />
+        <SearchHistoryMarkers
+          searchHistory={searchHistory}
+          mapConfig={mapConfig}
+        />
+        <TurfPolygons
+          polygons={turfHistory}
+          mapConfig={mapConfig}
+          editingPolygon={editingPolygon}
+          setEditingPolygon={setEditingPolygon}
+        />
       </Map>
+      <Legend areaStats={areaStatsData?.areaStats} />
+
       {loading && (
         <div className={styles.loading}>
           <div></div>

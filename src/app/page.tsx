@@ -52,6 +52,26 @@ export default function HomePage() {
           ))}
         </div>
       </div>
+      <div className=" mx-auto max-w-screen-xl py-16">
+        <Image
+          src="/screenshot.png"
+          alt="screenshot"
+          className="mx-auto "
+          width={1024}
+          height={768}
+        />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <h2 className="text-brandBlue font-mono uppercase">Layers</h2>
+          {layers.map((layer) => (
+            <div key={layer.title} className="flex flex-col gap-2">
+              <h2 className="text-2xl tracking-tight">{layer.title}</h2>
+              <p className="text-sm text-muted-foreground text-balance">
+                {layer.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -70,6 +90,25 @@ const features = [
   },
   {
     title: "Collaborate",
+    description: "Invite your team to collaborate on your data sources.",
+    href: "/data-sources",
+  },
+];
+
+const layers = [
+  {
+    title: "Members",
+    description:
+      "Upload a spreadsheet with a column of postcodes to get extra geographic data added on that can help you with your organising efforts.",
+    href: "/data-sources",
+  },
+  {
+    title: "Locations",
+    description: "View and manage your data sources.",
+    href: "/data-sources",
+  },
+  {
+    title: "Turf",
     description: "Invite your team to collaborate on your data sources.",
     href: "/data-sources",
   },

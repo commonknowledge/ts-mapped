@@ -1,7 +1,34 @@
 import { ReactElement } from "react";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { AreaSetGroupCode } from "../sources";
+import mapStyles, { MapStyle } from "../styles";
 import { ControlsTabProps } from "./ControlsTab";
+
+export class MapConfig {
+  public areaDataSourceId = "";
+  public areaDataColumn = "";
+  public areaSetGroupCode: AreaSetGroupCode = "WMC24";
+  public excludeColumnsString = "";
+  public markersDataSourceId = "";
+  public mapStyle: MapStyle = mapStyles["light-v11"];
+  public showLabels = true;
+  public showBoundaryOutline = false;
+  public showMembers = true;
+  public showLocations = true;
+  public showTurf = true;
+
+  constructor(params: Partial<MapConfig> = {}) {
+    Object.assign(this, params);
+  }
+
+  getExcludeColumns() {
+    return this.excludeColumnsString
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+}
 
 export default function Controls({
   children,
