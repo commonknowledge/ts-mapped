@@ -1,5 +1,6 @@
 import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
-import { DataSourcesQuery } from "@/__generated__/types";
+import { useContext } from "react";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -10,18 +11,12 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { AREA_SET_GROUP_LABELS, AreaSetGroupCode } from "../../sources";
-import { MapConfig } from "../Controls";
 
-export default function ChoroplethControl({
-  mapConfig,
-  onChangeConfig,
-  dataSources,
-}: {
-  mapConfig: MapConfig;
-  onChangeConfig: (config: Partial<MapConfig>) => void;
-  dataSources: DataSourcesQuery["dataSources"];
-}) {
-  const dataSource = (dataSources || []).find(
+export default function ChoroplethControl() {
+  const { mapConfig, dataSourcesQuery, updateMapConfig } =
+    useContext(MapContext);
+  const dataSources = dataSourcesQuery?.data?.dataSources || [];
+  const dataSource = dataSources.find(
     (ds) => ds.id === mapConfig.areaDataSourceId,
   );
   return (
@@ -33,7 +28,9 @@ export default function ChoroplethControl({
         </Label>
         <Select
           value={mapConfig.areaDataSourceId}
-          onValueChange={(value) => onChangeConfig({ areaDataSourceId: value })}
+          onValueChange={(value) =>
+            updateMapConfig({ areaDataSourceId: value })
+          }
         >
           <SelectTrigger className="w-full shadow-none">
             <SelectValue placeholder="Select an area data source" />
@@ -55,7 +52,7 @@ export default function ChoroplethControl({
               <Select
                 value={mapConfig.areaDataColumn}
                 onValueChange={(value) =>
-                  onChangeConfig({ areaDataColumn: value })
+                  updateMapConfig({ areaDataColumn: value })
                 }
               >
                 <SelectTrigger className="w-full shadow-none">
@@ -80,7 +77,7 @@ export default function ChoroplethControl({
         <input
           type="text"
           onChange={(e) =>
-            onChangeConfig({
+            updateMapConfig({
               excludeColumnsString: e.target.value,
             })
           }
@@ -97,7 +94,7 @@ export default function ChoroplethControl({
         <Select
           value={mapConfig.areaSetGroupCode}
           onValueChange={(value) =>
-            onChangeConfig({ areaSetGroupCode: value as AreaSetGroupCode })
+            updateMapConfig({ areaSetGroupCode: value as AreaSetGroupCode })
           }
         >
           <SelectTrigger className="w-full shadow-none">

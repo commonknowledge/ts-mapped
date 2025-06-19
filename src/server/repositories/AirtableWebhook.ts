@@ -1,5 +1,5 @@
+import { NewAirtableWebhook } from "@/server/models/AirtableWebhook";
 import { db } from "@/server/services/database";
-import { NewAirtableWebhook } from "../models/AirtableWebhook";
 
 export async function findAirtableWebhookById(id: string) {
   return await db

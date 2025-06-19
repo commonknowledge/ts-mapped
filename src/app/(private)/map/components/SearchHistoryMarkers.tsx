@@ -1,18 +1,11 @@
 import { FeatureCollection, Point } from "geojson";
+import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { mapColors } from "@/app/(private)/map/styles";
-import { SearchResult } from "@/types";
-import { MapConfig } from "./Controls";
 
-interface SearchHistoryMarkersProps {
-  searchHistory: SearchResult[];
-  mapConfig: MapConfig;
-}
-
-export default function SearchHistoryMarkers({
-  searchHistory,
-  mapConfig,
-}: SearchHistoryMarkersProps) {
+export default function SearchHistoryMarkers() {
+  const { mapConfig, searchHistory } = useContext(MapContext);
   const features: FeatureCollection<Point> = {
     type: "FeatureCollection",
     features: searchHistory.map((result) => ({

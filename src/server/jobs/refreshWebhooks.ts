@@ -1,7 +1,7 @@
+import { AirtableAdaptor } from "@/server/adaptors/airtable";
 import { findDataSourcesByType } from "@/server/repositories/DataSource";
 import { DataSourceType } from "@/types";
 import { AirtableConfig } from "@/zod";
-import { AirtableAdaptor } from "../adaptors/airtable";
 
 const refreshWebhooks = async (): Promise<boolean> => {
   const airtableDataSources = await findDataSourcesByType(

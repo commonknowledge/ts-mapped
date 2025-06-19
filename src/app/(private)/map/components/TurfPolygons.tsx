@@ -1,24 +1,15 @@
 import { FeatureCollection, Polygon } from "geojson";
+import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { mapColors } from "@/app/(private)/map/styles";
-import { DrawnPolygon } from "@/types";
-import { MapConfig } from "./Controls";
 
-interface TurfPolygonsProps {
-  polygons: DrawnPolygon[];
-  mapConfig: MapConfig;
-  onEdit?: (polygon: DrawnPolygon) => void;
-  editingPolygon: DrawnPolygon | null;
-  setEditingPolygon: (polygon: DrawnPolygon | null) => void;
-}
+export default function TurfPolygons() {
+  const { mapConfig, turfHistory } = useContext(MapContext);
 
-export default function TurfPolygons({
-  polygons,
-  mapConfig,
-}: TurfPolygonsProps) {
   const features: FeatureCollection<Polygon> = {
     type: "FeatureCollection",
-    features: polygons.map((polygon) => ({
+    features: turfHistory.map((polygon) => ({
       type: "Feature" as const,
       id: polygon.id,
       geometry: polygon.geometry as Polygon,

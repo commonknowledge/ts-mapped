@@ -1,5 +1,6 @@
 import { Check, Database, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import {
   Accordion,
   AccordionContent,
@@ -15,24 +16,13 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 
-import { SearchResult } from "@/types";
-interface SearchHistoryProps {
-  history: SearchResult[];
-  onSelect: (coordinates: [number, number]) => void;
-  onEdit: (index: number, newText: string) => void;
-  onDelete: (index: number) => void;
-  showLocations: boolean;
-  activeDataSources: string[];
-}
-
 export default function MarkerList({
-  history,
-  onSelect,
-  onEdit,
-  onDelete,
-  showLocations,
   activeDataSources,
-}: SearchHistoryProps) {
+}: {
+  activeDataSources: string[];
+}) {
+  const { mapConfig, mapRef, searchHistory, setSearchHistory } =
+    useContext(MapContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
@@ -40,8 +30,10 @@ export default function MarkerList({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <ul className={`${showLocations ? "opacity-100" : "opacity-50"}`}>
-          {history.map((result, index) => (
+        <ul
+          className={`${mapConfig.showLocations ? "opacity-100" : "opacity-50"}`}
+        >
+          {searchHistory.map((result, index) => (
             <li
               key={index}
               className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded"
@@ -51,7 +43,11 @@ export default function MarkerList({
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    onEdit(index, editText);
+                    setSearchHistory((prev) =>
+                      prev.map((item, i) =>
+                        i === index ? { ...item, text: editText } : item,
+                      ),
+                    );
                     setEditingIndex(null);
                   }}
                   className="w-full flex items-center p-0"
@@ -69,7 +65,15 @@ export default function MarkerList({
                 <>
                   <span
                     className="flex-grow cursor-pointer text-sm"
-                    onClick={() => onSelect(result.coordinates)}
+                    onClick={() => {
+                      const map = mapRef?.current;
+                      if (map) {
+                        map.flyTo({
+                          center: result.coordinates,
+                          zoom: 12,
+                        });
+                      }
+                    }}
                   >
                     {result.text}
                   </span>
@@ -126,14 +130,20 @@ export default function MarkerList({
           <>
             <ContextMenuItem
               onClick={() => {
-                setEditText(history[contextMenuIndex].text);
+                setEditText(searchHistory[contextMenuIndex].text);
                 setEditingIndex(contextMenuIndex);
               }}
             >
               <Pencil className="h-4 w-4" />
               Edit
             </ContextMenuItem>
-            <ContextMenuItem onClick={() => onDelete(contextMenuIndex)}>
+            <ContextMenuItem
+              onClick={() => {
+                setSearchHistory((prev) =>
+                  prev.filter((_, i) => i !== contextMenuIndex),
+                );
+              }}
+            >
               <Trash2 className="h-4 w-4" />
               Delete
             </ContextMenuItem>

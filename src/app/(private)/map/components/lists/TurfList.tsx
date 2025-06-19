@@ -1,6 +1,7 @@
 import * as turf from "@turf/turf";
 import { Check, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -11,23 +12,9 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { DrawnPolygon } from "@/types";
 
-interface TurfListProps {
-  polygons: DrawnPolygon[];
-  onSelect?: (coordinates: [number, number]) => void;
-  onEdit?: (index: number, newName: string) => void;
-  onDelete?: (index: number) => void;
-  showTurf: boolean;
-  setEditingPolygon: (polygon: DrawnPolygon | null) => void;
-}
-
-export default function TurfList({
-  polygons,
-  onSelect,
-  onEdit,
-  onDelete,
-  showTurf,
-  setEditingPolygon,
-}: TurfListProps) {
+export default function TurfList() {
+  const { mapConfig, mapRef, turfHistory, setEditingPolygon, setTurfHistory } =
+    useContext(MapContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
@@ -36,7 +23,7 @@ export default function TurfList({
   // TODO: display these dates somewhere
   useEffect(() => {
     // Format dates only on client-side
-    const dates = polygons.reduce(
+    const dates = turfHistory.reduce(
       (acc, polygon) => {
         acc[polygon.id] = new Date(polygon.timestamp)
           .toISOString()
@@ -48,21 +35,25 @@ export default function TurfList({
     );
 
     setFormattedDates(dates);
-  }, [polygons]);
+  }, [turfHistory]);
 
   const handleFlyTo = (polygon: DrawnPolygon) => {
-    if (onSelect) {
-      // Calculate the center of the polygon using turf.js
-      const center = turf.center(polygon.geometry);
-      onSelect(center.geometry.coordinates as [number, number]);
+    // Calculate the center of the polygon using turf.js
+    const center = turf.center(polygon.geometry);
+    const map = mapRef?.current;
+    if (map) {
+      map.flyTo({
+        center: center.geometry.coordinates as [number, number],
+        zoom: 12,
+      });
     }
   };
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <ul className={`${showTurf ? "opacity-100" : "opacity-50"}`}>
-          {polygons.map((polygon, index) => (
+        <ul className={`${mapConfig.showTurf ? "opacity-100" : "opacity-50"}`}>
+          {turfHistory.map((polygon, index) => (
             <div
               key={polygon.id}
               className="flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer text-sm"
@@ -73,7 +64,11 @@ export default function TurfList({
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    onEdit?.(index, editText);
+                    setTurfHistory((prev) =>
+                      prev.map((poly, i) =>
+                        i === index ? { ...poly, name: editText } : poly,
+                      ),
+                    );
                     setEditingIndex(null);
                   }}
                   className="w-full flex items-center p-0"
@@ -108,7 +103,7 @@ export default function TurfList({
           <>
             <ContextMenuItem
               onClick={() => {
-                const polygon = polygons[contextMenuIndex];
+                const polygon = turfHistory[contextMenuIndex];
                 setEditText(
                   polygon.name || `Area: ${polygon.area.toFixed(2)}m²`,
                 );
@@ -119,7 +114,13 @@ export default function TurfList({
               <Pencil className="h-4 w-4" />
               Edit
             </ContextMenuItem>
-            <ContextMenuItem onClick={() => onDelete?.(contextMenuIndex)}>
+            <ContextMenuItem
+              onClick={() => {
+                setTurfHistory((prev) =>
+                  prev.filter((_, i) => i !== contextMenuIndex),
+                );
+              }}
+            >
               <Trash2 className="h-4 w-4" />
               Delete
             </ContextMenuItem>

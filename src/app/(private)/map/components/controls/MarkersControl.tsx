@@ -1,7 +1,7 @@
 import { DatabaseIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { MapRef } from "react-map-gl/mapbox";
+import { useContext, useState } from "react";
+import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { mapColors } from "@/app/(private)/map/styles";
 import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
 import { Checkbox } from "@/shadcn/ui/checkbox";
@@ -15,30 +15,11 @@ import {
 } from "@/shadcn/ui/dialog";
 import { SearchResult } from "@/types";
 import MarkerList from "../lists/MarkerList";
-import SkeletonGroup from "../SkeletonGroup";
 import LayerHeader from "./LayerHeader";
 
-interface LocationsControlProps {
-  isLoading?: boolean;
-  mapRef: React.RefObject<MapRef | null>;
-  onEdit: (index: number, newText: string) => void;
-  onDelete: (index: number) => void;
-  showLocations: boolean;
-  setShowLocations: (show: boolean) => void;
-  searchHistory: SearchResult[];
-  setSearchHistory: React.Dispatch<React.SetStateAction<SearchResult[]>>;
-}
-
-export default function MarkersControl({
-  mapRef,
-  onEdit,
-  onDelete,
-  isLoading = false,
-  showLocations,
-  setShowLocations,
-  searchHistory,
-  setSearchHistory,
-}: LocationsControlProps) {
+export default function MarkersControl() {
+  const { mapConfig, updateMapConfig, mapRef, setSearchHistory } =
+    useContext(MapContext);
   const [activeDataSources, setActiveDataSources] = useState<string[]>([]);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
@@ -54,8 +35,8 @@ export default function MarkersControl({
       <LayerHeader
         label="Markers"
         color={mapColors.searched.color}
-        showLayer={showLocations}
-        setLayer={setShowLocations}
+        showLayer={mapConfig.showLocations}
+        setLayer={() => updateMapConfig({ showLocations: true })}
       >
         <IconDropdownWithTooltip
           align="start"
@@ -89,7 +70,7 @@ export default function MarkersControl({
               label: "Drop a pin on the map",
               icon: <MapPinIcon className="w-4 h-4" />,
               onClick: () => {
-                const map = mapRef.current;
+                const map = mapRef?.current;
                 if (map) {
                   map.getCanvas().style.cursor = "crosshair";
 
@@ -143,26 +124,7 @@ export default function MarkersControl({
           <PlusIcon className="w-4 h-4" />
         </IconDropdownWithTooltip>
       </LayerHeader>
-      {isLoading ? (
-        <SkeletonGroup />
-      ) : (
-        <MarkerList
-          history={searchHistory}
-          onSelect={(coordinates) => {
-            const map = mapRef.current;
-            if (map) {
-              map.flyTo({
-                center: coordinates,
-                zoom: 12,
-              });
-            }
-          }}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          showLocations={showLocations}
-          activeDataSources={activeDataSources}
-        />
-      )}
+      <MarkerList activeDataSources={activeDataSources} />
     </div>
   );
 }
