@@ -6,6 +6,7 @@ import {
   MutationResolvers as MutationResolversType,
   MutationResponse,
   MutationUpdateDataSourceConfigArgs,
+  MutationUpsertMapViewArgs,
 } from "@/__generated__/types";
 import { serializeDataSource } from "@/app/api/graphql/serializers";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -14,6 +15,7 @@ import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
+import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import {
@@ -159,6 +161,29 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200 };
     } catch (error) {
       logger.error(`Could not update data source`, { error });
+    }
+    return { code: 500 };
+  },
+  upsertMapView: async (_: unknown, args: MutationUpsertMapViewArgs) => {
+    try {
+      const { id, config, organisationId } = args;
+      let updatedMapView = null;
+      if (id) {
+        updatedMapView = await updateMapView(id, {
+          config: JSON.stringify(config),
+          organisationId,
+        });
+      } else {
+        updatedMapView = await insertMapView({
+          config: JSON.stringify(config),
+          organisationId,
+        });
+      }
+      return { code: 200, result: updatedMapView.id };
+    } catch (error) {
+      logger.error(`Could not upsert map view: ${JSON.stringify(args)}`, {
+        error,
+      });
     }
     return { code: 500 };
   },
