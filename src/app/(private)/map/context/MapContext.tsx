@@ -2,28 +2,27 @@ import { QueryResult } from "@apollo/client";
 import { RefObject, createContext } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import {
+  AreaSetGroupCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
   BoundingBoxInput,
   DataSourcesQuery,
+  MapConfigInput,
+  MapStyleName,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
 import { DrawnPolygon, MarkerData, SearchResult } from "@/types";
-import {
-  AreaSetGroupCode,
-  ChoroplethLayerConfig,
-  getChoroplethLayerConfig,
-} from "../sources";
-import mapStyles, { MapStyle } from "../styles";
+import { ChoroplethLayerConfig, getChoroplethLayerConfig } from "../sources";
+import mapStyles from "../styles";
 import { MarkersQueryResult } from "../types";
 
-export class MapConfig {
+export class MapConfig implements MapConfigInput {
   public areaDataSourceId = "";
   public areaDataColumn = "";
-  public areaSetGroupCode: AreaSetGroupCode = "WMC24";
+  public areaSetGroupCode: AreaSetGroupCode = AreaSetGroupCode.WMC24;
   public excludeColumnsString = "";
   public markersDataSourceId = "";
-  public mapStyle: MapStyle = mapStyles["light-v11"];
+  public mapStyleName: MapStyleName = MapStyleName.Light;
   public showLabels = true;
   public showBoundaryOutline = false;
   public showMembers = true;
@@ -39,6 +38,10 @@ export class MapConfig {
       .split(",")
       .map((v) => v.trim())
       .filter(Boolean);
+  }
+
+  getMapStyle() {
+    return mapStyles[this.mapStyleName] || Object.values(mapStyles)[0];
   }
 }
 
@@ -68,6 +71,9 @@ export const MapContext = createContext<{
     turfHistory: DrawnPolygon[] | ((prev: DrawnPolygon[]) => DrawnPolygon[]),
   ) => void;
 
+  viewId: string | null;
+  setViewId: (id: string) => void;
+
   zoom: number;
   setZoom: (zoom: number) => void;
 
@@ -93,6 +99,8 @@ export const MapContext = createContext<{
   setSelectedMarker: () => null,
   turfHistory: [],
   setTurfHistory: () => null,
+  viewId: null,
+  setViewId: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
 
@@ -100,6 +108,9 @@ export const MapContext = createContext<{
   dataSourcesQuery: null,
   markersQuery: null,
 
-  choroplethLayerConfig: getChoroplethLayerConfig("WMC24", DEFAULT_ZOOM),
+  choroplethLayerConfig: getChoroplethLayerConfig(
+    AreaSetGroupCode.WMC24,
+    DEFAULT_ZOOM,
+  ),
   updateMapConfig: () => null,
 });

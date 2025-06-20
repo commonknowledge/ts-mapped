@@ -9,6 +9,7 @@ import {
   findDataSourceById,
   findDataSourcesByUserId,
 } from "@/server/repositories/DataSource";
+import { findMapViewsByOrganisationId } from "@/server/repositories/MapView";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import { getAreaStats } from "@/server/stats";
 
@@ -60,6 +61,16 @@ const QueryResolvers: QueryResolversType = {
     return dataSources
       .filter((ds) => !organisationId || ds.organisationId === organisationId)
       .map(serializeDataSource);
+  },
+
+  mapViews: async (
+    _: unknown,
+    { organisationId }: { organisationId?: string | null },
+  ) => {
+    if (!organisationId) {
+      return [];
+    }
+    return findMapViewsByOrganisationId(organisationId);
   },
 
   organisations: async (_: unknown, args: unknown, context: GraphQLContext) => {

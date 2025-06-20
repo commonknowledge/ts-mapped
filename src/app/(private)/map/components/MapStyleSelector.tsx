@@ -1,5 +1,6 @@
 import { Paintbrush, Scan, Type } from "lucide-react";
 import { useContext } from "react";
+import { MapStyleName } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -25,10 +26,10 @@ export default function MapStyleSelector() {
         <TooltipProvider>
           <Tooltip>
             <Select
-              value={mapConfig.mapStyle.slug}
+              value={mapConfig.getMapStyle().name}
               onValueChange={(value) =>
                 updateMapConfig({
-                  mapStyle: mapStyles[value as keyof typeof mapStyles],
+                  mapStyleName: value as MapStyleName,
                 })
               }
             >
@@ -42,7 +43,7 @@ export default function MapStyleSelector() {
                 {Object.keys(mapStyles).map((code) => (
                   <SelectItem
                     key={code}
-                    value={mapStyles[code as keyof typeof mapStyles].slug}
+                    value={mapStyles[code as keyof typeof mapStyles].name}
                   >
                     {mapStyles[code as keyof typeof mapStyles].name}
                   </SelectItem>

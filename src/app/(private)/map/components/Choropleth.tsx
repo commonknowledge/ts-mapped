@@ -66,7 +66,7 @@ export default function Choropleth() {
             "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           }}
           paint={{
-            "text-color": mapConfig.mapStyle.textColor,
+            "text-color": mapConfig.getMapStyle().textColor,
             "text-opacity": [
               "interpolate",
               ["linear"],
@@ -76,7 +76,7 @@ export default function Choropleth() {
               10,
               0.8,
             ],
-            "text-halo-color": mapConfig.mapStyle.textHaloColor,
+            "text-halo-color": mapConfig.getMapStyle().textHaloColor,
             "text-halo-width": 1.5,
           }}
         />

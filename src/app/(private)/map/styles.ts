@@ -1,30 +1,32 @@
-export interface MapStyle {
+import { MapStyleName } from "@/__generated__/types";
+
+export interface MapStyleConfig {
   name: string;
   slug: string;
   textColor: string;
   textHaloColor: string;
 }
 
-const mapStyles: Record<string, MapStyle> = {
-  "light-v11": {
+const mapStyles: Record<MapStyleName, MapStyleConfig> = {
+  Light: {
     name: "Light",
     slug: "light-v11",
     textColor: "#6D6D6D",
     textHaloColor: "#ffffff",
   },
-  "dark-v11": {
+  Dark: {
     name: "Dark",
     slug: "dark-v11",
     textColor: "#ffffff",
     textHaloColor: "#000000",
   },
-  "streets-v12": {
+  Streets: {
     name: "Streets",
     slug: "streets-v12",
     textColor: "#6D6D6D",
     textHaloColor: "#ffffff",
   },
-  "satellite-v9": {
+  Satellite: {
     name: "Satellite",
     slug: "satellite-v9",
     textColor: "#ffffff",

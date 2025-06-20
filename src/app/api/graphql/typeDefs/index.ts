@@ -10,6 +10,11 @@ const typeDefs = `
     WMC24
   }
 
+  enum AreaSetGroupCode {
+    OA21
+    WMC24
+  }
+
   enum ColumnType {
     Empty
     Boolean
@@ -37,6 +42,13 @@ const typeDefs = `
     Running
     Complete
     Pending
+  }
+
+  enum MapStyleName {
+    Light
+    Dark
+    Streets
+    Satellite
   }
 
   enum Operation {
@@ -72,6 +84,20 @@ const typeDefs = `
     areaProperty: String
     dataSourceId: String
     dataSourceColumn: String
+  }
+
+  input MapConfigInput {
+    areaDataSourceId: String
+    areaDataColumn: String
+    areaSetGroupCode: AreaSetGroupCode
+    excludeColumnsString: String
+    markersDataSourceId: String
+    mapStyleName: MapStyleName
+    showBoundaryOutline: Boolean
+    showLabels: Boolean
+    showLocations: Boolean
+    showMembers: Boolean
+    showTurf: Boolean
   }
 
   type AreaStat {
@@ -146,6 +172,26 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
+  type MapConfig {
+    areaDataSourceId: String!
+    areaDataColumn: String!
+    areaSetGroupCode: AreaSetGroupCode!
+    excludeColumnsString: String!
+    markersDataSourceId: String!
+    mapStyleName: MapStyleName!
+    showBoundaryOutline: Boolean!
+    showLabels: Boolean!
+    showLocations: Boolean!
+    showMembers: Boolean!
+    showTurf: Boolean!
+  }
+
+  type MapView {
+    id: String!
+    config: MapConfig!
+    organisationId: String!
+  }
+
   type Organisation {
     id: String!
     name: String!
@@ -164,6 +210,7 @@ const typeDefs = `
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
     dataSources(organisationId: String): [DataSource!] @auth
 
+    mapViews(organisationId: String!): [MapView!] @auth(read: { organisationIdArg: "organisationId" })
     organisations: [Organisation!] @auth
   }
 
@@ -174,6 +221,11 @@ const typeDefs = `
 
   type MutationResponse {
     code: Int!
+  }
+
+  type UpsertMapViewResponse {
+    code: Int!
+    result: String
   }
 
   type Mutation {
@@ -192,6 +244,11 @@ const typeDefs = `
       looseGeocodingConfig: LooseGeocodingConfigInput
       looseEnrichments: [LooseEnrichmentInput!]
     ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
+    upsertMapView(
+      id: String
+      config: MapConfigInput!
+      organisationId: String!
+    ): UpsertMapViewResponse @auth(write: { organisationIdArg: "organisationId" })
   }
 
   type DataSourceEvent {

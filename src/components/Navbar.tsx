@@ -80,12 +80,14 @@ export default function Navbar() {
       ) : (
         <form onSubmit={onSubmitLogin}>
           <input
+            name="email"
             type="email"
             placeholder="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
+            name="password"
             type="password"
             placeholder="password"
             value={password}

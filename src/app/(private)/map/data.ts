@@ -5,6 +5,7 @@ import {
   AreaStatsQuery,
   AreaStatsQueryVariables,
   DataSourcesQuery,
+  MapViewsQuery,
   Operation,
 } from "@/__generated__/types";
 import { PointFeature } from "@/types";
@@ -23,6 +24,31 @@ export const useDataSourcesQuery = () =>
       }
     }
   `);
+
+export const useMapViewsQuery = (organisationId: string | null) =>
+  useQuery<MapViewsQuery>(
+    gql`
+      query MapViews($organisationId: String!) {
+        mapViews(organisationId: $organisationId) {
+          id
+          config {
+            areaDataSourceId
+            areaDataColumn
+            areaSetGroupCode
+            excludeColumnsString
+            markersDataSourceId
+            mapStyleName
+            showBoundaryOutline
+            showLabels
+            showLocations
+            showMembers
+            showTurf
+          }
+        }
+      }
+    `,
+    { variables: { organisationId }, skip: !organisationId },
+  );
 
 // Use API request instead of GraphQL to avoid server memory load
 // TODO: replace with gql @stream directive when Apollo client supports it
