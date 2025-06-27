@@ -21,13 +21,13 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-   test:
+  test:
     runs-on: ubuntu-latest
     environment: Testing
     timeout-minutes: 15
     services:
       postgres:
-        image: postgres:16
+        image: postgis/postgis:16-3.5
         ports:
           - 5432:5432
         env:

@@ -7,13 +7,15 @@ if [ -f "$PARENT_DIR/test_credentials.json" ]; then
   echo "Found existing test_credentials.json, skipping download. Delete this file and re-run the tests if you need to update it."
 else
   # export BWS_ variables
-  while IFS= read -r line; do
-    key="${line%%=*}"
-    if [[ $key == BWS_* ]]; then
-      value="${line#*=}"
-      export "$key=$value"
-    fi
-  done < $PARENT_DIR/.env
+  if [ -f "$PARENT_DIR/.env" ]; then
+    while IFS= read -r line; do
+      key="${line%%=*}"
+      if [[ $key == BWS_* ]]; then
+        value="${line#*=}"
+        export "$key=$value"
+      fi
+    done < $PARENT_DIR/.env
+  fi
 
   # `2>/dev/null` strips warnings from the JSON output.
   # There should be a better way, but after half an hour of trying, I couldn't find it.
@@ -26,6 +28,6 @@ fi
 docker compose exec postgres psql -U postgres -c "DROP DATABASE IF EXISTS postgres_test"
 docker compose exec postgres psql -U postgres -c "CREATE DATABASE postgres_test"
 
-node --env-file=.env.test ./node_modules/.bin/kysely migrate:latest
+node --env-file=.env.testing ./node_modules/.bin/kysely migrate:latest
 
 docker compose exec -T postgres psql -U postgres -d postgres_test < $PARENT_DIR/tests/resources/sample_postcodes.psql

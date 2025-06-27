@@ -10,7 +10,7 @@
     "kysely": "kysely",
     "lint": "eslint --fix && tsc --noEmit && prettier --log-level warn --write . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
     "start": "next start",
-    "test": "./bin/prepare-test-env.sh && node --env-file=.env.test ./node_modules/.bin/vitest"
+    "test": "./bin/prepare-test-env.sh && node --env-file=.env.testing ./node_modules/.bin/vitest"
   },
   "dependencies": {
     "@apollo/client": "^3.13.5",
