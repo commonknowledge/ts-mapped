@@ -11,8 +11,10 @@ import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { quit as quitRedis } from "@/server/services/pubsub";
+import { stopPublicTunnel } from "@/server/services/publicUrl";
+import { quit as quitPubSub } from "@/server/services/pubsub";
 import { runWorker } from "@/server/services/queue";
+import { getClient as getRedisClient } from "@/server/services/redis";
 
 const program = new Command();
 
@@ -100,7 +102,9 @@ program
 program.hook("postAction", async () => {
   logger.info("Done.");
   await db.destroy();
-  await quitRedis();
+  await quitPubSub();
+  await getRedisClient().quit();
+  await stopPublicTunnel();
 });
 
 program.parse(process.argv);

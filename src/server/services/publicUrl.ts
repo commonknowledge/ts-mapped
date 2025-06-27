@@ -24,6 +24,10 @@ export const startPublicTunnel = async (
   await redis.set("mapped:publicUrl", publicUrl);
 };
 
+export const stopPublicTunnel = async () => {
+  await ngrok.disconnect();
+};
+
 // Returns process.env.BASE_URL if it is set, otherwise tries to
 // get the ngrok public URL from Redis. If no URL is found, an
 // error will be thrown.
