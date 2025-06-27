@@ -4,11 +4,13 @@ import Cursor from "pg-cursor";
 import { Database } from "@/server/models";
 import { PointPlugin } from "./plugins";
 
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+})
+
 const dialect = new PostgresDialect({
   cursor: Cursor,
-  pool: new Pool({
-    connectionString: process.env.DATABASE_URL,
-  }),
+  pool
 });
 
 export const db = new Kysely<Database>({
