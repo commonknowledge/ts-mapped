@@ -8,10 +8,13 @@ let publicUrl = process.env.BASE_URL || "";
 // Called from instrumentation.ts when running in dev mode
 // Starts an ngrok tunnel and stores the URL in Redis
 // (global variables do not persist between NextJS startup and execution)
-export const startPublicTunnel = async () => {
+export const startPublicTunnel = async (
+  authToken: string | undefined = undefined,
+) => {
   const listener = await ngrok.forward({
     addr: 3000,
-    authtoken_from_env: true,
+    authtoken: authToken,
+    authtoken_from_env: !Boolean(authToken),
   });
 
   publicUrl = listener.url() || "";

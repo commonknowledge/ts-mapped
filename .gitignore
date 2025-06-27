@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.test
+
+# test credentials
+test_credentials.json
 
 resources/areaSets/*
 !resources/areaSets/.gitkeep

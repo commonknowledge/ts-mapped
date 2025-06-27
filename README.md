@@ -7,6 +7,10 @@
 - Docker
 - NodeJS v22+
 
+**For Tests**
+
+- `jq` (Installed by default on MacOS)
+
 ### Instructions
 
 1. Copy `.env.example` to `.env` and fill in any missing values.
