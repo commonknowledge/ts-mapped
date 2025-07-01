@@ -1,20 +1,20 @@
 import { PlusIcon } from "lucide-react";
 import { useContext } from "react";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { mapColors } from "@/app/(private)/map/styles";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import TurfHistory from "../lists/TurfList";
 import LayerHeader from "./LayerHeader";
 
 export default function TurfControl() {
-  const { mapConfig, mapRef, updateMapConfig } = useContext(MapContext);
+  const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
   return (
     <div className="flex flex-col gap-1">
       <LayerHeader
         label="Turf"
         color={mapColors.turf.color}
-        showLayer={mapConfig.showTurf}
-        setLayer={() => updateMapConfig({ showTurf: true })}
+        showLayer={viewConfig.showTurf}
+        setLayer={() => updateViewConfig({ showTurf: true })}
       >
         <IconButtonWithTooltip
           tooltip="Add Turf"

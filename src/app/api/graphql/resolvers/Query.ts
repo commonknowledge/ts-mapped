@@ -4,12 +4,16 @@ import {
   QueryResolvers as QueryResolversType,
 } from "@/__generated__/types";
 import { GraphQLContext } from "@/app/api/graphql/context";
-import { serializeDataSource } from "@/app/api/graphql/serializers";
+import {
+  serializeDataSource,
+  serializeMap,
+} from "@/app/api/graphql/serializers";
 import {
   findDataSourceById,
   findDataSourcesByUserId,
 } from "@/server/repositories/DataSource";
-import { findMapViewsByOrganisationId } from "@/server/repositories/MapView";
+import { findMapsByOrganisationId } from "@/server/repositories/Map";
+import { findMapViewsByMapId } from "@/server/repositories/MapView";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import { getAreaStats } from "@/server/stats";
 
@@ -63,14 +67,22 @@ const QueryResolvers: QueryResolversType = {
       .map(serializeDataSource);
   },
 
-  mapViews: async (
+  maps: async (
     _: unknown,
     { organisationId }: { organisationId?: string | null },
   ) => {
     if (!organisationId) {
       return [];
     }
-    return findMapViewsByOrganisationId(organisationId);
+    const maps = await findMapsByOrganisationId(organisationId);
+    return maps.map(serializeMap);
+  },
+
+  mapViews: async (_: unknown, { mapId }: { mapId?: string | null }) => {
+    if (!mapId) {
+      return [];
+    }
+    return findMapViewsByMapId(mapId);
   },
 
   organisations: async (_: unknown, args: unknown, context: GraphQLContext) => {

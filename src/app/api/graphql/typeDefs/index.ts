@@ -56,6 +56,13 @@ const typeDefs = `
     SUM
   }
 
+  input ArgNames {
+    dataSourceIdArg: String
+    mapIdArg: String
+    organisationIdArg: String
+  }
+
+
   input BoundingBoxInput {
     north: Float!
     east: Float!
@@ -65,11 +72,6 @@ const typeDefs = `
 
   input ColumnRolesInput {
     nameColumn: String!
-  }
-
-  input ArgNames {
-    dataSourceIdArg: String
-    organisationIdArg: String
   }
 
   input LooseGeocodingConfigInput {
@@ -86,7 +88,7 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
-  input MapConfigInput {
+  input MapViewConfigInput {
     areaDataSourceId: String
     areaDataColumn: String
     areaSetGroupCode: AreaSetGroupCode
@@ -172,7 +174,13 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
-  type MapConfig {
+  type Map {
+    id: String!
+    name: String!
+    createdAt: String!
+  }
+
+  type MapViewConfig {
     areaDataSourceId: String!
     areaDataColumn: String!
     areaSetGroupCode: AreaSetGroupCode!
@@ -188,8 +196,8 @@ const typeDefs = `
 
   type MapView {
     id: String!
-    config: MapConfig!
-    organisationId: String!
+    config: MapViewConfig!
+    mapId: String!
   }
 
   type Organisation {
@@ -210,7 +218,8 @@ const typeDefs = `
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
     dataSources(organisationId: String): [DataSource!] @auth
 
-    mapViews(organisationId: String!): [MapView!] @auth(read: { organisationIdArg: "organisationId" })
+    maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })
+    mapViews(mapId: String!): [MapView!] @auth(read: { mapIdArg: "mapId" })
     organisations: [Organisation!] @auth
   }
 
@@ -246,9 +255,9 @@ const typeDefs = `
     ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
     upsertMapView(
       id: String
-      config: MapConfigInput!
-      organisationId: String!
-    ): UpsertMapViewResponse @auth(write: { organisationIdArg: "organisationId" })
+      config: MapViewConfigInput!
+      mapId: String!
+    ): UpsertMapViewResponse @auth(write: { mapIdArg: "mapId" })
   }
 
   type DataSourceEvent {

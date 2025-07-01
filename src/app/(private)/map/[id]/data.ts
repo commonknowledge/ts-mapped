@@ -6,6 +6,7 @@ import {
   AreaStatsQueryVariables,
   DataSourcesQuery,
   MapViewsQuery,
+  MapViewsQueryVariables,
   Operation,
 } from "@/__generated__/types";
 import { PointFeature } from "@/types";
@@ -25,11 +26,11 @@ export const useDataSourcesQuery = () =>
     }
   `);
 
-export const useMapViewsQuery = (organisationId: string | null) =>
-  useQuery<MapViewsQuery>(
+export const useMapViewsQuery = (mapId: string | null) =>
+  useQuery<MapViewsQuery, MapViewsQueryVariables>(
     gql`
-      query MapViews($organisationId: String!) {
-        mapViews(organisationId: $organisationId) {
+      query MapViews($mapId: String!) {
+        mapViews(mapId: $mapId) {
           id
           config {
             areaDataSourceId
@@ -47,7 +48,7 @@ export const useMapViewsQuery = (organisationId: string | null) =>
         }
       }
     `,
-    { variables: { organisationId }, skip: !organisationId },
+    { variables: { mapId: mapId || "" }, skip: !mapId },
   );
 
 // Use API request instead of GraphQL to avoid server memory load

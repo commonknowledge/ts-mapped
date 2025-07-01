@@ -1,7 +1,7 @@
 import * as turf from "@turf/turf";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -13,7 +13,7 @@ import { Input } from "@/shadcn/ui/input";
 import { DrawnPolygon } from "@/types";
 
 export default function TurfList() {
-  const { mapConfig, mapRef, turfHistory, setEditingPolygon, setTurfHistory } =
+  const { viewConfig, mapRef, turfHistory, setEditingPolygon, setTurfHistory } =
     useContext(MapContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -52,7 +52,7 @@ export default function TurfList() {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <ul className={`${mapConfig.showTurf ? "opacity-100" : "opacity-50"}`}>
+        <ul className={`${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}>
           {turfHistory.map((polygon, index) => (
             <div
               key={polygon.id}

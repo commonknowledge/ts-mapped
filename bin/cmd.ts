@@ -6,6 +6,7 @@ import importPostcodes from "@/server/commands/importPostcodes";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
+import { ensureOrganisationMap } from "@/server/repositories/Map";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { upsertUser } from "@/server/repositories/User";
@@ -35,6 +36,7 @@ program
         password: options.password,
       });
       await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
+      await ensureOrganisationMap(org.id);
       logger.info(`Created user ${options.email}, ID ${user.id}`);
     } catch (error) {
       logger.error("Could not create user", { error });

@@ -9,7 +9,7 @@ import { DataSourceType } from "@/types";
 import DataSourceDashboard from "./DataSourceDashboard";
 import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";
 
-export default async function GeocodeDataSourcePage({
+export default async function DataSourcePage({
   params,
 }: {
   params: Promise<{ id: string }>;

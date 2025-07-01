@@ -1,8 +1,8 @@
 import { DatabaseIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { mapColors } from "@/app/(private)/map/styles";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import {
@@ -18,7 +18,7 @@ import MarkerList from "../lists/MarkerList";
 import LayerHeader from "./LayerHeader";
 
 export default function MarkersControl() {
-  const { mapConfig, updateMapConfig, mapRef, setSearchHistory } =
+  const { viewConfig, updateViewConfig, mapRef, setSearchHistory } =
     useContext(MapContext);
   const [activeDataSources, setActiveDataSources] = useState<string[]>([]);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
@@ -35,8 +35,8 @@ export default function MarkersControl() {
       <LayerHeader
         label="Markers"
         color={mapColors.searched.color}
-        showLayer={mapConfig.showLocations}
-        setLayer={() => updateMapConfig({ showLocations: true })}
+        showLayer={viewConfig.showLocations}
+        setLayer={() => updateViewConfig({ showLocations: true })}
       >
         <IconDropdownWithTooltip
           align="start"

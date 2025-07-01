@@ -1,6 +1,6 @@
 import { Check, Database, Pencil, Trash2 } from "lucide-react";
 import { useContext, useState } from "react";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import {
   Accordion,
   AccordionContent,
@@ -21,7 +21,7 @@ export default function MarkerList({
 }: {
   activeDataSources: string[];
 }) {
-  const { mapConfig, mapRef, searchHistory, setSearchHistory } =
+  const { viewConfig, mapRef, searchHistory, setSearchHistory } =
     useContext(MapContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -31,7 +31,7 @@ export default function MarkerList({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <ul
-          className={`${mapConfig.showLocations ? "opacity-100" : "opacity-50"}`}
+          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"}`}
         >
           {searchHistory.map((result, index) => (
             <li

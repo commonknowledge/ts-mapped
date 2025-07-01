@@ -4,6 +4,7 @@ import { AreaSetTable } from "./AreaSet";
 import { DataRecordTable } from "./DataRecord";
 import { DataSourceTable } from "./DataSource";
 import { JobTable } from "./Job";
+import { MapTable } from "./Map";
 import { MapViewTable } from "./MapView";
 import { OrganisationTable } from "./Organisation";
 import { OrganisationUserTable } from "./OrganisationUser";
@@ -15,6 +16,7 @@ export interface Database {
   areaSet: AreaSetTable;
   dataSource: DataSourceTable;
   dataRecord: DataRecordTable;
+  map: MapTable;
   mapView: MapViewTable;
   organisation: OrganisationTable;
   organisationUser: OrganisationUserTable;

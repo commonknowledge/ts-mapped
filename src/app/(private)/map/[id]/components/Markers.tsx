@@ -1,10 +1,10 @@
 import { useContext } from "react";
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { mapColors } from "@/app/(private)/map/styles";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
 
 export default function Markers() {
-  const { markersQuery, mapConfig, selectedMarker, setSelectedMarker } =
+  const { markersQuery, viewConfig, selectedMarker, setSelectedMarker } =
     useContext(MapContext);
   // Always return a layer - this ensures it is always placed on top
   const safeMarkers = markersQuery?.data?.dataSource?.markers || {
@@ -14,7 +14,7 @@ export default function Markers() {
 
   return (
     <>
-      {mapConfig.showMembers && (
+      {viewConfig.showMembers && (
         <Source
           id="markers"
           key="markers"

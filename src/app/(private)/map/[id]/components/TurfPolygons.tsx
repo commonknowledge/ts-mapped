@@ -1,11 +1,11 @@
 import { FeatureCollection, Polygon } from "geojson";
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { mapColors } from "@/app/(private)/map/styles";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
 
 export default function TurfPolygons() {
-  const { mapConfig, turfHistory } = useContext(MapContext);
+  const { viewConfig, turfHistory } = useContext(MapContext);
 
   const features: FeatureCollection<Polygon> = {
     type: "FeatureCollection",
@@ -22,7 +22,7 @@ export default function TurfPolygons() {
   };
 
   return (
-    mapConfig.showTurf && (
+    viewConfig.showTurf && (
       <Source id="turf-polygons" type="geojson" data={features}>
         <Layer
           id="turf-polygons-fill"

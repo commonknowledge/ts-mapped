@@ -6,12 +6,12 @@ import {
   Selectable,
   Updateable,
 } from "kysely";
-import { MapConfig } from "@/__generated__/types";
+import { MapViewConfig } from "@/__generated__/types";
 
 export interface MapViewTable {
   id: Generated<string>;
-  config: JSONColumnType<MapConfig>;
-  organisationId: string;
+  config: JSONColumnType<MapViewConfig>;
+  mapId: string;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }
 

@@ -1,12 +1,14 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
 import { BoundingBoxInput } from "@/__generated__/types";
-import { MapConfig, MapContext } from "@/app/(private)/map/context/MapContext";
+import {
+  MapContext,
+  ViewConfig,
+} from "@/app/(private)/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { DrawnPolygon, MarkerData, SearchResult } from "@/types";
 import Controls from "./components/controls/Controls";
 import Legend from "./components/Legend";
@@ -21,8 +23,7 @@ import {
 import styles from "./page.module.css";
 import { getChoroplethLayerConfig } from "./sources";
 
-export default function MapPage() {
-  const { organisationId } = useContext(OrganisationsContext);
+export default function MapPage({ mapId }: { mapId: string }) {
   /* Map Ref */
   const mapRef = useRef<MapRef>(null);
 
@@ -35,7 +36,7 @@ export default function MapPage() {
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
   >();
-  const [mapConfig, setMapConfig] = useState(new MapConfig());
+  const [viewConfig, setViewConfig] = useState(new ViewConfig());
   const [searchHistory, setSearchHistory] =
     useState<SearchResult[]>(SAMPLE_MARKERS);
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
@@ -45,27 +46,27 @@ export default function MapPage() {
 
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
-    return getChoroplethLayerConfig(mapConfig.areaSetGroupCode, zoom);
-  }, [mapConfig.areaSetGroupCode, zoom]);
+    return getChoroplethLayerConfig(viewConfig.areaSetGroupCode, zoom);
+  }, [viewConfig.areaSetGroupCode, zoom]);
 
-  const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
-    setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
+  const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
+    setViewConfig(new ViewConfig({ ...viewConfig, ...nextViewConfig }));
   };
 
   /* GraphQL Data */
   const dataSourcesQuery = useDataSourcesQuery();
   const { data: mapViewsData, loading: mapViewsLoading } =
-    useMapViewsQuery(organisationId);
+    useMapViewsQuery(mapId);
 
   const markersQuery = useMarkersQuery({
-    dataSourceId: mapConfig.markersDataSourceId,
+    dataSourceId: viewConfig.markersDataSourceId,
   });
 
   const areaStatsQuery = useAreaStatsQuery({
     areaSetCode: choroplethLayerConfig.areaSetCode,
-    dataSourceId: mapConfig.areaDataSourceId,
-    column: mapConfig.areaDataColumn,
-    excludeColumns: mapConfig.getExcludeColumns(),
+    dataSourceId: viewConfig.areaDataSourceId,
+    column: viewConfig.areaDataColumn,
+    excludeColumns: viewConfig.getExcludeColumns(),
     useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
   });
 
@@ -78,7 +79,7 @@ export default function MapPage() {
       const nextConfig = { ...mapViewsData?.mapViews[0].config };
       delete nextConfig.__typename;
       setViewId(nextViewId);
-      setMapConfig(new MapConfig(nextConfig));
+      setViewConfig(new ViewConfig(nextConfig));
     }
   }, [mapViewsData]);
 
@@ -113,7 +114,7 @@ export default function MapPage() {
       return;
     }
     areaStatsFetchMore({ variables: { boundingBox } });
-  }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, mapConfig]);
+  }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, viewConfig]);
 
   // Don't display any components while waiting for saved map views
   if (mapViewsLoading) {
@@ -132,19 +133,21 @@ export default function MapPage() {
   return (
     <MapContext
       value={{
+        mapId,
+
         mapRef,
 
         boundingBox,
         setBoundingBox,
         editingPolygon,
         setEditingPolygon,
-        mapConfig,
         searchHistory,
         setSearchHistory,
         selectedMarker,
         setSelectedMarker,
         turfHistory,
         setTurfHistory,
+        viewConfig,
         viewId,
         setViewId,
         zoom,
@@ -155,7 +158,7 @@ export default function MapPage() {
         markersQuery,
 
         choroplethLayerConfig,
-        updateMapConfig,
+        updateViewConfig,
       }}
     >
       <div className={styles.map}>

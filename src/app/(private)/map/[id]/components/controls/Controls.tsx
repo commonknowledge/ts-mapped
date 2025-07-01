@@ -4,8 +4,7 @@ import {
   UpsertMapViewMutation,
   UpsertMapViewMutationVariables,
 } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
@@ -15,38 +14,37 @@ import MembersControl from "./MembersControl";
 import TurfControl from "./TurfControl";
 
 export default function Controls() {
-  const { mapConfig, viewId, setViewId } = useContext(MapContext);
-  const { organisationId } = useContext(OrganisationsContext);
+  const { mapId, viewConfig, viewId, setViewId } = useContext(MapContext);
   const [loading, setLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  const [upsertMapConfig] = useMutation<
+  const [upsertMapView] = useMutation<
     UpsertMapViewMutation,
     UpsertMapViewMutationVariables
   >(gql`
     mutation UpsertMapView(
       $id: String
-      $config: MapConfigInput!
-      $organisationId: String!
+      $config: MapViewConfigInput!
+      $mapId: String!
     ) {
-      upsertMapView(id: $id, config: $config, organisationId: $organisationId) {
+      upsertMapView(id: $id, config: $config, mapId: $mapId) {
         code
         result
       }
     }
   `);
 
-  const saveMapConfig = async () => {
+  const saveMapView = async () => {
     // Should never happen, button is also hidden in this case
-    if (!organisationId) {
+    if (!mapId) {
       return;
     }
 
     setLoading(true);
     setSaveError("");
     try {
-      const result = await upsertMapConfig({
-        variables: { id: viewId, config: mapConfig, organisationId },
+      const result = await upsertMapView({
+        variables: { id: viewId, config: viewConfig, mapId },
       });
       if (!result.data?.upsertMapView?.result) {
         throw new Error(String(result.errors || "Unknown error"));
@@ -86,12 +84,12 @@ export default function Controls() {
           <ChoroplethControl />
         </TabsContent>
       </Tabs>
-      {organisationId && (
+      {mapId && (
         <div className="flex flex-col gap-4">
           <Button
             className="cursor-pointer"
             type="button"
-            onClick={() => saveMapConfig()}
+            onClick={() => saveMapView()}
             disabled={loading}
           >
             Save

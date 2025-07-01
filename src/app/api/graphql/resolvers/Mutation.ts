@@ -166,17 +166,16 @@ const MutationResolvers: MutationResolversType = {
   },
   upsertMapView: async (_: unknown, args: MutationUpsertMapViewArgs) => {
     try {
-      const { id, config, organisationId } = args;
+      const { id, config } = args;
       let updatedMapView = null;
       if (id) {
         updatedMapView = await updateMapView(id, {
           config: JSON.stringify(config),
-          organisationId,
         });
       } else {
         updatedMapView = await insertMapView({
           config: JSON.stringify(config),
-          organisationId,
+          mapId: args.mapId,
         });
       }
       return { code: 200, result: updatedMapView.id };

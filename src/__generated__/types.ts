@@ -64,6 +64,7 @@ export type AreaStats = {
 
 export type ArgNames = {
   dataSourceIdArg?: InputMaybe<Scalars["String"]["input"]>;
+  mapIdArg?: InputMaybe<Scalars["String"]["input"]>;
   organisationIdArg?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -214,33 +215,11 @@ export type LooseGeocodingConfigInput = {
   type: GeocodingType;
 };
 
-export type MapConfig = {
-  __typename?: "MapConfig";
-  areaDataColumn: Scalars["String"]["output"];
-  areaDataSourceId: Scalars["String"]["output"];
-  areaSetGroupCode: AreaSetGroupCode;
-  excludeColumnsString: Scalars["String"]["output"];
-  mapStyle: MapStyleName;
-  markersDataSourceId: Scalars["String"]["output"];
-  showBoundaryOutline: Scalars["Boolean"]["output"];
-  showLabels: Scalars["Boolean"]["output"];
-  showLocations: Scalars["Boolean"]["output"];
-  showMembers: Scalars["Boolean"]["output"];
-  showTurf: Scalars["Boolean"]["output"];
-};
-
-export type MapConfigInput = {
-  areaDataColumn?: InputMaybe<Scalars["String"]["input"]>;
-  areaDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
-  areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
-  excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
-  mapStyle?: InputMaybe<MapStyleName>;
-  markersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
-  showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
+export type Map = {
+  __typename?: "Map";
+  createdAt: Scalars["String"]["output"];
+  id: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
 };
 
 export enum MapStyleName {
@@ -252,9 +231,38 @@ export enum MapStyleName {
 
 export type MapView = {
   __typename?: "MapView";
-  config: MapConfig;
+  config: MapViewConfig;
   id: Scalars["String"]["output"];
-  organisationId: Scalars["String"]["output"];
+  mapId: Scalars["String"]["output"];
+};
+
+export type MapViewConfig = {
+  __typename?: "MapViewConfig";
+  areaDataColumn: Scalars["String"]["output"];
+  areaDataSourceId: Scalars["String"]["output"];
+  areaSetGroupCode: AreaSetGroupCode;
+  excludeColumnsString: Scalars["String"]["output"];
+  mapStyleName: MapStyleName;
+  markersDataSourceId: Scalars["String"]["output"];
+  showBoundaryOutline: Scalars["Boolean"]["output"];
+  showLabels: Scalars["Boolean"]["output"];
+  showLocations: Scalars["Boolean"]["output"];
+  showMembers: Scalars["Boolean"]["output"];
+  showTurf: Scalars["Boolean"]["output"];
+};
+
+export type MapViewConfigInput = {
+  areaDataColumn?: InputMaybe<Scalars["String"]["input"]>;
+  areaDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
+  excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
+  mapStyleName?: InputMaybe<MapStyleName>;
+  markersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type Mutation = {
@@ -290,9 +298,9 @@ export type MutationUpdateDataSourceConfigArgs = {
 };
 
 export type MutationUpsertMapViewArgs = {
-  config: MapConfigInput;
+  config: MapViewConfigInput;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  organisationId: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
 };
 
 export type MutationResponse = {
@@ -317,6 +325,7 @@ export type Query = {
   dataSource?: Maybe<DataSource>;
   dataSources?: Maybe<Array<DataSource>>;
   mapViews?: Maybe<Array<MapView>>;
+  maps?: Maybe<Array<Map>>;
   organisations?: Maybe<Array<Organisation>>;
 };
 
@@ -338,6 +347,10 @@ export type QueryDataSourcesArgs = {
 };
 
 export type QueryMapViewsArgs = {
+  mapId: Scalars["String"]["input"];
+};
+
+export type QueryMapsArgs = {
   organisationId: Scalars["String"]["input"];
 };
 
@@ -360,6 +373,20 @@ export type UpsertMapViewResponse = {
   __typename?: "UpsertMapViewResponse";
   code: Scalars["Int"]["output"];
   result?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type ListMapsQueryVariables = Exact<{
+  organisationId: Scalars["String"]["input"];
+}>;
+
+export type ListMapsQuery = {
+  __typename?: "Query";
+  maps?: Array<{
+    __typename?: "Map";
+    id: string;
+    name: string;
+    createdAt: string;
+  }> | null;
 };
 
 export type EnqueueImportDataSourceJobMutationVariables = Exact<{
@@ -587,8 +614,8 @@ export type ListDataSourcesQuery = {
 
 export type UpsertMapViewMutationVariables = Exact<{
   id?: InputMaybe<Scalars["String"]["input"]>;
-  config: MapConfigInput;
-  organisationId: Scalars["String"]["input"];
+  config: MapViewConfigInput;
+  mapId: Scalars["String"]["input"];
 }>;
 
 export type UpsertMapViewMutation = {
@@ -617,7 +644,7 @@ export type DataSourcesQuery = {
 };
 
 export type MapViewsQueryVariables = Exact<{
-  organisationId: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
 }>;
 
 export type MapViewsQuery = {
@@ -626,13 +653,13 @@ export type MapViewsQuery = {
     __typename?: "MapView";
     id: string;
     config: {
-      __typename?: "MapConfig";
+      __typename?: "MapViewConfig";
       areaDataSourceId: string;
       areaDataColumn: string;
       areaSetGroupCode: AreaSetGroupCode;
       excludeColumnsString: string;
       markersDataSourceId: string;
-      mapStyle: MapStyleName;
+      mapStyleName: MapStyleName;
       showBoundaryOutline: boolean;
       showLabels: boolean;
       showLocations: boolean;
@@ -809,10 +836,11 @@ export type ResolversTypes = {
   LooseEnrichmentInput: LooseEnrichmentInput;
   LooseGeocodingConfig: ResolverTypeWrapper<LooseGeocodingConfig>;
   LooseGeocodingConfigInput: LooseGeocodingConfigInput;
-  MapConfig: ResolverTypeWrapper<MapConfig>;
-  MapConfigInput: MapConfigInput;
+  Map: ResolverTypeWrapper<Map>;
   MapStyleName: MapStyleName;
   MapView: ResolverTypeWrapper<MapView>;
+  MapViewConfig: ResolverTypeWrapper<MapViewConfig>;
+  MapViewConfigInput: MapViewConfigInput;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
@@ -848,9 +876,10 @@ export type ResolversParentTypes = {
   LooseEnrichmentInput: LooseEnrichmentInput;
   LooseGeocodingConfig: LooseGeocodingConfig;
   LooseGeocodingConfigInput: LooseGeocodingConfigInput;
-  MapConfig: MapConfig;
-  MapConfigInput: MapConfigInput;
+  Map: Map;
   MapView: MapView;
+  MapViewConfig: MapViewConfig;
+  MapViewConfigInput: MapViewConfigInput;
   Mutation: {};
   MutationResponse: MutationResponse;
   Organisation: Organisation;
@@ -1119,10 +1148,31 @@ export type LooseGeocodingConfigResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MapConfigResolvers<
+export type MapResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends ResolversParentTypes["Map"] = ResolversParentTypes["Map"],
+> = {
+  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MapViewResolvers<
   ContextType = GraphQLContext,
   ParentType extends
-    ResolversParentTypes["MapConfig"] = ResolversParentTypes["MapConfig"],
+    ResolversParentTypes["MapView"] = ResolversParentTypes["MapView"],
+> = {
+  config?: Resolver<ResolversTypes["MapViewConfig"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  mapId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MapViewConfigResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["MapViewConfig"] = ResolversParentTypes["MapViewConfig"],
 > = {
   areaDataColumn?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   areaDataSourceId?: Resolver<
@@ -1140,7 +1190,11 @@ export type MapConfigResolvers<
     ParentType,
     ContextType
   >;
-  mapStyle?: Resolver<ResolversTypes["MapStyleName"], ParentType, ContextType>;
+  mapStyleName?: Resolver<
+    ResolversTypes["MapStyleName"],
+    ParentType,
+    ContextType
+  >;
   markersDataSourceId?: Resolver<
     ResolversTypes["String"],
     ParentType,
@@ -1155,17 +1209,6 @@ export type MapConfigResolvers<
   showLocations?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   showMembers?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   showTurf?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type MapViewResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["MapView"] = ResolversParentTypes["MapView"],
-> = {
-  config?: Resolver<ResolversTypes["MapConfig"], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  organisationId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1205,7 +1248,7 @@ export type MutationResolvers<
     Maybe<ResolversTypes["UpsertMapViewResponse"]>,
     ParentType,
     ContextType,
-    RequireFields<MutationUpsertMapViewArgs, "config" | "organisationId">
+    RequireFields<MutationUpsertMapViewArgs, "config" | "mapId">
   >;
 };
 
@@ -1258,7 +1301,13 @@ export type QueryResolvers<
     Maybe<Array<ResolversTypes["MapView"]>>,
     ParentType,
     ContextType,
-    RequireFields<QueryMapViewsArgs, "organisationId">
+    RequireFields<QueryMapViewsArgs, "mapId">
+  >;
+  maps?: Resolver<
+    Maybe<Array<ResolversTypes["Map"]>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryMapsArgs, "organisationId">
   >;
   organisations?: Resolver<
     Maybe<Array<ResolversTypes["Organisation"]>>,
@@ -1316,8 +1365,9 @@ export type Resolvers<ContextType = GraphQLContext> = {
   JobInfo?: JobInfoResolvers<ContextType>;
   LooseEnrichment?: LooseEnrichmentResolvers<ContextType>;
   LooseGeocodingConfig?: LooseGeocodingConfigResolvers<ContextType>;
-  MapConfig?: MapConfigResolvers<ContextType>;
+  Map?: MapResolvers<ContextType>;
   MapView?: MapViewResolvers<ContextType>;
+  MapViewConfig?: MapViewConfigResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
   Organisation?: OrganisationResolvers<ContextType>;

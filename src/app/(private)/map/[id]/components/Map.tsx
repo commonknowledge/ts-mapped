@@ -6,9 +6,9 @@ import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
 import { useContext, useEffect, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
-import { mapColors } from "@/app/(private)/map/styles";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
 import { DEFAULT_ZOOM } from "@/constants";
 import { DrawDeleteEvent, SearchResult } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -24,7 +24,7 @@ export default function Map({
 }) {
   const {
     mapRef,
-    mapConfig,
+    viewConfig,
     setBoundingBox,
     setSelectedMarker,
     setSearchHistory,
@@ -52,7 +52,7 @@ export default function Map({
       ref={mapRef}
       style={{ flexGrow: 1 }}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-      mapStyle={`mapbox://styles/mapbox/${mapConfig.getMapStyle().slug}`}
+      mapStyle={`mapbox://styles/mapbox/${viewConfig.getMapStyle().slug}`}
       onClick={(e) => {
         const map = e.target;
         const features = map.queryRenderedFeatures(e.point, {

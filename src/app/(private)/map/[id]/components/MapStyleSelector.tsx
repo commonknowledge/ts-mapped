@@ -1,7 +1,7 @@
 import { Paintbrush, Scan, Type } from "lucide-react";
 import { useContext } from "react";
 import { MapStyleName } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -19,16 +19,16 @@ import {
 import mapStyles from "../styles";
 
 export default function MapStyleSelector() {
-  const { mapConfig, updateMapConfig } = useContext(MapContext);
+  const { viewConfig, updateViewConfig } = useContext(MapContext);
   return (
     <div className="absolute left-1/2 -top-20 -translate-x-1/2 m-3 p-4 z-10  bg-white ">
       <div className="flex gap-2 items-center">
         <TooltipProvider>
           <Tooltip>
             <Select
-              value={mapConfig.getMapStyle().name}
+              value={viewConfig.getMapStyle().name}
               onValueChange={(value) =>
-                updateMapConfig({
+                updateViewConfig({
                   mapStyleName: value as MapStyleName,
                 })
               }
@@ -58,41 +58,43 @@ export default function MapStyleSelector() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Toggle
-                pressed={mapConfig.showLabels}
+                pressed={viewConfig.showLabels}
                 onPressedChange={(value) =>
-                  updateMapConfig({ showLabels: value })
+                  updateViewConfig({ showLabels: value })
                 }
               >
                 <Type
                   className={`w-4 h-4  text-muted-foreground ${
-                    mapConfig.showLabels ? "opacity-100" : "opacity-50"
+                    viewConfig.showLabels ? "opacity-100" : "opacity-50"
                   }`}
                 />
               </Toggle>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{mapConfig.showLabels ? "Hide" : "Show"} labels</p>
+              <p>{viewConfig.showLabels ? "Hide" : "Show"} labels</p>
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
               <Toggle
-                pressed={mapConfig.showBoundaryOutline}
+                pressed={viewConfig.showBoundaryOutline}
                 onPressedChange={(value) =>
-                  updateMapConfig({ showBoundaryOutline: value })
+                  updateViewConfig({ showBoundaryOutline: value })
                 }
               >
                 <Scan
                   className={`w-4 h-4  text-muted-foreground ${
-                    mapConfig.showBoundaryOutline ? "opacity-100" : "opacity-50"
+                    viewConfig.showBoundaryOutline
+                      ? "opacity-100"
+                      : "opacity-50"
                   }`}
                 />
               </Toggle>
             </TooltipTrigger>
             <TooltipContent>
               <p>
-                {mapConfig.showBoundaryOutline ? "Hide" : "Show"} boundary
+                {viewConfig.showBoundaryOutline ? "Hide" : "Show"} boundary
                 outline
               </p>
             </TooltipContent>

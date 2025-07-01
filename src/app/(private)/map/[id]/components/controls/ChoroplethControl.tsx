@@ -1,7 +1,7 @@
 import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
 import { useContext } from "react";
 import { AreaSetGroupCode } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -14,11 +14,11 @@ import {
 import { AREA_SET_GROUP_LABELS } from "../../sources";
 
 export default function ChoroplethControl() {
-  const { mapConfig, dataSourcesQuery, updateMapConfig } =
+  const { viewConfig, dataSourcesQuery, updateViewConfig } =
     useContext(MapContext);
   const dataSources = dataSourcesQuery?.data?.dataSources || [];
   const dataSource = dataSources.find(
-    (ds) => ds.id === mapConfig.areaDataSourceId,
+    (ds) => ds.id === viewConfig.areaDataSourceId,
   );
   return (
     <>
@@ -28,9 +28,9 @@ export default function ChoroplethControl() {
           Area Data Source
         </Label>
         <Select
-          value={mapConfig.areaDataSourceId}
+          value={viewConfig.areaDataSourceId}
           onValueChange={(value) =>
-            updateMapConfig({ areaDataSourceId: value })
+            updateViewConfig({ areaDataSourceId: value })
           }
         >
           <SelectTrigger className="w-full shadow-none">
@@ -51,9 +51,9 @@ export default function ChoroplethControl() {
             <div className="flex gap-2 items-center">
               <CornerDownRight className="ml-2 w-4 h-4 text-muted-foreground" />
               <Select
-                value={mapConfig.areaDataColumn}
+                value={viewConfig.areaDataColumn}
                 onValueChange={(value) =>
-                  updateMapConfig({ areaDataColumn: value })
+                  updateViewConfig({ areaDataColumn: value })
                 }
               >
                 <SelectTrigger className="w-full shadow-none">
@@ -74,16 +74,16 @@ export default function ChoroplethControl() {
           </div>
         ) : null}
       </div>
-      {mapConfig.areaDataColumn === MAX_COLUMN_KEY && (
+      {viewConfig.areaDataColumn === MAX_COLUMN_KEY && (
         <input
           type="text"
           onChange={(e) =>
-            updateMapConfig({
+            updateViewConfig({
               excludeColumnsString: e.target.value,
             })
           }
           placeholder="Comma-separated columns to exclude"
-          value={mapConfig.excludeColumnsString}
+          value={viewConfig.excludeColumnsString}
         />
       )}
 
@@ -93,9 +93,9 @@ export default function ChoroplethControl() {
           Boundary Set
         </Label>
         <Select
-          value={mapConfig.areaSetGroupCode}
+          value={viewConfig.areaSetGroupCode}
           onValueChange={(value) =>
-            updateMapConfig({ areaSetGroupCode: value as AreaSetGroupCode })
+            updateViewConfig({ areaSetGroupCode: value as AreaSetGroupCode })
           }
         >
           <SelectTrigger className="w-full shadow-none">
