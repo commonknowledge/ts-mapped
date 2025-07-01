@@ -52,7 +52,7 @@ export default function Map({
       ref={mapRef}
       style={{ flexGrow: 1 }}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-      mapStyle={`mapbox://styles/mapbox/${mapConfig.mapStyle.slug}`}
+      mapStyle={`mapbox://styles/mapbox/${mapConfig.getMapStyle().slug}`}
       onClick={(e) => {
         const map = e.target;
         const features = map.queryRenderedFeatures(e.point, {
@@ -190,6 +190,10 @@ export default function Map({
         if (e.sourceId && MAPBOX_SOURCE_IDS.includes(e.sourceId)) {
           onSourceLoad(e.sourceId);
         }
+      }}
+      onStyleData={(e) => {
+        /* @ts-expect-error The style property is missing in the MapBox type definitions */
+        onSourceLoad(e.style.globalId);
       }}
     >
       <Choropleth />

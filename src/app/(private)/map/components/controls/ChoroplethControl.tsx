@@ -1,5 +1,6 @@
 import { CornerDownRight, LandPlot, SquareStack } from "lucide-react";
 import { useContext } from "react";
+import { AreaSetGroupCode } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/context/MapContext";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Label } from "@/shadcn/ui/label";
@@ -10,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { AREA_SET_GROUP_LABELS, AreaSetGroupCode } from "../../sources";
+import { AREA_SET_GROUP_LABELS } from "../../sources";
 
 export default function ChoroplethControl() {
   const { mapConfig, dataSourcesQuery, updateMapConfig } =

@@ -1,11 +1,9 @@
-import { AreaSetCode } from "@/__generated__/types";
+import { AreaSetCode, AreaSetGroupCode } from "@/__generated__/types";
 
-export const AREA_SET_GROUP_LABELS = {
+export const AREA_SET_GROUP_LABELS: Record<AreaSetGroupCode, string> = {
   WMC24: "Westminster Constituencies 2024",
   OA21: "Census Output Areas 2021",
 };
-
-export type AreaSetGroupCode = keyof typeof AREA_SET_GROUP_LABELS;
 
 const MAX_VALID_ZOOM = 24;
 
