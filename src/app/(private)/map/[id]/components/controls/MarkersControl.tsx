@@ -36,7 +36,7 @@ export default function MarkersControl() {
         label="Markers"
         color={mapColors.searched.color}
         showLayer={viewConfig.showLocations}
-        setLayer={() => updateViewConfig({ showLocations: true })}
+        setLayer={(show) => updateViewConfig({ showLocations: show })}
       >
         <IconDropdownWithTooltip
           align="start"

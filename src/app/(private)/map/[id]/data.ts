@@ -7,11 +7,15 @@ import {
   DataSourcesQuery,
   DeletePlacedMarkerMutationMutation,
   DeletePlacedMarkerMutationMutationVariables,
+  DeleteTurfMutation,
+  DeleteTurfMutationVariables,
   MapQuery,
   MapQueryVariables,
   Operation,
   UpsertPlacedMarkerMutation,
   UpsertPlacedMarkerMutationVariables,
+  UpsertTurfMutation,
+  UpsertTurfMutationVariables,
 } from "@/__generated__/types";
 import { PointFeature } from "@/types";
 import { MarkersQueryResult } from "./types";
@@ -43,6 +47,14 @@ export const useMapQuery = (mapId: string | null) =>
               lat
               lng
             }
+          }
+          turfs {
+            id
+            label
+            notes
+            area
+            geometry
+            createdAt
           }
           views {
             id
@@ -198,6 +210,45 @@ export const useUpsertPlacedMarkerMutation = () => {
         label: $label
         notes: $notes
         point: $point
+        mapId: $mapId
+      ) {
+        code
+        result {
+          id
+        }
+      }
+    }
+  `);
+};
+
+export const useDeleteTurfMutation = () => {
+  return useMutation<DeleteTurfMutation, DeleteTurfMutationVariables>(gql`
+    mutation DeleteTurf($id: String!, $mapId: String!) {
+      deleteTurf(id: $id, mapId: $mapId) {
+        code
+      }
+    }
+  `);
+};
+
+export const useUpsertTurfMutation = () => {
+  return useMutation<UpsertTurfMutation, UpsertTurfMutationVariables>(gql`
+    mutation UpsertTurf(
+      $id: String
+      $label: String!
+      $notes: String!
+      $area: Float!
+      $geometry: JSON!
+      $createdAt: String!
+      $mapId: String!
+    ) {
+      upsertTurf(
+        id: $id
+        label: $label
+        notes: $notes
+        area: $area
+        geometry: $geometry
+        createdAt: $createdAt
         mapId: $mapId
       ) {
         code

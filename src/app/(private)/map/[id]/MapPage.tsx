@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
-import { BoundingBoxInput } from "@/__generated__/types";
+import { BoundingBoxInput, Turf } from "@/__generated__/types";
 import {
   MapContext,
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
-import { DrawnPolygon, MarkerData } from "@/types";
+import { MarkerData } from "@/types";
 import Controls from "./components/controls/Controls";
 import Legend from "./components/Legend";
 import Loading from "./components/Loading";
@@ -21,7 +21,7 @@ import {
   useMapQuery,
   useMarkersQuery,
 } from "./data";
-import { usePlacedMarkers } from "./hooks";
+import { usePlacedMarkers, useTurfs } from "./hooks";
 import styles from "./MapPage.module.css";
 import { getChoroplethLayerConfig } from "./sources";
 
@@ -31,16 +31,13 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   /* Map State */
   const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
-  const [editingPolygon, setEditingPolygon] = useState<DrawnPolygon | null>(
-    null,
-  );
+  const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
   // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
   >();
   const [viewConfig, setViewConfig] = useState(new ViewConfig());
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
-  const [turfHistory, setTurfHistory] = useState<DrawnPolygon[]>(SAMPLE_TURF);
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
@@ -66,6 +63,16 @@ export default function MapPage({ mapId }: { mapId: string }) {
   });
 
   const { data: areaStatsData, fetchMore: areaStatsFetchMore } = areaStatsQuery;
+
+  /* Persisted map features */
+  const {
+    turfs,
+    setTurfs,
+    deleteTurf,
+    insertTurf,
+    updateTurf,
+    loading: turfsLoading,
+  } = useTurfs(mapId);
 
   const {
     placedMarkers,
@@ -96,7 +103,10 @@ export default function MapPage({ mapId }: { mapId: string }) {
     if (mapData?.map?.placedMarkers) {
       setPlacedMarkers(mapData.map.placedMarkers);
     }
-  }, [mapData, setPlacedMarkers]);
+    if (mapData?.map?.turfs) {
+      setTurfs(mapData.map.turfs);
+    }
+  }, [mapData, setPlacedMarkers, setTurfs]);
 
   /* Set Mapbox feature state on receiving new AreaStats */
   useEffect(() => {
@@ -152,8 +162,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
         boundingBox,
         setBoundingBox,
-        editingPolygon,
-        setEditingPolygon,
+        editingTurf,
+        setEditingTurf,
         placedMarkers,
         placedMarkersLoading,
         deletePlacedMarker,
@@ -161,8 +171,11 @@ export default function MapPage({ mapId }: { mapId: string }) {
         updatePlacedMarker,
         selectedMarker,
         setSelectedMarker,
-        turfHistory,
-        setTurfHistory,
+        turfs,
+        turfsLoading,
+        deleteTurf,
+        insertTurf,
+        updateTurf,
         viewConfig,
         updateViewConfig,
         viewId,
@@ -187,40 +200,3 @@ export default function MapPage({ mapId }: { mapId: string }) {
     </MapContext>
   );
 }
-
-const SAMPLE_TURF: DrawnPolygon[] = [
-  {
-    id: "N90IVwEVjjVuYnJwwtuPSvRgVTAUgLjh",
-    area: 6659289.77,
-    geometry: {
-      coordinates: [
-        [
-          [-0.09890821864360078, 51.466784423169656],
-          [-0.050307845722869615, 51.457615269748146],
-          [-0.06844742153057837, 51.496624718934044],
-          [-0.09890821864360078, 51.466784423169656],
-        ],
-      ],
-      type: "Polygon",
-    },
-    timestamp: new Date("2024-03-20T14:31:00Z"),
-    name: "Anti-austerity campaign area",
-  },
-  {
-    id: "qY9R13eRjlVUZQ5GyHIwroX2C2GZuA9g",
-    area: 14311817.59,
-    geometry: {
-      coordinates: [
-        [
-          [-0.1676382772736531, 51.454985375110425],
-          [-0.1028980072736374, 51.423675158113724],
-          [-0.09285210330847349, 51.476194541881796],
-          [-0.1676382772736531, 51.454985375110425],
-        ],
-      ],
-      type: "Polygon",
-    },
-    timestamp: new Date(),
-    name: "Sallys turf",
-  },
-];

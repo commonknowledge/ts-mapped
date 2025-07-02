@@ -184,6 +184,7 @@ const typeDefs = `
     name: String!
     createdAt: String!
     placedMarkers: [PlacedMarker!]
+    turfs: [Turf!]
     views: [MapView!]
   }
 
@@ -224,6 +225,15 @@ const typeDefs = `
     lng: Float!
   }
 
+  type Turf {
+    id: String!
+    label: String!
+    notes: String!
+    area: Float!
+    geometry: JSON!
+    createdAt: String!
+  }
+
   type Query {
     areaStats(
       areaSetCode: AreaSetCode!
@@ -261,6 +271,11 @@ const typeDefs = `
     result: PlacedMarker
   }
 
+  type UpsertTurfResponse {
+    code: Int!
+    result: Turf
+  }
+
   type Mutation {
     createDataSource(
       name: String!
@@ -268,6 +283,7 @@ const typeDefs = `
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
     deletePlacedMarker(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
+    deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     updateDataSourceConfig(
@@ -290,6 +306,15 @@ const typeDefs = `
       point: PointInput!
       mapId: String!
     ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
+    upsertTurf(
+      id: String
+      label: String!
+      notes: String!
+      area: Float!
+      geometry: JSON!
+      createdAt: String!
+      mapId: String!
+    ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
   }
 
   type DataSourceEvent {

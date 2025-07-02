@@ -14,7 +14,7 @@ export default function TurfControl() {
         label="Turf"
         color={mapColors.turf.color}
         showLayer={viewConfig.showTurf}
-        setLayer={() => updateViewConfig({ showTurf: true })}
+        setLayer={(show) => updateViewConfig({ showTurf: show })}
       >
         <IconButtonWithTooltip
           tooltip="Add Turf"

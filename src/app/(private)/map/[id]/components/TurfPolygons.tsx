@@ -5,18 +5,19 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 
 export default function TurfPolygons() {
-  const { viewConfig, turfHistory } = useContext(MapContext);
+  const { viewConfig, turfs } = useContext(MapContext);
 
   const features: FeatureCollection<Polygon> = {
     type: "FeatureCollection",
-    features: turfHistory.map((polygon) => ({
+    features: turfs.map((t) => ({
       type: "Feature" as const,
-      id: polygon.id,
-      geometry: polygon.geometry as Polygon,
+      id: t.id,
+      geometry: t.geometry as Polygon,
       properties: {
-        area: polygon.area,
-        timestamp: polygon.timestamp,
-        name: polygon.name || `${polygon.area.toFixed(2)}m²`,
+        area: t.area,
+        createdAt: t.createdAt,
+        label: t.label,
+        notes: t.notes,
       },
     })),
   };

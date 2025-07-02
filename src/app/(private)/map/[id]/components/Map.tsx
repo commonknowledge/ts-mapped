@@ -28,7 +28,8 @@ export default function Map({
     insertPlacedMarker,
     setBoundingBox,
     setSelectedMarker,
-    setTurfHistory,
+    deleteTurf,
+    insertTurf,
     setZoom,
   } = useContext(MapContext);
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -83,7 +84,7 @@ export default function Map({
         geocoder.on("result", (event) => {
           const result = event.result;
           insertPlacedMarker({
-            id: `temp-${new Date().getTime()}`,
+            id: `placed-marker-temp-${new Date().getTime()}`,
             label: result.place_name,
             notes: "",
             point: { lng: result.center[0], lat: result.center[1] },
@@ -142,20 +143,16 @@ export default function Map({
               const feature = data.features[data.features.length - 1];
               const area = turf.area(feature);
               const roundedArea = Math.round(area * 100) / 100;
-
-              setTurfHistory((prev) =>
-                [
-                  {
-                    id: feature.id?.toString() || crypto.randomUUID(),
-                    area: roundedArea,
-                    geometry: feature.geometry,
-                    timestamp: new Date(),
-                    name: feature.properties?.name || "",
-                  },
-                  ...prev,
-                ].slice(0, 10),
-              );
-
+              insertTurf({
+                id: `turf-temp-${new Date().getTime()}`,
+                label:
+                  feature.properties?.name ||
+                  `Area: ${roundedArea.toFixed(2)}m²`,
+                notes: "",
+                area: roundedArea,
+                geometry: feature.geometry,
+                createdAt: new Date().toISOString(),
+              });
               newDraw.deleteAll();
             }
           });
@@ -163,9 +160,9 @@ export default function Map({
           // Add delete handler
           mapInstance.on("draw.delete", (e: DrawDeleteEvent) => {
             const deletedIds = e.features.map((f) => f.id);
-            setTurfHistory((prev) =>
-              prev.filter((poly) => !deletedIds.includes(poly.id)),
-            );
+            for (const id of deletedIds) {
+              deleteTurf(id);
+            }
           });
         }
       }}

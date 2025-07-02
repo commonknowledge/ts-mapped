@@ -10,9 +10,10 @@ import {
   MapStyleName,
   MapViewConfigInput,
   PlacedMarker,
+  Turf,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
-import { DrawnPolygon, MarkerData } from "@/types";
+import { MarkerData } from "@/types";
 import { ChoroplethLayerConfig, getChoroplethLayerConfig } from "../sources";
 import mapStyles from "../styles";
 import { MarkersQueryResult } from "../types";
@@ -57,8 +58,8 @@ export const MapContext = createContext<{
   boundingBox: BoundingBoxInput | null;
   setBoundingBox: (boundingBox: BoundingBoxInput | null) => void;
 
-  editingPolygon: DrawnPolygon | null;
-  setEditingPolygon: (polygon: DrawnPolygon | null) => void;
+  editingTurf: Turf | null;
+  setEditingTurf: (turf: Turf | null) => void;
 
   placedMarkers: PlacedMarker[];
   placedMarkersLoading: boolean;
@@ -69,10 +70,11 @@ export const MapContext = createContext<{
   selectedMarker: MarkerData | null;
   setSelectedMarker: (marker: MarkerData | null) => void;
 
-  turfHistory: DrawnPolygon[];
-  setTurfHistory: (
-    turfHistory: DrawnPolygon[] | ((prev: DrawnPolygon[]) => DrawnPolygon[]),
-  ) => void;
+  turfs: Turf[];
+  turfsLoading: boolean;
+  deleteTurf: (id: string) => void;
+  insertTurf: (turf: Turf) => void;
+  updateTurf: (turf: Turf) => void;
 
   viewConfig: ViewConfig;
   updateViewConfig: (config: Partial<ViewConfig>) => void;
@@ -97,8 +99,8 @@ export const MapContext = createContext<{
 
   boundingBox: null,
   setBoundingBox: () => null,
-  editingPolygon: null,
-  setEditingPolygon: () => null,
+  editingTurf: null,
+  setEditingTurf: () => null,
   placedMarkers: [],
   placedMarkersLoading: false,
   deletePlacedMarker: () => null,
@@ -106,8 +108,11 @@ export const MapContext = createContext<{
   updatePlacedMarker: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,
-  turfHistory: [],
-  setTurfHistory: () => null,
+  turfs: [],
+  turfsLoading: false,
+  deleteTurf: () => null,
+  insertTurf: () => null,
+  updateTurf: () => null,
   viewConfig: new ViewConfig(),
   updateViewConfig: () => null,
   viewId: null,

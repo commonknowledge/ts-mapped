@@ -221,6 +221,7 @@ export type Map = {
   id: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   placedMarkers?: Maybe<Array<PlacedMarker>>;
+  turfs?: Maybe<Array<Turf>>;
   views?: Maybe<Array<MapView>>;
 };
 
@@ -271,11 +272,13 @@ export type Mutation = {
   __typename?: "Mutation";
   createDataSource?: Maybe<CreateDataSourceResponse>;
   deletePlacedMarker?: Maybe<MutationResponse>;
+  deleteTurf?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
   enqueueImportDataSourceJob?: Maybe<MutationResponse>;
   updateDataSourceConfig?: Maybe<MutationResponse>;
   upsertMapView?: Maybe<UpsertMapViewResponse>;
   upsertPlacedMarker?: Maybe<UpsertPlacedMarkerResponse>;
+  upsertTurf?: Maybe<UpsertTurfResponse>;
 };
 
 export type MutationCreateDataSourceArgs = {
@@ -285,6 +288,11 @@ export type MutationCreateDataSourceArgs = {
 };
 
 export type MutationDeletePlacedMarkerArgs = {
+  id: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+};
+
+export type MutationDeleteTurfArgs = {
   id: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
 };
@@ -318,6 +326,16 @@ export type MutationUpsertPlacedMarkerArgs = {
   mapId: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
   point: PointInput;
+};
+
+export type MutationUpsertTurfArgs = {
+  area: Scalars["Float"]["input"];
+  createdAt: Scalars["String"]["input"];
+  geometry: Scalars["JSON"]["input"];
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  label: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+  notes: Scalars["String"]["input"];
 };
 
 export type MutationResponse = {
@@ -405,6 +423,16 @@ export type SubscriptionDataSourceEventArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
+export type Turf = {
+  __typename?: "Turf";
+  area: Scalars["Float"]["output"];
+  createdAt: Scalars["String"]["output"];
+  geometry: Scalars["JSON"]["output"];
+  id: Scalars["String"]["output"];
+  label: Scalars["String"]["output"];
+  notes: Scalars["String"]["output"];
+};
+
 export type UpsertMapViewResponse = {
   __typename?: "UpsertMapViewResponse";
   code: Scalars["Int"]["output"];
@@ -415,6 +443,12 @@ export type UpsertPlacedMarkerResponse = {
   __typename?: "UpsertPlacedMarkerResponse";
   code: Scalars["Int"]["output"];
   result?: Maybe<PlacedMarker>;
+};
+
+export type UpsertTurfResponse = {
+  __typename?: "UpsertTurfResponse";
+  code: Scalars["Int"]["output"];
+  result?: Maybe<Turf>;
 };
 
 export type ListMapsQueryVariables = Exact<{
@@ -700,6 +734,15 @@ export type MapQuery = {
       notes: string;
       point: { __typename?: "Point"; lat: number; lng: number };
     }> | null;
+    turfs?: Array<{
+      __typename?: "Turf";
+      id: string;
+      label: string;
+      notes: string;
+      area: number;
+      geometry: any;
+      createdAt: string;
+    }> | null;
     views?: Array<{
       __typename?: "MapView";
       id: string;
@@ -766,6 +809,35 @@ export type UpsertPlacedMarkerMutation = {
     __typename?: "UpsertPlacedMarkerResponse";
     code: number;
     result?: { __typename?: "PlacedMarker"; id: string } | null;
+  } | null;
+};
+
+export type DeleteTurfMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+}>;
+
+export type DeleteTurfMutation = {
+  __typename?: "Mutation";
+  deleteTurf?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
+export type UpsertTurfMutationVariables = Exact<{
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  label: Scalars["String"]["input"];
+  notes: Scalars["String"]["input"];
+  area: Scalars["Float"]["input"];
+  geometry: Scalars["JSON"]["input"];
+  createdAt: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+}>;
+
+export type UpsertTurfMutation = {
+  __typename?: "Mutation";
+  upsertTurf?: {
+    __typename?: "UpsertTurfResponse";
+    code: number;
+    result?: { __typename?: "Turf"; id: string } | null;
   } | null;
 };
 
@@ -931,8 +1003,10 @@ export type ResolversTypes = {
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
+  Turf: ResolverTypeWrapper<Turf>;
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
   UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
+  UpsertTurfResponse: ResolverTypeWrapper<UpsertTurfResponse>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -973,8 +1047,10 @@ export type ResolversParentTypes = {
   RecordsProcessedEvent: RecordsProcessedEvent;
   String: Scalars["String"]["output"];
   Subscription: {};
+  Turf: Turf;
   UpsertMapViewResponse: UpsertMapViewResponse;
   UpsertPlacedMarkerResponse: UpsertPlacedMarkerResponse;
+  UpsertTurfResponse: UpsertTurfResponse;
 };
 
 export type AuthDirectiveArgs = {
@@ -1247,6 +1323,11 @@ export type MapResolvers<
     ParentType,
     ContextType
   >;
+  turfs?: Resolver<
+    Maybe<Array<ResolversTypes["Turf"]>>,
+    ParentType,
+    ContextType
+  >;
   views?: Resolver<
     Maybe<Array<ResolversTypes["MapView"]>>,
     ParentType,
@@ -1329,6 +1410,12 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationDeletePlacedMarkerArgs, "id" | "mapId">
   >;
+  deleteTurf?: Resolver<
+    Maybe<ResolversTypes["MutationResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationDeleteTurfArgs, "id" | "mapId">
+  >;
   enqueueEnrichDataSourceJob?: Resolver<
     Maybe<ResolversTypes["MutationResponse"]>,
     ParentType,
@@ -1360,6 +1447,15 @@ export type MutationResolvers<
     RequireFields<
       MutationUpsertPlacedMarkerArgs,
       "label" | "mapId" | "notes" | "point"
+    >
+  >;
+  upsertTurf?: Resolver<
+    Maybe<ResolversTypes["UpsertTurfResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<
+      MutationUpsertTurfArgs,
+      "area" | "createdAt" | "geometry" | "label" | "mapId" | "notes"
     >
   >;
 };
@@ -1474,6 +1570,20 @@ export type SubscriptionResolvers<
   >;
 };
 
+export type TurfResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["Turf"] = ResolversParentTypes["Turf"],
+> = {
+  area?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  geometry?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  label?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UpsertMapViewResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -1495,6 +1605,16 @@ export type UpsertPlacedMarkerResponseResolvers<
     ParentType,
     ContextType
   >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UpsertTurfResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["UpsertTurfResponse"] = ResolversParentTypes["UpsertTurfResponse"],
+> = {
+  code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  result?: Resolver<Maybe<ResolversTypes["Turf"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1524,8 +1644,10 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Query?: QueryResolvers<ContextType>;
   RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
+  Turf?: TurfResolvers<ContextType>;
   UpsertMapViewResponse?: UpsertMapViewResponseResolvers<ContextType>;
   UpsertPlacedMarkerResponse?: UpsertPlacedMarkerResponseResolvers<ContextType>;
+  UpsertTurfResponse?: UpsertTurfResponseResolvers<ContextType>;
 };
 
 export type DirectiveResolvers<ContextType = GraphQLContext> = {

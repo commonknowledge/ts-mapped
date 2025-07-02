@@ -20,14 +20,6 @@ export interface DrawDeleteEvent {
   }[];
 }
 
-export interface DrawnPolygon {
-  id: string;
-  area: number;
-  geometry: Geometry;
-  timestamp: Date;
-  name: string;
-}
-
 export interface ExternalRecord {
   externalId: string;
   json: Record<string, unknown>;

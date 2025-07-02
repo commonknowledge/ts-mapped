@@ -9,8 +9,12 @@ import {
   MutationUpsertMapViewArgs,
   PointInput,
   UpsertPlacedMarkerResponse,
+  UpsertTurfResponse,
 } from "@/__generated__/types";
-import { serializeDataSource } from "@/app/api/graphql/serializers";
+import {
+  serializeDataSource,
+  serializeTurf,
+} from "@/app/api/graphql/serializers";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   createDataSource,
@@ -24,6 +28,7 @@ import {
   insertPlacedMarker,
   updatePlacedMarker,
 } from "@/server/repositories/PlacedMarker";
+import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import {
@@ -85,6 +90,15 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200 };
     } catch (error) {
       logger.error(`Could not delete marker ${id}`, { error });
+    }
+    return { code: 500 };
+  },
+  deleteTurf: async (_: unknown, { id }: { id: string }) => {
+    try {
+      await deleteTurf(id);
+      return { code: 200 };
+    } catch (error) {
+      logger.error(`Could not delete turf ${id}`, { error });
     }
     return { code: 500 };
   },
@@ -237,6 +251,51 @@ const MutationResolvers: MutationResolversType = {
         placedMarker = await insertPlacedMarker(placedMarkerInput);
       }
       return { code: 200, result: placedMarker };
+    } catch (error) {
+      logger.error(`Could not create placed marker`, { error });
+    }
+    return { code: 500 };
+  },
+  upsertTurf: async (
+    _: unknown,
+    {
+      id,
+      label,
+      notes,
+      area,
+      geometry,
+      createdAt,
+      mapId,
+    }: {
+      id?: string | null;
+      label: string;
+      notes: string;
+      area: number;
+      geometry: unknown;
+      createdAt: string;
+      mapId: string;
+    },
+  ): Promise<UpsertTurfResponse> => {
+    try {
+      const map = await findMapById(mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+      const turfInput = {
+        label,
+        notes,
+        area,
+        geometry: JSON.stringify(geometry),
+        createdAt: new Date(createdAt),
+        mapId,
+      };
+      let turf = null;
+      if (id) {
+        turf = await updateTurf(id, turfInput);
+      } else {
+        turf = await insertTurf(turfInput);
+      }
+      return { code: 200, result: serializeTurf(turf) };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });
     }
