@@ -102,6 +102,11 @@ const typeDefs = `
     showTurf: Boolean
   }
 
+  input PointInput {
+    lat: Float!
+    lng: Float!
+  }
+
   type AreaStat {
     areaCode: String!
     value: JSON!
@@ -178,6 +183,8 @@ const typeDefs = `
     id: String!
     name: String!
     createdAt: String!
+    placedMarkers: [PlacedMarker!]
+    views: [MapView!]
   }
 
   type MapViewConfig {
@@ -205,6 +212,18 @@ const typeDefs = `
     name: String!
   }
 
+  type PlacedMarker {
+    id: String!
+    label: String!
+    notes: String!
+    point: Point!
+  }
+
+  type Point {
+    lat: Float!
+    lng: Float!
+  }
+
   type Query {
     areaStats(
       areaSetCode: AreaSetCode!
@@ -218,8 +237,8 @@ const typeDefs = `
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
     dataSources(organisationId: String): [DataSource!] @auth
 
+    map(id: String!): Map @auth(read: { mapIdArg: "id" })
     maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })
-    mapViews(mapId: String!): [MapView!] @auth(read: { mapIdArg: "mapId" })
     organisations: [Organisation!] @auth
   }
 
@@ -237,12 +256,18 @@ const typeDefs = `
     result: String
   }
 
+  type UpsertPlacedMarkerResponse {
+    code: Int!
+    result: PlacedMarker
+  }
+
   type Mutation {
     createDataSource(
       name: String!
       organisationId: String!
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
+    deletePlacedMarker(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     updateDataSourceConfig(
@@ -258,6 +283,13 @@ const typeDefs = `
       config: MapViewConfigInput!
       mapId: String!
     ): UpsertMapViewResponse @auth(write: { mapIdArg: "mapId" })
+    upsertPlacedMarker(
+      id: String
+      label: String!
+      notes: String!
+      point: PointInput!
+      mapId: String!
+    ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
   }
 
   type DataSourceEvent {

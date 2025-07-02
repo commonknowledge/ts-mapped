@@ -82,9 +82,12 @@ const checkAuth = async (
     }
     if (argNames.mapIdArg) {
       const mapId = fieldArgs[argNames.mapIdArg];
-      const { organisationId } = await findMapById(mapId);
+      const map = await findMapById(mapId);
+      if (!map) {
+        return false;
+      }
       const organisationUser = await findOrganisationUser(
-        organisationId,
+        map.organisationId,
         userId,
       );
       if (!organisationUser) {

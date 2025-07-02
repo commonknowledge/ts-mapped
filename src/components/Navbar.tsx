@@ -43,7 +43,10 @@ export default function Navbar() {
   return (
     <nav className="flex justify-between items-center p-4 z-1">
       <div className="flex items-center gap-2">
-        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2">
+        <Link
+          href={user ? "/dashboard" : "/"}
+          className="flex items-center gap-2"
+        >
           <Image src="/logo.svg" alt="Mapped" width={32} height={32} />
           Mapped
         </Link>

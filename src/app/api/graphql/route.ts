@@ -6,6 +6,7 @@ import { getServerSession } from "@/auth";
 import { applyAuthDirective } from "./auth";
 import { GraphQLContext } from "./context";
 import DataSource from "./resolvers/DataSource";
+import Map from "./resolvers/Map";
 import Mutation from "./resolvers/Mutation";
 import Query from "./resolvers/Query";
 import Subscription from "./resolvers/Subscription";
@@ -15,6 +16,7 @@ const resolvers: Resolvers = {
   JSON: GraphQLJSON,
   DataSource,
   Query,
+  Map,
   Mutation,
   Subscription,
 };

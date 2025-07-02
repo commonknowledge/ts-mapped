@@ -23,7 +23,7 @@ export function findMapById(id: string) {
     .selectFrom("map")
     .where("id", "=", id)
     .selectAll()
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
 }
 
 export function findMapsByOrganisationId(organisationId: string) {

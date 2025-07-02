@@ -1,13 +1,17 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
 import {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
   DataSourcesQuery,
-  MapViewsQuery,
-  MapViewsQueryVariables,
+  DeletePlacedMarkerMutationMutation,
+  DeletePlacedMarkerMutationMutationVariables,
+  MapQuery,
+  MapQueryVariables,
   Operation,
+  UpsertPlacedMarkerMutation,
+  UpsertPlacedMarkerMutationVariables,
 } from "@/__generated__/types";
 import { PointFeature } from "@/types";
 import { MarkersQueryResult } from "./types";
@@ -26,29 +30,40 @@ export const useDataSourcesQuery = () =>
     }
   `);
 
-export const useMapViewsQuery = (mapId: string | null) =>
-  useQuery<MapViewsQuery, MapViewsQueryVariables>(
+export const useMapQuery = (mapId: string | null) =>
+  useQuery<MapQuery, MapQueryVariables>(
     gql`
-      query MapViews($mapId: String!) {
-        mapViews(mapId: $mapId) {
-          id
-          config {
-            areaDataSourceId
-            areaDataColumn
-            areaSetGroupCode
-            excludeColumnsString
-            markersDataSourceId
-            mapStyleName
-            showBoundaryOutline
-            showLabels
-            showLocations
-            showMembers
-            showTurf
+      query Map($id: String!) {
+        map(id: $id) {
+          placedMarkers {
+            id
+            label
+            notes
+            point {
+              lat
+              lng
+            }
+          }
+          views {
+            id
+            config {
+              areaDataSourceId
+              areaDataColumn
+              areaSetGroupCode
+              excludeColumnsString
+              markersDataSourceId
+              mapStyleName
+              showBoundaryOutline
+              showLabels
+              showLocations
+              showMembers
+              showTurf
+            }
           }
         }
       }
     `,
-    { variables: { mapId: mapId || "" }, skip: !mapId },
+    { variables: { id: mapId || "" }, skip: !mapId },
   );
 
 // Use API request instead of GraphQL to avoid server memory load
@@ -152,3 +167,44 @@ export const useAreaStatsQuery = ({
       notifyOnNetworkStatusChange: true,
     },
   );
+
+export const useDeletePlacedMarkerMutation = () => {
+  return useMutation<
+    DeletePlacedMarkerMutationMutation,
+    DeletePlacedMarkerMutationMutationVariables
+  >(gql`
+    mutation DeletePlacedMarkerMutation($id: String!, $mapId: String!) {
+      deletePlacedMarker(id: $id, mapId: $mapId) {
+        code
+      }
+    }
+  `);
+};
+
+export const useUpsertPlacedMarkerMutation = () => {
+  return useMutation<
+    UpsertPlacedMarkerMutation,
+    UpsertPlacedMarkerMutationVariables
+  >(gql`
+    mutation UpsertPlacedMarker(
+      $id: String
+      $label: String!
+      $notes: String!
+      $point: PointInput!
+      $mapId: String!
+    ) {
+      upsertPlacedMarker(
+        id: $id
+        label: $label
+        notes: $notes
+        point: $point
+        mapId: $mapId
+      ) {
+        code
+        result {
+          id
+        }
+      }
+    }
+  `);
+};

@@ -1,6 +1,7 @@
 import { DatabaseIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
+import { PlacedMarker } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
@@ -13,12 +14,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
-import { SearchResult } from "@/types";
 import MarkerList from "../lists/MarkerList";
 import LayerHeader from "./LayerHeader";
 
 export default function MarkersControl() {
-  const { viewConfig, updateViewConfig, mapRef, setSearchHistory } =
+  const { viewConfig, updateViewConfig, mapRef, insertPlacedMarker } =
     useContext(MapContext);
   const [activeDataSources, setActiveDataSources] = useState<string[]>([]);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
@@ -75,19 +75,14 @@ export default function MarkersControl() {
                   map.getCanvas().style.cursor = "crosshair";
 
                   const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-                    const coordinates: [number, number] = [
-                      e.lngLat.lng,
-                      e.lngLat.lat,
-                    ];
-
-                    const newMarker: SearchResult = {
-                      text: `Dropped Pin (${coordinates[0].toFixed(4)}, ${coordinates[1].toFixed(4)})`,
-                      coordinates: coordinates,
-                      timestamp: new Date(),
+                    const newMarker: PlacedMarker = {
+                      id: `temp-${new Date().getTime()}`,
+                      label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
+                      notes: "",
+                      point: e.lngLat,
                     };
 
-                    // Add to beginning of search history
-                    setSearchHistory((prev) => [newMarker, ...prev]);
+                    insertPlacedMarker(newMarker);
 
                     // Reset cursor
                     map.getCanvas().style.cursor = "";
@@ -95,7 +90,7 @@ export default function MarkersControl() {
 
                     // Fly to the new marker
                     map.flyTo({
-                      center: coordinates,
+                      center: e.lngLat,
                       zoom: 14,
                     });
                   };

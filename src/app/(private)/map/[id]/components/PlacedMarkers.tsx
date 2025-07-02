@@ -4,18 +4,18 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 
-export default function SearchHistoryMarkers() {
-  const { viewConfig, searchHistory } = useContext(MapContext);
+export default function PlacedMarkers() {
+  const { viewConfig, placedMarkers } = useContext(MapContext);
   const features: FeatureCollection<Point> = {
     type: "FeatureCollection",
-    features: searchHistory.map((result) => ({
+    features: placedMarkers.map((marker) => ({
       type: "Feature",
       properties: {
-        text: result.text,
+        text: marker.label,
       },
       geometry: {
         type: "Point",
-        coordinates: result.coordinates,
+        coordinates: [marker.point.lng, marker.point.lat],
       },
     })),
   };

@@ -1,16 +1,8 @@
-.map {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  position: relative;
-}
-
 .loading {
   align-items: center;
   display: flex;
   height: 100%;
   justify-content: center;
-  pointer-events: none;
   position: absolute;
   width: 100%;
   z-index: 1;
