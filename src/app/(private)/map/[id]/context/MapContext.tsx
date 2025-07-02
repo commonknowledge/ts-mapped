@@ -7,16 +7,17 @@ import {
   AreaStatsQueryVariables,
   BoundingBoxInput,
   DataSourcesQuery,
-  MapConfigInput,
   MapStyleName,
+  MapViewConfigInput,
+  PlacedMarker,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
-import { DrawnPolygon, MarkerData, SearchResult } from "@/types";
+import { DrawnPolygon, MarkerData } from "@/types";
 import { ChoroplethLayerConfig, getChoroplethLayerConfig } from "../sources";
 import mapStyles from "../styles";
 import { MarkersQueryResult } from "../types";
 
-export class MapConfig implements MapConfigInput {
+export class ViewConfig implements MapViewConfigInput {
   public areaDataSourceId = "";
   public areaDataColumn = "";
   public areaSetGroupCode: AreaSetGroupCode = AreaSetGroupCode.WMC24;
@@ -29,7 +30,7 @@ export class MapConfig implements MapConfigInput {
   public showLocations = true;
   public showTurf = true;
 
-  constructor(params: Partial<MapConfig> = {}) {
+  constructor(params: Partial<ViewConfig> = {}) {
     Object.assign(this, params);
   }
 
@@ -46,6 +47,9 @@ export class MapConfig implements MapConfigInput {
 }
 
 export const MapContext = createContext<{
+  /* Map ID from URL */
+  mapId: string | null;
+
   /* Map Ref */
   mapRef: RefObject<MapRef | null> | null;
 
@@ -56,12 +60,11 @@ export const MapContext = createContext<{
   editingPolygon: DrawnPolygon | null;
   setEditingPolygon: (polygon: DrawnPolygon | null) => void;
 
-  mapConfig: MapConfig;
-
-  searchHistory: SearchResult[];
-  setSearchHistory: (
-    searchHistory: SearchResult[] | ((prev: SearchResult[]) => SearchResult[]),
-  ) => void;
+  placedMarkers: PlacedMarker[];
+  placedMarkersLoading: boolean;
+  deletePlacedMarker: (id: string) => void;
+  insertPlacedMarker: (placedMarker: PlacedMarker) => void;
+  updatePlacedMarker: (placedMarker: PlacedMarker) => void;
 
   selectedMarker: MarkerData | null;
   setSelectedMarker: (marker: MarkerData | null) => void;
@@ -70,6 +73,9 @@ export const MapContext = createContext<{
   setTurfHistory: (
     turfHistory: DrawnPolygon[] | ((prev: DrawnPolygon[]) => DrawnPolygon[]),
   ) => void;
+
+  viewConfig: ViewConfig;
+  updateViewConfig: (config: Partial<ViewConfig>) => void;
 
   viewId: string | null;
   setViewId: (id: string) => void;
@@ -84,21 +90,26 @@ export const MapContext = createContext<{
 
   /* Derived Properties */
   choroplethLayerConfig: ChoroplethLayerConfig;
-  updateMapConfig: (config: Partial<MapConfig>) => void;
 }>({
+  mapId: null,
+
   mapRef: null,
 
   boundingBox: null,
   setBoundingBox: () => null,
   editingPolygon: null,
   setEditingPolygon: () => null,
-  mapConfig: new MapConfig(),
-  searchHistory: [],
-  setSearchHistory: () => null,
+  placedMarkers: [],
+  placedMarkersLoading: false,
+  deletePlacedMarker: () => null,
+  insertPlacedMarker: () => null,
+  updatePlacedMarker: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,
   turfHistory: [],
   setTurfHistory: () => null,
+  viewConfig: new ViewConfig(),
+  updateViewConfig: () => null,
   viewId: null,
   setViewId: () => null,
   zoom: DEFAULT_ZOOM,
@@ -112,5 +123,4 @@ export const MapContext = createContext<{
     AreaSetGroupCode.WMC24,
     DEFAULT_ZOOM,
   ),
-  updateMapConfig: () => null,
 });

@@ -6,15 +6,15 @@ import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
 import { useContext, useEffect, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/sources";
-import { mapColors } from "@/app/(private)/map/styles";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
 import { DEFAULT_ZOOM } from "@/constants";
-import { DrawDeleteEvent, SearchResult } from "@/types";
+import { DrawDeleteEvent } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
 import Markers from "./Markers";
-import SearchHistoryMarkers from "./SearchHistoryMarkers";
+import PlacedMarkers from "./PlacedMarkers";
 import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
@@ -24,10 +24,10 @@ export default function Map({
 }) {
   const {
     mapRef,
-    mapConfig,
+    viewConfig,
+    insertPlacedMarker,
     setBoundingBox,
     setSelectedMarker,
-    setSearchHistory,
     setTurfHistory,
     setZoom,
   } = useContext(MapContext);
@@ -52,7 +52,7 @@ export default function Map({
       ref={mapRef}
       style={{ flexGrow: 1 }}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-      mapStyle={`mapbox://styles/mapbox/${mapConfig.getMapStyle().slug}`}
+      mapStyle={`mapbox://styles/mapbox/${viewConfig.getMapStyle().slug}`}
       onClick={(e) => {
         const map = e.target;
         const features = map.queryRenderedFeatures(e.point, {
@@ -82,16 +82,12 @@ export default function Map({
         // Listen for search results
         geocoder.on("result", (event) => {
           const result = event.result;
-          setSearchHistory((prev: SearchResult[]) =>
-            [
-              {
-                text: result.place_name,
-                coordinates: result.center as [number, number],
-                timestamp: new Date(),
-              } as SearchResult,
-              ...prev,
-            ].slice(0, 10),
-          );
+          insertPlacedMarker({
+            id: `temp-${new Date().getTime()}`,
+            label: result.place_name,
+            notes: "",
+            point: { lng: result.center[0], lat: result.center[1] },
+          });
         });
 
         map.addControl(geocoder, "top-right");
@@ -198,7 +194,7 @@ export default function Map({
     >
       <Choropleth />
       <Markers />
-      <SearchHistoryMarkers />
+      <PlacedMarkers />
       <TurfPolygons />
     </MapGL>
   );

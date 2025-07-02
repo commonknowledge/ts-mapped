@@ -64,6 +64,7 @@ export type AreaStats = {
 
 export type ArgNames = {
   dataSourceIdArg?: InputMaybe<Scalars["String"]["input"]>;
+  mapIdArg?: InputMaybe<Scalars["String"]["input"]>;
   organisationIdArg?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -214,33 +215,13 @@ export type LooseGeocodingConfigInput = {
   type: GeocodingType;
 };
 
-export type MapConfig = {
-  __typename?: "MapConfig";
-  areaDataColumn: Scalars["String"]["output"];
-  areaDataSourceId: Scalars["String"]["output"];
-  areaSetGroupCode: AreaSetGroupCode;
-  excludeColumnsString: Scalars["String"]["output"];
-  mapStyle: MapStyleName;
-  markersDataSourceId: Scalars["String"]["output"];
-  showBoundaryOutline: Scalars["Boolean"]["output"];
-  showLabels: Scalars["Boolean"]["output"];
-  showLocations: Scalars["Boolean"]["output"];
-  showMembers: Scalars["Boolean"]["output"];
-  showTurf: Scalars["Boolean"]["output"];
-};
-
-export type MapConfigInput = {
-  areaDataColumn?: InputMaybe<Scalars["String"]["input"]>;
-  areaDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
-  areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
-  excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
-  mapStyle?: InputMaybe<MapStyleName>;
-  markersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
-  showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
+export type Map = {
+  __typename?: "Map";
+  createdAt: Scalars["String"]["output"];
+  id: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  placedMarkers?: Maybe<Array<PlacedMarker>>;
+  views?: Maybe<Array<MapView>>;
 };
 
 export enum MapStyleName {
@@ -252,24 +233,60 @@ export enum MapStyleName {
 
 export type MapView = {
   __typename?: "MapView";
-  config: MapConfig;
+  config: MapViewConfig;
   id: Scalars["String"]["output"];
-  organisationId: Scalars["String"]["output"];
+  mapId: Scalars["String"]["output"];
+};
+
+export type MapViewConfig = {
+  __typename?: "MapViewConfig";
+  areaDataColumn: Scalars["String"]["output"];
+  areaDataSourceId: Scalars["String"]["output"];
+  areaSetGroupCode: AreaSetGroupCode;
+  excludeColumnsString: Scalars["String"]["output"];
+  mapStyleName: MapStyleName;
+  markersDataSourceId: Scalars["String"]["output"];
+  showBoundaryOutline: Scalars["Boolean"]["output"];
+  showLabels: Scalars["Boolean"]["output"];
+  showLocations: Scalars["Boolean"]["output"];
+  showMembers: Scalars["Boolean"]["output"];
+  showTurf: Scalars["Boolean"]["output"];
+};
+
+export type MapViewConfigInput = {
+  areaDataColumn?: InputMaybe<Scalars["String"]["input"]>;
+  areaDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
+  excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
+  mapStyleName?: InputMaybe<MapStyleName>;
+  markersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
+  showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type Mutation = {
   __typename?: "Mutation";
   createDataSource?: Maybe<CreateDataSourceResponse>;
+  deletePlacedMarker?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
   enqueueImportDataSourceJob?: Maybe<MutationResponse>;
   updateDataSourceConfig?: Maybe<MutationResponse>;
   upsertMapView?: Maybe<UpsertMapViewResponse>;
+  upsertPlacedMarker?: Maybe<UpsertPlacedMarkerResponse>;
 };
 
 export type MutationCreateDataSourceArgs = {
   name: Scalars["String"]["input"];
   organisationId: Scalars["String"]["input"];
   rawConfig: Scalars["JSON"]["input"];
+};
+
+export type MutationDeletePlacedMarkerArgs = {
+  id: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
 };
 
 export type MutationEnqueueEnrichDataSourceJobArgs = {
@@ -290,9 +307,17 @@ export type MutationUpdateDataSourceConfigArgs = {
 };
 
 export type MutationUpsertMapViewArgs = {
-  config: MapConfigInput;
+  config: MapViewConfigInput;
   id?: InputMaybe<Scalars["String"]["input"]>;
-  organisationId: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+};
+
+export type MutationUpsertPlacedMarkerArgs = {
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  label: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+  notes: Scalars["String"]["input"];
+  point: PointInput;
 };
 
 export type MutationResponse = {
@@ -311,12 +336,32 @@ export type Organisation = {
   name: Scalars["String"]["output"];
 };
 
+export type PlacedMarker = {
+  __typename?: "PlacedMarker";
+  id: Scalars["String"]["output"];
+  label: Scalars["String"]["output"];
+  notes: Scalars["String"]["output"];
+  point: Point;
+};
+
+export type Point = {
+  __typename?: "Point";
+  lat: Scalars["Float"]["output"];
+  lng: Scalars["Float"]["output"];
+};
+
+export type PointInput = {
+  lat: Scalars["Float"]["input"];
+  lng: Scalars["Float"]["input"];
+};
+
 export type Query = {
   __typename?: "Query";
   areaStats?: Maybe<AreaStats>;
   dataSource?: Maybe<DataSource>;
   dataSources?: Maybe<Array<DataSource>>;
-  mapViews?: Maybe<Array<MapView>>;
+  map?: Maybe<Map>;
+  maps?: Maybe<Array<Map>>;
   organisations?: Maybe<Array<Organisation>>;
 };
 
@@ -337,7 +382,11 @@ export type QueryDataSourcesArgs = {
   organisationId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
-export type QueryMapViewsArgs = {
+export type QueryMapArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type QueryMapsArgs = {
   organisationId: Scalars["String"]["input"];
 };
 
@@ -360,6 +409,26 @@ export type UpsertMapViewResponse = {
   __typename?: "UpsertMapViewResponse";
   code: Scalars["Int"]["output"];
   result?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type UpsertPlacedMarkerResponse = {
+  __typename?: "UpsertPlacedMarkerResponse";
+  code: Scalars["Int"]["output"];
+  result?: Maybe<PlacedMarker>;
+};
+
+export type ListMapsQueryVariables = Exact<{
+  organisationId: Scalars["String"]["input"];
+}>;
+
+export type ListMapsQuery = {
+  __typename?: "Query";
+  maps?: Array<{
+    __typename?: "Map";
+    id: string;
+    name: string;
+    createdAt: string;
+  }> | null;
 };
 
 export type EnqueueImportDataSourceJobMutationVariables = Exact<{
@@ -587,8 +656,8 @@ export type ListDataSourcesQuery = {
 
 export type UpsertMapViewMutationVariables = Exact<{
   id?: InputMaybe<Scalars["String"]["input"]>;
-  config: MapConfigInput;
-  organisationId: Scalars["String"]["input"];
+  config: MapViewConfigInput;
+  mapId: Scalars["String"]["input"];
 }>;
 
 export type UpsertMapViewMutation = {
@@ -616,30 +685,40 @@ export type DataSourcesQuery = {
   }> | null;
 };
 
-export type MapViewsQueryVariables = Exact<{
-  organisationId: Scalars["String"]["input"];
+export type MapQueryVariables = Exact<{
+  id: Scalars["String"]["input"];
 }>;
 
-export type MapViewsQuery = {
+export type MapQuery = {
   __typename?: "Query";
-  mapViews?: Array<{
-    __typename?: "MapView";
-    id: string;
-    config: {
-      __typename?: "MapConfig";
-      areaDataSourceId: string;
-      areaDataColumn: string;
-      areaSetGroupCode: AreaSetGroupCode;
-      excludeColumnsString: string;
-      markersDataSourceId: string;
-      mapStyle: MapStyleName;
-      showBoundaryOutline: boolean;
-      showLabels: boolean;
-      showLocations: boolean;
-      showMembers: boolean;
-      showTurf: boolean;
-    };
-  }> | null;
+  map?: {
+    __typename?: "Map";
+    placedMarkers?: Array<{
+      __typename?: "PlacedMarker";
+      id: string;
+      label: string;
+      notes: string;
+      point: { __typename?: "Point"; lat: number; lng: number };
+    }> | null;
+    views?: Array<{
+      __typename?: "MapView";
+      id: string;
+      config: {
+        __typename?: "MapViewConfig";
+        areaDataSourceId: string;
+        areaDataColumn: string;
+        areaSetGroupCode: AreaSetGroupCode;
+        excludeColumnsString: string;
+        markersDataSourceId: string;
+        mapStyleName: MapStyleName;
+        showBoundaryOutline: boolean;
+        showLabels: boolean;
+        showLocations: boolean;
+        showMembers: boolean;
+        showTurf: boolean;
+      };
+    }> | null;
+  } | null;
 };
 
 export type AreaStatsQueryVariables = Exact<{
@@ -660,6 +739,33 @@ export type AreaStatsQuery = {
     column: string;
     columnType: ColumnType;
     stats: Array<{ __typename?: "AreaStat"; areaCode: string; value: any }>;
+  } | null;
+};
+
+export type DeletePlacedMarkerMutationMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+}>;
+
+export type DeletePlacedMarkerMutationMutation = {
+  __typename?: "Mutation";
+  deletePlacedMarker?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
+export type UpsertPlacedMarkerMutationVariables = Exact<{
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  label: Scalars["String"]["input"];
+  notes: Scalars["String"]["input"];
+  point: PointInput;
+  mapId: Scalars["String"]["input"];
+}>;
+
+export type UpsertPlacedMarkerMutation = {
+  __typename?: "Mutation";
+  upsertPlacedMarker?: {
+    __typename?: "UpsertPlacedMarkerResponse";
+    code: number;
+    result?: { __typename?: "PlacedMarker"; id: string } | null;
   } | null;
 };
 
@@ -809,19 +915,24 @@ export type ResolversTypes = {
   LooseEnrichmentInput: LooseEnrichmentInput;
   LooseGeocodingConfig: ResolverTypeWrapper<LooseGeocodingConfig>;
   LooseGeocodingConfigInput: LooseGeocodingConfigInput;
-  MapConfig: ResolverTypeWrapper<MapConfig>;
-  MapConfigInput: MapConfigInput;
+  Map: ResolverTypeWrapper<Map>;
   MapStyleName: MapStyleName;
   MapView: ResolverTypeWrapper<MapView>;
+  MapViewConfig: ResolverTypeWrapper<MapViewConfig>;
+  MapViewConfigInput: MapViewConfigInput;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
   Organisation: ResolverTypeWrapper<Organisation>;
+  PlacedMarker: ResolverTypeWrapper<PlacedMarker>;
+  Point: ResolverTypeWrapper<Point>;
+  PointInput: PointInput;
   Query: ResolverTypeWrapper<{}>;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
+  UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -848,17 +959,22 @@ export type ResolversParentTypes = {
   LooseEnrichmentInput: LooseEnrichmentInput;
   LooseGeocodingConfig: LooseGeocodingConfig;
   LooseGeocodingConfigInput: LooseGeocodingConfigInput;
-  MapConfig: MapConfig;
-  MapConfigInput: MapConfigInput;
+  Map: Map;
   MapView: MapView;
+  MapViewConfig: MapViewConfig;
+  MapViewConfigInput: MapViewConfigInput;
   Mutation: {};
   MutationResponse: MutationResponse;
   Organisation: Organisation;
+  PlacedMarker: PlacedMarker;
+  Point: Point;
+  PointInput: PointInput;
   Query: {};
   RecordsProcessedEvent: RecordsProcessedEvent;
   String: Scalars["String"]["output"];
   Subscription: {};
   UpsertMapViewResponse: UpsertMapViewResponse;
+  UpsertPlacedMarkerResponse: UpsertPlacedMarkerResponse;
 };
 
 export type AuthDirectiveArgs = {
@@ -1119,10 +1235,41 @@ export type LooseGeocodingConfigResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MapConfigResolvers<
+export type MapResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends ResolversParentTypes["Map"] = ResolversParentTypes["Map"],
+> = {
+  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  placedMarkers?: Resolver<
+    Maybe<Array<ResolversTypes["PlacedMarker"]>>,
+    ParentType,
+    ContextType
+  >;
+  views?: Resolver<
+    Maybe<Array<ResolversTypes["MapView"]>>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MapViewResolvers<
   ContextType = GraphQLContext,
   ParentType extends
-    ResolversParentTypes["MapConfig"] = ResolversParentTypes["MapConfig"],
+    ResolversParentTypes["MapView"] = ResolversParentTypes["MapView"],
+> = {
+  config?: Resolver<ResolversTypes["MapViewConfig"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  mapId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type MapViewConfigResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["MapViewConfig"] = ResolversParentTypes["MapViewConfig"],
 > = {
   areaDataColumn?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   areaDataSourceId?: Resolver<
@@ -1140,7 +1287,11 @@ export type MapConfigResolvers<
     ParentType,
     ContextType
   >;
-  mapStyle?: Resolver<ResolversTypes["MapStyleName"], ParentType, ContextType>;
+  mapStyleName?: Resolver<
+    ResolversTypes["MapStyleName"],
+    ParentType,
+    ContextType
+  >;
   markersDataSourceId?: Resolver<
     ResolversTypes["String"],
     ParentType,
@@ -1158,17 +1309,6 @@ export type MapConfigResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type MapViewResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["MapView"] = ResolversParentTypes["MapView"],
-> = {
-  config?: Resolver<ResolversTypes["MapConfig"], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  organisationId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type MutationResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -1182,6 +1322,12 @@ export type MutationResolvers<
       MutationCreateDataSourceArgs,
       "name" | "organisationId" | "rawConfig"
     >
+  >;
+  deletePlacedMarker?: Resolver<
+    Maybe<ResolversTypes["MutationResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationDeletePlacedMarkerArgs, "id" | "mapId">
   >;
   enqueueEnrichDataSourceJob?: Resolver<
     Maybe<ResolversTypes["MutationResponse"]>,
@@ -1205,7 +1351,16 @@ export type MutationResolvers<
     Maybe<ResolversTypes["UpsertMapViewResponse"]>,
     ParentType,
     ContextType,
-    RequireFields<MutationUpsertMapViewArgs, "config" | "organisationId">
+    RequireFields<MutationUpsertMapViewArgs, "config" | "mapId">
+  >;
+  upsertPlacedMarker?: Resolver<
+    Maybe<ResolversTypes["UpsertPlacedMarkerResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<
+      MutationUpsertPlacedMarkerArgs,
+      "label" | "mapId" | "notes" | "point"
+    >
   >;
 };
 
@@ -1225,6 +1380,28 @@ export type OrganisationResolvers<
 > = {
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PlacedMarkerResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["PlacedMarker"] = ResolversParentTypes["PlacedMarker"],
+> = {
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  label?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  point?: Resolver<ResolversTypes["Point"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PointResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["Point"] = ResolversParentTypes["Point"],
+> = {
+  lat?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
+  lng?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1254,11 +1431,17 @@ export type QueryResolvers<
     ContextType,
     Partial<QueryDataSourcesArgs>
   >;
-  mapViews?: Resolver<
-    Maybe<Array<ResolversTypes["MapView"]>>,
+  map?: Resolver<
+    Maybe<ResolversTypes["Map"]>,
     ParentType,
     ContextType,
-    RequireFields<QueryMapViewsArgs, "organisationId">
+    RequireFields<QueryMapArgs, "id">
+  >;
+  maps?: Resolver<
+    Maybe<Array<ResolversTypes["Map"]>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryMapsArgs, "organisationId">
   >;
   organisations?: Resolver<
     Maybe<Array<ResolversTypes["Organisation"]>>,
@@ -1301,6 +1484,20 @@ export type UpsertMapViewResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UpsertPlacedMarkerResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["UpsertPlacedMarkerResponse"] = ResolversParentTypes["UpsertPlacedMarkerResponse"],
+> = {
+  code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  result?: Resolver<
+    Maybe<ResolversTypes["PlacedMarker"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = GraphQLContext> = {
   AreaStat?: AreaStatResolvers<ContextType>;
   AreaStats?: AreaStatsResolvers<ContextType>;
@@ -1316,15 +1513,19 @@ export type Resolvers<ContextType = GraphQLContext> = {
   JobInfo?: JobInfoResolvers<ContextType>;
   LooseEnrichment?: LooseEnrichmentResolvers<ContextType>;
   LooseGeocodingConfig?: LooseGeocodingConfigResolvers<ContextType>;
-  MapConfig?: MapConfigResolvers<ContextType>;
+  Map?: MapResolvers<ContextType>;
   MapView?: MapViewResolvers<ContextType>;
+  MapViewConfig?: MapViewConfigResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MutationResponse?: MutationResponseResolvers<ContextType>;
   Organisation?: OrganisationResolvers<ContextType>;
+  PlacedMarker?: PlacedMarkerResolvers<ContextType>;
+  Point?: PointResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   UpsertMapViewResponse?: UpsertMapViewResponseResolvers<ContextType>;
+  UpsertPlacedMarkerResponse?: UpsertPlacedMarkerResponseResolvers<ContextType>;
 };
 
 export type DirectiveResolvers<ContextType = GraphQLContext> = {

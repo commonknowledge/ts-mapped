@@ -6,9 +6,9 @@ import {
   Operation,
 } from "@/__generated__/types";
 import { MAX_COLUMN_KEY } from "@/constants";
-import { Database } from "@/server/models";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
+import { Database } from "@/server/services/database";
 import logger from "@/server/services/logger";
 
 export const getAreaStats = async (

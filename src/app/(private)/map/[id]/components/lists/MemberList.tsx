@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import SkeletonGroup from "../SkeletonGroup";
@@ -14,7 +14,7 @@ interface GEOJSONPoint {
 export default function MemberList() {
   const [limit, setLimit] = useState(10);
 
-  const { mapRef, markersQuery, mapConfig } = useContext(MapContext);
+  const { mapRef, markersQuery, viewConfig } = useContext(MapContext);
   const dataSource = markersQuery?.data?.dataSource;
 
   if (markersQuery?.loading) {
@@ -29,7 +29,9 @@ export default function MemberList() {
 
   return (
     <ScrollArea className="max-h-[200px] w-full rounded-md p-2 overflow-y-auto">
-      <ul className={`${mapConfig.showMembers ? "opacity-100" : "opacity-50"}`}>
+      <ul
+        className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
+      >
         {dataSource.markers.features
           ?.slice(0, limit)
           .map((feature: GEOJSONPoint) => (

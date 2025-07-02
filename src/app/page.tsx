@@ -1,8 +1,17 @@
+"use client";
+
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { Link } from "@/components/Link";
+import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
 
 export default function HomePage() {
+  const user = useCurrentUser();
+  if (user) {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="overflow-hidden">
       <div className="flex flex-col items-center justify-center relative bg-[#678DE312] py-16 p-4">

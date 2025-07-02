@@ -7,6 +7,8 @@ import {
   MutationResponse,
   MutationUpdateDataSourceConfigArgs,
   MutationUpsertMapViewArgs,
+  PointInput,
+  UpsertPlacedMarkerResponse,
 } from "@/__generated__/types";
 import { serializeDataSource } from "@/app/api/graphql/serializers";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -15,7 +17,13 @@ import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
+import { findMapById } from "@/server/repositories/Map";
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
+import {
+  deletePlacedMarker,
+  insertPlacedMarker,
+  updatePlacedMarker,
+} from "@/server/repositories/PlacedMarker";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import {
@@ -68,6 +76,15 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200, result: serializeDataSource(dataSource) };
     } catch (error) {
       logger.error(`Could not create data source`, { error });
+    }
+    return { code: 500 };
+  },
+  deletePlacedMarker: async (_: unknown, { id }: { id: string }) => {
+    try {
+      await deletePlacedMarker(id);
+      return { code: 200 };
+    } catch (error) {
+      logger.error(`Could not delete marker ${id}`, { error });
     }
     return { code: 500 };
   },
@@ -166,17 +183,16 @@ const MutationResolvers: MutationResolversType = {
   },
   upsertMapView: async (_: unknown, args: MutationUpsertMapViewArgs) => {
     try {
-      const { id, config, organisationId } = args;
+      const { id, config } = args;
       let updatedMapView = null;
       if (id) {
         updatedMapView = await updateMapView(id, {
           config: JSON.stringify(config),
-          organisationId,
         });
       } else {
         updatedMapView = await insertMapView({
           config: JSON.stringify(config),
-          organisationId,
+          mapId: args.mapId,
         });
       }
       return { code: 200, result: updatedMapView.id };
@@ -184,6 +200,45 @@ const MutationResolvers: MutationResolversType = {
       logger.error(`Could not upsert map view: ${JSON.stringify(args)}`, {
         error,
       });
+    }
+    return { code: 500 };
+  },
+  upsertPlacedMarker: async (
+    _: unknown,
+    {
+      id,
+      label,
+      notes,
+      point,
+      mapId,
+    }: {
+      id?: string | null;
+      label: string;
+      notes: string;
+      point: PointInput;
+      mapId: string;
+    },
+  ): Promise<UpsertPlacedMarkerResponse> => {
+    try {
+      const map = await findMapById(mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+      const placedMarkerInput = {
+        label,
+        notes,
+        point,
+        mapId,
+      };
+      let placedMarker = null;
+      if (id) {
+        placedMarker = await updatePlacedMarker(id, placedMarkerInput);
+      } else {
+        placedMarker = await insertPlacedMarker(placedMarkerInput);
+      }
+      return { code: 200, result: placedMarker };
+    } catch (error) {
+      logger.error(`Could not create placed marker`, { error });
     }
     return { code: 500 };
   },

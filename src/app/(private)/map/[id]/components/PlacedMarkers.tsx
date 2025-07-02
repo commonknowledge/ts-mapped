@@ -1,27 +1,27 @@
 import { FeatureCollection, Point } from "geojson";
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
-import { mapColors } from "@/app/(private)/map/styles";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
 
-export default function SearchHistoryMarkers() {
-  const { mapConfig, searchHistory } = useContext(MapContext);
+export default function PlacedMarkers() {
+  const { viewConfig, placedMarkers } = useContext(MapContext);
   const features: FeatureCollection<Point> = {
     type: "FeatureCollection",
-    features: searchHistory.map((result) => ({
+    features: placedMarkers.map((marker) => ({
       type: "Feature",
       properties: {
-        text: result.text,
+        text: marker.label,
       },
       geometry: {
         type: "Point",
-        coordinates: result.coordinates,
+        coordinates: [marker.point.lng, marker.point.lat],
       },
     })),
   };
 
   return (
-    mapConfig.showLocations && (
+    viewConfig.showLocations && (
       <Source id="search-history" type="geojson" data={features}>
         <Layer
           id="search-history-pins"

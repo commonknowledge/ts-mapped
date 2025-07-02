@@ -56,6 +56,13 @@ const typeDefs = `
     SUM
   }
 
+  input ArgNames {
+    dataSourceIdArg: String
+    mapIdArg: String
+    organisationIdArg: String
+  }
+
+
   input BoundingBoxInput {
     north: Float!
     east: Float!
@@ -65,11 +72,6 @@ const typeDefs = `
 
   input ColumnRolesInput {
     nameColumn: String!
-  }
-
-  input ArgNames {
-    dataSourceIdArg: String
-    organisationIdArg: String
   }
 
   input LooseGeocodingConfigInput {
@@ -86,7 +88,7 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
-  input MapConfigInput {
+  input MapViewConfigInput {
     areaDataSourceId: String
     areaDataColumn: String
     areaSetGroupCode: AreaSetGroupCode
@@ -98,6 +100,11 @@ const typeDefs = `
     showLocations: Boolean
     showMembers: Boolean
     showTurf: Boolean
+  }
+
+  input PointInput {
+    lat: Float!
+    lng: Float!
   }
 
   type AreaStat {
@@ -172,7 +179,15 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
-  type MapConfig {
+  type Map {
+    id: String!
+    name: String!
+    createdAt: String!
+    placedMarkers: [PlacedMarker!]
+    views: [MapView!]
+  }
+
+  type MapViewConfig {
     areaDataSourceId: String!
     areaDataColumn: String!
     areaSetGroupCode: AreaSetGroupCode!
@@ -188,13 +203,25 @@ const typeDefs = `
 
   type MapView {
     id: String!
-    config: MapConfig!
-    organisationId: String!
+    config: MapViewConfig!
+    mapId: String!
   }
 
   type Organisation {
     id: String!
     name: String!
+  }
+
+  type PlacedMarker {
+    id: String!
+    label: String!
+    notes: String!
+    point: Point!
+  }
+
+  type Point {
+    lat: Float!
+    lng: Float!
   }
 
   type Query {
@@ -210,7 +237,8 @@ const typeDefs = `
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
     dataSources(organisationId: String): [DataSource!] @auth
 
-    mapViews(organisationId: String!): [MapView!] @auth(read: { organisationIdArg: "organisationId" })
+    map(id: String!): Map @auth(read: { mapIdArg: "id" })
+    maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })
     organisations: [Organisation!] @auth
   }
 
@@ -228,12 +256,18 @@ const typeDefs = `
     result: String
   }
 
+  type UpsertPlacedMarkerResponse {
+    code: Int!
+    result: PlacedMarker
+  }
+
   type Mutation {
     createDataSource(
       name: String!
       organisationId: String!
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
+    deletePlacedMarker(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     updateDataSourceConfig(
@@ -246,9 +280,16 @@ const typeDefs = `
     ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
     upsertMapView(
       id: String
-      config: MapConfigInput!
-      organisationId: String!
-    ): UpsertMapViewResponse @auth(write: { organisationIdArg: "organisationId" })
+      config: MapViewConfigInput!
+      mapId: String!
+    ): UpsertMapViewResponse @auth(write: { mapIdArg: "mapId" })
+    upsertPlacedMarker(
+      id: String
+      label: String!
+      notes: String!
+      point: PointInput!
+      mapId: String!
+    ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
   }
 
   type DataSourceEvent {

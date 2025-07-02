@@ -11,6 +11,23 @@ export enum DataSourceType {
   mailchimp = "mailchimp",
 }
 
+export interface DrawDeleteEvent {
+  features: {
+    id: string;
+    type: string;
+    geometry: Geometry;
+    properties: Record<string, unknown>;
+  }[];
+}
+
+export interface DrawnPolygon {
+  id: string;
+  area: number;
+  geometry: Geometry;
+  timestamp: Date;
+  name: string;
+}
+
 export interface ExternalRecord {
   externalId: string;
   json: Record<string, unknown>;
@@ -28,22 +45,16 @@ export interface MarkerData {
   coordinates: number[];
 }
 
-export interface PointFeature {
-  type: "Feature";
-  properties: Record<string, string>;
-  geometry: { coordinates: [number, number]; type: "Point" };
-}
-
 // Property names taken from Mapbox standard
 export interface Point {
   lng: number;
   lat: number;
 }
 
-export interface SearchResult {
-  text: string;
-  coordinates: [number, number];
-  timestamp: Date;
+export interface PointFeature {
+  type: "Feature";
+  properties: Record<string, string>;
+  geometry: { coordinates: [number, number]; type: "Point" };
 }
 
 export interface ServerSession {
@@ -53,27 +64,4 @@ export interface ServerSession {
 
 export interface UploadResponseBody {
   filename: string;
-}
-
-export interface SearchResult {
-  text: string;
-  coordinates: [number, number];
-  timestamp: Date;
-}
-
-export interface DrawnPolygon {
-  id: string;
-  area: number;
-  geometry: Geometry;
-  timestamp: Date;
-  name: string;
-}
-
-export interface DrawDeleteEvent {
-  features: {
-    id: string;
-    type: string;
-    geometry: Geometry;
-    properties: Record<string, unknown>;
-  }[];
 }

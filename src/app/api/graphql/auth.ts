@@ -7,6 +7,7 @@ import {
 } from "graphql";
 import { AuthDirectiveArgs } from "@/__generated__/types";
 import { findDataSourceByIdAndUserId } from "@/server/repositories/DataSource";
+import { findMapById } from "@/server/repositories/Map";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import logger from "@/server/services/logger";
 import { GraphQLContext } from "./context";
@@ -76,6 +77,20 @@ const checkAuth = async (
         userId,
       );
       if (!dataSource) {
+        return false;
+      }
+    }
+    if (argNames.mapIdArg) {
+      const mapId = fieldArgs[argNames.mapIdArg];
+      const map = await findMapById(mapId);
+      if (!map) {
+        return false;
+      }
+      const organisationUser = await findOrganisationUser(
+        map.organisationId,
+        userId,
+      );
+      if (!organisationUser) {
         return false;
       }
     }

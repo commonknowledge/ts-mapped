@@ -1,11 +1,11 @@
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { useFillColor } from "@/app/(private)/map/colors";
-import { MapContext } from "@/app/(private)/map/context/MapContext";
+import { useFillColor } from "@/app/(private)/map/[id]/colors";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 
 export default function Choropleth() {
   const {
-    mapConfig,
+    viewConfig,
     choroplethLayerConfig: {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
@@ -33,7 +33,7 @@ export default function Choropleth() {
       />
 
       {/* Line Layer */}
-      {mapConfig.showBoundaryOutline && (
+      {viewConfig.showBoundaryOutline && (
         <Layer
           id={`${sourceId}-line`}
           source={sourceId}
@@ -47,7 +47,7 @@ export default function Choropleth() {
       )}
 
       {/* Symbol Layer (Labels) */}
-      {mapConfig.showLabels && (
+      {viewConfig.showLabels && (
         <Layer
           id={`${sourceId}-labels`}
           source={sourceId}
@@ -66,7 +66,7 @@ export default function Choropleth() {
             "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           }}
           paint={{
-            "text-color": mapConfig.getMapStyle().textColor,
+            "text-color": viewConfig.getMapStyle().textColor,
             "text-opacity": [
               "interpolate",
               ["linear"],
@@ -76,7 +76,7 @@ export default function Choropleth() {
               10,
               0.8,
             ],
-            "text-halo-color": mapConfig.getMapStyle().textHaloColor,
+            "text-halo-color": viewConfig.getMapStyle().textHaloColor,
             "text-halo-width": 1.5,
           }}
         />

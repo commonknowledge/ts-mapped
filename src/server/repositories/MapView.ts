@@ -1,11 +1,10 @@
 import { MapViewUpdate, NewMapView } from "@/server/models/MapView";
 import { db } from "@/server/services/database";
 
-export async function findMapViewsByOrganisationId(organisationId: string) {
-  return await db
+export function findMapViewsByMapId(mapId: string) {
+  return db
     .selectFrom("mapView")
-    .where("organisationId", "=", organisationId)
-    .orderBy("id asc")
+    .where("mapId", "=", mapId)
     .selectAll()
     .execute();
 }
