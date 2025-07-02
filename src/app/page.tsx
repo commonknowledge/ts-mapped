@@ -2,9 +2,7 @@
 
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { Link } from "@/components/Link";
 import { useCurrentUser } from "@/hooks";
-import { Button } from "@/shadcn/ui/button";
 
 export default function HomePage() {
   const user = useCurrentUser();
@@ -25,14 +23,6 @@ export default function HomePage() {
         <p className="text-5xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8">
           Making the right connections for organisers & activists
         </p>
-        <div className="flex gap-4 items-center justify-center">
-          <Button size="lg" asChild={true}>
-            <Link href="map">Map</Link>
-          </Button>
-          <Button size="lg" asChild={true}>
-            <Link href="data-sources">Data Sources</Link>
-          </Button>
-        </div>
         <Image
           src="/pattern.svg"
           alt="Mapped"
