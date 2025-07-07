@@ -12,6 +12,7 @@ import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { uploadFile } from "@/services/uploads";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,7 +29,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceType, UploadResponseBody } from "@/types";
+import { DataSourceType } from "@/types";
 import { DataSourceConfig, DataSourceConfigSchema } from "@/zod";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
@@ -178,23 +179,6 @@ const prepareDataSource = async (
     return clientConfig;
   }
 
-  clientConfig.filename = await uploadFile(clientConfig.file);
+  clientConfig.url = await uploadFile(clientConfig.file);
   return clientConfig;
-};
-
-const uploadFile = async (file: File | null): Promise<string> => {
-  if (!file) {
-    throw new Error("Invalid file");
-  }
-  const body = new FormData();
-  body.set("file", file);
-  const response = await fetch("/api/upload", {
-    body,
-    method: "POST",
-  });
-  if (!response.ok) {
-    throw new Error("Failed to upload file");
-  }
-  const data: UploadResponseBody = await response.json();
-  return data.filename;
 };

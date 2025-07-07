@@ -4,7 +4,7 @@ import {
   DataSourceQueryVariables,
 } from "@/__generated__/types";
 import { DataSourceFeatures } from "@/features";
-import { query } from "@/services/ApolloClient";
+import { query } from "@/services/apollo";
 import { DataSourceType } from "@/types";
 import DataSourceDashboard from "./DataSourceDashboard";
 import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";

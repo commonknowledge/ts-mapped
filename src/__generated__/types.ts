@@ -105,6 +105,12 @@ export type CreateDataSourceResponse = {
   result?: Maybe<DataSource>;
 };
 
+export type CreateMapResponse = {
+  __typename?: "CreateMapResponse";
+  code: Scalars["Int"]["output"];
+  result?: Maybe<Map>;
+};
+
 export type DataSource = {
   __typename?: "DataSource";
   autoEnrich: Scalars["Boolean"]["output"];
@@ -219,10 +225,16 @@ export type Map = {
   __typename?: "Map";
   createdAt: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
+  imageUrl?: Maybe<Scalars["String"]["output"]>;
   name: Scalars["String"]["output"];
   placedMarkers?: Maybe<Array<PlacedMarker>>;
   turfs?: Maybe<Array<Turf>>;
   views?: Maybe<Array<MapView>>;
+};
+
+export type MapInput = {
+  imageUrl?: InputMaybe<Scalars["String"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export enum MapStyleName {
@@ -271,11 +283,13 @@ export type MapViewConfigInput = {
 export type Mutation = {
   __typename?: "Mutation";
   createDataSource?: Maybe<CreateDataSourceResponse>;
+  createMap?: Maybe<CreateMapResponse>;
   deletePlacedMarker?: Maybe<MutationResponse>;
   deleteTurf?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
   enqueueImportDataSourceJob?: Maybe<MutationResponse>;
   updateDataSourceConfig?: Maybe<MutationResponse>;
+  updateMap?: Maybe<UpdateMapResponse>;
   upsertMapView?: Maybe<UpsertMapViewResponse>;
   upsertPlacedMarker?: Maybe<UpsertPlacedMarkerResponse>;
   upsertTurf?: Maybe<UpsertTurfResponse>;
@@ -285,6 +299,10 @@ export type MutationCreateDataSourceArgs = {
   name: Scalars["String"]["input"];
   organisationId: Scalars["String"]["input"];
   rawConfig: Scalars["JSON"]["input"];
+};
+
+export type MutationCreateMapArgs = {
+  organisationId: Scalars["String"]["input"];
 };
 
 export type MutationDeletePlacedMarkerArgs = {
@@ -312,6 +330,11 @@ export type MutationUpdateDataSourceConfigArgs = {
   id: Scalars["String"]["input"];
   looseEnrichments?: InputMaybe<Array<LooseEnrichmentInput>>;
   looseGeocodingConfig?: InputMaybe<LooseGeocodingConfigInput>;
+};
+
+export type MutationUpdateMapArgs = {
+  id: Scalars["String"]["input"];
+  map: MapInput;
 };
 
 export type MutationUpsertMapViewArgs = {
@@ -433,6 +456,12 @@ export type Turf = {
   notes: Scalars["String"]["output"];
 };
 
+export type UpdateMapResponse = {
+  __typename?: "UpdateMapResponse";
+  code: Scalars["Int"]["output"];
+  result?: Maybe<Map>;
+};
+
 export type UpsertMapViewResponse = {
   __typename?: "UpsertMapViewResponse";
   code: Scalars["Int"]["output"];
@@ -463,6 +492,19 @@ export type ListMapsQuery = {
     name: string;
     createdAt: string;
   }> | null;
+};
+
+export type CreateMapMutationVariables = Exact<{
+  organisationId: Scalars["String"]["input"];
+}>;
+
+export type CreateMapMutation = {
+  __typename?: "Mutation";
+  createMap?: {
+    __typename?: "CreateMapResponse";
+    code: number;
+    result?: { __typename?: "Map"; id: string } | null;
+  } | null;
 };
 
 export type EnqueueImportDataSourceJobMutationVariables = Exact<{
@@ -700,6 +742,24 @@ export type UpsertMapViewMutation = {
     __typename?: "UpsertMapViewResponse";
     code: number;
     result?: string | null;
+  } | null;
+};
+
+export type UpdateMapImageMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  mapInput: MapInput;
+}>;
+
+export type UpdateMapImageMutation = {
+  __typename?: "Mutation";
+  updateMap?: {
+    __typename?: "UpdateMapResponse";
+    code: number;
+    result?: {
+      __typename?: "Map";
+      id: string;
+      imageUrl?: string | null;
+    } | null;
   } | null;
 };
 
@@ -971,6 +1031,7 @@ export type ResolversTypes = {
   ColumnRolesInput: ColumnRolesInput;
   ColumnType: ColumnType;
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
+  CreateMapResponse: ResolverTypeWrapper<CreateMapResponse>;
   DataSource: ResolverTypeWrapper<DataSource>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
   EnrichmentDataSource: ResolverTypeWrapper<EnrichmentDataSource>;
@@ -988,6 +1049,7 @@ export type ResolversTypes = {
   LooseGeocodingConfig: ResolverTypeWrapper<LooseGeocodingConfig>;
   LooseGeocodingConfigInput: LooseGeocodingConfigInput;
   Map: ResolverTypeWrapper<Map>;
+  MapInput: MapInput;
   MapStyleName: MapStyleName;
   MapView: ResolverTypeWrapper<MapView>;
   MapViewConfig: ResolverTypeWrapper<MapViewConfig>;
@@ -1004,6 +1066,7 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
   Turf: ResolverTypeWrapper<Turf>;
+  UpdateMapResponse: ResolverTypeWrapper<UpdateMapResponse>;
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
   UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
   UpsertTurfResponse: ResolverTypeWrapper<UpsertTurfResponse>;
@@ -1020,6 +1083,7 @@ export type ResolversParentTypes = {
   ColumnRoles: ColumnRoles;
   ColumnRolesInput: ColumnRolesInput;
   CreateDataSourceResponse: CreateDataSourceResponse;
+  CreateMapResponse: CreateMapResponse;
   DataSource: DataSource;
   DataSourceEvent: DataSourceEvent;
   EnrichmentDataSource: EnrichmentDataSource;
@@ -1034,6 +1098,7 @@ export type ResolversParentTypes = {
   LooseGeocodingConfig: LooseGeocodingConfig;
   LooseGeocodingConfigInput: LooseGeocodingConfigInput;
   Map: Map;
+  MapInput: MapInput;
   MapView: MapView;
   MapViewConfig: MapViewConfig;
   MapViewConfigInput: MapViewConfigInput;
@@ -1048,6 +1113,7 @@ export type ResolversParentTypes = {
   String: Scalars["String"]["output"];
   Subscription: {};
   Turf: Turf;
+  UpdateMapResponse: UpdateMapResponse;
   UpsertMapViewResponse: UpsertMapViewResponse;
   UpsertPlacedMarkerResponse: UpsertPlacedMarkerResponse;
   UpsertTurfResponse: UpsertTurfResponse;
@@ -1120,6 +1186,16 @@ export type CreateDataSourceResponseResolvers<
     ParentType,
     ContextType
   >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CreateMapResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["CreateMapResponse"] = ResolversParentTypes["CreateMapResponse"],
+> = {
+  code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  result?: Resolver<Maybe<ResolversTypes["Map"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1317,6 +1393,7 @@ export type MapResolvers<
 > = {
   createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  imageUrl?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   placedMarkers?: Resolver<
     Maybe<Array<ResolversTypes["PlacedMarker"]>>,
@@ -1404,6 +1481,12 @@ export type MutationResolvers<
       "name" | "organisationId" | "rawConfig"
     >
   >;
+  createMap?: Resolver<
+    Maybe<ResolversTypes["CreateMapResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationCreateMapArgs, "organisationId">
+  >;
   deletePlacedMarker?: Resolver<
     Maybe<ResolversTypes["MutationResponse"]>,
     ParentType,
@@ -1433,6 +1516,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationUpdateDataSourceConfigArgs, "id">
+  >;
+  updateMap?: Resolver<
+    Maybe<ResolversTypes["UpdateMapResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationUpdateMapArgs, "id" | "map">
   >;
   upsertMapView?: Resolver<
     Maybe<ResolversTypes["UpsertMapViewResponse"]>,
@@ -1584,6 +1673,16 @@ export type TurfResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UpdateMapResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["UpdateMapResponse"] = ResolversParentTypes["UpdateMapResponse"],
+> = {
+  code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  result?: Resolver<Maybe<ResolversTypes["Map"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UpsertMapViewResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -1624,6 +1723,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   ColumnDef?: ColumnDefResolvers<ContextType>;
   ColumnRoles?: ColumnRolesResolvers<ContextType>;
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
+  CreateMapResponse?: CreateMapResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
   EnrichmentDataSource?: EnrichmentDataSourceResolvers<ContextType>;
@@ -1645,6 +1745,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Turf?: TurfResolvers<ContextType>;
+  UpdateMapResponse?: UpdateMapResponseResolvers<ContextType>;
   UpsertMapViewResponse?: UpsertMapViewResponseResolvers<ContextType>;
   UpsertPlacedMarkerResponse?: UpsertPlacedMarkerResponseResolvers<ContextType>;
   UpsertTurfResponse?: UpsertTurfResponseResolvers<ContextType>;

@@ -55,5 +55,5 @@ export interface ServerSession {
 }
 
 export interface UploadResponseBody {
-  filename: string;
+  url: string;
 }

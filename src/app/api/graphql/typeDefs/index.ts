@@ -88,6 +88,11 @@ const typeDefs = `
     dataSourceColumn: String
   }
 
+  input MapInput {
+    name: String
+    imageUrl: String
+  }
+
   input MapViewConfigInput {
     areaDataSourceId: String
     areaDataColumn: String
@@ -183,6 +188,7 @@ const typeDefs = `
     id: String!
     name: String!
     createdAt: String!
+    imageUrl: String
     placedMarkers: [PlacedMarker!]
     turfs: [Turf!]
     views: [MapView!]
@@ -257,8 +263,18 @@ const typeDefs = `
     result: DataSource
   }
 
+  type CreateMapResponse {
+    code: Int!
+    result: Map
+  }
+
   type MutationResponse {
     code: Int!
+  }
+
+  type UpdateMapResponse {
+    code: Int!
+    result: Map
   }
 
   type UpsertMapViewResponse {
@@ -282,6 +298,7 @@ const typeDefs = `
       organisationId: String!
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
+    createMap(organisationId: String!): CreateMapResponse @auth(read: { organisationIdArg: "organisationId" })
     deletePlacedMarker(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
@@ -294,6 +311,10 @@ const typeDefs = `
       looseGeocodingConfig: LooseGeocodingConfigInput
       looseEnrichments: [LooseEnrichmentInput!]
     ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
+    updateMap(
+      id: String!
+      map: MapInput!
+    ): UpdateMapResponse @auth(write: { mapIdArg: "id" })
     upsertMapView(
       id: String
       config: MapViewConfigInput!

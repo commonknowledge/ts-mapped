@@ -5,7 +5,7 @@ import {
 } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import { query } from "@/services/ApolloClient";
+import { query } from "@/services/apollo";
 import {
   Breadcrumb,
   BreadcrumbItem,

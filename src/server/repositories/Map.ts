@@ -1,4 +1,16 @@
+import { MapUpdate } from "@/server/models/Map";
 import { db } from "@/server/services/database";
+
+export async function createMap(organisationId: string) {
+  return db
+    .insertInto("map")
+    .values({
+      organisationId,
+      name: `New Map (${new Date().toLocaleDateString()})`,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
 
 export async function ensureOrganisationMap(organisationId: string) {
   const existingMap = await db
@@ -32,4 +44,13 @@ export function findMapsByOrganisationId(organisationId: string) {
     .where("organisationId", "=", organisationId)
     .selectAll()
     .execute();
+}
+
+export function updateMap(id: string, map: MapUpdate) {
+  return db
+    .updateTable("map")
+    .where("id", "=", id)
+    .set(map)
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }

@@ -2,10 +2,12 @@ import {
   ColumnDef,
   ColumnType,
   CreateDataSourceResponse,
+  CreateMapResponse,
   GeocodingType,
   MutationResolvers as MutationResolversType,
   MutationResponse,
   MutationUpdateDataSourceConfigArgs,
+  MutationUpdateMapArgs,
   MutationUpsertMapViewArgs,
   PointInput,
   UpsertPlacedMarkerResponse,
@@ -13,6 +15,7 @@ import {
 } from "@/__generated__/types";
 import {
   serializeDataSource,
+  serializeMap,
   serializeTurf,
 } from "@/app/api/graphql/serializers";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -21,7 +24,7 @@ import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
-import { findMapById } from "@/server/repositories/Map";
+import { createMap, findMapById, updateMap } from "@/server/repositories/Map";
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
@@ -30,6 +33,7 @@ import {
 } from "@/server/repositories/PlacedMarker";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import logger from "@/server/services/logger";
+import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
 import {
   DataSourceConfigSchema,
@@ -81,6 +85,18 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200, result: serializeDataSource(dataSource) };
     } catch (error) {
       logger.error(`Could not create data source`, { error });
+    }
+    return { code: 500 };
+  },
+  createMap: async (
+    _: unknown,
+    { organisationId },
+  ): Promise<CreateMapResponse> => {
+    try {
+      const map = await createMap(organisationId);
+      return { result: serializeMap(map), code: 200 };
+    } catch (error) {
+      logger.error(`Could not create map`, { error });
     }
     return { code: 500 };
   },
@@ -192,6 +208,33 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200 };
     } catch (error) {
       logger.error(`Could not update data source`, { error });
+    }
+    return { code: 500 };
+  },
+  updateMap: async (_: unknown, args: MutationUpdateMapArgs) => {
+    try {
+      const map = await findMapById(args.id);
+      if (!map) {
+        return { code: 404 };
+      }
+      // Name cannot be set to null or the empty string
+      const mapUpdate = { ...args.map, name: args.map.name || undefined };
+      await updateMap(args.id, mapUpdate);
+
+      // Clean up old image
+      if (
+        map.imageUrl &&
+        mapUpdate.imageUrl &&
+        map.imageUrl !== mapUpdate.imageUrl
+      ) {
+        await deleteFile(map.imageUrl);
+      }
+
+      return { code: 200, result: serializeMap(map) };
+    } catch (error) {
+      logger.error(`Could not update map: ${JSON.stringify(args)}`, {
+        error,
+      });
     }
     return { code: 500 };
   },

@@ -30,9 +30,9 @@ export default function CSVInputs({
           onChange={(e) => {
             const file = e.target.files ? e.target.files[0] : null;
             if (file) {
-              onChange({ file, filename: file.name });
+              onChange({ file, url: file.name });
             } else {
-              onChange({ file: null, filename: "" });
+              onChange({ file: null, url: "" });
             }
           }}
         />
