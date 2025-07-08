@@ -32,6 +32,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
   /* Map State */
   const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
   const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
+  // Keep track of area codes that have feature state, to clean if necessary
+  const areaCodesToClean = useRef<Record<string, boolean>>({});
   // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
@@ -115,26 +117,30 @@ export default function MapPage({ mapId }: { mapId: string }) {
     }
 
     if (mapRef?.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
-      mapRef?.current?.removeFeatureState({
-        source: choroplethLayerConfig.mapbox.sourceId,
-        sourceLayer: choroplethLayerConfig.mapbox.layerId,
+      const nextAreaCodesToClean: Record<string, boolean> = {};
+      areaStatsData.areaStats?.stats.forEach((stat) => {
+        mapRef?.current?.setFeatureState(
+          {
+            source: choroplethLayerConfig.mapbox.sourceId,
+            sourceLayer: choroplethLayerConfig.mapbox.layerId,
+            id: stat.areaCode,
+          },
+          stat,
+        );
+        nextAreaCodesToClean[stat.areaCode] = true;
       });
-    }
-
-    requestAnimationFrame(() => {
-      if (mapRef?.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
-        areaStatsData.areaStats?.stats.forEach((stat) => {
-          mapRef?.current?.setFeatureState(
-            {
-              source: choroplethLayerConfig.mapbox.sourceId,
-              sourceLayer: choroplethLayerConfig.mapbox.layerId,
-              id: stat.areaCode,
-            },
-            stat,
-          );
-        });
+      // Remove lingering feature states
+      for (const areaCode in Object.keys(areaCodesToClean.current)) {
+        if (!nextAreaCodesToClean[areaCode]) {
+          mapRef?.current?.removeFeatureState({
+            source: choroplethLayerConfig.mapbox.sourceId,
+            sourceLayer: choroplethLayerConfig.mapbox.layerId,
+            id: areaCode,
+          });
+        }
       }
-    });
+      areaCodesToClean.current = nextAreaCodesToClean;
+    }
   }, [areaStatsData, choroplethLayerConfig, lastLoadedSourceId, mapRef]);
 
   /* Do fetchMore() (if layer needs it) when bounding box or config changes */
