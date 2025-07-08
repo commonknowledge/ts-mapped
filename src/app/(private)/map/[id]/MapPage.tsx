@@ -30,10 +30,13 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const mapRef = useRef<MapRef>(null);
 
   /* Map State */
-  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
-  const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
   // Keep track of area codes that have feature state, to clean if necessary
   const areaCodesToClean = useRef<Record<string, boolean>>({});
+  // Manually keep track of fetchMore loading state as the first fetchMore
+  // doesn't trigger the query loading flag
+  const [areaStatsLoading, setAreaStatsLoading] = useState(false);
+  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
+  const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
   // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
@@ -148,7 +151,11 @@ export default function MapPage({ mapId }: { mapId: string }) {
     if (!choroplethLayerConfig.requiresBoundingBox || !areaStatsFetchMore) {
       return;
     }
-    areaStatsFetchMore({ variables: { boundingBox } });
+    (async () => {
+      setAreaStatsLoading(true);
+      await areaStatsFetchMore({ variables: { boundingBox } });
+      setAreaStatsLoading(false);
+    })();
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, viewConfig]);
 
   // Don't display any components while waiting for saved map views
@@ -161,7 +168,10 @@ export default function MapPage({ mapId }: { mapId: string }) {
   }
 
   const loading =
-    areaStatsQuery.loading || dataSourcesQuery.loading || markersQuery.loading;
+    areaStatsLoading ||
+    areaStatsQuery.loading ||
+    dataSourcesQuery.loading ||
+    markersQuery.loading;
 
   return (
     <MapContext
