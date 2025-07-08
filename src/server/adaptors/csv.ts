@@ -1,8 +1,8 @@
-import fs from "fs";
 import readline from "readline";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
+import { getLocalUrl } from "@/server/services/urls";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
 
@@ -12,7 +12,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
 
   constructor(idColumn: string, url: string) {
     this.idColumn = idColumn;
-    this.url = url;
+    this.url = url.startsWith("/api/upload") ? getLocalUrl(url) : url;
   }
 
   extractExternalRecordIdsFromWebhookBody(
@@ -39,9 +39,6 @@ export class CSVAdaptor implements DataSourceAdaptor {
   }
 
   async createReadStream() {
-    if (this.url.startsWith("file://")) {
-      return fs.createReadStream(this.url.split("file://")[1]);
-    }
     const response = await fetch(this.url);
     if (!response.body) {
       throw new Error(`Could not read URL ${this.url}`);

@@ -73,35 +73,45 @@ export default function Controls() {
       }
       setViewId(result.data.upsertMapView.result);
 
-      const imageDataUrl = await new Promise<string | undefined>(function (
-        resolve,
-      ) {
-        mapRef?.current?.once("render", function () {
-          resolve(mapRef.current?.getCanvas().toDataURL());
-        });
-        /* trigger render */
-        mapRef?.current?.triggerRepaint();
-      });
-
-      if (imageDataUrl) {
-        const response = await fetch(imageDataUrl);
-        const imageBlob = await response.blob();
-        const imageFile = new File([imageBlob], `map_${mapId}.png`, {
-          type: "image/png",
-        });
-        const imageUrl = await uploadFile(imageFile);
-        await updateMap({
-          variables: { id: mapId, mapInput: { imageUrl } },
-          refetchQueries: [
-            { query: LIST_MAPS_QUERY, variables: { organisationId } },
-          ],
-        });
-      }
+      await updateMapImage();
     } catch (e) {
       console.error("UpsertMapView failed", e);
       setSaveError("Could not save this map view, please try again.");
     }
     setLoading(false);
+  };
+
+  const updateMapImage = async () => {
+    if (!mapId) {
+      return;
+    }
+
+    const imageDataUrl = await new Promise<string | undefined>(function (
+      resolve,
+    ) {
+      mapRef?.current?.once("render", function () {
+        resolve(mapRef.current?.getCanvas().toDataURL());
+      });
+      /* trigger render */
+      mapRef?.current?.triggerRepaint();
+    });
+
+    if (!imageDataUrl) {
+      return;
+    }
+
+    const response = await fetch(imageDataUrl);
+    const imageBlob = await response.blob();
+    const imageFile = new File([imageBlob], `map_${mapId}.png`, {
+      type: "image/png",
+    });
+    const imageUrl = await uploadFile(imageFile);
+    await updateMap({
+      variables: { id: mapId, mapInput: { imageUrl } },
+      refetchQueries: [
+        { query: LIST_MAPS_QUERY, variables: { organisationId } },
+      ],
+    });
   };
 
   return (
