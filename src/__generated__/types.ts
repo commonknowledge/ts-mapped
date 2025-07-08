@@ -34,6 +34,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  Date: { input: any; output: any };
   JSON: { input: any; output: any };
 };
 
@@ -118,7 +119,7 @@ export type DataSource = {
   columnDefs: Array<ColumnDef>;
   columnRoles: ColumnRoles;
   config: Scalars["JSON"]["output"];
-  createdAt: Scalars["String"]["output"];
+  createdAt: Scalars["Date"]["output"];
   enrichmentDataSources?: Maybe<Array<EnrichmentDataSource>>;
   enrichmentInfo?: Maybe<JobInfo>;
   enrichments: Array<LooseEnrichment>;
@@ -223,7 +224,7 @@ export type LooseGeocodingConfigInput = {
 
 export type Map = {
   __typename?: "Map";
-  createdAt: Scalars["String"]["output"];
+  createdAt: Scalars["Date"]["output"];
   id: Scalars["String"]["output"];
   imageUrl?: Maybe<Scalars["String"]["output"]>;
   name: Scalars["String"]["output"];
@@ -353,7 +354,7 @@ export type MutationUpsertPlacedMarkerArgs = {
 
 export type MutationUpsertTurfArgs = {
   area: Scalars["Float"]["input"];
-  createdAt: Scalars["String"]["input"];
+  createdAt: Scalars["Date"]["input"];
   geometry: Scalars["JSON"]["input"];
   id?: InputMaybe<Scalars["String"]["input"]>;
   label: Scalars["String"]["input"];
@@ -449,7 +450,7 @@ export type SubscriptionDataSourceEventArgs = {
 export type Turf = {
   __typename?: "Turf";
   area: Scalars["Float"]["output"];
-  createdAt: Scalars["String"]["output"];
+  createdAt: Scalars["Date"]["output"];
   geometry: Scalars["JSON"]["output"];
   id: Scalars["String"]["output"];
   label: Scalars["String"]["output"];
@@ -480,20 +481,6 @@ export type UpsertTurfResponse = {
   result?: Maybe<Turf>;
 };
 
-export type ListMapsQueryVariables = Exact<{
-  organisationId: Scalars["String"]["input"];
-}>;
-
-export type ListMapsQuery = {
-  __typename?: "Query";
-  maps?: Array<{
-    __typename?: "Map";
-    id: string;
-    name: string;
-    createdAt: string;
-  }> | null;
-};
-
 export type CreateMapMutationVariables = Exact<{
   organisationId: Scalars["String"]["input"];
 }>;
@@ -505,6 +492,21 @@ export type CreateMapMutation = {
     code: number;
     result?: { __typename?: "Map"; id: string } | null;
   } | null;
+};
+
+export type ListMapsQueryVariables = Exact<{
+  organisationId: Scalars["String"]["input"];
+}>;
+
+export type ListMapsQuery = {
+  __typename?: "Query";
+  maps?: Array<{
+    __typename?: "Map";
+    id: string;
+    name: string;
+    createdAt: any;
+    imageUrl?: string | null;
+  }> | null;
 };
 
 export type EnqueueImportDataSourceJobMutationVariables = Exact<{
@@ -726,7 +728,7 @@ export type ListDataSourcesQuery = {
     id: string;
     name: string;
     config: any;
-    createdAt: string;
+    createdAt: any;
   }> | null;
 };
 
@@ -801,7 +803,7 @@ export type MapQuery = {
       notes: string;
       area: number;
       geometry: any;
-      createdAt: string;
+      createdAt: any;
     }> | null;
     views?: Array<{
       __typename?: "MapView";
@@ -888,7 +890,7 @@ export type UpsertTurfMutationVariables = Exact<{
   notes: Scalars["String"]["input"];
   area: Scalars["Float"]["input"];
   geometry: Scalars["JSON"]["input"];
-  createdAt: Scalars["String"]["input"];
+  createdAt: Scalars["Date"]["input"];
   mapId: Scalars["String"]["input"];
 }>;
 
@@ -1034,6 +1036,7 @@ export type ResolversTypes = {
   CreateMapResponse: ResolverTypeWrapper<CreateMapResponse>;
   DataSource: ResolverTypeWrapper<DataSource>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
+  Date: ResolverTypeWrapper<Scalars["Date"]["output"]>;
   EnrichmentDataSource: ResolverTypeWrapper<EnrichmentDataSource>;
   EnrichmentSourceType: EnrichmentSourceType;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
@@ -1086,6 +1089,7 @@ export type ResolversParentTypes = {
   CreateMapResponse: CreateMapResponse;
   DataSource: DataSource;
   DataSourceEvent: DataSourceEvent;
+  Date: Scalars["Date"]["output"];
   EnrichmentDataSource: EnrichmentDataSource;
   Float: Scalars["Float"]["output"];
   Int: Scalars["Int"]["output"];
@@ -1217,7 +1221,7 @@ export type DataSourceResolvers<
     ContextType
   >;
   config?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes["Date"], ParentType, ContextType>;
   enrichmentDataSources?: Resolver<
     Maybe<Array<ResolversTypes["EnrichmentDataSource"]>>,
     ParentType,
@@ -1287,6 +1291,11 @@ export type DataSourceEventResolvers<
   >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export interface DateScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes["Date"], any> {
+  name: "Date";
+}
 
 export type EnrichmentDataSourceResolvers<
   ContextType = GraphQLContext,
@@ -1391,7 +1400,7 @@ export type MapResolvers<
   ContextType = GraphQLContext,
   ParentType extends ResolversParentTypes["Map"] = ResolversParentTypes["Map"],
 > = {
-  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes["Date"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
@@ -1665,7 +1674,7 @@ export type TurfResolvers<
     ResolversParentTypes["Turf"] = ResolversParentTypes["Turf"],
 > = {
   area?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes["Date"], ParentType, ContextType>;
   geometry?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   label?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
@@ -1726,6 +1735,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   CreateMapResponse?: CreateMapResponseResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
+  Date?: GraphQLScalarType;
   EnrichmentDataSource?: EnrichmentDataSourceResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;

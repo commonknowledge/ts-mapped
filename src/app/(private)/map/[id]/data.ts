@@ -239,7 +239,7 @@ export const useUpsertTurfMutation = () => {
       $notes: String!
       $area: Float!
       $geometry: JSON!
-      $createdAt: String!
+      $createdAt: Date!
       $mapId: String!
     ) {
       upsertTurf(

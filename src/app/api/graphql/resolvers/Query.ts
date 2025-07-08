@@ -5,10 +5,6 @@ import {
 } from "@/__generated__/types";
 import { GraphQLContext } from "@/app/api/graphql/context";
 import {
-  serializeDataSource,
-  serializeMap,
-} from "@/app/api/graphql/serializers";
-import {
   findDataSourceById,
   findDataSourcesByUserId,
 } from "@/server/repositories/DataSource";
@@ -52,7 +48,7 @@ const QueryResolvers: QueryResolversType = {
     if (!dataSource) {
       return null;
     }
-    return serializeDataSource(dataSource);
+    return dataSource;
   },
 
   dataSources: async (
@@ -64,9 +60,9 @@ const QueryResolvers: QueryResolversType = {
       return [];
     }
     const dataSources = await findDataSourcesByUserId(context.currentUser.id);
-    return dataSources
-      .filter((ds) => !organisationId || ds.organisationId === organisationId)
-      .map(serializeDataSource);
+    return dataSources.filter(
+      (ds) => !organisationId || ds.organisationId === organisationId,
+    );
   },
 
   map: async (_: unknown, { id }: { id: string }) => {
@@ -74,7 +70,7 @@ const QueryResolvers: QueryResolversType = {
     if (!map) {
       return null;
     }
-    return serializeMap(map);
+    return map;
   },
 
   maps: async (
@@ -84,8 +80,7 @@ const QueryResolvers: QueryResolversType = {
     if (!organisationId) {
       return [];
     }
-    const maps = await findMapsByOrganisationId(organisationId);
-    return maps.map(serializeMap);
+    return findMapsByOrganisationId(organisationId);
   },
 
   organisations: async (_: unknown, args: unknown, context: GraphQLContext) => {

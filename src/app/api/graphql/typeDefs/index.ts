@@ -1,6 +1,7 @@
 const typeDefs = `
   directive @auth(read: ArgNames, write: ArgNames) on FIELD_DEFINITION
 
+  scalar Date
   scalar JSON
 
   enum AreaSetCode {
@@ -137,7 +138,7 @@ const typeDefs = `
     name: String!
     autoEnrich: Boolean!
     autoImport: Boolean!
-    createdAt: String!
+    createdAt: Date!
     columnDefs: [ColumnDef!]!
     config: JSON!
     columnRoles: ColumnRoles!
@@ -187,7 +188,7 @@ const typeDefs = `
   type Map {
     id: String!
     name: String!
-    createdAt: String!
+    createdAt: Date!
     imageUrl: String
     placedMarkers: [PlacedMarker!]
     turfs: [Turf!]
@@ -237,7 +238,7 @@ const typeDefs = `
     notes: String!
     area: Float!
     geometry: JSON!
-    createdAt: String!
+    createdAt: Date!
   }
 
   type Query {
@@ -333,7 +334,7 @@ const typeDefs = `
       notes: String!
       area: Float!
       geometry: JSON!
-      createdAt: String!
+      createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
   }
