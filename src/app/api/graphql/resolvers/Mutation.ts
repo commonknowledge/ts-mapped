@@ -13,11 +13,6 @@ import {
   UpsertPlacedMarkerResponse,
   UpsertTurfResponse,
 } from "@/__generated__/types";
-import {
-  serializeDataSource,
-  serializeMap,
-  serializeTurf,
-} from "@/app/api/graphql/serializers";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   createDataSource,
@@ -82,7 +77,7 @@ const MutationResolvers: MutationResolversType = {
       });
 
       logger.info(`Created ${config.type} data source: ${dataSource.id}`);
-      return { code: 200, result: serializeDataSource(dataSource) };
+      return { code: 200, result: dataSource };
     } catch (error) {
       logger.error(`Could not create data source`, { error });
     }
@@ -94,7 +89,7 @@ const MutationResolvers: MutationResolversType = {
   ): Promise<CreateMapResponse> => {
     try {
       const map = await createMap(organisationId);
-      return { result: serializeMap(map), code: 200 };
+      return { result: map, code: 200 };
     } catch (error) {
       logger.error(`Could not create map`, { error });
     }
@@ -230,7 +225,7 @@ const MutationResolvers: MutationResolversType = {
         await deleteFile(map.imageUrl);
       }
 
-      return { code: 200, result: serializeMap(map) };
+      return { code: 200, result: map };
     } catch (error) {
       logger.error(`Could not update map: ${JSON.stringify(args)}`, {
         error,
@@ -338,7 +333,7 @@ const MutationResolvers: MutationResolversType = {
       } else {
         turf = await insertTurf(turfInput);
       }
-      return { code: 200, result: serializeTurf(turf) };
+      return { code: 200, result: turf };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });
     }

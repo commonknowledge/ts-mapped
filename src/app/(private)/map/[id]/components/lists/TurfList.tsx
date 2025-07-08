@@ -3,6 +3,7 @@ import { Check, Pencil, Trash2 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { Turf } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -13,6 +14,7 @@ import {
 import { Input } from "@/shadcn/ui/input";
 
 export default function TurfList() {
+  const { getOrganisation } = useContext(OrganisationsContext);
   const { viewConfig, mapRef, turfs, setEditingTurf, updateTurf, deleteTurf } =
     useContext(MapContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -83,7 +85,7 @@ export default function TurfList() {
                   <div>
                     <div>{turf.label}</div>
                     <div className="text-gray-400 text-xs">
-                      {index === 0 ? "Your Organisation" : `GND Rising`}
+                      {getOrganisation()?.name || "Unknown organisation"}
                     </div>
                   </div>
                 </>
