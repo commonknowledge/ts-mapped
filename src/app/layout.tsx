@@ -12,7 +12,7 @@ import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
-import { getClient } from "@/services/ApolloClient";
+import { getClient } from "@/services/apollo";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({

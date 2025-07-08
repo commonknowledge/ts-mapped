@@ -1,36 +1,18 @@
-import fs from "fs";
-import path from "path";
 import readline from "readline";
-import { fileURLToPath } from "url";
+import { Readable } from "stream";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
+import { getLocalUrl } from "@/server/services/urls";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
 
-const getProjectFolder = () => {
-  let currentDir = path.dirname(fileURLToPath(import.meta.url));
-  while (!fs.existsSync(path.join(currentDir, "package.json"))) {
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      throw Error("Could not find project root directory");
-    }
-    currentDir = parentDir;
-  }
-  return currentDir;
-};
-
 export class CSVAdaptor implements DataSourceAdaptor {
   private idColumn: string;
-  private filepath: string;
+  private url: string;
 
-  constructor(idColumn: string, filename: string) {
+  constructor(idColumn: string, url: string) {
     this.idColumn = idColumn;
-    this.filepath = path.join(
-      getProjectFolder(),
-      "resources",
-      "dataSets",
-      filename,
-    );
+    this.url = url.startsWith("/api/upload") ? getLocalUrl(url) : url;
   }
 
   extractExternalRecordIdsFromWebhookBody(
@@ -41,7 +23,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
   }
 
   async getRecordCount() {
-    const fileStream = fs.createReadStream(this.filepath);
+    const fileStream = await this.createReadStream();
     const rl = readline.createInterface({
       input: fileStream,
       crlfDelay: Infinity,
@@ -56,8 +38,16 @@ export class CSVAdaptor implements DataSourceAdaptor {
     return Math.max(lineCount - 1, 0); // exclude header row
   }
 
+  async createReadStream() {
+    const response = await fetch(this.url);
+    if (!response.body) {
+      throw new Error(`Could not read URL ${this.url}`);
+    }
+    return Readable.from(response.body);
+  }
+
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
-    const content = fs.createReadStream(this.filepath);
+    const content = await this.createReadStream();
     const parser = content.pipe(parse({ columns: true }));
     // Parse the CSV content
     for await (const record of parser) {
@@ -69,7 +59,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
 
   async fetchFirst(): Promise<ExternalRecord | null> {
     try {
-      const content = fs.createReadStream(this.filepath);
+      const content = await this.createReadStream();
       const parser = content.pipe(parse({ columns: true }));
       for await (const record of parser) {
         if (this.idColumn in record) {
@@ -78,7 +68,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
         throw new Error(`ID column "${this.idColumn}" missing`);
       }
     } catch (error) {
-      logger.warn(`Could not get first record for CSV ${this.filepath}`, {
+      logger.warn(`Could not get first record for CSV ${this.url}`, {
         error,
       });
     }

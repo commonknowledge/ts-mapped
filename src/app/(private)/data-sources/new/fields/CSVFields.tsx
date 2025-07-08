@@ -32,7 +32,7 @@ export default function CSVInputs({
             if (file) {
               onChange({ file, filename: file.name });
             } else {
-              onChange({ file: null, filename: "" });
+              onChange({ file: undefined, filename: "" });
             }
           }}
         />

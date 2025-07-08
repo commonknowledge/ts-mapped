@@ -1,16 +1,14 @@
 import { DotIcon } from "lucide-react";
+import Image from "next/image";
 import React from "react";
+import { Map } from "@/__generated__/types";
 import { Link } from "@/components/Link";
-import { Card, CardHeader, CardTitle } from "@/shadcn/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 
 export function MapCard({
-  id,
-  name,
-  createdAt,
+  map: { id, name, imageUrl, createdAt },
 }: {
-  id: string;
-  name: string;
-  createdAt: string;
+  map: Map;
 }) {
   return (
     <Link href={`/map/${id}`}>
@@ -19,6 +17,17 @@ export function MapCard({
         key={id}
       >
         <CardHeader>
+          {imageUrl && (
+            <CardContent>
+              <Image
+                src={imageUrl}
+                alt={name}
+                height={125}
+                width={280}
+                priority
+              />
+            </CardContent>
+          )}
           <CardTitle className="flex items-centers">
             {name}
             <DotIcon className="w-4 h-4 text-muted-foreground" />

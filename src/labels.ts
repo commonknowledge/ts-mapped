@@ -23,7 +23,7 @@ type DataSourceConfigKey =
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
   baseId: "Base ID",
-  filename: "Filename",
+  url: "URL",
   idColumn: "ID Column",
   listId: "List ID",
   tableId: "Table ID",

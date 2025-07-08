@@ -10,7 +10,7 @@ export async function register() {
     await runWorker();
 
     if (process.env.NODE_ENV !== "production") {
-      const { startPublicTunnel } = await import("./server/services/publicUrl");
+      const { startPublicTunnel } = await import("./server/services/urls");
       await startPublicTunnel();
     }
 

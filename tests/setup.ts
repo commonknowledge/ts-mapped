@@ -1,12 +1,9 @@
 import fs from "fs";
 import http from "http";
 import { db, pool } from "@/server/services/database";
-import {
-  startPublicTunnel,
-  stopPublicTunnel,
-} from "@/server/services/publicUrl";
 import { quit as quitRedis } from "@/server/services/pubsub";
 import { getClient as getRedisClient } from "@/server/services/redis";
+import { startPublicTunnel, stopPublicTunnel } from "@/server/services/urls";
 
 const testCredentials = JSON.parse(
   fs.readFileSync("test_credentials.json", "utf8"),

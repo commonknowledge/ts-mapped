@@ -41,8 +41,8 @@ test_credentials.json
 resources/areaSets/*
 !resources/areaSets/.gitkeep
 
-resources/dataSets/*
-!resources/dataSets/.gitkeep
+uploads/*
+!uploads/.gitkeep
 
 # vercel
 .vercel

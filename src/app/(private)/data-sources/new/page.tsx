@@ -12,6 +12,7 @@ import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { uploadFile } from "@/services/uploads";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,12 +29,12 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceType, UploadResponseBody } from "@/types";
-import { DataSourceConfig, DataSourceConfigSchema } from "@/zod";
+import { DataSourceType } from "@/types";
+import { DataSourceConfig } from "@/zod";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import MailchimpFields from "./fields/MailchimpFields";
-import { NewDataSourceConfig } from "./types";
+import { NewDataSourceConfig, NewDataSourceConfigSchema } from "./types";
 
 export default function NewDataSourcePage() {
   const [name, setName] = useState("");
@@ -102,7 +103,7 @@ export default function NewDataSourcePage() {
     setLoading(false);
   };
 
-  const { data: validConfig } = DataSourceConfigSchema.safeParse(config);
+  const { data: validConfig } = NewDataSourceConfigSchema.safeParse(config);
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
       <Breadcrumb className="mb-4">
@@ -178,23 +179,6 @@ const prepareDataSource = async (
     return clientConfig;
   }
 
-  clientConfig.filename = await uploadFile(clientConfig.file);
-  return clientConfig;
-};
-
-const uploadFile = async (file: File | null): Promise<string> => {
-  if (!file) {
-    throw new Error("Invalid file");
-  }
-  const body = new FormData();
-  body.set("file", file);
-  const response = await fetch("/api/upload", {
-    body,
-    method: "POST",
-  });
-  if (!response.ok) {
-    throw new Error("Failed to upload file");
-  }
-  const data: UploadResponseBody = await response.json();
-  return data.filename;
+  const url = await uploadFile(clientConfig.file);
+  return { ...clientConfig, url };
 };

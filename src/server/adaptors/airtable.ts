@@ -7,7 +7,7 @@ import {
   upsertAirtableWebhook,
 } from "@/server/repositories/AirtableWebhook";
 import logger from "@/server/services/logger";
-import { getPublicUrl } from "@/server/services/publicUrl";
+import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";

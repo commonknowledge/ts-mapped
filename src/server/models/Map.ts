@@ -10,6 +10,7 @@ export interface MapTable {
   id: Generated<string>;
   name: string;
   organisationId: string;
+  imageUrl: string | null;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }
 

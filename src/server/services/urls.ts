@@ -44,3 +44,8 @@ export const getPublicUrl = async (path = "/") => {
   }
   return `${trimTrailingSlashes(publicUrl)}/${trimLeadingSlashes(path)}`;
 };
+
+export const getLocalUrl = (path = "/") => {
+  const localBase = "http://localhost:3000";
+  return `${localBase}/${trimLeadingSlashes(path)}`;
+};
