@@ -13,7 +13,7 @@
 
 ### Instructions
 
-1. Copy `.env.example` to `.env` and fill in any missing values.
+1. Download `local.env` from BitWarden "TypeScript Mapped" item. Place it in the root of the project as `.env`.
 2. Get a database dump from the maintainer of this repo and place it in the root of the project as `ts-mapped.psql`.
 3. Start the database with `docker compose up`
 4. Import the database dump with `docker compose exec -u postgres -T postgres psql < ts-mapped.psql`
