@@ -121,15 +121,19 @@ export default function MapPage({ mapId }: { mapId: string }) {
       });
     }
 
-    areaStatsData.areaStats?.stats.forEach((stat) => {
-      mapRef?.current?.setFeatureState(
-        {
-          source: choroplethLayerConfig.mapbox.sourceId,
-          sourceLayer: choroplethLayerConfig.mapbox.layerId,
-          id: stat.areaCode,
-        },
-        stat,
-      );
+    requestAnimationFrame(() => {
+      if (mapRef?.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
+        areaStatsData.areaStats?.stats.forEach((stat) => {
+          mapRef?.current?.setFeatureState(
+            {
+              source: choroplethLayerConfig.mapbox.sourceId,
+              sourceLayer: choroplethLayerConfig.mapbox.layerId,
+              id: stat.areaCode,
+            },
+            stat,
+          );
+        });
+      }
     });
   }, [areaStatsData, choroplethLayerConfig, lastLoadedSourceId, mapRef]);
 
