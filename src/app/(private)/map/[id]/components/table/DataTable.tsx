@@ -83,13 +83,13 @@ export function DataTable<TData extends { id: string }, TValue>({
             placeholder="Filter all columns..."
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="max-w-sm"
+            className="max-w-sm shadow-none"
           />
         </div>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
+              <Button variant="outline" className="ml-auto shadow-none">
                 Columns <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
