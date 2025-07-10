@@ -3,7 +3,7 @@ import { MapContext } from "../../context/MapContext";
 import { DataTable } from "./DataTable";
 
 export default function MapTable() {
-  const { selectedDataSourceId, dataRecordsQuery, setSelectedRecordId, mapRef } = useContext(MapContext);
+  const { selectedDataSourceId, dataRecordsQuery, setSelectedRecordId, mapRef, selectedRecordId  } = useContext(MapContext);
 
   if (!selectedDataSourceId) {
     return null;
@@ -25,6 +25,9 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
+    setSelectedRecordId(row.id);
+
+    console.log("Selected record ID:", row.id);
   };
 
   return (
@@ -34,7 +37,7 @@ export default function MapTable() {
     <p>{dataSource.records?.length}</p>
     </div>
     <div className="p-2 bg-neutral-100 h-full">
-      <DataTable columns={columns} data={dataSource.records || []} onRowClick={handleRowClick} />
+      <DataTable columns={columns} data={dataSource.records || []} onRowClick={handleRowClick} selectedRecordId={selectedRecordId || undefined} />
     </div>
  </>
   )

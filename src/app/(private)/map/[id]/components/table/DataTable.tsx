@@ -63,7 +63,7 @@ export function DataTable<TData, TValue>({
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
                 onClick={() => onRowClick?.(row.original)}
-                className={`cursor-pointer hover:bg-gray-50 ${selectedRecordId === (row.original as any).id ? "bg-gray-100" : ""} `}
+                className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id ? "bg-neutral-100" : ""} `}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

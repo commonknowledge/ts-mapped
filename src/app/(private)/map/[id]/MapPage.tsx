@@ -173,15 +173,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
     })();
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, viewConfig]);
 
-  useEffect(() => {
-    if (selectedRecordId) {
-      mapRef.current?.flyTo({
-        center: [selectedRecordId.geocodePoint.lng, selectedRecordId.geocodePoint.lat],
-        zoom: 15,
-      });
-    }
-  }, [selectedRecordId]);
-
+ 
   // Don't display any components while waiting for saved map views
   if (mapQueryLoading) {
     return (
