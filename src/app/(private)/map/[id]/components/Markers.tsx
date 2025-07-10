@@ -80,6 +80,25 @@ export default function Markers() {
               "circle-stroke-color": "#ffffff",
             }}
           />
+          <Layer
+            id="markers-labels"
+            type="symbol"
+            source="markers"
+            filter={["!", ["has", "point_count"]]}
+            minzoom={10}
+            layout={{
+              "text-field": ["get", "Name"], // or ["get", "__name"]
+              "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              "text-size": 12,
+              "text-transform": "uppercase",
+              "text-offset": [0, -1.25],
+            }}
+            paint={{
+              "text-color": "#678DE3",
+              "text-halo-color": "#ffffff",
+              "text-halo-width": 1,
+            }}
+          />
           {/* This layer here for styling purposes as it adds a glow effect to the markers */}
           <Layer
             id="markers-heatmap"

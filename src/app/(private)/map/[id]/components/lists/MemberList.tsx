@@ -16,7 +16,13 @@ interface GEOJSONPoint {
 export default function MemberList() {
   const [limit, setLimit] = useState(10);
 
-  const { mapRef, dataRecordsQuery, viewConfig, selectedDataSourceId, handleDataSourceSelect } = useContext(MapContext);
+  const {
+    mapRef,
+    dataRecordsQuery,
+    viewConfig,
+    selectedDataSourceId,
+    handleDataSourceSelect,
+  } = useContext(MapContext);
   const dataSource = dataRecordsQuery?.data?.dataSource;
 
   if (dataRecordsQuery?.loading) {
@@ -29,16 +35,15 @@ export default function MemberList() {
 
   const isSelected = selectedDataSourceId === dataSource.id;
 
-
   return (
     <ScrollArea className="max-h-[200px] w-full rounded-md  overflow-y-auto">
       <ul
         className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
       >
         {dataSource ? (
-          <div 
-            className={`text-sm cursor-pointer p-2 rounded hover:bg-gray-100 transition-colors flex items-center justify-between gap-2 ${
-              isSelected ? 'bg-neutral-100' : ''
+          <div
+            className={`text-sm cursor-pointer p-2 rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
+              isSelected ? "bg-neutral-100" : ""
             }`}
             onClick={() => handleDataSourceSelect(dataSource.id)}
           >
@@ -46,10 +51,7 @@ export default function MemberList() {
               <DataSourceIcon type={dataSource.config.type} />
               {dataSource.name}
             </div>
-            {isSelected && (
-          
-              <Table className="w-4 h-4 text-neutral-500" />
-            )}
+            {isSelected && <Table className="w-4 h-4 text-neutral-500" />}
           </div>
         ) : (
           <div>Add Member DataSource</div>

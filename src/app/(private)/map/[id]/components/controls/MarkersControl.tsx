@@ -50,7 +50,7 @@ export default function MarkersControl() {
               onClick: () => {
                 setTimeout(() => {
                   const geocoderInput = document.querySelector(
-                    ".mapboxgl-ctrl-geocoder--input",
+                    ".mapboxgl-ctrl-geocoder--input"
                   ) as HTMLInputElement;
                   if (geocoderInput) {
                     geocoderInput.focus();
@@ -60,7 +60,7 @@ export default function MarkersControl() {
                         e.preventDefault();
                         geocoderInput.focus();
                       },
-                      { once: true },
+                      { once: true }
                     );
                   }
                 }, 200);
@@ -149,7 +149,7 @@ function DataSourcesModal({
           {dummyDataSourcesList.map((dataSource) => (
             <label
               key={dataSource.id}
-              className="flex items-center gap-4 rounded-lg border hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-4 rounded-lg border hover:bg-neutral-50 cursor-pointer"
             >
               <Checkbox
                 id={`ds-${dataSource.id}`}
@@ -158,7 +158,7 @@ function DataSourcesModal({
                     setActiveDataSources([...activeDataSources, dataSource.id]);
                   } else {
                     setActiveDataSources(
-                      activeDataSources.filter((id) => id !== dataSource.id),
+                      activeDataSources.filter((id) => id !== dataSource.id)
                     );
                   }
                 }}

@@ -41,7 +41,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center p-4 z-1 h-14 border-b border-gray-200">
+    <nav className="flex justify-between items-center p-4 z-1 h-14 border-b border-neutral-200">
       <div className="flex items-center gap-2">
         <Link
           href={user ? "/dashboard" : "/"}

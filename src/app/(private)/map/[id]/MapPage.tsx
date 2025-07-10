@@ -9,12 +9,17 @@ import {
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/shadcn/ui/resizable";
 import { MarkerData } from "@/types";
 import Controls from "./components/controls/Controls";
-import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
+import MapTable from "./components/table/MapTable";
 import {
   useAreaStatsQuery,
   useDataRecordsQuery,
@@ -23,10 +28,8 @@ import {
   useMarkersQuery,
 } from "./data";
 import { usePlacedMarkers, useTurfs } from "./hooks";
-  import styles from "./MapPage.module.css";
+import styles from "./MapPage.module.css";
 import { getChoroplethLayerConfig } from "./sources";
-import MapTable from "./components/table/MapTable";
-import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from "@/shadcn/ui/resizable";
 
 export default function MapPage({ mapId }: { mapId: string }) {
   /* Map Ref */
@@ -48,7 +51,9 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
-  const [selectedDataSourceId, setSelectedDataSourceId] = useState<string | null>(null);
+  const [selectedDataSourceId, setSelectedDataSourceId] = useState<
+    string | null
+  >(null);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
   /* Derived State */
@@ -143,7 +148,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
             sourceLayer: choroplethLayerConfig.mapbox.layerId,
             id: stat.areaCode,
           },
-          stat,
+          stat
         );
         nextAreaCodesToClean[stat.areaCode] = true;
       });
@@ -173,7 +178,6 @@ export default function MapPage({ mapId }: { mapId: string }) {
     })();
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, viewConfig]);
 
- 
   // Don't display any components while waiting for saved map views
   if (mapQueryLoading) {
     return (
@@ -237,7 +241,9 @@ export default function MapPage({ mapId }: { mapId: string }) {
           <MapStyleSelector />
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel>
-              <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
+              <Map
+                onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+              />
             </ResizablePanel>
             {selectedDataSourceId && (
               <>
@@ -249,7 +255,6 @@ export default function MapPage({ mapId }: { mapId: string }) {
             )}
           </ResizablePanelGroup>
           {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
-
         </div>
         {loading && <Loading />}
       </div>

@@ -191,6 +191,7 @@ export default function Map({
     >
       <Choropleth />
       <Markers />
+
       <PlacedMarkers />
       <TurfPolygons />
     </MapGL>

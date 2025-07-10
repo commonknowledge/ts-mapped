@@ -2,8 +2,20 @@ import { useContext } from "react";
 import { MapContext } from "../../context/MapContext";
 import { DataTable } from "./DataTable";
 
+interface DataRecord {
+  id: string;
+  geocodePoint?: { lng: number; lat: number } | null;
+}
+
 export default function MapTable() {
-  const { selectedDataSourceId, dataRecordsQuery, setSelectedRecordId, mapRef, selectedRecordId  } = useContext(MapContext);
+  const {
+    selectedDataSourceId,
+    handleDataSourceSelect,
+    dataRecordsQuery,
+    setSelectedRecordId,
+    mapRef,
+    selectedRecordId,
+  } = useContext(MapContext);
 
   if (!selectedDataSourceId) {
     return null;
@@ -17,28 +29,28 @@ export default function MapTable() {
   const columns = dataSource.columnDefs.map((columnDef) => ({
     header: columnDef.name,
     accessorKey: "json." + columnDef.name,
-    
   }));
 
-  const handleRowClick = (row: any) => {
+  const handleRowClick = (row: DataRecord) => {
+    if (!row.geocodePoint) return;
     mapRef?.current?.flyTo({
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
     setSelectedRecordId(row.id);
-
-    console.log("Selected record ID:", row.id);
   };
 
   return (
-    <>
-    <div className="flex flex-row gap-4 p-4 border-b border-gray-200">
-    <p className="font-bold">{dataSource.name}</p>
-    <p>{dataSource.records?.length}</p>
+    <div className="p-2 h-full">
+      <DataTable
+        columns={columns}
+        data={dataSource.records || []}
+        onRowClick={handleRowClick}
+        selectedRecordId={selectedRecordId || undefined}
+        title={dataSource.name}
+        recordCount={dataSource.records?.length}
+        onClose={() => handleDataSourceSelect("")}
+      />
     </div>
-    <div className="p-2 bg-neutral-100 h-full">
-      <DataTable columns={columns} data={dataSource.records || []} onRowClick={handleRowClick} selectedRecordId={selectedRecordId || undefined} />
-    </div>
- </>
-  )
+  );
 }

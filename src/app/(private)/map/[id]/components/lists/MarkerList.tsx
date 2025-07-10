@@ -46,7 +46,7 @@ export default function MarkerList({
             {placedMarkers.map((result, index) => (
               <li
                 key={index}
-                className="flex items-center gap-2 hover:bg-gray-100 rounded"
+                className="flex items-center gap-2 hover:bg-neutral-100 rounded"
                 onContextMenu={() => setContextMenuIndex(index)}
               >
                 {editingIndex === index ? (
@@ -54,7 +54,7 @@ export default function MarkerList({
                     onSubmit={(e) => {
                       e.preventDefault();
                       const existingMarker = placedMarkers.find(
-                        (m, i) => i === index,
+                        (m, i) => i === index
                       );
                       if (existingMarker) {
                         updatePlacedMarker({
@@ -115,17 +115,17 @@ export default function MarkerList({
                       </AccordionTrigger>
                       <AccordionContent className="pb-0">
                         <ul className="">
-                          <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                          <li className="flex items-center gap-2 p-1 hover:bg-neutral-100 rounded">
                             <span className="flex-grow cursor-pointer text-sm">
                               Oliver Goldsmith Primary School
                             </span>
                           </li>
-                          <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                          <li className="flex items-center gap-2 p-1 hover:bg-neutral-100 rounded">
                             <span className="flex-grow cursor-pointer text-sm">
                               {"St. Mary's Catholic Primary School"}
                             </span>
                           </li>
-                          <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
+                          <li className="flex items-center gap-2 p-1 hover:bg-neutral-100 rounded">
                             <span className="flex-grow cursor-pointer text-sm">
                               John Dunne Primary School
                             </span>
@@ -154,7 +154,7 @@ export default function MarkerList({
               <ContextMenuItem
                 onClick={() => {
                   const existingMarker = placedMarkers.find(
-                    (m, i) => i === contextMenuIndex,
+                    (m, i) => i === contextMenuIndex
                   );
                   if (existingMarker) {
                     deletePlacedMarker(existingMarker.id);

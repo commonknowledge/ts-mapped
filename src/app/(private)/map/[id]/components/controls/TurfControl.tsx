@@ -11,7 +11,7 @@ export default function TurfControl() {
   return (
     <div className="flex flex-col gap-1 px-4 pb-4">
       <LayerHeader
-        label="Turf"
+        label="Areas"
         color={mapColors.turf.color}
         showLayer={viewConfig.showTurf}
         setLayer={(show) => updateViewConfig({ showTurf: show })}
@@ -23,7 +23,7 @@ export default function TurfControl() {
             if (map) {
               // Find the polygon draw button and click it
               const drawButton = document.querySelector(
-                ".mapbox-gl-draw_polygon",
+                ".mapbox-gl-draw_polygon"
               ) as HTMLButtonElement;
               if (drawButton) {
                 drawButton.click();

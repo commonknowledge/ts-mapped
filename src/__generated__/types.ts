@@ -619,7 +619,7 @@ export type DataRecordsQueryVariables = Exact<{
 }>;
 
 
-export type DataRecordsQuery = { __typename?: 'Query', dataSource?: { __typename?: 'DataSource', id: string, name: string, config: any, columnDefs: Array<{ __typename?: 'ColumnDef', name: string, type: ColumnType }>, records?: Array<{ __typename?: 'DataRecord', id: string, externalId: string, json: any }> | null } | null };
+export type DataRecordsQuery = { __typename?: 'Query', dataSource?: { __typename?: 'DataSource', id: string, name: string, config: any, columnDefs: Array<{ __typename?: 'ColumnDef', name: string, type: ColumnType }>, records?: Array<{ __typename?: 'DataRecord', id: string, externalId: string, json: any, geocodePoint?: { __typename?: 'Point', lat: number, lng: number } | null }> | null } | null };
 
 export type AreaStatsQueryVariables = Exact<{
   areaSetCode: AreaSetCode;

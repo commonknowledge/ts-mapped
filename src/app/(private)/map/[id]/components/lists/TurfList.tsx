@@ -33,7 +33,7 @@ export default function TurfList() {
           .replace("T", " ");
         return acc;
       },
-      {} as Record<string, string>,
+      {} as Record<string, string>
     );
 
     setFormattedDates(dates);
@@ -58,7 +58,7 @@ export default function TurfList() {
           {turfs.map((turf, index) => (
             <div
               key={turf.id}
-              className="flex justify-between items-center  hover:bg-gray-100 rounded cursor-pointer text-sm"
+              className="flex justify-between items-center  hover:bg-neutral-100 rounded cursor-pointer text-sm"
               onClick={() => handleFlyTo(turf)}
               onContextMenu={() => setContextMenuIndex(index)}
             >
@@ -84,7 +84,7 @@ export default function TurfList() {
                 <>
                   <div>
                     <div>{turf.label}</div>
-                    <div className="text-gray-400 text-xs">
+                    <div className="text-neutral-400 text-xs">
                       {getOrganisation()?.name || "Unknown organisation"}
                     </div>
                   </div>
@@ -111,7 +111,7 @@ export default function TurfList() {
             <ContextMenuItem
               onClick={() => {
                 const existingTurf = turfs.find(
-                  (t, i) => i === contextMenuIndex,
+                  (t, i) => i === contextMenuIndex
                 );
                 if (existingTurf) {
                   deleteTurf(existingTurf.id);
