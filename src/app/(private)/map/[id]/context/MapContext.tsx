@@ -6,6 +6,8 @@ import {
   AreaStatsQuery,
   AreaStatsQueryVariables,
   BoundingBoxInput,
+  DataRecordsQuery,
+  DataRecordsQueryVariables,
   DataSourcesQuery,
   MapStyleName,
   MapViewConfigInput,
@@ -87,6 +89,10 @@ export const MapContext = createContext<{
 
   /* GraphQL Queries */
   areaStatsQuery: QueryResult<AreaStatsQuery, AreaStatsQueryVariables> | null;
+  dataRecordsQuery: QueryResult<
+    DataRecordsQuery,
+    DataRecordsQueryVariables
+  > | null;
   dataSourcesQuery: QueryResult<DataSourcesQuery> | null;
   markersQuery: MarkersQueryResult | null;
 
@@ -121,6 +127,7 @@ export const MapContext = createContext<{
   setZoom: () => null,
 
   areaStatsQuery: null,
+  dataRecordsQuery: null,
   dataSourcesQuery: null,
   markersQuery: null,
 

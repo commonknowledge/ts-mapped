@@ -133,6 +133,13 @@ const typeDefs = `
     nameColumn: String
   }
 
+  type DataRecord {
+    id: String!
+    externalId: String!
+    json: JSON!
+    geocodePoint: Point
+  }
+
   type DataSource {
     id: String!
     name: String!
@@ -148,6 +155,8 @@ const typeDefs = `
     enrichmentDataSources: [EnrichmentDataSource!]
     enrichmentInfo: JobInfo
     importInfo: JobInfo
+
+    records: [DataRecord!]
 
     recordCount: Int
   }

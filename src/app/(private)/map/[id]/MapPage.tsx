@@ -17,6 +17,7 @@ import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
 import {
   useAreaStatsQuery,
+  useDataRecordsQuery,
   useDataSourcesQuery,
   useMapQuery,
   useMarkersQuery,
@@ -58,6 +59,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const markersQuery = useMarkersQuery({
     dataSourceId: viewConfig.markersDataSourceId,
   });
+
+  const dataRecordsQuery = useDataRecordsQuery(viewConfig.markersDataSourceId);
 
   const areaStatsQuery = useAreaStatsQuery({
     areaSetCode: choroplethLayerConfig.areaSetCode,
@@ -205,6 +208,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
         areaStatsQuery,
         dataSourcesQuery,
+        dataRecordsQuery,
         markersQuery,
 
         choroplethLayerConfig,
@@ -215,6 +219,22 @@ export default function MapPage({ mapId }: { mapId: string }) {
         <Controls />
         <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
         <Legend areaStats={areaStatsData?.areaStats} />
+        <div className="flex flex-col gap-4">
+          <div>
+            <h2 className="font-bold">Column Defs</h2>
+            {dataRecordsQuery.data?.dataSource?.columnDefs.map((columnDef) => (
+              <p key={columnDef.name}>
+                {columnDef.name}: {columnDef.type}
+              </p>
+            ))}
+          </div>
+          <div>
+            <h2 className="font-bold">Data</h2>
+            {dataRecordsQuery.data?.dataSource?.records?.map((r) => (
+              <p key={r.id}>{JSON.stringify(r.json)}</p>
+            ))}
+          </div>
+        </div>
         {loading && <Loading />}
       </div>
     </MapContext>

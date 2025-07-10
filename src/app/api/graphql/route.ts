@@ -10,8 +10,8 @@ import Map from "./resolvers/Map";
 import Mutation from "./resolvers/Mutation";
 import Query from "./resolvers/Query";
 import Subscription from "./resolvers/Subscription";
+import { GraphQLDate } from "./scalars";
 import typeDefs from "./typeDefs";
-import { GraphQLDate } from "./typeDefs/scalars";
 
 const resolvers: Resolvers = {
   Date: GraphQLDate,

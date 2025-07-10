@@ -112,6 +112,14 @@ export type CreateMapResponse = {
   result?: Maybe<Map>;
 };
 
+export type DataRecord = {
+  __typename?: "DataRecord";
+  externalId: Scalars["String"]["output"];
+  geocodePoint?: Maybe<Point>;
+  id: Scalars["String"]["output"];
+  json: Scalars["JSON"]["output"];
+};
+
 export type DataSource = {
   __typename?: "DataSource";
   autoEnrich: Scalars["Boolean"]["output"];
@@ -128,6 +136,7 @@ export type DataSource = {
   importInfo?: Maybe<JobInfo>;
   name: Scalars["String"]["output"];
   recordCount?: Maybe<Scalars["Int"]["output"]>;
+  records?: Maybe<Array<DataRecord>>;
 };
 
 export type DataSourceEvent = {
@@ -826,6 +835,30 @@ export type MapQuery = {
   } | null;
 };
 
+export type DataRecordsQueryVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+}>;
+
+export type DataRecordsQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    columnDefs: Array<{
+      __typename?: "ColumnDef";
+      name: string;
+      type: ColumnType;
+    }>;
+    records?: Array<{
+      __typename?: "DataRecord";
+      id: string;
+      externalId: string;
+      json: any;
+    }> | null;
+  } | null;
+};
+
 export type AreaStatsQueryVariables = Exact<{
   areaSetCode: AreaSetCode;
   dataSourceId: Scalars["String"]["input"];
@@ -1034,6 +1067,7 @@ export type ResolversTypes = {
   ColumnType: ColumnType;
   CreateDataSourceResponse: ResolverTypeWrapper<CreateDataSourceResponse>;
   CreateMapResponse: ResolverTypeWrapper<CreateMapResponse>;
+  DataRecord: ResolverTypeWrapper<DataRecord>;
   DataSource: ResolverTypeWrapper<DataSource>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
   Date: ResolverTypeWrapper<Scalars["Date"]["output"]>;
@@ -1087,6 +1121,7 @@ export type ResolversParentTypes = {
   ColumnRolesInput: ColumnRolesInput;
   CreateDataSourceResponse: CreateDataSourceResponse;
   CreateMapResponse: CreateMapResponse;
+  DataRecord: DataRecord;
   DataSource: DataSource;
   DataSourceEvent: DataSourceEvent;
   Date: Scalars["Date"]["output"];
@@ -1203,6 +1238,22 @@ export type CreateMapResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type DataRecordResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["DataRecord"] = ResolversParentTypes["DataRecord"],
+> = {
+  externalId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  geocodePoint?: Resolver<
+    Maybe<ResolversTypes["Point"]>,
+    ParentType,
+    ContextType
+  >;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  json?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type DataSourceResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -1250,6 +1301,11 @@ export type DataSourceResolvers<
   >;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
+  records?: Resolver<
+    Maybe<Array<ResolversTypes["DataRecord"]>>,
+    ParentType,
+    ContextType
+  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1733,6 +1789,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   ColumnRoles?: ColumnRolesResolvers<ContextType>;
   CreateDataSourceResponse?: CreateDataSourceResponseResolvers<ContextType>;
   CreateMapResponse?: CreateMapResponseResolvers<ContextType>;
+  DataRecord?: DataRecordResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
   Date?: GraphQLScalarType;
