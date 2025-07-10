@@ -1,5 +1,5 @@
 import { gql, useMutation } from "@apollo/client";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
@@ -21,7 +21,7 @@ import { Columns } from "lucide-react";
 
 export default function Controls() {
   const { organisationId } = useContext(OrganisationsContext);
-  const { mapRef, mapId, viewConfig, viewId, setViewId } =
+  const { mapRef, mapId, viewConfig, viewId, setViewId, selectedDataSourceId } =
     useContext(MapContext);
   const [loading, setLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -56,6 +56,13 @@ export default function Controls() {
       }
     }
   `);
+
+  //reset map when ui shifts
+  useEffect(() => {
+    if (mapRef?.current) {
+      mapRef.current.resize();    }
+  }, [selectedDataSourceId, showControls]);
+
 
   const saveMapView = async () => {
     // Should never happen, button is also hidden in this case
@@ -126,7 +133,7 @@ export default function Controls() {
     );
   }
   return (
-    <div className={`flex flex-col bg-white z-10 w-[300px] h-full ${showControls ? "block" : "hidden"}`}>
+    <div className={`flex flex-col bg-white z-10 w-[300px] h-full border-r border-gray-200 ${showControls ? "block" : "hidden"}`}>
       <div className="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-1 pr-1">
         <p className="text-sm font-bold">Layers</p>
         <Button variant="ghost" size="icon" onClick={() => setShowControls(!showControls)}>

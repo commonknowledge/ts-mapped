@@ -25,6 +25,8 @@ import {
 import { usePlacedMarkers, useTurfs } from "./hooks";
   import styles from "./MapPage.module.css";
 import { getChoroplethLayerConfig } from "./sources";
+import MapTable from "./components/MapTable";
+import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from "@/shadcn/ui/resizable";
 
 export default function MapPage({ mapId }: { mapId: string }) {
   /* Map Ref */
@@ -46,6 +48,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [selectedDataSourceId, setSelectedDataSourceId] = useState<string | null>(null);
 
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
@@ -93,6 +96,14 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
     setViewConfig(new ViewConfig({ ...viewConfig, ...nextViewConfig }));
+  };
+
+  const handleDataSourceSelect = (dataSourceId: string) => {
+    if (selectedDataSourceId === dataSourceId) {
+      setSelectedDataSourceId(null);
+      return;
+    }
+    setSelectedDataSourceId(dataSourceId);
   };
 
   /* Effects */
@@ -212,28 +223,29 @@ export default function MapPage({ mapId }: { mapId: string }) {
         markersQuery,
 
         choroplethLayerConfig,
+        selectedDataSourceId,
+        handleDataSourceSelect,
       }}
     >
       <div className="flex w-full h-[calc(100vh-3.5rem)]">
         <Controls />
         <div className="flex flex-col gap-4 w-full relative">
-        <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
           <MapStyleSelector />
+          <ResizablePanelGroup direction="vertical">
+            <ResizablePanel>
+              <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
+            </ResizablePanel>
+            {selectedDataSourceId && (
+              <>
+                <ResizableHandle withHandle />
+                <ResizablePanel onResize={() => mapRef.current?.resize()}>
+                  <MapTable />
+                </ResizablePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
           {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
-          <div className="">
-            <h2 className="font-bold">Column Defs</h2>
-            {dataRecordsQuery.data?.dataSource?.columnDefs.map((columnDef) => (
-              <p key={columnDef.name}>
-                {columnDef.name}: {columnDef.type}
-              </p>
-            ))}
-          </div>
-          <div>
-            <h2 className="font-bold">Data</h2>
-            {dataRecordsQuery.data?.dataSource?.records?.map((r) => (
-              <p key={r.id}>{JSON.stringify(r.json)}</p>
-            ))}
-          </div>
+
         </div>
         {loading && <Loading />}
       </div>

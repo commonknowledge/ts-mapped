@@ -87,6 +87,9 @@ export const MapContext = createContext<{
   zoom: number;
   setZoom: (zoom: number) => void;
 
+  selectedDataSourceId: string | null;
+  handleDataSourceSelect: (dataSourceId: string) => void;
+
   /* GraphQL Queries */
   areaStatsQuery: QueryResult<AreaStatsQuery, AreaStatsQueryVariables> | null;
   dataRecordsQuery: QueryResult<
@@ -125,6 +128,8 @@ export const MapContext = createContext<{
   setViewId: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
+  selectedDataSourceId: null,
+  handleDataSourceSelect: () => null,
 
   areaStatsQuery: null,
   dataRecordsQuery: null,

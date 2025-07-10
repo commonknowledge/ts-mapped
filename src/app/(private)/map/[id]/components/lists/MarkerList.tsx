@@ -46,7 +46,7 @@ export default function MarkerList({
             {placedMarkers.map((result, index) => (
               <li
                 key={index}
-                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded"
+                className="flex items-center gap-2 hover:bg-gray-100 rounded"
                 onContextMenu={() => setContextMenuIndex(index)}
               >
                 {editingIndex === index ? (

@@ -8,7 +8,7 @@ import LayerHeader from "./LayerHeader";
 export default function MembersControl() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   return (
-    <div className="flex flex-col gap-1 px-4">
+    <div className="flex flex-col gap-1 px-4 pb-4">
       <LayerHeader
         label="Members"
         color={mapColors.member.color}

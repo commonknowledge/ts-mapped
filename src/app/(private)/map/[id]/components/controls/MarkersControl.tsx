@@ -25,7 +25,7 @@ export default function MarkersControl() {
     useState<boolean>(false);
   const router = useRouter();
   return (
-    <div className="flex flex-col gap-1 px-4">
+    <div className="flex flex-col gap-1 px-4 pb-4">
       <DataSourcesModal
         open={dataSourcesModalOpen}
         onOpenChange={setDataSourcesModalOpen}
@@ -149,7 +149,7 @@ function DataSourcesModal({
           {dummyDataSourcesList.map((dataSource) => (
             <label
               key={dataSource.id}
-              className="flex items-center gap-4 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-4 rounded-lg border hover:bg-gray-50 cursor-pointer"
             >
               <Checkbox
                 id={`ds-${dataSource.id}`}
