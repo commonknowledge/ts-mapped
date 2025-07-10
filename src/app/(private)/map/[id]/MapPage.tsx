@@ -25,7 +25,7 @@ import {
 import { usePlacedMarkers, useTurfs } from "./hooks";
   import styles from "./MapPage.module.css";
 import { getChoroplethLayerConfig } from "./sources";
-import MapTable from "./components/MapTable";
+import MapTable from "./components/table/MapTable";
 import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from "@/shadcn/ui/resizable";
 
 export default function MapPage({ mapId }: { mapId: string }) {
