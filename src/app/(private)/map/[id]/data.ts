@@ -140,6 +140,10 @@ export const useDataRecordsQuery = (dataSourceId: string) =>
             id
             externalId
             json
+            geocodePoint {
+              lat
+              lng
+            }
           }
         }
       }

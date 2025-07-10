@@ -101,6 +101,8 @@ export const MapContext = createContext<{
 
   /* Derived Properties */
   choroplethLayerConfig: ChoroplethLayerConfig;
+  selectedRecordId: string | null;
+  setSelectedRecordId: (recordId: string | null) => void;
 }>({
   mapId: null,
 
@@ -130,7 +132,8 @@ export const MapContext = createContext<{
   setZoom: () => null,
   selectedDataSourceId: null,
   handleDataSourceSelect: () => null,
-
+  selectedRecordId: null,
+  setSelectedRecordId: () => null,
   areaStatsQuery: null,
   dataRecordsQuery: null,
   dataSourcesQuery: null,

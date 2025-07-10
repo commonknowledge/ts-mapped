@@ -49,6 +49,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<string | null>(null);
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
@@ -172,6 +173,15 @@ export default function MapPage({ mapId }: { mapId: string }) {
     })();
   }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, viewConfig]);
 
+  useEffect(() => {
+    if (selectedRecordId) {
+      mapRef.current?.flyTo({
+        center: [selectedRecordId.geocodePoint.lng, selectedRecordId.geocodePoint.lat],
+        zoom: 15,
+      });
+    }
+  }, [selectedRecordId]);
+
   // Don't display any components while waiting for saved map views
   if (mapQueryLoading) {
     return (
@@ -225,6 +235,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
         choroplethLayerConfig,
         selectedDataSourceId,
         handleDataSourceSelect,
+        selectedRecordId,
+        setSelectedRecordId,
       }}
     >
       <div className="flex w-full h-[calc(100vh-3.5rem)]">

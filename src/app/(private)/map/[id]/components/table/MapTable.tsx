@@ -3,7 +3,7 @@ import { MapContext } from "../../context/MapContext";
 import { DataTable } from "./DataTable";
 
 export default function MapTable() {
-  const { selectedDataSourceId, dataRecordsQuery } = useContext(MapContext);
+  const { selectedDataSourceId, dataRecordsQuery, setSelectedRecordId, mapRef } = useContext(MapContext);
 
   if (!selectedDataSourceId) {
     return null;
@@ -17,7 +17,15 @@ export default function MapTable() {
   const columns = dataSource.columnDefs.map((columnDef) => ({
     header: columnDef.name,
     accessorKey: "json." + columnDef.name,
+    
   }));
+
+  const handleRowClick = (row: any) => {
+    mapRef?.current?.flyTo({
+      center: [row.geocodePoint.lng, row.geocodePoint.lat],
+      zoom: 15,
+    });
+  };
 
   return (
     <>
@@ -26,7 +34,7 @@ export default function MapTable() {
     <p>{dataSource.records?.length}</p>
     </div>
     <div className="p-2 bg-neutral-100 h-full">
-      <DataTable columns={columns} data={dataSource.records || []} />
+      <DataTable columns={columns} data={dataSource.records || []} onRowClick={handleRowClick} />
     </div>
  </>
   )
