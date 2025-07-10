@@ -55,6 +55,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
     string | null
   >(null);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+  const [radiusMiles, setRadiusMiles] = useState<number>(10);
 
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
@@ -233,6 +235,10 @@ export default function MapPage({ mapId }: { mapId: string }) {
         handleDataSourceSelect,
         selectedRecordId,
         setSelectedRecordId,
+        selectedMarkerId,
+        setSelectedMarkerId,
+        radiusMiles,
+        setRadiusMiles,
       }}
     >
       <div className="flex w-full h-[calc(100vh-3.5rem)]">

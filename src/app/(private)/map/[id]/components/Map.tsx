@@ -15,6 +15,7 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
+import RadiusCircle from "./RadiusCircle";
 import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
@@ -31,6 +32,8 @@ export default function Map({
     deleteTurf,
     insertTurf,
     setZoom,
+    selectedMarkerId,
+    radiusMiles,
   } = useContext(MapContext);
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
 
@@ -112,7 +115,7 @@ export default function Map({
                   ["!=", "mode", "draw"],
                 ],
                 paint: {
-                  "fill-color": mapColors.turf.color,
+                  "fill-color": mapColors.areas.color,
                   "fill-opacity": 0.3,
                 },
               },
@@ -125,7 +128,7 @@ export default function Map({
                   ["!=", "mode", "draw"],
                 ],
                 paint: {
-                  "line-color": mapColors.turf.color,
+                  "line-color": mapColors.areas.color,
                   "line-width": 2,
                 },
               },
@@ -191,9 +194,12 @@ export default function Map({
     >
       <Choropleth />
       <Markers />
-
       <PlacedMarkers />
       <TurfPolygons />
+      <RadiusCircle
+        selectedMarkerId={selectedMarkerId}
+        radiusMiles={radiusMiles}
+      />
     </MapGL>
   );
 }

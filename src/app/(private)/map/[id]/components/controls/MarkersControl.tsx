@@ -34,7 +34,7 @@ export default function MarkersControl() {
       />
       <LayerHeader
         label="Markers"
-        color={mapColors.searched.color}
+        color={mapColors.markers.color}
         showLayer={viewConfig.showLocations}
         setLayer={(show) => updateViewConfig({ showLocations: show })}
       >

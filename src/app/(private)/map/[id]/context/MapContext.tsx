@@ -90,6 +90,12 @@ export const MapContext = createContext<{
   selectedDataSourceId: string | null;
   handleDataSourceSelect: (dataSourceId: string) => void;
 
+  /* Radius Filter State */
+  selectedMarkerId: string | null;
+  setSelectedMarkerId: (markerId: string | null) => void;
+  radiusMiles: number;
+  setRadiusMiles: (radius: number) => void;
+
   /* GraphQL Queries */
   areaStatsQuery: QueryResult<AreaStatsQuery, AreaStatsQueryVariables> | null;
   dataRecordsQuery: QueryResult<
@@ -134,6 +140,10 @@ export const MapContext = createContext<{
   handleDataSourceSelect: () => null,
   selectedRecordId: null,
   setSelectedRecordId: () => null,
+  selectedMarkerId: null,
+  setSelectedMarkerId: () => null,
+  radiusMiles: 10,
+  setRadiusMiles: () => null,
   areaStatsQuery: null,
   dataRecordsQuery: null,
   dataSourcesQuery: null,
@@ -141,6 +151,6 @@ export const MapContext = createContext<{
 
   choroplethLayerConfig: getChoroplethLayerConfig(
     AreaSetGroupCode.WMC24,
-    DEFAULT_ZOOM,
+    DEFAULT_ZOOM
   ),
 });

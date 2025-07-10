@@ -12,7 +12,7 @@ export default function TurfControl() {
     <div className="flex flex-col gap-1 px-4 pb-4">
       <LayerHeader
         label="Areas"
-        color={mapColors.turf.color}
+        color={mapColors.areas.color}
         showLayer={viewConfig.showTurf}
         setLayer={(show) => updateViewConfig({ showTurf: show })}
       >

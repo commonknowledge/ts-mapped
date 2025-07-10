@@ -48,7 +48,6 @@ export default function MapTable() {
         onRowClick={handleRowClick}
         selectedRecordId={selectedRecordId || undefined}
         title={dataSource.name}
-        recordCount={dataSource.records?.length}
         onClose={() => handleDataSourceSelect("")}
       />
     </div>

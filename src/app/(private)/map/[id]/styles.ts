@@ -60,15 +60,15 @@ export interface mapColor {
 
 export const mapColors: Record<string, mapColor> = {
   member: {
-    name: "Member",
+    name: "members",
     color: "#678DE3",
   },
-  searched: {
-    name: "Searched",
+  markers: {
+    name: "markers",
     color: "#FF6B6B",
   },
-  turf: {
-    name: "Turf",
+  areas: {
+    name: "areas",
     color: "#91E17E",
     textColor: "#4DAB37",
   },
