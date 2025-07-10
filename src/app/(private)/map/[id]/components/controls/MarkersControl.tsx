@@ -25,7 +25,7 @@ export default function MarkersControl() {
     useState<boolean>(false);
   const router = useRouter();
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 px-4">
       <DataSourcesModal
         open={dataSourcesModalOpen}
         onOpenChange={setDataSourcesModalOpen}

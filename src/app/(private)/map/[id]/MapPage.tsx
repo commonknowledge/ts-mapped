@@ -23,7 +23,7 @@ import {
   useMarkersQuery,
 } from "./data";
 import { usePlacedMarkers, useTurfs } from "./hooks";
-import styles from "./MapPage.module.css";
+  import styles from "./MapPage.module.css";
 import { getChoroplethLayerConfig } from "./sources";
 
 export default function MapPage({ mapId }: { mapId: string }) {
@@ -214,13 +214,13 @@ export default function MapPage({ mapId }: { mapId: string }) {
         choroplethLayerConfig,
       }}
     >
-      <div className={styles.map}>
-        <MapStyleSelector />
+      <div className="flex w-full h-[calc(100vh-3.5rem)]">
         <Controls />
+        <div className="flex flex-col gap-4 w-full relative">
         <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
-        <Legend areaStats={areaStatsData?.areaStats} />
-        <div className="flex flex-col gap-4">
-          <div>
+          <MapStyleSelector />
+          {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
+          <div className="">
             <h2 className="font-bold">Column Defs</h2>
             {dataRecordsQuery.data?.dataSource?.columnDefs.map((columnDef) => (
               <p key={columnDef.name}>
