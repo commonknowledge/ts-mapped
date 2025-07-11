@@ -211,7 +211,7 @@ export function DataTable<TData extends { id: string }, TValue>({
         <div className="flex items-center gap-4">
           {title && (
             <div className="flex flex-row gap-2">
-              <p className="font-bold whitespace-nowrap">{title}</p>
+              <p className="font-semibold whitespace-nowrap">{title}</p>
             </div>
           )}
           <Input
@@ -316,7 +316,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                 value={[radiusMiles]}
                 onValueChange={(value) => setRadiusMiles(value[0])}
                 max={50}
-                min={1}
+                min={0.5}
                 step={0.5}
                 className="w-20"
                 trackBackground="bg-neutral-300"

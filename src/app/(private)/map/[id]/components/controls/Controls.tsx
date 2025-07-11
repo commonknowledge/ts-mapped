@@ -139,7 +139,7 @@ export default function Controls() {
       className={`flex flex-col bg-white z-10 w-[300px] h-full border-r border-neutral-200 ${showControls ? "block" : "hidden"}`}
     >
       <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
-        <p className="text-sm font-bold">Layers</p>
+        <p className="text-sm font-semibold">Layers</p>
         <Button
           variant="ghost"
           size="icon"
