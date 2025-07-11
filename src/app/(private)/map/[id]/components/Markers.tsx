@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
 
 export default function Markers() {
   const { markersQuery, viewConfig, selectedMarker, setSelectedMarker } =
@@ -30,7 +30,7 @@ export default function Markers() {
             source="markers"
             filter={["has", "point_count"]}
             paint={{
-              "circle-color": mapColors.member.color,
+              "circle-color": mapColours.member.color,
               "circle-radius": [
                 "interpolate",
                 ["linear"],

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
 import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import {
@@ -34,7 +34,7 @@ export default function MarkersControl() {
       />
       <LayerHeader
         label="Markers"
-        color={mapColors.searched.color}
+        color={mapColours.markers.color}
         showLayer={viewConfig.showLocations}
         setLayer={(show) => updateViewConfig({ showLocations: show })}
       >

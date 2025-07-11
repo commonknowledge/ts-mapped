@@ -1,7 +1,7 @@
 import { PlusIcon } from "lucide-react";
 import { useContext } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import TurfHistory from "../lists/TurfList";
 import LayerHeader from "./LayerHeader";
@@ -12,7 +12,7 @@ export default function TurfControl() {
     <div className="flex flex-col gap-1 px-4 pb-4">
       <LayerHeader
         label="Areas"
-        color={mapColors.turf.color}
+        color={mapColours.areas.color}
         showLayer={viewConfig.showTurf}
         setLayer={(show) => updateViewConfig({ showTurf: show })}
       >
