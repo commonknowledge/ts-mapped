@@ -2,7 +2,7 @@ import { FeatureCollection, Polygon } from "geojson";
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
 
 export default function TurfPolygons() {
   const { viewConfig, turfs } = useContext(MapContext);
@@ -29,7 +29,7 @@ export default function TurfPolygons() {
           id="turf-polygons-fill"
           type="fill"
           paint={{
-            "fill-color": mapColors.turf.color,
+            "fill-color": mapColours.areas.color,
             "fill-opacity": 0.3,
           }}
         />
@@ -37,7 +37,7 @@ export default function TurfPolygons() {
           id="turf-polygons-stroke"
           type="line"
           paint={{
-            "line-color": mapColors.turf.color,
+            "line-color": mapColours.areas.color,
             "line-width": 2,
           }}
         />
@@ -55,7 +55,7 @@ export default function TurfPolygons() {
             "text-allow-overlap": true,
           }}
           paint={{
-            "text-color": mapColors.turf.textColor,
+            "text-color": mapColours.areas.textColor,
             "text-halo-color": "#fff",
             "text-halo-width": 1,
           }}

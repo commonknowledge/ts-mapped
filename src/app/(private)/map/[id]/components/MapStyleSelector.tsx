@@ -21,8 +21,8 @@ import mapStyles from "../styles";
 export default function MapStyleSelector() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   return (
-    <div className="absolute left-1/2 -top-20 -translate-x-1/2 m-3 p-4 z-10  bg-white ">
-      <div className="flex gap-2 items-center">
+    <div className="h-14 absolute left-1/2 -top-14 -translate-x-1/2 p-2 z-10  bg-white border-b border-neutral-200">
+      <div className="flex gap-2 items-center h-full">
         <TooltipProvider>
           <Tooltip>
             <Select

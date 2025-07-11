@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
 import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import {
@@ -25,7 +25,7 @@ export default function MarkersControl() {
     useState<boolean>(false);
   const router = useRouter();
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 px-4 pb-4">
       <DataSourcesModal
         open={dataSourcesModalOpen}
         onOpenChange={setDataSourcesModalOpen}
@@ -34,7 +34,7 @@ export default function MarkersControl() {
       />
       <LayerHeader
         label="Markers"
-        color={mapColors.searched.color}
+        color={mapColours.markers.color}
         showLayer={viewConfig.showLocations}
         setLayer={(show) => updateViewConfig({ showLocations: show })}
       >
@@ -50,7 +50,7 @@ export default function MarkersControl() {
               onClick: () => {
                 setTimeout(() => {
                   const geocoderInput = document.querySelector(
-                    ".mapboxgl-ctrl-geocoder--input",
+                    ".mapboxgl-ctrl-geocoder--input"
                   ) as HTMLInputElement;
                   if (geocoderInput) {
                     geocoderInput.focus();
@@ -60,7 +60,7 @@ export default function MarkersControl() {
                         e.preventDefault();
                         geocoderInput.focus();
                       },
-                      { once: true },
+                      { once: true }
                     );
                   }
                 }, 200);
@@ -149,7 +149,7 @@ function DataSourcesModal({
           {dummyDataSourcesList.map((dataSource) => (
             <label
               key={dataSource.id}
-              className="flex items-center gap-4 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer"
+              className="flex items-center gap-4 rounded-lg border hover:bg-neutral-50 cursor-pointer"
             >
               <Checkbox
                 id={`ds-${dataSource.id}`}
@@ -158,7 +158,7 @@ function DataSourcesModal({
                     setActiveDataSources([...activeDataSources, dataSource.id]);
                   } else {
                     setActiveDataSources(
-                      activeDataSources.filter((id) => id !== dataSource.id),
+                      activeDataSources.filter((id) => id !== dataSource.id)
                     );
                   }
                 }}
