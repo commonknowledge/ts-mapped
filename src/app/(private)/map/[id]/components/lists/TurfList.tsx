@@ -58,7 +58,7 @@ export default function TurfList() {
           {turfs.map((turf, index) => (
             <div
               key={turf.id}
-              className="flex justify-between items-center  hover:bg-neutral-100 rounded cursor-pointer text-sm"
+              className="flex justify-between items-center p-1 hover:bg-neutral-100 rounded cursor-pointer text-sm"
               onClick={() => handleFlyTo(turf)}
               onContextMenu={() => setContextMenuIndex(index)}
             >
