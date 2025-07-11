@@ -1,5 +1,6 @@
 "use client";
 
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
@@ -15,6 +16,7 @@ import {
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import { MarkerData } from "@/types";
+import AddingLayers from "./components/AddingLayers";
 import Controls from "./components/controls/Controls";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
@@ -55,6 +57,10 @@ export default function MapPage({ mapId }: { mapId: string }) {
     string | null
   >(null);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const [draw, setDraw] = useState<MapboxDraw | null>(null);
+  const [addingLayer, setAddingLayer] = useState<"area" | "marker" | null>(
+    null
+  );
 
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
@@ -113,6 +119,35 @@ export default function MapPage({ mapId }: { mapId: string }) {
   };
 
   /* Effects */
+
+  // Handle keyboard events for adding layers. It feels a bit disconnected from the AddingLayers component. Think we should have a unified place where we but map Actions.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (addingLayer) {
+        if (event.key === "Enter") {
+          // Finish adding layer
+          setAddingLayer(null);
+          if (draw && typeof draw.changeMode === "function") {
+            draw.changeMode("simple_select");
+          }
+        } else if (event.key === "Escape") {
+          // Cancel adding layer
+          setAddingLayer(null);
+          if (draw && typeof draw.changeMode === "function") {
+            draw.changeMode("simple_select");
+          }
+          if (mapRef?.current) {
+            mapRef.current.getCanvas().style.cursor = "";
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [addingLayer, draw, mapRef]);
 
   /* Update local map state when saved views are loaded from the server */
   useEffect(() => {
@@ -199,6 +234,10 @@ export default function MapPage({ mapId }: { mapId: string }) {
         mapId,
 
         mapRef,
+        draw,
+        setDraw,
+        addingLayer,
+        setAddingLayer,
 
         boundingBox,
         setBoundingBox,
@@ -244,6 +283,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
+              <AddingLayers />
             </ResizablePanel>
             {selectedDataSourceId && (
               <>

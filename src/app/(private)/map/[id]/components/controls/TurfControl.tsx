@@ -7,7 +7,8 @@ import TurfHistory from "../lists/TurfList";
 import LayerHeader from "./LayerHeader";
 
 export default function TurfControl() {
-  const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
+  const { viewConfig, draw, setAddingLayer, updateViewConfig } =
+    useContext(MapContext);
   return (
     <div className="flex flex-col gap-1 px-4 pb-4">
       <LayerHeader
@@ -19,15 +20,9 @@ export default function TurfControl() {
         <IconButtonWithTooltip
           tooltip="Add Turf"
           onClick={() => {
-            const map = mapRef?.current;
-            if (map) {
-              // Find the polygon draw button and click it
-              const drawButton = document.querySelector(
-                ".mapbox-gl-draw_polygon"
-              ) as HTMLButtonElement;
-              if (drawButton) {
-                drawButton.click();
-              }
+            if (draw && typeof draw.changeMode === "function") {
+              draw.changeMode("draw_polygon");
+              setAddingLayer("area");
             }
           }}
         >

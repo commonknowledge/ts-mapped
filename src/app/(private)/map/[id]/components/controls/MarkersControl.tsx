@@ -18,8 +18,13 @@ import MarkerList from "../lists/MarkerList";
 import LayerHeader from "./LayerHeader";
 
 export default function MarkersControl() {
-  const { viewConfig, updateViewConfig, mapRef, insertPlacedMarker } =
-    useContext(MapContext);
+  const {
+    viewConfig,
+    updateViewConfig,
+    mapRef,
+    insertPlacedMarker,
+    setAddingLayer,
+  } = useContext(MapContext);
   const [activeDataSources, setActiveDataSources] = useState<string[]>([]);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
@@ -72,6 +77,7 @@ export default function MarkersControl() {
               onClick: () => {
                 const map = mapRef?.current;
                 if (map) {
+                  setAddingLayer("marker");
                   map.getCanvas().style.cursor = "crosshair";
 
                   const clickHandler = (e: mapboxgl.MapMouseEvent) => {
@@ -84,9 +90,10 @@ export default function MarkersControl() {
 
                     insertPlacedMarker(newMarker);
 
-                    // Reset cursor
+                    // Reset cursor and state
                     map.getCanvas().style.cursor = "";
                     map.off("click", clickHandler);
+                    setAddingLayer(null);
 
                     // Fly to the new marker
                     map.flyTo({

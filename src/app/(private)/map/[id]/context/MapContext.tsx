@@ -1,4 +1,5 @@
 import { QueryResult } from "@apollo/client";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { RefObject, createContext } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import {
@@ -55,6 +56,10 @@ export const MapContext = createContext<{
 
   /* Map Ref */
   mapRef: RefObject<MapRef | null> | null;
+  draw: MapboxDraw | null;
+  setDraw: (draw: MapboxDraw | null) => void;
+  addingLayer: "area" | "marker" | null;
+  setAddingLayer: (layer: "area" | "marker" | null) => void;
 
   /* State */
   boundingBox: BoundingBoxInput | null;
@@ -107,6 +112,10 @@ export const MapContext = createContext<{
   mapId: null,
 
   mapRef: null,
+  draw: null,
+  setDraw: () => null,
+  addingLayer: null,
+  setAddingLayer: () => null,
 
   boundingBox: null,
   setBoundingBox: () => null,
@@ -141,6 +150,6 @@ export const MapContext = createContext<{
 
   choroplethLayerConfig: getChoroplethLayerConfig(
     AreaSetGroupCode.WMC24,
-    DEFAULT_ZOOM,
+    DEFAULT_ZOOM
   ),
 });
