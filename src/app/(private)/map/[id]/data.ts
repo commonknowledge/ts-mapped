@@ -4,6 +4,8 @@ import {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
+  DataRecordsQuery,
+  DataRecordsQueryVariables,
   DataSourcesQuery,
   DeletePlacedMarkerMutationMutation,
   DeletePlacedMarkerMutationMutationVariables,
@@ -121,6 +123,33 @@ export const useMarkersQuery = ({
   }, [dataSourceId]);
   return { loading, data, error };
 };
+
+export const useDataRecordsQuery = (dataSourceId: string) =>
+  useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
+    gql`
+      query DataRecords($dataSourceId: String!) {
+        dataSource(id: $dataSourceId) {
+          id
+          name
+          config
+          columnDefs {
+            name
+            type
+          }
+          records {
+            id
+            externalId
+            json
+            geocodePoint {
+              lat
+              lng
+            }
+          }
+        }
+      }
+    `,
+    { variables: { dataSourceId } },
+  );
 
 export const useAreaStatsQuery = ({
   areaSetCode,

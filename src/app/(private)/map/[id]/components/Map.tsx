@@ -8,7 +8,7 @@ import { useContext, useEffect, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
 import { DEFAULT_ZOOM } from "@/constants";
 import { DrawDeleteEvent } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
@@ -112,7 +112,7 @@ export default function Map({
                   ["!=", "mode", "draw"],
                 ],
                 paint: {
-                  "fill-color": mapColors.turf.color,
+                  "fill-color": mapColours.areas.color,
                   "fill-opacity": 0.3,
                 },
               },
@@ -125,7 +125,7 @@ export default function Map({
                   ["!=", "mode", "draw"],
                 ],
                 paint: {
-                  "line-color": mapColors.turf.color,
+                  "line-color": mapColours.areas.color,
                   "line-width": 2,
                 },
               },
@@ -191,6 +191,7 @@ export default function Map({
     >
       <Choropleth />
       <Markers />
+
       <PlacedMarkers />
       <TurfPolygons />
     </MapGL>

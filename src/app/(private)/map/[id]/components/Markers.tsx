@@ -1,7 +1,8 @@
 import { useContext } from "react";
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
+import { MARKER_NAME_KEY } from "@/constants";
 
 export default function Markers() {
   const { markersQuery, viewConfig, selectedMarker, setSelectedMarker } =
@@ -30,7 +31,7 @@ export default function Markers() {
             source="markers"
             filter={["has", "point_count"]}
             paint={{
-              "circle-color": mapColors.member.color,
+              "circle-color": mapColours.member.color,
               "circle-radius": [
                 "interpolate",
                 ["linear"],
@@ -78,6 +79,25 @@ export default function Markers() {
               "circle-opacity": 1,
               "circle-stroke-width": 1,
               "circle-stroke-color": "#ffffff",
+            }}
+          />
+          <Layer
+            id="markers-labels"
+            type="symbol"
+            source="markers"
+            filter={["!", ["has", "point_count"]]}
+            minzoom={10}
+            layout={{
+              "text-field": ["get", MARKER_NAME_KEY],
+              "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              "text-size": 12,
+              "text-transform": "uppercase",
+              "text-offset": [0, -1.25],
+            }}
+            paint={{
+              "text-color": "#678DE3",
+              "text-halo-color": "#ffffff",
+              "text-halo-width": 1,
             }}
           />
           {/* This layer here for styling purposes as it adds a glow effect to the markers */}

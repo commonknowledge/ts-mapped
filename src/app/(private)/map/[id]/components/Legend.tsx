@@ -47,7 +47,7 @@ export default function Legend({
   }
 
   return (
-    <div className="flex rounded-sm overflow-hidden absolute bottom-6 left-6 w-2xs">
+    <div className="flex rounded-sm overflow-hidden absolute top-6 left-6 w-2xs">
       {bars}
     </div>
   );

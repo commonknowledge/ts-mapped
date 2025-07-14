@@ -58,7 +58,7 @@ export default function TurfList() {
           {turfs.map((turf, index) => (
             <div
               key={turf.id}
-              className="flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer text-sm"
+              className="flex justify-between items-center p-1 hover:bg-neutral-100 rounded cursor-pointer text-sm"
               onClick={() => handleFlyTo(turf)}
               onContextMenu={() => setContextMenuIndex(index)}
             >
@@ -84,7 +84,7 @@ export default function TurfList() {
                 <>
                   <div>
                     <div>{turf.label}</div>
-                    <div className="text-gray-400 text-xs">
+                    <div className="text-neutral-400 text-xs">
                       {getOrganisation()?.name || "Unknown organisation"}
                     </div>
                   </div>

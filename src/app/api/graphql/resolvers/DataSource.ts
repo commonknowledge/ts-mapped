@@ -2,7 +2,10 @@ import {
   DataSource,
   DataSourceResolvers as DataSourceResolversType,
 } from "@/__generated__/types";
-import { countDataRecordsForDataSource } from "@/server/repositories/DataRecord";
+import {
+  countDataRecordsForDataSource,
+  findDataRecordsByDataSource,
+} from "@/server/repositories/DataRecord";
 import {
   findDataSourcesByIds,
   getJobInfo,
@@ -17,6 +20,9 @@ const DataSourceResolvers: DataSourceResolversType = {
       .filter((id) => typeof id === "string");
     const dataSources = await findDataSourcesByIds(dataSourceIds);
     return dataSources.map((ds) => ({ name: ds.name, id: ds.id }));
+  },
+  records: ({ id }: DataSource) => {
+    return findDataRecordsByDataSource(id);
   },
   recordCount: ({ id }: DataSource) => countDataRecordsForDataSource(id),
 };

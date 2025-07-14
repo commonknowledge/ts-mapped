@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgis/postgis:16-3.5
+    image: postgis/postgis:16-3.5-alpine
     container_name: ts-mapped-postgres
     environment:
       POSTGRES_USER: "postgres"
@@ -17,7 +17,7 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   redis:
-    image: redis:7
+    image: redis:7-alpine
     container_name: ts-mapped-redis
     ports:
       - "6380:6379"

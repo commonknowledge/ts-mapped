@@ -2,7 +2,7 @@ import { FeatureCollection, Point } from "geojson";
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { mapColours } from "@/app/(private)/map/[id]/styles";
 
 export default function PlacedMarkers() {
   const { viewConfig, placedMarkers } = useContext(MapContext);
@@ -29,7 +29,7 @@ export default function PlacedMarkers() {
           source="search-history"
           paint={{
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 4, 10, 6],
-            "circle-color": mapColors.searched.color,
+            "circle-color": mapColours.markers.color,
             "circle-opacity": 0.8,
             "circle-stroke-width": 1,
             "circle-stroke-color": "#ffffff",
@@ -51,7 +51,7 @@ export default function PlacedMarkers() {
             "text-offset": [0, 0.75],
           }}
           paint={{
-            "text-color": mapColors.searched.color,
+            "text-color": mapColours.markers.color,
             "text-halo-color": "#ffffff",
             "text-halo-width": 2,
           }}

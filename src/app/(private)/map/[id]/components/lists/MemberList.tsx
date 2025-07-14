@@ -1,23 +1,20 @@
-import { useContext, useState } from "react";
+import { Table } from "lucide-react";
+import { useContext } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
+import DataSourceIcon from "../DataSourceIcon";
 import SkeletonGroup from "../SkeletonGroup";
 
-interface GEOJSONPoint {
-  properties: Record<string, number | string>;
-  geometry: {
-    coordinates: [number, number];
-  };
-}
-
 export default function MemberList() {
-  const [limit, setLimit] = useState(10);
+  const {
+    dataRecordsQuery,
+    viewConfig,
+    selectedDataSourceId,
+    handleDataSourceSelect,
+  } = useContext(MapContext);
+  const dataSource = dataRecordsQuery?.data?.dataSource;
 
-  const { mapRef, markersQuery, viewConfig } = useContext(MapContext);
-  const dataSource = markersQuery?.data?.dataSource;
-
-  if (markersQuery?.loading) {
+  if (dataRecordsQuery?.loading) {
     return <SkeletonGroup />;
   }
 
@@ -25,50 +22,28 @@ export default function MemberList() {
     return null;
   }
 
-  const hasMore = limit < dataSource.markers.features.length;
+  const isSelected = selectedDataSourceId === dataSource.id;
 
   return (
-    <ScrollArea className="max-h-[200px] w-full rounded-md p-2 overflow-y-auto">
+    <ScrollArea className="max-h-[200px] w-full rounded-md  overflow-y-auto">
       <ul
         className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
       >
-        {dataSource.markers.features
-          ?.slice(0, limit)
-          .map((feature: GEOJSONPoint) => (
-            <li
-              key={feature.properties[MARKER_ID_KEY]}
-              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-              onClick={() => {
-                const map = mapRef?.current;
-                if (map) {
-                  map.flyTo({
-                    center: feature.geometry.coordinates,
-                    zoom: 12,
-                  });
-                }
-              }}
-            >
-              <span className="text-sm">
-                {feature.properties[MARKER_NAME_KEY] || "Unnamed"}
-              </span>
-            </li>
-          ))}
-        {hasMore && (
-          <li>
-            <button
-              type="button"
-              onClick={() => setLimit(limit + 10)}
-              className="w-full cursor-pointer hover:bg-gray-100 p-2 text-sm text-left"
-            >
-              Load more
-            </button>
-          </li>
-        )}
-        {(!dataSource.markers.features ||
-          dataSource.markers.features.length === 0) && (
-          <li className="text-sm text-muted-foreground p-2">
-            No members found - check your settings
-          </li>
+        {dataSource ? (
+          <div
+            className={`text-sm cursor-pointer p-2 rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
+              isSelected ? "bg-neutral-100" : ""
+            }`}
+            onClick={() => handleDataSourceSelect(dataSource.id)}
+          >
+            <div className="flex items-center gap-2">
+              <DataSourceIcon type={dataSource.config.type} />
+              {dataSource.name}
+            </div>
+            {isSelected && <Table className="w-4 h-4 text-neutral-500" />}
+          </div>
+        ) : (
+          <div>Add Member DataSource</div>
         )}
       </ul>
     </ScrollArea>
