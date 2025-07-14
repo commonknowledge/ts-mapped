@@ -31,12 +31,12 @@ export default function DataSourcesPage() {
         }
       }
     `,
-    { variables: { organisationId }, skip: !organisationId },
+    { variables: { organisationId }, skip: !organisationId }
   );
   const dataSources = data?.dataSources || [];
 
   return (
-    <div className="p-4 mx-auto max-w-6xl w-full">
+    <div className="">
       <div className="flex items-center justify-between">
         <PageHeader
           title="Data sources"
@@ -73,7 +73,7 @@ export default function DataSourcesPage() {
                 config={config}
                 createdAt={createdAt}
               />
-            ),
+            )
           )}
         </div>
       )}

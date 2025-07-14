@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
-import { BoundingBoxInput, Turf } from "@/__generated__/types";
+import {
+  AreaSetGroupCode,
+  BoundingBoxInput,
+  Turf,
+} from "@/__generated__/types";
 import {
   MapContext,
   ViewConfig,
@@ -16,8 +20,8 @@ import {
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import { MarkerData } from "@/types";
+import ChoroplethControl from "./components/controls/ChoroplethControl";
 import Controls from "./components/controls/Controls";
-import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
@@ -58,10 +62,14 @@ export default function MapPage({ mapId }: { mapId: string }) {
     string | null
   >(null);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
-
+  const [boundariesPanelOpen, setBoundariesPanelOpen] = useState(false);
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
-    return getChoroplethLayerConfig(viewConfig.areaSetGroupCode, zoom);
+    return getChoroplethLayerConfig(
+      // Needed to add this fallback for this in case of undefined, is this ok?
+      viewConfig.areaSetGroupCode || AreaSetGroupCode.WMC24,
+      zoom
+    );
   }, [viewConfig.areaSetGroupCode, zoom]);
 
   /* GraphQL Data */
@@ -242,6 +250,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
         handleDataSourceSelect,
         selectedRecordId,
         setSelectedRecordId,
+        boundariesPanelOpen,
+        setBoundariesPanelOpen,
       }}
     >
       <div className="flex flex-col h-screen">
@@ -255,7 +265,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
                   onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
                 />
                 <MapStyleSelector />
-                {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
+                <ChoroplethControl />
               </ResizablePanel>
               {selectedDataSourceId && (
                 <>

@@ -23,7 +23,8 @@ import { MarkersQueryResult } from "../types";
 export class ViewConfig implements MapViewConfigInput {
   public areaDataSourceId = "";
   public areaDataColumn = "";
-  public areaSetGroupCode: AreaSetGroupCode = AreaSetGroupCode.WMC24;
+  public areaSetGroupCode: AreaSetGroupCode | undefined =
+    AreaSetGroupCode.WMC24;
   public excludeColumnsString = "";
   public markersDataSourceId = "";
   public mapStyleName: MapStyleName = MapStyleName.Light;
@@ -34,7 +35,13 @@ export class ViewConfig implements MapViewConfigInput {
   public showTurf = true;
 
   constructor(params: Partial<ViewConfig> = {}) {
+    // Handle undefined values explicitly to override defaults
     Object.assign(this, params);
+
+    // If areaSetGroupCode is explicitly set to undefined, clear it
+    if (params.areaSetGroupCode === undefined) {
+      this.areaSetGroupCode = undefined;
+    }
   }
 
   getExcludeColumns() {
@@ -94,6 +101,9 @@ export const MapContext = createContext<{
   selectedDataSourceId: string | null;
   handleDataSourceSelect: (dataSourceId: string) => void;
 
+  boundariesPanelOpen: boolean;
+  setBoundariesPanelOpen: (open: boolean) => void;
+
   /* GraphQL Queries */
   areaStatsQuery: QueryResult<AreaStatsQuery, AreaStatsQueryVariables> | null;
   dataRecordsQuery: QueryResult<
@@ -142,7 +152,8 @@ export const MapContext = createContext<{
   dataRecordsQuery: null,
   dataSourcesQuery: null,
   markersQuery: null,
-
+  boundariesPanelOpen: false,
+  setBoundariesPanelOpen: () => null,
   choroplethLayerConfig: getChoroplethLayerConfig(
     AreaSetGroupCode.WMC24,
     DEFAULT_ZOOM

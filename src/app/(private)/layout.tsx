@@ -25,8 +25,10 @@ export default function PrivateLayout({
   // For authenticated users on other pages, show sidebar layout
   return (
     <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 overflow-auto">{children}</div>
+      <Sidebar slug={pathname} />
+      <div className="flex-1 overflow-auto p-10 max-w-6xl w-full">
+        {children}
+      </div>
     </div>
   );
 }
