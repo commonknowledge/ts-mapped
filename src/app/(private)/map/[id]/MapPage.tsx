@@ -22,6 +22,7 @@ import {
 import { MarkerData } from "@/types";
 import ChoroplethControl from "./components/controls/ChoroplethControl";
 import Controls from "./components/controls/Controls";
+import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
@@ -266,6 +267,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
                 />
                 <MapStyleSelector />
                 <ChoroplethControl />
+                <Legend areaStats={areaStatsData?.areaStats} />
               </ResizablePanel>
               {selectedDataSourceId && (
                 <>

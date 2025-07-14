@@ -27,6 +27,7 @@ export class ViewConfig implements MapViewConfigInput {
     AreaSetGroupCode.WMC24;
   public excludeColumnsString = "";
   public markersDataSourceId = "";
+  public selectedDataSourceId: string | null = null;
   public mapStyleName: MapStyleName = MapStyleName.Light;
   public showLabels = true;
   public showBoundaryOutline = false;

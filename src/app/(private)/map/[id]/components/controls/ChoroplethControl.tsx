@@ -70,7 +70,6 @@ export default function ChoroplethControl() {
           </Select>
         </div>
       </div>
-
       {/* Data Source Section */}
       <div className="space-y-3 bg-neutral-50 rounded-lg p-3 border border-neutral-200">
         <div className="flex items-center gap-2">
@@ -144,7 +143,6 @@ export default function ChoroplethControl() {
           </div>
         </div>
       </div>
-
       {/* Exclude Columns Input */}
       {viewConfig.areaDataColumn === MAX_COLUMN_KEY && (
         <div className="space-y-2">
