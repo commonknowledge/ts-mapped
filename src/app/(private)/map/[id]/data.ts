@@ -135,6 +135,7 @@ export const useDataRecordsQuery = (dataSourceId: string) =>
         dataSource(id: $dataSourceId) {
           id
           name
+          config
           columnDefs {
             name
             type
@@ -147,6 +148,10 @@ export const useDataRecordsQuery = (dataSourceId: string) =>
               lng
             }
             json
+            geocodePoint {
+              lat
+              lng
+            }
           }
         }
       }
