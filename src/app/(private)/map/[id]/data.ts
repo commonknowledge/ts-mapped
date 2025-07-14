@@ -41,6 +41,7 @@ export const useMapQuery = (mapId: string | null) =>
     gql`
       query Map($id: String!) {
         map(id: $id) {
+          name
           placedMarkers {
             id
             label
@@ -77,7 +78,7 @@ export const useMapQuery = (mapId: string | null) =>
         }
       }
     `,
-    { variables: { id: mapId || "" }, skip: !mapId },
+    { variables: { id: mapId || "" }, skip: !mapId }
   );
 
 // Use API request instead of GraphQL to avoid server memory load
@@ -105,7 +106,7 @@ export const useMarkersQuery = ({
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/data-sources/${dataSourceId}/markers`,
+          `/api/data-sources/${dataSourceId}/markers`
         );
         if (!response.ok) {
           throw new Error(`Bad response: ${response.status}`);
@@ -148,7 +149,7 @@ export const useDataRecordsQuery = (dataSourceId: string) =>
         }
       }
     `,
-    { variables: { dataSourceId } },
+    { variables: { dataSourceId } }
   );
 
 export const useAreaStatsQuery = ({
@@ -206,7 +207,7 @@ export const useAreaStatsQuery = ({
       },
       skip: !dataSourceId || !column,
       notifyOnNetworkStatusChange: true,
-    },
+    }
   );
 
 export const useDeletePlacedMarkerMutation = () => {

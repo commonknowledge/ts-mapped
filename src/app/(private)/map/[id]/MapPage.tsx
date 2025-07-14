@@ -8,6 +8,7 @@ import {
   MapContext,
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
+import MapNavbar from "@/components/MapNavbar";
 import { DEFAULT_ZOOM } from "@/constants";
 import {
   ResizableHandle,
@@ -34,6 +35,7 @@ import { getChoroplethLayerConfig } from "./sources";
 export default function MapPage({ mapId }: { mapId: string }) {
   /* Map Ref */
   const mapRef = useRef<MapRef>(null);
+  const [mapName, setMapName] = useState<string | null>(null);
 
   /* Map State */
   // Keep track of area codes that have feature state, to clean if necessary
@@ -116,6 +118,11 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   /* Update local map state when saved views are loaded from the server */
   useEffect(() => {
+    if (mapData?.map?.name) {
+      setMapName(mapData.map.name);
+    } else {
+      setMapName("Untitled");
+    }
     if (mapData?.map?.views && mapData.map.views.length > 0) {
       const nextView = mapData.map.views[0];
       const nextViewId = nextView.id;
@@ -197,7 +204,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
     <MapContext
       value={{
         mapId,
-
+        mapName,
+        setMapName,
         mapRef,
 
         boundingBox,
@@ -235,28 +243,31 @@ export default function MapPage({ mapId }: { mapId: string }) {
         setSelectedRecordId,
       }}
     >
-      <div className="flex w-full h-[calc(100vh-3.5rem)]">
-        <Controls />
-        <div className="flex flex-col gap-4 w-full relative">
-          <MapStyleSelector />
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel>
-              <Map
-                onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
-              />
-            </ResizablePanel>
-            {selectedDataSourceId && (
-              <>
-                <ResizableHandle withHandle />
-                <ResizablePanel onResize={() => mapRef.current?.resize()}>
-                  <MapTable />
-                </ResizablePanel>
-              </>
-            )}
-          </ResizablePanelGroup>
-          {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
+      <div className="flex flex-col h-screen">
+        <MapNavbar />
+        <div className="flex w-full h-full">
+          <Controls />
+          <div className="flex flex-col gap-4 w-full relative">
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel className="relative">
+                <Map
+                  onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+                />
+                <MapStyleSelector />
+              </ResizablePanel>
+              {selectedDataSourceId && (
+                <>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel onResize={() => mapRef.current?.resize()}>
+                    <MapTable />
+                  </ResizablePanel>
+                </>
+              )}
+            </ResizablePanelGroup>
+            {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
+          </div>
+          {loading && <Loading />}
         </div>
-        {loading && <Loading />}
       </div>
     </MapContext>
   );

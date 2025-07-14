@@ -120,8 +120,11 @@ export default function Controls() {
     });
   };
 
-  if (!showControls) {
-    return (
+  const controlPanelWidth = 300;
+
+  return (
+    <>
+      {/* Toggle button - always visible */}
       <div className="flex absolute top-17 left-3 z-10 bg-white rounded-lg shadow-lg">
         <Button
           variant="ghost"
@@ -132,41 +135,47 @@ export default function Controls() {
           <span className="sr-only">Toggle columns</span>
         </Button>
       </div>
-    );
-  }
-  return (
-    <div
-      className={`flex flex-col bg-white z-10 w-[300px] h-full border-r border-neutral-200 ${showControls ? "block" : "hidden"}`}
-    >
-      <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
-        <p className="text-sm font-bold">Layers</p>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowControls(!showControls)}
-        >
-          <Columns className="w-4 h-4" />
-          <span className="sr-only">Toggle columns</span>
-        </Button>
-      </div>
-      <MembersControl />
-      <Separator />
-      <MarkersControl />
-      <Separator />
-      <TurfControl />
 
-      {mapId && (
-        <div className="flex flex-col gap-4 p-4">
+      {/* Control panel with transition */}
+      <div
+        className={`flex flex-col bg-white z-10 h-full border-r border-neutral-200 transition-all duration-300 ease-in-out overflow-hidden ${
+          showControls
+            ? `translate-x-0 opacity-100 w-[${controlPanelWidth}px]`
+            : "-translate-x-full opacity-0 w-0"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
+          <p className="text-sm font-semibold">Layers</p>
           <Button
-            type="button"
-            onClick={() => saveMapView()}
-            disabled={loading}
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowControls(!showControls)}
           >
-            Save
+            <Columns className="w-4 h-4" />
+            <span className="sr-only">Toggle columns</span>
           </Button>
-          {saveError && <span>{saveError}</span>}
         </div>
-      )}
-    </div>
+        <div className={`w-[${controlPanelWidth}px]`}>
+          <MembersControl />
+          <Separator />
+          <MarkersControl />
+          <Separator />
+          <TurfControl />
+        </div>
+
+        {mapId && (
+          <div className="flex flex-col gap-4 p-4">
+            <Button
+              type="button"
+              onClick={() => saveMapView()}
+              disabled={loading}
+            >
+              Save
+            </Button>
+            {saveError && <span>{saveError}</span>}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

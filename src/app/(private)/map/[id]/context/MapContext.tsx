@@ -53,6 +53,10 @@ export const MapContext = createContext<{
   /* Map ID from URL */
   mapId: string | null;
 
+  /* Map Name */
+  mapName: string | null;
+  setMapName: (name: string | null) => void;
+
   /* Map Ref */
   mapRef: RefObject<MapRef | null> | null;
 
@@ -105,9 +109,9 @@ export const MapContext = createContext<{
   setSelectedRecordId: (recordId: string | null) => void;
 }>({
   mapId: null,
-
+  mapName: null,
+  setMapName: () => null,
   mapRef: null,
-
   boundingBox: null,
   setBoundingBox: () => null,
   editingTurf: null,
@@ -141,6 +145,6 @@ export const MapContext = createContext<{
 
   choroplethLayerConfig: getChoroplethLayerConfig(
     AreaSetGroupCode.WMC24,
-    DEFAULT_ZOOM,
+    DEFAULT_ZOOM
   ),
 });

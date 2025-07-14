@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import MarketingNavbar from "@/components/MarketingNavbar";
 import { useCurrentUser } from "@/hooks";
 
 export default function HomePage() {
@@ -12,6 +13,7 @@ export default function HomePage() {
 
   return (
     <div className="overflow-hidden">
+      <MarketingNavbar />
       <div className="flex flex-col items-center justify-center relative bg-[#678DE312] py-16 p-4">
         <Image
           src="/hero.svg"

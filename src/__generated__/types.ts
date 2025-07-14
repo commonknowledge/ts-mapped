@@ -612,7 +612,7 @@ export type MapQueryVariables = Exact<{
 }>;
 
 
-export type MapQuery = { __typename?: 'Query', map?: { __typename?: 'Map', placedMarkers?: Array<{ __typename?: 'PlacedMarker', id: string, label: string, notes: string, point: { __typename?: 'Point', lat: number, lng: number } }> | null, turfs?: Array<{ __typename?: 'Turf', id: string, label: string, notes: string, area: number, geometry: any, createdAt: any }> | null, views?: Array<{ __typename?: 'MapView', id: string, config: { __typename?: 'MapViewConfig', areaDataSourceId: string, areaDataColumn: string, areaSetGroupCode: AreaSetGroupCode, excludeColumnsString: string, markersDataSourceId: string, mapStyleName: MapStyleName, showBoundaryOutline: boolean, showLabels: boolean, showLocations: boolean, showMembers: boolean, showTurf: boolean } }> | null } | null };
+export type MapQuery = { __typename?: 'Query', map?: { __typename?: 'Map', name: string, placedMarkers?: Array<{ __typename?: 'PlacedMarker', id: string, label: string, notes: string, point: { __typename?: 'Point', lat: number, lng: number } }> | null, turfs?: Array<{ __typename?: 'Turf', id: string, label: string, notes: string, area: number, geometry: any, createdAt: any }> | null, views?: Array<{ __typename?: 'MapView', id: string, config: { __typename?: 'MapViewConfig', areaDataSourceId: string, areaDataColumn: string, areaSetGroupCode: AreaSetGroupCode, excludeColumnsString: string, markersDataSourceId: string, mapStyleName: MapStyleName, showBoundaryOutline: boolean, showLabels: boolean, showLocations: boolean, showMembers: boolean, showTurf: boolean } }> | null } | null };
 
 export type DataRecordsQueryVariables = Exact<{
   dataSourceId: Scalars['String']['input'];
