@@ -120,7 +120,7 @@ export default function Controls() {
     });
   };
 
-  const controlPanelWidth = 300;
+  const controlPanelWidth = 280;
 
   return (
     <>
@@ -140,9 +140,13 @@ export default function Controls() {
       <div
         className={`flex flex-col bg-white z-10 h-full border-r border-neutral-200 transition-all duration-300 ease-in-out overflow-hidden ${
           showControls
-            ? `translate-x-0 opacity-100 w-[${controlPanelWidth}px]`
-            : "-translate-x-full opacity-0 w-0"
+            ? "translate-x-0 opacity- 100"
+            : "-translate-x-full opacity-0"
         }`}
+        style={{
+          width: showControls ? `${controlPanelWidth}px` : "0px",
+          minWidth: showControls ? `${controlPanelWidth}px` : "0px",
+        }}
       >
         <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
           <p className="text-sm font-semibold">Layers</p>
@@ -155,7 +159,7 @@ export default function Controls() {
             <span className="sr-only">Toggle columns</span>
           </Button>
         </div>
-        <div className={`w-[${controlPanelWidth}px]`}>
+        <div style={{ width: `${controlPanelWidth}px` }}>
           <MembersControl />
           <Separator />
           <MarkersControl />

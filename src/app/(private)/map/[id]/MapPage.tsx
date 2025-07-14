@@ -17,6 +17,7 @@ import {
 } from "@/shadcn/ui/resizable";
 import { MarkerData } from "@/types";
 import Controls from "./components/controls/Controls";
+import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
@@ -254,6 +255,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
                   onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
                 />
                 <MapStyleSelector />
+                {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
               </ResizablePanel>
               {selectedDataSourceId && (
                 <>
@@ -264,7 +266,6 @@ export default function MapPage({ mapId }: { mapId: string }) {
                 </>
               )}
             </ResizablePanelGroup>
-            {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
           </div>
           {loading && <Loading />}
         </div>
