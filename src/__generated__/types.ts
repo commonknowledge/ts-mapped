@@ -268,7 +268,8 @@ export type MapViewConfig = {
   areaSetGroupCode: AreaSetGroupCode;
   excludeColumnsString: Scalars["String"]["output"];
   mapStyleName: MapStyleName;
-  markersDataSourceId: Scalars["String"]["output"];
+  markerDataSourceIds: Array<Scalars["String"]["output"]>;
+  membersDataSourceId: Scalars["String"]["output"];
   showBoundaryOutline: Scalars["Boolean"]["output"];
   showLabels: Scalars["Boolean"]["output"];
   showLocations: Scalars["Boolean"]["output"];
@@ -282,7 +283,10 @@ export type MapViewConfigInput = {
   areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
   excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
   mapStyleName?: InputMaybe<MapStyleName>;
-  markersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  markerDataSourceIds?: InputMaybe<
+    Array<InputMaybe<Scalars["String"]["input"]>>
+  >;
+  membersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
   showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
   showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
   showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -782,6 +786,7 @@ export type DataSourcesQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
+    recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
@@ -823,7 +828,8 @@ export type MapQuery = {
         areaDataColumn: string;
         areaSetGroupCode: AreaSetGroupCode;
         excludeColumnsString: string;
-        markersDataSourceId: string;
+        markerDataSourceIds: Array<string>;
+        membersDataSourceId: string;
         mapStyleName: MapStyleName;
         showBoundaryOutline: boolean;
         showLabels: boolean;
@@ -855,6 +861,7 @@ export type DataRecordsQuery = {
       id: string;
       externalId: string;
       json: any;
+      geocodePoint?: { __typename?: "Point"; lat: number; lng: number } | null;
     }> | null;
   } | null;
 };
@@ -1515,7 +1522,12 @@ export type MapViewConfigResolvers<
     ParentType,
     ContextType
   >;
-  markersDataSourceId?: Resolver<
+  markerDataSourceIds?: Resolver<
+    Array<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  membersDataSourceId?: Resolver<
     ResolversTypes["String"],
     ParentType,
     ContextType

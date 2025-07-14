@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AreaSetCode,
   AreaStatsQuery,
@@ -19,8 +19,7 @@ import {
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
 } from "@/__generated__/types";
-import { PointFeature } from "@/types";
-import { MarkersQueryResult } from "./types";
+import { DataSourceMarkers } from "./types";
 
 export const useDataSourcesQuery = () =>
   useQuery<DataSourcesQuery>(gql`
@@ -32,6 +31,7 @@ export const useDataSourcesQuery = () =>
           name
           type
         }
+        recordCount
       }
     }
   `);
@@ -41,6 +41,7 @@ export const useMapQuery = (mapId: string | null) =>
     gql`
       query Map($id: String!) {
         map(id: $id) {
+          name
           placedMarkers {
             id
             label
@@ -65,7 +66,8 @@ export const useMapQuery = (mapId: string | null) =>
               areaDataColumn
               areaSetGroupCode
               excludeColumnsString
-              markersDataSourceId
+              markerDataSourceIds
+              membersDataSourceId
               mapStyleName
               showBoundaryOutline
               showLabels
@@ -82,45 +84,47 @@ export const useMapQuery = (mapId: string | null) =>
 
 // Use API request instead of GraphQL to avoid server memory load
 // TODO: replace with gql @stream directive when Apollo client supports it
-export const useMarkersQuery = ({
-  dataSourceId,
+export const useMarkerQueries = ({
+  membersDataSourceId,
+  markerDataSourceIds,
 }: {
-  dataSourceId: string;
-}): MarkersQueryResult => {
+  membersDataSourceId: string;
+  markerDataSourceIds: string[];
+}) => {
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<{
-    dataSource: {
-      id: string;
-      name: string;
-      markers: { type: "FeatureCollection"; features: PointFeature[] };
-    };
-  } | null>(null);
   const [error, setError] = useState("");
-  useEffect(() => {
-    if (!dataSourceId) {
-      return;
-    }
+  const [data, setData] = useState<DataSourceMarkers[]>([]);
+  const cache = useRef<Record<string, DataSourceMarkers>>({});
 
+  useEffect(() => {
     const fetchMarkers = async () => {
       setLoading(true);
+      setData([]);
+      const dataSourceIds = [
+        membersDataSourceId,
+        ...markerDataSourceIds,
+      ].filter(Boolean);
       try {
-        const response = await fetch(
-          `/api/data-sources/${dataSourceId}/markers`,
-        );
-        if (!response.ok) {
-          throw new Error(`Bad response: ${response.status}`);
+        for (const id of dataSourceIds) {
+          if (!cache.current[id]) {
+            const response = await fetch(`/api/data-sources/${id}/markers`);
+            if (!response.ok) {
+              throw new Error(`Bad response: ${response.status}`);
+            }
+            const dataSourceMarkers = await response.json();
+            cache.current[id] = dataSourceMarkers;
+          }
+          setData(Object.values(cache.current));
         }
-        const dataSource = await response.json();
-        setData(dataSource);
       } catch (e) {
         console.error("Fetch markers error", e);
         setError("Failed");
       }
       setLoading(false);
     };
-
     fetchMarkers();
-  }, [dataSourceId]);
+  }, [markerDataSourceIds, membersDataSourceId]);
+
   return { loading, data, error };
 };
 
@@ -138,6 +142,10 @@ export const useDataRecordsQuery = (dataSourceId: string) =>
           records {
             id
             externalId
+            geocodePoint {
+              lat
+              lng
+            }
             json
           }
         }

@@ -12,11 +12,19 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import Loading from "../Loading";
 
 export default function TurfList() {
   const { getOrganisation } = useContext(OrganisationsContext);
-  const { viewConfig, mapRef, turfs, setEditingTurf, updateTurf, deleteTurf } =
-    useContext(MapContext);
+  const {
+    viewConfig,
+    mapRef,
+    turfs,
+    setEditingTurf,
+    turfsLoading,
+    updateTurf,
+    deleteTurf,
+  } = useContext(MapContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
@@ -52,78 +60,84 @@ export default function TurfList() {
   };
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <ul className={`${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}>
-          {turfs.map((turf, index) => (
-            <div
-              key={turf.id}
-              className="flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer text-sm"
-              onClick={() => handleFlyTo(turf)}
-              onContextMenu={() => setContextMenuIndex(index)}
-            >
-              {editingIndex === index ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    updateTurf({ ...turf, label: editText });
-                    setEditingIndex(null);
-                  }}
-                  className="w-full flex items-center p-0"
-                >
-                  <Input
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    autoFocus
-                  />
-                  <Button type="submit" variant="link">
-                    <Check className="h-4 w-4 text-green-500" />
-                  </Button>
-                </form>
-              ) : (
-                <>
-                  <div>
-                    <div>{turf.label}</div>
-                    <div className="text-gray-400 text-xs">
-                      {getOrganisation()?.name || "Unknown organisation"}
+    <div className="relative">
+      {/* Disable interactions while turfs are loading/updating in the background */}
+      {turfsLoading && <Loading blockInteraction />}
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <ul
+            className={`${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
+          >
+            {turfs.map((turf, index) => (
+              <div
+                key={turf.id}
+                className="flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer text-sm"
+                onClick={() => handleFlyTo(turf)}
+                onContextMenu={() => setContextMenuIndex(index)}
+              >
+                {editingIndex === index ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      updateTurf({ ...turf, label: editText });
+                      setEditingIndex(null);
+                    }}
+                    className="w-full flex items-center p-0"
+                  >
+                    <Input
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      autoFocus
+                    />
+                    <Button type="submit" variant="link">
+                      <Check className="h-4 w-4 text-green-500" />
+                    </Button>
+                  </form>
+                ) : (
+                  <>
+                    <div>
+                      <div>{turf.label}</div>
+                      <div className="text-gray-400 text-xs">
+                        {getOrganisation()?.name || "Unknown organisation"}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </ul>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        {contextMenuIndex !== null && (
-          <>
-            <ContextMenuItem
-              onClick={() => {
-                const turf = turfs[contextMenuIndex];
-                setEditText(turf.label);
-                setEditingIndex(contextMenuIndex);
-                setEditingTurf(turf);
-              }}
-            >
-              <Pencil className="h-4 w-4" />
-              Edit
-            </ContextMenuItem>
-            <ContextMenuItem
-              onClick={() => {
-                const existingTurf = turfs.find(
-                  (t, i) => i === contextMenuIndex,
-                );
-                if (existingTurf) {
-                  deleteTurf(existingTurf.id);
-                }
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </ContextMenuItem>
-          </>
-        )}
-      </ContextMenuContent>
-    </ContextMenu>
+                  </>
+                )}
+              </div>
+            ))}
+          </ul>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          {contextMenuIndex !== null && (
+            <>
+              <ContextMenuItem
+                onClick={() => {
+                  const turf = turfs[contextMenuIndex];
+                  setEditText(turf.label);
+                  setEditingIndex(contextMenuIndex);
+                  setEditingTurf(turf);
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+                Edit
+              </ContextMenuItem>
+              <ContextMenuItem
+                onClick={() => {
+                  const existingTurf = turfs.find(
+                    (t, i) => i === contextMenuIndex,
+                  );
+                  if (existingTurf) {
+                    deleteTurf(existingTurf.id);
+                  }
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </ContextMenuItem>
+            </>
+          )}
+        </ContextMenuContent>
+      </ContextMenu>
+    </div>
   );
 }

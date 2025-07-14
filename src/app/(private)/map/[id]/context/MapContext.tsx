@@ -18,14 +18,15 @@ import { DEFAULT_ZOOM } from "@/constants";
 import { MarkerData } from "@/types";
 import { ChoroplethLayerConfig, getChoroplethLayerConfig } from "../sources";
 import mapStyles from "../styles";
-import { MarkersQueryResult } from "../types";
+import { MarkerQueriesResult } from "../types";
 
 export class ViewConfig implements MapViewConfigInput {
   public areaDataSourceId = "";
   public areaDataColumn = "";
   public areaSetGroupCode: AreaSetGroupCode = AreaSetGroupCode.WMC24;
   public excludeColumnsString = "";
-  public markersDataSourceId = "";
+  public markerDataSourceIds: string[] = [];
+  public membersDataSourceId = "";
   public mapStyleName: MapStyleName = MapStyleName.Light;
   public showLabels = true;
   public showBoundaryOutline = false;
@@ -94,7 +95,7 @@ export const MapContext = createContext<{
     DataRecordsQueryVariables
   > | null;
   dataSourcesQuery: QueryResult<DataSourcesQuery> | null;
-  markersQuery: MarkersQueryResult | null;
+  markerQueries: MarkerQueriesResult | null;
 
   /* Derived Properties */
   choroplethLayerConfig: ChoroplethLayerConfig;
@@ -129,7 +130,7 @@ export const MapContext = createContext<{
   areaStatsQuery: null,
   dataRecordsQuery: null,
   dataSourcesQuery: null,
-  markersQuery: null,
+  markerQueries: null,
 
   choroplethLayerConfig: getChoroplethLayerConfig(
     AreaSetGroupCode.WMC24,

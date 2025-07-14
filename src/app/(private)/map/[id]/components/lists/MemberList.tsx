@@ -1,23 +1,15 @@
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import SkeletonGroup from "../SkeletonGroup";
-
-interface GEOJSONPoint {
-  properties: Record<string, number | string>;
-  geometry: {
-    coordinates: [number, number];
-  };
-}
 
 export default function MemberList() {
   const [limit, setLimit] = useState(10);
 
-  const { mapRef, markersQuery, viewConfig } = useContext(MapContext);
-  const dataSource = markersQuery?.data?.dataSource;
+  const { mapRef, dataRecordsQuery, viewConfig } = useContext(MapContext);
+  const dataSource = dataRecordsQuery?.data?.dataSource;
 
-  if (markersQuery?.loading) {
+  if (dataRecordsQuery?.loading) {
     return <SkeletonGroup />;
   }
 
@@ -25,34 +17,30 @@ export default function MemberList() {
     return null;
   }
 
-  const hasMore = limit < dataSource.markers.features.length;
+  const hasMore = limit < (dataSource.records?.length || 0);
 
   return (
     <ScrollArea className="max-h-[200px] w-full rounded-md p-2 overflow-y-auto">
       <ul
         className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
       >
-        {dataSource.markers.features
-          ?.slice(0, limit)
-          .map((feature: GEOJSONPoint) => (
-            <li
-              key={feature.properties[MARKER_ID_KEY]}
-              className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
-              onClick={() => {
-                const map = mapRef?.current;
-                if (map) {
-                  map.flyTo({
-                    center: feature.geometry.coordinates,
-                    zoom: 12,
-                  });
-                }
-              }}
-            >
-              <span className="text-sm">
-                {feature.properties[MARKER_NAME_KEY] || "Unnamed"}
-              </span>
-            </li>
-          ))}
+        {dataSource.records?.slice(0, limit).map((record) => (
+          <li
+            key={record.externalId}
+            className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
+            onClick={() => {
+              const map = mapRef?.current;
+              if (map && record.geocodePoint) {
+                map.flyTo({
+                  center: record.geocodePoint,
+                  zoom: 12,
+                });
+              }
+            }}
+          >
+            <span className="text-sm">{record.externalId}</span>
+          </li>
+        ))}
         {hasMore && (
           <li>
             <button
@@ -64,8 +52,7 @@ export default function MemberList() {
             </button>
           </li>
         )}
-        {(!dataSource.markers.features ||
-          dataSource.markers.features.length === 0) && (
+        {(!dataSource.records || dataSource.records.length === 0) && (
           <li className="text-sm text-muted-foreground p-2">
             No members found - check your settings
           </li>

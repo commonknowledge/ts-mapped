@@ -1,12 +1,6 @@
 import { Check, Database, Pencil, Trash2 } from "lucide-react";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/shadcn/ui/accordion";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -17,12 +11,9 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import Loading from "../Loading";
 
-export default function MarkerList({
-  activeDataSources,
-}: {
-  activeDataSources: string[];
-}) {
+export default function MarkerList() {
   const {
+    dataSourcesQuery,
     viewConfig,
     mapRef,
     placedMarkers,
@@ -33,6 +24,10 @@ export default function MarkerList({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
+
+  const markerDataSources = (dataSourcesQuery?.data?.dataSources || []).filter(
+    (ds) => viewConfig.markerDataSourceIds.includes(ds.id),
+  );
 
   return (
     <div className="relative">
@@ -95,7 +90,7 @@ export default function MarkerList({
                 )}
               </li>
             ))}
-            {activeDataSources.length > 0 && (
+            {markerDataSources.length > 0 && (
               <div className=" gap-2 p-2 mt-3 bg-muted rounded">
                 <div className="flex items-center gap-2">
                   <Database className="h-3 w-3 text-muted-foreground shrink-0" />
@@ -104,37 +99,13 @@ export default function MarkerList({
                   </p>
                 </div>
 
-                {activeDataSources.map((dataSource) => (
-                  <Accordion type="single" collapsible key={dataSource}>
-                    <AccordionItem value="item-1">
-                      <AccordionTrigger
-                        className="font-normal pb-0 gap-1"
-                        chevronPosition="start"
-                      >
-                        {dataSource}
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-0">
-                        <ul className="">
-                          <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
-                            <span className="flex-grow cursor-pointer text-sm">
-                              Oliver Goldsmith Primary School
-                            </span>
-                          </li>
-                          <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
-                            <span className="flex-grow cursor-pointer text-sm">
-                              {"St. Mary's Catholic Primary School"}
-                            </span>
-                          </li>
-                          <li className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded">
-                            <span className="flex-grow cursor-pointer text-sm">
-                              John Dunne Primary School
-                            </span>
-                          </li>
-                        </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                ))}
+                <ul>
+                  {markerDataSources.map((dataSource) => (
+                    <li key={dataSource.id} className="text-sm mt-2">
+                      {dataSource.name}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </ul>

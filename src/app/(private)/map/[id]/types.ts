@@ -6,17 +6,14 @@ export interface DataRecord {
   json: Record<string, unknown>;
 }
 
-export interface MarkersQueryResult {
+export interface DataSourceMarkers {
+  id: string;
+  name: string;
+  markers: { type: "FeatureCollection"; features: PointFeature[] };
+}
+
+export interface MarkerQueriesResult {
   loading: boolean;
-  data: {
-    dataSource: {
-      id: string;
-      name: string;
-      markers: {
-        type: "FeatureCollection";
-        features: PointFeature[];
-      };
-    };
-  } | null;
+  data: DataSourceMarkers[] | null;
   error: string;
 }

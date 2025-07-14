@@ -42,12 +42,12 @@ export default function SettingsModal() {
         <DialogDescription>Adjust the map settings</DialogDescription>
         <Separator />
         <div className="flex flex-col gap-2">
-          <Label htmlFor="markersDataSourceId">Markers Data Source</Label>
+          <Label htmlFor="membersDataSourceId">Markers Data Source</Label>
 
           <Select
-            value={viewConfig.markersDataSourceId}
+            value={viewConfig.membersDataSourceId}
             onValueChange={(value) =>
-              updateViewConfig({ markersDataSourceId: value })
+              updateViewConfig({ membersDataSourceId: value })
             }
           >
             <SelectTrigger className="w-full shadow-none">

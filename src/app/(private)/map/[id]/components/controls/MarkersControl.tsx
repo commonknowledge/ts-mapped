@@ -18,9 +18,8 @@ import MarkerList from "../lists/MarkerList";
 import LayerHeader from "./LayerHeader";
 
 export default function MarkersControl() {
-  const { viewConfig, updateViewConfig, mapRef, insertPlacedMarker } =
+  const { viewConfig, updateViewConfig, insertPlacedMarker, mapRef } =
     useContext(MapContext);
-  const [activeDataSources, setActiveDataSources] = useState<string[]>([]);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
   const router = useRouter();
@@ -29,8 +28,6 @@ export default function MarkersControl() {
       <DataSourcesModal
         open={dataSourcesModalOpen}
         onOpenChange={setDataSourcesModalOpen}
-        setActiveDataSources={setActiveDataSources}
-        activeDataSources={activeDataSources}
       />
       <LayerHeader
         label="Markers"
@@ -119,7 +116,7 @@ export default function MarkersControl() {
           <PlusIcon className="w-4 h-4" />
         </IconDropdownWithTooltip>
       </LayerHeader>
-      <MarkerList activeDataSources={activeDataSources} />
+      <MarkerList />
     </div>
   );
 }
@@ -127,14 +124,19 @@ export default function MarkersControl() {
 function DataSourcesModal({
   open,
   onOpenChange,
-  setActiveDataSources,
-  activeDataSources,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  setActiveDataSources: (activeDataSources: string[]) => void;
-  activeDataSources: string[];
 }) {
+  const { dataSourcesQuery, updateViewConfig, viewConfig } =
+    useContext(MapContext);
+
+  const dataSources = dataSourcesQuery?.data?.dataSources || [];
+
+  const updateMarkerDataSources = (dataSourceIds: string[]) => {
+    updateViewConfig({ markerDataSourceIds: dataSourceIds });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild></DialogTrigger>
@@ -145,8 +147,8 @@ function DataSourcesModal({
             Select data sources to display their locations on the map
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
-          {dummyDataSourcesList.map((dataSource) => (
+        <div className="flex flex-col gap-4 relative">
+          {dataSources.map((dataSource) => (
             <label
               key={dataSource.id}
               className="flex items-center gap-4 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer"
@@ -155,19 +157,27 @@ function DataSourcesModal({
                 id={`ds-${dataSource.id}`}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setActiveDataSources([...activeDataSources, dataSource.id]);
+                    updateMarkerDataSources([
+                      ...viewConfig.markerDataSourceIds,
+                      dataSource.id,
+                    ]);
                   } else {
-                    setActiveDataSources(
-                      activeDataSources.filter((id) => id !== dataSource.id),
+                    updateMarkerDataSources(
+                      viewConfig.markerDataSourceIds.filter(
+                        (id) => id !== dataSource.id,
+                      ),
                     );
                   }
                 }}
-                checked={activeDataSources.includes(dataSource.id)}
+                checked={viewConfig.markerDataSourceIds.some(
+                  (id) => id === dataSource.id,
+                )}
               />
               <div className="flex flex-col flex-1">
                 <span className="font-medium">{dataSource.name}</span>
                 <span className="text-sm text-muted-foreground">
-                  {dataSource.recordCount || 0} locations
+                  {dataSource.recordCount || 0} location
+                  {dataSource.recordCount !== 1 ? "s" : ""}
                 </span>
               </div>
             </label>
@@ -177,27 +187,3 @@ function DataSourcesModal({
     </Dialog>
   );
 }
-
-const dummyDataSourcesList = [
-  {
-    id: "schools",
-    name: "London Schools",
-    recordCount: 342,
-    config: { type: "csv" },
-    createdAt: new Date(),
-  },
-  {
-    id: "hospitals",
-    name: "NHS Hospitals",
-    recordCount: 168,
-    config: { type: "csv" },
-    createdAt: new Date(),
-  },
-  {
-    id: "parks",
-    name: "Public Parks & Gardens",
-    recordCount: 523,
-    config: { type: "csv" },
-    createdAt: new Date(),
-  },
-];

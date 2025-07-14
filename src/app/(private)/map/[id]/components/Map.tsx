@@ -13,7 +13,8 @@ import { DEFAULT_ZOOM } from "@/constants";
 import { DrawDeleteEvent } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
-import Markers from "./Markers";
+import DataSourceMarkers from "./DataSourceMarkers";
+import MemberMarkers from "./MemberMarkers";
 import PlacedMarkers from "./PlacedMarkers";
 import TurfPolygons from "./TurfPolygons";
 
@@ -33,6 +34,7 @@ export default function Map({
     setZoom,
   } = useContext(MapContext);
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const map = mapRef?.current;
@@ -165,6 +167,8 @@ export default function Map({
             }
           });
         }
+
+        setReady(true);
       }}
       onMoveEnd={async (e) => {
         const bounds = e.target.getBounds();
@@ -189,10 +193,15 @@ export default function Map({
         onSourceLoad(e.style.globalId);
       }}
     >
-      <Choropleth />
-      <Markers />
-      <PlacedMarkers />
-      <TurfPolygons />
+      {ready && (
+        <>
+          <Choropleth />
+          <MemberMarkers />
+          <DataSourceMarkers />
+          <PlacedMarkers />
+          <TurfPolygons />
+        </>
+      )}
     </MapGL>
   );
 }

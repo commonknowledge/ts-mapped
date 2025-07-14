@@ -20,7 +20,7 @@ import {
   useDataRecordsQuery,
   useDataSourcesQuery,
   useMapQuery,
-  useMarkersQuery,
+  useMarkerQueries,
 } from "./data";
 import { usePlacedMarkers, useTurfs } from "./hooks";
 import styles from "./MapPage.module.css";
@@ -56,11 +56,12 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const dataSourcesQuery = useDataSourcesQuery();
   const { data: mapData, loading: mapQueryLoading } = useMapQuery(mapId);
 
-  const markersQuery = useMarkersQuery({
-    dataSourceId: viewConfig.markersDataSourceId,
+  const markerQueries = useMarkerQueries({
+    membersDataSourceId: viewConfig.membersDataSourceId,
+    markerDataSourceIds: viewConfig.markerDataSourceIds,
   });
 
-  const dataRecordsQuery = useDataRecordsQuery(viewConfig.markersDataSourceId);
+  const dataRecordsQuery = useDataRecordsQuery(viewConfig.membersDataSourceId);
 
   const areaStatsQuery = useAreaStatsQuery({
     areaSetCode: choroplethLayerConfig.areaSetCode,
@@ -174,7 +175,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
     areaStatsLoading ||
     areaStatsQuery.loading ||
     dataSourcesQuery.loading ||
-    markersQuery.loading;
+    markerQueries.loading;
 
   return (
     <MapContext
@@ -209,7 +210,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
         areaStatsQuery,
         dataSourcesQuery,
         dataRecordsQuery,
-        markersQuery,
+        markerQueries,
 
         choroplethLayerConfig,
       }}

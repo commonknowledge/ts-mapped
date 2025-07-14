@@ -18,9 +18,10 @@
 3. Start the database with `docker compose up`
 4. Import the database dump with `docker compose exec -u postgres -T postgres psql < ts-mapped.psql`
 5. Install dependencies with `npm i`
-6. Start the server with `npm run dev`
-7. View the site at `http://localhost:3000`
-8. Log in with username `hello@commonknowledge.coop` and password `1234`.
+6. Run any migrations with `npm run kysely migrate:latest`
+7. Start the server with `npm run dev`
+8. View the site at `http://localhost:3000`
+9. Log in with username `hello@commonknowledge.coop` and password `1234`.
 
 ### Seed Data
 

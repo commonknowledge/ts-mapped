@@ -99,7 +99,8 @@ const typeDefs = `
     areaDataColumn: String
     areaSetGroupCode: AreaSetGroupCode
     excludeColumnsString: String
-    markersDataSourceId: String
+    markerDataSourceIds: [String]
+    membersDataSourceId: String
     mapStyleName: MapStyleName
     showBoundaryOutline: Boolean
     showLabels: Boolean
@@ -209,7 +210,8 @@ const typeDefs = `
     areaDataColumn: String!
     areaSetGroupCode: AreaSetGroupCode!
     excludeColumnsString: String!
-    markersDataSourceId: String!
+    markerDataSourceIds: [String!]!
+    membersDataSourceId: String!
     mapStyleName: MapStyleName!
     showBoundaryOutline: Boolean!
     showLabels: Boolean!

@@ -3,11 +3,16 @@ import { Layer, Popup, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 
-export default function Markers() {
-  const { markersQuery, viewConfig, selectedMarker, setSelectedMarker } =
+export default function MemberMarkers() {
+  const { markerQueries, viewConfig, selectedMarker, setSelectedMarker } =
     useContext(MapContext);
+
+  const dataSource = markerQueries?.data?.find(
+    (ds) => ds.id === viewConfig.membersDataSourceId,
+  );
+
   // Always return a layer - this ensures it is always placed on top
-  const safeMarkers = markersQuery?.data?.dataSource?.markers || {
+  const safeMarkers = dataSource?.markers || {
     type: "FeatureCollection",
     features: [],
   };
@@ -74,7 +79,7 @@ export default function Markers() {
                 10,
                 6, // Larger radius at higher zoom levels
               ],
-              "circle-color": "#678DE3", // You can change this color
+              "circle-color": mapColors.member.color, // You can change this color
               "circle-opacity": 1,
               "circle-stroke-width": 1,
               "circle-stroke-color": "#ffffff",
@@ -85,6 +90,7 @@ export default function Markers() {
             id="markers-heatmap"
             type="heatmap"
             source="markers"
+            filter={["has", "point_count"]}
             paint={{
               // Increase weight based on point count
               "heatmap-weight": [

@@ -31,7 +31,7 @@ export async function GET(
       // Start object
       controller.enqueue(
         encoder.encode(
-          `{"dataSource":{"id":"${dataSource.id}","name":"${dataSource.name}","markers":{"type":"FeatureCollection","features":[`,
+          `{"id":"${dataSource.id}","name":"${dataSource.name}","markers":{"type":"FeatureCollection","features":[`,
         ),
       );
 
@@ -69,7 +69,7 @@ export async function GET(
         row = await stream.next();
       }
 
-      controller.enqueue(encoder.encode("]}}}")); // End object
+      controller.enqueue(encoder.encode("]}}")); // End object
       controller.close();
     },
   });
