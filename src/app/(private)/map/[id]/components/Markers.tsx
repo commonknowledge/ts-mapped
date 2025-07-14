@@ -1,39 +1,59 @@
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
-export default function DataSourceMarkers() {
+export default function Markers() {
   const { markerQueries, viewConfig } = useContext(MapContext);
 
-  const dataSources =
-    markerQueries?.data?.filter(
-      (ds) => ds.id !== viewConfig.membersDataSourceId,
-    ) || [];
+  const memberMarkers = markerQueries?.data?.find(
+    (ds) => ds.dataSourceId === viewConfig.membersDataSourceId,
+  );
+
+  const dataSourceMarkers = viewConfig.markerDataSourceIds.map((id) =>
+    markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+  );
 
   return (
-    viewConfig.showLocations && (
-      <>
-        {dataSources.map((ds) => (
-          <DataSourceMarkerSet key={ds.id} dataSource={ds} />
-        ))}
-      </>
-    )
+    <>
+      {memberMarkers && viewConfig.showMembers && (
+        <DataSourceMarkers
+          key={memberMarkers.dataSourceId}
+          dataSourceMarkers={memberMarkers}
+          isMembers
+        />
+      )}
+      {dataSourceMarkers.map((ds) => {
+        if (!ds || !viewConfig.showLocations) {
+          return null;
+        }
+        return (
+          <DataSourceMarkers
+            key={ds?.dataSourceId}
+            dataSourceMarkers={ds}
+            isMembers={false}
+          />
+        );
+      })}
+    </>
   );
 }
 
-function DataSourceMarkerSet({
-  dataSource,
+function DataSourceMarkers({
+  dataSourceMarkers,
+  isMembers,
 }: {
-  dataSource: DataSourceMarkersType;
+  dataSourceMarkers: DataSourceMarkersType;
+  isMembers: boolean;
 }) {
-  const safeMarkers = dataSource?.markers || {
+  const safeMarkers = dataSourceMarkers?.markers || {
     type: "FeatureCollection",
     features: [],
   };
-  console.log("markers", safeMarkers);
-  const sourceId = `${dataSource.id}-markers`;
+  const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
+  const colors = isMembers ? mapColors.member : mapColors.dataSource;
   return (
     <Source
       id={sourceId}
@@ -50,7 +70,7 @@ function DataSourceMarkerSet({
         source={sourceId}
         filter={["has", "point_count"]}
         paint={{
-          "circle-color": mapColors.dataSource.color,
+          "circle-color": colors.color,
           "circle-radius": [
             "interpolate",
             ["linear"],
@@ -94,10 +114,29 @@ function DataSourceMarkerSet({
             10,
             6, // Larger radius at higher zoom levels
           ],
-          "circle-color": mapColors.dataSource.color,
+          "circle-color": colors.color,
           "circle-opacity": 1,
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",
+        }}
+      />
+      <Layer
+        id="markers-labels"
+        type="symbol"
+        source="markers"
+        filter={["!", ["has", "point_count"]]}
+        minzoom={10}
+        layout={{
+          "text-field": ["get", MARKER_NAME_KEY],
+          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+          "text-size": 12,
+          "text-transform": "uppercase",
+          "text-offset": [0, -1.25],
+        }}
+        paint={{
+          "text-color": colors.color,
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1,
         }}
       />
       {/* This layer here for styling purposes as it adds a glow effect to the markers */}

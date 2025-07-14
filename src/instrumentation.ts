@@ -10,8 +10,12 @@ export async function register() {
     await runWorker();
 
     if (process.env.NODE_ENV !== "production") {
-      const { startPublicTunnel } = await import("./server/services/urls");
-      await startPublicTunnel();
+      try {
+        const { startPublicTunnel } = await import("./server/services/urls");
+        await startPublicTunnel();
+      } catch (error) {
+        logger.error("Failed to start public tunnel", { error });
+      }
     }
 
     const { schedule } = await import("@/server/services/queue");

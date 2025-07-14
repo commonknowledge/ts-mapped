@@ -54,12 +54,12 @@ export const mapColors: Record<string, mapColor> = {
     name: "Data Source",
     color: "#FF6B6B",
   },
-  searched: {
-    name: "Searched",
+  markers: {
+    name: "Markers",
     color: "#FF6B6B",
   },
-  turf: {
-    name: "Turf",
+  areas: {
+    name: "Areas",
     color: "#91E17E",
     textColor: "#4DAB37",
   },

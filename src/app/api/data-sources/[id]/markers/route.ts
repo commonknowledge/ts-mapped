@@ -31,7 +31,7 @@ export async function GET(
       // Start object
       controller.enqueue(
         encoder.encode(
-          `{"id":"${dataSource.id}","name":"${dataSource.name}","markers":{"type":"FeatureCollection","features":[`,
+          `{"dataSourceId":"${dataSource.id}","dataSourceName":"${dataSource.name}","markers":{"type":"FeatureCollection","features":[`,
         ),
       );
 

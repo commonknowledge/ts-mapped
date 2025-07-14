@@ -9,10 +9,10 @@ import LayerHeader from "./LayerHeader";
 export default function TurfControl() {
   const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 px-4 pb-4">
       <LayerHeader
-        label="Turf"
-        color={mapColors.turf.color}
+        label="Areas"
+        color={mapColors.areas.color}
         showLayer={viewConfig.showTurf}
         setLayer={(show) => updateViewConfig({ showTurf: show })}
       >

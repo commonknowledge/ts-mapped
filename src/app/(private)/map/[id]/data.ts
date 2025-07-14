@@ -135,6 +135,7 @@ export const useDataRecordsQuery = (dataSourceId: string) =>
         dataSource(id: $dataSourceId) {
           id
           name
+          config
           columnDefs {
             name
             type

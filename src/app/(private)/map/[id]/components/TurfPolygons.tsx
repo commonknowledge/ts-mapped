@@ -29,7 +29,7 @@ export default function TurfPolygons() {
           id="turf-polygons-fill"
           type="fill"
           paint={{
-            "fill-color": mapColors.turf.color,
+            "fill-color": mapColors.areas.color,
             "fill-opacity": 0.3,
           }}
         />
@@ -37,7 +37,7 @@ export default function TurfPolygons() {
           id="turf-polygons-stroke"
           type="line"
           paint={{
-            "line-color": mapColors.turf.color,
+            "line-color": mapColors.areas.color,
             "line-width": 2,
           }}
         />
@@ -55,7 +55,7 @@ export default function TurfPolygons() {
             "text-allow-overlap": true,
           }}
           paint={{
-            "text-color": mapColors.turf.textColor,
+            "text-color": mapColors.areas.textColor,
             "text-halo-color": "#fff",
             "text-halo-width": 1,
           }}

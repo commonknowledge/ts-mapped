@@ -29,7 +29,7 @@ export default function PlacedMarkers() {
           source="search-history"
           paint={{
             "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 4, 10, 6],
-            "circle-color": mapColors.searched.color,
+            "circle-color": mapColors.markers.color,
             "circle-opacity": 0.8,
             "circle-stroke-width": 1,
             "circle-stroke-color": "#ffffff",
@@ -51,7 +51,7 @@ export default function PlacedMarkers() {
             "text-offset": [0, 0.75],
           }}
           paint={{
-            "text-color": mapColors.searched.color,
+            "text-color": mapColors.markers.color,
             "text-halo-color": "#ffffff",
             "text-halo-width": 2,
           }}

@@ -851,6 +851,7 @@ export type DataRecordsQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
+    config: any;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;

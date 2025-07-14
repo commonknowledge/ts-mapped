@@ -9,12 +9,17 @@ import {
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/shadcn/ui/resizable";
 import { MarkerData } from "@/types";
 import Controls from "./components/controls/Controls";
-import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
+import MapTable from "./components/table/MapTable";
 import {
   useAreaStatsQuery,
   useDataRecordsQuery,
@@ -46,6 +51,10 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [selectedDataSourceId, setSelectedDataSourceId] = useState<
+    string | null
+  >(null);
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
@@ -94,6 +103,14 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
     setViewConfig(new ViewConfig({ ...viewConfig, ...nextViewConfig }));
+  };
+
+  const handleDataSourceSelect = (dataSourceId: string) => {
+    if (selectedDataSourceId === dataSourceId) {
+      setSelectedDataSourceId(null);
+      return;
+    }
+    setSelectedDataSourceId(dataSourceId);
   };
 
   /* Effects */
@@ -213,28 +230,32 @@ export default function MapPage({ mapId }: { mapId: string }) {
         markerQueries,
 
         choroplethLayerConfig,
+        selectedDataSourceId,
+        handleDataSourceSelect,
+        selectedRecordId,
+        setSelectedRecordId,
       }}
     >
-      <div className={styles.map}>
-        <MapStyleSelector />
+      <div className="flex w-full h-[calc(100vh-3.5rem)]">
         <Controls />
-        <Map onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)} />
-        <Legend areaStats={areaStatsData?.areaStats} />
-        <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="font-bold">Column Defs</h2>
-            {dataRecordsQuery.data?.dataSource?.columnDefs.map((columnDef) => (
-              <p key={columnDef.name}>
-                {columnDef.name}: {columnDef.type}
-              </p>
-            ))}
-          </div>
-          <div>
-            <h2 className="font-bold">Data</h2>
-            {dataRecordsQuery.data?.dataSource?.records?.map((r) => (
-              <p key={r.id}>{JSON.stringify(r.json)}</p>
-            ))}
-          </div>
+        <div className="flex flex-col gap-4 w-full relative">
+          <MapStyleSelector />
+          <ResizablePanelGroup direction="vertical">
+            <ResizablePanel>
+              <Map
+                onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+              />
+            </ResizablePanel>
+            {selectedDataSourceId && (
+              <>
+                <ResizableHandle withHandle />
+                <ResizablePanel onResize={() => mapRef.current?.resize()}>
+                  <MapTable />
+                </ResizablePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
+          {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
         </div>
         {loading && <Loading />}
       </div>
