@@ -23,7 +23,7 @@ export default function TurfControl() {
             if (map) {
               // Find the polygon draw button and click it
               const drawButton = document.querySelector(
-                ".mapbox-gl-draw_polygon"
+                ".mapbox-gl-draw_polygon",
               ) as HTMLButtonElement;
               if (drawButton) {
                 drawButton.click();

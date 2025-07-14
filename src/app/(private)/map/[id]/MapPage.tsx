@@ -148,7 +148,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
             sourceLayer: choroplethLayerConfig.mapbox.layerId,
             id: stat.areaCode,
           },
-          stat
+          stat,
         );
         nextAreaCodesToClean[stat.areaCode] = true;
       });

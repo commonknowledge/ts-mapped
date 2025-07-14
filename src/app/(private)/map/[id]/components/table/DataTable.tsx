@@ -138,7 +138,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                           >
                             {flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                             {header.column.getCanSort() && (
                               <ArrowUpDown className="ml-2 h-4 w-4 opacity-0 transition group-hover:opacity-100" />
@@ -166,7 +166,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

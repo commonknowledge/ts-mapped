@@ -60,7 +60,7 @@ export default function Controls() {
     if (mapRef?.current) {
       mapRef.current.resize();
     }
-  }, [selectedDataSourceId, showControls]);
+  }, [mapRef, selectedDataSourceId, showControls]);
 
   const saveMapView = async () => {
     // Should never happen, button is also hidden in this case
@@ -93,7 +93,7 @@ export default function Controls() {
     }
 
     const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve
+      resolve,
     ) {
       mapRef?.current?.once("render", function () {
         resolve(mapRef.current?.getCanvas().toDataURL());

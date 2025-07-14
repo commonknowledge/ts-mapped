@@ -54,7 +54,7 @@ export default function MarkerList({
                     onSubmit={(e) => {
                       e.preventDefault();
                       const existingMarker = placedMarkers.find(
-                        (m, i) => i === index
+                        (m, i) => i === index,
                       );
                       if (existingMarker) {
                         updatePlacedMarker({
@@ -154,7 +154,7 @@ export default function MarkerList({
               <ContextMenuItem
                 onClick={() => {
                   const existingMarker = placedMarkers.find(
-                    (m, i) => i === contextMenuIndex
+                    (m, i) => i === contextMenuIndex,
                   );
                   if (existingMarker) {
                     deletePlacedMarker(existingMarker.id);
