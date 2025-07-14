@@ -1,7 +1,6 @@
 services:
   postgres:
     image: postgis/postgis:16-3.5-alpine
-    platform: linux/amd64
     container_name: ts-mapped-postgres
     environment:
       POSTGRES_USER: "postgres"

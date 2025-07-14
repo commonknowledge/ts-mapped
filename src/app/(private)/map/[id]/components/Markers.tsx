@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { Layer, Popup, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { mapColours } from "@/app/(private)/map/[id]/styles";
+import { MARKER_NAME_KEY } from "@/constants";
 
 export default function Markers() {
   const { markersQuery, viewConfig, selectedMarker, setSelectedMarker } =
@@ -87,7 +88,7 @@ export default function Markers() {
             filter={["!", ["has", "point_count"]]}
             minzoom={10}
             layout={{
-              "text-field": ["get", "Name"], // or ["get", "__name"]
+              "text-field": ["get", MARKER_NAME_KEY],
               "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
               "text-size": 12,
               "text-transform": "uppercase",
