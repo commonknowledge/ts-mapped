@@ -1,5 +1,5 @@
 import { QueryResult } from "@apollo/client";
-import { OnChangeFn, SortingState } from "@tanstack/react-table";
+import { SortingState } from "@tanstack/react-table";
 import { RefObject, createContext } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import {
@@ -26,11 +26,12 @@ import { MarkerQueriesResult } from "../types";
 export class ViewConfig implements MapViewConfigInput {
   public areaDataSourceId = "";
   public areaDataColumn = "";
-  public areaSetGroupCode: AreaSetGroupCode = AreaSetGroupCode.WMC24;
+  public areaSetGroupCode: AreaSetGroupCode | null = null;
   public excludeColumnsString = "";
   public markerDataSourceIds: string[] = [];
   public membersDataSourceId = "";
   public mapStyleName: MapStyleName = MapStyleName.Light;
+  public selectedDataSourceId: string | null = null;
   public showLabels = true;
   public showBoundaryOutline = false;
   public showMembers = true;
@@ -57,10 +58,17 @@ export const MapContext = createContext<{
   /* Map ID from URL */
   mapId: string | null;
 
+  /* Map Name */
+  mapName: string | null;
+  setMapName: (name: string | null) => void;
+
   /* Map Ref */
   mapRef: RefObject<MapRef | null> | null;
 
   /* State */
+  boundariesPanelOpen: boolean;
+  setBoundariesPanelOpen: (open: boolean) => void;
+
   boundingBox: BoundingBoxInput | null;
   setBoundingBox: (boundingBox: BoundingBoxInput | null) => void;
 
@@ -84,7 +92,7 @@ export const MapContext = createContext<{
   tablePage: number;
   setTablePage: (page: number) => void;
   tableSort: SortingState;
-  setTableSort: OnChangeFn<SortingState>;
+  setTableSort: (tableSort: SortingState) => void;
 
   turfs: Turf[];
   turfsLoading: boolean;
@@ -120,11 +128,14 @@ export const MapContext = createContext<{
   setSelectedRecordId: (recordId: string | null) => void;
 }>({
   mapId: null,
-
+  mapName: null,
+  setMapName: () => null,
   mapRef: null,
-
+  boundariesPanelOpen: false,
+  setBoundariesPanelOpen: () => null,
   boundingBox: null,
   setBoundingBox: () => null,
+  choroplethLayerConfig: getChoroplethLayerConfig(null, DEFAULT_ZOOM),
   editingTurf: null,
   setEditingTurf: () => null,
   placedMarkers: [],
@@ -160,9 +171,4 @@ export const MapContext = createContext<{
   dataSourcesQuery: null,
   markerQueries: null,
   memberDataSourceQuery: null,
-
-  choroplethLayerConfig: getChoroplethLayerConfig(
-    AreaSetGroupCode.WMC24,
-    DEFAULT_ZOOM,
-  ),
 });

@@ -51,7 +51,7 @@ export const useDataRecordsQuery = (variables: {
         $dataSourceId: String!
         $filter: String!
         $page: Int!
-        $sort: [SortInput]!
+        $sort: [SortInput!]!
       ) {
         dataSource(id: $dataSourceId) {
           id
@@ -69,11 +69,11 @@ export const useDataRecordsQuery = (variables: {
             }
             json
           }
-          recordCount
+          recordCount(filter: $filter)
         }
       }
     `,
-    { variables },
+    { variables, skip: !variables.dataSourceId },
   );
 
 export const useMapQuery = (mapId: string | null) =>
@@ -184,7 +184,7 @@ export const useMemberDataSourceQuery = (dataSourceId: string) =>
         }
       }
     `,
-    { variables: { dataSourceId } },
+    { variables: { dataSourceId }, skip: !dataSourceId },
   );
 
 export const useAreaStatsQuery = ({

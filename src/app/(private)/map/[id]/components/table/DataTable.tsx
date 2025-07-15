@@ -2,14 +2,13 @@
 
 import {
   ColumnDef,
-  OnChangeFn,
   SortingState,
   VisibilityState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, X } from "lucide-react";
 import { useState } from "react";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
@@ -35,14 +34,14 @@ interface DataTableProps<TData extends { id: string }, TValue> {
   loading: boolean;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  recordCount?: number;
+  recordCount?: number | null | undefined;
 
   filter: string;
   setFilter: (filter: string) => void;
   pageIndex: number;
   setPageIndex: (page: number) => void;
   sort: SortingState;
-  setSort: OnChangeFn<SortingState>;
+  setSort: (sort: SortingState) => void;
 
   onRowClick?: (row: TData) => void;
   selectedRecordId?: string;
@@ -77,8 +76,15 @@ export function DataTable<TData extends { id: string }, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setFilter,
-    onSortingChange: setSort,
-    rowCount: recordCount,
+    onSortingChange: (change) => {
+      const nextSort =
+        typeof change === "function"
+          ? (change as (prevState: SortingState) => SortingState)(sort)
+          : change;
+      setSort(nextSort);
+    },
+    enableSortingRemoval: true,
+    rowCount: recordCount || -1,
     state: {
       sorting: sort,
       columnVisibility,
@@ -151,17 +157,29 @@ export function DataTable<TData extends { id: string }, TValue>({
                       {header.isPlaceholder ? null : (
                         <div className="flex items-center">
                           <div
-                            onClick={() =>
-                              header.column.getToggleSortingHandler()?.(false)
-                            }
+                            onClick={header.column.getToggleSortingHandler()}
                             className="flex cursor-pointer items-center h-8 p-0 hover:bg-transparent group"
                           >
                             {flexRender(
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
+
                             {header.column.getCanSort() && (
-                              <ArrowUpDown className="ml-2 h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+                              <span className="ml-2 h-4 w-4">
+                                {
+                                  {
+                                    asc: <ArrowUp className="h-4 w-4" />,
+                                    desc: <ArrowDown className="h-4 w-4" />,
+                                    false: (
+                                      <ArrowUpDown className="opacity-0 group-hover:opacity-100 h-4 w-4" />
+                                    ),
+                                  }[
+                                    (header.column.getIsSorted() as string) ||
+                                      "false"
+                                  ]
+                                }
+                              </span>
                             )}
                           </div>
                         </div>

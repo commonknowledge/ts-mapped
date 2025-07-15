@@ -9,6 +9,7 @@ import {
   MapContext,
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
+import MapNavbar from "@/components/MapNavbar";
 import { DEFAULT_ZOOM } from "@/constants";
 import {
   ResizableHandle,
@@ -16,7 +17,9 @@ import {
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import { MarkerData } from "@/types";
+import ChoroplethControl from "./components/controls/ChoroplethControl";
 import Controls from "./components/controls/Controls";
+import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
@@ -36,6 +39,7 @@ import { getChoroplethLayerConfig } from "./sources";
 export default function MapPage({ mapId }: { mapId: string }) {
   /* Map Ref */
   const mapRef = useRef<MapRef>(null);
+  const [mapName, setMapName] = useState<string | null>(null);
 
   /* Map State */
   // Keep track of area codes that have feature state, to clean if necessary
@@ -58,10 +62,12 @@ export default function MapPage({ mapId }: { mapId: string }) {
     string | null
   >(null);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+
   const [tableFilter, setTableFilter] = useState("");
   const [tablePage, setTablePage] = useState(0);
   const [tableSort, setTableSort] = useState<SortingState>([]);
 
+  const [boundariesPanelOpen, setBoundariesPanelOpen] = useState(false);
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
     return getChoroplethLayerConfig(viewConfig.areaSetGroupCode, zoom);
@@ -79,11 +85,19 @@ export default function MapPage({ mapId }: { mapId: string }) {
     markerDataSourceIds: viewConfig.markerDataSourceIds,
   });
 
+  const dataRecordsSort = useMemo(() => {
+    const cleanSort = [];
+    for (const s of tableSort) {
+      cleanSort.push({ desc: s.desc, id: s.id.replace(/^json_/, "") });
+    }
+    return cleanSort;
+  }, [tableSort]);
+
   const dataRecordsQuery = useDataRecordsQuery({
     dataSourceId: viewConfig.membersDataSourceId,
     page: tablePage,
     filter: tableFilter,
-    sort: tableSort,
+    sort: dataRecordsSort,
   });
 
   const areaStatsQuery = useAreaStatsQuery({
@@ -131,6 +145,11 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   /* Update local map state when saved views are loaded from the server */
   useEffect(() => {
+    if (mapData?.map?.name) {
+      setMapName(mapData.map.name);
+    } else {
+      setMapName("Untitled");
+    }
     if (mapData?.map?.views && mapData.map.views.length > 0) {
       const nextView = mapData.map.views[0];
       const nextViewId = nextView.id;
@@ -138,7 +157,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
       const nextConfig = { ...nextView.config };
       delete nextConfig.__typename;
       setViewId(nextViewId);
-      console.log('viewId', nextViewId)
+      console.log("viewId", nextViewId);
       setViewConfig(new ViewConfig(nextConfig));
     }
     if (mapData?.map?.placedMarkers) {
@@ -213,7 +232,8 @@ export default function MapPage({ mapId }: { mapId: string }) {
     <MapContext
       value={{
         mapId,
-
+        mapName,
+        setMapName,
         mapRef,
 
         boundingBox,
@@ -256,30 +276,36 @@ export default function MapPage({ mapId }: { mapId: string }) {
         handleDataSourceSelect,
         selectedRecordId,
         setSelectedRecordId,
+        boundariesPanelOpen,
+        setBoundariesPanelOpen,
       }}
     >
-      <div className="flex w-full h-[calc(100vh-3.5rem)] relative">
-        <Controls />
-        <div className="flex flex-col gap-4 grow min-w-0 relative">
-          <MapStyleSelector />
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel>
-              <Map
-                onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
-              />
-            </ResizablePanel>
-            {selectedDataSourceId && (
-              <>
-                <ResizableHandle withHandle />
-                <ResizablePanel onResize={() => mapRef.current?.resize()}>
-                  <MapTable />
-                </ResizablePanel>
-              </>
-            )}
-          </ResizablePanelGroup>
-          {/* <Legend areaStats={areaStatsData?.areaStats} /> */}
+      <div className="flex flex-col h-screen">
+        <MapNavbar />
+        <div className="flex w-full h-full relative">
+          <Controls />
+          <div className="flex flex-col gap-4 grow relative min-w-0">
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel className="relative">
+                <Map
+                  onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+                />
+                <MapStyleSelector />
+                <ChoroplethControl />
+                <Legend areaStats={areaStatsData?.areaStats} />
+              </ResizablePanel>
+              {selectedDataSourceId && (
+                <>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel onResize={() => mapRef.current?.resize()}>
+                    <MapTable />
+                  </ResizablePanel>
+                </>
+              )}
+            </ResizablePanelGroup>
+          </div>
+          {loading && <Loading />}
         </div>
-        {loading && <Loading />}
       </div>
     </MapContext>
   );

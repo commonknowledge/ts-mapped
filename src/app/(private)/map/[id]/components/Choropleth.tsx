@@ -12,6 +12,9 @@ export default function Choropleth() {
     areaStatsQuery,
   } = useContext(MapContext);
   const fillColor = useFillColor(areaStatsQuery?.data?.areaStats);
+  if (!viewConfig.areaSetGroupCode) {
+    return null;
+  }
   return (
     <Source
       id={sourceId}

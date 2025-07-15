@@ -1,12 +1,22 @@
 import { scaleLinear } from "d3-scale";
+import { DotIcon } from "lucide-react";
+import { useContext } from "react";
 import { AreaStats, ColumnType } from "@/__generated__/types";
 import { useColorScheme } from "../colors";
+import { MapContext } from "../context/MapContext";
 
 export default function Legend({
   areaStats,
 }: {
   areaStats: AreaStats | null | undefined;
 }) {
+  const { viewConfig, dataSourcesQuery } = useContext(MapContext);
+
+  const dataSources = dataSourcesQuery?.data?.dataSources || [];
+  const dataSource = dataSources.find(
+    (ds) => ds.id === viewConfig.areaDataSourceId,
+  );
+
   const colorScheme = useColorScheme(areaStats);
   if (!colorScheme) {
     return null;
@@ -28,7 +38,10 @@ export default function Legend({
           key={i}
           style={{ backgroundColor: color, color: color }}
         >
-          <p className="mix-blend-exclusion text-white">
+          <p
+            className="drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]
+ text-white"
+          >
             {Math.round(step * 100) / 100}
           </p>
         </div>
@@ -47,8 +60,12 @@ export default function Legend({
   }
 
   return (
-    <div className="flex rounded-sm overflow-hidden absolute top-6 left-6 w-2xs">
-      {bars}
+    <div className="flex flex-col  rounded-sm overflow-hidden absolute bottom-10 left-2 w-2xs bg-white border border-neutral-200">
+      <p className="text-xs flex items-center gap-0.5 font-medium px-2 py-1">
+        {dataSource?.name} <DotIcon className="w-4 h-4 text-muted-foreground" />{" "}
+        {viewConfig.areaDataColumn}
+      </p>
+      <div className="flex">{bars}</div>
     </div>
   );
 }

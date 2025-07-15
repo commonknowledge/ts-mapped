@@ -67,9 +67,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="p-4 mx-auto max-w-6xl w-full">
+    <div className="">
       <div className="flex items-center justify-between">
-        <PageHeader title="Recent" />
+        <PageHeader title="Recent Maps" />
         <Button
           type="button"
           onClick={() => onClickNew()}
@@ -82,7 +82,7 @@ export default function DashboardPage() {
       {loading ? (
         <LoaderPinwheel className="animate-spin" />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-y-auto w-full">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
           {maps.map((map: Map) => (
             <MapCard key={map.id} map={map} />
           ))}

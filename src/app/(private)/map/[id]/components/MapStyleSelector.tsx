@@ -19,9 +19,14 @@ import {
 import mapStyles from "../styles";
 
 export default function MapStyleSelector() {
-  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const {
+    viewConfig,
+    updateViewConfig,
+    boundariesPanelOpen,
+    setBoundariesPanelOpen,
+  } = useContext(MapContext);
   return (
-    <div className="h-14 absolute left-1/2 -top-14 -translate-x-1/2 p-2 z-10  bg-white border-b border-neutral-200">
+    <div className="h-14 rounded-lg absolute left-1/2 bottom-8 -translate-x-1/2 py-2 px-4 z-10  bg-white  shadow-lg">
       <div className="flex gap-2 items-center h-full">
         <TooltipProvider>
           <Tooltip>
@@ -35,7 +40,7 @@ export default function MapStyleSelector() {
             >
               <TooltipTrigger asChild>
                 <SelectTrigger className="border-0 p-1 gap-0 h-auto w-auto shadow-none bg-transparent hover:bg-accent">
-                  <Paintbrush className="w-4 h-4 text-muted-foreground" />
+                  <Paintbrush className="w-4 h-4 mr-1 text-muted-foreground" />
                 </SelectTrigger>
               </TooltipTrigger>
               <SelectContent align="center">
@@ -78,25 +83,22 @@ export default function MapStyleSelector() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Toggle
-                pressed={viewConfig.showBoundaryOutline}
-                onPressedChange={(value) =>
-                  updateViewConfig({ showBoundaryOutline: value })
-                }
+                pressed={boundariesPanelOpen}
+                onPressedChange={(value) => setBoundariesPanelOpen(value)}
+                className={`relative ${boundariesPanelOpen ? "bg-neutral-200" : ""}`}
               >
-                <Scan
-                  className={`w-4 h-4  text-muted-foreground ${
-                    viewConfig.showBoundaryOutline
-                      ? "opacity-100"
-                      : "opacity-50"
-                  }`}
-                />
+                <Scan className="w-4 h-4  text-muted-foreground" />
+                {viewConfig.areaSetGroupCode && (
+                  <div
+                    className={`absolute top-1 right-1  bg-neutral-500 rounded-full h-1.5 w-1.5  ${
+                      boundariesPanelOpen ? "opacity-100" : "opacity-50"
+                    }`}
+                  />
+                )}
               </Toggle>
             </TooltipTrigger>
             <TooltipContent>
-              <p>
-                {viewConfig.showBoundaryOutline ? "Hide" : "Show"} boundary
-                outline
-              </p>
+              <p>{boundariesPanelOpen ? "Hide" : "Show"} boundaries</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

@@ -139,10 +139,15 @@ export type DataSource = {
   records?: Maybe<Array<DataRecord>>;
 };
 
+export type DataSourceRecordCountArgs = {
+  filter?: InputMaybe<Scalars["String"]["input"]>;
+  sort?: InputMaybe<Array<SortInput>>;
+};
+
 export type DataSourceRecordsArgs = {
   filter?: InputMaybe<Scalars["String"]["input"]>;
   page?: InputMaybe<Scalars["Int"]["input"]>;
-  sort?: InputMaybe<Array<InputMaybe<SortInput>>>;
+  sort?: InputMaybe<Array<SortInput>>;
 };
 
 export type DataSourceEvent = {
@@ -271,11 +276,12 @@ export type MapViewConfig = {
   __typename?: "MapViewConfig";
   areaDataColumn: Scalars["String"]["output"];
   areaDataSourceId: Scalars["String"]["output"];
-  areaSetGroupCode: AreaSetGroupCode;
+  areaSetGroupCode?: Maybe<AreaSetGroupCode>;
   excludeColumnsString: Scalars["String"]["output"];
   mapStyleName: MapStyleName;
   markerDataSourceIds: Array<Scalars["String"]["output"]>;
   membersDataSourceId: Scalars["String"]["output"];
+  selectedDataSourceId: Scalars["String"]["output"];
   showBoundaryOutline: Scalars["Boolean"]["output"];
   showLabels: Scalars["Boolean"]["output"];
   showLocations: Scalars["Boolean"]["output"];
@@ -293,6 +299,7 @@ export type MapViewConfigInput = {
     Array<InputMaybe<Scalars["String"]["input"]>>
   >;
   membersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  selectedDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
   showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
   showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
   showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -756,39 +763,6 @@ export type ListDataSourcesQuery = {
   }> | null;
 };
 
-export type UpsertMapViewMutationVariables = Exact<{
-  id?: InputMaybe<Scalars["String"]["input"]>;
-  config: MapViewConfigInput;
-  mapId: Scalars["String"]["input"];
-}>;
-
-export type UpsertMapViewMutation = {
-  __typename?: "Mutation";
-  upsertMapView?: {
-    __typename?: "UpsertMapViewResponse";
-    code: number;
-    result?: string | null;
-  } | null;
-};
-
-export type UpdateMapImageMutationVariables = Exact<{
-  id: Scalars["String"]["input"];
-  mapInput: MapInput;
-}>;
-
-export type UpdateMapImageMutation = {
-  __typename?: "Mutation";
-  updateMap?: {
-    __typename?: "UpdateMapResponse";
-    code: number;
-    result?: {
-      __typename?: "Map";
-      id: string;
-      imageUrl?: string | null;
-    } | null;
-  } | null;
-};
-
 export type DataSourcesQueryVariables = Exact<{ [key: string]: never }>;
 
 export type DataSourcesQuery = {
@@ -810,7 +784,7 @@ export type DataRecordsQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
   filter: Scalars["String"]["input"];
   page: Scalars["Int"]["input"];
-  sort: Array<InputMaybe<SortInput>> | InputMaybe<SortInput>;
+  sort: Array<SortInput> | SortInput;
 }>;
 
 export type DataRecordsQuery = {
@@ -867,7 +841,7 @@ export type MapQuery = {
         __typename?: "MapViewConfig";
         areaDataSourceId: string;
         areaDataColumn: string;
-        areaSetGroupCode: AreaSetGroupCode;
+        areaSetGroupCode?: AreaSetGroupCode | null;
         excludeColumnsString: string;
         markerDataSourceIds: Array<string>;
         membersDataSourceId: string;
@@ -988,6 +962,53 @@ export type ListOrganisationsQuery = {
     id: string;
     name: string;
   }> | null;
+};
+
+export type UpdateMapNameMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  mapInput: MapInput;
+}>;
+
+export type UpdateMapNameMutation = {
+  __typename?: "Mutation";
+  updateMap?: {
+    __typename?: "UpdateMapResponse";
+    code: number;
+    result?: { __typename?: "Map"; id: string; name: string } | null;
+  } | null;
+};
+
+export type UpsertMapViewMutationVariables = Exact<{
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  config: MapViewConfigInput;
+  mapId: Scalars["String"]["input"];
+}>;
+
+export type UpsertMapViewMutation = {
+  __typename?: "Mutation";
+  upsertMapView?: {
+    __typename?: "UpsertMapViewResponse";
+    code: number;
+    result?: string | null;
+  } | null;
+};
+
+export type UpdateMapImageMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  mapInput: MapInput;
+}>;
+
+export type UpdateMapImageMutation = {
+  __typename?: "Mutation";
+  updateMap?: {
+    __typename?: "UpdateMapResponse";
+    code: number;
+    result?: {
+      __typename?: "Map";
+      id: string;
+      imageUrl?: string | null;
+    } | null;
+  } | null;
 };
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -1345,7 +1366,12 @@ export type DataSourceResolvers<
     ContextType
   >;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  recordCount?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
+  recordCount?: Resolver<
+    Maybe<ResolversTypes["Int"]>,
+    ParentType,
+    ContextType,
+    Partial<DataSourceRecordCountArgs>
+  >;
   records?: Resolver<
     Maybe<Array<ResolversTypes["DataRecord"]>>,
     ParentType,
@@ -1547,7 +1573,7 @@ export type MapViewConfigResolvers<
     ContextType
   >;
   areaSetGroupCode?: Resolver<
-    ResolversTypes["AreaSetGroupCode"],
+    Maybe<ResolversTypes["AreaSetGroupCode"]>,
     ParentType,
     ContextType
   >;
@@ -1567,6 +1593,11 @@ export type MapViewConfigResolvers<
     ContextType
   >;
   membersDataSourceId?: Resolver<
+    ResolversTypes["String"],
+    ParentType,
+    ContextType
+  >;
+  selectedDataSourceId?: Resolver<
     ResolversTypes["String"],
     ParentType,
     ContextType

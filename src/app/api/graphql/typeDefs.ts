@@ -102,6 +102,7 @@ const typeDefs = `
     markerDataSourceIds: [String]
     membersDataSourceId: String
     mapStyleName: MapStyleName
+    selectedDataSourceId: String
     showBoundaryOutline: Boolean
     showLabels: Boolean
     showLocations: Boolean
@@ -162,9 +163,9 @@ const typeDefs = `
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    records(filter: String, page: Int, sort: [SortInput]): [DataRecord!]
+    records(filter: String, page: Int, sort: [SortInput!]): [DataRecord!]
 
-    recordCount: Int
+    recordCount(filter: String, sort: [SortInput!]): Int
   }
 
   """
@@ -213,11 +214,12 @@ const typeDefs = `
   type MapViewConfig {
     areaDataSourceId: String!
     areaDataColumn: String!
-    areaSetGroupCode: AreaSetGroupCode!
+    areaSetGroupCode: AreaSetGroupCode
     excludeColumnsString: String!
     markerDataSourceIds: [String!]!
     membersDataSourceId: String!
     mapStyleName: MapStyleName!
+    selectedDataSourceId: String!
     showBoundaryOutline: Boolean!
     showLabels: Boolean!
     showLocations: Boolean!

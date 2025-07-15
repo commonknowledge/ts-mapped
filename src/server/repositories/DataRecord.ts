@@ -1,13 +1,14 @@
+import { sql } from "kysely";
+import { SortInput } from "@/__generated__/types";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { NewDataRecord } from "@/server/models/DataRecord";
 import { db } from "@/server/services/database";
 
 export async function countDataRecordsForDataSource(
   dataSourceId: string,
+  filter: string | null | undefined,
 ): Promise<number> {
-  const result = await db
-    .selectFrom("dataRecord")
-    .where("dataSourceId", "=", dataSourceId)
+  const result = await filterDataRecordsByDataSource(dataSourceId, filter)
     .select(({ fn }) => [fn.countAll().as("count")])
     .executeTakeFirst();
   return Number(result?.count) || 0;
@@ -22,18 +23,44 @@ export function getFirstDataRecord(dataSourceId: string) {
     .executeTakeFirst();
 }
 
+function filterDataRecordsByDataSource(
+  dataSourceId: string,
+  filter: string | null | undefined,
+) {
+  let q = db.selectFrom("dataRecord").where("dataSourceId", "=", dataSourceId);
+
+  if (filter) {
+    q = q.where(sql<boolean>`json_text_search ILIKE ${"%" + filter + "%"}`);
+  }
+
+  return q;
+}
+
 export function findDataRecordsByDataSource(
   dataSourceId: string,
+  filter: string | null | undefined,
   page: number,
+  sort: SortInput[],
 ) {
-  return db
-    .selectFrom("dataRecord")
-    .where("dataSourceId", "=", dataSourceId)
-    .orderBy("id asc")
+  let q = filterDataRecordsByDataSource(dataSourceId, filter)
     .offset(page * DATA_RECORDS_PAGE_SIZE)
     .limit(DATA_RECORDS_PAGE_SIZE)
-    .selectAll()
-    .execute();
+    .selectAll();
+
+  if (sort.length) {
+    for (const s of sort) {
+      q = q.orderBy(
+        ({ ref }) => {
+          return ref("json", "->>").key(s.id);
+        },
+        s.desc ? "desc" : "asc",
+      );
+    }
+  } else {
+    q = q.orderBy("id asc");
+  }
+
+  return q.execute();
 }
 
 export function streamDataRecordsByDataSource(dataSourceId: string) {

@@ -7,7 +7,6 @@ import {
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import Navbar from "@/components/Navbar";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
@@ -48,7 +47,6 @@ export default async function RootLayout({
           <OrganisationsProvider organisations={organisations}>
             <ApolloProvider>
               <NProgressProvider>
-                <Navbar />
                 <main>{children}</main>
               </NProgressProvider>
             </ApolloProvider>

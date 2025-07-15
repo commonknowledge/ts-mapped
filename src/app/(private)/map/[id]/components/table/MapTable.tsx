@@ -54,7 +54,7 @@ export default function MapTable() {
         loading={dataRecordsQuery ? dataRecordsQuery.loading : true}
         columns={columns}
         data={dataRecordsQuery?.data?.dataSource?.records || []}
-        recordCount={dataSource.recordCount || -1}
+        recordCount={dataRecordsQuery?.data?.dataSource?.recordCount}
         filter={tableFilter}
         setFilter={setTableFilter}
         pageIndex={tablePage}
