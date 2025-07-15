@@ -27,7 +27,17 @@ const ensureQueue = async (queue: string) => {
     startedQueues = {};
   }
   if (!startedQueues[queue]) {
-    await boss.createQueue(queue);
+    try {
+      await boss.createQueue(queue);
+    } catch (error: any) {
+      // If the queue already exists, that's fine - we can ignore this error
+      if (error.code === "42P07" || error.message?.includes("already exists")) {
+        logger.info(`Queue "${queue}" already exists, continuing...`);
+      } else {
+        // Re-throw other errors
+        throw error;
+      }
+    }
     startedQueues[queue] = true;
   }
 };
@@ -35,7 +45,7 @@ const ensureQueue = async (queue: string) => {
 export const enqueue = async (
   task: string,
   args: object,
-  queue: string = defaultQueue,
+  queue: string = defaultQueue
 ) => {
   await ensureQueue(queue);
   await boss.send(queue, { task, args }, { expireInHours: 8 });
@@ -48,7 +58,7 @@ export const runWorker = async (queue: string = defaultQueue) => {
   await boss.work(queue, async ([job]) => {
     try {
       logger.info(
-        `Received job ${job.id} with data ${JSON.stringify(job.data)}`,
+        `Received job ${job.id} with data ${JSON.stringify(job.data)}`
       );
       if (typeof job.data !== "object" || job.data === null) {
         throw Error(`Malformed job data`);
@@ -66,7 +76,7 @@ export const runWorker = async (queue: string = defaultQueue) => {
         throw Error(`Handler ${task} not complete successfully`);
       }
       logger.info(
-        `Completed job ${job.id} with data ${JSON.stringify(job.data)}`,
+        `Completed job ${job.id} with data ${JSON.stringify(job.data)}`
       );
     } catch (error) {
       logger.error(`Failed job ${job.id}`, { error });
@@ -82,7 +92,7 @@ export const schedule = async (
   cronSpec: string,
   task: string,
   args: object,
-  queue: string = defaultQueue,
+  queue: string = defaultQueue
 ) => {
   await ensureQueue(queue);
   await boss.schedule(queue, cronSpec, { task, args });

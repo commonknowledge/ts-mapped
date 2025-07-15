@@ -1,6 +1,12 @@
 "use client";
 
-import { Clock2, DatabaseIcon, PlusIcon } from "lucide-react";
+import {
+  Clock2,
+  DatabaseIcon,
+  PlusIcon,
+  SettingsIcon,
+  UsersIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { SyntheticEvent, useContext } from "react";
 import { useCurrentUser } from "@/hooks";
@@ -36,11 +42,25 @@ export default function Sidebar({ slug }: { slug: string }) {
       label: "Recent Maps",
       href: "/dashboard",
       icon: <Clock2 className="w-4 h-4" />,
+      section: "primary",
     },
     {
       label: "Data Sources",
       href: "/data-sources",
       icon: <DatabaseIcon className="w-4 h-4" />,
+      section: "primary",
+    },
+    {
+      label: "Community",
+      href: "/community",
+      icon: <UsersIcon className="w-4 h-4" />,
+      section: "secondary",
+    },
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: <SettingsIcon className="w-4 h-4" />,
+      section: "secondary",
     },
   ];
 
@@ -84,22 +104,42 @@ export default function Sidebar({ slug }: { slug: string }) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 flex flex-col justify-between">
         <ul className="space-y-2">
-          {navItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary"
-                )}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          {navItems
+            .filter((item) => item.section === "primary")
+            .map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+                    isActive(item.href) && "bg-neutral-100 text-primary"
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+        </ul>
+        <ul className="space-y-2">
+          {navItems
+            .filter((item) => item.section === "secondary")
+            .map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+                    isActive(item.href) && "bg-neutral-100 text-primary"
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              </li>
+            ))}
         </ul>
       </nav>
 
