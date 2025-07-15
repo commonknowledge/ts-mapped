@@ -5,6 +5,8 @@ export const MAX_COLUMN_KEY = "__maxColumn";
 
 export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
 
+export const DATA_RECORDS_PAGE_SIZE = 100;
+
 export const DATA_SOURCE_JOB_BATCH_SIZE = 100;
 
 export const DEFAULT_ZOOM = 5;

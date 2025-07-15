@@ -1,3 +1,4 @@
+import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { NewDataRecord } from "@/server/models/DataRecord";
 import { db } from "@/server/services/database";
 
@@ -21,10 +22,16 @@ export function getFirstDataRecord(dataSourceId: string) {
     .executeTakeFirst();
 }
 
-export function findDataRecordsByDataSource(dataSourceId: string) {
+export function findDataRecordsByDataSource(
+  dataSourceId: string,
+  page: number,
+) {
   return db
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
+    .orderBy("id asc")
+    .offset(page * DATA_RECORDS_PAGE_SIZE)
+    .limit(DATA_RECORDS_PAGE_SIZE)
     .selectAll()
     .execute();
 }

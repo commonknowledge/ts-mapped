@@ -44,7 +44,7 @@ export interface Database {
 export const db = new Kysely<Database>({
   dialect,
   plugins: [
-    new CamelCasePlugin(), // Database `field_name` to TypeScript `fieldName`
+    new CamelCasePlugin({ maintainNestedObjectKeys: true }), // Database `field_name` to TypeScript `fieldName`
     new PointPlugin(),
   ],
   log: ["error"],

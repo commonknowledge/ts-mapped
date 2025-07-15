@@ -42,7 +42,7 @@ export default function SettingsModal() {
         <DialogDescription>Adjust the map settings</DialogDescription>
         <Separator />
         <div className="flex flex-col gap-2">
-          <Label htmlFor="membersDataSourceId">Markers Data Source</Label>
+          <Label htmlFor="membersDataSourceId">Members Data Source</Label>
 
           <Select
             value={viewConfig.membersDataSourceId}
@@ -51,7 +51,7 @@ export default function SettingsModal() {
             }
           >
             <SelectTrigger className="w-full shadow-none">
-              <SelectValue placeholder="Select a markers data source" />
+              <SelectValue placeholder="Select a members data source" />
             </SelectTrigger>
             <SelectContent>
               {(dataSources || []).map((ds: { id: string; name: string }) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { SortingState } from "@tanstack/react-table";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
@@ -26,6 +27,7 @@ import {
   useDataSourcesQuery,
   useMapQuery,
   useMarkerQueries,
+  useMemberDataSourceQuery,
 } from "./data";
 import { usePlacedMarkers, useTurfs } from "./hooks";
 import styles from "./MapPage.module.css";
@@ -51,10 +53,14 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<
     string | null
   >(null);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const [tableFilter, setTableFilter] = useState("");
+  const [tablePage, setTablePage] = useState(0);
+  const [tableSort, setTableSort] = useState<SortingState>([]);
 
   /* Derived State */
   const choroplethLayerConfig = useMemo(() => {
@@ -63,6 +69,9 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   /* GraphQL Data */
   const dataSourcesQuery = useDataSourcesQuery();
+  const memberDataSourceQuery = useMemberDataSourceQuery(
+    viewConfig.membersDataSourceId,
+  );
   const { data: mapData, loading: mapQueryLoading } = useMapQuery(mapId);
 
   const markerQueries = useMarkerQueries({
@@ -70,7 +79,12 @@ export default function MapPage({ mapId }: { mapId: string }) {
     markerDataSourceIds: viewConfig.markerDataSourceIds,
   });
 
-  const dataRecordsQuery = useDataRecordsQuery(viewConfig.membersDataSourceId);
+  const dataRecordsQuery = useDataRecordsQuery({
+    dataSourceId: viewConfig.membersDataSourceId,
+    page: tablePage,
+    filter: tableFilter,
+    sort: tableSort,
+  });
 
   const areaStatsQuery = useAreaStatsQuery({
     areaSetCode: choroplethLayerConfig.areaSetCode,
@@ -124,6 +138,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
       const nextConfig = { ...nextView.config };
       delete nextConfig.__typename;
       setViewId(nextViewId);
+      console.log('viewId', nextViewId)
       setViewConfig(new ViewConfig(nextConfig));
     }
     if (mapData?.map?.placedMarkers) {
@@ -212,6 +227,12 @@ export default function MapPage({ mapId }: { mapId: string }) {
         updatePlacedMarker,
         selectedMarker,
         setSelectedMarker,
+        tableFilter,
+        setTableFilter,
+        tablePage,
+        setTablePage,
+        tableSort,
+        setTableSort,
         turfs,
         turfsLoading,
         deleteTurf,
@@ -228,6 +249,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
         dataSourcesQuery,
         dataRecordsQuery,
         markerQueries,
+        memberDataSourceQuery,
 
         choroplethLayerConfig,
         selectedDataSourceId,
@@ -236,9 +258,9 @@ export default function MapPage({ mapId }: { mapId: string }) {
         setSelectedRecordId,
       }}
     >
-      <div className="flex w-full h-[calc(100vh-3.5rem)]">
+      <div className="flex w-full h-[calc(100vh-3.5rem)] relative">
         <Controls />
-        <div className="flex flex-col gap-4 w-full relative">
+        <div className="flex flex-col gap-4 grow min-w-0 relative">
           <MapStyleSelector />
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel>

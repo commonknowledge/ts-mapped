@@ -21,8 +21,8 @@ const DataSourceResolvers: DataSourceResolversType = {
     const dataSources = await findDataSourcesByIds(dataSourceIds);
     return dataSources.map((ds) => ({ name: ds.name, id: ds.id }));
   },
-  records: ({ id }: DataSource) => {
-    return findDataRecordsByDataSource(id);
+  records: ({ id }: DataSource, { page }) => {
+    return findDataRecordsByDataSource(id, page || 0);
   },
   recordCount: ({ id }: DataSource) => countDataRecordsForDataSource(id),
 };

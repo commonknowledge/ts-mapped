@@ -1,4 +1,5 @@
 import { QueryResult } from "@apollo/client";
+import { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { RefObject, createContext } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import {
@@ -11,6 +12,8 @@ import {
   DataSourcesQuery,
   MapStyleName,
   MapViewConfigInput,
+  MemberDataSourceQuery,
+  MemberDataSourceQueryVariables,
   PlacedMarker,
   Turf,
 } from "@/__generated__/types";
@@ -70,8 +73,18 @@ export const MapContext = createContext<{
   insertPlacedMarker: (placedMarker: PlacedMarker) => void;
   updatePlacedMarker: (placedMarker: PlacedMarker) => void;
 
+  selectedDataSourceId: string | null;
+  handleDataSourceSelect: (dataSourceId: string) => void;
+
   selectedMarker: MarkerData | null;
   setSelectedMarker: (marker: MarkerData | null) => void;
+
+  tableFilter: string;
+  setTableFilter: (filter: string) => void;
+  tablePage: number;
+  setTablePage: (page: number) => void;
+  tableSort: SortingState;
+  setTableSort: OnChangeFn<SortingState>;
 
   turfs: Turf[];
   turfsLoading: boolean;
@@ -88,9 +101,6 @@ export const MapContext = createContext<{
   zoom: number;
   setZoom: (zoom: number) => void;
 
-  selectedDataSourceId: string | null;
-  handleDataSourceSelect: (dataSourceId: string) => void;
-
   /* GraphQL Queries */
   areaStatsQuery: QueryResult<AreaStatsQuery, AreaStatsQueryVariables> | null;
   dataRecordsQuery: QueryResult<
@@ -99,6 +109,10 @@ export const MapContext = createContext<{
   > | null;
   dataSourcesQuery: QueryResult<DataSourcesQuery> | null;
   markerQueries: MarkerQueriesResult | null;
+  memberDataSourceQuery: QueryResult<
+    MemberDataSourceQuery,
+    MemberDataSourceQueryVariables
+  > | null;
 
   /* Derived Properties */
   choroplethLayerConfig: ChoroplethLayerConfig;
@@ -120,6 +134,12 @@ export const MapContext = createContext<{
   updatePlacedMarker: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,
+  tableFilter: "",
+  setTableFilter: () => null,
+  tablePage: 0,
+  setTablePage: () => null,
+  tableSort: [],
+  setTableSort: () => null,
   turfs: [],
   turfsLoading: false,
   deleteTurf: () => null,
@@ -139,6 +159,7 @@ export const MapContext = createContext<{
   dataRecordsQuery: null,
   dataSourcesQuery: null,
   markerQueries: null,
+  memberDataSourceQuery: null,
 
   choroplethLayerConfig: getChoroplethLayerConfig(
     AreaSetGroupCode.WMC24,

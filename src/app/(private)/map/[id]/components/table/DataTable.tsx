@@ -2,16 +2,16 @@
 
 import {
   ColumnDef,
+  OnChangeFn,
   SortingState,
   VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, X } from "lucide-react";
 import { useState } from "react";
+import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -30,47 +30,67 @@ import {
 } from "@/shadcn/ui/table";
 
 interface DataTableProps<TData extends { id: string }, TValue> {
+  title?: string;
+
+  loading: boolean;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  recordCount?: number;
+
+  filter: string;
+  setFilter: (filter: string) => void;
+  pageIndex: number;
+  setPageIndex: (page: number) => void;
+  sort: SortingState;
+  setSort: OnChangeFn<SortingState>;
+
   onRowClick?: (row: TData) => void;
   selectedRecordId?: string;
+
   onClose?: () => void;
-  title?: string;
-  recordCount?: number;
 }
 
 export function DataTable<TData extends { id: string }, TValue>({
+  title,
+
+  loading,
   columns,
   data,
+  recordCount,
+
+  filter,
+  setFilter,
+  pageIndex,
+  setPageIndex,
+  sort,
+  setSort,
+
   onRowClick,
   selectedRecordId,
   onClose,
-  title,
-  recordCount,
 }: DataTableProps<TData, TValue>) {
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
-    globalFilterFn: "includesString",
+    onGlobalFilterChange: setFilter,
+    onSortingChange: setSort,
+    rowCount: recordCount,
     state: {
-      globalFilter,
-      sorting,
+      sorting: sort,
       columnVisibility,
+      pagination: {
+        pageIndex,
+        pageSize: DATA_RECORDS_PAGE_SIZE,
+      },
     },
   });
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2 h-full">
       <div className="flex items-center justify-between p-1">
         <div className="flex items-center gap-4">
           {title && (
@@ -81,8 +101,8 @@ export function DataTable<TData extends { id: string }, TValue>({
           )}
           <Input
             placeholder="Filter all columns..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            value={filter ?? ""}
+            onChange={(event) => setFilter(event.target.value)}
             className="max-w-sm shadow-none"
           />
         </div>
@@ -120,8 +140,8 @@ export function DataTable<TData extends { id: string }, TValue>({
           )}
         </div>
       </div>
-      <div className="rounded-md border bg-white overflow-clip">
-        <Table>
+      <div className="rounded-md border bg-white grow min-h-0">
+        <Table containerClassName="h-full">
           <TableHeader className="bg-neutral-100 ">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -153,7 +173,11 @@ export function DataTable<TData extends { id: string }, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell className="text-center">Loading...</TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -184,6 +208,36 @@ export function DataTable<TData extends { id: string }, TValue>({
             )}
           </TableBody>
         </Table>
+      </div>
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          onClick={() => setPageIndex(0)}
+          disabled={!table.getCanPreviousPage()}
+        >
+          {"<<"}
+        </Button>
+        <Button
+          onClick={() => setPageIndex(pageIndex - 1)}
+          disabled={!table.getCanPreviousPage()}
+        >
+          {"<"}
+        </Button>
+        <Button
+          onClick={() => setPageIndex(pageIndex + 1)}
+          disabled={!table.getCanNextPage()}
+        >
+          {">"}
+        </Button>
+        <Button
+          onClick={() =>
+            setPageIndex(
+              Math.floor((recordCount || 0) / DATA_RECORDS_PAGE_SIZE),
+            )
+          }
+          disabled={!table.getCanNextPage()}
+        >
+          {">>"}
+        </Button>
       </div>
     </div>
   );

@@ -139,6 +139,12 @@ export type DataSource = {
   records?: Maybe<Array<DataRecord>>;
 };
 
+export type DataSourceRecordsArgs = {
+  filter?: InputMaybe<Scalars["String"]["input"]>;
+  page?: InputMaybe<Scalars["Int"]["input"]>;
+  sort?: InputMaybe<Array<InputMaybe<SortInput>>>;
+};
+
 export type DataSourceEvent = {
   __typename?: "DataSourceEvent";
   dataSourceId: Scalars["String"]["output"];
@@ -449,6 +455,11 @@ export type RecordsProcessedEvent = {
   __typename?: "RecordsProcessedEvent";
   at: Scalars["String"]["output"];
   count: Scalars["Int"]["output"];
+};
+
+export type SortInput = {
+  desc: Scalars["Boolean"]["input"];
+  id: Scalars["String"]["input"];
 };
 
 export type Subscription = {
@@ -795,6 +806,35 @@ export type DataSourcesQuery = {
   }> | null;
 };
 
+export type DataRecordsQueryVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+  filter: Scalars["String"]["input"];
+  page: Scalars["Int"]["input"];
+  sort: Array<InputMaybe<SortInput>> | InputMaybe<SortInput>;
+}>;
+
+export type DataRecordsQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    recordCount?: number | null;
+    columnDefs: Array<{
+      __typename?: "ColumnDef";
+      name: string;
+      type: ColumnType;
+    }>;
+    records?: Array<{
+      __typename?: "DataRecord";
+      id: string;
+      externalId: string;
+      json: any;
+      geocodePoint?: { __typename?: "Point"; lat: number; lng: number } | null;
+    }> | null;
+  } | null;
+};
+
 export type MapQueryVariables = Exact<{
   id: Scalars["String"]["input"];
 }>;
@@ -803,6 +843,7 @@ export type MapQuery = {
   __typename?: "Query";
   map?: {
     __typename?: "Map";
+    name: string;
     placedMarkers?: Array<{
       __typename?: "PlacedMarker";
       id: string;
@@ -841,29 +882,23 @@ export type MapQuery = {
   } | null;
 };
 
-export type DataRecordsQueryVariables = Exact<{
+export type MemberDataSourceQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
 }>;
 
-export type DataRecordsQuery = {
+export type MemberDataSourceQuery = {
   __typename?: "Query";
   dataSource?: {
     __typename?: "DataSource";
     id: string;
     name: string;
     config: any;
+    recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
       type: ColumnType;
     }>;
-    records?: Array<{
-      __typename?: "DataRecord";
-      id: string;
-      externalId: string;
-      json: any;
-      geocodePoint?: { __typename?: "Point"; lat: number; lng: number } | null;
-    }> | null;
   } | null;
 };
 
@@ -1108,6 +1143,7 @@ export type ResolversTypes = {
   PointInput: PointInput;
   Query: ResolverTypeWrapper<{}>;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
+  SortInput: SortInput;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
   Turf: ResolverTypeWrapper<Turf>;
@@ -1157,6 +1193,7 @@ export type ResolversParentTypes = {
   PointInput: PointInput;
   Query: {};
   RecordsProcessedEvent: RecordsProcessedEvent;
+  SortInput: SortInput;
   String: Scalars["String"]["output"];
   Subscription: {};
   Turf: Turf;
@@ -1312,7 +1349,8 @@ export type DataSourceResolvers<
   records?: Resolver<
     Maybe<Array<ResolversTypes["DataRecord"]>>,
     ParentType,
-    ContextType
+    ContextType,
+    Partial<DataSourceRecordsArgs>
   >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
