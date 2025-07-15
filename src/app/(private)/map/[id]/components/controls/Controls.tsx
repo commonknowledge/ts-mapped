@@ -17,9 +17,16 @@ export default function Controls() {
   //reset map when ui shifts
   useEffect(() => {
     if (mapRef?.current) {
-      mapRef.current.resize();
+      // Delay the resize to allow the animation to complete
+      const timeoutId = setTimeout(() => {
+        if (mapRef?.current) {
+          mapRef.current.resize();
+        }
+      }, 350); // Slightly longer than the CSS transition duration (300ms)
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [selectedDataSourceId, showControls]);
+  }, [selectedDataSourceId, showControls, mapRef]);
 
   const controlPanelWidth = 280;
 
