@@ -23,11 +23,12 @@ import { MarkerQueriesResult } from "../types";
 export class ViewConfig implements MapViewConfigInput {
   public areaDataSourceId = "";
   public areaDataColumn = "";
-  public areaSetGroupCode: AreaSetGroupCode = AreaSetGroupCode.WMC24;
+  public areaSetGroupCode: AreaSetGroupCode | null = null;
   public excludeColumnsString = "";
   public markerDataSourceIds: string[] = [];
   public membersDataSourceId = "";
   public mapStyleName: MapStyleName = MapStyleName.Light;
+  public selectedDataSourceId: string | null = null;
   public showLabels = true;
   public showBoundaryOutline = false;
   public showMembers = true;
@@ -53,6 +54,10 @@ export class ViewConfig implements MapViewConfigInput {
 export const MapContext = createContext<{
   /* Map ID from URL */
   mapId: string | null;
+
+  /* Map Name */
+  mapName: string | null;
+  setMapName: (name: string | null) => void;
 
   /* Map Ref */
   mapRef: RefObject<MapRef | null> | null;
@@ -91,6 +96,9 @@ export const MapContext = createContext<{
   selectedDataSourceId: string | null;
   handleDataSourceSelect: (dataSourceId: string) => void;
 
+  boundariesPanelOpen: boolean;
+  setBoundariesPanelOpen: (open: boolean) => void;
+
   /* GraphQL Queries */
   areaStatsQuery: QueryResult<AreaStatsQuery, AreaStatsQueryVariables> | null;
   dataRecordsQuery: QueryResult<
@@ -106,9 +114,9 @@ export const MapContext = createContext<{
   setSelectedRecordId: (recordId: string | null) => void;
 }>({
   mapId: null,
-
+  mapName: null,
+  setMapName: () => null,
   mapRef: null,
-
   boundingBox: null,
   setBoundingBox: () => null,
   editingTurf: null,
@@ -140,8 +148,7 @@ export const MapContext = createContext<{
   dataSourcesQuery: null,
   markerQueries: null,
 
-  choroplethLayerConfig: getChoroplethLayerConfig(
-    AreaSetGroupCode.WMC24,
-    DEFAULT_ZOOM,
-  ),
+  boundariesPanelOpen: false,
+  setBoundariesPanelOpen: () => null,
+  choroplethLayerConfig: getChoroplethLayerConfig(null, DEFAULT_ZOOM),
 });

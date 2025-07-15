@@ -214,7 +214,7 @@ const MutationResolvers: MutationResolversType = {
       }
       // Name cannot be set to null or the empty string
       const mapUpdate = { ...args.map, name: args.map.name || undefined };
-      await updateMap(args.id, mapUpdate);
+      const updatedMap = await updateMap(args.id, mapUpdate);
 
       // Clean up old image
       if (
@@ -225,7 +225,7 @@ const MutationResolvers: MutationResolversType = {
         await deleteFile(map.imageUrl);
       }
 
-      return { code: 200, result: map };
+      return { code: 200, result: updatedMap };
     } catch (error) {
       logger.error(`Could not update map: ${JSON.stringify(args)}`, {
         error,

@@ -102,6 +102,7 @@ const typeDefs = `
     markerDataSourceIds: [String]
     membersDataSourceId: String
     mapStyleName: MapStyleName
+    selectedDataSourceId: String
     showBoundaryOutline: Boolean
     showLabels: Boolean
     showLocations: Boolean
@@ -208,11 +209,12 @@ const typeDefs = `
   type MapViewConfig {
     areaDataSourceId: String!
     areaDataColumn: String!
-    areaSetGroupCode: AreaSetGroupCode!
+    areaSetGroupCode: AreaSetGroupCode
     excludeColumnsString: String!
     markerDataSourceIds: [String!]!
     membersDataSourceId: String!
     mapStyleName: MapStyleName!
+    selectedDataSourceId: String!
     showBoundaryOutline: Boolean!
     showLabels: Boolean!
     showLocations: Boolean!
