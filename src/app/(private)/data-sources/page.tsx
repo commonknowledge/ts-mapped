@@ -31,7 +31,7 @@ export default function DataSourcesPage() {
         }
       }
     `,
-    { variables: { organisationId }, skip: !organisationId }
+    { variables: { organisationId }, skip: !organisationId },
   );
   const dataSources = data?.dataSources || [];
 
@@ -73,7 +73,7 @@ export default function DataSourcesPage() {
                 config={config}
                 createdAt={createdAt}
               />
-            )
+            ),
           )}
         </div>
       )}

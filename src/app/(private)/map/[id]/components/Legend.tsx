@@ -1,9 +1,9 @@
 import { scaleLinear } from "d3-scale";
+import { DotIcon } from "lucide-react";
 import { useContext } from "react";
 import { AreaStats, ColumnType } from "@/__generated__/types";
 import { useColorScheme } from "../colors";
 import { MapContext } from "../context/MapContext";
-import { DotIcon } from "lucide-react";
 
 export default function Legend({
   areaStats,
@@ -14,7 +14,7 @@ export default function Legend({
 
   const dataSources = dataSourcesQuery?.data?.dataSources || [];
   const dataSource = dataSources.find(
-    (ds) => ds.id === viewConfig.areaDataSourceId
+    (ds) => ds.id === viewConfig.areaDataSourceId,
   );
 
   const colorScheme = useColorScheme(areaStats);

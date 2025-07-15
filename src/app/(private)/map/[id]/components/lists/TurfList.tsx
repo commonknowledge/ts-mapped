@@ -33,7 +33,7 @@ export default function TurfList() {
           .replace("T", " ");
         return acc;
       },
-      {} as Record<string, string>
+      {} as Record<string, string>,
     );
 
     setFormattedDates(dates);
@@ -111,7 +111,7 @@ export default function TurfList() {
             <ContextMenuItem
               onClick={() => {
                 const existingTurf = turfs.find(
-                  (t, i) => i === contextMenuIndex
+                  (t, i) => i === contextMenuIndex,
                 );
                 if (existingTurf) {
                   deleteTurf(existingTurf.id);

@@ -157,6 +157,6 @@ export const MapContext = createContext<{
   setBoundariesPanelOpen: () => null,
   choroplethLayerConfig: getChoroplethLayerConfig(
     AreaSetGroupCode.WMC24,
-    DEFAULT_ZOOM
+    DEFAULT_ZOOM,
   ),
 });

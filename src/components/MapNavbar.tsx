@@ -106,7 +106,7 @@ export default function MapNavbar() {
     }
 
     const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve
+      resolve,
     ) {
       mapRef?.current?.once("render", function () {
         resolve(mapRef.current?.getCanvas().toDataURL());
@@ -145,10 +145,8 @@ export default function MapNavbar() {
     const { data } = queryResponse;
     setIsEditingName(false);
     setMapName(data.updateMap.result.name);
-    if (data.updateMap.code === 200) {
-      console.log("Map name updated");
-    } else {
-      console.log("Failed to update map name");
+    if (data.updateMap.code !== 200) {
+      console.error("Failed to update map name");
     }
   };
 

@@ -1,23 +1,12 @@
-import { useContext, useState } from "react";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
-import { ScrollArea } from "@/shadcn/ui/scroll-area";
-import SkeletonGroup from "../SkeletonGroup";
 import { Table } from "lucide-react";
+import { useContext } from "react";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import DataSourceIcon from "../DataSourceIcon";
-
-interface GEOJSONPoint {
-  properties: Record<string, number | string>;
-  geometry: {
-    coordinates: [number, number];
-  };
-}
+import SkeletonGroup from "../SkeletonGroup";
 
 export default function MemberList() {
-  const [limit, setLimit] = useState(10);
-
   const {
-    mapRef,
     dataRecordsQuery,
     viewConfig,
     selectedDataSourceId,

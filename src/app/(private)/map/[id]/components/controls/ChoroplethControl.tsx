@@ -22,7 +22,7 @@ export default function ChoroplethControl() {
   } = useContext(MapContext);
   const dataSources = dataSourcesQuery?.data?.dataSources || [];
   const dataSource = dataSources.find(
-    (ds) => ds.id === viewConfig.areaDataSourceId
+    (ds) => ds.id === viewConfig.areaDataSourceId,
   );
 
   if (!boundariesPanelOpen) return null;

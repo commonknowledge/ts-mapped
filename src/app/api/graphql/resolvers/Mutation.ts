@@ -44,7 +44,7 @@ const MutationResolvers: MutationResolversType = {
       name,
       organisationId,
       rawConfig,
-    }: { name: string; organisationId: string; rawConfig: unknown }
+    }: { name: string; organisationId: string; rawConfig: unknown },
   ): Promise<CreateDataSourceResponse> => {
     try {
       const config = DataSourceConfigSchema.parse(rawConfig);
@@ -58,7 +58,7 @@ const MutationResolvers: MutationResolversType = {
         (key) => ({
           name: key,
           type: ColumnType.Unknown,
-        })
+        }),
       );
 
       const geocodingConfig: GeocodingConfig = {
@@ -85,7 +85,7 @@ const MutationResolvers: MutationResolversType = {
   },
   createMap: async (
     _: unknown,
-    { organisationId }
+    { organisationId },
   ): Promise<CreateMapResponse> => {
     try {
       const map = await createMap(organisationId);
@@ -115,14 +115,14 @@ const MutationResolvers: MutationResolversType = {
   },
   enqueueEnrichDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string }
+    { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
     await enqueue("enrichDataSource", { dataSourceId });
     return { code: 200 };
   },
   enqueueImportDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string }
+    { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
     await enqueue("importDataSource", { dataSourceId });
     return { code: 200 };
@@ -136,7 +136,7 @@ const MutationResolvers: MutationResolversType = {
       looseGeocodingConfig,
       autoEnrich,
       autoImport,
-    }: MutationUpdateDataSourceConfigArgs
+    }: MutationUpdateDataSourceConfigArgs,
   ): Promise<MutationResponse> => {
     try {
       const dataSource = await findDataSourceById(id);
@@ -198,7 +198,7 @@ const MutationResolvers: MutationResolversType = {
 
       await updateDataSource(id, update);
       logger.info(
-        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`
+        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
       );
       return { code: 200 };
     } catch (error) {
@@ -269,7 +269,7 @@ const MutationResolvers: MutationResolversType = {
       notes: string;
       point: PointInput;
       mapId: string;
-    }
+    },
   ): Promise<UpsertPlacedMarkerResponse> => {
     try {
       const map = await findMapById(mapId);
@@ -312,7 +312,7 @@ const MutationResolvers: MutationResolversType = {
       geometry: unknown;
       createdAt: string;
       mapId: string;
-    }
+    },
   ): Promise<UpsertTurfResponse> => {
     try {
       const map = await findMapById(mapId);

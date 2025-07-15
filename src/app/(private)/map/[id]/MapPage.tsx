@@ -69,7 +69,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
     return getChoroplethLayerConfig(
       // Needed to add this fallback for this in case of undefined, is this ok?
       viewConfig.areaSetGroupCode || AreaSetGroupCode.WMC24,
-      zoom
+      zoom,
     );
   }, [viewConfig.areaSetGroupCode, zoom]);
 
@@ -165,7 +165,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
             sourceLayer: choroplethLayerConfig.mapbox.layerId,
             id: stat.areaCode,
           },
-          stat
+          stat,
         );
         nextAreaCodesToClean[stat.areaCode] = true;
       });
