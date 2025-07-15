@@ -1,10 +1,9 @@
 "use client";
 
-import { SortingState } from "@tanstack/react-table";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
-import { BoundingBoxInput, Turf } from "@/__generated__/types";
+import { BoundingBoxInput, SortInput, Turf } from "@/__generated__/types";
 import {
   MapContext,
   ViewConfig,
@@ -65,7 +64,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   const [tableFilter, setTableFilter] = useState("");
   const [tablePage, setTablePage] = useState(0);
-  const [tableSort, setTableSort] = useState<SortingState>([]);
+  const [tableSort, setTableSort] = useState<SortInput[]>([]);
 
   const [boundariesPanelOpen, setBoundariesPanelOpen] = useState(false);
   /* Derived State */
@@ -85,19 +84,11 @@ export default function MapPage({ mapId }: { mapId: string }) {
     markerDataSourceIds: viewConfig.markerDataSourceIds,
   });
 
-  const dataRecordsSort = useMemo(() => {
-    const cleanSort = [];
-    for (const s of tableSort) {
-      cleanSort.push({ desc: s.desc, id: s.id.replace(/^json_/, "") });
-    }
-    return cleanSort;
-  }, [tableSort]);
-
   const dataRecordsQuery = useDataRecordsQuery({
     dataSourceId: viewConfig.membersDataSourceId,
     page: tablePage,
     filter: tableFilter,
-    sort: dataRecordsSort,
+    sort: tableSort,
   });
 
   const areaStatsQuery = useAreaStatsQuery({
@@ -145,11 +136,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   /* Update local map state when saved views are loaded from the server */
   useEffect(() => {
-    if (mapData?.map?.name) {
-      setMapName(mapData.map.name);
-    } else {
-      setMapName("Untitled");
-    }
+    setMapName(mapData?.map?.name || "Untitled");
     if (mapData?.map?.views && mapData.map.views.length > 0) {
       const nextView = mapData.map.views[0];
       const nextViewId = nextView.id;
@@ -157,7 +144,6 @@ export default function MapPage({ mapId }: { mapId: string }) {
       const nextConfig = { ...nextView.config };
       delete nextConfig.__typename;
       setViewId(nextViewId);
-      console.log("viewId", nextViewId);
       setViewConfig(new ViewConfig(nextConfig));
     }
     if (mapData?.map?.placedMarkers) {

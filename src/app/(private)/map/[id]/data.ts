@@ -1,5 +1,4 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { SortingState } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
 import {
   AreaSetCode,
@@ -17,6 +16,7 @@ import {
   MemberDataSourceQuery,
   MemberDataSourceQueryVariables,
   Operation,
+  SortInput,
   UpsertPlacedMarkerMutation,
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
@@ -43,7 +43,7 @@ export const useDataRecordsQuery = (variables: {
   dataSourceId: string;
   filter: string;
   page: number;
-  sort: SortingState;
+  sort: SortInput[];
 }) =>
   useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
     gql`

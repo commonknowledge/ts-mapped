@@ -116,7 +116,7 @@ const typeDefs = `
   }
 
   input SortInput {
-    id: String!
+    name: String!
     desc: Boolean!
   }
 

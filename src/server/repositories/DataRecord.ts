@@ -51,7 +51,7 @@ export function findDataRecordsByDataSource(
     for (const s of sort) {
       q = q.orderBy(
         ({ ref }) => {
-          return ref("json", "->>").key(s.id);
+          return ref("json", "->>").key(s.name);
         },
         s.desc ? "desc" : "asc",
       );

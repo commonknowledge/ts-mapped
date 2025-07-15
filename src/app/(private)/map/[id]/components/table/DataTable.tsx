@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  ColumnDef,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, X } from "lucide-react";
 import { useState } from "react";
+import { ColumnDef, DataRecord, SortInput } from "@/__generated__/types";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -28,28 +21,28 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 
-interface DataTableProps<TData extends { id: string }, TValue> {
+interface DataTableProps {
   title?: string;
 
   loading: boolean;
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: ColumnDef[];
+  data: DataRecord[];
   recordCount?: number | null | undefined;
 
   filter: string;
   setFilter: (filter: string) => void;
   pageIndex: number;
   setPageIndex: (page: number) => void;
-  sort: SortingState;
-  setSort: (sort: SortingState) => void;
+  sort: SortInput[];
+  setSort: (sort: SortInput[]) => void;
 
-  onRowClick?: (row: TData) => void;
+  onRowClick?: (row: DataRecord) => void;
   selectedRecordId?: string;
 
   onClose?: () => void;
 }
 
-export function DataTable<TData extends { id: string }, TValue>({
+export function DataTable({
   title,
 
   loading,
@@ -67,33 +60,37 @@ export function DataTable<TData extends { id: string }, TValue>({
   onRowClick,
   selectedRecordId,
   onClose,
-}: DataTableProps<TData, TValue>) {
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+}: DataTableProps) {
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+  const lastPageIndex = Math.floor((recordCount || 0) / DATA_RECORDS_PAGE_SIZE);
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setFilter,
-    onSortingChange: (change) => {
-      const nextSort =
-        typeof change === "function"
-          ? (change as (prevState: SortingState) => SortingState)(sort)
-          : change;
-      setSort(nextSort);
-    },
-    enableSortingRemoval: true,
-    rowCount: recordCount || -1,
-    state: {
-      sorting: sort,
-      columnVisibility,
-      pagination: {
-        pageIndex,
-        pageSize: DATA_RECORDS_PAGE_SIZE,
-      },
-    },
-  });
+  const getSortIcon = (columnName: string) => {
+    const state = sort.find((c) => c.name === columnName);
+    if (!state) {
+      return (
+        <ArrowUpDown className="opacity-0 group-hover:opacity-100 h-4 w-4" />
+      );
+    }
+    if (state.desc) {
+      return <ArrowDown className="h-4 w-4" />;
+    }
+    return <ArrowUp className="h-4 w-4" />;
+  };
+
+  const onClickSort = (columnName: string) => {
+    const state = sort.find((c) => c.name === columnName);
+    if (!state) {
+      setSort([...sort, { name: columnName, desc: false }]);
+    } else if (state.desc) {
+      setSort(sort.filter((c) => c.name !== columnName));
+    } else {
+      setSort(
+        sort.map((c) =>
+          c.name === columnName ? { name: columnName, desc: true } : c,
+        ),
+      );
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 h-full">
@@ -120,25 +117,25 @@ export function DataTable<TData extends { id: string }, TValue>({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
+              {columns.map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.name}
+                    checked={!hiddenColumns.includes(column.name)}
+                    onCheckedChange={(visible) => {
+                      if (visible) {
+                        setHiddenColumns(
+                          hiddenColumns.filter((c) => c !== column.name),
+                        );
+                      } else {
+                        setHiddenColumns([...hiddenColumns, column.name]);
                       }
-                    >
-                      {typeof column.columnDef.header === "string"
-                        ? column.columnDef.header
-                        : column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
+                    }}
+                  >
+                    {column.name}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
           {onClose && (
@@ -149,69 +146,49 @@ export function DataTable<TData extends { id: string }, TValue>({
       <div className="rounded-md border bg-white grow min-h-0">
         <Table containerClassName="h-full">
           <TableHeader className="bg-neutral-100 ">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+            <TableRow>
+              {columns
+                .filter((c) => !hiddenColumns.includes(c.name))
+                .map((column) => {
                   return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : (
-                        <div className="flex items-center">
-                          <div
-                            onClick={header.column.getToggleSortingHandler()}
-                            className="flex cursor-pointer items-center h-8 p-0 hover:bg-transparent group"
-                          >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-
-                            {header.column.getCanSort() && (
-                              <span className="ml-2 h-4 w-4">
-                                {
-                                  {
-                                    asc: <ArrowUp className="h-4 w-4" />,
-                                    desc: <ArrowDown className="h-4 w-4" />,
-                                    false: (
-                                      <ArrowUpDown className="opacity-0 group-hover:opacity-100 h-4 w-4" />
-                                    ),
-                                  }[
-                                    (header.column.getIsSorted() as string) ||
-                                      "false"
-                                  ]
-                                }
-                              </span>
-                            )}
-                          </div>
+                    <TableHead key={column.name}>
+                      <div className="flex items-center">
+                        <div
+                          onClick={() => onClickSort(column.name)}
+                          className="flex cursor-pointer items-center h-8 p-0 hover:bg-transparent group"
+                        >
+                          {column.name}
+                          <span className="ml-2 h-4 w-4">
+                            {getSortIcon(column.name)}
+                          </span>
                         </div>
-                      )}
+                      </div>
                     </TableHead>
                   );
                 })}
-              </TableRow>
-            ))}
+            </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell className="text-center">Loading...</TableCell>
               </TableRow>
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+            ) : data.length ? (
+              data.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onRowClick?.(row.original)}
+                  data-state={row.id === selectedRecordId && "selected"}
+                  onClick={() => onRowClick?.(row)}
                   //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
-                  className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === (row.original as unknown as { id: string })?.id ? "bg-blue-50" : ""} `}
+                  className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id ? "bg-blue-50" : ""}`}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
+                  {columns
+                    .filter((c) => !hiddenColumns.includes(c.name))
+                    .map((column) => (
+                      <TableCell key={column.name}>
+                        {String(row.json[column.name])}
+                      </TableCell>
+                    ))}
                 </TableRow>
               ))
             ) : (
@@ -228,31 +205,24 @@ export function DataTable<TData extends { id: string }, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-center gap-2">
-        <Button
-          onClick={() => setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
-        >
+        <Button onClick={() => setPageIndex(0)} disabled={pageIndex <= 0}>
           {"<<"}
         </Button>
         <Button
           onClick={() => setPageIndex(pageIndex - 1)}
-          disabled={!table.getCanPreviousPage()}
+          disabled={pageIndex <= 0}
         >
           {"<"}
         </Button>
         <Button
           onClick={() => setPageIndex(pageIndex + 1)}
-          disabled={!table.getCanNextPage()}
+          disabled={pageIndex >= lastPageIndex}
         >
           {">"}
         </Button>
         <Button
-          onClick={() =>
-            setPageIndex(
-              Math.floor((recordCount || 0) / DATA_RECORDS_PAGE_SIZE),
-            )
-          }
-          disabled={!table.getCanNextPage()}
+          onClick={() => setPageIndex(lastPageIndex)}
+          disabled={pageIndex >= lastPageIndex}
         >
           {">>"}
         </Button>

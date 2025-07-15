@@ -44,6 +44,13 @@ export default function Map({
     };
   }, [mapRef, draw]);
 
+  const markerLayers = [
+    viewConfig.membersDataSourceId,
+    ...viewConfig.markerDataSourceIds,
+  ]
+    .filter(Boolean)
+    .map((id) => `${id}-markers-pins`);
+
   return (
     <MapGL
       initialViewState={{
@@ -58,7 +65,7 @@ export default function Map({
       onClick={(e) => {
         const map = e.target;
         const features = map.queryRenderedFeatures(e.point, {
-          layers: ["markers-pins"],
+          layers: markerLayers,
         });
         if (features.length && features[0].geometry.type === "Point") {
           setSelectedMarker({
@@ -99,7 +106,6 @@ export default function Map({
           const newDraw = new MapboxDraw({
             displayControlsDefault: false,
             controls: {
-              point: true,
               polygon: true,
             },
             userProperties: true,

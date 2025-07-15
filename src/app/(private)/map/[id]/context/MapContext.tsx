@@ -1,5 +1,4 @@
 import { QueryResult } from "@apollo/client";
-import { SortingState } from "@tanstack/react-table";
 import { RefObject, createContext } from "react";
 import { MapRef } from "react-map-gl/mapbox";
 import {
@@ -15,6 +14,7 @@ import {
   MemberDataSourceQuery,
   MemberDataSourceQueryVariables,
   PlacedMarker,
+  SortInput,
   Turf,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
@@ -91,8 +91,8 @@ export const MapContext = createContext<{
   setTableFilter: (filter: string) => void;
   tablePage: number;
   setTablePage: (page: number) => void;
-  tableSort: SortingState;
-  setTableSort: (tableSort: SortingState) => void;
+  tableSort: SortInput[];
+  setTableSort: (tableSort: SortInput[]) => void;
 
   turfs: Turf[];
   turfsLoading: boolean;

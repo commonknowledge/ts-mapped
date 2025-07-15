@@ -33,11 +33,6 @@ export default function MapTable() {
     return null;
   }
 
-  const columns = dataSource.columnDefs.map((columnDef) => ({
-    header: columnDef.name,
-    accessorKey: "json." + columnDef.name,
-  }));
-
   const handleRowClick = (row: DataRecord) => {
     if (!row.geocodePoint) return;
     mapRef?.current?.flyTo({
@@ -52,7 +47,7 @@ export default function MapTable() {
       <DataTable
         title={dataSource.name}
         loading={dataRecordsQuery ? dataRecordsQuery.loading : true}
-        columns={columns}
+        columns={dataSource.columnDefs}
         data={dataRecordsQuery?.data?.dataSource?.records || []}
         recordCount={dataRecordsQuery?.data?.dataSource?.recordCount}
         filter={tableFilter}

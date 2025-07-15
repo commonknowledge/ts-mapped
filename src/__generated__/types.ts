@@ -466,7 +466,7 @@ export type RecordsProcessedEvent = {
 
 export type SortInput = {
   desc: Scalars["Boolean"]["input"];
-  id: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
 };
 
 export type Subscription = {
