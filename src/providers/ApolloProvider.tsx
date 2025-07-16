@@ -6,8 +6,10 @@ import {
   FetchResult,
   Observable,
   Operation,
+  from,
   split,
 } from "@apollo/client/core";
+import { onError } from "@apollo/client/link/error";
 import { getMainDefinition } from "@apollo/client/utilities";
 import {
   ApolloClient,
@@ -83,6 +85,31 @@ function makeClient(jwt: string | null) {
     httpLink,
   );
 
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    let unauthorized = false;
+    if (
+      networkError &&
+      "statusCode" in networkError &&
+      networkError.statusCode === 403
+    ) {
+      unauthorized = true;
+    }
+
+    if (graphQLErrors) {
+      for (const err of graphQLErrors) {
+        if (err.message === "Unauthorized") {
+          unauthorized = true;
+        }
+      }
+    }
+
+    if (unauthorized) {
+      window.location.href = "/";
+    }
+  });
+
+  const linkChain = from([errorLink, splitLink]);
+
   return new ApolloClient({
     cache: new InMemoryCache({
       typePolicies: {
@@ -153,7 +180,7 @@ function makeClient(jwt: string | null) {
         errorPolicy: "all", // for client.mutate()
       },
     },
-    link: splitLink,
+    link: linkChain,
   });
 }
 
