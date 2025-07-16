@@ -2,10 +2,13 @@ import { FeatureCollection, Point } from "geojson";
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 
 export default function PlacedMarkers() {
-  const { viewConfig, placedMarkers } = useContext(MapContext);
+  const { viewConfig } = useContext(MapContext);
+  const { placedMarkers } = useContext(MarkerAndTurfContext);
+
   const features: FeatureCollection<Point> = {
     type: "FeatureCollection",
     features: placedMarkers.map((marker) => ({

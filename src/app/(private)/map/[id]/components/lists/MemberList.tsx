@@ -1,17 +1,16 @@
 import { Table } from "lucide-react";
 import { useContext } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import DataSourceIcon from "../DataSourceIcon";
 import SkeletonGroup from "../SkeletonGroup";
 
 export default function MemberList() {
-  const {
-    dataSourcesQuery,
-    viewConfig,
-    selectedDataSourceId,
-    handleDataSourceSelect,
-  } = useContext(MapContext);
+  const { dataSourcesQuery, viewConfig } = useContext(MapContext);
+
+  const { selectedDataSourceId, handleDataSourceSelect } =
+    useContext(TableContext);
 
   const dataSource = dataSourcesQuery?.data?.dataSources?.find(
     (ds) => ds.id === viewConfig.membersDataSourceId,

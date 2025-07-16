@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconDropdownWithTooltip from "@/components/IconDropdownWithTooltip";
 import { Checkbox } from "@/shadcn/ui/checkbox";
@@ -18,11 +19,13 @@ import MarkerList from "../lists/MarkerList";
 import LayerHeader from "./LayerHeader";
 
 export default function MarkersControl() {
-  const { viewConfig, updateViewConfig, insertPlacedMarker, mapRef } =
-    useContext(MapContext);
+  const { viewConfig, updateViewConfig, mapRef } = useContext(MapContext);
+  const { insertPlacedMarker } = useContext(MarkerAndTurfContext);
+
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
   const router = useRouter();
+
   return (
     <div className="flex flex-col gap-1 px-4 pb-4">
       <DataSourcesModal

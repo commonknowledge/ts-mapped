@@ -1,5 +1,6 @@
 import { useContext } from "react";
-import { MapContext } from "../../context/MapContext";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { DataTable } from "./DataTable";
 
 interface DataRecord {
@@ -8,8 +9,8 @@ interface DataRecord {
 }
 
 export default function MapTable() {
+  const { mapRef, dataSourcesQuery } = useContext(MapContext);
   const {
-    mapRef,
     selectedDataSourceId,
     handleDataSourceSelect,
     selectedRecordId,
@@ -21,8 +22,7 @@ export default function MapTable() {
     tableSort,
     setTableSort,
     dataRecordsQuery,
-    dataSourcesQuery,
-  } = useContext(MapContext);
+  } = useContext(TableContext);
 
   if (!selectedDataSourceId) {
     return null;

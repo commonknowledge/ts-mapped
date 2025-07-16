@@ -1,6 +1,7 @@
 import { CornerDownRight, PaintBucketIcon, Scan } from "lucide-react";
 import { useContext } from "react";
 import { AreaSetGroupCode } from "@/__generated__/types";
+import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Label } from "@/shadcn/ui/label";
@@ -14,12 +15,11 @@ import {
 import { AREA_SET_GROUP_LABELS } from "../../sources";
 
 export default function ChoroplethControl() {
-  const {
-    viewConfig,
-    dataSourcesQuery,
-    updateViewConfig,
-    boundariesPanelOpen,
-  } = useContext(MapContext);
+  const { viewConfig, dataSourcesQuery, updateViewConfig } =
+    useContext(MapContext);
+
+  const { boundariesPanelOpen } = useContext(ChoroplethContext);
+
   const dataSources = dataSourcesQuery?.data?.dataSources || [];
   const dataSource = dataSources.find(
     (ds) => ds.id === viewConfig.areaDataSourceId,

@@ -1,12 +1,14 @@
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
 export default function Markers() {
-  const { markerQueries, viewConfig } = useContext(MapContext);
+  const { viewConfig } = useContext(MapContext);
+  const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = markerQueries?.data?.find(
     (ds) => ds.dataSourceId === viewConfig.membersDataSourceId,

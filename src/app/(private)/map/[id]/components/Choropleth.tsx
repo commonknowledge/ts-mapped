@@ -1,16 +1,17 @@
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { useFillColor } from "@/app/(private)/map/[id]/colors";
+import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 
 export default function Choropleth() {
+  const { viewConfig } = useContext(MapContext);
   const {
-    viewConfig,
     choroplethLayerConfig: {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
     areaStatsQuery,
-  } = useContext(MapContext);
+  } = useContext(ChoroplethContext);
   const fillColor = useFillColor(areaStatsQuery?.data?.areaStats);
   if (!viewConfig.areaSetGroupCode) {
     return null;
