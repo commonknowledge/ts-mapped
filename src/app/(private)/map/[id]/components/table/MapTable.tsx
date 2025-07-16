@@ -9,27 +9,29 @@ interface DataRecord {
 
 export default function MapTable() {
   const {
+    mapRef,
     selectedDataSourceId,
     handleDataSourceSelect,
-    dataRecordsQuery,
-    setSelectedRecordId,
-    mapRef,
     selectedRecordId,
+    setSelectedRecordId,
+    tableFilter,
+    setTableFilter,
+    tablePage,
+    setTablePage,
+    tableSort,
+    setTableSort,
+    dataRecordsQuery,
+    memberDataSourceQuery,
   } = useContext(MapContext);
 
   if (!selectedDataSourceId) {
     return null;
   }
 
-  const dataSource = dataRecordsQuery?.data?.dataSource;
+  const dataSource = memberDataSourceQuery?.data?.dataSource;
   if (!dataSource) {
     return null;
   }
-
-  const columns = dataSource.columnDefs.map((columnDef) => ({
-    header: columnDef.name,
-    accessorKey: "json." + columnDef.name,
-  }));
 
   const handleRowClick = (row: DataRecord) => {
     if (!row.geocodePoint) return;
@@ -43,12 +45,19 @@ export default function MapTable() {
   return (
     <div className="p-2 h-full">
       <DataTable
-        columns={columns}
-        data={dataSource.records || []}
+        title={dataSource.name}
+        loading={dataRecordsQuery ? dataRecordsQuery.loading : true}
+        columns={dataSource.columnDefs}
+        data={dataRecordsQuery?.data?.dataSource?.records || []}
+        recordCount={dataRecordsQuery?.data?.dataSource?.recordCount}
+        filter={tableFilter}
+        setFilter={setTableFilter}
+        pageIndex={tablePage}
+        setPageIndex={setTablePage}
+        sort={tableSort}
+        setSort={setTableSort}
         onRowClick={handleRowClick}
         selectedRecordId={selectedRecordId || undefined}
-        title={dataSource.name}
-        recordCount={dataSource.records?.length}
         onClose={() => handleDataSourceSelect("")}
       />
     </div>

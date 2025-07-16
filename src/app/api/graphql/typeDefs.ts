@@ -115,6 +115,11 @@ const typeDefs = `
     lng: Float!
   }
 
+  input SortInput {
+    name: String!
+    desc: Boolean!
+  }
+
   type AreaStat {
     areaCode: String!
     value: JSON!
@@ -158,9 +163,9 @@ const typeDefs = `
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    records: [DataRecord!]
+    records(filter: String, page: Int, sort: [SortInput!]): [DataRecord!]
 
-    recordCount: Int
+    recordCount(filter: String, sort: [SortInput!]): Int
   }
 
   """

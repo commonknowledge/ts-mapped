@@ -13,7 +13,10 @@ import {
   DeleteTurfMutationVariables,
   MapQuery,
   MapQueryVariables,
+  MemberDataSourceQuery,
+  MemberDataSourceQueryVariables,
   Operation,
+  SortInput,
   UpsertPlacedMarkerMutation,
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
@@ -35,6 +38,43 @@ export const useDataSourcesQuery = () =>
       }
     }
   `);
+
+export const useDataRecordsQuery = (variables: {
+  dataSourceId: string;
+  filter: string;
+  page: number;
+  sort: SortInput[];
+}) =>
+  useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
+    gql`
+      query DataRecords(
+        $dataSourceId: String!
+        $filter: String!
+        $page: Int!
+        $sort: [SortInput!]!
+      ) {
+        dataSource(id: $dataSourceId) {
+          id
+          name
+          columnDefs {
+            name
+            type
+          }
+          records(filter: $filter, page: $page, sort: $sort) {
+            id
+            externalId
+            geocodePoint {
+              lat
+              lng
+            }
+            json
+          }
+          recordCount(filter: $filter)
+        }
+      }
+    `,
+    { variables, skip: !variables.dataSourceId },
+  );
 
 export const useMapQuery = (mapId: string | null) =>
   useQuery<MapQuery, MapQueryVariables>(
@@ -128,10 +168,10 @@ export const useMarkerQueries = ({
   return { loading, data, error };
 };
 
-export const useDataRecordsQuery = (dataSourceId: string) =>
-  useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
+export const useMemberDataSourceQuery = (dataSourceId: string) =>
+  useQuery<MemberDataSourceQuery, MemberDataSourceQueryVariables>(
     gql`
-      query DataRecords($dataSourceId: String!) {
+      query MemberDataSource($dataSourceId: String!) {
         dataSource(id: $dataSourceId) {
           id
           name
@@ -140,19 +180,11 @@ export const useDataRecordsQuery = (dataSourceId: string) =>
             name
             type
           }
-          records {
-            id
-            externalId
-            geocodePoint {
-              lat
-              lng
-            }
-            json
-          }
+          recordCount
         }
       }
     `,
-    { variables: { dataSourceId } },
+    { variables: { dataSourceId }, skip: !dataSourceId },
   );
 
 export const useAreaStatsQuery = ({

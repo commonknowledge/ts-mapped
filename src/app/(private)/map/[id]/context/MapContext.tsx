@@ -11,7 +11,10 @@ import {
   DataSourcesQuery,
   MapStyleName,
   MapViewConfigInput,
+  MemberDataSourceQuery,
+  MemberDataSourceQueryVariables,
   PlacedMarker,
+  SortInput,
   Turf,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
@@ -63,6 +66,9 @@ export const MapContext = createContext<{
   mapRef: RefObject<MapRef | null> | null;
 
   /* State */
+  boundariesPanelOpen: boolean;
+  setBoundariesPanelOpen: (open: boolean) => void;
+
   boundingBox: BoundingBoxInput | null;
   setBoundingBox: (boundingBox: BoundingBoxInput | null) => void;
 
@@ -75,8 +81,18 @@ export const MapContext = createContext<{
   insertPlacedMarker: (placedMarker: PlacedMarker) => void;
   updatePlacedMarker: (placedMarker: PlacedMarker) => void;
 
+  selectedDataSourceId: string | null;
+  handleDataSourceSelect: (dataSourceId: string) => void;
+
   selectedMarker: MarkerData | null;
   setSelectedMarker: (marker: MarkerData | null) => void;
+
+  tableFilter: string;
+  setTableFilter: (filter: string) => void;
+  tablePage: number;
+  setTablePage: (page: number) => void;
+  tableSort: SortInput[];
+  setTableSort: (tableSort: SortInput[]) => void;
 
   turfs: Turf[];
   turfsLoading: boolean;
@@ -93,12 +109,6 @@ export const MapContext = createContext<{
   zoom: number;
   setZoom: (zoom: number) => void;
 
-  selectedDataSourceId: string | null;
-  handleDataSourceSelect: (dataSourceId: string) => void;
-
-  boundariesPanelOpen: boolean;
-  setBoundariesPanelOpen: (open: boolean) => void;
-
   /* GraphQL Queries */
   areaStatsQuery: QueryResult<AreaStatsQuery, AreaStatsQueryVariables> | null;
   dataRecordsQuery: QueryResult<
@@ -107,6 +117,10 @@ export const MapContext = createContext<{
   > | null;
   dataSourcesQuery: QueryResult<DataSourcesQuery> | null;
   markerQueries: MarkerQueriesResult | null;
+  memberDataSourceQuery: QueryResult<
+    MemberDataSourceQuery,
+    MemberDataSourceQueryVariables
+  > | null;
 
   /* Derived Properties */
   choroplethLayerConfig: ChoroplethLayerConfig;
@@ -117,8 +131,11 @@ export const MapContext = createContext<{
   mapName: null,
   setMapName: () => null,
   mapRef: null,
+  boundariesPanelOpen: false,
+  setBoundariesPanelOpen: () => null,
   boundingBox: null,
   setBoundingBox: () => null,
+  choroplethLayerConfig: getChoroplethLayerConfig(null, DEFAULT_ZOOM),
   editingTurf: null,
   setEditingTurf: () => null,
   placedMarkers: [],
@@ -128,6 +145,12 @@ export const MapContext = createContext<{
   updatePlacedMarker: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,
+  tableFilter: "",
+  setTableFilter: () => null,
+  tablePage: 0,
+  setTablePage: () => null,
+  tableSort: [],
+  setTableSort: () => null,
   turfs: [],
   turfsLoading: false,
   deleteTurf: () => null,
@@ -147,8 +170,5 @@ export const MapContext = createContext<{
   dataRecordsQuery: null,
   dataSourcesQuery: null,
   markerQueries: null,
-
-  boundariesPanelOpen: false,
-  setBoundariesPanelOpen: () => null,
-  choroplethLayerConfig: getChoroplethLayerConfig(null, DEFAULT_ZOOM),
+  memberDataSourceQuery: null,
 });

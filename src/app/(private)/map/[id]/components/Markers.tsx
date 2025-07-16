@@ -121,7 +121,7 @@ function DataSourceMarkers({
         }}
       />
       <Layer
-        id="markers-labels"
+        id={`${sourceId}-labels`}
         type="symbol"
         source="markers"
         filter={["!", ["has", "point_count"]]}

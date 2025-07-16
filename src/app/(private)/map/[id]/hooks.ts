@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { PlacedMarker, Turf } from "@/__generated__/types";
 import {
   useDeletePlacedMarkerMutation,
@@ -8,7 +8,19 @@ import {
 } from "./data";
 
 export const usePlacedMarkers = (mapId: string) => {
-  const [placedMarkers, setPlacedMarkers] = useState<PlacedMarker[]>([]);
+  const ref = useRef<PlacedMarker[]>([]);
+  const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
+
+  // Use a combination of ref and state, because Mapbox native components don't
+  // update on state changes - ref is needed for them to update the latest state,
+  // instead of the initial state.
+  const setPlacedMarkers = useCallback(
+    (markers: PlacedMarker[]) => {
+      ref.current = markers;
+      _setPlacedMarkers(markers);
+    },
+    [_setPlacedMarkers],
+  );
 
   const [deletePlacedMarkerMutation] = useDeletePlacedMarkerMutation();
   const [upsertPlacedMarkerMutation, { loading }] =
@@ -22,12 +34,12 @@ export const usePlacedMarkers = (mapId: string) => {
         mapId,
       },
     });
-    const newMarkers = placedMarkers.filter((m) => m.id !== id);
+    const newMarkers = ref.current.filter((m) => m.id !== id);
     setPlacedMarkers(newMarkers);
   };
 
   const insertPlacedMarker = async (newMarker: PlacedMarker) => {
-    const newMarkers = [...placedMarkers, newMarker];
+    const newMarkers = [...ref.current, newMarker];
     setPlacedMarkers(newMarkers);
 
     const { data } = await upsertPlacedMarkerMutation({
@@ -60,7 +72,7 @@ export const usePlacedMarkers = (mapId: string) => {
     });
 
     setPlacedMarkers(
-      placedMarkers.map((m) => (m.id === updatedMarker.id ? updatedMarker : m)),
+      ref.current.map((m) => (m.id === updatedMarker.id ? updatedMarker : m)),
     );
   };
   return {
@@ -74,7 +86,19 @@ export const usePlacedMarkers = (mapId: string) => {
 };
 
 export const useTurfs = (mapId: string) => {
-  const [turfs, setTurfs] = useState<Turf[]>([]);
+  const ref = useRef<Turf[]>([]);
+  const [turfs, _setTurfs] = useState<Turf[]>([]);
+
+  // Use a combination of ref and state, because Mapbox native components don't
+  // update on state changes - ref is needed for them to update the latest state,
+  // instead of the initial state.
+  const setTurfs = useCallback(
+    (turfs: Turf[]) => {
+      ref.current = turfs;
+      _setTurfs(turfs);
+    },
+    [_setTurfs],
+  );
 
   const [deleteTurfMutation] = useDeleteTurfMutation();
   const [upsertTurfMutation, { loading }] = useUpsertTurfMutation();
@@ -87,12 +111,12 @@ export const useTurfs = (mapId: string) => {
         mapId,
       },
     });
-    const newTurfs = turfs.filter((m) => m.id !== id);
+    const newTurfs = ref.current.filter((m) => m.id !== id);
     setTurfs(newTurfs);
   };
 
   const insertTurf = async (newTurf: Turf) => {
-    const newTurfs = [...turfs, newTurf];
+    const newTurfs = [...ref.current, newTurf];
     setTurfs(newTurfs);
 
     const { data } = await upsertTurfMutation({
@@ -126,7 +150,9 @@ export const useTurfs = (mapId: string) => {
       },
     });
 
-    setTurfs(turfs.map((t) => (t.id === updatedTurf.id ? updatedTurf : t)));
+    setTurfs(
+      ref.current.map((t) => (t.id === updatedTurf.id ? updatedTurf : t)),
+    );
   };
 
   return {
