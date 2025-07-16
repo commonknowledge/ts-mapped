@@ -1,9 +1,6 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as turf from "@turf/turf";
-import * as mapboxgl from "mapbox-gl";
 import { useContext, useEffect, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -11,7 +8,6 @@ import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import { DEFAULT_ZOOM } from "@/constants";
 import { DrawDeleteEvent } from "@/types";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -25,7 +21,6 @@ export default function Map({
   const {
     mapRef,
     viewConfig,
-    insertPlacedMarker,
     setBoundingBox,
     setSelectedMarker,
     deleteTurf,
@@ -82,24 +77,6 @@ export default function Map({
         if (!map) {
           return;
         }
-
-        const geocoder = new MapboxGeocoder({
-          accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
-          mapboxgl: mapboxgl,
-        });
-
-        // Listen for search results
-        geocoder.on("result", (event) => {
-          const result = event.result;
-          insertPlacedMarker({
-            id: `placed-marker-temp-${new Date().getTime()}`,
-            label: result.place_name,
-            notes: "",
-            point: { lng: result.center[0], lat: result.center[1] },
-          });
-        });
-
-        map.addControl(geocoder, "top-right");
 
         // Initialize draw if not already done
         if (!draw) {
