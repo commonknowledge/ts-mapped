@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronRight, MoreHorizontal, Search } from "lucide-react";
 import Image from "next/image";
 import { useContext, useState } from "react";
 import {
@@ -11,6 +11,7 @@ import {
   UpsertMapViewMutationVariables,
 } from "@/__generated__/types";
 import { LIST_MAPS_QUERY } from "@/app/(private)/dashboard/queries";
+import GlobalMapSearch from "@/app/(private)/map/[id]/components/GlobalMapSearch";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { uploadFile } from "@/services/uploads";
@@ -22,7 +23,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { Link } from "./Link";
-
 export default function MapNavbar() {
   const { mapName, setMapName, mapId, viewConfig, viewId, setViewId, mapRef } =
     useContext(MapContext);
@@ -106,7 +106,7 @@ export default function MapNavbar() {
     }
 
     const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve,
+      resolve
     ) {
       mapRef?.current?.once("render", function () {
         resolve(mapRef.current?.getCanvas().toDataURL());
@@ -193,6 +193,7 @@ export default function MapNavbar() {
       </div>
 
       <div className="flex items-center gap-4">
+        <GlobalMapSearch />
         {mapId && (
           <div className="flex items-center gap-4">
             {saveError && (
