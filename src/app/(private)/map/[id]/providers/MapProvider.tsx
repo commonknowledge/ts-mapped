@@ -8,10 +8,7 @@ import {
   MapContext,
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
-import {
-  useDataSourcesQuery,
-  useMapQuery,
-} from "@/app/(private)/map/[id]/data";
+import { useMapQuery } from "@/app/(private)/map/[id]/data";
 import { DEFAULT_ZOOM } from "@/constants";
 
 export default function MapProvider({
@@ -33,7 +30,6 @@ export default function MapProvider({
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   /* GraphQL Data */
-  const dataSourcesQuery = useDataSourcesQuery();
   const mapQuery = useMapQuery(mapId);
 
   const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
@@ -73,7 +69,6 @@ export default function MapProvider({
         setViewId,
         zoom,
         setZoom,
-        dataSourcesQuery,
         mapQuery,
       }}
     >

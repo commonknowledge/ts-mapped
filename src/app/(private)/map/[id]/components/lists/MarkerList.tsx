@@ -1,5 +1,6 @@
 import { Check, Database, Pencil, Table, Trash2 } from "lucide-react";
 import { useContext, useState } from "react";
+import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
@@ -15,7 +16,8 @@ import DataSourceIcon from "../DataSourceIcon";
 import Loading from "../Loading";
 
 export default function MarkerList() {
-  const { mapRef, dataSourcesQuery, viewConfig } = useContext(MapContext);
+  const { mapRef, viewConfig } = useContext(MapContext);
+  const { getMarkerDataSources } = useContext(DataSourcesContext);
 
   const {
     placedMarkers,
@@ -31,9 +33,7 @@ export default function MarkerList() {
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
 
-  const markerDataSources = (dataSourcesQuery?.data?.dataSources || []).filter(
-    (ds) => viewConfig.markerDataSourceIds.includes(ds.id),
-  );
+  const markerDataSources = getMarkerDataSources();
 
   return (
     <div className="relative">

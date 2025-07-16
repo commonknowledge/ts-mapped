@@ -1,24 +1,19 @@
 import { Table } from "lucide-react";
 import { useContext } from "react";
+import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
 import DataSourceIcon from "../DataSourceIcon";
-import SkeletonGroup from "../SkeletonGroup";
 
 export default function MemberList() {
-  const { dataSourcesQuery, viewConfig } = useContext(MapContext);
+  const { viewConfig } = useContext(MapContext);
+  const { getMembersDataSource } = useContext(DataSourcesContext);
 
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
 
-  const dataSource = dataSourcesQuery?.data?.dataSources?.find(
-    (ds) => ds.id === viewConfig.membersDataSourceId,
-  );
-
-  if (dataSourcesQuery?.loading) {
-    return <SkeletonGroup />;
-  }
+  const dataSource = getMembersDataSource();
 
   if (!dataSource) {
     return null;
@@ -45,7 +40,7 @@ export default function MemberList() {
             {isSelected && <Table className="w-4 h-4 text-neutral-500" />}
           </div>
         ) : (
-          <div>Add Member DataSource</div>
+          <div>Add Member Data Source</div>
         )}
       </ul>
     </ScrollArea>

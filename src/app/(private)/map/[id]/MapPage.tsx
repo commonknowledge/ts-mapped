@@ -16,14 +16,16 @@ import Map from "./components/Map";
 import MapStyleSelector from "./components/MapStyleSelector";
 import MapTable from "./components/table/MapTable";
 import { ChoroplethContext } from "./context/ChoroplethContext";
+import { DataSourcesContext } from "./context/DataSourcesContext";
 import { MapContext } from "./context/MapContext";
 import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
 import { TableContext } from "./context/TableContext";
 
 export default function MapPage() {
-  const { dataSourcesQuery, mapQuery, mapRef } = useContext(MapContext);
+  const { mapQuery, mapRef } = useContext(MapContext);
   const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
+  const { dataSourcesLoading } = useContext(DataSourcesContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
 
@@ -33,8 +35,8 @@ export default function MapPage() {
 
   const loading =
     areaStatsLoading ||
+    dataSourcesLoading ||
     areaStatsQuery?.loading ||
-    dataSourcesQuery?.loading ||
     markerQueries?.loading;
 
   return (

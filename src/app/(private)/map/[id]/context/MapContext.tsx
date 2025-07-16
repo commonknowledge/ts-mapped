@@ -4,7 +4,6 @@ import { MapRef } from "react-map-gl/mapbox";
 import {
   AreaSetGroupCode,
   BoundingBoxInput,
-  DataSourcesQuery,
   MapQuery,
   MapQueryVariables,
   MapStyleName,
@@ -21,7 +20,6 @@ export class ViewConfig implements MapViewConfigInput {
   public markerDataSourceIds: string[] = [];
   public membersDataSourceId = "";
   public mapStyleName: MapStyleName = MapStyleName.Light;
-  public selectedDataSourceId = "";
   public showLabels = true;
   public showBoundaryOutline = false;
   public showMembers = true;
@@ -69,7 +67,6 @@ export const MapContext = createContext<{
   setZoom: (zoom: number) => void;
 
   /* GraphQL Queries */
-  dataSourcesQuery: QueryResult<DataSourcesQuery> | null;
   mapQuery: QueryResult<MapQuery, MapQueryVariables> | null;
 }>({
   mapId: null,
@@ -84,6 +81,5 @@ export const MapContext = createContext<{
   setViewId: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
-  dataSourcesQuery: null,
   mapQuery: null,
 });

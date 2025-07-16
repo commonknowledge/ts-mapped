@@ -2,6 +2,7 @@ import { DatabaseIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
+import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
@@ -131,10 +132,10 @@ function DataSourcesModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { dataSourcesQuery, updateViewConfig, viewConfig } =
-    useContext(MapContext);
+  const { getDataSources } = useContext(DataSourcesContext);
+  const { updateViewConfig, viewConfig } = useContext(MapContext);
 
-  const dataSources = dataSourcesQuery?.data?.dataSources || [];
+  const dataSources = getDataSources();
 
   const updateMarkerDataSources = (dataSourceIds: string[]) => {
     updateViewConfig({ markerDataSourceIds: dataSourceIds });
