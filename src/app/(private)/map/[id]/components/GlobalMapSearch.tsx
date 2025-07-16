@@ -41,6 +41,14 @@ interface MapboxSearchFeature {
   metadata: Record<string, unknown>;
 }
 
+interface MapboxGeocodingFeature {
+  id: string;
+  place_name: string;
+  center: [number, number];
+  place_type: string[];
+  relevance: number;
+}
+
 export default function GlobalMapSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -139,31 +147,77 @@ export default function GlobalMapSearch() {
       const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
       if (mapboxToken && searchQuery.trim()) {
         const response = await fetch(
-          `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
             searchQuery
-          )}&access_token=${mapboxToken}&country=gb&limit=5&types=place,address,poi`
+          )}.json?access_token=${mapboxToken}&country=gb&types=place,address,poi&limit=5`
         );
 
         if (response.ok) {
           const data = await response.json();
-          const geocoderResults: SearchResult[] = data.suggestions.map(
-            (feature: MapboxSearchFeature, index: number) => ({
-              id: `geo-${index}`,
-              title: feature.name,
-              subtitle: feature.full_address,
-              type: "geocoder" as const,
-              coordinates: [
-                feature.coordinates.longitude,
-                feature.coordinates.latitude,
-              ] as [number, number],
-              properties: {
-                featureType: feature.feature_type,
-                maki: feature.maki,
-                metadata: feature.metadata,
-              },
-            })
+          console.log("Search Box API response:", data); // Debug log
+
+          if (data.suggestions && Array.isArray(data.suggestions)) {
+            const geocoderResults: SearchResult[] = data.suggestions.map(
+              (feature: MapboxSearchFeature, index: number) => ({
+                id: `geo-${index}`,
+                title: feature.name,
+                subtitle: feature.full_address,
+                type: "geocoder" as const,
+                coordinates: [
+                  feature.coordinates.longitude,
+                  feature.coordinates.latitude,
+                ] as [number, number],
+                properties: {
+                  featureType: feature.feature_type,
+                  maki: feature.maki,
+                  metadata: feature.metadata,
+                },
+              })
+            );
+            newResults.geocoder = geocoderResults;
+          } else {
+            console.log(
+              "No suggestions found, trying fallback to Geocoding API"
+            );
+            // Fallback to regular Geocoding API
+            const geocodingResponse = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+                searchQuery
+              )}.json?access_token=${mapboxToken}&country=gb&types=place,address,poi&limit=5`
+            );
+
+            if (geocodingResponse.ok) {
+              const geocodingData = await geocodingResponse.json();
+              console.log("Geocoding API response:", geocodingData);
+
+              if (
+                geocodingData.features &&
+                Array.isArray(geocodingData.features)
+              ) {
+                const geocoderResults: SearchResult[] =
+                  geocodingData.features.map(
+                    (feature: MapboxGeocodingFeature, index: number) => ({
+                      id: `geo-${index}`,
+                      title: feature.place_name.split(",")[0],
+                      subtitle: feature.place_name,
+                      type: "geocoder" as const,
+                      coordinates: feature.center as [number, number],
+                      properties: {
+                        placeType: feature.place_type[0],
+                        relevance: feature.relevance,
+                      },
+                    })
+                  );
+                newResults.geocoder = geocoderResults;
+              }
+            }
+          }
+        } else {
+          console.error(
+            "Search Box API error:",
+            response.status,
+            response.statusText
           );
-          newResults.geocoder = geocoderResults;
         }
       }
 
