@@ -7,11 +7,24 @@ import {
   findDataRecordsByDataSource,
 } from "@/server/repositories/DataRecord";
 import {
+  findDataSourceByIdAndOwnerId,
   findDataSourcesByIds,
   getJobInfo,
 } from "@/server/repositories/DataSource";
 
 const DataSourceResolvers: DataSourceResolversType = {
+  // Remove sensitive credentials (leave only the `type` property)
+  // if the user isn't an owner of the data source
+  config: async ({ id, config }: DataSource, args, context) => {
+    if (!context.currentUser) {
+      return { type: config.type };
+    }
+    const ds = await findDataSourceByIdAndOwnerId(id, context.currentUser.id);
+    if (!ds) {
+      return { type: config.type };
+    }
+    return config;
+  },
   enrichmentInfo: ({ id }: DataSource) => getJobInfo(id, "enrichDataSource"),
   importInfo: ({ id }: DataSource) => getJobInfo(id, "importDataSource"),
   enrichmentDataSources: async (dataSource: DataSource) => {

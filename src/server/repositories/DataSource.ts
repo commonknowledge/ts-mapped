@@ -71,7 +71,7 @@ export async function findDataSourceById(id: string) {
     .executeTakeFirst();
 }
 
-export function findDataSourceByIdAndUserId(id: string, userId: string) {
+export function findDataSourceByIdAndOwnerId(id: string, userId: string) {
   return db
     .selectFrom("dataSource")
     .innerJoin("organisation", "dataSource.organisationId", "organisation.id")

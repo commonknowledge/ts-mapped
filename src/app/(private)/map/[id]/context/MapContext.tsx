@@ -11,8 +11,6 @@ import {
   DataSourcesQuery,
   MapStyleName,
   MapViewConfigInput,
-  MemberDataSourceQuery,
-  MemberDataSourceQueryVariables,
   PlacedMarker,
   SortInput,
   Turf,
@@ -31,7 +29,7 @@ export class ViewConfig implements MapViewConfigInput {
   public markerDataSourceIds: string[] = [];
   public membersDataSourceId = "";
   public mapStyleName: MapStyleName = MapStyleName.Light;
-  public selectedDataSourceId: string | null = null;
+  public selectedDataSourceId = "";
   public showLabels = true;
   public showBoundaryOutline = false;
   public showMembers = true;
@@ -81,7 +79,7 @@ export const MapContext = createContext<{
   insertPlacedMarker: (placedMarker: PlacedMarker) => void;
   updatePlacedMarker: (placedMarker: PlacedMarker) => void;
 
-  selectedDataSourceId: string | null;
+  selectedDataSourceId: string;
   handleDataSourceSelect: (dataSourceId: string) => void;
 
   selectedMarker: MarkerData | null;
@@ -117,10 +115,6 @@ export const MapContext = createContext<{
   > | null;
   dataSourcesQuery: QueryResult<DataSourcesQuery> | null;
   markerQueries: MarkerQueriesResult | null;
-  memberDataSourceQuery: QueryResult<
-    MemberDataSourceQuery,
-    MemberDataSourceQueryVariables
-  > | null;
 
   /* Derived Properties */
   choroplethLayerConfig: ChoroplethLayerConfig;
@@ -162,7 +156,7 @@ export const MapContext = createContext<{
   setViewId: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
-  selectedDataSourceId: null,
+  selectedDataSourceId: "",
   handleDataSourceSelect: () => null,
   selectedRecordId: null,
   setSelectedRecordId: () => null,
@@ -170,5 +164,4 @@ export const MapContext = createContext<{
   dataRecordsQuery: null,
   dataSourcesQuery: null,
   markerQueries: null,
-  memberDataSourceQuery: null,
 });

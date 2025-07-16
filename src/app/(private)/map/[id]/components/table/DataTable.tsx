@@ -171,7 +171,7 @@ export function DataTable({
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell className="text-center">Loading...</TableCell>
+                <TableCell>Loading...</TableCell>
               </TableRow>
             ) : data.length ? (
               data.map((row) => (

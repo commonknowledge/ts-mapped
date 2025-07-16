@@ -21,14 +21,16 @@ export default function MapTable() {
     tableSort,
     setTableSort,
     dataRecordsQuery,
-    memberDataSourceQuery,
+    dataSourcesQuery,
   } = useContext(MapContext);
 
   if (!selectedDataSourceId) {
     return null;
   }
 
-  const dataSource = memberDataSourceQuery?.data?.dataSource;
+  const dataSource = dataSourcesQuery?.data?.dataSources?.find(
+    (ds) => ds.id === selectedDataSourceId,
+  );
   if (!dataSource) {
     return null;
   }

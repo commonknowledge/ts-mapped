@@ -29,7 +29,6 @@ import {
   useDataSourcesQuery,
   useMapQuery,
   useMarkerQueries,
-  useMemberDataSourceQuery,
 } from "./data";
 import { usePlacedMarkers, useTurfs } from "./hooks";
 import styles from "./MapPage.module.css";
@@ -57,9 +56,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
-  const [selectedDataSourceId, setSelectedDataSourceId] = useState<
-    string | null
-  >(null);
+  const [selectedDataSourceId, setSelectedDataSourceId] = useState<string>("");
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
   const [tableFilter, setTableFilter] = useState("");
@@ -74,9 +71,6 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   /* GraphQL Data */
   const dataSourcesQuery = useDataSourcesQuery();
-  const memberDataSourceQuery = useMemberDataSourceQuery(
-    viewConfig.membersDataSourceId,
-  );
   const { data: mapData, loading: mapQueryLoading } = useMapQuery(mapId);
 
   const markerQueries = useMarkerQueries({
@@ -85,7 +79,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
   });
 
   const dataRecordsQuery = useDataRecordsQuery({
-    dataSourceId: viewConfig.membersDataSourceId,
+    dataSourceId: selectedDataSourceId,
     page: tablePage,
     filter: tableFilter,
     sort: tableSort,
@@ -126,7 +120,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
 
   const handleDataSourceSelect = (dataSourceId: string) => {
     if (selectedDataSourceId === dataSourceId) {
-      setSelectedDataSourceId(null);
+      setSelectedDataSourceId("");
       return;
     }
     setSelectedDataSourceId(dataSourceId);
@@ -255,7 +249,6 @@ export default function MapPage({ mapId }: { mapId: string }) {
         dataSourcesQuery,
         dataRecordsQuery,
         markerQueries,
-        memberDataSourceQuery,
 
         choroplethLayerConfig,
         selectedDataSourceId,
@@ -268,7 +261,7 @@ export default function MapPage({ mapId }: { mapId: string }) {
     >
       <div className="flex flex-col h-screen">
         <MapNavbar />
-        <div className="flex w-full h-full relative">
+        <div className="flex w-full grow min-h-0 relative">
           <Controls />
           <div className="flex flex-col gap-4 grow relative min-w-0">
             <ResizablePanelGroup direction="vertical">

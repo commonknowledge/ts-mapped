@@ -281,7 +281,6 @@ export type MapViewConfig = {
   mapStyleName: MapStyleName;
   markerDataSourceIds: Array<Scalars["String"]["output"]>;
   membersDataSourceId: Scalars["String"]["output"];
-  selectedDataSourceId: Scalars["String"]["output"];
   showBoundaryOutline: Scalars["Boolean"]["output"];
   showLabels: Scalars["Boolean"]["output"];
   showLocations: Scalars["Boolean"]["output"];
@@ -299,7 +298,6 @@ export type MapViewConfigInput = {
     Array<InputMaybe<Scalars["String"]["input"]>>
   >;
   membersDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
-  selectedDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
   showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
   showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
   showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -771,6 +769,7 @@ export type DataSourcesQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
+    config: any;
     recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
@@ -853,26 +852,6 @@ export type MapQuery = {
         showTurf: boolean;
       };
     }> | null;
-  } | null;
-};
-
-export type MemberDataSourceQueryVariables = Exact<{
-  dataSourceId: Scalars["String"]["input"];
-}>;
-
-export type MemberDataSourceQuery = {
-  __typename?: "Query";
-  dataSource?: {
-    __typename?: "DataSource";
-    id: string;
-    name: string;
-    config: any;
-    recordCount?: number | null;
-    columnDefs: Array<{
-      __typename?: "ColumnDef";
-      name: string;
-      type: ColumnType;
-    }>;
   } | null;
 };
 
@@ -1593,11 +1572,6 @@ export type MapViewConfigResolvers<
     ContextType
   >;
   membersDataSourceId?: Resolver<
-    ResolversTypes["String"],
-    ParentType,
-    ContextType
-  >;
-  selectedDataSourceId?: Resolver<
     ResolversTypes["String"],
     ParentType,
     ContextType

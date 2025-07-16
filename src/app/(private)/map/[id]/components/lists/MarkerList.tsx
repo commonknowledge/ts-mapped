@@ -1,4 +1,4 @@
-import { Check, Database, Pencil, Trash2 } from "lucide-react";
+import { Check, Database, Pencil, Table, Trash2 } from "lucide-react";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
@@ -9,15 +9,18 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import DataSourceIcon from "../DataSourceIcon";
 import Loading from "../Loading";
 
 export default function MarkerList() {
   const {
+    mapRef,
     dataSourcesQuery,
     viewConfig,
-    mapRef,
     placedMarkers,
     placedMarkersLoading,
+    selectedDataSourceId,
+    handleDataSourceSelect,
     deletePlacedMarker,
     updatePlacedMarker,
   } = useContext(MapContext);
@@ -102,7 +105,22 @@ export default function MarkerList() {
                 <ul>
                   {markerDataSources.map((dataSource) => (
                     <li key={dataSource.id} className="text-sm mt-2">
-                      {dataSource.name}
+                      <div
+                        className={`text-sm cursor-pointer rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
+                          dataSource.id === selectedDataSourceId
+                            ? "bg-neutral-100"
+                            : ""
+                        }`}
+                        onClick={() => handleDataSourceSelect(dataSource.id)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <DataSourceIcon type={dataSource.config.type} />
+                          {dataSource.name}
+                        </div>
+                        {dataSource.id === selectedDataSourceId && (
+                          <Table className="w-4 h-4 text-neutral-500" />
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>

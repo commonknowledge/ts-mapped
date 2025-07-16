@@ -7,15 +7,17 @@ import SkeletonGroup from "../SkeletonGroup";
 
 export default function MemberList() {
   const {
-    memberDataSourceQuery,
+    dataSourcesQuery,
     viewConfig,
     selectedDataSourceId,
     handleDataSourceSelect,
   } = useContext(MapContext);
 
-  const dataSource = memberDataSourceQuery?.data?.dataSource;
+  const dataSource = dataSourcesQuery?.data?.dataSources?.find(
+    (ds) => ds.id === viewConfig.membersDataSourceId,
+  );
 
-  if (memberDataSourceQuery?.loading) {
+  if (dataSourcesQuery?.loading) {
     return <SkeletonGroup />;
   }
 
