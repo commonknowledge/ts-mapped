@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { useAreaStatsQuery } from "@/app/(private)/map/[id]/data";
@@ -19,12 +12,10 @@ export default function ChoroplethProvider({
 }: {
   children: ReactNode;
 }) {
-  const { boundingBox, mapRef, viewConfig, zoom } = useContext(MapContext);
+  const { boundingBox, viewConfig, zoom } = useContext(MapContext);
 
   /* State */
 
-  // Keep track of area codes that have feature state, to clean if necessary
-  const areaCodesToClean = useRef<Record<string, boolean>>({});
   // Manually keep track of fetchMore loading state as the first fetchMore
   // doesn't trigger the query loading flag
   const [areaStatsLoading, setAreaStatsLoading] = useState(false);
@@ -49,42 +40,9 @@ export default function ChoroplethProvider({
     useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
   });
 
-  const { data: areaStatsData, fetchMore: areaStatsFetchMore } = areaStatsQuery;
+  const { fetchMore: areaStatsFetchMore } = areaStatsQuery;
 
   /* Effects */
-
-  /* Set Mapbox feature state on receiving new AreaStats */
-  useEffect(() => {
-    if (!areaStatsData) {
-      return;
-    }
-
-    if (mapRef?.current?.getSource(choroplethLayerConfig.mapbox.sourceId)) {
-      const nextAreaCodesToClean: Record<string, boolean> = {};
-      areaStatsData.areaStats?.stats.forEach((stat) => {
-        mapRef?.current?.setFeatureState(
-          {
-            source: choroplethLayerConfig.mapbox.sourceId,
-            sourceLayer: choroplethLayerConfig.mapbox.layerId,
-            id: stat.areaCode,
-          },
-          stat,
-        );
-        nextAreaCodesToClean[stat.areaCode] = true;
-      });
-      // Remove lingering feature states
-      for (const areaCode in Object.keys(areaCodesToClean.current)) {
-        if (!nextAreaCodesToClean[areaCode]) {
-          mapRef?.current?.removeFeatureState({
-            source: choroplethLayerConfig.mapbox.sourceId,
-            sourceLayer: choroplethLayerConfig.mapbox.layerId,
-            id: areaCode,
-          });
-        }
-      }
-      areaCodesToClean.current = nextAreaCodesToClean;
-    }
-  }, [areaStatsData, choroplethLayerConfig, lastLoadedSourceId, mapRef]);
 
   /* Do fetchMore() (if layer needs it) when bounding box or config changes */
   useEffect(() => {

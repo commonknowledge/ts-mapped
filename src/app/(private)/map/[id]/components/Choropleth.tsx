@@ -1,17 +1,54 @@
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { useFillColor } from "@/app/(private)/map/[id]/colors";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 
 export default function Choropleth() {
-  const { viewConfig } = useContext(MapContext);
+  // Keep track of area codes that have feature state, to clean if necessary
+  const areaCodesToClean = useRef<Record<string, boolean>>({});
+  const { mapRef, viewConfig } = useContext(MapContext);
   const {
+    areaStatsQuery,
+    lastLoadedSourceId,
     choroplethLayerConfig: {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
-    areaStatsQuery,
   } = useContext(ChoroplethContext);
+
+  /* Set Mapbox feature state on receiving new AreaStats */
+  useEffect(() => {
+    if (!areaStatsQuery?.data) {
+      return;
+    }
+
+    if (mapRef?.current?.getSource(sourceId)) {
+      const nextAreaCodesToClean: Record<string, boolean> = {};
+      areaStatsQuery.data.areaStats?.stats.forEach((stat) => {
+        mapRef?.current?.setFeatureState(
+          {
+            source: sourceId,
+            sourceLayer: layerId,
+            id: stat.areaCode,
+          },
+          stat,
+        );
+        nextAreaCodesToClean[stat.areaCode] = true;
+      });
+      // Remove lingering feature states
+      for (const areaCode in Object.keys(areaCodesToClean.current)) {
+        if (!nextAreaCodesToClean[areaCode]) {
+          mapRef?.current?.removeFeatureState({
+            source: sourceId,
+            sourceLayer: layerId,
+            id: areaCode,
+          });
+        }
+      }
+      areaCodesToClean.current = nextAreaCodesToClean;
+    }
+  }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
+
   const fillColor = useFillColor(areaStatsQuery?.data?.areaStats);
   if (!viewConfig.areaSetGroupCode) {
     return null;
