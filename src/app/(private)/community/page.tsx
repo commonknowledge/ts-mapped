@@ -6,7 +6,6 @@ import {
   Component,
   Eye,
   Filter,
-  Group,
   MessageCircle,
   Plus,
   Search,
@@ -142,7 +141,7 @@ export default function CommunityPage() {
                               {item.type}
                             </Badge>
                             {item.type === "Marker" && (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="secondary" className="text-xs">
                                 Event
                               </Badge>
                             )}
