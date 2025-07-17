@@ -4,6 +4,7 @@ import * as turf from "@turf/turf";
 import { useContext, useEffect, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import { DEFAULT_ZOOM } from "@/constants";
@@ -18,15 +19,11 @@ export default function Map({
 }: {
   onSourceLoad: (sourceId: string) => void;
 }) {
-  const {
-    mapRef,
-    viewConfig,
-    setBoundingBox,
-    setSelectedMarker,
-    deleteTurf,
-    insertTurf,
-    setZoom,
-  } = useContext(MapContext);
+  const { mapRef, viewConfig, setBoundingBox, setZoom } =
+    useContext(MapContext);
+  const { setSelectedMarker, deleteTurf, insertTurf } =
+    useContext(MarkerAndTurfContext);
+
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [ready, setReady] = useState(false);
 

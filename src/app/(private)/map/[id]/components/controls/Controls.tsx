@@ -1,8 +1,7 @@
 import { Columns } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-
+import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import MarkersControl from "./MarkersControl";
@@ -10,7 +9,8 @@ import MembersControl from "./MembersControl";
 import TurfControl from "./TurfControl";
 
 export default function Controls() {
-  const { mapRef, selectedDataSourceId } = useContext(MapContext);
+  const { mapRef } = useContext(MapContext);
+  const { selectedDataSourceId } = useContext(TableContext);
 
   const [showControls, setShowControls] = useState(true);
 

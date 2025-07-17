@@ -3,6 +3,7 @@ import { Check, Pencil, Trash2 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { Turf } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -16,15 +17,9 @@ import Loading from "../Loading";
 
 export default function TurfList() {
   const { getOrganisation } = useContext(OrganisationsContext);
-  const {
-    viewConfig,
-    mapRef,
-    turfs,
-    turfsLoading,
-    setEditingTurf,
-    updateTurf,
-    deleteTurf,
-  } = useContext(MapContext);
+  const { viewConfig, mapRef } = useContext(MapContext);
+  const { turfs, turfsLoading, setEditingTurf, updateTurf, deleteTurf } =
+    useContext(MarkerAndTurfContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);

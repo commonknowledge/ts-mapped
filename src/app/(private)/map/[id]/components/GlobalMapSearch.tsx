@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useContext } from "react";
 import { createPortal } from "react-dom";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
+import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { useDebounce } from "@/hooks";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
@@ -97,105 +99,18 @@ export default function GlobalMapSearch() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 300);
 
+  const { mapRef, viewConfig } = useContext(MapContext);
+
   const {
-    mapRef,
     insertPlacedMarker,
     setSelectedMarker,
-    setSelectedRecordId,
     placedMarkers,
     turfs,
     markerQueries,
-    viewConfig,
-    handleDataSourceSelect,
-    selectedDataSourceId,
-  } = useContext(MapContext);
+  } = useContext(MarkerAndTurfContext);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setIsOpen(true);
-        setTimeout(() => inputRef.current?.focus(), 100);
-      }
-
-      if (e.key === "Escape") {
-        setIsOpen(false);
-        setQuery("");
-      }
-
-      if (!isOpen) return;
-
-      const allResults = [
-        ...results.geocoder,
-        ...results.markers,
-        ...results.areas,
-        ...results.members,
-      ];
-
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < allResults.length - 1 ? prev + 1 : 0
-        );
-      }
-
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : allResults.length - 1
-        );
-      }
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-        const selectedResult = allResults[selectedIndex];
-        if (selectedResult) {
-          handleResultSelect(selectedResult);
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, results, selectedIndex]);
-
-  // Auto-scroll to keep selected item in view
-  useEffect(() => {
-    if (!isOpen || !resultsRef.current) return;
-
-    const allResults = [
-      ...results.geocoder,
-      ...results.markers,
-      ...results.areas,
-      ...results.members,
-    ];
-
-    if (selectedIndex >= 0 && selectedIndex < allResults.length) {
-      const selectedButton = resultsRef.current.querySelector(
-        `[data-result-index="${selectedIndex}"]`
-      ) as HTMLElement;
-
-      if (selectedButton) {
-        selectedButton.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      }
-    }
-  }, [selectedIndex, isOpen, results]);
-
-  // Search functionality
-  useEffect(() => {
-    if (!debouncedQuery.trim()) {
-      setResults({ geocoder: [], markers: [], areas: [], members: [] });
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    performSearch(debouncedQuery);
-  }, [debouncedQuery]);
+  const { setSelectedRecordId, handleDataSourceSelect, selectedDataSourceId } =
+    useContext(TableContext);
 
   const performSearch = useCallback(
     async (searchQuery: string) => {
@@ -213,7 +128,7 @@ export default function GlobalMapSearch() {
 
         if (mapboxToken && searchQuery.trim()) {
           const searchBoxUrl = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(
-            searchQuery
+            searchQuery,
           )}&access_token=${mapboxToken}&session_token=${sessionToken}&country=gb&types=place,address,poi&limit=5`;
 
           const response = await fetch(searchBoxUrl);
@@ -233,7 +148,7 @@ export default function GlobalMapSearch() {
               if (mapboxIds.length > 0) {
                 console.log(
                   "🔍 Retrieving full features for mapbox_ids:",
-                  mapboxIds
+                  mapboxIds,
                 );
 
                 // Retrieve each feature individually
@@ -242,7 +157,7 @@ export default function GlobalMapSearch() {
                   const retrieveUrl = `https://api.mapbox.com/search/searchbox/v1/retrieve/${mapboxId}?access_token=${mapboxToken}&session_token=${sessionToken}`;
                   console.log(
                     `🌐 Retrieve API URL for ${mapboxId}:`,
-                    retrieveUrl
+                    retrieveUrl,
                   );
 
                   try {
@@ -296,7 +211,7 @@ export default function GlobalMapSearch() {
             } else {
               // Fallback to regular Geocoding API
               const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-                searchQuery
+                searchQuery,
               )}.json?access_token=${mapboxToken}&country=gb&types=place,address,poi&limit=5`;
 
               const geocodingResponse = await fetch(geocodingUrl);
@@ -321,7 +236,7 @@ export default function GlobalMapSearch() {
                           placeType: feature.place_type[0],
                           relevance: feature.relevance,
                         },
-                      })
+                      }),
                     );
                   newResults.geocoder = geocoderResults;
                 }
@@ -335,7 +250,7 @@ export default function GlobalMapSearch() {
           .filter(
             (marker) =>
               marker.label.toLowerCase().includes(query) ||
-              marker.notes?.toLowerCase().includes(query)
+              marker.notes?.toLowerCase().includes(query),
           )
           .map((marker) => ({
             id: marker.id,
@@ -398,7 +313,7 @@ export default function GlobalMapSearch() {
           .filter(
             (turf) =>
               turf.label.toLowerCase().includes(query) ||
-              turf.notes?.toLowerCase().includes(query)
+              turf.notes?.toLowerCase().includes(query),
           )
           .map((turf) => {
             const center = turfLib.center(turf.geometry);
@@ -422,7 +337,7 @@ export default function GlobalMapSearch() {
         const memberResults: SearchResult[] = [];
         if (markerQueries?.data) {
           const memberDataSource = markerQueries.data.find(
-            (ds) => ds.dataSourceId === viewConfig.membersDataSourceId
+            (ds) => ds.dataSourceId === viewConfig.membersDataSourceId,
           );
 
           if (memberDataSource && memberDataSource.markers.features) {
@@ -476,88 +391,104 @@ export default function GlobalMapSearch() {
         setIsLoading(false);
       }
     },
-    [sessionToken, placedMarkers, turfs, markerQueries]
+    [
+      placedMarkers,
+      markerQueries?.data,
+      turfs,
+      sessionToken,
+      viewConfig.membersDataSourceId,
+    ],
   );
 
-  const handleResultSelect = (result: SearchResult) => {
-    if (result.coordinates) {
-      const map = mapRef?.current?.getMap();
-      if (map) {
-        map.flyTo({
-          center: result.coordinates,
-          zoom: 14,
-          duration: 1000,
-        });
+  const handleResultSelect = useCallback(
+    (result: SearchResult) => {
+      if (result.coordinates) {
+        const map = mapRef?.current?.getMap();
+        if (map) {
+          map.flyTo({
+            center: result.coordinates,
+            zoom: 14,
+            duration: 1000,
+          });
+        }
       }
-    }
 
-    // Handle different result types
-    switch (result.type) {
-      case "geocoder":
-        if (result.coordinates) {
-          insertPlacedMarker({
-            id: `placed-marker-${Date.now()}`,
-            label: result.title,
-            notes: result.subtitle || "",
-            point: {
-              lng: result.coordinates[0],
-              lat: result.coordinates[1],
-            },
-          });
-        }
-        break;
-      case "marker":
-        if (result.coordinates) {
-          setSelectedMarker({
-            id: parseInt(result.id.split("-")[1]),
-            properties: result.properties || {},
-            coordinates: result.coordinates,
-          });
-        }
-        break;
-      case "area":
-        // Handle area selection - you can implement this based on your needs
-        console.log("Selected area:", result);
-        break;
-      case "member":
-        // First, open the members data source in the table panel if not already open
-        if (result.properties?.dataSourceId) {
-          const dataSourceId = result.properties.dataSourceId as string;
-          if (selectedDataSourceId !== dataSourceId) {
-            handleDataSourceSelect(dataSourceId);
-          }
-        }
-        // Set the selected record ID for the member
-        if (result.properties?.id) {
-          setSelectedRecordId(result.properties.id as string);
-        }
-        // Reset map to center, then fly to member location
-        if (result.coordinates) {
-          const map = mapRef?.current?.getMap();
-          if (map) {
-            // First reset to center of the map
-            map.flyTo({
-              center: [-4.5481, 54.2361], // Default center (UK)
-              zoom: 5,
-              duration: 500,
+      // Handle different result types
+      switch (result.type) {
+        case "geocoder":
+          if (result.coordinates) {
+            insertPlacedMarker({
+              id: `placed-marker-${Date.now()}`,
+              label: result.title,
+              notes: result.subtitle || "",
+              point: {
+                lng: result.coordinates[0],
+                lat: result.coordinates[1],
+              },
             });
-            // Then fly to the member location after a short delay
-            setTimeout(() => {
-              map.flyTo({
-                center: result.coordinates,
-                zoom: 15,
-                duration: 1000,
-              });
-            }, 600);
           }
-        }
-        break;
-    }
+          break;
+        case "marker":
+          if (result.coordinates) {
+            setSelectedMarker({
+              id: parseInt(result.id.split("-")[1]),
+              properties: result.properties || {},
+              coordinates: result.coordinates,
+            });
+          }
+          break;
+        case "area":
+          // Handle area selection - you can implement this based on your needs
+          console.log("Selected area:", result);
+          break;
+        case "member":
+          // First, open the members data source in the table panel if not already open
+          if (result.properties?.dataSourceId) {
+            const dataSourceId = result.properties.dataSourceId as string;
+            if (selectedDataSourceId !== dataSourceId) {
+              handleDataSourceSelect(dataSourceId);
+            }
+          }
+          // Set the selected record ID for the member
+          if (result.properties?.id) {
+            setSelectedRecordId(result.properties.id as string);
+          }
+          // Reset map to center, then fly to member location
+          if (result.coordinates) {
+            const map = mapRef?.current?.getMap();
+            if (map) {
+              // First reset to center of the map
+              map.flyTo({
+                center: [-4.5481, 54.2361], // Default center (UK)
+                zoom: 5,
+                duration: 500,
+              });
+              // Then fly to the member location after a short delay
+              setTimeout(() => {
+                map.flyTo({
+                  center: result.coordinates,
+                  zoom: 15,
+                  duration: 1000,
+                });
+              }, 600);
+            }
+          }
+          break;
+      }
 
-    setIsOpen(false);
-    setQuery("");
-    setSelectedIndex(0);
-  };
+      setIsOpen(false);
+      setQuery("");
+      setSelectedIndex(0);
+    },
+    [
+      handleDataSourceSelect,
+      insertPlacedMarker,
+      mapRef,
+      selectedDataSourceId,
+      setSelectedMarker,
+      setSelectedRecordId,
+    ],
+  );
 
   const getResultIcon = (type: SearchResult["type"]) => {
     switch (type) {
@@ -623,6 +554,93 @@ export default function GlobalMapSearch() {
   ];
 
   const hasResults = allResults.length > 0;
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setIsOpen(true);
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        setQuery("");
+      }
+
+      if (!isOpen) return;
+
+      const allResults = [
+        ...results.geocoder,
+        ...results.markers,
+        ...results.areas,
+        ...results.members,
+      ];
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) =>
+          prev < allResults.length - 1 ? prev + 1 : 0,
+        );
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((prev) =>
+          prev > 0 ? prev - 1 : allResults.length - 1,
+        );
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const selectedResult = allResults[selectedIndex];
+        if (selectedResult) {
+          handleResultSelect(selectedResult);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleResultSelect, isOpen, results, selectedIndex]);
+
+  // Auto-scroll to keep selected item in view
+  useEffect(() => {
+    if (!isOpen || !resultsRef.current) return;
+
+    const allResults = [
+      ...results.geocoder,
+      ...results.markers,
+      ...results.areas,
+      ...results.members,
+    ];
+
+    if (selectedIndex >= 0 && selectedIndex < allResults.length) {
+      const selectedButton = resultsRef.current.querySelector(
+        `[data-result-index="${selectedIndex}"]`,
+      ) as HTMLElement;
+
+      if (selectedButton) {
+        selectedButton.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }
+  }, [selectedIndex, isOpen, results]);
+
+  // Search functionality
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setResults({ geocoder: [], markers: [], areas: [], members: [] });
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    performSearch(debouncedQuery);
+  }, [debouncedQuery, performSearch]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -882,7 +900,7 @@ export default function GlobalMapSearch() {
               </Card>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

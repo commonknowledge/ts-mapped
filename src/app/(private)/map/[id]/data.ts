@@ -13,8 +13,6 @@ import {
   DeleteTurfMutationVariables,
   MapQuery,
   MapQueryVariables,
-  MemberDataSourceQuery,
-  MemberDataSourceQueryVariables,
   Operation,
   SortInput,
   UpsertPlacedMarkerMutation,
@@ -30,6 +28,7 @@ export const useDataSourcesQuery = () =>
       dataSources {
         id
         name
+        config
         columnDefs {
           name
           type
@@ -167,25 +166,6 @@ export const useMarkerQueries = ({
 
   return { loading, data, error };
 };
-
-export const useMemberDataSourceQuery = (dataSourceId: string) =>
-  useQuery<MemberDataSourceQuery, MemberDataSourceQueryVariables>(
-    gql`
-      query MemberDataSource($dataSourceId: String!) {
-        dataSource(id: $dataSourceId) {
-          id
-          name
-          config
-          columnDefs {
-            name
-            type
-          }
-          recordCount
-        }
-      }
-    `,
-    { variables: { dataSourceId }, skip: !dataSourceId },
-  );
 
 export const useAreaStatsQuery = ({
   areaSetCode,

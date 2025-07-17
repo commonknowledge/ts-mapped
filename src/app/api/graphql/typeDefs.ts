@@ -102,7 +102,6 @@ const typeDefs = `
     markerDataSourceIds: [String]
     membersDataSourceId: String
     mapStyleName: MapStyleName
-    selectedDataSourceId: String
     showBoundaryOutline: Boolean
     showLabels: Boolean
     showLocations: Boolean
@@ -219,7 +218,6 @@ const typeDefs = `
     markerDataSourceIds: [String!]!
     membersDataSourceId: String!
     mapStyleName: MapStyleName!
-    selectedDataSourceId: String!
     showBoundaryOutline: Boolean!
     showLabels: Boolean!
     showLocations: Boolean!

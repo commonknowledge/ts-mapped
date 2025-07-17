@@ -6,7 +6,7 @@ import {
   defaultFieldResolver,
 } from "graphql";
 import { AuthDirectiveArgs } from "@/__generated__/types";
-import { findDataSourceByIdAndUserId } from "@/server/repositories/DataSource";
+import { findDataSourceByIdAndOwnerId } from "@/server/repositories/DataSource";
 import { findMapById } from "@/server/repositories/Map";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import logger from "@/server/services/logger";
@@ -72,7 +72,7 @@ const checkAuth = async (
     }
     if (argNames.dataSourceIdArg) {
       const dataSourceId = fieldArgs[argNames.dataSourceIdArg];
-      const dataSource = await findDataSourceByIdAndUserId(
+      const dataSource = await findDataSourceByIdAndOwnerId(
         dataSourceId,
         userId,
       );

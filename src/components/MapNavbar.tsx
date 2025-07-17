@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { ChevronRight, MoreHorizontal, Search } from "lucide-react";
+import { ChevronRight, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import { useContext, useState } from "react";
 import {
@@ -106,7 +106,7 @@ export default function MapNavbar() {
     }
 
     const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve
+      resolve,
     ) {
       mapRef?.current?.once("render", function () {
         resolve(mapRef.current?.getCanvas().toDataURL());

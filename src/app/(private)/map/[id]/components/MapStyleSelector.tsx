@@ -1,6 +1,7 @@
 import { Paintbrush, Scan, Type } from "lucide-react";
 import { useContext } from "react";
 import { MapStyleName } from "@/__generated__/types";
+import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -19,12 +20,9 @@ import {
 import mapStyles from "../styles";
 
 export default function MapStyleSelector() {
-  const {
-    viewConfig,
-    updateViewConfig,
-    boundariesPanelOpen,
-    setBoundariesPanelOpen,
-  } = useContext(MapContext);
+  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { boundariesPanelOpen, setBoundariesPanelOpen } =
+    useContext(ChoroplethContext);
   return (
     <div className="h-14 rounded-lg absolute left-1/2 bottom-8 -translate-x-1/2 py-2 px-4 z-10  bg-white  shadow-lg">
       <div className="flex gap-2 items-center h-full">
