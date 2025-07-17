@@ -7,7 +7,7 @@ import {
   useUpsertTurfMutation,
 } from "./data";
 
-export const usePlacedMarkers = (mapId: string) => {
+export const usePlacedMarkers = (mapId: string | null) => {
   const ref = useRef<PlacedMarker[]>([]);
   const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
 
@@ -28,6 +28,10 @@ export const usePlacedMarkers = (mapId: string) => {
 
   /* Complex actions */
   const deletePlacedMarker = (id: string) => {
+    if (!mapId) {
+      return;
+    }
+
     deletePlacedMarkerMutation({
       variables: {
         id,
@@ -39,6 +43,10 @@ export const usePlacedMarkers = (mapId: string) => {
   };
 
   const insertPlacedMarker = async (newMarker: PlacedMarker) => {
+    if (!mapId) {
+      return;
+    }
+
     const newMarkers = [...ref.current, newMarker];
     setPlacedMarkers(newMarkers);
 
@@ -61,6 +69,10 @@ export const usePlacedMarkers = (mapId: string) => {
   };
 
   const updatePlacedMarker = (updatedMarker: PlacedMarker) => {
+    if (!mapId) {
+      return;
+    }
+
     upsertPlacedMarkerMutation({
       variables: {
         id: updatedMarker.id,
@@ -85,7 +97,7 @@ export const usePlacedMarkers = (mapId: string) => {
   };
 };
 
-export const useTurfs = (mapId: string) => {
+export const useTurfs = (mapId: string | null) => {
   const ref = useRef<Turf[]>([]);
   const [turfs, _setTurfs] = useState<Turf[]>([]);
 
@@ -105,6 +117,10 @@ export const useTurfs = (mapId: string) => {
 
   /* Complex actions */
   const deleteTurf = (id: string) => {
+    if (!mapId) {
+      return;
+    }
+
     deleteTurfMutation({
       variables: {
         id,
@@ -116,6 +132,10 @@ export const useTurfs = (mapId: string) => {
   };
 
   const insertTurf = async (newTurf: Turf) => {
+    if (!mapId) {
+      return;
+    }
+
     const newTurfs = [...ref.current, newTurf];
     setTurfs(newTurfs);
 
@@ -138,6 +158,10 @@ export const useTurfs = (mapId: string) => {
   };
 
   const updateTurf = (updatedTurf: Turf) => {
+    if (!mapId) {
+      return;
+    }
+
     upsertTurfMutation({
       variables: {
         id: updatedTurf.id,

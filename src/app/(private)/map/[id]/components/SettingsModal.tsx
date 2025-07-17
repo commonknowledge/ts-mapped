@@ -1,6 +1,7 @@
 import { PlusIcon, Settings } from "lucide-react";
 import React, { useContext } from "react";
 
+import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Link } from "@/components/Link";
@@ -24,9 +25,10 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 
 export default function SettingsModal() {
-  const { dataSourcesQuery, viewConfig, updateViewConfig } =
-    useContext(MapContext);
-  const dataSources = dataSourcesQuery?.data?.dataSources || [];
+  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { getDataSources } = useContext(DataSourcesContext);
+
+  const dataSources = getDataSources();
 
   return (
     <Dialog>

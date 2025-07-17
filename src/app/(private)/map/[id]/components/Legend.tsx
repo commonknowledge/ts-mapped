@@ -3,6 +3,7 @@ import { DotIcon } from "lucide-react";
 import { useContext } from "react";
 import { AreaStats, ColumnType } from "@/__generated__/types";
 import { useColorScheme } from "../colors";
+import { DataSourcesContext } from "../context/DataSourcesContext";
 import { MapContext } from "../context/MapContext";
 
 export default function Legend({
@@ -10,12 +11,10 @@ export default function Legend({
 }: {
   areaStats: AreaStats | null | undefined;
 }) {
-  const { viewConfig, dataSourcesQuery } = useContext(MapContext);
+  const { viewConfig } = useContext(MapContext);
+  const { getChoroplethDataSource } = useContext(DataSourcesContext);
 
-  const dataSources = dataSourcesQuery?.data?.dataSources || [];
-  const dataSource = dataSources.find(
-    (ds) => ds.id === viewConfig.areaDataSourceId,
-  );
+  const dataSource = getChoroplethDataSource();
 
   const colorScheme = useColorScheme(areaStats);
   if (!colorScheme) {

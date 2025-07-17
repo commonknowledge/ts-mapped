@@ -1,6 +1,9 @@
 import { Check, Database, Pencil, Table, Trash2 } from "lucide-react";
 import { useContext, useState } from "react";
+import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
+import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -13,24 +16,24 @@ import DataSourceIcon from "../DataSourceIcon";
 import Loading from "../Loading";
 
 export default function MarkerList() {
+  const { mapRef, viewConfig } = useContext(MapContext);
+  const { getMarkerDataSources } = useContext(DataSourcesContext);
+
   const {
-    mapRef,
-    dataSourcesQuery,
-    viewConfig,
     placedMarkers,
     placedMarkersLoading,
-    selectedDataSourceId,
-    handleDataSourceSelect,
     deletePlacedMarker,
     updatePlacedMarker,
-  } = useContext(MapContext);
+  } = useContext(MarkerAndTurfContext);
+
+  const { selectedDataSourceId, handleDataSourceSelect } =
+    useContext(TableContext);
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
 
-  const markerDataSources = (dataSourcesQuery?.data?.dataSources || []).filter(
-    (ds) => viewConfig.markerDataSourceIds.includes(ds.id),
-  );
+  const markerDataSources = getMarkerDataSources();
 
   return (
     <div className="relative">
