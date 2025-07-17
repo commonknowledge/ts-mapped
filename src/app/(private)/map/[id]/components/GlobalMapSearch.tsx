@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+import { MARKER_NAME_KEY } from "@/constants";
 import { useDebounce } from "@/hooks";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
@@ -246,7 +247,7 @@ export default function GlobalMapSearch() {
         }
 
         // Real marker results from placedMarkers
-        const markerResults: SearchResult[] = placedMarkers
+        let markerResults: SearchResult[] = placedMarkers
           .filter(
             (marker) =>
               marker.label.toLowerCase().includes(query) ||
@@ -276,11 +277,7 @@ export default function GlobalMapSearch() {
               .filter((feature) => {
                 const properties = feature.properties || {};
                 const searchableText = [
-                  properties.name || "",
-                  properties.label || "",
-                  properties.address || "",
-                  properties.description || "",
-                  ...Object.values(properties).map(String),
+                  ...Object.values(properties).filter(Boolean).map(String),
                 ]
                   .join(" ")
                   .toLowerCase();
@@ -288,11 +285,10 @@ export default function GlobalMapSearch() {
               })
               .map((feature) => ({
                 id: `${dataSource.dataSourceId}-${feature.properties?.id || Math.random()}`,
-                title:
-                  feature.properties?.name ||
-                  feature.properties?.label ||
-                  "Unnamed marker",
-                subtitle: `${dataSource.dataSourceName} • ${feature.properties?.address || ""}`,
+                title: feature.properties
+                  ? feature.properties[MARKER_NAME_KEY]
+                  : "Unnamed marker",
+                subtitle: dataSource.dataSourceName,
                 type: "marker" as const,
                 coordinates: feature.geometry.coordinates as [number, number],
                 properties: {
@@ -302,7 +298,7 @@ export default function GlobalMapSearch() {
                   ...feature.properties,
                 },
               }));
-            markerResults.push(...dataSourceMarkers);
+            markerResults = markerResults.concat(dataSourceMarkers);
           });
         }
 
@@ -345,11 +341,7 @@ export default function GlobalMapSearch() {
               .filter((feature) => {
                 const properties = feature.properties || {};
                 const searchableText = [
-                  properties.name || "",
-                  properties.label || "",
-                  properties.address || "",
-                  properties.description || "",
-                  ...Object.values(properties).map(String),
+                  ...Object.values(properties).filter(Boolean).map(String),
                 ]
                   .join(" ")
                   .toLowerCase();
@@ -358,17 +350,10 @@ export default function GlobalMapSearch() {
               .forEach((feature, index) => {
                 memberResults.push({
                   id: `member-${index}`,
-                  title:
-                    feature.properties?.Name ||
-                    feature.properties?.name ||
-                    feature.properties?.label ||
-                    feature.properties?.full_name ||
-                    feature.properties?.first_name ||
-                    feature.properties?.last_name ||
-                    feature.properties?.email ||
-                    feature.properties?.id ||
-                    "Unnamed member",
-                  subtitle: `${memberDataSource.dataSourceName} • ${feature.properties?.Postcode || feature.properties?.address || ""}`,
+                  title: feature.properties
+                    ? feature.properties[MARKER_NAME_KEY]
+                    : "Unnamed member",
+                  subtitle: memberDataSource.dataSourceName,
                   type: "member" as const,
                   coordinates: feature.geometry.coordinates as [number, number],
                   properties: {
@@ -550,6 +535,7 @@ export default function GlobalMapSearch() {
   const allResults = [
     ...results.geocoder,
     ...results.markers,
+    ...results.members,
     ...results.areas,
   ];
 
@@ -774,7 +760,7 @@ export default function GlobalMapSearch() {
                             <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               Members
                             </div>
-                            {results.members.map((result, index) => (
+                            {results.members.slice(0, 10).map((result, index) => (
                               <button
                                 key={result.id}
                                 data-result-index={
@@ -817,7 +803,7 @@ export default function GlobalMapSearch() {
                             <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               Markers
                             </div>
-                            {results.markers.map((result, index) => (
+                            {results.markers.slice(0, 10).map((result, index) => (
                               <button
                                 key={result.id}
                                 data-result-index={
