@@ -9,9 +9,11 @@ import {
   UpdateDataSourceConfigMutationVariables,
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
+import { DataSourceFeatures } from "@/features";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
+import { DataSourceType } from "@/types";
 import { GeocodingConfigSchema } from "@/zod";
 import ColumnRoleFields from "./ColumnRoleFields";
 import GeocodingConfigFields from "./GeocodingConfigFields";
@@ -93,6 +95,8 @@ export default function DataSourceConfigForm({
     setLoading(false);
   };
 
+  const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
+
   return (
     <form onSubmit={onSubmit} className="max-w-2xl">
       <h2 className="text-xl tracking-tight font-light">Data setup</h2>
@@ -110,14 +114,18 @@ export default function DataSourceConfigForm({
           setGeocodingConfig({ ...geocodingConfig, ...nextGeocodingConfig })
         }
       />
-      <Separator className="mb-4" />
-      <h2 className="text-xl tracking-tight font-light">Auto-import</h2>
-      <DataListRow label="Import new records automatically">
-        <Switch
-          checked={autoImport}
-          onCheckedChange={(v) => setAutoImport(v)}
-        />
-      </DataListRow>
+      {features.autoImport && (
+        <>
+          <Separator className="mb-4" />
+          <h2 className="text-xl tracking-tight font-light">Auto-import</h2>
+          <DataListRow label="Import new records automatically">
+            <Switch
+              checked={autoImport}
+              onCheckedChange={(v) => setAutoImport(v)}
+            />
+          </DataListRow>
+        </>
+      )}
       <Button disabled={!validGeocodingConfig || loading}>Submit</Button>
       {error && (
         <div>

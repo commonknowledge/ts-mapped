@@ -12,7 +12,6 @@ export const NewCSVConfigSchema = z.object({
   type: z.literal(DataSourceType.csv),
   file: z.instanceof(File),
   filename: z.string().nonempty(),
-  idColumn: z.string().nonempty(),
 });
 
 export type NewCSVConfig = z.infer<typeof NewCSVConfigSchema>;

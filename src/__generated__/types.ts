@@ -622,6 +622,7 @@ export type DataSourceConfigQuery = {
     id: string;
     name: string;
     autoImport: boolean;
+    config: any;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;

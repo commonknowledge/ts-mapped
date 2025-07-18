@@ -31,6 +31,7 @@ export default async function DataSourceConfigPage({
           id
           name
           autoImport
+          config
           columnDefs {
             name
             type

@@ -16,14 +16,6 @@ export default function CSVInputs({
 
   return (
     <>
-      <DataListRow label="ID Column">
-        <Input
-          type="text"
-          placeholder="ID Column"
-          value={config.idColumn || ""}
-          onChange={(e) => onChange({ idColumn: e.target.value })}
-        />
-      </DataListRow>
       <DataListRow label="File">
         <Input
           type="file"

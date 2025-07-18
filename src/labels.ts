@@ -24,7 +24,6 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
   baseId: "Base ID",
   url: "URL",
-  idColumn: "ID Column",
   listId: "List ID",
   tableId: "Table ID",
   type: "Type",

@@ -7,11 +7,9 @@ import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
 
 export class CSVAdaptor implements DataSourceAdaptor {
-  private idColumn: string;
   private url: string;
 
-  constructor(idColumn: string, url: string) {
-    this.idColumn = idColumn;
+  constructor(url: string) {
     this.url = url.startsWith("/api/upload") ? getLocalUrl(url) : url;
   }
 
@@ -50,9 +48,11 @@ export class CSVAdaptor implements DataSourceAdaptor {
     const content = await this.createReadStream();
     const parser = content.pipe(parse({ columns: true }));
     // Parse the CSV content
+    let row = 1;
     for await (const record of parser) {
-      if (this.idColumn in record) {
-        yield { externalId: record[this.idColumn], json: record };
+      if (Object.keys(record).length) {
+        yield { externalId: String(row), json: record };
+        row++;
       }
     }
   }
@@ -62,11 +62,11 @@ export class CSVAdaptor implements DataSourceAdaptor {
       const content = await this.createReadStream();
       const parser = content.pipe(parse({ columns: true }));
       for await (const record of parser) {
-        if (this.idColumn in record) {
-          return { externalId: record[this.idColumn], json: record };
+        if (Object.keys(record).length) {
+          return { externalId: "1", json: record };
         }
-        throw new Error(`ID column "${this.idColumn}" missing`);
       }
+      throw new Error("Empty CSV");
     } catch (error) {
       logger.warn(`Could not get first record for CSV ${this.url}`, {
         error,

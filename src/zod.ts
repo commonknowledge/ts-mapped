@@ -32,7 +32,6 @@ export type MailchimpConfig = z.infer<typeof MailchimpConfigSchema>;
 export const CSVConfigSchema = z.object({
   type: z.literal(DataSourceType.csv),
   url: z.string().nonempty(),
-  idColumn: z.string().nonempty(),
 });
 
 export type CSVConfig = z.infer<typeof CSVConfigSchema>;
