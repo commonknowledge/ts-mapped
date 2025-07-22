@@ -33,7 +33,7 @@ export default function SettingsModal() {
   return (
     <Dialog>
       <DialogTrigger>
-        <IconButtonWithTooltip tooltip="Settings">
+        <IconButtonWithTooltip tooltip="Add Members">
           <PlusIcon className="w-4 h-4" />
         </IconButtonWithTooltip>
       </DialogTrigger>

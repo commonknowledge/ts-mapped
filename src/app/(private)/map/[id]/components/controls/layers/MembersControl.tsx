@@ -1,12 +1,13 @@
-import { Table } from "lucide-react";
+import { Ellipsis, Table } from "lucide-react";
 import { useContext } from "react";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
+
 import DataSourceIcon from "../../DataSourceIcon";
-import SettingsModal from "../../SettingsModal";
 import ControlItemWrapper from "../ControlItemWrapper";
 import LayerHeader from "../LayerHeader";
 
@@ -15,11 +16,34 @@ export default function MembersControl() {
   const { getMembersDataSource } = useContext(DataSourcesContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
+  const { getDataSources } = useContext(DataSourcesContext);
 
   const dataSource = getMembersDataSource();
   const isSelected = dataSource
     ? selectedDataSourceId === dataSource.id
     : false;
+
+  const dataSources = getDataSources();
+
+  const getDropdownItems = () => {
+    const items = dataSources.map((ds) => ({
+      type: "item" as const,
+      label: ds.name,
+      onClick: () => {
+        handleDataSourceSelect(ds.id);
+        updateViewConfig({ membersDataSourceId: ds.id });
+      },
+    }));
+    return [
+      ...items,
+      { type: "separator" as const },
+      {
+        type: "item" as const,
+        label: "Add new data source",
+        onClick: () => console.log("clicked"),
+      },
+    ];
+  };
 
   return (
     <ControlItemWrapper>
@@ -29,7 +53,15 @@ export default function MembersControl() {
         showLayer={viewConfig.showMembers}
         setLayer={(show) => updateViewConfig({ showMembers: show })}
       >
-        <SettingsModal />
+        <IconButtonWithTooltip
+          align="start"
+          side="right"
+          tooltip="Member lists"
+          dropdownLabel="Select a member list"
+          dropdownItems={getDropdownItems()}
+        >
+          <Ellipsis className="w-4 h-4" />
+        </IconButtonWithTooltip>
       </LayerHeader>
 
       <ScrollArea className="max-h-[200px] w-full rounded-md overflow-y-auto">

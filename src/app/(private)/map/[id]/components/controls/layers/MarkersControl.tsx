@@ -253,6 +253,7 @@ const MarkersList = () => {
                 )}
               </li>
             ))}
+            {/* Data sources */}
             {markerDataSources.length > 0 && (
               <div className=" gap-2 p-2 mt-3 bg-muted rounded">
                 <div className="flex items-center gap-2">
