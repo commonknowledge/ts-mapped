@@ -23,7 +23,7 @@ export default function Map({
 }: {
   onSourceLoad: (sourceId: string) => void;
 }) {
-  const { mapRef, viewConfig, setBoundingBox, setZoom } =
+  const { mapRef, mapConfig, viewConfig, setBoundingBox, setZoom } =
     useContext(MapContext);
   const { insertPlacedMarker, setSelectedMarker, deleteTurf, insertTurf } =
     useContext(MarkerAndTurfContext);
@@ -41,8 +41,8 @@ export default function Map({
   }, [mapRef, draw]);
 
   const markerLayers = [
-    viewConfig.membersDataSourceId,
-    ...viewConfig.markerDataSourceIds,
+    mapConfig.membersDataSourceId,
+    ...mapConfig.markerDataSourceIds,
   ]
     .filter(Boolean)
     .map((id) => `${id}-markers-pins`);

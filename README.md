@@ -27,8 +27,8 @@
 - Add commands to `bin/cmd.ts`.
 - Run commands with `npm run cmd -- [command] [...args]`
 
-
 7. Start the server with `./bin/run.sh`
+
 # Further Details
 
 ## Seed Data
@@ -41,4 +41,3 @@ The SQL import includes the following:
 - Area sets:
   - Constituencies (2024)
   - Census Output Areas and MSOAs (2021)
-

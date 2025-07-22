@@ -10,7 +10,7 @@ export default function DataSourcesProvider({
 }: {
   children: ReactNode;
 }) {
-  const { viewConfig } = useContext(MapContext);
+  const { mapConfig, viewConfig } = useContext(MapContext);
 
   const dataSourcesQuery = useDataSourcesQuery();
 
@@ -30,12 +30,12 @@ export default function DataSourcesProvider({
   const getMarkerDataSources = () => {
     const dataSources = getDataSources();
     return dataSources.filter((ds) =>
-      viewConfig.markerDataSourceIds.includes(ds.id),
+      mapConfig.markerDataSourceIds.includes(ds.id),
     );
   };
 
   const getMembersDataSource = () => {
-    return getDataSourceById(viewConfig.membersDataSourceId);
+    return getDataSourceById(mapConfig.membersDataSourceId);
   };
 
   return (

@@ -9,7 +9,6 @@ import {
   CreateMapMutationVariables,
   ListMapsQuery,
   ListMapsQueryVariables,
-  Map,
 } from "@/__generated__/types";
 import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
@@ -83,7 +82,7 @@ export default function DashboardPage() {
         <LoaderPinwheel className="animate-spin" />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
-          {maps.map((map: Map) => (
+          {maps.map((map) => (
             <MapCard key={map.id} map={map} />
           ))}
         </div>

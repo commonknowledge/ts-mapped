@@ -2,7 +2,6 @@
 
 import { useContext } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
-import MapNavbar from "@/components/MapNavbar";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -13,6 +12,7 @@ import Controls from "./components/controls/Controls";
 import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
+import MapNavbar from "./components/MapNavbar";
 import MapStyleSelector from "./components/MapStyleSelector";
 import MapTable from "./components/table/MapTable";
 import { ChoroplethContext } from "./context/ChoroplethContext";

@@ -84,6 +84,5 @@ export const getChoroplethLayerConfig = (
       }
     }
   }
-  // Return a default to simplify code
   return CHOROPLETH_LAYER_CONFIGS["WMC24"][0];
 };
