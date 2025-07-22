@@ -33,6 +33,7 @@ export default function ChoroplethProvider({
 
   /* GraphQL Data */
   const areaStatsQuery = useAreaStatsQuery({
+    areaSetGroupCode: viewConfig.areaSetGroupCode,
     areaSetCode: choroplethLayerConfig.areaSetCode,
     dataSourceId: viewConfig.areaDataSourceId,
     column: viewConfig.areaDataColumn,

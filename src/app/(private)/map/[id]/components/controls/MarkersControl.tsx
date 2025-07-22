@@ -133,12 +133,12 @@ function DataSourcesModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const { getDataSources } = useContext(DataSourcesContext);
-  const { updateViewConfig, viewConfig } = useContext(MapContext);
+  const { updateMapConfig, mapConfig } = useContext(MapContext);
 
   const dataSources = getDataSources();
 
   const updateMarkerDataSources = (dataSourceIds: string[]) => {
-    updateViewConfig({ markerDataSourceIds: dataSourceIds });
+    updateMapConfig({ markerDataSourceIds: dataSourceIds });
   };
 
   return (
@@ -162,18 +162,18 @@ function DataSourcesModal({
                 onCheckedChange={(checked) => {
                   if (checked) {
                     updateMarkerDataSources([
-                      ...viewConfig.markerDataSourceIds,
+                      ...mapConfig.markerDataSourceIds,
                       dataSource.id,
                     ]);
                   } else {
                     updateMarkerDataSources(
-                      viewConfig.markerDataSourceIds.filter(
+                      mapConfig.markerDataSourceIds.filter(
                         (id) => id !== dataSource.id,
                       ),
                     );
                   }
                 }}
-                checked={viewConfig.markerDataSourceIds.some(
+                checked={mapConfig.markerDataSourceIds.some(
                   (id) => id === dataSource.id,
                 )}
               />

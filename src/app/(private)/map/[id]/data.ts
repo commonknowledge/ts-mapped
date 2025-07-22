@@ -2,6 +2,7 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useRef, useState } from "react";
 import {
   AreaSetCode,
+  AreaSetGroupCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
   DataRecordsQuery,
@@ -81,6 +82,10 @@ export const useMapQuery = (mapId: string | null) =>
       query Map($id: String!) {
         map(id: $id) {
           name
+          config {
+            markerDataSourceIds
+            membersDataSourceId
+          }
           placedMarkers {
             id
             label
@@ -105,8 +110,6 @@ export const useMapQuery = (mapId: string | null) =>
               areaDataColumn
               areaSetGroupCode
               excludeColumnsString
-              markerDataSourceIds
-              membersDataSourceId
               mapStyleName
               showBoundaryOutline
               showLabels
@@ -168,12 +171,14 @@ export const useMarkerQueries = ({
 };
 
 export const useAreaStatsQuery = ({
+  areaSetGroupCode,
   areaSetCode,
   dataSourceId,
   column,
   excludeColumns,
   useDummyBoundingBox,
 }: {
+  areaSetGroupCode: AreaSetGroupCode | null;
   areaSetCode: AreaSetCode;
   dataSourceId: string;
   column: string;
@@ -220,7 +225,7 @@ export const useAreaStatsQuery = ({
           ? { north: 0, east: 0, south: 0, west: 0 }
           : null,
       },
-      skip: !dataSourceId || !column,
+      skip: !dataSourceId || !column || !areaSetGroupCode,
       notifyOnNetworkStatusChange: true,
     },
   );

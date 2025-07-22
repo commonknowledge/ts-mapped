@@ -1,16 +1,19 @@
 import {
   Generated,
   Insertable,
+  JSONColumnType,
   ColumnType as KyselyColumnType,
   Selectable,
   Updateable,
 } from "kysely";
+import { MapConfig } from "@/__generated__/types";
 
 export interface MapTable {
   id: Generated<string>;
   name: string;
   organisationId: string;
   imageUrl: string | null;
+  config: JSONColumnType<MapConfig>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }
 

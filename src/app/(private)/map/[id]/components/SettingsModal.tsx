@@ -25,7 +25,7 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 
 export default function SettingsModal() {
-  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { mapConfig, updateMapConfig } = useContext(MapContext);
   const { getDataSources } = useContext(DataSourcesContext);
 
   const dataSources = getDataSources();
@@ -47,9 +47,9 @@ export default function SettingsModal() {
           <Label htmlFor="membersDataSourceId">Members Data Source</Label>
 
           <Select
-            value={viewConfig.membersDataSourceId}
+            value={mapConfig.membersDataSourceId}
             onValueChange={(value) =>
-              updateViewConfig({ membersDataSourceId: value })
+              updateMapConfig({ membersDataSourceId: value })
             }
           >
             <SelectTrigger className="w-full shadow-none">
