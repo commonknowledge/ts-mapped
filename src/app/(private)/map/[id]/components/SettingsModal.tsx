@@ -1,4 +1,4 @@
-import { PlusIcon, Settings } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import React, { useContext } from "react";
 
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
@@ -34,7 +34,7 @@ export default function SettingsModal() {
     <Dialog>
       <DialogTrigger>
         <IconButtonWithTooltip tooltip="Settings">
-          <Settings className="w-4 h-4" />
+          <PlusIcon className="w-4 h-4" />
         </IconButtonWithTooltip>
       </DialogTrigger>
       <DialogContent>

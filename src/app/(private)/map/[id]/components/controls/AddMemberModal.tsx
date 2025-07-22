@@ -1,0 +1,81 @@
+import { useContext } from "react";
+import { Checkbox } from "@/shadcn/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shadcn/ui/dialog";
+import { DataSourcesContext } from "../../context/DataSourcesContext";
+import { MapContext } from "../../context/MapContext";
+
+export default function AddMembersDataModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { getDataSources } = useContext(DataSourcesContext);
+  const { updateViewConfig, viewConfig } = useContext(MapContext);
+
+  const dataSources = getDataSources();
+
+  const updateMarkerDataSources = (dataSourceIds: string[]) => {
+    updateViewConfig({ markerDataSourceIds: dataSourceIds });
+  };
+
+  const handleDataSourceToggle = (dataSourceId: string, checked: boolean) => {
+    if (checked) {
+      updateMarkerDataSources([
+        ...viewConfig.markerDataSourceIds,
+        dataSourceId,
+      ]);
+    } else {
+      updateMarkerDataSources(
+        viewConfig.markerDataSourceIds.filter((id) => id !== dataSourceId)
+      );
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild></DialogTrigger>
+      <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add data to map</DialogTitle>
+          <DialogDescription>
+            Select data sources to display their locations on the map
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 relative">
+          {dataSources.map((dataSource) => (
+            <label
+              key={dataSource.id}
+              className="flex items-center gap-4 rounded-lg border hover:bg-neutral-50 cursor-pointer"
+            >
+              <Checkbox
+                id={`ds-${dataSource.id}`}
+                onCheckedChange={(checked) =>
+                  handleDataSourceToggle(dataSource.id, checked as boolean)
+                }
+                checked={viewConfig.markerDataSourceIds.some(
+                  (id) => id === dataSource.id
+                )}
+              />
+              <div className="flex flex-col flex-1">
+                <span className="font-medium">{dataSource.name}</span>
+                <span className="text-sm text-muted-foreground">
+                  {dataSource.recordCount || 0} location
+                  {dataSource.recordCount !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </label>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
