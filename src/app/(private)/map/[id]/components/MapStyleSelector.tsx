@@ -54,7 +54,7 @@ export default function MapStyleSelector() {
               </SelectContent>
             </Select>
             <TooltipContent>
-              <p>Map Style</p>
+              <p>Map style</p>
             </TooltipContent>
           </Tooltip>
 

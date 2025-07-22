@@ -17,13 +17,13 @@ export default function TurfControl() {
         setLayer={(show) => updateViewConfig({ showTurf: show })}
       >
         <IconButtonWithTooltip
-          tooltip="Add Turf"
+          tooltip="Add Area"
           onClick={() => {
             const map = mapRef?.current;
             if (map) {
               // Find the polygon draw button and click it
               const drawButton = document.querySelector(
-                ".mapbox-gl-draw_polygon",
+                ".mapbox-gl-draw_polygon"
               ) as HTMLButtonElement;
               if (drawButton) {
                 drawButton.click();

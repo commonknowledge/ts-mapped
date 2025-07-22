@@ -56,7 +56,7 @@ export default function Sidebar({ slug }: { slug: string }) {
             height={32}
           />
         </Link>
-        <Button variant="outline" size="sm">
+        <Button size="sm">
           <PlusIcon className="w-4 h-4" />
         </Button>
       </div>
@@ -91,8 +91,8 @@ export default function Sidebar({ slug }: { slug: string }) {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary",
+                  "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+                  isActive(item.href) && "bg-neutral-100 text-primary"
                 )}
               >
                 {item.icon}

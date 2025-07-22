@@ -28,7 +28,7 @@ export default function DashboardPage() {
     {
       variables: { organisationId: organisationId || "" },
       skip: !organisationId,
-    },
+    }
   );
   const maps = data?.maps || [];
   const [createMap] = useMutation<

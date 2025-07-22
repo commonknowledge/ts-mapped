@@ -26,9 +26,7 @@ export default function PrivateLayout({
   return (
     <div className="flex h-screen">
       <Sidebar slug={pathname} />
-      <div className="flex-1 overflow-auto p-10 max-w-6xl w-full">
-        {children}
-      </div>
+      <div className="flex-1 overflow-auto p-10  w-full">{children}</div>
     </div>
   );
 }

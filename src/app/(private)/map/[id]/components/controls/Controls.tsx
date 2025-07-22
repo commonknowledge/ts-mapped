@@ -1,4 +1,4 @@
-import { Columns } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
@@ -33,13 +33,13 @@ export default function Controls() {
   return (
     <>
       {/* Toggle button - always visible */}
-      <div className="flex absolute top-17 left-3 z-10 bg-white rounded-lg shadow-lg">
+      <div className="flex absolute top-3 left-3 z-10 bg-white rounded-lg shadow-lg">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setShowControls(!showControls)}
         >
-          <Columns className="w-4 h-4" />
+          <PanelLeft className="w-4 h-4" />
           <span className="sr-only">Toggle columns</span>
         </Button>
       </div>
@@ -63,7 +63,7 @@ export default function Controls() {
             size="icon"
             onClick={() => setShowControls(!showControls)}
           >
-            <Columns className="w-4 h-4" />
+            <PanelLeft className="w-4 h-4" />
             <span className="sr-only">Toggle columns</span>
           </Button>
         </div>
