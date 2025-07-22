@@ -6,7 +6,6 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
