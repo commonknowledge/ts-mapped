@@ -22,7 +22,6 @@ export default function AreasControl() {
   const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
   const { turfs, turfsLoading, setEditingTurf, updateTurf, deleteTurf } =
     useContext(MarkerAndTurfContext);
-  const { getOrganisation } = useContext(OrganisationsContext);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
@@ -123,11 +122,13 @@ export default function AreasControl() {
                     </form>
                   ) : (
                     <>
-                      <div>
-                        <div>{turf.label}</div>
-                        <div className="text-neutral-400 text-xs">
-                          {getOrganisation()?.name || "Unknown organisation"}
-                        </div>
+                      <div className="flex items-center gap-2 pl-1">
+                        <div
+                          style={{ backgroundColor: mapColors.areas.color }}
+                          className="w-2 h-2 rounded-full"
+                        />
+
+                        <div className="text-sm">{turf.label}</div>
                       </div>
                     </>
                   )}

@@ -6,7 +6,6 @@ import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
-
 import DataSourceIcon from "../../DataSourceIcon";
 import ControlItemWrapper from "../ControlItemWrapper";
 import LayerHeader from "../LayerHeader";
