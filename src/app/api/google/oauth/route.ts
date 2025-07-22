@@ -11,7 +11,6 @@ const oauth2Client = new OAuth2Client({
 });
 
 const SCOPES = [
-  "https://www.googleapis.com/auth/drive.readonly",
   "https://www.googleapis.com/auth/spreadsheets",
 ];
 
