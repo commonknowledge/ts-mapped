@@ -29,6 +29,25 @@ export const MailchimpConfigSchema = z.object({
 
 export type MailchimpConfig = z.infer<typeof MailchimpConfigSchema>;
 
+export const GoogleOAuthCredentialsSchema = z.object({
+  access_token: z.string().nonempty(),
+  refresh_token: z.string().nonempty(),
+  expiry_date: z.number().optional(),
+});
+
+export type GoogleOAuthCredentials = z.infer<
+  typeof GoogleOAuthCredentialsSchema
+>;
+
+export const GoogleSheetsConfigSchema = z.object({
+  type: z.literal(DataSourceType.googlesheets),
+  spreadsheetId: z.string().nonempty(),
+  sheetName: z.string().nonempty(),
+  oAuthCredentials: GoogleOAuthCredentialsSchema,
+});
+
+export type GoogleSheetsConfig = z.infer<typeof GoogleSheetsConfigSchema>;
+
 export const CSVConfigSchema = z.object({
   type: z.literal(DataSourceType.csv),
   url: z.string().nonempty(),
@@ -38,6 +57,7 @@ export type CSVConfig = z.infer<typeof CSVConfigSchema>;
 
 export const DataSourceConfigSchema = z.discriminatedUnion("type", [
   AirtableConfigSchema,
+  GoogleSheetsConfigSchema,
   MailchimpConfigSchema,
   CSVConfigSchema,
 ]);

@@ -3,11 +3,11 @@ import { Input } from "@/shadcn/ui/input";
 import { DataSourceType } from "@/types";
 import { NewDataSourceConfig } from "../types";
 
-export default function MailchimpInputs({
+export default function MailchimpFields({
   config,
   onChange,
 }: {
-  config: NewDataSourceConfig;
+  config: Partial<NewDataSourceConfig>;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
   if (config.type !== DataSourceType.mailchimp) {

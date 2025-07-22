@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   ColumnDef,
   ColumnType,
@@ -47,8 +48,11 @@ const MutationResolvers: MutationResolversType = {
     }: { name: string; organisationId: string; rawConfig: unknown },
   ): Promise<CreateDataSourceResponse> => {
     try {
+      const id = uuidv4();
       const config = DataSourceConfigSchema.parse(rawConfig);
-      const adaptor = getDataSourceAdaptor(config);
+
+      const adaptor = getDataSourceAdaptor({ id, config });
+
       const firstRecord = adaptor ? await adaptor.fetchFirst() : null;
       if (!firstRecord) {
         return { code: 500 };
@@ -65,6 +69,7 @@ const MutationResolvers: MutationResolversType = {
         type: GeocodingType.None,
       };
       const dataSource = await createDataSource({
+        id,
         name,
         organisationId,
         autoEnrich: false,
@@ -144,7 +149,7 @@ const MutationResolvers: MutationResolversType = {
         return { code: 404 };
       }
 
-      const adaptor = getDataSourceAdaptor(dataSource.config);
+      const adaptor = getDataSourceAdaptor(dataSource);
 
       const update: {
         columnRoles?: string;
@@ -175,7 +180,7 @@ const MutationResolvers: MutationResolversType = {
 
       if (nextAutoStatus.changed) {
         const enable = nextAutoStatus.autoEnrich || nextAutoStatus.autoImport;
-        await adaptor?.toggleWebhook(dataSource.id, enable);
+        await adaptor?.toggleWebhook(enable);
       }
 
       if (columnRoles) {

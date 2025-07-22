@@ -54,6 +54,7 @@ export default function Sidebar({ slug }: { slug: string }) {
             alt="Mapped"
             width={320}
             height={32}
+            priority
           />
         </Link>
         <Button variant="outline" size="sm">

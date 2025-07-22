@@ -20,7 +20,7 @@
 5. Install dependencies with `npm i`
 6. Run any migrations with `npm run kysely migrate:latest`
 7. Start the server with `npm run dev`
-8. View the site at `http://localhost:3000`
+8. View the site at `https://localhost:3000`
 9. Log in with username `hello@commonknowledge.coop` and password `1234`.
 
 ### Seed Data
@@ -44,3 +44,9 @@ The SQL import includes the following:
 - The [Commander](https://www.npmjs.com/package/commander) library has been used to create a CLI for this project.
 - Add commands to `bin/cmd.ts`.
 - Run commands with `npm run cmd -- [command] [...args]`
+
+### Tests
+
+- Run tests with `npm test`
+- This will download `test_credentials.json` from BitWarden Secrets manager, which is required to test the data source adaptors.
+- Filter tests with `npm test -t [filter]`

@@ -8,6 +8,7 @@ export interface CurrentUser {
 export enum DataSourceType {
   airtable = "airtable",
   csv = "csv",
+  googlesheets = "googlesheets",
   mailchimp = "mailchimp",
 }
 
