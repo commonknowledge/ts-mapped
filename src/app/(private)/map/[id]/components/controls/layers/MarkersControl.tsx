@@ -8,17 +8,20 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from "@dnd-kit/core";
 import {
   arrayMove,
-  SortableContext,
   sortableKeyboardCoordinates,
+  SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   Check,
+  ChevronDown,
+  ChevronRight,
   Database,
   DatabaseIcon,
   Ellipsis,
@@ -28,7 +31,7 @@ import {
   Table,
   Trash2,
 } from "lucide-react";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -44,6 +47,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { Separator } from "@/shadcn/ui/separator";
 import DataSourceIcon from "../../DataSourceIcon";
 import Loading from "../../Loading";
 import AddMembersDataModal from "../AddMemberModal";
@@ -56,6 +60,24 @@ export default function MarkersControl() {
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
   const { getDataSources } = useContext(DataSourcesContext);
+  const [folders, setFolders] = useState<
+    {
+      id: string;
+      name: string;
+      markerIds: string[];
+      isExpanded: boolean;
+    }[]
+  >([]);
+
+  const createFolder = () => {
+    const newFolder = {
+      id: `folder-${Date.now()}`,
+      name: `New Folder ${folders.length + 1}`,
+      markerIds: [],
+      isExpanded: true,
+    };
+    setFolders([...folders, newFolder]);
+  };
 
   const handleManualSearch = () => {
     setTimeout(() => {
@@ -154,7 +176,7 @@ export default function MarkersControl() {
       type: "item" as const,
       icon: <FolderPlusIcon className="w-4 h-4 text-muted-foreground" />,
       label: "Add Folder",
-      onClick: () => console.log("clicked"),
+      onClick: () => createFolder(),
     },
   ];
 
@@ -180,7 +202,7 @@ export default function MarkersControl() {
           <Ellipsis className="w-4 h-4" />
         </IconButtonWithTooltip>
       </LayerHeader>
-      <MarkersList />
+      <MarkersList folders={folders} setFolders={setFolders} />
     </ControlItemWrapper>
   );
 }
@@ -188,24 +210,16 @@ export default function MarkersControl() {
 // Sortable marker item component
 const SortableMarkerItem = ({
   marker,
-  index,
-  isEditing,
-  editText,
-  onEdit,
   onEditSubmit,
-  onContextMenu,
   onFlyTo,
-  onDelete,
+  handleDeleteMarker,
+  activeId,
 }: {
   marker: PlacedMarker;
-  index: number;
-  isEditing: boolean;
-  editText: string;
-  onEdit: (text: string) => void;
-  onEditSubmit: () => void;
-  onContextMenu: () => void;
+  onEditSubmit: (markerId: string, newLabel: string) => void;
   onFlyTo: () => void;
-  onDelete: () => void;
+  handleDeleteMarker: (markerId: string) => void;
+  activeId: string | null;
 }) => {
   const {
     attributes,
@@ -214,64 +228,226 @@ const SortableMarkerItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `marker-${index}` });
+  } = useSortable({ id: `marker-${marker.id}` });
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(marker.label);
+
+  // Check if this marker is the one being dragged (even outside its container)
+  const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="flex items-center gap-2 px-1 hover:bg-neutral-100 rounded cursor-grab active:cursor-grabbing"
-      onContextMenu={onContextMenu}
-    >
-      {isEditing ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onEditSubmit();
-          }}
-          className="w-full flex items-center gap-1"
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <li
+          ref={setNodeRef}
+          style={style}
+          {...attributes}
+          {...listeners}
+          className="flex items-center gap-2 px-1 hover:bg-neutral-100 rounded cursor-grab active:cursor-grabbing"
         >
-          <Input
-            value={editText}
-            onChange={(e) => onEdit(e.target.value)}
-            autoFocus
-            className="flex-1"
-          />
-          <Button type="submit" size="sm" variant="ghost">
-            <Check className="h-3 w-3" />
-          </Button>
-        </form>
-      ) : (
-        <>
-          <div
-            className="flex items-center gap-1.5 flex-grow cursor-pointer text-sm"
-            onClick={onFlyTo}
-          >
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: mapColors.markers.color }}
+          {isEditing ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onEditSubmit(marker.id, editText);
+                setIsEditing(false);
+              }}
+              className="w-full flex items-center gap-1"
+            >
+              <Input
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                autoFocus
+                className="flex-1"
+              />
+              <Button type="submit" size="sm" variant="ghost">
+                <Check className="h-3 w-3" />
+              </Button>
+            </form>
+          ) : (
+            <>
+              <div
+                className="flex items-center gap-1.5 flex-grow cursor-pointer text-sm"
+                onClick={onFlyTo}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: mapColors.markers.color }}
+                />
+                {marker.label}
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleDeleteMarker(marker.id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </>
+          )}
+        </li>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem
+          onClick={() => {
+            setEditText(marker.label);
+            setIsEditing(true);
+          }}
+        >
+          <Pencil className="h-4 w-4" />
+          Edit
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            handleDeleteMarker(marker.id);
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+};
+
+// Unassigned folder component (behaves like a regular folder)
+const UnassignedFolder = ({
+  markers,
+  onEditSubmit,
+  onFlyTo,
+  handleDeleteMarker,
+  activeId,
+  folders,
+}: {
+  markers: PlacedMarker[];
+  onEditSubmit: (markerId: string, newLabel: string) => void;
+  onFlyTo: (marker: PlacedMarker) => void;
+  handleDeleteMarker: (markerId: string) => void;
+  activeId: string | null;
+  folders: {
+    id: string;
+    name: string;
+    markerIds: string[];
+    isExpanded: boolean;
+  }[];
+}) => {
+  const { setNodeRef } = useDroppable({
+    id: "unassigned",
+  });
+
+  return (
+    <div className="mb-1">
+      {folders.length > 0 && (
+        <div ref={setNodeRef} className="p-2">
+          <Separator orientation="horizontal" className="h-4 w-full" />
+        </div>
+      )}
+
+      <div className="ml-4 mt-1 space-y-0.5">
+        <SortableContext
+          items={markers.map((marker) => `marker-${marker.id}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          {markers.map((marker, index) => (
+            <SortableMarkerItem
+              key={`${marker.id}-${index}`}
+              marker={marker}
+              onEditSubmit={onEditSubmit}
+              onFlyTo={() => onFlyTo(marker)}
+              handleDeleteMarker={handleDeleteMarker}
+              activeId={activeId}
             />
-            {marker.label}
+          ))}
+        </SortableContext>
+      </div>
+    </div>
+  );
+};
+
+// Folder component
+const FolderItem = ({
+  folder,
+  markers,
+  onToggle,
+  onEditSubmit,
+  onFlyTo,
+  handleDeleteMarker,
+  activeId,
+}: {
+  folder: {
+    id: string;
+    name: string;
+    markerIds: string[];
+    isExpanded: boolean;
+  };
+  markers: PlacedMarker[];
+  onToggle: () => void;
+  onEditSubmit: (markerId: string, newLabel: string) => void;
+  onFlyTo: (marker: PlacedMarker) => void;
+  handleDeleteMarker: (markerId: string) => void;
+  activeId: string | null;
+}) => {
+  const { setNodeRef: setHeaderNodeRef, isOver: isHeaderOver } = useDroppable({
+    id: `folder-${folder.id}`,
+  });
+
+  const { setNodeRef: setFooterNodeRef } = useDroppable({
+    id: `folder-footer-${folder.id}`,
+  });
+
+  return (
+    <div className="mb-1">
+      <div
+        ref={setHeaderNodeRef}
+        className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-neutral-100 rounded transition-colors ${
+          isHeaderOver ? "bg-blue-50" : ""
+        }`}
+        onClick={onToggle}
+      >
+        {folder.isExpanded ? (
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        )}
+        <span className="text-sm font-medium flex-1">{folder.name}</span>
+        <span className="text-xs text-muted-foreground">
+          ({markers.length})
+        </span>
+      </div>
+
+      {folder.isExpanded && (
+        <>
+          <div className="ml-4 mt-1 space-y-0.5">
+            <SortableContext
+              items={markers.map((marker) => `marker-${marker.id}`)}
+              strategy={verticalListSortingStrategy}
+            >
+              {markers.map((marker, index) => (
+                <SortableMarkerItem
+                  key={`${marker.id}-${index}`}
+                  marker={marker}
+                  onEditSubmit={onEditSubmit}
+                  onFlyTo={() => onFlyTo(marker)}
+                  handleDeleteMarker={handleDeleteMarker}
+                  activeId={activeId}
+                />
+              ))}
+            </SortableContext>
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onDelete}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
+
+          {/* Invisible footer drop zone */}
+          <div ref={setFooterNodeRef} className={`h-2 ml-4 mt-1 rounded`} />
         </>
       )}
-    </li>
+    </div>
   );
 };
 
@@ -293,7 +469,27 @@ const MarkerDragOverlay = ({ marker }: { marker: PlacedMarker }) => {
   );
 };
 
-const MarkersList = () => {
+const MarkersList = ({
+  folders,
+  setFolders,
+}: {
+  folders: {
+    id: string;
+    name: string;
+    markerIds: string[];
+    isExpanded: boolean;
+  }[];
+  setFolders: React.Dispatch<
+    React.SetStateAction<
+      {
+        id: string;
+        name: string;
+        markerIds: string[];
+        isExpanded: boolean;
+      }[]
+    >
+  >;
+}) => {
   const { viewConfig, mapRef } = useContext(MapContext);
   const { placedMarkers, placedMarkersLoading } =
     useContext(MarkerAndTurfContext);
@@ -301,46 +497,60 @@ const MarkersList = () => {
     useContext(TableContext);
   const { getMarkerDataSources } = useContext(DataSourcesContext);
 
-  // Local state for markers (no database interaction)
-  const [localMarkers, setLocalMarkers] =
-    useState<PlacedMarker[]>(placedMarkers);
-  const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editText, setEditText] = useState("");
+  // Simple state structure: treat unassigned as a special "unassigned" folder
+  const [markerOrganization, setMarkerOrganization] = useState<{
+    unassigned: string[];
+    folders: Record<string, string[]>;
+  }>({ unassigned: [], folders: {} });
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const markerDataSources = getMarkerDataSources();
 
-  // DnD sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+  // Get all markers from context
+  const allMarkers = useMemo(
+    () => placedMarkers.filter((marker) => marker && marker.id),
+    [placedMarkers]
   );
 
-  // Update local markers when placedMarkers changes
-  useEffect(() => {
-    setLocalMarkers(placedMarkers);
-  }, [placedMarkers]);
-
-  const handleEditMarker = useCallback(
-    (index: number) => {
-      const existingMarker = localMarkers[index];
-      if (existingMarker) {
-        const updatedMarkers = [...localMarkers];
-        updatedMarkers[index] = { ...existingMarker, label: editText };
-        setLocalMarkers(updatedMarkers);
-        setEditingIndex(null);
-        setEditText("");
-      }
+  // Get markers by IDs
+  const getMarkersByIds = useCallback(
+    (ids: string[]) => {
+      return ids
+        .map((id) => allMarkers.find((marker) => marker.id === id))
+        .filter(Boolean) as PlacedMarker[];
     },
-    [localMarkers, editText]
+    [allMarkers]
   );
+
+  // Get unassigned markers
+  const getUnassignedMarkers = useCallback(() => {
+    return getMarkersByIds(markerOrganization.unassigned);
+  }, [getMarkersByIds, markerOrganization.unassigned]);
+
+  // Get markers in a folder
+  const getMarkersInFolder = useCallback(
+    (folderId: string) => {
+      const folderMarkerIds = markerOrganization.folders[folderId] || [];
+      return getMarkersByIds(folderMarkerIds);
+    },
+    [markerOrganization.folders, getMarkersByIds]
+  );
+
+  // Helper functions
+  const toggleFolder = (folderId: string) => {
+    setFolders(
+      folders.map((folder) =>
+        folder.id === folderId
+          ? { ...folder, isExpanded: !folder.isExpanded }
+          : folder
+      )
+    );
+  };
+
+  const handleEditMarker = useCallback((markerId: string, newLabel: string) => {
+    // This would update the marker in the context
+    console.log("Edit marker:", markerId, newLabel);
+  }, []);
 
   const handleFlyToMarker = useCallback(
     (marker: PlacedMarker) => {
@@ -355,142 +565,353 @@ const MarkersList = () => {
     [mapRef]
   );
 
-  const handleDeleteMarker = useCallback(
-    (index: number) => {
-      const updatedMarkers = localMarkers.filter((_, i) => i !== index);
-      setLocalMarkers(updatedMarkers);
-    },
-    [localMarkers]
+  const handleDeleteMarker = useCallback((markerId: string) => {
+    setMarkerOrganization((prev) => {
+      const newUnassigned = prev.unassigned.filter((id) => id !== markerId);
+      const newFolders = { ...prev.folders };
+
+      // Remove from all folders
+      Object.keys(newFolders).forEach((folderId) => {
+        newFolders[folderId] = newFolders[folderId].filter(
+          (id) => id !== markerId
+        );
+      });
+
+      return {
+        unassigned: newUnassigned,
+        folders: newFolders,
+      };
+    });
+  }, []);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
+
+  // Update marker organization when placedMarkers changes
+  useEffect(() => {
+    const newMarkerIds = allMarkers.map((marker) => marker.id);
+    setMarkerOrganization((prev) => {
+      // Keep existing organization but add any new markers to unassigned
+      const existingIds = new Set([
+        ...prev.unassigned,
+        ...Object.values(prev.folders).flat(),
+      ]);
+
+      const newUnassigned = [
+        ...prev.unassigned,
+        ...newMarkerIds.filter((id) => !existingIds.has(id)),
+      ];
+
+      return {
+        unassigned: newUnassigned,
+        folders: prev.folders,
+      };
+    });
+  }, [allMarkers]);
 
   // Drag and drop handlers
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   }, []);
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
+  const handleDragOver = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = parseInt(active.id.toString().replace("marker-", ""));
-      const newIndex = parseInt(over.id.toString().replace("marker-", ""));
+      const activeMarkerId = active.id.toString().replace("marker-", "");
 
-      setLocalMarkers((items) => arrayMove(items, oldIndex, newIndex));
+      // Check if dragging over a container (folder header, folder footer, or unassigned)
+      if (over.id.toString().startsWith("folder-")) {
+        let folderId: string;
+
+        // Handle both header and footer IDs
+        if (over.id.toString().startsWith("folder-footer-")) {
+          folderId = over.id.toString().replace("folder-footer-", "");
+        } else {
+          folderId = over.id.toString().replace("folder-", "");
+        }
+
+        // Move marker to folder immediately
+        setMarkerOrganization((prev) => {
+          // Remove from current location
+          const newUnassigned = prev.unassigned.filter(
+            (id) => id !== activeMarkerId
+          );
+          const newFolders = { ...prev.folders };
+          Object.keys(newFolders).forEach((folderId) => {
+            newFolders[folderId] = newFolders[folderId].filter(
+              (id) => id !== activeMarkerId
+            );
+          });
+
+          // Add to target folder
+          if (!newFolders[folderId]) {
+            newFolders[folderId] = [];
+          }
+          newFolders[folderId] = [...newFolders[folderId], activeMarkerId];
+
+          return {
+            unassigned: newUnassigned,
+            folders: newFolders,
+          };
+        });
+      } else if (over.id === "unassigned") {
+        // Move marker to unassigned immediately
+        setMarkerOrganization((prev) => {
+          // Remove from all folders
+          const newFolders = { ...prev.folders };
+          Object.keys(newFolders).forEach((folderId) => {
+            newFolders[folderId] = newFolders[folderId].filter(
+              (id) => id !== activeMarkerId
+            );
+          });
+
+          // Add to unassigned if not already there
+          const newUnassigned = prev.unassigned.includes(activeMarkerId)
+            ? prev.unassigned
+            : [...prev.unassigned, activeMarkerId];
+
+          return {
+            unassigned: newUnassigned,
+            folders: newFolders,
+          };
+        });
+      }
     }
-
-    setActiveId(null);
   }, []);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      if (over && active.id !== over.id) {
+        const activeMarkerId = active.id.toString().replace("marker-", "");
+
+        // Handle reordering within the same container
+        if (
+          active.id.toString().startsWith("marker-") &&
+          over.id.toString().startsWith("marker-")
+        ) {
+          const overMarkerId = over.id.toString().replace("marker-", "");
+
+          // Find which container the markers are in
+          const activeInUnassigned =
+            markerOrganization.unassigned.includes(activeMarkerId);
+          const overInUnassigned =
+            markerOrganization.unassigned.includes(overMarkerId);
+
+          if (activeInUnassigned && overInUnassigned) {
+            // Reordering within unassigned
+            const oldIndex =
+              markerOrganization.unassigned.indexOf(activeMarkerId);
+            const newIndex =
+              markerOrganization.unassigned.indexOf(overMarkerId);
+
+            if (oldIndex !== -1 && newIndex !== -1) {
+              const reorderedUnassigned = arrayMove(
+                markerOrganization.unassigned,
+                oldIndex,
+                newIndex
+              );
+              setMarkerOrganization((prev) => ({
+                ...prev,
+                unassigned: reorderedUnassigned,
+              }));
+            }
+          } else {
+            // Find which folder they're in
+            const activeFolderId = Object.keys(markerOrganization.folders).find(
+              (folderId) =>
+                markerOrganization.folders[folderId].includes(activeMarkerId)
+            );
+            const overFolderId = Object.keys(markerOrganization.folders).find(
+              (folderId) =>
+                markerOrganization.folders[folderId].includes(overMarkerId)
+            );
+
+            if (
+              activeFolderId &&
+              overFolderId &&
+              activeFolderId === overFolderId
+            ) {
+              // Reordering within the same folder
+              const oldIndex =
+                markerOrganization.folders[activeFolderId].indexOf(
+                  activeMarkerId
+                );
+              const newIndex =
+                markerOrganization.folders[activeFolderId].indexOf(
+                  overMarkerId
+                );
+
+              if (oldIndex !== -1 && newIndex !== -1) {
+                const reorderedFolder = arrayMove(
+                  markerOrganization.folders[activeFolderId],
+                  oldIndex,
+                  newIndex
+                );
+                setMarkerOrganization((prev) => ({
+                  ...prev,
+                  folders: {
+                    ...prev.folders,
+                    [activeFolderId]: reorderedFolder,
+                  },
+                }));
+              }
+            } else {
+              // Moving between different containers
+              // Remove from current container
+              setMarkerOrganization((prev) => {
+                const newUnassigned = prev.unassigned.filter(
+                  (id) => id !== activeMarkerId
+                );
+                const newFolders = { ...prev.folders };
+                Object.keys(newFolders).forEach((folderId) => {
+                  newFolders[folderId] = newFolders[folderId].filter(
+                    (id) => id !== activeMarkerId
+                  );
+                });
+
+                // Add to target container
+                if (overInUnassigned) {
+                  // Moving to unassigned
+                  const overIndex = newUnassigned.indexOf(overMarkerId);
+                  if (overIndex !== -1) {
+                    newUnassigned.splice(overIndex, 0, activeMarkerId);
+                  } else {
+                    newUnassigned.push(activeMarkerId);
+                  }
+                } else if (overFolderId) {
+                  // Moving to a folder
+                  if (!newFolders[overFolderId]) {
+                    newFolders[overFolderId] = [];
+                  }
+                  const overIndex =
+                    newFolders[overFolderId].indexOf(overMarkerId);
+                  if (overIndex !== -1) {
+                    newFolders[overFolderId].splice(
+                      overIndex,
+                      0,
+                      activeMarkerId
+                    );
+                  } else {
+                    newFolders[overFolderId].push(activeMarkerId);
+                  }
+                }
+
+                return {
+                  unassigned: newUnassigned,
+                  folders: newFolders,
+                };
+              });
+            }
+          }
+        }
+      }
+
+      setActiveId(null);
+    },
+    [markerOrganization]
+  );
 
   // Get active marker for drag overlay
   const getActiveMarker = () => {
     if (!activeId) return null;
-    const index = parseInt(activeId.replace("marker-", ""));
-    return localMarkers[index];
+    const markerId = activeId.replace("marker-", "");
+    return allMarkers.find((marker) => marker.id === markerId) || null;
   };
 
   return (
     <div className="relative">
       {placedMarkersLoading && <Loading blockInteraction />}
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <ul
-              className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} space-y-1`}
-            >
-              <SortableContext
-                items={localMarkers.map((_, index) => `marker-${index}`)}
-                strategy={verticalListSortingStrategy}
-              >
-                {localMarkers.map((marker, index) => (
-                  <SortableMarkerItem
-                    key={`${marker.id}-${index}`}
-                    marker={marker}
-                    index={index}
-                    isEditing={editingIndex === index}
-                    editText={editText}
-                    onEdit={setEditText}
-                    onEditSubmit={() => handleEditMarker(index)}
-                    onContextMenu={() => setContextMenuIndex(index)}
-                    onFlyTo={() => handleFlyToMarker(marker)}
-                    onDelete={() => handleDeleteMarker(index)}
-                  />
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div
+          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} space-y-1`}
+        >
+          {/* Folders */}
+          {folders.map((folder) => (
+            <FolderItem
+              key={folder.id}
+              folder={folder}
+              markers={getMarkersInFolder(folder.id)}
+              onToggle={() => toggleFolder(folder.id)}
+              onEditSubmit={handleEditMarker}
+              onFlyTo={handleFlyToMarker}
+              handleDeleteMarker={handleDeleteMarker}
+              activeId={activeId}
+            />
+          ))}
+
+          {/* Unassigned markers */}
+          <div className="mt-2">
+            <UnassignedFolder
+              markers={getUnassignedMarkers()}
+              onEditSubmit={handleEditMarker}
+              onFlyTo={handleFlyToMarker}
+              handleDeleteMarker={handleDeleteMarker}
+              activeId={activeId}
+              folders={folders}
+            />
+          </div>
+
+          {/* Data sources */}
+          {markerDataSources.length > 0 && (
+            <div className="gap-2 p-2 mt-3 bg-muted rounded">
+              <div className="flex items-center gap-2">
+                <Database className="h-3 w-3 text-muted-foreground shrink-0" />
+                <p className="text-xs text-muted-foreground whitespace-nowrap">
+                  Data sources
+                </p>
+              </div>
+
+              <ul>
+                {markerDataSources.map((dataSource) => (
+                  <li key={dataSource.id} className="text-sm mt-2">
+                    <div
+                      className={`text-sm cursor-pointer rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
+                        dataSource.id === selectedDataSourceId
+                          ? "bg-neutral-100"
+                          : ""
+                      }`}
+                      onClick={() => handleDataSourceSelect(dataSource.id)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <DataSourceIcon type={dataSource.config.type} />
+                        {dataSource.name}
+                      </div>
+                      {dataSource.id === selectedDataSourceId && (
+                        <Table className="w-4 h-4 text-neutral-500" />
+                      )}
+                    </div>
+                  </li>
                 ))}
-              </SortableContext>
-
-              {/* Data sources */}
-              {markerDataSources.length > 0 && (
-                <div className="gap-2 p-2 mt-3 bg-muted rounded">
-                  <div className="flex items-center gap-2">
-                    <Database className="h-3 w-3 text-muted-foreground shrink-0" />
-                    <p className="text-xs text-muted-foreground whitespace-nowrap">
-                      Data sources
-                    </p>
-                  </div>
-
-                  <ul>
-                    {markerDataSources.map((dataSource) => (
-                      <li key={dataSource.id} className="text-sm mt-2">
-                        <div
-                          className={`text-sm cursor-pointer rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
-                            dataSource.id === selectedDataSourceId
-                              ? "bg-neutral-100"
-                              : ""
-                          }`}
-                          onClick={() => handleDataSourceSelect(dataSource.id)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <DataSourceIcon type={dataSource.config.type} />
-                            {dataSource.name}
-                          </div>
-                          {dataSource.id === selectedDataSourceId && (
-                            <Table className="w-4 h-4 text-neutral-500" />
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </ul>
-
-            <DragOverlay dropAnimation={null} adjustScale={true}>
-              {activeId && getActiveMarker() && (
-                <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
-              )}
-            </DragOverlay>
-          </DndContext>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          {contextMenuIndex !== null && (
-            <>
-              <ContextMenuItem
-                onClick={() => {
-                  setEditText(localMarkers[contextMenuIndex].label);
-                  setEditingIndex(contextMenuIndex);
-                  setContextMenuIndex(null);
-                }}
-              >
-                <Pencil className="h-4 w-4" />
-                Edit
-              </ContextMenuItem>
-              <ContextMenuItem
-                onClick={() => {
-                  handleDeleteMarker(contextMenuIndex);
-                  setContextMenuIndex(null);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </ContextMenuItem>
-            </>
+              </ul>
+            </div>
           )}
-        </ContextMenuContent>
-      </ContextMenu>
+        </div>
+
+        <DragOverlay dropAnimation={null} adjustScale={true}>
+          {activeId && getActiveMarker() && (
+            <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
+          )}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 };
