@@ -130,13 +130,13 @@ export default function MarkersControl() {
         },
       ],
     },
-    { type: "separator" as const },
-    {
-      type: "item" as const,
-      icon: <FolderPlusIcon className="w-4 h-4 text-muted-foreground" />,
-      label: "Add Folder",
-      onClick: () => console.log("clicked"),
-    },
+    // { type: "separator" as const },
+    // {
+    //   type: "item" as const,
+    //   icon: <FolderPlusIcon className="w-4 h-4 text-muted-foreground" />,
+    //   label: "Add Folder",
+    //   onClick: () => console.log("clicked"),
+    // },
   ];
 
   return (
