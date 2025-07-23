@@ -8,6 +8,7 @@ const credentials = inject("credentials");
 
 test("Connection succeeds", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -18,6 +19,7 @@ test("Connection succeeds", async () => {
 
 test("extractExternalRecordIdsFromWebhookBody yields external IDs", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -80,6 +82,7 @@ test("extractExternalRecordIdsFromWebhookBody yields external IDs", async () => 
 
 test("createField creates a field", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -95,6 +98,7 @@ test("createField creates a field", async () => {
 
 test("getFields returns field names", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -106,6 +110,7 @@ test("getFields returns field names", async () => {
 
 test("getRecordCount returns null", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -116,6 +121,7 @@ test("getRecordCount returns null", async () => {
 
 test("getURL returns correct URL", () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -127,6 +133,7 @@ test("getURL returns correct URL", () => {
 
 test("fetchAll yields records", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -141,6 +148,7 @@ test("fetchAll yields records", async () => {
 
 test("fetchPage returns page data", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -151,6 +159,7 @@ test("fetchPage returns page data", async () => {
 
 test("fetchByExternalId returns records", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -166,17 +175,18 @@ test("fetchByExternalId returns records", async () => {
 
 test("webhooks", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
   );
-  await adaptor.toggleWebhook("test_datasource_id", true);
+  await adaptor.toggleWebhook(true);
 
   let result = await adaptor.listWebhooks(await getPublicUrl());
   expect(Array.isArray(result)).toBe(true);
   expect(result.length).toBeGreaterThan(0);
 
-  await adaptor.toggleWebhook("test_datasource_id", false);
+  await adaptor.toggleWebhook(false);
 
   result = await adaptor.listWebhooks(await getPublicUrl());
   expect(Array.isArray(result)).toBe(true);
@@ -185,6 +195,7 @@ test("webhooks", async () => {
 
 test("updateRecords updates a record", async () => {
   const adaptor = new AirtableAdaptor(
+    "test-data-source",
     credentials.airtable.apiKey,
     credentials.airtable.baseId,
     credentials.airtable.tableId,
@@ -193,17 +204,25 @@ test("updateRecords updates a record", async () => {
   for await (const rec of adaptor.fetchAll()) {
     all.push(rec);
   }
-  if (all.length === 0) throw new Error("No records in table");
+
+  if (all.length === 0) {
+    throw new Error("No records in table");
+  }
+
+  const newValue = "test-value-" + Date.now(); // Unique value to verify update
   const enrichedRecords = [
     {
       externalId: all[0].externalId,
       columns: [
         {
-          def: { name: "TestField", type: ColumnType.String },
-          value: "test-value",
+          def: { name: "Mapped: Test Field", type: ColumnType.String },
+          value: newValue,
         },
       ],
     },
   ];
   await adaptor.updateRecords(enrichedRecords);
+
+  const newRec = await adaptor.fetchByExternalId([all[0].externalId]);
+  expect(newRec[0].json["Mapped: Test Field"]).toBe(newValue);
 });

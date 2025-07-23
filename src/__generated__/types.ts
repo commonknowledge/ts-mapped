@@ -369,7 +369,7 @@ export type MutationUpsertMapViewArgs = {
 };
 
 export type MutationUpsertPlacedMarkerArgs = {
-  id?: InputMaybe<Scalars["String"]["input"]>;
+  id: Scalars["String"]["input"];
   label: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
@@ -888,7 +888,7 @@ export type DeletePlacedMarkerMutationMutation = {
 };
 
 export type UpsertPlacedMarkerMutationVariables = Exact<{
-  id?: InputMaybe<Scalars["String"]["input"]>;
+  id: Scalars["String"]["input"];
   label: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
   point: PointInput;
@@ -1657,7 +1657,7 @@ export type MutationResolvers<
     ContextType,
     RequireFields<
       MutationUpsertPlacedMarkerArgs,
-      "label" | "mapId" | "notes" | "point"
+      "id" | "label" | "mapId" | "notes" | "point"
     >
   >;
   upsertTurf?: Resolver<

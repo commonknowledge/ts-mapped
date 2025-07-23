@@ -19,7 +19,7 @@ const handler = async (
     `Webhook received: ${dataSource.config.type} (${dataSourceId}), ${JSON.stringify(body)}`,
   );
 
-  const adaptor = getDataSourceAdaptor(dataSource.config);
+  const adaptor = getDataSourceAdaptor(dataSource);
   if (!adaptor) {
     logger.error(
       `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`,

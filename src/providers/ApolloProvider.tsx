@@ -56,7 +56,7 @@ class SSELink extends ApolloLink {
 }
 
 function makeClient(jwt: string | null) {
-  const uri = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"}/api/graphql`;
+  const uri = `${process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000"}/api/graphql`;
 
   const httpLink = new HttpLink({
     uri,

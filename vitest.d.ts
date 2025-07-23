@@ -6,6 +6,15 @@ declare module "vitest" {
         tableId: string;
         apiKey: string;
       };
+      googlesheets: {
+        spreadsheetId: string;
+        sheetName: string;
+        oAuthCredentials: {
+          access_token: string;
+          refresh_token: string;
+          expiry_date: number;
+        };
+      };
       ngrokToken: string;
     };
   }

@@ -129,7 +129,7 @@ export default function DataSourceConfigForm({
       <Button disabled={!validGeocodingConfig || loading}>Submit</Button>
       {error && (
         <div>
-          <small>{error}</small>
+          <span className="text-xs text-red-500">{error}</span>
         </div>
       )}
     </form>
