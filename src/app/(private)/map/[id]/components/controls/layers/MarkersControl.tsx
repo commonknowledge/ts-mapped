@@ -1,18 +1,18 @@
 import {
-  closestCenter,
+  DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
-  DndContext,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -48,12 +48,12 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Separator } from "@/shadcn/ui/separator";
+import { cn } from "@/shadcn/utils";
 import DataSourceIcon from "../../DataSourceIcon";
 import Loading from "../../Loading";
 import AddMembersDataModal from "../AddMemberModal";
 import ControlItemWrapper from "../ControlItemWrapper";
 import LayerHeader from "../LayerHeader";
-import { cn } from "@/shadcn/utils";
 
 export default function MarkersControl() {
   const { viewConfig, updateViewConfig, mapRef } = useContext(MapContext);
@@ -380,6 +380,7 @@ const FolderItem = ({
   onFlyTo,
   handleDeleteMarker,
   activeId,
+  isPulsing,
 }: {
   folder: {
     id: string;
@@ -393,6 +394,7 @@ const FolderItem = ({
   onFlyTo: (marker: PlacedMarker) => void;
   handleDeleteMarker: (markerId: string) => void;
   activeId: string | null;
+  isPulsing: boolean;
 }) => {
   const { setNodeRef: setHeaderNodeRef, isOver: isHeaderOver } = useDroppable({
     id: `folder-${folder.id}`,
@@ -408,7 +410,7 @@ const FolderItem = ({
         ref={setHeaderNodeRef}
         className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-neutral-100 rounded transition-colors ${
           isHeaderOver ? "bg-blue-50" : ""
-        }`}
+        } `}
         onClick={onToggle}
       >
         {folder.isExpanded ? (
@@ -417,7 +419,15 @@ const FolderItem = ({
           <Folder className="w-4 h-4 text-muted-foreground" />
         )}
         <span className="text-sm font-medium flex-1">{folder.name}</span>
-        <span className="text-xs text-muted-foreground">
+        <span
+          className={cn(
+            "text-xs text-muted-foreground bg-transparent transition-transform duration-300",
+            isPulsing ? "animate-pulse  transform scale-110" : ""
+          )}
+          style={{
+            color: isPulsing ? mapColors.markers.color : "",
+          }}
+        >
           ({markers.length})
         </span>
       </div>
@@ -454,16 +464,22 @@ const FolderItem = ({
 const MarkerDragOverlay = ({ marker }: { marker: PlacedMarker }) => {
   return (
     <div
-      className="flex items-center gap-2 p-0.5 bg-white border border-blue-300 rounded shadow-lg pointer-events-none"
+      className="flex items-start gap-2 p-0.5 bg-white border border-blue-300 rounded shadow-lg pointer-events-none"
       style={{
         transform: "translate(0%, -170%)",
+        minHeight: "32px", // Preserve minimum height for multi-line markers
+        maxHeight: "none", // Allow unlimited height
+        whiteSpace: "pre-wrap", // Preserve line breaks
+        wordBreak: "break-word", // Allow text to wrap naturally
+        resize: "none", // Prevent any resizing
+        overflow: "visible", // Show all content
       }}
     >
       <div
-        className="w-2 h-2 rounded-full aspect-square"
+        className="w-2 h-2 rounded-full aspect-square flex-shrink-0 mt-1"
         style={{ backgroundColor: mapColors.markers.color }}
       />
-      <span className="text-sm">{marker.label}</span>
+      <span className="text-sm leading-relaxed flex-1">{marker.label}</span>
     </div>
   );
 };
@@ -502,6 +518,7 @@ const MarkersList = ({
     folders: Record<string, string[]>;
   }>({ unassigned: [], folders: {} });
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [pulsingFolderId, setPulsingFolderId] = useState<string | null>(null);
 
   const markerDataSources = getMarkerDataSources();
 
@@ -691,12 +708,26 @@ const MarkersList = ({
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
+      let targetFolderId: string | null = null;
 
       if (over && active.id !== over.id) {
+        console.log(
+          "DragEnd - active:",
+          active.id,
+          "over:",
+          over?.id,
+          "over type:",
+          typeof over?.id
+        );
         const activeMarkerId = active.id.toString().replace("marker-", "");
 
+        // Handle dropping on folder header
+        if (over.id.toString().startsWith("folder-")) {
+          const folderId = over.id.toString().replace("folder-", "");
+          targetFolderId = folderId;
+        }
         // Handle reordering within the same container
-        if (
+        else if (
           active.id.toString().startsWith("marker-") &&
           over.id.toString().startsWith("marker-")
         ) {
@@ -765,9 +796,19 @@ const MarkersList = ({
                     [activeFolderId]: reorderedFolder,
                   },
                 }));
+
+                // Trigger pulse animation for reordering within folder
+                targetFolderId = activeFolderId;
               }
             } else {
               // Moving between different containers
+              // Set target folder for pulse animation
+              if (overInUnassigned) {
+                targetFolderId = "unassigned";
+              } else if (overFolderId) {
+                targetFolderId = overFolderId;
+              }
+
               // Remove from current container
               setMarkerOrganization((prev) => {
                 const newUnassigned = prev.unassigned.filter(
@@ -817,6 +858,18 @@ const MarkersList = ({
         }
       }
 
+      // Trigger pulse animation if item was moved to a different container
+      console.log(
+        "targetFolderId:",
+        targetFolderId,
+        "pulsingFolderId:",
+        pulsingFolderId
+      );
+      if (targetFolderId) {
+        setPulsingFolderId(targetFolderId);
+        setTimeout(() => setPulsingFolderId(null), 600);
+      }
+
       setActiveId(null);
     },
     [markerOrganization]
@@ -854,6 +907,9 @@ const MarkersList = ({
               onFlyTo={handleFlyToMarker}
               handleDeleteMarker={handleDeleteMarker}
               activeId={activeId}
+              isPulsing={
+                pulsingFolderId !== null && pulsingFolderId !== "unassigned"
+              }
             />
           ))}
 
@@ -905,7 +961,7 @@ const MarkersList = ({
           )}
         </div>
 
-        <DragOverlay dropAnimation={null} adjustScale={true}>
+        <DragOverlay dropAnimation={null} adjustScale={false}>
           {activeId && getActiveMarker() && (
             <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
           )}

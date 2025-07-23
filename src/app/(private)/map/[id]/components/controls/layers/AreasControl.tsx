@@ -6,7 +6,6 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -125,7 +124,7 @@ export default function AreasControl() {
                       <div className="flex items-center gap-2 pl-1">
                         <div
                           style={{ backgroundColor: mapColors.areas.color }}
-                          className="w-2 h-2 rounded-full aspect-square"
+                          className="w-2 h-2 rounded-full"
                         />
 
                         <div className="text-sm">{turf.label}</div>
