@@ -193,11 +193,44 @@ export default function MarkersControl() {
     }
   };
 
-  const handleDropOnFolder = async (folderId: string) => {
-    // This function is now handled by the MarkersList component internally
-    // The dragged marker ID is managed by the MarkersList component
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    void folderId;
+  const handleDropOnFolder = async (folderId: string, markerId: string) => {
+    if (!mapId) return;
+
+    console.log("🎯 handleDropOnFolder called:", { folderId, markerId });
+
+    const folder = markerFolders.find((f) => f.id === folderId);
+    if (folder) {
+      // Update frontend state immediately
+      const updatedFolder = {
+        ...folder,
+        markerIds: Array.isArray(folder.markerIds)
+          ? [...folder.markerIds, markerId]
+          : [markerId],
+      };
+      updateMarkerFolder(updatedFolder);
+
+      console.log("✅ Updated folder:", folder.name, "with marker:", markerId);
+
+      // Sync to database if the marker has a real ID (not a temp ID)
+      if (!markerId.startsWith("temp-")) {
+        try {
+          await upsertMarkerFolder({
+            variables: {
+              id: folder.id,
+              name: folder.name,
+              markerIds: updatedFolder.markerIds,
+              isExpanded: folder.isExpanded,
+              mapId,
+            },
+          });
+          console.log("✅ Synced to database");
+        } catch (error) {
+          console.error("Failed to update marker folder:", error);
+        }
+      }
+    } else {
+      console.error("❌ Folder not found:", folderId);
+    }
   };
 
   const handleRemoveFromFolder = async (folderId: string, markerId: string) => {
@@ -248,48 +281,6 @@ export default function MarkersControl() {
       console.log("Folder reorder completed successfully");
     } catch (error) {
       console.error("Failed to reorder folders:", error);
-    }
-  };
-
-  const handleDropOnFolderAtPosition = async (
-    folderId: string,
-    markerId: string,
-    targetPosition: number
-  ) => {
-    // First add the marker to the folder
-    await handleDropOnFolder(folderId);
-
-    // Then reorder to the specific position
-    const folder = markerFolders.find((f) => f.id === folderId);
-    if (folder) {
-      const markerIds = Array.isArray(folder.markerIds) ? folder.markerIds : [];
-      const newOrder = [
-        ...markerIds.slice(0, targetPosition),
-        markerId,
-        ...markerIds.slice(targetPosition),
-      ];
-
-      // Update folder with new order
-      const updatedFolder = {
-        ...folder,
-        markerIds: newOrder,
-      };
-      updateMarkerFolder(updatedFolder);
-
-      // Sync to database
-      try {
-        await upsertMarkerFolder({
-          variables: {
-            id: folder.id,
-            name: folder.name,
-            markerIds: newOrder,
-            isExpanded: folder.isExpanded,
-            mapId: mapId || "",
-          },
-        });
-      } catch (error) {
-        console.error("Failed to update marker folder:", error);
-      }
     }
   };
 
@@ -371,7 +362,6 @@ export default function MarkersControl() {
         folders={markerFolders}
         onToggleFolder={handleToggleFolder}
         onDropOnFolder={handleDropOnFolder}
-        onDropOnFolderAtPosition={handleDropOnFolderAtPosition}
         onEditFolder={handleEditFolder}
         onDeleteFolder={handleDeleteFolder}
         onRemoveFromFolder={handleRemoveFromFolder}

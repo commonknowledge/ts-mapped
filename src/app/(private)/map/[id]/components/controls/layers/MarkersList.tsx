@@ -8,6 +8,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -136,6 +137,28 @@ const MarkerUtils = {
     }));
   },
 };
+
+// Droppable zone for folders
+function DroppableFolders({ children }: { children: React.ReactNode }) {
+  const { setNodeRef } = useDroppable({
+    id: "droppable-folders",
+  });
+
+  return <div ref={setNodeRef}>{children}</div>;
+}
+
+// Droppable zone for unassigned markers
+function DroppableUnassignedMarkers({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { setNodeRef } = useDroppable({
+    id: "droppable-unassigned",
+  });
+
+  return <div ref={setNodeRef}>{children}</div>;
+}
 
 // Sortable marker component
 function SortableMarkerItem({
@@ -340,16 +363,10 @@ export default function MarkersList({
   onReorderMarkers,
   onReorderFolders,
   onRemoveFromFolder,
-  onDropOnFolderAtPosition,
 }: {
   folders: MarkerFolder[];
   onToggleFolder: (folderId: string) => void;
   onDropOnFolder: (folderId: string, markerId: string) => void;
-  onDropOnFolderAtPosition: (
-    folderId: string,
-    markerId: string,
-    targetPosition: number
-  ) => void;
   onEditFolder: (folderId: string, newName: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRemoveFromFolder: (folderId: string, markerId: string) => void;
@@ -430,34 +447,150 @@ export default function MarkersList({
     const { active } = event;
     const activeId = active.id as string;
 
+    console.log("🚀 handleDragStart called:", {
+      activeId,
+      activeType: active.data.current?.type,
+    });
+
     if (activeId.startsWith("folder-")) {
       setDragState({
         activeId,
         overId: null,
         activeType: "folder",
       });
+      console.log("📁 Started dragging folder");
     } else if (activeId.startsWith("marker-")) {
       setDragState({
         activeId,
         overId: null,
         activeType: "marker",
       });
+      console.log(
+        "📍 Started dragging marker:",
+        activeId.replace("marker-", "")
+      );
     }
   }, []);
 
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { over } = event;
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const { over, active } = event;
 
-    if (over) {
-      setDragState((prev) => {
-        console.log("setting drag state to", { ...prev, overId: over.id });
-        return {
-          ...prev,
-          overId: over.id as string,
-        };
+      console.log("🔍 handleDragOver called:", {
+        active: active.id,
+        over: over?.id,
+        activeType: active.data.current?.type,
+        overType: over?.data.current?.type,
       });
-    }
-  }, []);
+
+      if (over) {
+        setDragState((prev) => {
+          console.log("setting drag state to", { ...prev, overId: over.id });
+          return {
+            ...prev,
+            overId: over.id as string,
+          };
+        });
+
+        // Handle moving items between containers during drag
+        if (active.id.toString().startsWith("marker-")) {
+          const activeMarkerId = active.id.toString().replace("marker-", "");
+          const overId = over.id.toString();
+
+          console.log("🎯 Processing marker drag:", {
+            activeMarkerId,
+            overId,
+            activeId: active.id.toString(),
+          });
+
+          // Find source container (where the marker currently is)
+          const sourceFolder = MarkerUtils.findFolderByMarkerId(
+            folders,
+            activeMarkerId
+          );
+
+          console.log(
+            "📂 Source folder:",
+            sourceFolder?.name || "None (unassigned)"
+          );
+
+          // Find destination container (where the marker is being dropped)
+          let destinationFolder = null;
+          if (overId.startsWith("folder-")) {
+            // Dropping directly on a folder
+            destinationFolder = folders.find(
+              (f) => `folder-${f.id}` === overId
+            );
+            console.log("🎯 Dropping on folder:", destinationFolder?.name);
+          } else if (overId.startsWith("marker-")) {
+            // Dropping on another marker - find that marker's folder
+            const overMarkerId = overId.replace("marker-", "");
+            destinationFolder = MarkerUtils.findFolderByMarkerId(
+              folders,
+              overMarkerId
+            );
+            console.log(
+              "🎯 Dropping on marker in folder:",
+              destinationFolder?.name || "None (unassigned)"
+            );
+          } else if (overId === "droppable-folders") {
+            // Dropping on the folders droppable zone - this means moving to the top level
+            destinationFolder = null;
+            console.log(
+              "🎯 Dropping on folders droppable zone (moving to top level)"
+            );
+          } else if (overId === "droppable-unassigned") {
+            // Dropping on the unassigned markers droppable zone - this means moving to the top level
+            destinationFolder = null;
+            console.log(
+              "🎯 Dropping on unassigned droppable zone (staying at top level)"
+            );
+          }
+
+          console.log(
+            "🎯 Destination folder:",
+            destinationFolder?.name || "None (unassigned)"
+          );
+
+          // If moving between different containers, update immediately
+          if (sourceFolder && !destinationFolder) {
+            // Moving from folder to top level (unassigned)
+            console.log(
+              "🔄 Moving from folder to top level:",
+              sourceFolder.name
+            );
+            onRemoveFromFolder(sourceFolder.id, activeMarkerId);
+          } else if (!sourceFolder && destinationFolder) {
+            // Moving from top level to folder
+            console.log(
+              "🔄 Moving from top level to folder:",
+              destinationFolder.name
+            );
+            onDropOnFolder(destinationFolder.id, activeMarkerId);
+          } else if (
+            sourceFolder &&
+            destinationFolder &&
+            sourceFolder.id !== destinationFolder.id
+          ) {
+            // Moving between different folders
+            console.log(
+              "🔄 Moving between folders:",
+              sourceFolder.name,
+              "->",
+              destinationFolder.name
+            );
+            onRemoveFromFolder(sourceFolder.id, activeMarkerId);
+            onDropOnFolder(destinationFolder.id, activeMarkerId);
+          } else {
+            console.log(
+              "⏭️ No container movement needed (same container or no change)"
+            );
+          }
+        }
+      }
+    },
+    [folders, onRemoveFromFolder, onDropOnFolder]
+  );
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -495,57 +628,35 @@ export default function MarkersList({
         return;
       }
 
-      // Handle marker operations
-      if (activeId.startsWith("marker-")) {
+      // Handle marker reordering within the same container
+      if (activeId.startsWith("marker-") && overId.startsWith("marker-")) {
         const activeMarkerId = activeId.replace("marker-", "");
+        const overMarkerId = overId.replace("marker-", "");
 
-        // Find source container (where the marker currently is)
-        const sourceFolder = MarkerUtils.findFolderByMarkerId(
-          folders,
-          activeMarkerId
-        );
-
-        // Find destination container (where the marker is being dropped)
-        let destinationFolder = null;
-        if (overId.startsWith("folder-")) {
-          // Dropping directly on a folder
-          destinationFolder = folders.find((f) => `folder-${f.id}` === overId);
-        } else if (overId.startsWith("marker-")) {
-          // Dropping on another marker - find that marker's folder
-          const overMarkerId = overId.replace("marker-", "");
-          destinationFolder = MarkerUtils.findFolderByMarkerId(
-            folders,
-            overMarkerId
+        if (activeMarkerId !== overMarkerId) {
+          const activeMarker = placedMarkers.find(
+            (m) => m.id === activeMarkerId
           );
-        }
+          const overMarker = placedMarkers.find((m) => m.id === overMarkerId);
 
-        // Determine the operation based on source and destination
-        if (sourceFolder && !destinationFolder) {
-          // Moving from folder to top level (unassigned)
-          onRemoveFromFolder(sourceFolder.id, activeMarkerId);
-        } else if (!sourceFolder && destinationFolder) {
-          // Moving from top level to folder
-          onDropOnFolder(destinationFolder.id, activeMarkerId);
-        } else if (
-          sourceFolder &&
-          destinationFolder &&
-          sourceFolder.id !== destinationFolder.id
-        ) {
-          // Moving between different folders
-          onRemoveFromFolder(sourceFolder.id, activeMarkerId);
-          onDropOnFolder(destinationFolder.id, activeMarkerId);
-        } else if (
-          sourceFolder === destinationFolder ||
-          (!sourceFolder && !destinationFolder)
-        ) {
-          // Reordering within the same container
-          if (overId.startsWith("marker-")) {
-            const overMarkerId = overId.replace("marker-", "");
+          if (activeMarker && overMarker) {
+            const activeFolder = MarkerUtils.findFolderByMarkerId(
+              folders,
+              activeMarkerId
+            );
+            const overFolder = MarkerUtils.findFolderByMarkerId(
+              folders,
+              overMarkerId
+            );
 
-            if (sourceFolder) {
-              // Reordering within a folder
+            if (
+              activeFolder &&
+              overFolder &&
+              activeFolder.id === overFolder.id
+            ) {
+              // Reordering within the same folder
               const folderMarkers = MarkerUtils.getMarkersInFolder(
-                sourceFolder,
+                activeFolder,
                 placedMarkers
               );
               const activeIndex = folderMarkers.findIndex(
@@ -565,7 +676,7 @@ export default function MarkersList({
                   MarkerUtils.calculateMarkerPositions(newMarkers)
                 );
               }
-            } else {
+            } else if (!activeFolder && !overFolder) {
               // Reordering unassigned markers
               const activeIndex = unassignedMarkers.findIndex(
                 (m) => m.id === activeMarkerId
@@ -597,9 +708,6 @@ export default function MarkersList({
       unassignedMarkers,
       onReorderFolders,
       onReorderMarkers,
-      onDropOnFolder,
-      onRemoveFromFolder,
-      onDropOnFolderAtPosition,
     ]
   );
 
@@ -659,102 +767,109 @@ export default function MarkersList({
               <ul
                 className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} space-y-1`}
               >
-                <SortableContext
-                  items={folderItems}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {/* Folders */}
-                  {folders.map((folder) => {
-                    const markersInFolder = MarkerUtils.getMarkersInFolder(
-                      folder,
-                      placedMarkers
-                    );
-                    const isEditing =
-                      editingState.editingFolderId === folder.id;
-
-                    return (
-                      <SortableFolderItem
-                        key={folder.id}
-                        folder={folder}
-                        isEditing={isEditing}
-                        editName={editingState.editName}
-                        markersInFolder={markersInFolder}
-                        onToggle={() => {
-                          if (!isEditing) {
-                            onToggleFolder(folder.id);
-                          }
-                        }}
-                        onEditChange={editingState.setEditName}
-                        onEditSubmit={() => handleEditFolderSubmit(folder.id)}
-                        onEditKeyDown={(e) =>
-                          handleEditFolderKeyDown(e, folder.id)
-                        }
-                        onDelete={() => onDeleteFolder(folder.id)}
-                        onStartEdit={() =>
-                          editingState.startEditFolder(folder.id, folder.name)
-                        }
-                      >
-                        {/* Folder contents */}
-                        {folder.isExpanded && markersInFolder.length > 0 && (
-                          <div className="ml-4 mt-1">
-                            <SortableContext
-                              items={markersInFolder.map(
-                                (marker) => `marker-${marker.id}`
-                              )}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              {markersInFolder.map((marker) => (
-                                <div key={marker.id} className="pl-2">
-                                  <SortableMarkerItem
-                                    marker={marker}
-                                    isEditing={
-                                      editingState.editingMarkerId === marker.id
-                                    }
-                                    editText={editingState.editText}
-                                    onEdit={editingState.setEditText}
-                                    onEditSubmit={() =>
-                                      handleEditMarker(marker.id)
-                                    }
-                                    onContextMenu={() =>
-                                      setContextMenuMarkerId(marker.id)
-                                    }
-                                    onFlyTo={() => handleFlyToMarker(marker)}
-                                  />
-                                </div>
-                              ))}
-                            </SortableContext>
-                          </div>
-                        )}
-                      </SortableFolderItem>
-                    );
-                  })}
-                </SortableContext>
-
-                {/* Unassigned markers */}
-                {unassignedMarkers.length > 0 && (
+                <DroppableFolders>
                   <SortableContext
-                    items={unassignedMarkers.map(
-                      (marker) => `marker-${marker.id}`
-                    )}
+                    items={folderItems}
                     strategy={verticalListSortingStrategy}
                   >
-                    {unassignedMarkers.map((marker) => (
-                      <li key={marker.id} className="list-none">
-                        <SortableMarkerItem
-                          marker={marker}
-                          isEditing={editingState.editingMarkerId === marker.id}
-                          editText={editingState.editText}
-                          onEdit={editingState.setEditText}
-                          onEditSubmit={() => handleEditMarker(marker.id)}
-                          onContextMenu={() =>
-                            setContextMenuMarkerId(marker.id)
+                    {/* Folders */}
+                    {folders.map((folder) => {
+                      const markersInFolder = MarkerUtils.getMarkersInFolder(
+                        folder,
+                        placedMarkers
+                      );
+                      const isEditing =
+                        editingState.editingFolderId === folder.id;
+
+                      return (
+                        <SortableFolderItem
+                          key={folder.id}
+                          folder={folder}
+                          isEditing={isEditing}
+                          editName={editingState.editName}
+                          markersInFolder={markersInFolder}
+                          onToggle={() => {
+                            if (!isEditing) {
+                              onToggleFolder(folder.id);
+                            }
+                          }}
+                          onEditChange={editingState.setEditName}
+                          onEditSubmit={() => handleEditFolderSubmit(folder.id)}
+                          onEditKeyDown={(e) =>
+                            handleEditFolderKeyDown(e, folder.id)
                           }
-                          onFlyTo={() => handleFlyToMarker(marker)}
-                        />
-                      </li>
-                    ))}
+                          onDelete={() => onDeleteFolder(folder.id)}
+                          onStartEdit={() =>
+                            editingState.startEditFolder(folder.id, folder.name)
+                          }
+                        >
+                          {/* Folder contents */}
+                          {folder.isExpanded && markersInFolder.length > 0 && (
+                            <div className="ml-4 mt-1">
+                              <SortableContext
+                                items={markersInFolder.map(
+                                  (marker) => `marker-${marker.id}`
+                                )}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                {markersInFolder.map((marker) => (
+                                  <div key={marker.id} className="pl-2">
+                                    <SortableMarkerItem
+                                      marker={marker}
+                                      isEditing={
+                                        editingState.editingMarkerId ===
+                                        marker.id
+                                      }
+                                      editText={editingState.editText}
+                                      onEdit={editingState.setEditText}
+                                      onEditSubmit={() =>
+                                        handleEditMarker(marker.id)
+                                      }
+                                      onContextMenu={() =>
+                                        setContextMenuMarkerId(marker.id)
+                                      }
+                                      onFlyTo={() => handleFlyToMarker(marker)}
+                                    />
+                                  </div>
+                                ))}
+                              </SortableContext>
+                            </div>
+                          )}
+                        </SortableFolderItem>
+                      );
+                    })}
                   </SortableContext>
-                )}
+                </DroppableFolders>
+
+                <DroppableUnassignedMarkers>
+                  {/* Unassigned markers */}
+                  {unassignedMarkers.length > 0 && (
+                    <SortableContext
+                      items={unassignedMarkers.map(
+                        (marker) => `marker-${marker.id}`
+                      )}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {unassignedMarkers.map((marker) => (
+                        <li key={marker.id} className="list-none">
+                          <SortableMarkerItem
+                            marker={marker}
+                            isEditing={
+                              editingState.editingMarkerId === marker.id
+                            }
+                            editText={editingState.editText}
+                            onEdit={editingState.setEditText}
+                            onEditSubmit={() => handleEditMarker(marker.id)}
+                            onContextMenu={() =>
+                              setContextMenuMarkerId(marker.id)
+                            }
+                            onFlyTo={() => handleFlyToMarker(marker)}
+                          />
+                        </li>
+                      ))}
+                    </SortableContext>
+                  )}
+                </DroppableUnassignedMarkers>
 
                 {/* Data sources */}
                 {markerDataSources.length > 0 && (
