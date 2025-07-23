@@ -339,10 +339,12 @@ export default function MarkersList({
   onDeleteFolder,
   onReorderMarkers,
   onReorderFolders,
+  onRemoveFromFolder,
+  onDropOnFolderAtPosition,
 }: {
   folders: MarkerFolder[];
   onToggleFolder: (folderId: string) => void;
-  onDropOnFolder: (folderId: string) => void;
+  onDropOnFolder: (folderId: string, markerId: string) => void;
   onDropOnFolderAtPosition: (
     folderId: string,
     markerId: string,
@@ -447,10 +449,13 @@ export default function MarkersList({
     const { over } = event;
 
     if (over) {
-      setDragState((prev) => ({
-        ...prev,
-        overId: over.id as string,
-      }));
+      setDragState((prev) => {
+        console.log("setting drag state to", { ...prev, overId: over.id });
+        return {
+          ...prev,
+          overId: over.id as string,
+        };
+      });
     }
   }, []);
 
@@ -466,8 +471,14 @@ export default function MarkersList({
       const activeId = active.id as string;
       const overId = over.id as string;
 
+      // Early return if dropping on itself
+      if (activeId === overId) {
+        setDragState({ activeId: null, overId: null, activeType: null });
+        return;
+      }
+
+      // Reordering folders
       if (activeId.startsWith("folder-") && overId.startsWith("folder-")) {
-        // Reordering folders
         const activeFolderId = activeId.replace("folder-", "");
         const overFolderId = overId.replace("folder-", "");
 
@@ -480,38 +491,61 @@ export default function MarkersList({
             onReorderFolders(MarkerUtils.calculateFolderPositions(newFolders));
           }
         }
-      } else if (
-        activeId.startsWith("marker-") &&
-        overId.startsWith("marker-")
-      ) {
-        // Reordering markers
+        setDragState({ activeId: null, overId: null, activeType: null });
+        return;
+      }
+
+      // Handle marker operations
+      if (activeId.startsWith("marker-")) {
         const activeMarkerId = activeId.replace("marker-", "");
-        const overMarkerId = overId.replace("marker-", "");
 
-        if (activeMarkerId !== overMarkerId) {
-          const activeMarker = placedMarkers.find(
-            (m) => m.id === activeMarkerId
+        // Find source container (where the marker currently is)
+        const sourceFolder = MarkerUtils.findFolderByMarkerId(
+          folders,
+          activeMarkerId
+        );
+
+        // Find destination container (where the marker is being dropped)
+        let destinationFolder = null;
+        if (overId.startsWith("folder-")) {
+          // Dropping directly on a folder
+          destinationFolder = folders.find((f) => `folder-${f.id}` === overId);
+        } else if (overId.startsWith("marker-")) {
+          // Dropping on another marker - find that marker's folder
+          const overMarkerId = overId.replace("marker-", "");
+          destinationFolder = MarkerUtils.findFolderByMarkerId(
+            folders,
+            overMarkerId
           );
-          const overMarker = placedMarkers.find((m) => m.id === overMarkerId);
+        }
 
-          if (activeMarker && overMarker) {
-            const activeFolder = MarkerUtils.findFolderByMarkerId(
-              folders,
-              activeMarkerId
-            );
-            const overFolder = MarkerUtils.findFolderByMarkerId(
-              folders,
-              overMarkerId
-            );
+        // Determine the operation based on source and destination
+        if (sourceFolder && !destinationFolder) {
+          // Moving from folder to top level (unassigned)
+          onRemoveFromFolder(sourceFolder.id, activeMarkerId);
+        } else if (!sourceFolder && destinationFolder) {
+          // Moving from top level to folder
+          onDropOnFolder(destinationFolder.id, activeMarkerId);
+        } else if (
+          sourceFolder &&
+          destinationFolder &&
+          sourceFolder.id !== destinationFolder.id
+        ) {
+          // Moving between different folders
+          onRemoveFromFolder(sourceFolder.id, activeMarkerId);
+          onDropOnFolder(destinationFolder.id, activeMarkerId);
+        } else if (
+          sourceFolder === destinationFolder ||
+          (!sourceFolder && !destinationFolder)
+        ) {
+          // Reordering within the same container
+          if (overId.startsWith("marker-")) {
+            const overMarkerId = overId.replace("marker-", "");
 
-            if (
-              activeFolder &&
-              overFolder &&
-              activeFolder.id === overFolder.id
-            ) {
-              // Reordering within the same folder
+            if (sourceFolder) {
+              // Reordering within a folder
               const folderMarkers = MarkerUtils.getMarkersInFolder(
-                activeFolder,
+                sourceFolder,
                 placedMarkers
               );
               const activeIndex = folderMarkers.findIndex(
@@ -531,7 +565,7 @@ export default function MarkersList({
                   MarkerUtils.calculateMarkerPositions(newMarkers)
                 );
               }
-            } else if (!activeFolder && !overFolder) {
+            } else {
               // Reordering unassigned markers
               const activeIndex = unassignedMarkers.findIndex(
                 (m) => m.id === activeMarkerId
@@ -553,23 +587,6 @@ export default function MarkersList({
             }
           }
         }
-      } else if (
-        activeId.startsWith("marker-") &&
-        overId.startsWith("folder-")
-      ) {
-        // Dropping marker on folder
-        const markerId = activeId.replace("marker-", "");
-        const folderId = overId.replace("folder-", "");
-
-        const folder = folders.find((f) => f.id === folderId);
-        if (folder) {
-          const isAlreadyInFolder =
-            Array.isArray(folder.markerIds) &&
-            folder.markerIds.includes(markerId);
-          if (!isAlreadyInFolder) {
-            onDropOnFolder(folderId);
-          }
-        }
       }
 
       setDragState({ activeId: null, overId: null, activeType: null });
@@ -581,6 +598,8 @@ export default function MarkersList({
       onReorderFolders,
       onReorderMarkers,
       onDropOnFolder,
+      onRemoveFromFolder,
+      onDropOnFolderAtPosition,
     ]
   );
 
@@ -607,6 +626,7 @@ export default function MarkersList({
 
   // Get active item for drag overlay
   const getActiveItem = () => {
+    console.log("dragState", dragState);
     if (!dragState.activeId) return null;
 
     if (dragState.activeType === "folder") {
@@ -809,7 +829,7 @@ export default function MarkersList({
 
       {/* DragOverlay outside of DndContext to avoid layout issues */}
       <DragOverlay dropAnimation={null}>
-        {dragState.activeId && getActiveItem() ? (
+        {getActiveItem() ? (
           dragState.activeType === "folder" ? (
             <FolderDragOverlay folder={getActiveItem() as MarkerFolder} />
           ) : (
