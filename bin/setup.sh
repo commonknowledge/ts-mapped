@@ -78,4 +78,4 @@ npm run kysely migrate:latest
 # 7. Start the server
 
 # 8. Final message
-pretty_print "Setup complete! View the site at http://localhost:3000\nLog in with username 'hello@commonknowledge.coop' and password '1234'."
+pretty_print "Setup complete! View the site at https://localhost:3000\nLog in with username 'hello@commonknowledge.coop' and password '1234'."

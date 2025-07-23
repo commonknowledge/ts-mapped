@@ -10,12 +10,13 @@ const refreshWebhooks = async (): Promise<boolean> => {
   for (const source of airtableDataSources) {
     const config = source.config as AirtableConfig;
     const adaptor = new AirtableAdaptor(
+      source.id,
       config.apiKey,
       config.baseId,
       config.tableId,
     );
     const enable = source.autoEnrich || source.autoImport;
-    await adaptor.toggleWebhook(source.id, enable);
+    await adaptor.toggleWebhook(enable);
   }
   return true;
 };

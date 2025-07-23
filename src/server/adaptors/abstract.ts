@@ -9,7 +9,7 @@ export interface DataSourceAdaptor {
   fetchAll(): AsyncGenerator<ExternalRecord>;
   fetchFirst(): Promise<ExternalRecord | null>;
   fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]>;
-  removeDevWebhooks(dataSourceId: string): Promise<void>;
-  toggleWebhook(dataSourceId: string, enable: boolean): Promise<void>;
+  removeDevWebhooks(): Promise<void>;
+  toggleWebhook(enable: boolean): Promise<void>;
   updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void>;
 }

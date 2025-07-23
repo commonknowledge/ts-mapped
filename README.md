@@ -27,11 +27,15 @@
 - Add commands to `bin/cmd.ts`.
 - Run commands with `npm run cmd -- [command] [...args]`
 
+### Tests
 
-7. Start the server with `./bin/run.sh`
-# Further Details
+- Run tests with `npm test`
+- This will download `test_credentials.json` from BitWarden Secrets manager, which is required to test the data source adaptors.
+- Filter tests with `npm test -t [filter]`
 
-## Seed Data
+## Further Details
+
+### Seed Data
 
 The SQL import includes the following:
 
@@ -41,4 +45,3 @@ The SQL import includes the following:
 - Area sets:
   - Constituencies (2024)
   - Census Output Areas and MSOAs (2021)
-

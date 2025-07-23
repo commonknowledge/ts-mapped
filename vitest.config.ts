@@ -7,13 +7,14 @@ const testCredentials = JSON.parse(
   fs.readFileSync("test_credentials.json", "utf8"),
 );
 
+for (const [key, value] of Object.entries(testCredentials.env)) {
+  process.env[key] = String(value);
+}
+
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
-    env: {
-      BASE_URL: "", // Vitest sets this env var to "/", which overwrites the ngrok URL
-    },
-    environment: "jsdom",
+    environment: "node",
     globalSetup: "./tests/setup.ts",
     provide: {
       credentials: testCredentials,

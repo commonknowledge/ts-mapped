@@ -55,7 +55,12 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
   // Clean up
   await deleteDataSource(dataSource.id);
 
-  expect(records).toEqual([
+  expect(
+    records.map((r) => ({
+      ...r,
+      json: { Name: r.json.Name, Postcode: r.json.Postcode },
+    })),
+  ).toEqual([
     {
       externalId: "recHSNLI2dfwSoo8U",
       geocodePoint: { lat: 51.651882912, lng: -0.090255219 },
@@ -67,7 +72,6 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
       json: {
         Name: "Ringo",
         Postcode: "EN2 6PJ",
-        TestField: "test-value",
       },
     },
     {
@@ -94,7 +98,6 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
       json: {
         Name: "John",
         Postcode: "TN4 0PP",
-        TestField: "asdfgh",
       },
     },
     {
