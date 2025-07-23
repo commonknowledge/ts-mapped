@@ -6,6 +6,7 @@ export interface MarkerFolderTable {
   markerIds: string;
   isExpanded: boolean;
   mapId: string;
+  position: number;
   createdAt: Generated<Date>;
 }
 
@@ -15,10 +16,12 @@ export interface NewMarkerFolder {
   markerIds: string[];
   isExpanded: boolean;
   mapId: string;
+  position?: number;
 }
 export interface MarkerFolderUpdate {
   name?: string;
   markerIds?: string[];
   isExpanded?: boolean;
   mapId?: string;
+  position?: number;
 }

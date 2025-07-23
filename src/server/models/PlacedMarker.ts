@@ -7,6 +7,7 @@ export interface PlacedMarkerTable {
   mapId: string;
   notes: string;
   point: Point;
+  position: number;
 }
 
 export type PlacedMarker = Selectable<PlacedMarkerTable>;

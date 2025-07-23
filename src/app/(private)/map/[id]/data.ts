@@ -21,6 +21,10 @@ import {
   MapQueryVariables,
   Operation,
   SortInput,
+  UpdateFolderPositionsMutation,
+  UpdateFolderPositionsMutationVariables,
+  UpdateMarkerPositionsMutation,
+  UpdateMarkerPositionsMutationVariables,
   UpsertPlacedMarkerMutation,
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
@@ -91,6 +95,7 @@ export const useMapQuery = (mapId: string | null) =>
             id
             label
             notes
+            position
             point {
               lat
               lng
@@ -101,6 +106,7 @@ export const useMapQuery = (mapId: string | null) =>
             name
             markerIds
             isExpanded
+            position
             createdAt
           }
           turfs {
@@ -357,6 +363,38 @@ export const useDeleteMarkerFolderMutation = () => {
   >(gql`
     mutation DeleteMarkerFolder($id: String!, $mapId: String!) {
       deleteMarkerFolder(id: $id, mapId: $mapId) {
+        code
+      }
+    }
+  `);
+};
+
+export const useUpdateMarkerPositionsMutation = () => {
+  return useMutation<
+    UpdateMarkerPositionsMutation,
+    UpdateMarkerPositionsMutationVariables
+  >(gql`
+    mutation UpdateMarkerPositions(
+      $mapId: String!
+      $markerPositions: [MarkerPositionInput!]!
+    ) {
+      updateMarkerPositions(mapId: $mapId, markerPositions: $markerPositions) {
+        code
+      }
+    }
+  `);
+};
+
+export const useUpdateFolderPositionsMutation = () => {
+  return useMutation<
+    UpdateFolderPositionsMutation,
+    UpdateFolderPositionsMutationVariables
+  >(gql`
+    mutation UpdateFolderPositions(
+      $mapId: String!
+      $folderPositions: [FolderPositionInput!]!
+    ) {
+      updateFolderPositions(mapId: $mapId, folderPositions: $folderPositions) {
         code
       }
     }

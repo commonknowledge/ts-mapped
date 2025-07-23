@@ -25,10 +25,13 @@ import {
   deleteMarkerFolder,
   insertMarkerFolder,
   updateMarkerFolder,
+  updateMarkerFolderPositions,
 } from "@/server/repositories/MarkerFolder";
 import {
   deletePlacedMarker,
+  getNextPosition,
   insertPlacedMarker,
+  updateMarkerPositions,
   updatePlacedMarker,
 } from "@/server/repositories/PlacedMarker";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
@@ -270,6 +273,29 @@ const MutationResolvers: MutationResolversType = {
     }
     return { code: 500 };
   },
+  updateMarkerPositions: async (
+    _: unknown,
+    {
+      mapId,
+      markerPositions,
+    }: {
+      mapId: string;
+      markerPositions: { id: string; position: number }[];
+    }
+  ): Promise<MutationResponse> => {
+    try {
+      const map = await findMapById(mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+
+      await updateMarkerPositions(mapId, markerPositions);
+      return { code: 200 };
+    } catch (error) {
+      logger.error(`Could not update marker positions`, { error });
+    }
+    return { code: 500 };
+  },
   upsertPlacedMarker: async (
     _: unknown,
     {
@@ -291,16 +317,26 @@ const MutationResolvers: MutationResolversType = {
       if (!map) {
         return { code: 404 };
       }
-      const placedMarkerInput = {
-        label,
-        notes,
-        point,
-        mapId,
-      };
+
       let placedMarker = null;
       if (id) {
+        // Update existing marker
+        const placedMarkerInput = {
+          label,
+          notes,
+          point,
+        };
         placedMarker = await updatePlacedMarker(id, placedMarkerInput);
       } else {
+        // Insert new marker with next position
+        const nextPosition = await getNextPosition(mapId);
+        const placedMarkerInput = {
+          label,
+          notes,
+          point,
+          mapId,
+          position: nextPosition,
+        };
         placedMarker = await insertPlacedMarker(placedMarkerInput);
       }
       return { code: 200, result: placedMarker };
@@ -362,12 +398,14 @@ const MutationResolvers: MutationResolversType = {
       name,
       markerIds,
       isExpanded,
+      position,
       mapId,
     }: {
       id?: string | null;
       name: string;
       markerIds: string[];
       isExpanded: boolean;
+      position?: number | null;
       mapId: string;
     }
   ) => {
@@ -380,6 +418,7 @@ const MutationResolvers: MutationResolversType = {
         name,
         markerIds: Array.isArray(markerIds) ? markerIds : [],
         isExpanded,
+        position: position || undefined,
         mapId,
       };
 
@@ -392,6 +431,30 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200, result: markerFolder };
     } catch (error) {
       logger.error(`Could not create marker folder`, { error });
+    }
+    return { code: 500 };
+  },
+
+  updateFolderPositions: async (
+    _: unknown,
+    {
+      mapId,
+      folderPositions,
+    }: {
+      mapId: string;
+      folderPositions: { id: string; position: number }[];
+    }
+  ): Promise<MutationResponse> => {
+    try {
+      const map = await findMapById(mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+
+      await updateMarkerFolderPositions(folderPositions);
+      return { code: 200 };
+    } catch (error) {
+      logger.error(`Could not update folder positions`, { error });
     }
     return { code: 500 };
   },

@@ -13,6 +13,8 @@ export const MarkerAndTurfContext = createContext<{
   deletePlacedMarker: (id: string) => void;
   insertPlacedMarker: (placedMarker: PlacedMarker) => void;
   updatePlacedMarker: (placedMarker: PlacedMarker) => void;
+  reorderMarkers: (markerPositions: { id: string; position: number }[]) => void;
+  reorderFolders: (folderPositions: { id: string; position: number }[]) => void;
 
   selectedMarker: MarkerData | null;
   setSelectedMarker: (marker: MarkerData | null) => void;
@@ -40,6 +42,8 @@ export const MarkerAndTurfContext = createContext<{
   deletePlacedMarker: () => null,
   insertPlacedMarker: () => null,
   updatePlacedMarker: () => null,
+  reorderMarkers: () => null,
+  reorderFolders: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,
   turfs: [],

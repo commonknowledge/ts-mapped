@@ -5,7 +5,7 @@ import {
   MapPinIcon,
 } from "lucide-react";
 import { useContext, useState } from "react";
-import { PlacedMarker } from "@/__generated__/types";
+import { MarkerFolder, PlacedMarker } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
@@ -29,10 +29,12 @@ export default function MarkersControl() {
     insertMarkerFolder,
     updateMarkerFolder,
     deleteMarkerFolder: deleteFromContext,
+    reorderMarkers,
+    reorderFolders,
   } = useContext(MarkerAndTurfContext);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
-  const [draggedMarkerId, setDraggedMarkerId] = useState<string | null>(null);
+
   const { getDataSources } = useContext(DataSourcesContext);
   const [upsertMarkerFolder] = useUpsertMarkerFolderMutation();
   const [deleteMarkerFolder] = useDeleteMarkerFolderMutation();
@@ -66,6 +68,7 @@ export default function MarkersControl() {
           id: `temp-${new Date().getTime()}`,
           label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
           notes: "",
+          position: 0,
           point: e.lngLat,
         };
 
@@ -100,8 +103,12 @@ export default function MarkersControl() {
       });
 
       if (result.data?.upsertMarkerFolder?.result) {
-        // Add the new folder to local state
-        insertMarkerFolder(result.data.upsertMarkerFolder.result);
+        // Add the new folder to local state with position
+        const folderWithPosition = {
+          ...result.data.upsertMarkerFolder.result,
+          position: markerFolders.length * 1000,
+        };
+        insertMarkerFolder(folderWithPosition as MarkerFolder);
       }
     } catch (error) {
       console.error("Failed to create marker folder:", error);
@@ -187,38 +194,10 @@ export default function MarkersControl() {
   };
 
   const handleDropOnFolder = async (folderId: string) => {
-    if (!mapId || !draggedMarkerId) return;
-
-    const folder = markerFolders.find((f) => f.id === folderId);
-    if (folder) {
-      // Update frontend state immediately
-      const updatedFolder = {
-        ...folder,
-        markerIds: [
-          ...(Array.isArray(folder.markerIds) ? folder.markerIds : []),
-          draggedMarkerId,
-        ],
-      };
-      updateMarkerFolder(updatedFolder);
-
-      // Sync to database if the marker has a real ID (not a temp ID)
-      if (!draggedMarkerId.startsWith("temp-")) {
-        try {
-          await upsertMarkerFolder({
-            variables: {
-              id: folder.id,
-              name: folder.name,
-              markerIds: updatedFolder.markerIds,
-              isExpanded: folder.isExpanded,
-              mapId,
-            },
-          });
-        } catch (error) {
-          console.error("Failed to update marker folder:", error);
-        }
-      }
-    }
-    setDraggedMarkerId(null);
+    // This function is now handled by the MarkersList component internally
+    // The dragged marker ID is managed by the MarkersList component
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    void folderId;
   };
 
   const handleRemoveFromFolder = async (folderId: string, markerId: string) => {
@@ -250,6 +229,66 @@ export default function MarkersControl() {
         } catch (error) {
           console.error("Failed to update marker folder:", error);
         }
+      }
+    }
+  };
+
+  const handleReorderMarkers = async (
+    markerPositions: { id: string; position: number }[]
+  ) => {
+    await reorderMarkers(markerPositions);
+  };
+
+  const handleReorderFolders = async (
+    folderPositions: { id: string; position: number }[]
+  ) => {
+    console.log("MarkersControl handleReorderFolders:", folderPositions);
+    try {
+      await reorderFolders(folderPositions);
+      console.log("Folder reorder completed successfully");
+    } catch (error) {
+      console.error("Failed to reorder folders:", error);
+    }
+  };
+
+  const handleDropOnFolderAtPosition = async (
+    folderId: string,
+    markerId: string,
+    targetPosition: number
+  ) => {
+    // First add the marker to the folder
+    await handleDropOnFolder(folderId);
+
+    // Then reorder to the specific position
+    const folder = markerFolders.find((f) => f.id === folderId);
+    if (folder) {
+      const markerIds = Array.isArray(folder.markerIds) ? folder.markerIds : [];
+      const newOrder = [
+        ...markerIds.slice(0, targetPosition),
+        markerId,
+        ...markerIds.slice(targetPosition),
+      ];
+
+      // Update folder with new order
+      const updatedFolder = {
+        ...folder,
+        markerIds: newOrder,
+      };
+      updateMarkerFolder(updatedFolder);
+
+      // Sync to database
+      try {
+        await upsertMarkerFolder({
+          variables: {
+            id: folder.id,
+            name: folder.name,
+            markerIds: newOrder,
+            isExpanded: folder.isExpanded,
+            mapId: mapId || "",
+          },
+        });
+      } catch (error) {
+        console.error("Failed to update marker folder:", error);
       }
     }
   };
@@ -332,11 +371,12 @@ export default function MarkersControl() {
         folders={markerFolders}
         onToggleFolder={handleToggleFolder}
         onDropOnFolder={handleDropOnFolder}
+        onDropOnFolderAtPosition={handleDropOnFolderAtPosition}
         onEditFolder={handleEditFolder}
         onDeleteFolder={handleDeleteFolder}
         onRemoveFromFolder={handleRemoveFromFolder}
-        draggedMarkerId={draggedMarkerId}
-        setDraggedMarkerId={setDraggedMarkerId}
+        onReorderMarkers={handleReorderMarkers}
+        onReorderFolders={handleReorderFolders}
       />
     </ControlItemWrapper>
   );

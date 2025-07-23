@@ -87,8 +87,20 @@ export default function MarkerAndTurfProvider({
     deletePlacedMarker,
     insertPlacedMarker,
     updatePlacedMarker,
+    reorderMarkers,
+    reorderFolders: serverReorderFolders,
     loading: placedMarkersLoading,
   } = usePlacedMarkers(mapId, updateFolderMarkerReferences);
+
+  // Reorder function that syncs with server and updates state
+  const reorderFolders = async (
+    folderPositions: { id: string; position: number }[]
+  ) => {
+    // Sync with server first
+    await serverReorderFolders(folderPositions);
+
+    // The query refetch will update the state automatically
+  };
 
   useEffect(() => {
     if (mapQuery?.data?.map?.placedMarkers) {
@@ -97,19 +109,10 @@ export default function MarkerAndTurfProvider({
     if (mapQuery?.data?.map?.turfs) {
       setTurfs(mapQuery?.data.map.turfs);
     }
-    // DISABLED: Only load markerFolders on initial load, not on every query update
-    // This was causing flickering when markers were being processed
-    // if (mapQuery?.data?.map?.markerFolders && markerFolders.length === 0) {
-    //   setMarkerFolders(mapQuery?.data?.map.markerFolders);
-    // }
-  }, [mapQuery, setPlacedMarkers, setTurfs]);
-
-  // Load initial markerFolders data only once
-  useEffect(() => {
-    if (mapQuery?.data?.map?.markerFolders && markerFolders.length === 0) {
+    if (mapQuery?.data?.map?.markerFolders) {
       setMarkerFolders(mapQuery?.data?.map.markerFolders);
     }
-  }, [mapQuery?.data?.map?.markerFolders, markerFolders.length]);
+  }, [mapQuery?.data?.map, setPlacedMarkers, setTurfs]);
 
   const deleteMarkerFolder = (id: string) => {
     setMarkerFolders(markerFolders.filter((folder) => folder.id !== id));
@@ -137,6 +140,8 @@ export default function MarkerAndTurfProvider({
         deletePlacedMarker,
         insertPlacedMarker,
         updatePlacedMarker,
+        reorderMarkers,
+        reorderFolders,
         selectedMarker,
         setSelectedMarker,
         turfs,

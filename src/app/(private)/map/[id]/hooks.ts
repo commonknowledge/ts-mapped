@@ -1,3 +1,4 @@
+import { useApolloClient } from "@apollo/client";
 import { useCallback, useRef, useState } from "react";
 import { PlacedMarker, Turf } from "@/__generated__/types";
 import {
@@ -5,12 +6,15 @@ import {
   useDeleteTurfMutation,
   useUpsertPlacedMarkerMutation,
   useUpsertTurfMutation,
+  useUpdateFolderPositionsMutation,
+  useUpdateMarkerPositionsMutation,
 } from "./data";
 
 export const usePlacedMarkers = (
   mapId: string | null,
   updateFolderMarkerReferences?: (oldId: string, newId: string) => void
 ) => {
+  const client = useApolloClient();
   const ref = useRef<PlacedMarker[]>([]);
   const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
 
@@ -28,6 +32,8 @@ export const usePlacedMarkers = (
   const [deletePlacedMarkerMutation] = useDeletePlacedMarkerMutation();
   const [upsertPlacedMarkerMutation, { loading }] =
     useUpsertPlacedMarkerMutation();
+  const [updateMarkerPositionsMutation] = useUpdateMarkerPositionsMutation();
+  const [updateFolderPositionsMutation] = useUpdateFolderPositionsMutation();
 
   /* Complex actions */
   const deletePlacedMarker = (id: string) => {
@@ -92,12 +98,77 @@ export const usePlacedMarkers = (
       ref.current.map((m) => (m.id === updatedMarker.id ? updatedMarker : m))
     );
   };
+
+  const reorderMarkers = async (
+    markerPositions: { id: string; position: number }[]
+  ) => {
+    if (!mapId) {
+      return;
+    }
+
+    try {
+      await updateMarkerPositionsMutation({
+        variables: {
+          mapId,
+          markerPositions,
+        },
+      });
+
+      // Update the local state to reflect the new order
+      const updatedMarkers = ref.current.map((marker) => {
+        const newPosition = markerPositions.find((p) => p.id === marker.id);
+        return newPosition
+          ? { ...marker, position: newPosition.position }
+          : marker;
+      });
+
+      // Sort by position and update state
+      const sortedMarkers = updatedMarkers.sort(
+        (a, b) => a.position - b.position
+      );
+      setPlacedMarkers(sortedMarkers);
+
+      // Invalidate the Apollo cache for the map query to ensure fresh data
+      await client.refetchQueries({
+        include: ["Map"],
+      });
+    } catch (error) {
+      console.error("Failed to reorder markers:", error);
+    }
+  };
+
+  const reorderFolders = async (
+    folderPositions: { id: string; position: number }[]
+  ) => {
+    if (!mapId) {
+      return;
+    }
+
+    try {
+      await updateFolderPositionsMutation({
+        variables: {
+          mapId,
+          folderPositions,
+        },
+      });
+
+      // Refetch the map query to get updated data
+      await client.refetchQueries({
+        include: ["Map"],
+      });
+    } catch (error) {
+      console.error("Failed to update folder positions:", error);
+    }
+  };
+
   return {
     placedMarkers,
     setPlacedMarkers,
     deletePlacedMarker,
     insertPlacedMarker,
     updatePlacedMarker,
+    reorderMarkers,
+    reorderFolders,
     loading,
   };
 };

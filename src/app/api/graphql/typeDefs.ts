@@ -109,6 +109,16 @@ const typeDefs = `
     showTurf: Boolean
   }
 
+  input MarkerPositionInput {
+    id: String!
+    position: Int!
+  }
+
+  input FolderPositionInput {
+    id: String!
+    position: Int!
+  }
+
   input PointInput {
     lat: Float!
     lng: Float!
@@ -242,6 +252,7 @@ const typeDefs = `
     label: String!
     notes: String!
     point: Point!
+    position: Int!
   }
 
   type MarkerFolder {
@@ -249,6 +260,7 @@ const typeDefs = `
     name: String!
     markerIds: [String!]!
     isExpanded: Boolean!
+    position: Int!
     createdAt: Date!
   }
 
@@ -347,6 +359,14 @@ const typeDefs = `
       id: String!
       map: MapInput!
     ): UpdateMapResponse @auth(write: { mapIdArg: "id" })
+    updateMarkerPositions(
+      mapId: String!
+      markerPositions: [MarkerPositionInput!]!
+    ): MutationResponse @auth(write: { mapIdArg: "mapId" })
+    updateFolderPositions(
+      mapId: String!
+      folderPositions: [FolderPositionInput!]!
+    ): MutationResponse @auth(write: { mapIdArg: "mapId" })
     upsertMapView(
       id: String
       config: MapViewConfigInput!
@@ -373,6 +393,7 @@ const typeDefs = `
       name: String!
       markerIds: [String!]!
       isExpanded: Boolean!
+      position: Int
       mapId: String!
     ): UpsertMarkerFolderResponse @auth(write: { mapIdArg: "mapId" })
   }
