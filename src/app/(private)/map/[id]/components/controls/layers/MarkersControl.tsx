@@ -20,11 +20,11 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   Check,
-  ChevronDown,
-  ChevronRight,
   Database,
   DatabaseIcon,
   Ellipsis,
+  Folder,
+  FolderOpen,
   FolderPlusIcon,
   MapPinIcon,
   Pencil,
@@ -413,9 +413,9 @@ const FolderItem = ({
         onClick={onToggle}
       >
         {folder.isExpanded ? (
-          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          <FolderOpen className="w-4 h-4 text-muted-foreground" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <Folder className="w-4 h-4 text-muted-foreground" />
         )}
         <span className="text-sm font-medium flex-1">{folder.name}</span>
         <span className="text-xs text-muted-foreground">
