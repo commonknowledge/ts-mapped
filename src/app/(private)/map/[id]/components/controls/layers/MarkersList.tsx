@@ -1,14 +1,14 @@
 import {
-  closestCorners,
-  DragEndEvent,
-  DragOverlay,
-  DragOverEvent,
-  DragStartEvent,
   DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
   PointerSensor,
+  closestCorners,
+  useDroppable,
   useSensor,
   useSensors,
-  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -46,6 +46,7 @@ import { Input } from "@/shadcn/ui/input";
 import DataSourceIcon from "../../DataSourceIcon";
 import Loading from "../../Loading";
 import { FolderContextMenu } from "./FolderContextMenu";
+import { createPortal } from "react-dom";
 
 // Types for drag and drop state
 interface DragState {
@@ -167,16 +168,18 @@ function SortableMarkerItem({
   editText,
   onEdit,
   onEditSubmit,
-  onContextMenu,
   onFlyTo,
+  startEditMarker,
+  deletePlacedMarker,
 }: {
   marker: PlacedMarker;
   isEditing: boolean;
   editText: string;
   onEdit: (text: string) => void;
   onEditSubmit: () => void;
-  onContextMenu: () => void;
   onFlyTo: () => void;
+  startEditMarker: (markerId: string, markerLabel: string) => void;
+  deletePlacedMarker: (markerId: string) => void;
 }) {
   const {
     attributes,
@@ -194,44 +197,65 @@ function SortableMarkerItem({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="relative flex items-center gap-2 p-1 hover:bg-neutral-100 rounded cursor-grab active:cursor-grabbing"
-      onContextMenu={onContextMenu}
-    >
-      {isEditing ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onEditSubmit();
-          }}
-          className="w-full flex items-center p-0"
-        >
-          <Input
-            value={editText}
-            onChange={(e) => onEdit(e.target.value)}
-            autoFocus
-          />
-          <Button className="" type="submit" variant="link">
-            <Check className="h-4 w-4 text-green-500" />
-          </Button>
-        </form>
-      ) : (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
         <div
-          className="flex pl-1 items-center gap-1.5 flex-grow cursor-pointer text-sm"
-          onClick={onFlyTo}
+          ref={setNodeRef}
+          style={style}
+          {...attributes}
+          {...listeners}
+          className="relative flex items-center gap-2 p-1 hover:bg-neutral-100 rounded cursor-grab active:cursor-grabbing"
         >
-          <div
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: mapColors.markers.color }}
-          />
-          {marker.label}
+          {isEditing ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onEditSubmit();
+              }}
+              className="w-full flex items-center p-0"
+            >
+              <Input
+                value={editText}
+                onChange={(e) => onEdit(e.target.value)}
+                autoFocus
+              />
+              <Button className="" type="submit" variant="link">
+                <Check className="h-4 w-4 text-green-500" />
+              </Button>
+            </form>
+          ) : (
+            <div
+              className="flex pl-1 items-center gap-1.5 flex-grow cursor-pointer text-sm"
+              onClick={onFlyTo}
+            >
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: mapColors.markers.color }}
+              />
+              {marker.label}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem
+          onClick={() => {
+            startEditMarker(marker.id, marker.label);
+          }}
+        >
+          <Pencil className="h-4 w-4" />
+          Edit
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            deletePlacedMarker(marker.id);
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
 
@@ -393,9 +417,6 @@ export default function MarkersList({
   const editingState = useEditingState();
 
   // Local state
-  const [contextMenuMarkerId, setContextMenuMarkerId] = useState<string | null>(
-    null
-  );
   const [dragState, setDragState] = useState<DragState>({
     activeId: null,
     overId: null,
@@ -485,7 +506,6 @@ export default function MarkersList({
 
       if (over) {
         setDragState((prev) => {
-          console.log("setting drag state to", { ...prev, overId: over.id });
           return {
             ...prev,
             overId: over.id as string,
@@ -532,12 +552,6 @@ export default function MarkersList({
             console.log(
               "🎯 Dropping on marker in folder:",
               destinationFolder?.name || "None (unassigned)"
-            );
-          } else if (overId === "droppable-folders") {
-            // Dropping on the folders droppable zone - this means moving to the top level
-            destinationFolder = null;
-            console.log(
-              "🎯 Dropping on folders droppable zone (moving to top level)"
             );
           } else if (overId === "droppable-unassigned") {
             // Dropping on the unassigned markers droppable zone - this means moving to the top level
@@ -734,7 +748,6 @@ export default function MarkersList({
 
   // Get active item for drag overlay
   const getActiveItem = () => {
-    console.log("dragState", dragState);
     if (!dragState.activeId) return null;
 
     if (dragState.activeType === "folder") {
@@ -755,203 +768,162 @@ export default function MarkersList({
     <>
       <div className="relative">
         {placedMarkersLoading && <Loading blockInteraction />}
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCorners}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDragEnd={handleDragEnd}
-            >
-              <ul
-                className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} space-y-1`}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <ul
+            className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} space-y-1`}
+          >
+            {/* <DroppableFolders> */}
+              <SortableContext
+                items={folderItems}
+                strategy={verticalListSortingStrategy}
               >
-                <DroppableFolders>
-                  <SortableContext
-                    items={folderItems}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {/* Folders */}
-                    {folders.map((folder) => {
-                      const markersInFolder = MarkerUtils.getMarkersInFolder(
-                        folder,
-                        placedMarkers
-                      );
-                      const isEditing =
-                        editingState.editingFolderId === folder.id;
+                {/* Folders */}
+                {folders.map((folder) => {
+                  const markersInFolder = MarkerUtils.getMarkersInFolder(
+                    folder,
+                    placedMarkers
+                  );
+                  const isEditing = editingState.editingFolderId === folder.id;
 
-                      return (
-                        <SortableFolderItem
-                          key={folder.id}
-                          folder={folder}
-                          isEditing={isEditing}
-                          editName={editingState.editName}
-                          markersInFolder={markersInFolder}
-                          onToggle={() => {
-                            if (!isEditing) {
-                              onToggleFolder(folder.id);
-                            }
-                          }}
-                          onEditChange={editingState.setEditName}
-                          onEditSubmit={() => handleEditFolderSubmit(folder.id)}
-                          onEditKeyDown={(e) =>
-                            handleEditFolderKeyDown(e, folder.id)
-                          }
-                          onDelete={() => onDeleteFolder(folder.id)}
-                          onStartEdit={() =>
-                            editingState.startEditFolder(folder.id, folder.name)
-                          }
-                        >
-                          {/* Folder contents */}
-                          {folder.isExpanded && markersInFolder.length > 0 && (
-                            <div className="ml-4 mt-1">
-                              <SortableContext
-                                items={markersInFolder.map(
-                                  (marker) => `marker-${marker.id}`
-                                )}
-                                strategy={verticalListSortingStrategy}
-                              >
-                                {markersInFolder.map((marker) => (
-                                  <div key={marker.id} className="pl-2">
-                                    <SortableMarkerItem
-                                      marker={marker}
-                                      isEditing={
-                                        editingState.editingMarkerId ===
-                                        marker.id
-                                      }
-                                      editText={editingState.editText}
-                                      onEdit={editingState.setEditText}
-                                      onEditSubmit={() =>
-                                        handleEditMarker(marker.id)
-                                      }
-                                      onContextMenu={() =>
-                                        setContextMenuMarkerId(marker.id)
-                                      }
-                                      onFlyTo={() => handleFlyToMarker(marker)}
-                                    />
-                                  </div>
-                                ))}
-                              </SortableContext>
-                            </div>
-                          )}
-                        </SortableFolderItem>
-                      );
-                    })}
-                  </SortableContext>
-                </DroppableFolders>
-
-                <DroppableUnassignedMarkers>
-                  {/* Unassigned markers */}
-                  {unassignedMarkers.length > 0 && (
-                    <SortableContext
-                      items={unassignedMarkers.map(
-                        (marker) => `marker-${marker.id}`
-                      )}
-                      strategy={verticalListSortingStrategy}
+                  return (
+                    <SortableFolderItem
+                      key={folder.id}
+                      folder={folder}
+                      isEditing={isEditing}
+                      editName={editingState.editName}
+                      markersInFolder={markersInFolder}
+                      onToggle={() => {
+                        if (!isEditing) {
+                          onToggleFolder(folder.id);
+                        }
+                      }}
+                      onEditChange={editingState.setEditName}
+                      onEditSubmit={() => handleEditFolderSubmit(folder.id)}
+                      onEditKeyDown={(e) =>
+                        handleEditFolderKeyDown(e, folder.id)
+                      }
+                      onDelete={() => onDeleteFolder(folder.id)}
+                      onStartEdit={() =>
+                        editingState.startEditFolder(folder.id, folder.name)
+                      }
                     >
-                      {unassignedMarkers.map((marker) => (
-                        <li key={marker.id} className="list-none">
-                          <SortableMarkerItem
-                            marker={marker}
-                            isEditing={
-                              editingState.editingMarkerId === marker.id
-                            }
-                            editText={editingState.editText}
-                            onEdit={editingState.setEditText}
-                            onEditSubmit={() => handleEditMarker(marker.id)}
-                            onContextMenu={() =>
-                              setContextMenuMarkerId(marker.id)
-                            }
-                            onFlyTo={() => handleFlyToMarker(marker)}
-                          />
-                        </li>
-                      ))}
-                    </SortableContext>
-                  )}
-                </DroppableUnassignedMarkers>
-
-                {/* Data sources */}
-                {markerDataSources.length > 0 && (
-                  <div className="gap-2 p-2 mt-3 bg-muted rounded">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-3 w-3 text-muted-foreground shrink-0" />
-                      <p className="text-xs text-muted-foreground whitespace-nowrap">
-                        Data sources
-                      </p>
-                    </div>
-                    <ul>
-                      {markerDataSources.map((dataSource) => (
-                        <li key={dataSource.id} className="text-sm mt-2">
-                          <div
-                            className={`text-sm cursor-pointer rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
-                              dataSource.id === selectedDataSourceId
-                                ? "bg-neutral-100"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              handleDataSourceSelect(dataSource.id)
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              <DataSourceIcon type={dataSource.config.type} />
-                              {dataSource.name}
-                            </div>
-                            {dataSource.id === selectedDataSourceId && (
-                              <Table className="w-4 h-4 text-neutral-500" />
+                      {/* Folder contents */}
+                      {folder.isExpanded && markersInFolder.length > 0 && (
+                        <div className="ml-4 mt-1">
+                          <SortableContext
+                            items={markersInFolder.map(
+                              (marker) => `marker-${marker.id}`
                             )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </ul>
-            </DndContext>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            {contextMenuMarkerId !== null && (
-              <>
-                <ContextMenuItem
-                  onClick={() => {
-                    const marker = placedMarkers.find(
-                      (m) => m.id === contextMenuMarkerId
-                    );
-                    if (marker) {
-                      editingState.startEditMarker(
-                        contextMenuMarkerId,
-                        marker.label
-                      );
-                    }
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => {
-                    deletePlacedMarker(contextMenuMarkerId);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </ContextMenuItem>
-              </>
-            )}
-          </ContextMenuContent>
-        </ContextMenu>
-      </div>
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {markersInFolder.map((marker) => (
+                              <div key={marker.id} className="pl-2">
+                                <SortableMarkerItem
+                                  marker={marker}
+                                  isEditing={
+                                    editingState.editingMarkerId === marker.id
+                                  }
+                                  editText={editingState.editText}
+                                  onEdit={editingState.setEditText}
+                                  onEditSubmit={() =>
+                                    handleEditMarker(marker.id)
+                                  }
+                                  startEditMarker={editingState.startEditMarker}
+                                  deletePlacedMarker={deletePlacedMarker}
+                                  onFlyTo={() => handleFlyToMarker(marker)}
+                                />
+                              </div>
+                            ))}
+                          </SortableContext>
+                        </div>
+                      )}
+                    </SortableFolderItem>
+                  );
+                })}
+              </SortableContext>
+            {/* </DroppableFolders> */}
 
-      {/* DragOverlay outside of DndContext to avoid layout issues */}
-      <DragOverlay dropAnimation={null}>
-        {getActiveItem() ? (
-          dragState.activeType === "folder" ? (
-            <FolderDragOverlay folder={getActiveItem() as MarkerFolder} />
-          ) : (
-            <MarkerDragOverlay marker={getActiveItem() as PlacedMarker} />
-          )
-        ) : null}
-      </DragOverlay>
+            <DroppableUnassignedMarkers>
+              {/* Unassigned markers */}
+              {unassignedMarkers.length > 0 && (
+                <SortableContext
+                  items={unassignedMarkers.map(
+                    (marker) => `marker-${marker.id}`
+                  )}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {unassignedMarkers.map((marker) => (
+                    <li key={marker.id} className="list-none">
+                      <SortableMarkerItem
+                        marker={marker}
+                        isEditing={editingState.editingMarkerId === marker.id}
+                        editText={editingState.editText}
+                        onEdit={editingState.setEditText}
+                        onEditSubmit={() => handleEditMarker(marker.id)}
+                        onFlyTo={() => handleFlyToMarker(marker)}
+                        deletePlacedMarker={deletePlacedMarker}
+                        startEditMarker={editingState.startEditMarker}
+                      />
+                    </li>
+                  ))}
+                </SortableContext>
+              )}
+            </DroppableUnassignedMarkers>
+
+            {/* Data sources */}
+            {markerDataSources.length > 0 && (
+              <div className="gap-2 p-2 mt-3 bg-muted rounded">
+                <div className="flex items-center gap-2">
+                  <Database className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <p className="text-xs text-muted-foreground whitespace-nowrap">
+                    Data sources
+                  </p>
+                </div>
+                <ul>
+                  {markerDataSources.map((dataSource) => (
+                    <li key={dataSource.id} className="text-sm mt-2">
+                      <div
+                        className={`text-sm cursor-pointer rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
+                          dataSource.id === selectedDataSourceId
+                            ? "bg-neutral-100"
+                            : ""
+                        }`}
+                        onClick={() => handleDataSourceSelect(dataSource.id)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <DataSourceIcon type={dataSource.config.type} />
+                          {dataSource.name}
+                        </div>
+                        {dataSource.id === selectedDataSourceId && (
+                          <Table className="w-4 h-4 text-neutral-500" />
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </ul>
+          {createPortal(
+            <DragOverlay dropAnimation={null}>
+              {getActiveItem() ? (
+                dragState.activeType === "folder" ? (
+                  <FolderDragOverlay folder={getActiveItem() as MarkerFolder} />
+                ) : (
+                  <MarkerDragOverlay marker={getActiveItem() as PlacedMarker} />
+                )
+              ) : null}
+            </DragOverlay>,
+            document.body
+          )}
+        </DndContext>
+      </div>
     </>
   );
 }
