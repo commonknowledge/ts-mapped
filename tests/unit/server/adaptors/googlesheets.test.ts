@@ -13,7 +13,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
     const firstRow = await adaptor.fetchFirst();
     expect(firstRow).toHaveProperty("externalId");
@@ -24,7 +24,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     const body = {
@@ -33,7 +33,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
     const ids = [];
     for await (const id of adaptor.extractExternalRecordIdsFromWebhookBody(
-      body
+      body,
     )) {
       ids.push(id);
     }
@@ -47,7 +47,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     const body = {
@@ -56,7 +56,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
     const ids = [];
     for await (const id of adaptor.extractExternalRecordIdsFromWebhookBody(
-      body
+      body,
     )) {
       ids.push(id);
     }
@@ -73,7 +73,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     const count = await adaptor.getRecordCount();
@@ -86,7 +86,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     const firstRecord = await adaptor.fetchFirst();
@@ -103,7 +103,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     const results = [];
@@ -124,7 +124,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     // Get some records first
@@ -151,16 +151,16 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     // Create array with 101 IDs (more than DATA_RECORDS_JOB_BATCH_SIZE)
     const tooManyIds = Array.from({ length: 101 }, (_, i) =>
-      (i + 2).toString()
+      (i + 2).toString(),
     );
 
     await expect(adaptor.fetchByExternalId(tooManyIds)).rejects.toThrow(
-      "Cannot fetch more than 100 records at once."
+      "Cannot fetch more than 100 records at once.",
     );
   });
 
@@ -172,21 +172,21 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     await adaptor.toggleWebhook(true);
 
     let sheets = await adaptor.listSheets();
     expect(sheets.some((s) => s.properties.title.includes(baseDomain))).toBe(
-      true
+      true,
     );
 
     await adaptor.toggleWebhook(false);
 
     sheets = await adaptor.listSheets();
     expect(sheets.some((s) => s.properties.title.includes(baseDomain))).toBe(
-      false
+      false,
     );
   });
 
@@ -195,7 +195,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     await adaptor.toggleWebhook(true);
@@ -204,7 +204,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
     const sheets = await adaptor.listSheets();
     expect(sheets.some((s) => s.properties.title.includes("ngrok"))).toBe(
-      false
+      false,
     );
   });
 
@@ -213,7 +213,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     // Get a record to update
@@ -250,7 +250,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     // Get a record to update
@@ -289,7 +289,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     // Get multiple records to update
@@ -335,7 +335,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
-      expiredCredentials
+      expiredCredentials,
     );
 
     // This should trigger token refresh and still work
@@ -348,7 +348,7 @@ describe.skip("Google Sheets adaptor tests", () => {
       "test-data-source",
       credentials.googlesheets.spreadsheetId,
       "EmptySheet", // Assumes test sheet exists
-      credentials.googlesheets.oAuthCredentials
+      credentials.googlesheets.oAuthCredentials,
     );
 
     const count = await adaptor.getRecordCount();

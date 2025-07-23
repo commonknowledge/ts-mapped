@@ -244,7 +244,7 @@ export const useUpsertPlacedMarkerMutation = () => {
     UpsertPlacedMarkerMutationVariables
   >(gql`
     mutation UpsertPlacedMarker(
-      $id: String
+      $id: String!
       $label: String!
       $notes: String!
       $point: PointInput!

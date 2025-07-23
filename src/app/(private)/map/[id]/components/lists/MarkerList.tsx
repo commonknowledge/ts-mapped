@@ -13,7 +13,6 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import DataSourceIcon from "../DataSourceIcon";
-import Loading from "../Loading";
 
 export default function MarkerList() {
   const { mapRef, viewConfig } = useContext(MapContext);
@@ -21,7 +20,6 @@ export default function MarkerList() {
 
   const {
     placedMarkers,
-    placedMarkersLoading,
     deletePlacedMarker,
     updatePlacedMarker,
   } = useContext(MarkerAndTurfContext);
@@ -37,8 +35,6 @@ export default function MarkerList() {
 
   return (
     <div className="relative">
-      {/* Disable interactions while markers are loading/updating in the background */}
-      {placedMarkersLoading && <Loading blockInteraction />}
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <ul

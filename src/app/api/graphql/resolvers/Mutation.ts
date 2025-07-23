@@ -24,8 +24,7 @@ import { createMap, findMapById, updateMap } from "@/server/repositories/Map";
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
-  insertPlacedMarker,
-  updatePlacedMarker,
+  upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import logger from "@/server/services/logger";
@@ -269,7 +268,7 @@ const MutationResolvers: MutationResolversType = {
       point,
       mapId,
     }: {
-      id?: string | null;
+      id: string;
       label: string;
       notes: string;
       point: PointInput;
@@ -282,17 +281,13 @@ const MutationResolvers: MutationResolversType = {
         return { code: 404 };
       }
       const placedMarkerInput = {
+        id,
         label,
         notes,
         point,
         mapId,
       };
-      let placedMarker = null;
-      if (id) {
-        placedMarker = await updatePlacedMarker(id, placedMarkerInput);
-      } else {
-        placedMarker = await insertPlacedMarker(placedMarkerInput);
-      }
+      const placedMarker = await upsertPlacedMarker(placedMarkerInput);
       return { code: 200, result: placedMarker };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });

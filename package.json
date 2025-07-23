@@ -6,7 +6,7 @@
     "build": "next build",
     "cmd": "tsx --env-file=.env bin/cmd.ts",
     "dev": "next dev --experimental-https",
-    "gql": "graphql-codegen",
+    "gql": "NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen",
     "kysely": "kysely",
     "lint": "eslint --fix && tsc --noEmit && prettier --log-level warn --write . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
     "start": "next start",
