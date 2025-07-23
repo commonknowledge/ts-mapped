@@ -2,7 +2,7 @@ import readline from "readline";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
-import { getLocalUrl } from "@/server/services/urls";
+import { getAbsoluteUrl } from "@/server/services/urls";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
 
@@ -10,7 +10,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
   private url: string;
 
   constructor(url: string) {
-    this.url = url.startsWith("/api/upload") ? getLocalUrl(url) : url;
+    this.url = url.startsWith("/api/upload") ? getAbsoluteUrl(url) : url;
   }
 
   extractExternalRecordIdsFromWebhookBody(
@@ -80,14 +80,11 @@ export class CSVAdaptor implements DataSourceAdaptor {
     throw new Error("Method not implemented.");
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  removeDevWebhooks(dataSourceId: string): Promise<void> {
+  removeDevWebhooks(): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
   async toggleWebhook(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dataSourceId: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enable: boolean,
   ): Promise<void> {

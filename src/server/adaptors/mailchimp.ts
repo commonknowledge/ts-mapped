@@ -29,14 +29,11 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  removeDevWebhooks(dataSourceId: string): Promise<void> {
+  removeDevWebhooks(): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
   async toggleWebhook(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dataSourceId: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enable: boolean,
   ): Promise<void> {

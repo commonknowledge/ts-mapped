@@ -27,7 +27,7 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
       },
       link: new HttpLink({
         uri: `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+          process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000"
         }/api/graphql`,
         headers: {
           cookie: `JWT=${jwt || ""}`,

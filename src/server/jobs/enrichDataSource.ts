@@ -22,7 +22,7 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
     return false;
   }
 
-  const adaptor = getDataSourceAdaptor(dataSource.config);
+  const adaptor = getDataSourceAdaptor(dataSource);
   if (!adaptor) {
     logger.error(
       `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`,

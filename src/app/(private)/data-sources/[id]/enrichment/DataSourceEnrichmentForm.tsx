@@ -136,7 +136,7 @@ export default function DataSourceEnrichmentForm({
       <Button disabled={!formValid || loading}>Submit</Button>
       {error && (
         <div>
-          <small>{error}</small>
+          <span className="text-xs text-red-500">{error}</span>
         </div>
       )}
     </form>

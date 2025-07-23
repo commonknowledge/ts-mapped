@@ -6,13 +6,13 @@ const removeDevWebhooks = async (id: string) => {
   if (!dataSource) {
     throw new Error("Data source not found");
   }
-  const adaptor = getDataSourceAdaptor(dataSource.config);
+  const adaptor = getDataSourceAdaptor(dataSource);
   if (!adaptor) {
     throw new Error(
       `No data source adaptor for config ${JSON.stringify(dataSource.config)}`,
     );
   }
-  await adaptor.removeDevWebhooks(dataSource.id);
+  await adaptor.removeDevWebhooks();
 };
 
 export default removeDevWebhooks;

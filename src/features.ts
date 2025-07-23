@@ -14,6 +14,11 @@ export const DataSourceFeatures: Record<
     autoImport: false,
     enrichment: false,
   },
+  [DataSourceType.googlesheets]: {
+    autoEnrich: true,
+    autoImport: true,
+    enrichment: true,
+  },
   [DataSourceType.mailchimp]: {
     autoEnrich: true,
     autoImport: true,

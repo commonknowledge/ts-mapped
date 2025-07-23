@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   ColumnDef,
   ColumnType,
@@ -23,8 +24,7 @@ import { createMap, findMapById, updateMap } from "@/server/repositories/Map";
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
-  insertPlacedMarker,
-  updatePlacedMarker,
+  upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import logger from "@/server/services/logger";
@@ -47,8 +47,11 @@ const MutationResolvers: MutationResolversType = {
     }: { name: string; organisationId: string; rawConfig: unknown },
   ): Promise<CreateDataSourceResponse> => {
     try {
+      const id = uuidv4();
       const config = DataSourceConfigSchema.parse(rawConfig);
-      const adaptor = getDataSourceAdaptor(config);
+
+      const adaptor = getDataSourceAdaptor({ id, config });
+
       const firstRecord = adaptor ? await adaptor.fetchFirst() : null;
       if (!firstRecord) {
         return { code: 500 };
@@ -65,6 +68,7 @@ const MutationResolvers: MutationResolversType = {
         type: GeocodingType.None,
       };
       const dataSource = await createDataSource({
+        id,
         name,
         organisationId,
         autoEnrich: false,
@@ -144,7 +148,7 @@ const MutationResolvers: MutationResolversType = {
         return { code: 404 };
       }
 
-      const adaptor = getDataSourceAdaptor(dataSource.config);
+      const adaptor = getDataSourceAdaptor(dataSource);
 
       const update: {
         columnRoles?: string;
@@ -175,7 +179,7 @@ const MutationResolvers: MutationResolversType = {
 
       if (nextAutoStatus.changed) {
         const enable = nextAutoStatus.autoEnrich || nextAutoStatus.autoImport;
-        await adaptor?.toggleWebhook(dataSource.id, enable);
+        await adaptor?.toggleWebhook(enable);
       }
 
       if (columnRoles) {
@@ -264,7 +268,7 @@ const MutationResolvers: MutationResolversType = {
       point,
       mapId,
     }: {
-      id?: string | null;
+      id: string;
       label: string;
       notes: string;
       point: PointInput;
@@ -277,17 +281,13 @@ const MutationResolvers: MutationResolversType = {
         return { code: 404 };
       }
       const placedMarkerInput = {
+        id,
         label,
         notes,
         point,
         mapId,
       };
-      let placedMarker = null;
-      if (id) {
-        placedMarker = await updatePlacedMarker(id, placedMarkerInput);
-      } else {
-        placedMarker = await insertPlacedMarker(placedMarkerInput);
-      }
+      const placedMarker = await upsertPlacedMarker(placedMarkerInput);
       return { code: 200, result: placedMarker };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });

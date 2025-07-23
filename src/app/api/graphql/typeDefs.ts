@@ -338,7 +338,7 @@ const typeDefs = `
       mapId: String!
     ): UpsertMapViewResponse @auth(write: { mapIdArg: "mapId" })
     upsertPlacedMarker(
-      id: String
+      id: String!
       label: String!
       notes: String!
       point: PointInput!
