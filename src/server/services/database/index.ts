@@ -9,6 +9,7 @@ import { DataSourceTable } from "@/server/models/DataSource";
 import { JobTable } from "@/server/models/Job";
 import { MapTable } from "@/server/models/Map";
 import { MapViewTable } from "@/server/models/MapView";
+import { MarkerFolderTable } from "@/server/models/MarkerFolder";
 import { OrganisationTable } from "@/server/models/Organisation";
 import { OrganisationUserTable } from "@/server/models/OrganisationUser";
 import { PlacedMarkerTable } from "@/server/models/PlacedMarker";
@@ -33,6 +34,7 @@ export interface Database {
   dataRecord: DataRecordTable;
   map: MapTable;
   mapView: MapViewTable;
+  markerFolder: MarkerFolderTable;
   organisation: OrganisationTable;
   organisationUser: OrganisationUserTable;
   placedMarker: PlacedMarkerTable;

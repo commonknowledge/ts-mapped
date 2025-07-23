@@ -46,9 +46,14 @@ export default function MapProvider({
     if (mapData?.map?.views && mapData.map.views.length > 0) {
       const nextView = mapData.map.views[0];
       const nextViewId = nextView.id;
-      // Annoying workaround to remove __typename from read-only object (breaks `new ViewConfig()`)
-      const nextConfig = { ...nextView.config };
-      delete nextConfig.__typename;
+      // Handle nullable fields from GraphQL and remove __typename
+      const { markerDataSourceIds, membersDataSourceId, ...restConfig } =
+        nextView.config;
+      const nextConfig = {
+        ...restConfig,
+        markerDataSourceIds: markerDataSourceIds ?? [],
+        membersDataSourceId: membersDataSourceId ?? "",
+      };
       setViewId(nextViewId);
       setViewConfig(new ViewConfig(nextConfig));
     }

@@ -57,3 +57,11 @@ export interface ServerSession {
 export interface UploadResponseBody {
   url: string;
 }
+
+export interface MarkerFolder {
+  id: string;
+  name: string;
+  markerIds: string[];
+  isExpanded: boolean;
+  createdAt: string;
+}

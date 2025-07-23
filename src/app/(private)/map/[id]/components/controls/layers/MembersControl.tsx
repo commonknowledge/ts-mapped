@@ -59,7 +59,9 @@ export default function MembersControl() {
           dropdownLabel="Select a member list"
           dropdownItems={getDropdownItems()}
         >
-          <Ellipsis className="w-4 h-4" />
+          <Ellipsis
+            className={`w-4 h-4 ${dataSource ? "" : "animate-pulse text-primary"}`}
+          />
         </IconButtonWithTooltip>
       </LayerHeader>
 

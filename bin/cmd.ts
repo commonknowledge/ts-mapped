@@ -25,7 +25,7 @@ program
   .option("--password <password>")
   .option(
     "--org <organisation>",
-    "The name of an organisation this user belongs to",
+    "The name of an organisation this user belongs to"
   )
   .description("Create a new user")
   .action(async (options) => {

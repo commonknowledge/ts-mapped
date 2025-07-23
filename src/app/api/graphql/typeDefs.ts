@@ -206,6 +206,7 @@ const typeDefs = `
     createdAt: Date!
     imageUrl: String
     placedMarkers: [PlacedMarker!]
+    markerFolders: [MarkerFolder!]
     turfs: [Turf!]
     views: [MapView!]
   }
@@ -215,8 +216,8 @@ const typeDefs = `
     areaDataColumn: String!
     areaSetGroupCode: AreaSetGroupCode
     excludeColumnsString: String!
-    markerDataSourceIds: [String!]!
-    membersDataSourceId: String!
+    markerDataSourceIds: [String!]
+    membersDataSourceId: String
     mapStyleName: MapStyleName!
     showBoundaryOutline: Boolean!
     showLabels: Boolean!
@@ -241,6 +242,14 @@ const typeDefs = `
     label: String!
     notes: String!
     point: Point!
+  }
+
+  type MarkerFolder {
+    id: String!
+    name: String!
+    markerIds: [String!]!
+    isExpanded: Boolean!
+    createdAt: Date!
   }
 
   type Point {
@@ -309,6 +318,11 @@ const typeDefs = `
     result: Turf
   }
 
+  type UpsertMarkerFolderResponse {
+    code: Int!
+    result: MarkerFolder
+  }
+
   type Mutation {
     createDataSource(
       name: String!
@@ -317,6 +331,7 @@ const typeDefs = `
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
     createMap(organisationId: String!): CreateMapResponse @auth(read: { organisationIdArg: "organisationId" })
     deletePlacedMarker(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
+    deleteMarkerFolder(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
@@ -353,6 +368,13 @@ const typeDefs = `
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
+    upsertMarkerFolder(
+      id: String
+      name: String!
+      markerIds: [String!]!
+      isExpanded: Boolean!
+      mapId: String!
+    ): UpsertMarkerFolderResponse @auth(write: { mapIdArg: "mapId" })
   }
 
   type DataSourceEvent {

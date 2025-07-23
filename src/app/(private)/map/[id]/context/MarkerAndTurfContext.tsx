@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { PlacedMarker, Turf } from "@/__generated__/types";
+import { MarkerFolder, PlacedMarker, Turf } from "@/__generated__/types";
 import { MarkerData } from "@/types";
 import { MarkerQueriesResult } from "../types";
 
@@ -23,6 +23,13 @@ export const MarkerAndTurfContext = createContext<{
   insertTurf: (turf: Turf) => void;
   updateTurf: (turf: Turf) => void;
 
+  markerFolders: MarkerFolder[];
+  markerFoldersLoading: boolean;
+  deleteMarkerFolder: (id: string) => void;
+  insertMarkerFolder: (markerFolder: MarkerFolder) => void;
+  updateMarkerFolder: (markerFolder: MarkerFolder) => void;
+  updateFolderMarkerReferences: (oldId: string, newId: string) => void;
+
   /* GraphQL Queries */
   markerQueries: MarkerQueriesResult | null;
 }>({
@@ -40,5 +47,11 @@ export const MarkerAndTurfContext = createContext<{
   deleteTurf: () => null,
   insertTurf: () => null,
   updateTurf: () => null,
+  markerFolders: [],
+  markerFoldersLoading: false,
+  deleteMarkerFolder: () => null,
+  insertMarkerFolder: () => null,
+  updateMarkerFolder: () => null,
+  updateFolderMarkerReferences: () => null,
   markerQueries: null,
 });

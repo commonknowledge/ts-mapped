@@ -22,6 +22,11 @@ import {
 import { createMap, findMapById, updateMap } from "@/server/repositories/Map";
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import {
+  deleteMarkerFolder,
+  insertMarkerFolder,
+  updateMarkerFolder,
+} from "@/server/repositories/MarkerFolder";
+import {
   deletePlacedMarker,
   insertPlacedMarker,
   updatePlacedMarker,
@@ -44,7 +49,7 @@ const MutationResolvers: MutationResolversType = {
       name,
       organisationId,
       rawConfig,
-    }: { name: string; organisationId: string; rawConfig: unknown },
+    }: { name: string; organisationId: string; rawConfig: unknown }
   ): Promise<CreateDataSourceResponse> => {
     try {
       const config = DataSourceConfigSchema.parse(rawConfig);
@@ -58,7 +63,7 @@ const MutationResolvers: MutationResolversType = {
         (key) => ({
           name: key,
           type: ColumnType.Unknown,
-        }),
+        })
       );
 
       const geocodingConfig: GeocodingConfig = {
@@ -85,7 +90,7 @@ const MutationResolvers: MutationResolversType = {
   },
   createMap: async (
     _: unknown,
-    { organisationId },
+    { organisationId }
   ): Promise<CreateMapResponse> => {
     try {
       const map = await createMap(organisationId);
@@ -104,6 +109,16 @@ const MutationResolvers: MutationResolversType = {
     }
     return { code: 500 };
   },
+
+  deleteMarkerFolder: async (_: unknown, { id }: { id: string }) => {
+    try {
+      await deleteMarkerFolder(id);
+      return { code: 200 };
+    } catch (error) {
+      logger.error(`Could not delete marker folder ${id}`, { error });
+    }
+    return { code: 500 };
+  },
   deleteTurf: async (_: unknown, { id }: { id: string }) => {
     try {
       await deleteTurf(id);
@@ -115,14 +130,14 @@ const MutationResolvers: MutationResolversType = {
   },
   enqueueEnrichDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string },
+    { dataSourceId }: { dataSourceId: string }
   ): Promise<MutationResponse> => {
     await enqueue("enrichDataSource", { dataSourceId });
     return { code: 200 };
   },
   enqueueImportDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string },
+    { dataSourceId }: { dataSourceId: string }
   ): Promise<MutationResponse> => {
     await enqueue("importDataSource", { dataSourceId });
     return { code: 200 };
@@ -136,7 +151,7 @@ const MutationResolvers: MutationResolversType = {
       looseGeocodingConfig,
       autoEnrich,
       autoImport,
-    }: MutationUpdateDataSourceConfigArgs,
+    }: MutationUpdateDataSourceConfigArgs
   ): Promise<MutationResponse> => {
     try {
       const dataSource = await findDataSourceById(id);
@@ -198,7 +213,7 @@ const MutationResolvers: MutationResolversType = {
 
       await updateDataSource(id, update);
       logger.info(
-        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
+        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`
       );
       return { code: 200 };
     } catch (error) {
@@ -269,7 +284,7 @@ const MutationResolvers: MutationResolversType = {
       notes: string;
       point: PointInput;
       mapId: string;
-    },
+    }
   ): Promise<UpsertPlacedMarkerResponse> => {
     try {
       const map = await findMapById(mapId);
@@ -312,7 +327,7 @@ const MutationResolvers: MutationResolversType = {
       geometry: unknown;
       createdAt: string;
       mapId: string;
-    },
+    }
   ): Promise<UpsertTurfResponse> => {
     try {
       const map = await findMapById(mapId);
@@ -336,6 +351,47 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200, result: turf };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });
+    }
+    return { code: 500 };
+  },
+
+  upsertMarkerFolder: async (
+    _: unknown,
+    {
+      id,
+      name,
+      markerIds,
+      isExpanded,
+      mapId,
+    }: {
+      id?: string | null;
+      name: string;
+      markerIds: string[];
+      isExpanded: boolean;
+      mapId: string;
+    }
+  ) => {
+    try {
+      const map = await findMapById(mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+      const markerFolderInput = {
+        name,
+        markerIds: Array.isArray(markerIds) ? markerIds : [],
+        isExpanded,
+        mapId,
+      };
+
+      let markerFolder = null;
+      if (id) {
+        markerFolder = await updateMarkerFolder(id, markerFolderInput);
+      } else {
+        markerFolder = await insertMarkerFolder(markerFolderInput);
+      }
+      return { code: 200, result: markerFolder };
+    } catch (error) {
+      logger.error(`Could not create marker folder`, { error });
     }
     return { code: 500 };
   },

@@ -1,6 +1,12 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useRef, useState } from "react";
 import {
+  DeleteMarkerFolderMutation,
+  DeleteMarkerFolderMutationVariables,
+  UpsertMarkerFolderMutation,
+  UpsertMarkerFolderMutationVariables,
+} from "@/__generated__/types";
+import {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
@@ -72,7 +78,7 @@ export const useDataRecordsQuery = (variables: {
         }
       }
     `,
-    { variables, skip: !variables.dataSourceId },
+    { variables, skip: !variables.dataSourceId }
   );
 
 export const useMapQuery = (mapId: string | null) =>
@@ -89,6 +95,13 @@ export const useMapQuery = (mapId: string | null) =>
               lat
               lng
             }
+          }
+          markerFolders {
+            id
+            name
+            markerIds
+            isExpanded
+            createdAt
           }
           turfs {
             id
@@ -118,7 +131,7 @@ export const useMapQuery = (mapId: string | null) =>
         }
       }
     `,
-    { variables: { id: mapId || "" }, skip: !mapId },
+    { variables: { id: mapId || "" }, skip: !mapId }
   );
 
 // Use API request instead of GraphQL to avoid server memory load
@@ -222,7 +235,7 @@ export const useAreaStatsQuery = ({
       },
       skip: !dataSourceId || !column,
       notifyOnNetworkStatusChange: true,
-    },
+    }
   );
 
 export const useDeletePlacedMarkerMutation = () => {
@@ -300,6 +313,51 @@ export const useUpsertTurfMutation = () => {
         result {
           id
         }
+      }
+    }
+  `);
+};
+
+export const useUpsertMarkerFolderMutation = () => {
+  return useMutation<
+    UpsertMarkerFolderMutation,
+    UpsertMarkerFolderMutationVariables
+  >(gql`
+    mutation UpsertMarkerFolder(
+      $id: String
+      $name: String!
+      $markerIds: [String!]!
+      $isExpanded: Boolean!
+      $mapId: String!
+    ) {
+      upsertMarkerFolder(
+        id: $id
+        name: $name
+        markerIds: $markerIds
+        isExpanded: $isExpanded
+        mapId: $mapId
+      ) {
+        code
+        result {
+          id
+          name
+          markerIds
+          isExpanded
+          createdAt
+        }
+      }
+    }
+  `);
+};
+
+export const useDeleteMarkerFolderMutation = () => {
+  return useMutation<
+    DeleteMarkerFolderMutation,
+    DeleteMarkerFolderMutationVariables
+  >(gql`
+    mutation DeleteMarkerFolder($id: String!, $mapId: String!) {
+      deleteMarkerFolder(id: $id, mapId: $mapId) {
+        code
       }
     }
   `);

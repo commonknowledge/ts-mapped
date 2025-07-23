@@ -7,7 +7,10 @@ import {
   useUpsertTurfMutation,
 } from "./data";
 
-export const usePlacedMarkers = (mapId: string | null) => {
+export const usePlacedMarkers = (
+  mapId: string | null,
+  updateFolderMarkerReferences?: (oldId: string, newId: string) => void
+) => {
   const ref = useRef<PlacedMarker[]>([]);
   const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
 
@@ -19,7 +22,7 @@ export const usePlacedMarkers = (mapId: string | null) => {
       ref.current = markers;
       _setPlacedMarkers(markers);
     },
-    [_setPlacedMarkers],
+    [_setPlacedMarkers]
   );
 
   const [deletePlacedMarkerMutation] = useDeletePlacedMarkerMutation();
@@ -61,10 +64,12 @@ export const usePlacedMarkers = (mapId: string | null) => {
     const newId = data?.upsertPlacedMarker?.result?.id;
     if (newId) {
       setPlacedMarkers(
-        newMarkers.map((m) =>
-          m.id === newMarker.id ? { ...m, id: newId } : m,
-        ),
+        newMarkers.map((m) => (m.id === newMarker.id ? { ...m, id: newId } : m))
       );
+      // Update folder references if the marker ID changed
+      if (newId !== newMarker.id) {
+        updateFolderMarkerReferences?.(newMarker.id, newId);
+      }
     }
   };
 
@@ -84,7 +89,7 @@ export const usePlacedMarkers = (mapId: string | null) => {
     });
 
     setPlacedMarkers(
-      ref.current.map((m) => (m.id === updatedMarker.id ? updatedMarker : m)),
+      ref.current.map((m) => (m.id === updatedMarker.id ? updatedMarker : m))
     );
   };
   return {
@@ -109,7 +114,7 @@ export const useTurfs = (mapId: string | null) => {
       ref.current = turfs;
       _setTurfs(turfs);
     },
-    [_setTurfs],
+    [_setTurfs]
   );
 
   const [deleteTurfMutation] = useDeleteTurfMutation();
@@ -152,7 +157,7 @@ export const useTurfs = (mapId: string | null) => {
     const newId = data?.upsertTurf?.result?.id;
     if (newId) {
       setTurfs(
-        newTurfs.map((t) => (t.id === newTurf.id ? { ...t, id: newId } : t)),
+        newTurfs.map((t) => (t.id === newTurf.id ? { ...t, id: newId } : t))
       );
     }
   };
@@ -175,7 +180,7 @@ export const useTurfs = (mapId: string | null) => {
     });
 
     setTurfs(
-      ref.current.map((t) => (t.id === updatedTurf.id ? updatedTurf : t)),
+      ref.current.map((t) => (t.id === updatedTurf.id ? updatedTurf : t))
     );
   };
 

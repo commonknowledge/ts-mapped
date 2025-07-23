@@ -30,7 +30,7 @@ export default function DataSourcesProvider({
   const getMarkerDataSources = () => {
     const dataSources = getDataSources();
     return dataSources.filter((ds) =>
-      viewConfig.markerDataSourceIds.includes(ds.id),
+      viewConfig.markerDataSourceIds.includes(ds.id)
     );
   };
 

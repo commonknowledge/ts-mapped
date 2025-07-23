@@ -12,6 +12,7 @@ import {
   findMapById,
   findMapsByOrganisationId,
 } from "@/server/repositories/Map";
+import { findMarkerFoldersByMapId } from "@/server/repositories/MarkerFolder";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import { getAreaStats } from "@/server/stats";
 
@@ -32,7 +33,7 @@ const QueryResolvers: QueryResolversType = {
       operation: Operation;
       excludeColumns: string[];
       boundingBox?: BoundingBoxInput | null;
-    },
+    }
   ) =>
     getAreaStats(
       areaSetCode,
@@ -40,7 +41,7 @@ const QueryResolvers: QueryResolversType = {
       column,
       operation,
       excludeColumns,
-      boundingBox,
+      boundingBox
     ),
 
   dataSource: async (_: unknown, { id }: { id: string }) => {
@@ -54,14 +55,14 @@ const QueryResolvers: QueryResolversType = {
   dataSources: async (
     _: unknown,
     { organisationId }: { organisationId?: string | null },
-    context: GraphQLContext,
+    context: GraphQLContext
   ) => {
     if (!context.currentUser) {
       return [];
     }
     const dataSources = await findDataSourcesByUserId(context.currentUser.id);
     return dataSources.filter(
-      (ds) => !organisationId || ds.organisationId === organisationId,
+      (ds) => !organisationId || ds.organisationId === organisationId
     );
   },
 
@@ -75,7 +76,7 @@ const QueryResolvers: QueryResolversType = {
 
   maps: async (
     _: unknown,
-    { organisationId }: { organisationId?: string | null },
+    { organisationId }: { organisationId?: string | null }
   ) => {
     if (!organisationId) {
       return [];
