@@ -1,6 +1,7 @@
 import { DatabaseIcon, MapPinIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { PlacedMarker } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -77,7 +78,7 @@ export default function MarkersControl() {
 
                   const clickHandler = (e: mapboxgl.MapMouseEvent) => {
                     const newMarker: PlacedMarker = {
-                      id: `temp-${new Date().getTime()}`,
+                      id: uuidv4(),
                       label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
                       notes: "",
                       point: e.lngLat,

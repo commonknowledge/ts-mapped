@@ -1,6 +1,6 @@
-import { Metadata } from 'next'
+import { Metadata } from "next";
 
-import './privacy.css'
+import "./privacy.css";
 
 export default function PrivacyPage() {
   return (
@@ -20,9 +20,9 @@ export default function PrivacyPage() {
         https://ts-mapped.onrender.com (hereinafter referred to as “Service”).
       </p>
       <p>
-        Our Privacy Policy governs your visit to https://ts-mapped.onrender.com and
-        explains how we collect, safeguard and disclose information that results
-        from your use of our Service.
+        Our Privacy Policy governs your visit to https://ts-mapped.onrender.com
+        and explains how we collect, safeguard and disclose information that
+        results from your use of our Service.
       </p>
       <p>
         We use your data to provide and improve Service. By using Service, you
@@ -38,9 +38,8 @@ export default function PrivacyPage() {
       </p>
       <h2>2. Definitions</h2>
       <p>
-        <strong>SERVICE</strong> means the
-        https://ts-mapped.onrender.com website operated by
-        Common Knowledge Cooperative Limited.
+        <strong>SERVICE</strong> means the https://ts-mapped.onrender.com
+        website operated by Common Knowledge Cooperative Limited.
       </p>
       <p>
         <strong>PERSONAL DATA</strong> means data about a living individual who
@@ -83,7 +82,8 @@ export default function PrivacyPage() {
       </p>
       <p>
         <strong>THE USER</strong> is the individual using our Service. The User
-        corresponds to the Data Subject, who is the subject of Personal Data.{' '}
+        corresponds to the Data Subject, who is the subject of Personal
+        Data.{" "}
       </p>
       <h2>3. Your data protection rights</h2>
       <p>Under data protection law, you have rights including:</p>
@@ -159,12 +159,12 @@ export default function PrivacyPage() {
         visit our Service (“Usage Data”).
       </p>
       <p>
-        This Usage Data includes your computer{"'"}s de-identified Internet Protocol
-        address (IP address), browser type, browser version, the pages of our
-        Service that you visit, the time and date of your visit, the time spent
-        on those pages, unique device identifiers and other diagnostic data.
-        Common Knowledge owns the intellectual property rights in the Usage
-        Data.
+        This Usage Data includes your computer{"'"}s de-identified Internet
+        Protocol address (IP address), browser type, browser version, the pages
+        of our Service that you visit, the time and date of your visit, the time
+        spent on those pages, unique device identifiers and other diagnostic
+        data. Common Knowledge owns the intellectual property rights in the
+        Usage Data.
       </p>
       <p>
         <strong>5.3. Tracking Cookies Data</strong>
@@ -411,9 +411,9 @@ export default function PrivacyPage() {
         contact: data@commonknowledge.coop
       </p>
     </div>
-  )
+  );
 }
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
-}
+  title: "Privacy Policy",
+};

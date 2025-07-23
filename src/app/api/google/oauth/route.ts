@@ -10,9 +10,7 @@ const oauth2Client = new OAuth2Client({
   redirectUri,
 });
 
-const SCOPES = [
-  "https://www.googleapis.com/auth/spreadsheets",
-];
+const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {

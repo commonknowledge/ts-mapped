@@ -1,6 +1,5 @@
 import {
   NewPlacedMarker,
-  PlacedMarkerUpdate,
 } from "@/server/models/PlacedMarker";
 import { db } from "@/server/services/database";
 
@@ -16,22 +15,15 @@ export async function deletePlacedMarker(id: string) {
   return db.deleteFrom("placedMarker").where("id", "=", id).execute();
 }
 
-export async function insertPlacedMarker(placedMarker: NewPlacedMarker) {
+export async function upsertPlacedMarker(
+  placedMarker: NewPlacedMarker,
+) {
   return db
     .insertInto("placedMarker")
     .values(placedMarker)
-    .returningAll()
-    .executeTakeFirstOrThrow();
-}
-
-export async function updatePlacedMarker(
-  id: string,
-  placedMarker: PlacedMarkerUpdate,
-) {
-  return db
-    .updateTable("placedMarker")
-    .set(placedMarker)
-    .where("id", "=", id)
+     .onConflict((oc) =>
+      oc.columns(["id"]).doUpdateSet(placedMarker),
+    )
     .returningAll()
     .executeTakeFirstOrThrow();
 }

@@ -50,22 +50,15 @@ export const usePlacedMarkers = (mapId: string | null) => {
     const newMarkers = [...ref.current, newMarker];
     setPlacedMarkers(newMarkers);
 
-    const { data } = await upsertPlacedMarkerMutation({
+    upsertPlacedMarkerMutation({
       variables: {
+        id: newMarker.id,
         label: newMarker.label,
         notes: newMarker.notes,
         point: newMarker.point,
         mapId,
       },
     });
-    const newId = data?.upsertPlacedMarker?.result?.id;
-    if (newId) {
-      setPlacedMarkers(
-        newMarkers.map((m) =>
-          m.id === newMarker.id ? { ...m, id: newId } : m,
-        ),
-      );
-    }
   };
 
   const updatePlacedMarker = (updatedMarker: PlacedMarker) => {
