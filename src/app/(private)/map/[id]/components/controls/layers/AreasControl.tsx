@@ -93,12 +93,12 @@ export default function AreasControl() {
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <ul
-              className={`${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
+              className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
             >
               {turfs.map((turf, index) => (
                 <div
                   key={turf.id}
-                  className="flex justify-between items-center p-1 hover:bg-neutral-100 rounded cursor-pointer text-sm"
+                  className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm"
                   onClick={() => handleFlyTo(turf)}
                   onContextMenu={() => setContextMenuIndex(index)}
                 >
@@ -125,7 +125,7 @@ export default function AreasControl() {
                       <div className="flex items-center gap-2 pl-1">
                         <div
                           style={{ backgroundColor: mapColors.areas.color }}
-                          className="w-2 h-2 rounded-full"
+                          className="w-2 h-2 rounded-full aspect-square"
                         />
 
                         <div className="text-sm">{turf.label}</div>

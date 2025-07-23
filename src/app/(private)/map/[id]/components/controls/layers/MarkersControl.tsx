@@ -1,19 +1,19 @@
 import {
-  DndContext,
   closestCenter,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  DndContext,
   KeyboardSensor,
   PointerSensor,
+  useDroppable,
   useSensor,
   useSensors,
-  useDroppable,
 } from "@dnd-kit/core";
 import {
   arrayMove,
-  sortableKeyboardCoordinates,
   SortableContext,
+  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
@@ -53,6 +53,7 @@ import Loading from "../../Loading";
 import AddMembersDataModal from "../AddMemberModal";
 import ControlItemWrapper from "../ControlItemWrapper";
 import LayerHeader from "../LayerHeader";
+import { cn } from "@/shadcn/utils";
 
 export default function MarkersControl() {
   const { viewConfig, updateViewConfig, mapRef } = useContext(MapContext);
@@ -251,6 +252,15 @@ const SortableMarkerItem = ({
           {...attributes}
           {...listeners}
           className="flex items-center gap-2 px-1 hover:bg-neutral-100 rounded cursor-grab active:cursor-grabbing"
+          onClick={(e) => {
+            // Only trigger fly-to if not dragging and not clicking on the delete button
+            if (
+              !isCurrentlyDragging &&
+              !(e.target as HTMLElement).closest("button")
+            ) {
+              onFlyTo();
+            }
+          }}
         >
           {isEditing ? (
             <form
@@ -272,26 +282,13 @@ const SortableMarkerItem = ({
               </Button>
             </form>
           ) : (
-            <>
+            <div className="flex items-center gap-1.5 flex-grow text-sm p-0.5">
               <div
-                className="flex items-center gap-1.5 flex-grow cursor-pointer text-sm"
-                onClick={onFlyTo}
-              >
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: mapColors.markers.color }}
-                />
-                {marker.label}
-              </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleDeleteMarker(marker.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </>
+                className="w-2 h-2 rounded-full aspect-square"
+                style={{ backgroundColor: mapColors.markers.color }}
+              />
+              {marker.label}
+            </div>
           )}
         </li>
       </ContextMenuTrigger>
@@ -344,14 +341,16 @@ const UnassignedFolder = ({
   });
 
   return (
-    <div className="mb-1">
+    <div className="mb-3">
       {folders.length > 0 && (
-        <div ref={setNodeRef} className="p-2">
+        <div ref={setNodeRef} className="px-1 py-3">
           <Separator orientation="horizontal" className="h-4 w-full" />
         </div>
       )}
 
-      <div className="ml-4 mt-1 space-y-0.5">
+      <div
+        className={cn("mt-1 space-y-0.5", folders.length > 0 ? "ml-3" : "ml-1")}
+      >
         <SortableContext
           items={markers.map((marker) => `marker-${marker.id}`)}
           strategy={verticalListSortingStrategy}
@@ -404,7 +403,7 @@ const FolderItem = ({
   });
 
   return (
-    <div className="mb-1">
+    <div>
       <div
         ref={setHeaderNodeRef}
         className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-neutral-100 rounded transition-colors ${
@@ -425,7 +424,7 @@ const FolderItem = ({
 
       {folder.isExpanded && (
         <>
-          <div className="ml-4 mt-1 space-y-0.5">
+          <div className="ml-3 mt-1 space-y-0.5">
             <SortableContext
               items={markers.map((marker) => `marker-${marker.id}`)}
               strategy={verticalListSortingStrategy}
@@ -455,13 +454,13 @@ const FolderItem = ({
 const MarkerDragOverlay = ({ marker }: { marker: PlacedMarker }) => {
   return (
     <div
-      className="flex items-center gap-2 p-1 bg-white border border-blue-300 rounded shadow-lg pointer-events-none"
+      className="flex items-center gap-2 p-0.5 bg-white border border-blue-300 rounded shadow-lg pointer-events-none"
       style={{
         transform: "translate(0%, -170%)",
       }}
     >
       <div
-        className="w-2 h-2 rounded-full"
+        className="w-2 h-2 rounded-full aspect-square"
         style={{ backgroundColor: mapColors.markers.color }}
       />
       <span className="text-sm">{marker.label}</span>
@@ -842,7 +841,7 @@ const MarkersList = ({
         onDragEnd={handleDragEnd}
       >
         <div
-          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} space-y-1`}
+          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           {/* Folders */}
           {folders.map((folder) => (
@@ -859,7 +858,7 @@ const MarkersList = ({
           ))}
 
           {/* Unassigned markers */}
-          <div className="mt-2">
+          <div>
             <UnassignedFolder
               markers={getUnassignedMarkers()}
               onEditSubmit={handleEditMarker}
