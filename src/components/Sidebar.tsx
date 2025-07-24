@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock2, DatabaseIcon, PlusIcon } from "lucide-react";
+import { Clock2, DatabaseIcon } from "lucide-react";
 import Image from "next/image";
 import { SyntheticEvent, useContext } from "react";
 import { useCurrentUser } from "@/hooks";
@@ -57,9 +57,10 @@ export default function Sidebar({ slug }: { slug: string }) {
             priority
           />
         </Link>
-        <Button size="sm">
+        {/* TODO: Implement functionality */}
+        {/*         <Button variant="outline" size="sm">
           <PlusIcon className="w-4 h-4" />
-        </Button>
+        </Button> */}
       </div>
 
       {/* Organisation Selector */}
