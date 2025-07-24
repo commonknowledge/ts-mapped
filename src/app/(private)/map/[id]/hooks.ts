@@ -91,7 +91,7 @@ export const usePlacedMarkers = (mapId: string | null) => {
   const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
 
   // Use a ref to keep track of dirty (unpersisted) markers, for immediate flagging
-  const dirty = useRef<Record<string, boolean>>({});
+  const dirty = useRef<Record<string, PlacedMarker | null>>({});
 
   // Use a combination of ref and state, because Mapbox native components don't
   // update on state changes - ref is needed for them to update the latest state,
@@ -167,40 +167,45 @@ export const usePlacedMarkers = (mapId: string | null) => {
   );
 
   /**
-   * Split marker updates into two parts: prepare and commit
-   * Uses the `dirty` ref to keep track of if a marker has been changed
-   * but not saved.
+   * Two functions, preparePlacedMarkerUpdate and commitPlacedMarkerUpdates
+   * to aggregate updates before sending them to the API. Originally
+   * added for the drag-and-drop functionality of the marker sidebar.
    */
-  const preparedUpdatePlacedMarker = useCallback(
-    (placedMarker: PlacedMarker, stage: "prepare" | "commit") => {
-      if (!mapId) {
-        return;
-      }
+  const preparePlacedMarkerUpdate = useCallback(
+    (placedMarker: PlacedMarker) => {
+      setPlacedMarkers(
+        ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
+      );
+      dirty.current[placedMarker.id] = placedMarker;
+    },
+    [setPlacedMarkers],
+  );
 
-      if (stage === "prepare") {
-        setPlacedMarkers(
-          ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
-        );
-        dirty.current[placedMarker.id] = true;
-      } else if (dirty.current[placedMarker.id]) {
+  const commitPlacedMarkerUpdates = useCallback(() => {
+    if (!mapId) {
+      return;
+    }
+
+    for (const placedMarker of Object.values(dirty.current)) {
+      if (placedMarker) {
         upsertPlacedMarkerMutation({
           variables: {
             ...placedMarker,
             mapId,
           },
-        })
-        dirty.current[placedMarker.id] = false
+        });
+        dirty.current[placedMarker.id] = null;
       }
-    },
-    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
-  );
+    }
+  }, [mapId, upsertPlacedMarkerMutation]);
 
   return {
     placedMarkers,
     setPlacedMarkers,
     deletePlacedMarker,
     insertPlacedMarker,
-    preparedUpdatePlacedMarker,
+    preparePlacedMarkerUpdate,
+    commitPlacedMarkerUpdates,
     updatePlacedMarker,
     loading,
   };

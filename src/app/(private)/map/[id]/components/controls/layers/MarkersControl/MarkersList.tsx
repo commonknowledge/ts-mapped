@@ -33,8 +33,12 @@ import {
 
 export default function MarkersList() {
   const { viewConfig } = useContext(MapContext);
-  const { folders, placedMarkers, preparedUpdatePlacedMarker } =
-    useContext(MarkerAndTurfContext);
+  const {
+    folders,
+    placedMarkers,
+    preparePlacedMarkerUpdate,
+    commitPlacedMarkerUpdates,
+  } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
   const { getMarkerDataSources } = useContext(DataSourcesContext);
@@ -113,30 +117,24 @@ export default function MarkersList() {
           ? getNewLastPosition(folderMarkers)
           : getNewFirstPosition(folderMarkers);
 
-        preparedUpdatePlacedMarker(
-          {
-            ...activeMarker,
-            folderId: folderId,
-            position: newPosition,
-          },
-          "prepare",
-        );
+        preparePlacedMarkerUpdate({
+          ...activeMarker,
+          folderId: folderId,
+          position: newPosition,
+        });
       } else if (over.id === "unassigned") {
         const unassignedMarkers = placedMarkers.filter(
           (m) => m.folderId === null,
         );
         const newPosition = getNewFirstPosition(unassignedMarkers);
-        preparedUpdatePlacedMarker(
-          {
-            ...activeMarker,
-            folderId: null,
-            position: newPosition,
-          },
-          "prepare",
-        );
+        preparePlacedMarkerUpdate({
+          ...activeMarker,
+          folderId: null,
+          position: newPosition,
+        });
       }
     },
-    [placedMarkers, preparedUpdatePlacedMarker],
+    [placedMarkers, preparePlacedMarkerUpdate],
   );
 
   const handleDragEnd = useCallback(
@@ -194,19 +192,21 @@ export default function MarkersList() {
             );
           }
 
-          preparedUpdatePlacedMarker(
-            {
-              ...activeMarker,
-              position: newPosition,
-            },
-            "prepare",
-          );
+          preparePlacedMarkerUpdate({
+            ...activeMarker,
+            position: newPosition,
+          });
         }
       }
 
-      preparedUpdatePlacedMarker(activeMarker, "commit");
+      commitPlacedMarkerUpdates();
     },
-    [placedMarkers, preparedUpdatePlacedMarker, setPulsingFolderId],
+    [
+      commitPlacedMarkerUpdates,
+      placedMarkers,
+      preparePlacedMarkerUpdate,
+      setPulsingFolderId,
+    ],
   );
 
   // Get active marker for drag overlay

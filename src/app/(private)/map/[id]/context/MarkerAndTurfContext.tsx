@@ -17,10 +17,8 @@ export const MarkerAndTurfContext = createContext<{
   placedMarkersLoading: boolean;
   deletePlacedMarker: (id: string) => void;
   insertPlacedMarker: (placedMarker: Omit<PlacedMarker, "position">) => void;
-  preparedUpdatePlacedMarker: (
-    placedMarker: PlacedMarker,
-    stage: "prepare" | "commit",
-  ) => void;
+  preparePlacedMarkerUpdate: (placedMarker: PlacedMarker) => void;
+  commitPlacedMarkerUpdates: () => void;
   updatePlacedMarker: (placedMarker: PlacedMarker) => void;
 
   selectedMarker: MarkerData | null;
@@ -45,7 +43,8 @@ export const MarkerAndTurfContext = createContext<{
   placedMarkersLoading: false,
   deletePlacedMarker: () => null,
   insertPlacedMarker: () => null,
-  preparedUpdatePlacedMarker: () => null,
+  preparePlacedMarkerUpdate: () => null,
+  commitPlacedMarkerUpdates: () => null,
   updatePlacedMarker: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,
