@@ -1,13 +1,18 @@
+<<<<<<< Updated upstream
 import { Columns } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+=======
+import { PanelLeft } from "lucide-react";
+>>>>>>> Stashed changes
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import MarkersControl from "./MarkersControl";
 import MembersControl from "./MembersControl";
 import TurfControl from "./TurfControl";
 
+<<<<<<< Updated upstream
 export default function Controls() {
   const { mapRef } = useContext(MapContext);
   const { selectedDataSourceId } = useContext(TableContext);
@@ -30,6 +35,17 @@ export default function Controls() {
 
   const controlPanelWidth = 280;
 
+=======
+export default function Controls({
+  showControls,
+  setShowControls,
+  width,
+}: {
+  showControls: boolean;
+  setShowControls: (show: boolean) => void;
+  width: number;
+}) {
+>>>>>>> Stashed changes
   return (
     <>
       {/* Toggle button - always visible */}
@@ -46,22 +62,47 @@ export default function Controls() {
 
       {/* Control panel with transition */}
       <div
+<<<<<<< Updated upstream
         className={`flex flex-col bg-white z-10 h-full border-r border-neutral-200 transition-all duration-300 ease-in-out overflow-hidden ${
+=======
+        className={`absolute top-0 left-0 h-full transition-all duration-300 ease-in-out overflow-hidden z-20 ${
+>>>>>>> Stashed changes
           showControls
             ? "translate-x-0 opacity- 100"
             : "-translate-x-full opacity-0"
         }`}
         style={{
-          width: showControls ? `${controlPanelWidth}px` : "0px",
-          minWidth: showControls ? `${controlPanelWidth}px` : "0px",
+          width: showControls ? `${width}px` : "0px",
+          minWidth: showControls ? `${width}px` : "0px",
         }}
       >
+<<<<<<< Updated upstream
         <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
           <p className="text-sm font-semibold">Layers</p>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setShowControls(!showControls)}
+=======
+        <div className="flex flex-col bg-white z-10 h-full border-r border-neutral-200">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
+            <p className="text-sm font-semibold">Layers</p>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowControls(!showControls)}
+            >
+              <PanelLeft className="w-4 h-4" />
+              <span className="sr-only">Toggle controls</span>
+            </Button>
+          </div>
+
+          {/* Content */}
+          <div
+            className="flex flex-col overflow-y-auto"
+            style={{ width: `${width}px` }}
+>>>>>>> Stashed changes
           >
             <Columns className="w-4 h-4" />
             <span className="sr-only">Toggle columns</span>
