@@ -343,6 +343,7 @@ const typeDefs = `
       looseGeocodingConfig: LooseGeocodingConfigInput
       looseEnrichments: [LooseEnrichmentInput!]
     ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
+    deleteMap(id: String!): MutationResponse @auth(write: { mapIdArg: "id" })
     updateMap(
       id: String!
       map: MapInput!
