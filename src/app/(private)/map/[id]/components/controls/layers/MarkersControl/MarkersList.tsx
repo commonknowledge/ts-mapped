@@ -13,6 +13,7 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Database, Table } from "lucide-react";
 import { useCallback, useContext, useState } from "react";
+import { createPortal } from "react-dom";
 import { PlacedMarker } from "@/__generated__/types";
 import DataSourceIcon from "@/app/(private)/map/[id]/components/DataSourceIcon";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
@@ -41,6 +42,16 @@ export default function MarkersList() {
 
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // Brief pulsing folder animation on some drag actions
+  const [pulsingFolderId, _setPulsingFolderId] = useState<string | null>(null);
+
+  const setPulsingFolderId = useCallback((id: string | null) => {
+    _setPulsingFolderId(id);
+    setTimeout(() => {
+      _setPulsingFolderId(null);
+    }, 600);
+  }, []);
+
   // Keep track of if a text input is active to disable keyboard dragging
   const [keyboardCapture, setKeyboardCapture] = useState(false);
 
@@ -62,7 +73,7 @@ export default function MarkersList() {
 
   // Drag and drop handlers
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+    setActiveId(event.active.id.toString());
   }, []);
 
   const handleDragOver = useCallback(
@@ -140,17 +151,22 @@ export default function MarkersList() {
         return;
       }
 
+      let activeMarker = null;
+      if (active.id.toString().startsWith("marker-")) {
+        const activeMarkerId = active.id.toString().replace("marker-", "");
+        activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
+      }
+
+      // Animate movement
+      if (activeMarker?.folderId) {
+        setPulsingFolderId(activeMarker.folderId);
+      }
+
       // Handle reordering within the same container
       // Simpler to do it here than in onDragOver, as the library
       // automatically handles re-ordering while drag is in progress
-      if (
-        active.id.toString().startsWith("marker-") &&
-        over.id.toString().startsWith("marker-")
-      ) {
-        const activeMarkerId = active.id.toString().replace("marker-", "");
+      if (activeMarker && over.id.toString().startsWith("marker-")) {
         const overMarkerId = over.id.toString().replace("marker-", "");
-
-        const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
         const overMarker = placedMarkers.find((m) => m.id === overMarkerId);
 
         if (!activeMarker || !overMarker) {
@@ -164,7 +180,7 @@ export default function MarkersList() {
         // Get other markers to position against
         const otherMarkers = placedMarkers.filter(
           (m) =>
-            m.id !== activeMarkerId && m.folderId === activeMarker.folderId,
+            m.id !== activeMarker.id && m.folderId === activeMarker.folderId,
         );
 
         if (wasBefore) {
@@ -200,7 +216,7 @@ export default function MarkersList() {
         return;
       }
     },
-    [placedMarkers, updatePlacedMarker],
+    [placedMarkers, setPulsingFolderId, updatePlacedMarker],
   );
 
   // Get active marker for drag overlay
@@ -221,7 +237,7 @@ export default function MarkersList() {
         onDragCancel={() => setActiveId(null)}
       >
         <div
-          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} space-y-1`}
+          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           {/* Folders */}
           {folders.map((folder) => (
@@ -231,11 +247,12 @@ export default function MarkersList() {
               markers={placedMarkers.filter((p) => p.folderId === folder.id)}
               activeId={activeId}
               setKeyboardCapture={setKeyboardCapture}
+              isPulsing={pulsingFolderId === folder.id}
             />
           ))}
 
           {/* Unassigned markers */}
-          <div className="mt-2">
+          <div>
             <UnassignedFolder
               markers={placedMarkers.filter((p) => !p.folderId)}
               activeId={activeId}
@@ -280,11 +297,14 @@ export default function MarkersList() {
           )}
         </div>
 
-        <DragOverlay dropAnimation={null}>
-          {activeId && getActiveMarker() && (
-            <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
-          )}
-        </DragOverlay>
+        {createPortal(
+          <DragOverlay dropAnimation={null}>
+            {activeId && getActiveMarker() && (
+              <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
+            )}
+          </DragOverlay>,
+          document.body,
+        )}
       </DndContext>
     </div>
   );

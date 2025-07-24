@@ -6,6 +6,7 @@ import {
 import { useMemo } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
 import { Separator } from "@/shadcn/ui/separator";
+import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
 import { sortByPositionAndId } from "./utils";
 
@@ -30,14 +31,16 @@ export default function UnassignedFolder({
   }, [markers]);
 
   return (
-    <div className="mb-1">
+    <div className="mb-3">
       {folders.length > 0 && (
-        <div ref={setNodeRef} className="p-2">
+        <div ref={setNodeRef} className="px-1 py-3">
           <Separator orientation="horizontal" className="h-4 w-full" />
         </div>
       )}
 
-      <div className="ml-4 mt-1 space-y-0.5">
+      <div
+        className={cn("mt-1 space-y-0.5", folders.length > 0 ? "ml-3" : "ml-1")}
+      >
         <SortableContext
           items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
           strategy={verticalListSortingStrategy}

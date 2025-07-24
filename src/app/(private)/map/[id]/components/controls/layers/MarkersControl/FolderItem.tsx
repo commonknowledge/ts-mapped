@@ -3,9 +3,11 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Folder as FolderClosed, FolderOpen } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
+import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
 import { sortByPositionAndId } from "./utils";
 
@@ -14,11 +16,13 @@ export default function FolderItem({
   folder,
   markers,
   activeId,
+  isPulsing,
   setKeyboardCapture,
 }: {
   folder: Folder;
   markers: PlacedMarker[];
   activeId: string | null;
+  isPulsing: boolean;
   setKeyboardCapture: (captured: boolean) => void;
 }) {
   const { setNodeRef: setHeaderNodeRef, isOver: isHeaderOver } = useDroppable({
@@ -36,7 +40,7 @@ export default function FolderItem({
   }, [markers]);
 
   return (
-    <div className="mb-1">
+    <div>
       <div
         ref={setHeaderNodeRef}
         className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-neutral-100 rounded transition-colors ${
@@ -45,19 +49,27 @@ export default function FolderItem({
         onClick={() => setExpanded(!isExpanded)}
       >
         {isExpanded ? (
-          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          <FolderOpen className="w-4 h-4 text-muted-foreground" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <FolderClosed className="w-4 h-4 text-muted-foreground" />
         )}
         <span className="text-sm font-medium flex-1">{folder.name}</span>
-        <span className="text-xs text-muted-foreground">
+        <span
+          className={cn(
+            "text-xs text-muted-foreground bg-transparent transition-transform duration-300",
+            isPulsing ? "animate-pulse  transform scale-110" : "",
+          )}
+          style={{
+            color: isPulsing ? mapColors.markers.color : "",
+          }}
+        >
           ({sortedMarkers.length})
         </span>
       </div>
 
       {isExpanded && (
         <>
-          <div className="ml-4 mt-1 space-y-0.5">
+          <div className="ml-3 mt-1 space-y-0.5">
             <SortableContext
               items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
               strategy={verticalListSortingStrategy}

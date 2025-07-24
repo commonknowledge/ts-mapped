@@ -1,4 +1,5 @@
 import { Ellipsis, Table } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -11,6 +12,7 @@ import ControlItemWrapper from "../ControlItemWrapper";
 import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
+  const router = useRouter();
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { getMembersDataSource } = useContext(DataSourcesContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
@@ -39,7 +41,7 @@ export default function MembersControl() {
       {
         type: "item" as const,
         label: "Add new data source",
-        onClick: () => console.log("clicked"),
+        onClick: () => router.push("/data-sources/new"),
       },
     ];
   };

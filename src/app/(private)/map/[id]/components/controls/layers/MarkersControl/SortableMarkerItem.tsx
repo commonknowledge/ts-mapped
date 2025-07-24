@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Pencil, Trash2 } from "lucide-react";
-import { useContext, useState } from "react";
+import { SyntheticEvent, useContext, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
@@ -49,14 +49,22 @@ export default function SortableMarkerItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const flyToMarker = () => {
+  const flyToMarker = (e: SyntheticEvent<HTMLElement>) => {
     const map = mapRef?.current;
-    if (map) {
-      map.flyTo({
-        center: marker.point,
-        zoom: 12,
-      });
+
+    // Don't fly if currently dragging, clicking delete, or no map present
+    if (
+      isCurrentlyDragging ||
+      (e.target as HTMLElement).closest("button") ||
+      !map
+    ) {
+      return;
     }
+
+    map.flyTo({
+      center: marker.point,
+      zoom: 12,
+    });
   };
 
   return (
@@ -68,6 +76,7 @@ export default function SortableMarkerItem({
           {...attributes}
           {...listeners}
           className="flex items-center gap-2 px-1 hover:bg-neutral-100 rounded cursor-grab active:cursor-grabbing"
+          onClick={flyToMarker}
         >
           {isEditing ? (
             <form
@@ -92,26 +101,13 @@ export default function SortableMarkerItem({
               </Button>
             </form>
           ) : (
-            <>
+            <div className="flex items-center gap-1.5 flex-grow text-sm p-0.5">
               <div
-                className="flex items-center gap-1.5 flex-grow cursor-pointer text-sm"
-                onClick={flyToMarker}
-              >
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: mapColors.markers.color }}
-                />
-                {marker.label}
-              </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => deletePlacedMarker(marker.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </>
+                className="w-2 h-2 rounded-full aspect-square"
+                style={{ backgroundColor: mapColors.markers.color }}
+              />
+              <span className="break-all">{marker.label}</span>
+            </div>
           )}
         </li>
       </ContextMenuTrigger>
