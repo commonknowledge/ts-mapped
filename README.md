@@ -15,6 +15,7 @@
 
 1. Run `bin/setup.sh` and follow the instuctions.
 2. Run `bin/run.sh` to start Mapped!
+3. Open the dev server at https://localhost:3000
 
 ### Migrations
 
