@@ -1,5 +1,5 @@
 import * as turfLib from "@turf/turf";
-import { Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
+import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { Turf } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -25,6 +25,7 @@ export default function AreasControl() {
   const [editText, setEditText] = useState("");
   const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
   const [, setFormattedDates] = useState<Record<string, string>>({});
+  const [isAddingArea, setAddingArea] = useState(false);
 
   // TODO: display these dates somewhere
   useEffect(() => {
@@ -37,7 +38,7 @@ export default function AreasControl() {
           .replace("T", " ");
         return acc;
       },
-      {} as Record<string, string>,
+      {} as Record<string, string>
     );
 
     setFormattedDates(dates);
@@ -60,10 +61,14 @@ export default function AreasControl() {
     if (map) {
       // Find the polygon draw button and click it
       const drawButton = document.querySelector(
-        ".mapbox-gl-draw_polygon",
+        ".mapbox-gl-draw_polygon"
       ) as HTMLButtonElement;
       if (drawButton) {
         drawButton.click();
+        setAddingArea(true);
+        setTimeout(() => {
+          setAddingArea(false);
+        }, 5000);
       }
     }
   };
@@ -76,14 +81,21 @@ export default function AreasControl() {
         showLayer={viewConfig.showTurf}
         setLayer={(show) => updateViewConfig({ showTurf: show })}
       >
-        <IconButtonWithTooltip
-          tooltip="Add Area"
-          onClick={() => {
-            handleAddArea();
-          }}
-        >
-          <PlusIcon className="w-4 h-4" />
-        </IconButtonWithTooltip>
+        {!isAddingArea ? (
+          <IconButtonWithTooltip
+            tooltip="Add Area"
+            onClick={() => {
+              handleAddArea();
+            }}
+          >
+            <PlusIcon className="w-4 h-4" />
+          </IconButtonWithTooltip>
+        ) : (
+          <div className="flex text-xs items-center text-muted-foreground gap-0.5">
+            <span>Draw</span>
+            <ArrowRight className="w-4 h-4" />
+          </div>
+        )}
       </LayerHeader>
 
       <div className="relative">
@@ -152,7 +164,7 @@ export default function AreasControl() {
                 <ContextMenuItem
                   onClick={() => {
                     const existingTurf = turfs.find(
-                      (t, i) => i === contextMenuIndex,
+                      (t, i) => i === contextMenuIndex
                     );
                     if (existingTurf) {
                       deleteTurf(existingTurf.id);
