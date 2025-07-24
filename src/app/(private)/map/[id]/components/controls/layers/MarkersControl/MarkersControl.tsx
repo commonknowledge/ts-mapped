@@ -21,7 +21,7 @@ import MarkersList from "./MarkersList";
 export default function MarkersControl() {
   const router = useRouter();
   const { viewConfig, updateViewConfig, mapRef } = useContext(MapContext);
-  const { insertPlacedMarker, folders, insertFolder } =
+  const { insertPlacedMarker, placedMarkersLoading, folders, insertFolder } =
     useContext(MarkerAndTurfContext);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
@@ -171,6 +171,11 @@ export default function MarkersControl() {
         </IconButtonWithTooltip>
       </LayerHeader>
       <MarkersList />
+      {placedMarkersLoading && (
+        <span className="ml-3 mb-3 text-xs text-muted-foreground">
+          Saving...
+        </span>
+      )}
     </ControlItemWrapper>
   );
 }

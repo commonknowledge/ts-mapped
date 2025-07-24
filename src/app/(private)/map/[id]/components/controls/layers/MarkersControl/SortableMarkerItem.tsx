@@ -82,9 +82,7 @@ export default function SortableMarkerItem({
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                updatePlacedMarker({
-                  placedMarker: { ...marker, label: editText },
-                });
+                updatePlacedMarker({ ...marker, label: editText });
                 setEditing(false);
                 setKeyboardCapture(false);
               }}

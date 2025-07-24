@@ -90,6 +90,9 @@ export const usePlacedMarkers = (mapId: string | null) => {
   const ref = useRef<PlacedMarker[]>([]);
   const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
 
+  // Use a ref to keep track of dirty (unpersisted) markers, for immediate flagging
+  const dirty = useRef<Record<string, boolean>>({});
+
   // Use a combination of ref and state, because Mapbox native components don't
   // update on state changes - ref is needed for them to update the latest state,
   // instead of the initial state.
@@ -121,55 +124,83 @@ export const usePlacedMarkers = (mapId: string | null) => {
     setPlacedMarkers(newMarkers);
   };
 
-  const insertPlacedMarker = async (
-    newMarker: Omit<PlacedMarker, "position">,
-  ) => {
-    if (!mapId) {
-      return;
-    }
+  const insertPlacedMarker = useCallback(
+    (newMarker: Omit<PlacedMarker, "position">) => {
+      if (!mapId) {
+        return;
+      }
 
-    const newPosition = getNewLastPosition(ref.current);
-    const positionedMarker = { ...newMarker, position: newPosition };
+      const newPosition = getNewLastPosition(ref.current);
+      const positionedMarker = { ...newMarker, position: newPosition };
 
-    const newMarkers = [...ref.current, positionedMarker];
-    setPlacedMarkers(newMarkers);
+      const newMarkers = [...ref.current, positionedMarker];
+      setPlacedMarkers(newMarkers);
 
-    upsertPlacedMarkerMutation({
-      variables: {
-        ...positionedMarker,
-        mapId,
-      },
-    });
-  };
-
-  const updatePlacedMarker = (args: {
-    placedMarker: PlacedMarker;
-    temp?: boolean;
-  }) => {
-    if (!mapId) {
-      return;
-    }
-
-    if (!args.temp) {
       upsertPlacedMarkerMutation({
         variables: {
-          ...args.placedMarker,
+          ...positionedMarker,
           mapId,
         },
       });
-    }
+    },
+    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
+  );
 
-    setPlacedMarkers(
-      ref.current.map((m) =>
-        m.id === args.placedMarker.id ? args.placedMarker : m,
-      ),
-    );
-  };
+  const updatePlacedMarker = useCallback(
+    (placedMarker: PlacedMarker) => {
+      if (!mapId) {
+        return;
+      }
+
+      upsertPlacedMarkerMutation({
+        variables: {
+          ...placedMarker,
+          mapId,
+        },
+      });
+
+      setPlacedMarkers(
+        ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
+      );
+    },
+    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
+  );
+
+  /**
+   * Split marker updates into two parts: prepare and commit
+   * Uses the `dirty` ref to keep track of if a marker has been changed
+   * but not saved.
+   */
+  const preparedUpdatePlacedMarker = useCallback(
+    (placedMarker: PlacedMarker, stage: "prepare" | "commit") => {
+      if (!mapId) {
+        return;
+      }
+
+      if (stage === "prepare") {
+        setPlacedMarkers(
+          ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
+        );
+        dirty.current[placedMarker.id] = true;
+      } else if (dirty.current[placedMarker.id]) {
+        upsertPlacedMarkerMutation({
+          variables: {
+            ...placedMarker,
+            mapId,
+          },
+        })
+        dirty.current[placedMarker.id] = false
+      }
+    },
+    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
+  );
+
   return {
     placedMarkers,
     setPlacedMarkers,
     deletePlacedMarker,
     insertPlacedMarker,
+    preparedUpdatePlacedMarker,
     updatePlacedMarker,
     loading,
   };

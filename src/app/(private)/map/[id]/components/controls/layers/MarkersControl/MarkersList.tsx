@@ -33,7 +33,7 @@ import {
 
 export default function MarkersList() {
   const { viewConfig } = useContext(MapContext);
-  const { folders, placedMarkers, updatePlacedMarker } =
+  const { folders, placedMarkers, preparedUpdatePlacedMarker } =
     useContext(MarkerAndTurfContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
@@ -113,30 +113,30 @@ export default function MarkersList() {
           ? getNewLastPosition(folderMarkers)
           : getNewFirstPosition(folderMarkers);
 
-        updatePlacedMarker({
-          placedMarker: {
+        preparedUpdatePlacedMarker(
+          {
             ...activeMarker,
             folderId: folderId,
             position: newPosition,
           },
-          temp: true,
-        });
+          "prepare",
+        );
       } else if (over.id === "unassigned") {
         const unassignedMarkers = placedMarkers.filter(
           (m) => m.folderId === null,
         );
         const newPosition = getNewFirstPosition(unassignedMarkers);
-        updatePlacedMarker({
-          placedMarker: {
+        preparedUpdatePlacedMarker(
+          {
             ...activeMarker,
             folderId: null,
             position: newPosition,
           },
-          temp: true,
-        });
+          "prepare",
+        );
       }
     },
-    [placedMarkers, updatePlacedMarker],
+    [placedMarkers, preparedUpdatePlacedMarker],
   );
 
   const handleDragEnd = useCallback(
@@ -146,77 +146,67 @@ export default function MarkersList() {
       // Update UI
       setActiveId(null);
 
-      // Early exit if no action required
-      if (!over || active.id === over.id) {
-        return;
-      }
-
       let activeMarker = null;
       if (active.id.toString().startsWith("marker-")) {
         const activeMarkerId = active.id.toString().replace("marker-", "");
         activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
       }
 
+      if (!activeMarker) {
+        return;
+      }
+
       // Animate movement
-      if (activeMarker?.folderId) {
+      if (activeMarker.folderId) {
         setPulsingFolderId(activeMarker.folderId);
       }
 
       // Handle reordering within the same container
       // Simpler to do it here than in onDragOver, as the library
       // automatically handles re-ordering while drag is in progress
-      if (activeMarker && over.id.toString().startsWith("marker-")) {
+      if (activeMarker && over && over.id.toString().startsWith("marker-")) {
         const overMarkerId = over.id.toString().replace("marker-", "");
         const overMarker = placedMarkers.find((m) => m.id === overMarkerId);
 
-        if (!activeMarker || !overMarker) {
-          return;
+        if (overMarker && activeMarker.id !== overMarker.id) {
+          let newPosition = 0;
+
+          const activeWasBeforeOver =
+            compareByPositionAndId(activeMarker, overMarker) < 0;
+
+          // Get other markers to position against
+          const otherMarkers = placedMarkers.filter(
+            (m) =>
+              m.id !== activeMarker.id && m.folderId === activeMarker.folderId,
+          );
+
+          if (activeWasBeforeOver) {
+            // If active marker was before, make it after
+            newPosition = getNewPositionAfter(
+              overMarker.position,
+              otherMarkers,
+            );
+          } else {
+            // If active marker was after, make it before
+            newPosition = getNewPositionBefore(
+              overMarker.position,
+              otherMarkers,
+            );
+          }
+
+          preparedUpdatePlacedMarker(
+            {
+              ...activeMarker,
+              position: newPosition,
+            },
+            "prepare",
+          );
         }
-
-        let newPosition = 0;
-
-        const wasBefore = compareByPositionAndId(activeMarker, overMarker) < 0;
-
-        // Get other markers to position against
-        const otherMarkers = placedMarkers.filter(
-          (m) =>
-            m.id !== activeMarker.id && m.folderId === activeMarker.folderId,
-        );
-
-        if (wasBefore) {
-          // If active marker was before, make it after
-          newPosition = getNewPositionAfter(overMarker.position, otherMarkers);
-        } else {
-          // If active marker was after, make it before
-          newPosition = getNewPositionBefore(overMarker.position, otherMarkers);
-        }
-
-        updatePlacedMarker({
-          placedMarker: { ...activeMarker, position: newPosition },
-        });
-
-        return;
       }
 
-      // Persist folder movement to database
-      // (folderId is already set in handleDragOver)
-      if (
-        active.id.toString().startsWith("marker-") &&
-        over.id.toString().startsWith("folder-")
-      ) {
-        const activeMarkerId = active.id.toString().replace("marker-", "");
-        const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
-
-        if (activeMarker) {
-          updatePlacedMarker({
-            placedMarker: { ...activeMarker },
-          });
-        }
-
-        return;
-      }
+      preparedUpdatePlacedMarker(activeMarker, "commit");
     },
-    [placedMarkers, setPulsingFolderId, updatePlacedMarker],
+    [placedMarkers, preparedUpdatePlacedMarker, setPulsingFolderId],
   );
 
   // Get active marker for drag overlay

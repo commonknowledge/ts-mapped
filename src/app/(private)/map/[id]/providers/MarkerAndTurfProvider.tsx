@@ -39,6 +39,7 @@ export default function MarkerAndTurfProvider({
     setPlacedMarkers,
     deletePlacedMarker,
     insertPlacedMarker,
+    preparedUpdatePlacedMarker,
     updatePlacedMarker,
     loading: placedMarkersLoading,
   } = usePlacedMarkers(mapId);
@@ -77,6 +78,7 @@ export default function MarkerAndTurfProvider({
         placedMarkersLoading,
         deletePlacedMarker,
         insertPlacedMarker,
+        preparedUpdatePlacedMarker,
         updatePlacedMarker,
         selectedMarker,
         setSelectedMarker,

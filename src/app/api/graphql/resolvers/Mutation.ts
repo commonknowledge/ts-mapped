@@ -112,6 +112,7 @@ const MutationResolvers: MutationResolversType = {
     } catch (error) {
       logger.error(`Could not delete folder ${id}`, { error });
     }
+    return { code: 500 };
   },
   deleteMap: async (_: unknown, { id }: { id: string }) => {
     try {

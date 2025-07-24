@@ -8,7 +8,7 @@ import {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
   UpsertMapViewMutation,
-  UpsertMapViewMutationVariables
+  UpsertMapViewMutationVariables,
 } from "@/__generated__/types";
 import { LIST_MAPS_QUERY } from "@/app/(private)/dashboard/queries";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -206,4 +206,3 @@ export default function MapNavbar() {
     </nav>
   );
 }
-

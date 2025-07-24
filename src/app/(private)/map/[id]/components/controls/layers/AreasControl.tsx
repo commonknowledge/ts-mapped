@@ -38,7 +38,7 @@ export default function AreasControl() {
           .replace("T", " ");
         return acc;
       },
-      {} as Record<string, string>
+      {} as Record<string, string>,
     );
 
     setFormattedDates(dates);
@@ -61,7 +61,7 @@ export default function AreasControl() {
     if (map) {
       // Find the polygon draw button and click it
       const drawButton = document.querySelector(
-        ".mapbox-gl-draw_polygon"
+        ".mapbox-gl-draw_polygon",
       ) as HTMLButtonElement;
       if (drawButton) {
         drawButton.click();
@@ -164,7 +164,7 @@ export default function AreasControl() {
                 <ContextMenuItem
                   onClick={() => {
                     const existingTurf = turfs.find(
-                      (t, i) => i === contextMenuIndex
+                      (t, i) => i === contextMenuIndex,
                     );
                     if (existingTurf) {
                       deleteTurf(existingTurf.id);
