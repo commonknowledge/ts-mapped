@@ -1,27 +1,22 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useContext, useState } from "react";
 import {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
   UpsertMapViewMutation,
-  UpsertMapViewMutationVariables,
+  UpsertMapViewMutationVariables
 } from "@/__generated__/types";
 import { LIST_MAPS_QUERY } from "@/app/(private)/dashboard/queries";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shadcn/ui/dropdown-menu";
 import { Link } from "./Link";
+import MapTopLevelControls from "./MapTopLevelControls";
 
 export default function MapNavbar() {
   const { mapName, setMapName, mapId, viewConfig, viewId, setViewId, mapRef } =
@@ -187,7 +182,7 @@ export default function MapNavbar() {
             ) : (
               <p>{mapName || "Loading..."}</p>
             )}
-            <MapEditDropdown setIsEditingName={setIsEditingName} />
+            <MapTopLevelControls setIsEditingName={setIsEditingName} />
           </div>
         </div>
       </div>
@@ -212,23 +207,3 @@ export default function MapNavbar() {
   );
 }
 
-function MapEditDropdown({
-  setIsEditingName,
-}: {
-  setIsEditingName: (isEditing: boolean) => void;
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="!p-1">
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => setIsEditingName(true)}>
-          Rename map
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
