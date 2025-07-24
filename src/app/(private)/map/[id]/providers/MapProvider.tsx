@@ -46,11 +46,8 @@ export default function MapProvider({
     if (mapData?.map?.views && mapData.map.views.length > 0) {
       const nextView = mapData.map.views[0];
       const nextViewId = nextView.id;
-      // Annoying workaround to remove __typename from read-only object (breaks `new ViewConfig()`)
-      const nextConfig = { ...nextView.config };
-      delete nextConfig.__typename;
       setViewId(nextViewId);
-      setViewConfig(new ViewConfig(nextConfig));
+      setViewConfig(new ViewConfig(nextView.config));
     }
   }, [mapData]);
 

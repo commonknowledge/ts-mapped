@@ -5,7 +5,7 @@ import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
-import MarkersControl from "./layers/MarkersControl";
+import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
 
 export default function Controls() {

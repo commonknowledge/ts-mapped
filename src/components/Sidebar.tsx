@@ -93,7 +93,7 @@ export default function Sidebar({ slug }: { slug: string }) {
                 href={item.href}
                 className={cn(
                   "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary"
+                  isActive(item.href) && "bg-neutral-100 text-primary",
                 )}
               >
                 {item.icon}

@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { PlacedMarker, Turf } from "@/__generated__/types";
+import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
 import { MarkerData } from "@/types";
 import { MarkerQueriesResult } from "../types";
 
@@ -8,11 +8,19 @@ export const MarkerAndTurfContext = createContext<{
   editingTurf: Turf | null;
   setEditingTurf: (turf: Turf | null) => void;
 
+  folders: Folder[];
+  deleteFolder: (id: string) => void;
+  insertFolder: (folder: Folder) => void;
+  updateFolder: (folder: Folder) => void;
+
   placedMarkers: PlacedMarker[];
   placedMarkersLoading: boolean;
   deletePlacedMarker: (id: string) => void;
-  insertPlacedMarker: (placedMarker: PlacedMarker) => void;
-  updatePlacedMarker: (placedMarker: PlacedMarker) => void;
+  insertPlacedMarker: (placedMarker: Omit<PlacedMarker, "position">) => void;
+  updatePlacedMarker: (args: {
+    placedMarker: PlacedMarker;
+    temp?: boolean;
+  }) => void;
 
   selectedMarker: MarkerData | null;
   setSelectedMarker: (marker: MarkerData | null) => void;
@@ -28,6 +36,10 @@ export const MarkerAndTurfContext = createContext<{
 }>({
   editingTurf: null,
   setEditingTurf: () => null,
+  folders: [],
+  deleteFolder: () => null,
+  insertFolder: () => null,
+  updateFolder: () => null,
   placedMarkers: [],
   placedMarkersLoading: false,
   deletePlacedMarker: () => null,

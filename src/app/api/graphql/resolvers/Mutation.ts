@@ -10,7 +10,7 @@ import {
   MutationUpdateDataSourceConfigArgs,
   MutationUpdateMapArgs,
   MutationUpsertMapViewArgs,
-  PointInput,
+  UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
   UpsertTurfResponse,
 } from "@/__generated__/types";
@@ -20,6 +20,7 @@ import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
+import { deleteFolder, upsertFolder } from "@/server/repositories/Folder";
 import { createMap, findMapById, updateMap } from "@/server/repositories/Map";
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import {
@@ -96,6 +97,15 @@ const MutationResolvers: MutationResolversType = {
       return { result: map, code: 200 };
     } catch (error) {
       logger.error(`Could not create map`, { error });
+    }
+    return { code: 500 };
+  },
+  deleteFolder: async (_: unknown, { id }: { id: string }) => {
+    try {
+      await deleteFolder(id);
+      return { code: 200 };
+    } catch (error) {
+      logger.error(`Could not delete folder ${id}`, { error });
     }
     return { code: 500 };
   },
@@ -210,6 +220,19 @@ const MutationResolvers: MutationResolversType = {
     }
     return { code: 500 };
   },
+  upsertFolder: async (_, args): Promise<UpsertFolderResponse> => {
+    try {
+      const map = await findMapById(args.mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+      const folder = await upsertFolder(args);
+      return { code: 200, result: folder };
+    } catch (error) {
+      logger.error(`Could not create folder`, { error });
+    }
+    return { code: 500 };
+  },
   updateMap: async (_: unknown, args: MutationUpdateMapArgs) => {
     try {
       const map = await findMapById(args.id);
@@ -259,35 +282,13 @@ const MutationResolvers: MutationResolversType = {
     }
     return { code: 500 };
   },
-  upsertPlacedMarker: async (
-    _: unknown,
-    {
-      id,
-      label,
-      notes,
-      point,
-      mapId,
-    }: {
-      id: string;
-      label: string;
-      notes: string;
-      point: PointInput;
-      mapId: string;
-    },
-  ): Promise<UpsertPlacedMarkerResponse> => {
+  upsertPlacedMarker: async (_, args): Promise<UpsertPlacedMarkerResponse> => {
     try {
-      const map = await findMapById(mapId);
+      const map = await findMapById(args.mapId);
       if (!map) {
         return { code: 404 };
       }
-      const placedMarkerInput = {
-        id,
-        label,
-        notes,
-        point,
-        mapId,
-      };
-      const placedMarker = await upsertPlacedMarker(placedMarkerInput);
+      const placedMarker = await upsertPlacedMarker(args);
       return { code: 200, result: placedMarker };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });

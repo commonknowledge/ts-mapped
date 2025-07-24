@@ -176,6 +176,13 @@ export enum EnrichmentSourceType {
   DataSource = "DataSource",
 }
 
+export type Folder = {
+  __typename?: "Folder";
+  id: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  notes: Scalars["String"]["output"];
+};
+
 export enum GeocodingType {
   Address = "Address",
   Code = "Code",
@@ -245,6 +252,7 @@ export type LooseGeocodingConfigInput = {
 export type Map = {
   __typename?: "Map";
   createdAt: Scalars["Date"]["output"];
+  folders?: Maybe<Array<Folder>>;
   id: Scalars["String"]["output"];
   imageUrl?: Maybe<Scalars["String"]["output"]>;
   name: Scalars["String"]["output"];
@@ -309,12 +317,14 @@ export type Mutation = {
   __typename?: "Mutation";
   createDataSource?: Maybe<CreateDataSourceResponse>;
   createMap?: Maybe<CreateMapResponse>;
+  deleteFolder?: Maybe<MutationResponse>;
   deletePlacedMarker?: Maybe<MutationResponse>;
   deleteTurf?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
   enqueueImportDataSourceJob?: Maybe<MutationResponse>;
   updateDataSourceConfig?: Maybe<MutationResponse>;
   updateMap?: Maybe<UpdateMapResponse>;
+  upsertFolder?: Maybe<UpsertFolderResponse>;
   upsertMapView?: Maybe<UpsertMapViewResponse>;
   upsertPlacedMarker?: Maybe<UpsertPlacedMarkerResponse>;
   upsertTurf?: Maybe<UpsertTurfResponse>;
@@ -328,6 +338,11 @@ export type MutationCreateDataSourceArgs = {
 
 export type MutationCreateMapArgs = {
   organisationId: Scalars["String"]["input"];
+};
+
+export type MutationDeleteFolderArgs = {
+  id: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
 };
 
 export type MutationDeletePlacedMarkerArgs = {
@@ -362,6 +377,13 @@ export type MutationUpdateMapArgs = {
   map: MapInput;
 };
 
+export type MutationUpsertFolderArgs = {
+  id: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
+  notes: Scalars["String"]["input"];
+};
+
 export type MutationUpsertMapViewArgs = {
   config: MapViewConfigInput;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -369,11 +391,13 @@ export type MutationUpsertMapViewArgs = {
 };
 
 export type MutationUpsertPlacedMarkerArgs = {
+  folderId?: InputMaybe<Scalars["String"]["input"]>;
   id: Scalars["String"]["input"];
   label: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
   point: PointInput;
+  position: Scalars["Float"]["input"];
 };
 
 export type MutationUpsertTurfArgs = {
@@ -404,10 +428,12 @@ export type Organisation = {
 
 export type PlacedMarker = {
   __typename?: "PlacedMarker";
+  folderId?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["String"]["output"];
   label: Scalars["String"]["output"];
   notes: Scalars["String"]["output"];
   point: Point;
+  position: Scalars["Float"]["output"];
 };
 
 export type Point = {
@@ -490,6 +516,12 @@ export type UpdateMapResponse = {
   __typename?: "UpdateMapResponse";
   code: Scalars["Int"]["output"];
   result?: Maybe<Map>;
+};
+
+export type UpsertFolderResponse = {
+  __typename?: "UpsertFolderResponse";
+  code: Scalars["Int"]["output"];
+  result?: Maybe<Folder>;
 };
 
 export type UpsertMapViewResponse = {
@@ -818,11 +850,19 @@ export type MapQuery = {
   map?: {
     __typename?: "Map";
     name: string;
+    folders?: Array<{
+      __typename?: "Folder";
+      id: string;
+      name: string;
+      notes: string;
+    }> | null;
     placedMarkers?: Array<{
       __typename?: "PlacedMarker";
       id: string;
       label: string;
       notes: string;
+      folderId?: string | null;
+      position: number;
       point: { __typename?: "Point"; lat: number; lng: number };
     }> | null;
     turfs?: Array<{
@@ -877,6 +917,32 @@ export type AreaStatsQuery = {
   } | null;
 };
 
+export type DeleteFolderMutationMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+}>;
+
+export type DeleteFolderMutationMutation = {
+  __typename?: "Mutation";
+  deleteFolder?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
+export type UpsertFolderMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
+  notes: Scalars["String"]["input"];
+  mapId: Scalars["String"]["input"];
+}>;
+
+export type UpsertFolderMutation = {
+  __typename?: "Mutation";
+  upsertFolder?: {
+    __typename?: "UpsertFolderResponse";
+    code: number;
+    result?: { __typename?: "Folder"; id: string } | null;
+  } | null;
+};
+
 export type DeletePlacedMarkerMutationMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
@@ -893,6 +959,8 @@ export type UpsertPlacedMarkerMutationVariables = Exact<{
   notes: Scalars["String"]["input"];
   point: PointInput;
   mapId: Scalars["String"]["input"];
+  folderId?: InputMaybe<Scalars["String"]["input"]>;
+  position: Scalars["Float"]["input"];
 }>;
 
 export type UpsertPlacedMarkerMutation = {
@@ -1118,6 +1186,7 @@ export type ResolversTypes = {
   EnrichmentDataSource: ResolverTypeWrapper<EnrichmentDataSource>;
   EnrichmentSourceType: EnrichmentSourceType;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
+  Folder: ResolverTypeWrapper<Folder>;
   GeocodingType: GeocodingType;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
@@ -1149,6 +1218,7 @@ export type ResolversTypes = {
   Subscription: ResolverTypeWrapper<{}>;
   Turf: ResolverTypeWrapper<Turf>;
   UpdateMapResponse: ResolverTypeWrapper<UpdateMapResponse>;
+  UpsertFolderResponse: ResolverTypeWrapper<UpsertFolderResponse>;
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
   UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
   UpsertTurfResponse: ResolverTypeWrapper<UpsertTurfResponse>;
@@ -1172,6 +1242,7 @@ export type ResolversParentTypes = {
   Date: Scalars["Date"]["output"];
   EnrichmentDataSource: EnrichmentDataSource;
   Float: Scalars["Float"]["output"];
+  Folder: Folder;
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
   JobCompleteEvent: JobCompleteEvent;
@@ -1199,6 +1270,7 @@ export type ResolversParentTypes = {
   Subscription: {};
   Turf: Turf;
   UpdateMapResponse: UpdateMapResponse;
+  UpsertFolderResponse: UpsertFolderResponse;
   UpsertMapViewResponse: UpsertMapViewResponse;
   UpsertPlacedMarkerResponse: UpsertPlacedMarkerResponse;
   UpsertTurfResponse: UpsertTurfResponse;
@@ -1415,6 +1487,17 @@ export type EnrichmentDataSourceResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type FolderResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["Folder"] = ResolversParentTypes["Folder"],
+> = {
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface JsonScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes["JSON"], any> {
   name: "JSON";
@@ -1509,6 +1592,11 @@ export type MapResolvers<
   ParentType extends ResolversParentTypes["Map"] = ResolversParentTypes["Map"],
 > = {
   createdAt?: Resolver<ResolversTypes["Date"], ParentType, ContextType>;
+  folders?: Resolver<
+    Maybe<Array<ResolversTypes["Folder"]>>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
@@ -1609,6 +1697,12 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationCreateMapArgs, "organisationId">
   >;
+  deleteFolder?: Resolver<
+    Maybe<ResolversTypes["MutationResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationDeleteFolderArgs, "id" | "mapId">
+  >;
   deletePlacedMarker?: Resolver<
     Maybe<ResolversTypes["MutationResponse"]>,
     ParentType,
@@ -1645,6 +1739,12 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationUpdateMapArgs, "id" | "map">
   >;
+  upsertFolder?: Resolver<
+    Maybe<ResolversTypes["UpsertFolderResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationUpsertFolderArgs, "id" | "mapId" | "name" | "notes">
+  >;
   upsertMapView?: Resolver<
     Maybe<ResolversTypes["UpsertMapViewResponse"]>,
     ParentType,
@@ -1657,7 +1757,7 @@ export type MutationResolvers<
     ContextType,
     RequireFields<
       MutationUpsertPlacedMarkerArgs,
-      "id" | "label" | "mapId" | "notes" | "point"
+      "id" | "label" | "mapId" | "notes" | "point" | "position"
     >
   >;
   upsertTurf?: Resolver<
@@ -1695,10 +1795,12 @@ export type PlacedMarkerResolvers<
   ParentType extends
     ResolversParentTypes["PlacedMarker"] = ResolversParentTypes["PlacedMarker"],
 > = {
+  folderId?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   label?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   point?: Resolver<ResolversTypes["Point"], ParentType, ContextType>;
+  position?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1805,6 +1907,16 @@ export type UpdateMapResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UpsertFolderResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["UpsertFolderResponse"] = ResolversParentTypes["UpsertFolderResponse"],
+> = {
+  code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  result?: Resolver<Maybe<ResolversTypes["Folder"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UpsertMapViewResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -1851,6 +1963,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
   Date?: GraphQLScalarType;
   EnrichmentDataSource?: EnrichmentDataSourceResolvers<ContextType>;
+  Folder?: FolderResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;
   JobFailedEvent?: JobFailedEventResolvers<ContextType>;
@@ -1870,6 +1983,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Subscription?: SubscriptionResolvers<ContextType>;
   Turf?: TurfResolvers<ContextType>;
   UpdateMapResponse?: UpdateMapResponseResolvers<ContextType>;
+  UpsertFolderResponse?: UpsertFolderResponseResolvers<ContextType>;
   UpsertMapViewResponse?: UpsertMapViewResponseResolvers<ContextType>;
   UpsertPlacedMarkerResponse?: UpsertPlacedMarkerResponseResolvers<ContextType>;
   UpsertTurfResponse?: UpsertTurfResponseResolvers<ContextType>;

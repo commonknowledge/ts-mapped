@@ -35,7 +35,7 @@ export default function AddMembersDataModal({
       ]);
     } else {
       updateMarkerDataSources(
-        viewConfig.markerDataSourceIds.filter((id) => id !== dataSourceId)
+        viewConfig.markerDataSourceIds.filter((id) => id !== dataSourceId),
       );
     }
   };
@@ -62,7 +62,7 @@ export default function AddMembersDataModal({
                   handleDataSourceToggle(dataSource.id, checked as boolean)
                 }
                 checked={viewConfig.markerDataSourceIds.some(
-                  (id) => id === dataSource.id
+                  (id) => id === dataSource.id,
                 )}
               />
               <div className="flex flex-col flex-1">

@@ -1,11 +1,90 @@
 import { useCallback, useRef, useState } from "react";
-import { PlacedMarker, Turf } from "@/__generated__/types";
+import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
+import { getNewLastPosition } from "./components/controls/layers/MarkersControl/utils";
 import {
+  useDeleteFolderMutation,
   useDeletePlacedMarkerMutation,
   useDeleteTurfMutation,
+  useUpsertFolderMutation,
   useUpsertPlacedMarkerMutation,
   useUpsertTurfMutation,
 } from "./data";
+
+export const useFolders = (mapId: string | null) => {
+  const ref = useRef<Folder[]>([]);
+  const [folders, _setFolders] = useState<Folder[]>([]);
+
+  // Use a combination of ref and state, because Mapbox native components don't
+  // update on state changes - ref is needed for them to update the latest state,
+  // instead of the initial state.
+  const setFolders = useCallback(
+    (folders: Folder[]) => {
+      ref.current = folders;
+      _setFolders(folders);
+    },
+    [_setFolders],
+  );
+
+  const [deleteFolderMutation] = useDeleteFolderMutation();
+  const [upsertFolderMutation, { loading }] = useUpsertFolderMutation();
+
+  /* Complex actions */
+  const deleteFolder = (id: string) => {
+    if (!mapId) {
+      return;
+    }
+
+    deleteFolderMutation({
+      variables: {
+        id,
+        mapId,
+      },
+    });
+    const newFolders = ref.current.filter((m) => m.id !== id);
+    setFolders(newFolders);
+  };
+
+  const insertFolder = async (newFolder: Folder) => {
+    if (!mapId) {
+      return;
+    }
+
+    const newFolders = [...ref.current, newFolder];
+    setFolders(newFolders);
+
+    upsertFolderMutation({
+      variables: {
+        ...newFolder,
+        mapId,
+      },
+    });
+  };
+
+  const updateFolder = (updatedFolder: Folder) => {
+    if (!mapId) {
+      return;
+    }
+
+    upsertFolderMutation({
+      variables: {
+        ...updatedFolder,
+        mapId,
+      },
+    });
+
+    setFolders(
+      ref.current.map((f) => (f.id === updatedFolder.id ? updatedFolder : f)),
+    );
+  };
+  return {
+    folders,
+    setFolders,
+    deleteFolder,
+    insertFolder,
+    updateFolder,
+    loading,
+  };
+};
 
 export const usePlacedMarkers = (mapId: string | null) => {
   const ref = useRef<PlacedMarker[]>([]);
@@ -42,42 +121,48 @@ export const usePlacedMarkers = (mapId: string | null) => {
     setPlacedMarkers(newMarkers);
   };
 
-  const insertPlacedMarker = async (newMarker: PlacedMarker) => {
+  const insertPlacedMarker = async (
+    newMarker: Omit<PlacedMarker, "position">,
+  ) => {
     if (!mapId) {
       return;
     }
 
-    const newMarkers = [...ref.current, newMarker];
+    const newPosition = getNewLastPosition(ref.current);
+    const positionedMarker = { ...newMarker, position: newPosition };
+
+    const newMarkers = [...ref.current, positionedMarker];
     setPlacedMarkers(newMarkers);
 
     upsertPlacedMarkerMutation({
       variables: {
-        id: newMarker.id,
-        label: newMarker.label,
-        notes: newMarker.notes,
-        point: newMarker.point,
+        ...positionedMarker,
         mapId,
       },
     });
   };
 
-  const updatePlacedMarker = (updatedMarker: PlacedMarker) => {
+  const updatePlacedMarker = (args: {
+    placedMarker: PlacedMarker;
+    temp?: boolean;
+  }) => {
     if (!mapId) {
       return;
     }
 
-    upsertPlacedMarkerMutation({
-      variables: {
-        id: updatedMarker.id,
-        label: updatedMarker.label,
-        notes: updatedMarker.notes,
-        point: { lat: updatedMarker.point.lat, lng: updatedMarker.point.lng },
-        mapId,
-      },
-    });
+    if (!args.temp) {
+      upsertPlacedMarkerMutation({
+        variables: {
+          ...args.placedMarker,
+          mapId,
+        },
+      });
+    }
 
     setPlacedMarkers(
-      ref.current.map((m) => (m.id === updatedMarker.id ? updatedMarker : m)),
+      ref.current.map((m) =>
+        m.id === args.placedMarker.id ? args.placedMarker : m,
+      ),
     );
   };
   return {
