@@ -14,24 +14,41 @@ test("extractExternalRecordIdsFromWebhookBody yields external IDs", async () => 
   const adaptor = new ActionNetworkAdaptor(credentials.actionnetwork.apiKey);
 
   // Mock Action Network webhook payload structure
+  // Taken from AN official test webhook payload for Subscribed triggers
   const body = [
     {
-      identifiers: ["test-id-1"],
-      given_name: "John",
-      family_name: "Doe",
-      email_addresses: [{ address: "john@example.com", primary: true }],
-      _links: {
-        self: { href: "https://actionnetwork.org/api/v2/people/rec123" },
+      "osdi:signature": {
+        identifiers: ["action_network:rec123"],
+        comments: "Stop doing the thing",
+        person: {
+          family_name: "Smith",
+          given_name: "John",
+          postal_addresses: [{ primary: true, postal_code: "20009" }],
+          email_addresses: [{ primary: true, address: "jsmith@mail.com" }],
+          phone_numbers: [
+            { primary: true, number: "11234567890", number_type: "Mobile" },
+          ],
+          custom_fields: { age: "31" },
+        },
+        "action_network:referrer_data": {},
+        add_tags: ["volunteer", "member"],
+        _links: {
+          self: {
+            href: "https://actionnetwork.org/api/v2/petitions/9f837109-710d-442f-8a99-857a21f36d25/signatures/d6bdf50e-c3a4-4981-a948-3d8c086066d7",
+          },
+          "osdi:petition": {
+            href: "https://actionnetwork.org/api/v2/petitions/9f837109-710d-442f-8a99-857a21f36d25",
+          },
+          "osdi:person": {
+            href: "https://actionnetwork.org/api/v2/people/699da712-929f-11e3-a2e9-12313d316c29",
+          },
+        },
       },
-    },
-    {
-      identifiers: ["test-id-2"],
-      given_name: "Jane",
-      family_name: "Smith",
-      email_addresses: [{ address: "jane@example.com", primary: true }],
-      _links: {
-        self: { href: "https://actionnetwork.org/api/v2/people/rec456" },
+      "action_network:sponsor": {
+        title: "Progressive Action Now",
+        url: "https://actionnetwork.org/groups/progressive-action-now",
       },
+      idempotency_key: "1679091c5a880faf6fb5e6087eb1b2dc",
     },
   ];
 
@@ -42,7 +59,6 @@ test("extractExternalRecordIdsFromWebhookBody yields external IDs", async () => 
     ids.push(id);
   }
   expect(ids).toContain("rec123");
-  expect(ids).toContain("rec456");
 });
 
 test("fetchAll yields records", async () => {
