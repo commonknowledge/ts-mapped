@@ -3,7 +3,7 @@
 import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   CreateMapMutation,
   CreateMapMutationVariables,
@@ -16,10 +16,12 @@ import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { MapCard } from "./components/MapCard";
+import CreateMapFromCsvTour, { useStartCreateMapFromCsvTour} from "./components/Tours/CreateMapFromCsvTour";
 import { LIST_MAPS_QUERY } from "./queries";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const startTour = useStartCreateMapFromCsvTour();
   const apolloClient = useApolloClient();
   const { organisationId } = useContext(OrganisationsContext);
   const [createMapLoading, setCreateMapLoading] = useState(false);
@@ -31,6 +33,14 @@ export default function DashboardPage() {
     },
   );
   const maps = data?.maps || [];
+
+  // Start tour if data is loaded and there are no maps
+  useEffect(() => {
+    if (!loading && maps.length === 0) {
+      startTour();
+    }
+  }, [loading, maps.length, startTour]);
+  
   const [createMap] = useMutation<
     CreateMapMutation,
     CreateMapMutationVariables
@@ -68,12 +78,14 @@ export default function DashboardPage() {
 
   return (
     <div className="">
+      <CreateMapFromCsvTour />
       <div className="flex items-center justify-between">
         <PageHeader title="Recent Maps" />
         <Button
           type="button"
           onClick={() => onClickNew()}
           disabled={createMapLoading}
+          className="joyride-button-new-map"
         >
           + New
         </Button>
