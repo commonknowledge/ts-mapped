@@ -40,6 +40,7 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
 };
 
 export const DataSourceTypeLabels: Record<DataSourceType, string> = {
+  actionnetwork: "Action Network",
   airtable: "Airtable",
   csv: "CSV",
   googlesheets: "Google Sheets",

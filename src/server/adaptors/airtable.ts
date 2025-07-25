@@ -488,7 +488,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
           fields[column.def.name] = column.value;
         }
         return {
-          id: record.externalId,
+          id: record.externalRecord.externalId,
           fields,
         };
       });

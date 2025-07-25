@@ -537,8 +537,9 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
           const columnIndex = updatedHeaders.indexOf(column.def.name);
           if (columnIndex !== -1) {
             const columnLetter = indexToLetter(columnIndex);
+            const externalId = record.externalRecord.externalId;
             updates.push({
-              range: `${this.sheetName}!${columnLetter}${record.externalId}:${columnLetter}${record.externalId}`,
+              range: `${this.sheetName}!${columnLetter}${externalId}:${externalId}`,
               values: [[column.value]],
             });
           }

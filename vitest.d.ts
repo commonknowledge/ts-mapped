@@ -1,6 +1,9 @@
 declare module "vitest" {
   export interface ProvidedContext {
     credentials: {
+      actionnetwork: {
+        apiKey: string;
+      };
       airtable: {
         baseId: string;
         tableId: string;

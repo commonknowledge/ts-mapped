@@ -6,6 +6,7 @@ export interface CurrentUser {
 }
 
 export enum DataSourceType {
+  actionnetwork = "actionnetwork",
   airtable = "airtable",
   csv = "csv",
   googlesheets = "googlesheets",

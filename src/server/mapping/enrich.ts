@@ -10,7 +10,7 @@ import { AreaEnrichment, DataSourceEnrichment, Enrichment } from "@/zod";
 import { geocodeRecord } from "./geocode";
 
 export interface EnrichedRecord {
-  externalId: string;
+  externalRecord: ExternalRecord;
   columns: {
     def: ColumnDef;
     value: unknown;
@@ -20,13 +20,13 @@ export interface EnrichedRecord {
 export const enrichRecord = async (
   record: ExternalRecord,
   dataSource: DataSource,
-) => {
+): Promise<EnrichedRecord> => {
   const geocodeResult = await geocodeRecord(record, dataSource.geocodingConfig);
   if (!geocodeResult) {
     logger.warn(
       `Enrichment failed for record ${record.externalId}: could not geocode`,
     );
-    return { externalId: record.externalId, columns: [] };
+    return { externalRecord: record, columns: [] };
   }
 
   const enrichedColumns = [];
@@ -50,7 +50,7 @@ export const enrichRecord = async (
   logger.info(
     `Enriched record ${record.externalId}: ${JSON.stringify(enrichedColumns)}`,
   );
-  return { externalId: record.externalId, columns: enrichedColumns };
+  return { externalRecord: record, columns: enrichedColumns };
 };
 
 const getEnrichedColumn = async (

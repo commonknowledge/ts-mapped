@@ -186,7 +186,7 @@ export function DataTable({
                     .filter((c) => !hiddenColumns.includes(c.name))
                     .map((column) => (
                       <TableCell key={column.name}>
-                        {String(row.json[column.name])}
+                        {String(row.json[column.name] || "-")}
                       </TableCell>
                     ))}
                 </TableRow>
