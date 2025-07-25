@@ -82,8 +82,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         <strong>THE USER</strong> is the individual using our Service. The User
-        corresponds to the Data Subject, who is the subject of Personal
-        Data.{" "}
+        corresponds to the Data Subject, who is the subject of Personal Data.
       </p>
       <h2>3. Your data protection rights</h2>
       <p>Under data protection law, you have rights including:</p>

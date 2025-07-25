@@ -5,6 +5,8 @@ export function findPlacedMarkersByMapId(mapId: string) {
   return db
     .selectFrom("placedMarker")
     .where("mapId", "=", mapId)
+    .orderBy("position asc")
+    .orderBy("id asc")
     .selectAll()
     .execute();
 }

@@ -6,6 +6,7 @@ import { AreaTable } from "@/server/models/Area";
 import { AreaSetTable } from "@/server/models/AreaSet";
 import { DataRecordTable } from "@/server/models/DataRecord";
 import { DataSourceTable } from "@/server/models/DataSource";
+import { FolderTable } from "@/server/models/Folder";
 import { JobTable } from "@/server/models/Job";
 import { MapTable } from "@/server/models/Map";
 import { MapViewTable } from "@/server/models/MapView";
@@ -31,6 +32,7 @@ export interface Database {
   areaSet: AreaSetTable;
   dataSource: DataSourceTable;
   dataRecord: DataRecordTable;
+  folder: FolderTable;
   map: MapTable;
   mapView: MapViewTable;
   organisation: OrganisationTable;

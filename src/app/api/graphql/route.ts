@@ -5,6 +5,7 @@ import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
 import { applyAuthDirective } from "./auth";
 import { GraphQLContext } from "./context";
+import { removeTypenamePlugin } from "./plugins";
 import DataSource from "./resolvers/DataSource";
 import Map from "./resolvers/Map";
 import Mutation from "./resolvers/Mutation";
@@ -40,6 +41,8 @@ const { handleRequest } = createYoga<GraphQLContext>({
 
   // Yoga needs to know how to create a valid Next response
   fetchAPI: { Response },
+
+  plugins: [removeTypenamePlugin],
 });
 
 // Return NextJS expected route handler type.

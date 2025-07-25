@@ -6,7 +6,11 @@ import { Turf } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { useMarkerQueries } from "@/app/(private)/map/[id]/data";
-import { usePlacedMarkers, useTurfs } from "@/app/(private)/map/[id]/hooks";
+import {
+  useFolders,
+  usePlacedMarkers,
+  useTurfs,
+} from "@/app/(private)/map/[id]/hooks";
 import { MarkerData } from "@/types";
 
 export default function MarkerAndTurfProvider({
@@ -27,6 +31,20 @@ export default function MarkerAndTurfProvider({
   });
 
   /* Persisted map features */
+  const { folders, setFolders, deleteFolder, insertFolder, updateFolder } =
+    useFolders(mapId);
+
+  const {
+    placedMarkers,
+    setPlacedMarkers,
+    deletePlacedMarker,
+    insertPlacedMarker,
+    preparePlacedMarkerUpdate,
+    commitPlacedMarkerUpdates,
+    updatePlacedMarker,
+    loading: placedMarkersLoading,
+  } = usePlacedMarkers(mapId);
+
   const {
     turfs,
     setTurfs,
@@ -36,33 +54,33 @@ export default function MarkerAndTurfProvider({
     loading: turfsLoading,
   } = useTurfs(mapId);
 
-  const {
-    placedMarkers,
-    setPlacedMarkers,
-    deletePlacedMarker,
-    insertPlacedMarker,
-    updatePlacedMarker,
-    loading: placedMarkersLoading,
-  } = usePlacedMarkers(mapId);
-
   useEffect(() => {
+    if (mapQuery?.data?.map?.folders) {
+      setFolders(mapQuery?.data?.map.folders);
+    }
     if (mapQuery?.data?.map?.placedMarkers) {
       setPlacedMarkers(mapQuery?.data?.map.placedMarkers);
     }
     if (mapQuery?.data?.map?.turfs) {
       setTurfs(mapQuery?.data.map.turfs);
     }
-  }, [mapQuery, setPlacedMarkers, setTurfs]);
+  }, [mapQuery, setFolders, setPlacedMarkers, setTurfs]);
 
   return (
     <MarkerAndTurfContext
       value={{
         editingTurf,
         setEditingTurf,
+        folders,
+        deleteFolder,
+        insertFolder,
+        updateFolder,
         placedMarkers,
         placedMarkersLoading,
         deletePlacedMarker,
         insertPlacedMarker,
+        preparePlacedMarkerUpdate,
+        commitPlacedMarkerUpdates,
         updatePlacedMarker,
         selectedMarker,
         setSelectedMarker,
