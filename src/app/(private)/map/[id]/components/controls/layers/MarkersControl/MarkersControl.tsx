@@ -39,7 +39,7 @@ export default function MarkersControl() {
   const handleManualSearch = () => {
     setTimeout(() => {
       const geocoderInput = document.querySelector(
-        ".mapboxgl-ctrl-geocoder--input",
+        ".mapboxgl-ctrl-geocoder--input"
       ) as HTMLInputElement;
       if (geocoderInput) {
         geocoderInput.focus();
@@ -49,7 +49,7 @@ export default function MarkersControl() {
             e.preventDefault();
             geocoderInput.focus();
           },
-          { once: true },
+          { once: true }
         );
       }
     }, 200);
@@ -96,7 +96,7 @@ export default function MarkersControl() {
           updateViewConfig({
             markerDataSourceIds: selected
               ? viewConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id,
+                  (id) => id !== dataSource.id
                 )
               : [...viewConfig.markerDataSourceIds, dataSource.id],
           });
@@ -171,11 +171,11 @@ export default function MarkersControl() {
         </IconButtonWithTooltip>
       </LayerHeader>
       <MarkersList />
-      {placedMarkersLoading && (
+      {/* {placedMarkersLoading && (
         <span className="ml-3 mb-3 text-xs text-muted-foreground">
           Saving...
         </span>
-      )}
+      )} */}
     </ControlItemWrapper>
   );
 }
