@@ -5,67 +5,81 @@ import logger from "@/server/services/logger";
 import { ExternalRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
 
-// Action Network webhook payload follows OSDI specification
 const ActionNetworkWebhookPayload = z.array(
   z
     .object({
-      identifiers: z.array(z.string()).optional(),
-      created_date: z.string().optional(),
-      modified_date: z.string().optional(),
-      // Person-specific fields
-      given_name: z.string().optional(),
-      family_name: z.string().optional(),
-      email_addresses: z
-        .array(
-          z.object({
-            primary: z.boolean().optional(),
-            address: z.string(),
-            status: z.string().optional(),
-          }),
-        )
-        .optional(),
-      phone_numbers: z
-        .array(
-          z.object({
-            primary: z.boolean().optional(),
-            number: z.string(),
-            number_type: z.string().optional(),
-          }),
-        )
-        .optional(),
-      postal_addresses: z
-        .array(
-          z.object({
-            primary: z.boolean().optional(),
-            address_lines: z.array(z.string()).optional(),
-            locality: z.string().optional(),
-            region: z.string().optional(),
-            postal_code: z.string().optional(),
-            country: z.string().optional(),
-          }),
-        )
-        .optional(),
-      // Custom fields and additional data
-      custom_fields: z.record(z.unknown()).optional(),
-      // OSDI links structure
-      _links: z
-        .object({
-          self: z.object({
-            href: z.string(),
-          }),
-          "osdi:person": z
-            .object({
-              href: z.string(),
-            })
+      "osdi:signature": z.object({
+        identifiers: z.array(z.string()).optional(),
+        created_date: z.string().optional(),
+        modified_date: z.string().optional(),
+        comments: z.string().optional(),
+        person: z.object({
+          given_name: z.string().optional(),
+          family_name: z.string().optional(),
+          email_addresses: z
+            .array(
+              z.object({
+                primary: z.boolean().optional(),
+                address: z.string(),
+                status: z.string().optional(),
+              }),
+            )
             .optional(),
-          // Other potential links
+          phone_numbers: z
+            .array(
+              z.object({
+                primary: z.boolean().optional(),
+                number: z.string(),
+                number_type: z.string().optional(),
+              }),
+            )
+            .optional(),
+          postal_addresses: z
+            .array(
+              z.object({
+                primary: z.boolean().optional(),
+                address_lines: z.array(z.string()).optional(),
+                locality: z.string().optional(),
+                region: z.string().optional(),
+                postal_code: z.string().optional(),
+                country: z.string().optional(),
+              }),
+            )
+            .optional(),
+          custom_fields: z.record(z.unknown()).optional(),
+          languages_spoken: z.array(z.string()).optional(),
+          employer: z.string().optional(),
+          occupation: z.string().optional(),
+        }),
+        "action_network:referrer_data": z.record(z.unknown()).optional(),
+        add_tags: z.array(z.string()).optional(),
+        _links: z
+          .object({
+            self: z.object({
+              href: z.string(),
+            }),
+            "osdi:petition": z
+              .object({
+                href: z.string(),
+              })
+              .optional(),
+            "osdi:person": z
+              .object({
+                href: z.string(),
+              })
+              .optional(),
+            // Other potential links
+          })
+          .passthrough()
+          .optional(),
+      }),
+      "action_network:sponsor": z
+        .object({
+          title: z.string().optional(),
+          url: z.string().optional(),
         })
         .optional(),
-      // Additional fields that might be present
-      languages_spoken: z.array(z.string()).optional(),
-      employer: z.string().optional(),
-      occupation: z.string().optional(),
-      // Catch-all for other fields
+      idempotency_key: z.string().optional(),
     })
     .passthrough(),
 );
@@ -97,19 +111,23 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     }
 
     for (const record of parsedPayload.data) {
-      // Extract ID from self link if available
-      if (record._links?.self?.href) {
-        const urlParts = record._links.self.href.split("/");
-        const externalId = urlParts[urlParts.length - 1];
-        if (externalId) {
-          yield externalId;
-        }
-      }
-
-      // Fallback to identifiers array if present
-      if (record.identifiers && record.identifiers.length > 0) {
-        for (const identifier of record.identifiers) {
-          yield identifier;
+      const identifiers = record["osdi:signature"].identifiers;
+      if (identifiers && identifiers[0]) {
+        logger.debug(
+          `Received Action Network person from webhook: ${identifiers}`,
+        );
+        yield identifiers[0].replace(/^action_network:/, "");
+      } else {
+        const personLink = record["osdi:signature"]._links?.["osdi:person"];
+        if (personLink) {
+          const urlParts = personLink.href.split("/");
+          const externalId = urlParts[urlParts.length - 1];
+          if (externalId) {
+            logger.debug(
+              `Received Action Network person from webhook: ${identifiers}`,
+            );
+            yield externalId.replace(/^action_network:/, "");
+          }
         }
       }
     }

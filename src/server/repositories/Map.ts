@@ -12,6 +12,10 @@ export async function createMap(organisationId: string) {
     .executeTakeFirstOrThrow();
 }
 
+export async function deleteMap(id: string) {
+  return db.deleteFrom("map").where("id", "=", id).executeTakeFirstOrThrow();
+}
+
 export async function ensureOrganisationMap(organisationId: string) {
   const existingMap = await db
     .selectFrom("map")

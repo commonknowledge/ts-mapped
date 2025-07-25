@@ -6,7 +6,6 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import MarkersControl from "./MarkersControl";
 import MembersControl from "./MembersControl";
-import TurfControl from "./TurfControl";
 
 export default function Controls() {
   const { mapRef } = useContext(MapContext);
@@ -71,8 +70,9 @@ export default function Controls() {
           <MembersControl />
           <Separator />
           <MarkersControl />
-          <Separator />
-          <TurfControl />
+          {/* TODO: Make this work again */}
+          {/* <Separator />
+          <TurfControl /> */}
         </div>
       </div>
     </>
