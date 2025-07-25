@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { describe, expect, inject, test } from "vitest";
 import { ColumnType } from "@/__generated__/types";
 import { GoogleSheetsAdaptor } from "@/server/adaptors/googlesheets";
@@ -5,12 +6,14 @@ import { getPublicUrl } from "@/server/services/urls";
 
 const credentials = inject("credentials");
 
+const uuid = uuidv4();
+
 // TODO: remove this skip when oauth app is approved
 // (as then refresh tokens last forever)
 describe.skip("Google Sheets adaptor tests", () => {
   test("Connection succeeds", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -21,7 +24,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("extractExternalRecordIdsFromWebhookBody yields external IDs for rowNumber", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -44,7 +47,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("extractExternalRecordIdsFromWebhookBody yields all external IDs for rowCount", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -70,7 +73,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("getRecordCount returns a number", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -83,7 +86,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("fetchFirst returns first data record", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -100,7 +103,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("fetchAll yields records", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -121,7 +124,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("fetchByExternalId returns specific records", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -148,7 +151,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("fetchByExternalId throws error for too many records", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -169,7 +172,7 @@ describe.skip("Google Sheets adaptor tests", () => {
     const baseDomain = new URL(baseUrl).hostname;
 
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -192,7 +195,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("removeDevWebhooks removes webhooks without error", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -210,7 +213,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("updateRecords updates existing records", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -228,7 +231,7 @@ describe.skip("Google Sheets adaptor tests", () => {
     const newValue = "test-value-" + Date.now(); // Unique value to verify update
     const enrichedRecords = [
       {
-        externalId: allRecords[0].externalId,
+        externalRecord: allRecords[0],
         columns: [
           {
             def: { name: "Mapped: Test Field", type: ColumnType.String },
@@ -247,7 +250,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("updateRecords adds new columns", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -265,7 +268,7 @@ describe.skip("Google Sheets adaptor tests", () => {
     const uniqueColumnName = "NewTestField_" + Date.now();
     const enrichedRecords = [
       {
-        externalId: allRecords[0].externalId,
+        externalRecord: allRecords[0],
         columns: [
           {
             def: { name: uniqueColumnName, type: ColumnType.String },
@@ -286,7 +289,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("updateRecords handles multiple records in batches", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       credentials.googlesheets.oAuthCredentials,
@@ -303,7 +306,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
     const newValue = `batch-test-value-${Date.now()}`;
     const enrichedRecords = allRecords.map((record) => ({
-      externalId: record.externalId,
+      externalRecord: record,
       columns: [
         {
           def: { name: "BatchTestField", type: ColumnType.String },
@@ -332,7 +335,7 @@ describe.skip("Google Sheets adaptor tests", () => {
     };
 
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       credentials.googlesheets.sheetName,
       expiredCredentials,
@@ -345,7 +348,7 @@ describe.skip("Google Sheets adaptor tests", () => {
 
   test("handles empty sheet gracefully", async () => {
     const adaptor = new GoogleSheetsAdaptor(
-      "test-data-source",
+      uuid,
       credentials.googlesheets.spreadsheetId,
       "EmptySheet", // Assumes test sheet exists
       credentials.googlesheets.oAuthCredentials,

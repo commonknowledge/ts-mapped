@@ -71,16 +71,12 @@ const ActionNetworkWebhookPayload = z.array(
 );
 
 export class ActionNetworkAdaptor implements DataSourceAdaptor {
-  private dataSourceId: string;
   private apiKey: string;
   private baseUrl: string;
-  private resourceType: string; // e.g., 'people', 'donations', 'signatures'
 
-  constructor(dataSourceId: string, apiKey: string, resourceType = "people") {
-    this.dataSourceId = dataSourceId;
+  constructor(apiKey: string) {
     this.apiKey = apiKey;
-    this.baseUrl = "https://actionnetwork.org/api/v2/";
-    this.resourceType = resourceType;
+    this.baseUrl = "https://actionnetwork.org/api/v2/people";
   }
 
   async *extractExternalRecordIdsFromWebhookBody(
@@ -120,39 +116,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
   }
 
   async getRecordCount(): Promise<number | null> {
-    try {
-      const url = new URL(`${this.baseUrl}${this.resourceType}`);
-      url.searchParams.set("per_page", "1"); // Just get metadata
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          "OSDI-API-Token": this.apiKey,
-          "Content-Type": "application/hal+json",
-        },
-      });
-
-      if (!response.ok) {
-        logger.warn(
-          `Could not get record count for Action Network ${this.resourceType}`,
-        );
-        return null;
-      }
-
-      const json = await response.json();
-      return json.total_records || json.total_pages
-        ? json.total_pages * json.per_page
-        : null;
-    } catch (error) {
-      logger.warn(
-        `Error getting record count for Action Network ${this.resourceType}`,
-        { error },
-      );
-      return null;
-    }
-  }
-
-  getURL(): URL {
-    return new URL(`${this.baseUrl}${this.resourceType}`);
+    return null;
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
@@ -163,14 +127,11 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       try {
         const pageData = await this.fetchPage({ page });
 
-        if (
-          !pageData._embedded ||
-          !pageData._embedded[`osdi:${this.resourceType}`]
-        ) {
+        if (!pageData._embedded || !pageData._embedded[`osdi:people`]) {
           break;
         }
 
-        const records = pageData._embedded[`osdi:${this.resourceType}`];
+        const records = pageData._embedded[`osdi:people`];
 
         for (const record of records) {
           const externalId = this.extractIdFromRecord(record);
@@ -186,10 +147,9 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         hasMore = pageData._links?.next?.href ? true : false;
         page++;
       } catch (error) {
-        logger.error(
-          `Error fetching page ${page} for Action Network ${this.resourceType}`,
-          { error },
-        );
+        logger.error(`Error fetching page ${page} for Action Network`, {
+          error,
+        });
         break;
       }
     }
@@ -199,14 +159,11 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     try {
       const pageData = await this.fetchPage({ page: 1, limit: 1 });
 
-      if (
-        !pageData._embedded ||
-        !pageData._embedded[`osdi:${this.resourceType}`]
-      ) {
+      if (!pageData._embedded || !pageData._embedded[`osdi:people`]) {
         return null;
       }
 
-      const records = pageData._embedded[`osdi:${this.resourceType}`];
+      const records = pageData._embedded[`osdi:people`];
       if (records.length === 0) {
         return null;
       }
@@ -223,23 +180,20 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         json: this.normalizeRecord(record),
       };
     } catch (error) {
-      logger.warn(
-        `Could not get first record for Action Network ${this.resourceType}`,
-        { error },
-      );
+      logger.warn(`Could not get first record for Action Network`, { error });
       return null;
     }
   }
 
   async fetchPage({ page = 1, limit = 25 }: { page?: number; limit?: number }) {
-    const url = this.getURL();
+    const url = new URL(this.baseUrl);
     url.searchParams.set("page", page.toString());
     url.searchParams.set("per_page", limit.toString());
 
     const response = await fetch(url.toString(), {
       headers: {
         "OSDI-API-Token": this.apiKey,
-        "Content-Type": "application/hal+json",
+        "Content-Type": "application/json",
       },
     });
 
@@ -269,14 +223,12 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     // so we need to fetch each record individually
     for (const externalId of externalIds) {
       try {
-        const url = new URL(
-          `${this.baseUrl}${this.resourceType}/${externalId}`,
-        );
+        const url = new URL(`${this.baseUrl}/${externalId}`);
 
         const response = await fetch(url.toString(), {
           headers: {
             "OSDI-API-Token": this.apiKey,
-            "Content-Type": "application/hal+json",
+            "Content-Type": "application/json",
           },
         });
 
@@ -299,21 +251,12 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
   }
 
   async removeDevWebhooks(): Promise<void> {
-    // Action Network doesn't allow webhook management via API
-    // Webhooks must be managed through the dashboard
-    logger.info(
-      `Action Network doesn't support webhook management via API. ` +
-        `Please remove dev webhooks manually through the Action Network dashboard.`,
-    );
+    throw new Error("Method not implemented.");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async toggleWebhook(enable: boolean): Promise<void> {
-    // Action Network doesn't allow webhook creation/management via API
-    // Webhooks must be set up through the dashboard
-    logger.info(
-      `Action Network doesn't support webhook creation via API. ` +
-        `Please ${enable ? "create" : "disable"} webhooks manually through the Action Network dashboard.`,
-    );
+    logger.debug("Cannot toggle webhooks for Action Network data source");
   }
 
   async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
@@ -322,18 +265,30 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
 
     for (const record of enrichedRecords) {
       try {
-        const url = new URL(
-          `${this.baseUrl}${this.resourceType}/${record.externalId}`,
-        );
+        const url = new URL(this.baseUrl);
 
         // Build the update payload based on the enriched record
-        const updatePayload = this.buildUpdatePayload(record);
+        const customFields: Record<string, unknown> = {};
+        for (const column of record.columns) {
+          customFields[column.def.name] = column.value;
+        }
+
+        const updatePayload = {
+          person: {
+            email_addresses: [
+              {
+                address: record.externalRecord.json.primary_email,
+              },
+            ],
+            custom_fields: customFields,
+          },
+        };
 
         const response = await fetch(url.toString(), {
-          method: "PUT",
+          method: "POST",
           headers: {
             "OSDI-API-Token": this.apiKey,
-            "Content-Type": "application/hal+json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(updatePayload),
         });
@@ -341,12 +296,12 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         if (!response.ok) {
           const responseText = await response.text();
           logger.error(
-            `Failed to update Action Network record ${record.externalId}: ${response.status}, ${responseText}`,
+            `Failed to update Action Network record ${record.externalRecord.externalId}: ${response.status}, ${responseText}`,
           );
         }
       } catch (error) {
         logger.error(
-          `Error updating Action Network record ${record.externalId}`,
+          `Error updating Action Network record ${record.externalRecord.externalId}`,
           { error },
         );
       }
@@ -364,7 +319,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       Array.isArray(record.identifiers) &&
       record.identifiers.length
     ) {
-      return record.identifiers[0];
+      return record.identifiers[0].replace(/^action_network:/, "");
     }
 
     // Fallback to self link
@@ -379,7 +334,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       typeof record._links.self.href === "string"
     ) {
       const urlParts = record._links.self.href.split("/");
-      return urlParts[urlParts.length - 1];
+      return urlParts[urlParts.length - 1].replace(/^action_network:/, "");
     }
 
     return null;
@@ -397,10 +352,6 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     const fieldsToInclude = [
       "given_name",
       "family_name",
-      "email_addresses",
-      "phone_numbers",
-      "postal_addresses",
-      "languages_spoken",
       "employer",
       "occupation",
       "created_date",
@@ -412,6 +363,11 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         normalized[field] = (record as Record<string, unknown>)[field];
       }
     }
+
+    // Add full name field
+    normalized.name = [normalized.given_name, normalized.family_name]
+      .filter(Boolean)
+      .join(" ");
 
     // Include custom fields
     if ("custom_fields" in record && record.custom_fields) {
@@ -441,51 +397,35 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       normalized.primary_phone = primaryPhone.number;
     }
 
-    return normalized;
-  }
-
-  private buildUpdatePayload(record: EnrichedRecord): Record<string, unknown> {
-    const payload: Record<string, unknown> = {};
-
-    // Map enriched record columns to Action Network fields
-    for (const column of record.columns) {
-      const fieldName = column.def.name;
-      const value = column.value;
-
-      // Map common fields
-      switch (fieldName.toLowerCase()) {
-        case "given_name":
-        case "first_name":
-          payload.given_name = value;
-          break;
-        case "family_name":
-        case "last_name":
-          payload.family_name = value;
-          break;
-        case "email":
-        case "primary_email":
-          payload.email_addresses = [{ address: value, primary: true }];
-          break;
-        case "phone":
-        case "primary_phone":
-          payload.phone_numbers = [{ number: value, primary: true }];
-          break;
-        case "employer":
-          payload.employer = value;
-          break;
-        case "occupation":
-          payload.occupation = value;
-          break;
-        default:
-          // Put unknown fields in custom_fields
-          if (!payload.custom_fields) {
-            payload.custom_fields = {};
-          }
-          (payload.custom_fields as Record<string, unknown>)[fieldName] = value;
-          break;
+    // Always include a postcode record for better UX
+    normalized.postcode = "";
+    if (
+      "postal_addresses" in record &&
+      Array.isArray(record.postal_addresses) &&
+      record.postal_addresses.length > 0
+    ) {
+      const primaryAddress = record.postal_addresses.find((a) => a.primary);
+      if (primaryAddress && primaryAddress.postal_code) {
+        normalized.postcode = primaryAddress.postal_code;
+      } else {
+        const postcodeAddress = record.postal_addresses.find(
+          (a) => a.postal_code,
+        );
+        if (postcodeAddress) {
+          normalized.postcode = postcodeAddress.postal_code;
+        }
       }
     }
 
-    return payload;
+    if (
+      "languages_spoken" in record &&
+      Array.isArray(record.languages_spoken)
+    ) {
+      normalized.languages_spoken = record.languages_spoken
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    return normalized;
   }
 }
