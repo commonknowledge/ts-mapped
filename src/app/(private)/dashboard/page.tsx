@@ -30,6 +30,7 @@ export default function DashboardPage() {
     {
       variables: { organisationId: organisationId || "" },
       skip: !organisationId,
+      fetchPolicy: "network-only",
     },
   );
   const maps = data?.maps || [];

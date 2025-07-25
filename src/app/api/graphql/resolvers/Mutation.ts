@@ -20,7 +20,12 @@ import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
-import { createMap, findMapById, updateMap } from "@/server/repositories/Map";
+import {
+  createMap,
+  deleteMap,
+  findMapById,
+  updateMap,
+} from "@/server/repositories/Map";
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
@@ -96,6 +101,15 @@ const MutationResolvers: MutationResolversType = {
       return { result: map, code: 200 };
     } catch (error) {
       logger.error(`Could not create map`, { error });
+    }
+    return { code: 500 };
+  },
+  deleteMap: async (_: unknown, { id }: { id: string }) => {
+    try {
+      await deleteMap(id);
+      return { code: 200 };
+    } catch (error) {
+      logger.error(`Could not delete map ${id}`, { error });
     }
     return { code: 500 };
   },

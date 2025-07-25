@@ -7,7 +7,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema
     .createTable("placedMarker")
-    .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
+    .addColumn("id", "uuid", (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
+    )
     .addColumn("mapId", "uuid", (col) => col.notNull())
     .addColumn("label", "text", (col) => col.notNull())
     .addColumn("notes", "text", (col) => col.notNull().defaultTo(""))
@@ -34,7 +36,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable("placedMarker").execute();
 
-	await db.schema
+  await db.schema
     .createTable("placedMarker")
     .addColumn("id", "bigserial", (col) => col.primaryKey())
     .addColumn("mapId", "uuid", (col) => col.notNull())

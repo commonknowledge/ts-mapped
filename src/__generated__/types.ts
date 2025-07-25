@@ -309,6 +309,7 @@ export type Mutation = {
   __typename?: "Mutation";
   createDataSource?: Maybe<CreateDataSourceResponse>;
   createMap?: Maybe<CreateMapResponse>;
+  deleteMap?: Maybe<MutationResponse>;
   deletePlacedMarker?: Maybe<MutationResponse>;
   deleteTurf?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
@@ -328,6 +329,10 @@ export type MutationCreateDataSourceArgs = {
 
 export type MutationCreateMapArgs = {
   organisationId: Scalars["String"]["input"];
+};
+
+export type MutationDeleteMapArgs = {
+  id: Scalars["String"]["input"];
 };
 
 export type MutationDeletePlacedMarkerArgs = {
@@ -991,6 +996,15 @@ export type UpdateMapImageMutation = {
   } | null;
 };
 
+export type DeleteMapMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+}>;
+
+export type DeleteMapMutation = {
+  __typename?: "Mutation";
+  deleteMap?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
 export type ResolverTypeWrapper<T> = Promise<T> | T;
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
@@ -1608,6 +1622,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationCreateMapArgs, "organisationId">
+  >;
+  deleteMap?: Resolver<
+    Maybe<ResolversTypes["MutationResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationDeleteMapArgs, "id">
   >;
   deletePlacedMarker?: Resolver<
     Maybe<ResolversTypes["MutationResponse"]>,

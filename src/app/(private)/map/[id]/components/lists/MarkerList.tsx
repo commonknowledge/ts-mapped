@@ -18,11 +18,8 @@ export default function MarkerList() {
   const { mapRef, viewConfig } = useContext(MapContext);
   const { getMarkerDataSources } = useContext(DataSourcesContext);
 
-  const {
-    placedMarkers,
-    deletePlacedMarker,
-    updatePlacedMarker,
-  } = useContext(MarkerAndTurfContext);
+  const { placedMarkers, deletePlacedMarker, updatePlacedMarker } =
+    useContext(MarkerAndTurfContext);
 
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
