@@ -58,7 +58,7 @@ export default function Sidebar({ slug }: { slug: string }) {
           />
         </Link>
         {/* TODO: Implement functionality */}
-{/*         <Button variant="outline" size="sm">
+        {/*         <Button variant="outline" size="sm">
           <PlusIcon className="w-4 h-4" />
         </Button> */}
       </div>

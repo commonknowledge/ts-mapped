@@ -8,11 +8,9 @@ import {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
   UpsertMapViewMutation,
-  UpsertMapViewMutationVariables
+  UpsertMapViewMutationVariables,
 } from "@/__generated__/types";
-import { LIST_MAPS_QUERY } from "@/app/(private)/dashboard/queries";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { Link } from "./Link";
@@ -21,7 +19,6 @@ import MapTopLevelControls from "./MapTopLevelControls";
 export default function MapNavbar() {
   const { mapName, setMapName, mapId, viewConfig, viewId, setViewId, mapRef } =
     useContext(MapContext);
-  const { organisationId } = useContext(OrganisationsContext);
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -122,9 +119,6 @@ export default function MapNavbar() {
     const imageUrl = await uploadFile(imageFile);
     await updateMap({
       variables: { id: mapId, mapInput: { imageUrl } },
-      refetchQueries: [
-        { query: LIST_MAPS_QUERY, variables: { organisationId } },
-      ],
     });
   };
 
@@ -206,4 +200,3 @@ export default function MapNavbar() {
     </nav>
   );
 }
-

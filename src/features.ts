@@ -4,10 +4,15 @@ export const DataSourceFeatures: Record<
   DataSourceType,
   { autoEnrich: boolean; autoImport: boolean; enrichment: boolean }
 > = {
+  [DataSourceType.actionnetwork]: {
+    autoEnrich: true,
+    autoImport: true,
+    enrichment: false,
+  },
   [DataSourceType.airtable]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: true,
+    enrichment: false,
   },
   [DataSourceType.csv]: {
     autoEnrich: false,
@@ -17,11 +22,11 @@ export const DataSourceFeatures: Record<
   [DataSourceType.googlesheets]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: true,
+    enrichment: false,
   },
   [DataSourceType.mailchimp]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: true,
+    enrichment: false,
   },
 };

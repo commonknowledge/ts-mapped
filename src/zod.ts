@@ -11,6 +11,13 @@ import {
 } from "./__generated__/types";
 import { DataSourceType } from "./types";
 
+export const ActionNetworkConfigSchema = z.object({
+  apiKey: z.string().nonempty(),
+  type: z.literal(DataSourceType.actionnetwork),
+});
+
+export type ActionNetworkConfig = z.infer<typeof ActionNetworkConfigSchema>;
+
 export const AirtableConfigSchema = z.object({
   type: z.literal(DataSourceType.airtable),
   apiKey: z.string().nonempty(),
@@ -56,6 +63,7 @@ export const CSVConfigSchema = z.object({
 export type CSVConfig = z.infer<typeof CSVConfigSchema>;
 
 export const DataSourceConfigSchema = z.discriminatedUnion("type", [
+  ActionNetworkConfigSchema,
   AirtableConfigSchema,
   GoogleSheetsConfigSchema,
   MailchimpConfigSchema,

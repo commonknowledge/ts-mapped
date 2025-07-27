@@ -212,7 +212,7 @@ test("updateRecords updates a record", async () => {
   const newValue = "test-value-" + Date.now(); // Unique value to verify update
   const enrichedRecords = [
     {
-      externalId: all[0].externalId,
+      externalRecord: all[0],
       columns: [
         {
           def: { name: "Mapped: Test Field", type: ColumnType.String },
