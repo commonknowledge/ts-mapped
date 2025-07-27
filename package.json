@@ -9,6 +9,7 @@
     "gql": "NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen",
     "kysely": "kysely",
     "lint": "eslint --fix && tsc --noEmit && prettier --log-level warn --write . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
+    "lint:ci": "eslint && tsc --noEmit && prettier --log-level warn . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
     "start": "next start",
     "test": "./bin/prepare-test-env.sh && node --env-file=.env.testing ./node_modules/.bin/vitest"
   },

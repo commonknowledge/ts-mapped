@@ -30,11 +30,16 @@ export default function MarketingNavbar() {
 
   return (
     <nav className="flex justify-between items-center p-4 z-1 h-14 border-b border-neutral-200">
-      <div className="flex items-center gap-2">
-        <Link href="/" className="flex items-center gap-2">
+      <div className="flex items-center">
+        <Link href="/" className="pr-2">
           <Image src="/logo.svg" alt="Mapped" width={32} height={32} />
-          Mapped
         </Link>
+        <div className="flex items-baseline gap-4">
+          <Link href="/">Mapped</Link>
+          <Link href="/privacy" className="text-sm">
+            Privacy
+          </Link>
+        </div>
       </div>
       <form onSubmit={onSubmitLogin} className="flex gap-2">
         <input
