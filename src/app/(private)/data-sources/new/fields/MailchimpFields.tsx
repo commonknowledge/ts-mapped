@@ -19,23 +19,15 @@ export default function MailchimpFields({
       <DataListRow label="List ID">
         <Input
           type="text"
-          placeholder="List ID"
+          placeholder="5xxxxxxxx6"
           value={config.listId || ""}
           onChange={(e) => onChange({ listId: e.target.value })}
-        />
-      </DataListRow>
-      <DataListRow label="Server Prefix">
-        <Input
-          type="text"
-          placeholder="Server Prefix"
-          value={config.serverPrefix || ""}
-          onChange={(e) => onChange({ serverPrefix: e.target.value })}
         />
       </DataListRow>
       <DataListRow label="API Key">
         <Input
           type="text"
-          placeholder="API Key"
+          placeholder="1...2-xx00"
           value={config.apiKey || ""}
           onChange={(e) => onChange({ apiKey: e.target.value })}
         />

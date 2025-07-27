@@ -118,7 +118,11 @@ export const useMapQuery = (mapId: string | null) =>
         }
       }
     `,
-    { variables: { id: mapId || "" }, skip: !mapId },
+    {
+      variables: { id: mapId || "" },
+      skip: !mapId,
+      fetchPolicy: "network-only",
+    },
   );
 
 // Use API request instead of GraphQL to avoid server memory load

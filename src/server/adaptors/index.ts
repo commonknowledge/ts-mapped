@@ -5,6 +5,7 @@ import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
+import { MailchimpAdaptor } from "./mailchimp";
 
 export const getDataSourceAdaptor = (dataSource: {
   id: string;
@@ -33,6 +34,7 @@ export const getDataSourceAdaptor = (dataSource: {
         config.oAuthCredentials,
       );
     case DataSourceType.mailchimp:
+      return new MailchimpAdaptor(id, config.apiKey, config.listId);
     default:
       logger.error(`Unimplemented data source type: ${dataSourceType}`);
       return null;

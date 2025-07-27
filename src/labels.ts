@@ -31,7 +31,6 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   baseId: "Base ID",
   listId: "List ID",
   oAuthCredentials: "OAuth Credentials",
-  serverPrefix: "Server Prefix",
   sheetName: "Sheet Name",
   spreadsheetId: "Spreadsheet ID",
   tableId: "Table ID",

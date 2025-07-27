@@ -31,7 +31,6 @@ export const MailchimpConfigSchema = z.object({
   type: z.literal(DataSourceType.mailchimp),
   apiKey: z.string().nonempty(),
   listId: z.string().nonempty(),
-  serverPrefix: z.string().nonempty(),
 });
 
 export type MailchimpConfig = z.infer<typeof MailchimpConfigSchema>;

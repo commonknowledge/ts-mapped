@@ -18,7 +18,10 @@ declare module "vitest" {
           expiry_date: number;
         };
       };
-      ngrokToken: string;
+      mailchimp: {
+        apiKey: string;
+        listId: string;
+      };
     };
   }
 }
