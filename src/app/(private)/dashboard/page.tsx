@@ -15,7 +15,6 @@ import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import MultiRouteTour from "@/tours/MultiRouteTour";
 import { useMultiRouteTour } from "@/tours/useMultiRouteTour";
 import { MapCard } from "./components/MapCard";
 import { LIST_MAPS_QUERY } from "./queries";
@@ -23,14 +22,7 @@ import { LIST_MAPS_QUERY } from "./queries";
 export default function DashboardPage() {
   const router = useRouter();
 
-  const { startTour, active, setRun, setStepIndex, setActive } =
-    useMultiRouteTour();
-  // Reset tour state on page load
-  useEffect(() => {
-    setRun(false);
-    setStepIndex(0);
-    setActive(false);
-  }, [setRun, setStepIndex, setActive]);
+  const { startTour, active } = useMultiRouteTour();
   const apolloClient = useApolloClient();
   const { organisationId } = useContext(OrganisationsContext);
   const [createMapLoading, setCreateMapLoading] = useState(false);
@@ -40,7 +32,7 @@ export default function DashboardPage() {
       variables: { organisationId: organisationId || "" },
       skip: !organisationId,
       fetchPolicy: "network-only",
-    }
+    },
   );
   const maps = data?.maps || [];
 

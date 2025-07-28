@@ -160,6 +160,7 @@ export default function DataSourceDashboard({
               onClick={onClickImportRecords}
               disabled={importing}
               size="lg"
+              id="joyride-datasource-import"
             >
               {importing ? "Importing" : "Import"} records
             </Button>

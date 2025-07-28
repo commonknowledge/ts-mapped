@@ -139,7 +139,11 @@ export default function NewDataSourcePage() {
         description="Create a new data source to import into your maps."
       />
       <Separator className="my-4" />
-      <form onSubmit={onSubmit} className="max-w-2xl ">
+      <form
+        onSubmit={onSubmit}
+        className="max-w-2xl "
+        id="joyride-datasources-new-form"
+      >
         <DataListRow label="Name">
           <Input
             type="text"
@@ -185,7 +189,12 @@ export default function NewDataSourcePage() {
             </>
           )}
         </div>
-        <Button disabled={!validConfig || loading}>Submit</Button>
+        <Button
+          disabled={!validConfig || loading}
+          id="joyride-datasources-new-form-submit"
+        >
+          Submit
+        </Button>
         {error && (
           <div>
             <span className="text-xs text-red-500">{error}</span>

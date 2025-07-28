@@ -11,7 +11,6 @@ import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import MultiRouteTour from "@/tours/MultiRouteTour";
 import { DataSourceType } from "@/types";
 import { DataSourceCard } from "./components/DataSourceCard";
 
@@ -35,7 +34,7 @@ export default function DataSourcesPage() {
       variables: { organisationId },
       skip: !organisationId,
       fetchPolicy: "network-only",
-    }
+    },
   );
   const dataSources = data?.dataSources || [];
 
@@ -88,7 +87,7 @@ export default function DataSourcesPage() {
                 config={config}
                 createdAt={createdAt}
               />
-            )
+            ),
           )}
         </div>
       )}

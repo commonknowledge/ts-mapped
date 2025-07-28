@@ -59,7 +59,10 @@ export default async function DataSourceConfigPage({
   }
 
   return (
-    <div className="p-4 mx-auto max-w-5xl w-full">
+    <div
+      className="p-4 pb-24 mx-auto max-w-5xl w-full"
+      id="joyride-datasources-configure"
+    >
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>

@@ -89,17 +89,15 @@ export default function Sidebar({ slug }: { slug: string }) {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {navItems.map((item) => (
-            <li
-              key={item.href}
-              id={`joyride-sidebar-${item.label
-                .toLowerCase()
-                .replace(/\s+/g, "-")}`}
-            >
+            <li key={item.href}>
               <Link
+                id={`joyride-sidebar-${item.label
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}`}
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary"
+                  isActive(item.href) && "bg-neutral-100 text-primary",
                 )}
               >
                 {item.icon}
