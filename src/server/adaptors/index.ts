@@ -1,6 +1,7 @@
 import logger from "@/server/services/logger";
 import { DataSourceType } from "@/types";
 import { DataSourceConfig } from "@/zod";
+import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
@@ -13,6 +14,8 @@ export const getDataSourceAdaptor = (dataSource: {
 
   const dataSourceType = config.type;
   switch (dataSourceType) {
+    case DataSourceType.actionnetwork:
+      return new ActionNetworkAdaptor(config.apiKey);
     case DataSourceType.airtable:
       return new AirtableAdaptor(
         id,

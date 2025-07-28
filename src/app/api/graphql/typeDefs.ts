@@ -94,13 +94,16 @@ const typeDefs = `
     imageUrl: String
   }
 
+  input MapConfigInput {
+    markerDataSourceIds: [String]
+    membersDataSourceId: String
+  }
+
   input MapViewConfigInput {
     areaDataSourceId: String
     areaDataColumn: String
     areaSetGroupCode: AreaSetGroupCode
     excludeColumnsString: String
-    markerDataSourceIds: [String]
-    membersDataSourceId: String
     mapStyleName: MapStyleName
     showBoundaryOutline: Boolean
     showLabels: Boolean
@@ -176,6 +179,13 @@ const typeDefs = `
     name: String!
   }
 
+  type Folder {
+    id: String!
+    name: String!
+    notes: String!
+    position: Float!
+  }
+
   type JobInfo {
     lastCompleted: String
     status: JobStatus
@@ -203,11 +213,24 @@ const typeDefs = `
   type Map {
     id: String!
     name: String!
+    config: MapConfig!
     createdAt: Date!
     imageUrl: String
+    folders: [Folder!]
     placedMarkers: [PlacedMarker!]
     turfs: [Turf!]
     views: [MapView!]
+  }
+
+  type MapConfig {
+    markerDataSourceIds: [String!]!
+    membersDataSourceId: String!
+  }
+
+  type MapView {
+    id: String!
+    config: MapViewConfig!
+    mapId: String!
   }
 
   type MapViewConfig {
@@ -215,20 +238,12 @@ const typeDefs = `
     areaDataColumn: String!
     areaSetGroupCode: AreaSetGroupCode
     excludeColumnsString: String!
-    markerDataSourceIds: [String!]!
-    membersDataSourceId: String!
     mapStyleName: MapStyleName!
     showBoundaryOutline: Boolean!
     showLabels: Boolean!
     showLocations: Boolean!
     showMembers: Boolean!
     showTurf: Boolean!
-  }
-
-  type MapView {
-    id: String!
-    config: MapViewConfig!
-    mapId: String!
   }
 
   type Organisation {
@@ -241,6 +256,8 @@ const typeDefs = `
     label: String!
     notes: String!
     point: Point!
+    folderId: String
+    position: Float!
   }
 
   type Point {
@@ -289,6 +306,11 @@ const typeDefs = `
     code: Int!
   }
 
+  type UpdateMapConfigResponse {
+    code: Int!
+    result: String
+  }
+
   type UpdateMapResponse {
     code: Int!
     result: Map
@@ -297,6 +319,11 @@ const typeDefs = `
   type UpsertMapViewResponse {
     code: Int!
     result: String
+  }
+
+  type UpsertFolderResponse {
+    code: Int!
+    result: Folder
   }
 
   type UpsertPlacedMarkerResponse {
@@ -316,6 +343,7 @@ const typeDefs = `
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
     createMap(organisationId: String!): CreateMapResponse @auth(read: { organisationIdArg: "organisationId" })
+    deleteFolder(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     deletePlacedMarker(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
@@ -333,17 +361,27 @@ const typeDefs = `
       id: String!
       map: MapInput!
     ): UpdateMapResponse @auth(write: { mapIdArg: "id" })
-    upsertMapView(
-      id: String
-      config: MapViewConfigInput!
+    updateMapConfig(
       mapId: String!
-    ): UpsertMapViewResponse @auth(write: { mapIdArg: "mapId" })
+      mapConfig: MapConfigInput!
+      viewId: String
+      viewConfig: MapViewConfigInput!
+    ): UpdateMapConfigResponse @auth(write: { mapIdArg: "mapId" })
+    upsertFolder(
+      id: String!
+      name: String!
+      notes: String!
+      position: Float!
+      mapId: String!
+    ): UpsertFolderResponse @auth(write: { mapIdArg: "mapId" })
     upsertPlacedMarker(
       id: String!
       label: String!
       notes: String!
       point: PointInput!
       mapId: String!
+      folderId: String
+      position: Float!
     ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
     upsertTurf(
       id: String

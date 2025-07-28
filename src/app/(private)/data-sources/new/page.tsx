@@ -31,6 +31,7 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { DataSourceConfig } from "@/zod";
+import ActionNetworkFields from "./fields/ActionNetworkFields";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
@@ -178,6 +179,7 @@ export default function NewDataSourcePage() {
         <div className="mb-10">
           {config.type !== "" && (
             <>
+              <ActionNetworkFields config={config} onChange={onChangeConfig} />
               <AirtableFields config={config} onChange={onChangeConfig} />
               <CSVFields config={config} onChange={onChangeConfig} />
               <GoogleSheetsFields

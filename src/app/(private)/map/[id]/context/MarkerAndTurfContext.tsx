@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { PlacedMarker, Turf } from "@/__generated__/types";
+import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
 import { MarkerData } from "@/types";
 import { MarkerQueriesResult } from "../types";
 
@@ -8,10 +8,18 @@ export const MarkerAndTurfContext = createContext<{
   editingTurf: Turf | null;
   setEditingTurf: (turf: Turf | null) => void;
 
+  folders: Folder[];
+  foldersLoading: boolean;
+  deleteFolder: (id: string) => void;
+  insertFolder: (folder: Omit<Folder, "position">) => void;
+  updateFolder: (folder: Folder) => void;
+
   placedMarkers: PlacedMarker[];
   placedMarkersLoading: boolean;
   deletePlacedMarker: (id: string) => void;
-  insertPlacedMarker: (placedMarker: PlacedMarker) => void;
+  insertPlacedMarker: (placedMarker: Omit<PlacedMarker, "position">) => void;
+  preparePlacedMarkerUpdate: (placedMarker: PlacedMarker) => void;
+  commitPlacedMarkerUpdates: () => void;
   updatePlacedMarker: (placedMarker: PlacedMarker) => void;
 
   selectedMarker: MarkerData | null;
@@ -28,10 +36,17 @@ export const MarkerAndTurfContext = createContext<{
 }>({
   editingTurf: null,
   setEditingTurf: () => null,
+  folders: [],
+  foldersLoading: false,
+  deleteFolder: () => null,
+  insertFolder: () => null,
+  updateFolder: () => null,
   placedMarkers: [],
   placedMarkersLoading: false,
   deletePlacedMarker: () => null,
   insertPlacedMarker: () => null,
+  preparePlacedMarkerUpdate: () => null,
+  commitPlacedMarkerUpdates: () => null,
   updatePlacedMarker: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,

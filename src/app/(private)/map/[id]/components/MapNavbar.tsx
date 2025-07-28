@@ -5,23 +5,28 @@ import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useContext, useState } from "react";
 import {
+  UpdateMapConfigMutation,
+  UpdateMapConfigMutationVariables,
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
-  UpsertMapViewMutation,
-  UpsertMapViewMutationVariables,
 } from "@/__generated__/types";
-import { LIST_MAPS_QUERY } from "@/app/(private)/dashboard/queries";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { Link } from "@/components/Link";
+import MapTopLevelControls from "@/components/MapTopLevelControls";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
-import { Link } from "./Link";
-import MapTopLevelControls from "./MapTopLevelControls";
 
 export default function MapNavbar() {
-  const { mapName, setMapName, mapId, viewConfig, viewId, setViewId, mapRef } =
-    useContext(MapContext);
-  const { organisationId } = useContext(OrganisationsContext);
+  const {
+    mapName,
+    setMapName,
+    mapId,
+    mapConfig,
+    viewConfig,
+    viewId,
+    setViewId,
+    mapRef,
+  } = useContext(MapContext);
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,16 +44,22 @@ export default function MapNavbar() {
     }
   `);
 
-  const [upsertMapView] = useMutation<
-    UpsertMapViewMutation,
-    UpsertMapViewMutationVariables
+  const [updateMapConfig] = useMutation<
+    UpdateMapConfigMutation,
+    UpdateMapConfigMutationVariables
   >(gql`
-    mutation UpsertMapView(
-      $id: String
-      $config: MapViewConfigInput!
+    mutation UpdateMapConfig(
       $mapId: String!
+      $mapConfig: MapConfigInput!
+      $viewId: String
+      $viewConfig: MapViewConfigInput!
     ) {
-      upsertMapView(id: $id, config: $config, mapId: $mapId) {
+      updateMapConfig(
+        mapId: $mapId
+        mapConfig: $mapConfig
+        viewId: $viewId
+        viewConfig: $viewConfig
+      ) {
         code
         result
       }
@@ -70,7 +81,7 @@ export default function MapNavbar() {
     }
   `);
 
-  const saveMapView = async () => {
+  const saveMap = async () => {
     // Should never happen, button is also hidden in this case
     if (!mapId) {
       return;
@@ -79,17 +90,17 @@ export default function MapNavbar() {
     setLoading(true);
     setSaveError("");
     try {
-      const result = await upsertMapView({
-        variables: { id: viewId, config: viewConfig, mapId },
+      const result = await updateMapConfig({
+        variables: { mapId, mapConfig, viewId, viewConfig },
       });
-      if (!result.data?.upsertMapView?.result) {
+      if (!result.data?.updateMapConfig?.result) {
         throw new Error(String(result.errors || "Unknown error"));
       }
-      setViewId(result.data.upsertMapView.result);
+      setViewId(result.data.updateMapConfig.result);
 
       await updateMapImage();
     } catch (e) {
-      console.error("UpsertMapView failed", e);
+      console.error("UpdateMapConfig failed", e);
       setSaveError("Could not save this map view, please try again.");
     }
     setLoading(false);
@@ -101,7 +112,7 @@ export default function MapNavbar() {
     }
 
     const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve,
+      resolve
     ) {
       mapRef?.current?.once("render", function () {
         resolve(mapRef.current?.getCanvas().toDataURL());
@@ -122,9 +133,6 @@ export default function MapNavbar() {
     const imageUrl = await uploadFile(imageFile);
     await updateMap({
       variables: { id: mapId, mapInput: { imageUrl } },
-      refetchQueries: [
-        { query: LIST_MAPS_QUERY, variables: { organisationId } },
-      ],
     });
   };
 
@@ -194,11 +202,7 @@ export default function MapNavbar() {
             {saveError && (
               <span className="text-xs text-red-500">{saveError}</span>
             )}
-            <Button
-              type="button"
-              onClick={() => saveMapView()}
-              disabled={loading}
-            >
+            <Button type="button" onClick={() => saveMap()} disabled={loading}>
               Save
             </Button>
           </div>

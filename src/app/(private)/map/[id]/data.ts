@@ -2,11 +2,14 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useRef, useState } from "react";
 import {
   AreaSetCode,
+  AreaSetGroupCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
   DataRecordsQuery,
   DataRecordsQueryVariables,
   DataSourcesQuery,
+  DeleteFolderMutationMutation,
+  DeleteFolderMutationMutationVariables,
   DeletePlacedMarkerMutationMutation,
   DeletePlacedMarkerMutationMutationVariables,
   DeleteTurfMutation,
@@ -15,6 +18,8 @@ import {
   MapQueryVariables,
   Operation,
   SortInput,
+  UpsertFolderMutation,
+  UpsertFolderMutationVariables,
   UpsertPlacedMarkerMutation,
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
@@ -81,6 +86,16 @@ export const useMapQuery = (mapId: string | null) =>
       query Map($id: String!) {
         map(id: $id) {
           name
+          config {
+            markerDataSourceIds
+            membersDataSourceId
+          }
+          folders {
+            id
+            name
+            notes
+            position
+          }
           placedMarkers {
             id
             label
@@ -89,6 +104,8 @@ export const useMapQuery = (mapId: string | null) =>
               lat
               lng
             }
+            folderId
+            position
           }
           turfs {
             id
@@ -105,8 +122,6 @@ export const useMapQuery = (mapId: string | null) =>
               areaDataColumn
               areaSetGroupCode
               excludeColumnsString
-              markerDataSourceIds
-              membersDataSourceId
               mapStyleName
               showBoundaryOutline
               showLabels
@@ -168,12 +183,14 @@ export const useMarkerQueries = ({
 };
 
 export const useAreaStatsQuery = ({
+  areaSetGroupCode,
   areaSetCode,
   dataSourceId,
   column,
   excludeColumns,
   useDummyBoundingBox,
 }: {
+  areaSetGroupCode: AreaSetGroupCode | null;
   areaSetCode: AreaSetCode;
   dataSourceId: string;
   column: string;
@@ -220,10 +237,48 @@ export const useAreaStatsQuery = ({
           ? { north: 0, east: 0, south: 0, west: 0 }
           : null,
       },
-      skip: !dataSourceId || !column,
+      skip: !dataSourceId || !column || !areaSetGroupCode,
       notifyOnNetworkStatusChange: true,
     },
   );
+
+export const useDeleteFolderMutation = () => {
+  return useMutation<
+    DeleteFolderMutationMutation,
+    DeleteFolderMutationMutationVariables
+  >(gql`
+    mutation DeleteFolderMutation($id: String!, $mapId: String!) {
+      deleteFolder(id: $id, mapId: $mapId) {
+        code
+      }
+    }
+  `);
+};
+
+export const useUpsertFolderMutation = () => {
+  return useMutation<UpsertFolderMutation, UpsertFolderMutationVariables>(gql`
+    mutation UpsertFolder(
+      $id: String!
+      $name: String!
+      $notes: String!
+      $mapId: String!
+      $position: Float!
+    ) {
+      upsertFolder(
+        id: $id
+        name: $name
+        notes: $notes
+        position: $position
+        mapId: $mapId
+      ) {
+        code
+        result {
+          id
+        }
+      }
+    }
+  `);
+};
 
 export const useDeletePlacedMarkerMutation = () => {
   return useMutation<
@@ -249,6 +304,8 @@ export const useUpsertPlacedMarkerMutation = () => {
       $notes: String!
       $point: PointInput!
       $mapId: String!
+      $folderId: String
+      $position: Float!
     ) {
       upsertPlacedMarker(
         id: $id
@@ -256,6 +313,8 @@ export const useUpsertPlacedMarkerMutation = () => {
         notes: $notes
         point: $point
         mapId: $mapId
+        folderId: $folderId
+        position: $position
       ) {
         code
         result {
