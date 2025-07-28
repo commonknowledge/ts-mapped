@@ -5,8 +5,6 @@ import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useContext, useState } from "react";
 import {
-  UpdateMapConfigMutation,
-  UpdateMapConfigMutationVariables,
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
 } from "@/__generated__/types";
@@ -17,17 +15,12 @@ import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import MapViews from "./MapViews";
 
+/**
+ * TODO: Move complex logic into MapProvider
+ */
 export default function MapNavbar() {
-  const {
-    mapName,
-    setMapName,
-    mapId,
-    mapConfig,
-    viewConfig,
-    viewId,
-    setViewId,
-    mapRef,
-  } = useContext(MapContext);
+  const { mapName, setMapName, mapId, saveMapConfig, mapRef } =
+    useContext(MapContext);
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,29 +38,7 @@ export default function MapNavbar() {
     }
   `);
 
-  const [updateMapConfig] = useMutation<
-    UpdateMapConfigMutation,
-    UpdateMapConfigMutationVariables
-  >(gql`
-    mutation UpdateMapConfig(
-      $mapId: String!
-      $mapConfig: MapConfigInput!
-      $viewId: String
-      $viewConfig: MapViewConfigInput!
-    ) {
-      updateMapConfig(
-        mapId: $mapId
-        mapConfig: $mapConfig
-        viewId: $viewId
-        viewConfig: $viewConfig
-      ) {
-        code
-        result
-      }
-    }
-  `);
-
-  const [updateMap] = useMutation<
+  const [updateMapImage] = useMutation<
     UpdateMapImageMutation,
     UpdateMapImageMutationVariables
   >(gql`
@@ -82,7 +53,7 @@ export default function MapNavbar() {
     }
   `);
 
-  const saveMap = async () => {
+  const onClickSave = async () => {
     // Should never happen, button is also hidden in this case
     if (!mapId) {
       return;
@@ -91,15 +62,8 @@ export default function MapNavbar() {
     setLoading(true);
     setSaveError("");
     try {
-      const result = await updateMapConfig({
-        variables: { mapId, mapConfig, viewId, viewConfig },
-      });
-      if (!result.data?.updateMapConfig?.result) {
-        throw new Error(String(result.errors || "Unknown error"));
-      }
-      setViewId(result.data.updateMapConfig.result);
-
-      await updateMapImage();
+      await saveMapConfig();
+      await regenerateMapImage();
     } catch (e) {
       console.error("UpdateMapConfig failed", e);
       setSaveError("Could not save this map view, please try again.");
@@ -107,7 +71,7 @@ export default function MapNavbar() {
     setLoading(false);
   };
 
-  const updateMapImage = async () => {
+  const regenerateMapImage = async () => {
     if (!mapId) {
       return;
     }
@@ -132,7 +96,7 @@ export default function MapNavbar() {
       type: "image/png",
     });
     const imageUrl = await uploadFile(imageFile);
-    await updateMap({
+    await updateMapImage({
       variables: { id: mapId, mapInput: { imageUrl } },
     });
   };
@@ -189,7 +153,9 @@ export default function MapNavbar() {
                 </Button>
               </>
             ) : (
-              <p className="truncate max-w-[300px]">{mapName || "Loading..."}</p>
+              <p className="truncate max-w-[300px]">
+                {mapName || "Loading..."}
+              </p>
             )}
             <MapTopLevelControls setIsEditingName={setIsEditingName} />
           </div>
@@ -203,7 +169,11 @@ export default function MapNavbar() {
             {saveError && (
               <span className="text-xs text-red-500">{saveError}</span>
             )}
-            <Button type="button" onClick={() => saveMap()} disabled={loading}>
+            <Button
+              type="button"
+              onClick={() => onClickSave()}
+              disabled={loading}
+            >
               Save
             </Button>
           </div>

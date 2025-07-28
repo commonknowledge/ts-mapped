@@ -18,6 +18,8 @@ import {
   MapQueryVariables,
   Operation,
   SortInput,
+  UpdateMapConfigMutation,
+  UpdateMapConfigMutationVariables,
   UpsertFolderMutation,
   UpsertFolderMutationVariables,
   UpsertPlacedMarkerMutation,
@@ -117,6 +119,8 @@ export const useMapQuery = (mapId: string | null) =>
           }
           views {
             id
+            name
+            position
             config {
               areaDataSourceId
               areaDataColumn
@@ -241,6 +245,22 @@ export const useAreaStatsQuery = ({
       notifyOnNetworkStatusChange: true,
     },
   );
+
+export const useUpdateMapConfigMutation = () => {
+  return useMutation<UpdateMapConfigMutation, UpdateMapConfigMutationVariables>(
+    gql`
+      mutation UpdateMapConfig(
+        $mapId: String!
+        $mapConfig: MapConfigInput!
+        $views: [MapViewInput!]!
+      ) {
+        updateMapConfig(mapId: $mapId, mapConfig: $mapConfig, views: $views) {
+          code
+        }
+      }
+    `,
+  );
+};
 
 export const useDeleteFolderMutation = () => {
   return useMutation<
