@@ -4,6 +4,7 @@ import { MapRef } from "react-map-gl/mapbox";
 import {
   AreaSetGroupCode,
   BoundingBoxInput,
+  MapConfigInput,
   MapQuery,
   MapQueryVariables,
   MapStyleName,
@@ -12,13 +13,20 @@ import {
 import { DEFAULT_ZOOM } from "@/constants";
 import mapStyles from "../styles";
 
+export class MapConfig implements MapConfigInput {
+  public markerDataSourceIds: string[] = [];
+  public membersDataSourceId = "";
+
+  constructor(params: Partial<MapConfig> = {}) {
+    Object.assign(this, params);
+  }
+}
+
 export class ViewConfig implements MapViewConfigInput {
   public areaDataSourceId = "";
   public areaDataColumn = "";
   public areaSetGroupCode: AreaSetGroupCode | null = null;
   public excludeColumnsString = "";
-  public markerDataSourceIds: string[] = [];
-  public membersDataSourceId = "";
   public mapStyleName: MapStyleName = MapStyleName.Light;
   public showLabels = true;
   public showBoundaryOutline = false;
@@ -46,14 +54,16 @@ export const MapContext = createContext<{
   /* Map ID from URL */
   mapId: string | null;
 
-  /* Map Name */
-  mapName: string | null;
-  setMapName: (name: string | null) => void;
-
   /* Map Ref */
   mapRef: RefObject<MapRef | null> | null;
 
   /* State */
+  mapConfig: MapConfig;
+  updateMapConfig: (config: Partial<MapConfig>) => void;
+
+  mapName: string | null;
+  setMapName: (name: string | null) => void;
+
   boundingBox: BoundingBoxInput | null;
   setBoundingBox: (boundingBox: BoundingBoxInput | null) => void;
 
@@ -70,9 +80,11 @@ export const MapContext = createContext<{
   mapQuery: QueryResult<MapQuery, MapQueryVariables> | null;
 }>({
   mapId: null,
+  mapRef: null,
+  mapConfig: new MapConfig(),
+  updateMapConfig: () => null,
   mapName: null,
   setMapName: () => null,
-  mapRef: null,
   boundingBox: null,
   setBoundingBox: () => null,
   viewConfig: new ViewConfig(),

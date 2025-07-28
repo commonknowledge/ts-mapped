@@ -9,7 +9,7 @@ import {
   MutationResponse,
   MutationUpdateDataSourceConfigArgs,
   MutationUpdateMapArgs,
-  MutationUpsertMapViewArgs,
+  MutationUpdateMapConfigArgs,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
   UpsertTurfResponse,
@@ -274,17 +274,18 @@ const MutationResolvers: MutationResolversType = {
     }
     return { code: 500 };
   },
-  upsertMapView: async (_: unknown, args: MutationUpsertMapViewArgs) => {
+  updateMapConfig: async (_: unknown, args: MutationUpdateMapConfigArgs) => {
     try {
-      const { id, config } = args;
+      const { mapId, mapConfig, viewId, viewConfig } = args;
       let updatedMapView = null;
-      if (id) {
-        updatedMapView = await updateMapView(id, {
-          config: JSON.stringify(config),
+      await updateMap(mapId, { config: JSON.stringify(mapConfig) });
+      if (viewId) {
+        updatedMapView = await updateMapView(viewId, {
+          config: JSON.stringify(viewConfig),
         });
       } else {
         updatedMapView = await insertMapView({
-          config: JSON.stringify(config),
+          config: JSON.stringify(viewConfig),
           mapId: args.mapId,
         });
       }

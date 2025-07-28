@@ -1,5 +1,13 @@
+import { MapConfig } from "@/__generated__/types";
 import { MapUpdate } from "@/server/models/Map";
 import { db } from "@/server/services/database";
+
+const createBlankConfig = (): MapConfig => {
+  return {
+    markerDataSourceIds: [],
+    membersDataSourceId: "",
+  };
+};
 
 export async function createMap(organisationId: string) {
   return db
@@ -7,6 +15,7 @@ export async function createMap(organisationId: string) {
     .values({
       organisationId,
       name: `New Map (${new Date().toLocaleDateString()})`,
+      config: JSON.stringify(createBlankConfig()),
     })
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -29,7 +38,11 @@ export async function ensureOrganisationMap(organisationId: string) {
 
   return db
     .insertInto("map")
-    .values({ organisationId, name: "Example Map" })
+    .values({
+      organisationId,
+      name: "Example Map",
+      config: JSON.stringify(createBlankConfig()),
+    })
     .returningAll()
     .executeTakeFirstOrThrow();
 }

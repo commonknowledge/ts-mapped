@@ -7,14 +7,14 @@ import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
 export default function Markers() {
-  const { viewConfig } = useContext(MapContext);
+  const { mapConfig, viewConfig } = useContext(MapContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = markerQueries?.data?.find(
-    (ds) => ds.dataSourceId === viewConfig.membersDataSourceId,
+    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
   );
 
-  const dataSourceMarkers = viewConfig.markerDataSourceIds.map((id) =>
+  const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
     markerQueries?.data?.find((ds) => ds.dataSourceId === id),
   );
 

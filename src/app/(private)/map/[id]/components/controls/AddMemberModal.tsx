@@ -19,23 +19,20 @@ export default function AddMembersDataModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const { getDataSources } = useContext(DataSourcesContext);
-  const { updateViewConfig, viewConfig } = useContext(MapContext);
+  const { updateMapConfig, mapConfig } = useContext(MapContext);
 
   const dataSources = getDataSources();
 
   const updateMarkerDataSources = (dataSourceIds: string[]) => {
-    updateViewConfig({ markerDataSourceIds: dataSourceIds });
+    updateMapConfig({ markerDataSourceIds: dataSourceIds });
   };
 
   const handleDataSourceToggle = (dataSourceId: string, checked: boolean) => {
     if (checked) {
-      updateMarkerDataSources([
-        ...viewConfig.markerDataSourceIds,
-        dataSourceId,
-      ]);
+      updateMarkerDataSources([...mapConfig.markerDataSourceIds, dataSourceId]);
     } else {
       updateMarkerDataSources(
-        viewConfig.markerDataSourceIds.filter((id) => id !== dataSourceId),
+        mapConfig.markerDataSourceIds.filter((id) => id !== dataSourceId),
       );
     }
   };
@@ -61,7 +58,7 @@ export default function AddMembersDataModal({
                 onCheckedChange={(checked) =>
                   handleDataSourceToggle(dataSource.id, checked as boolean)
                 }
-                checked={viewConfig.markerDataSourceIds.some(
+                checked={mapConfig.markerDataSourceIds.some(
                   (id) => id === dataSource.id,
                 )}
               />

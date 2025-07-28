@@ -13,7 +13,8 @@ import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { updateMapConfig, viewConfig, updateViewConfig } =
+    useContext(MapContext);
   const { getMembersDataSource } = useContext(DataSourcesContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
@@ -32,7 +33,7 @@ export default function MembersControl() {
       label: ds.name,
       onClick: () => {
         handleDataSourceSelect(ds.id);
-        updateViewConfig({ membersDataSourceId: ds.id });
+        updateMapConfig({ membersDataSourceId: ds.id });
       },
     }));
     return [

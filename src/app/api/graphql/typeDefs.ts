@@ -94,13 +94,16 @@ const typeDefs = `
     imageUrl: String
   }
 
+  input MapConfigInput {
+    markerDataSourceIds: [String]
+    membersDataSourceId: String
+  }
+
   input MapViewConfigInput {
     areaDataSourceId: String
     areaDataColumn: String
     areaSetGroupCode: AreaSetGroupCode
     excludeColumnsString: String
-    markerDataSourceIds: [String]
-    membersDataSourceId: String
     mapStyleName: MapStyleName
     showBoundaryOutline: Boolean
     showLabels: Boolean
@@ -209,6 +212,7 @@ const typeDefs = `
   type Map {
     id: String!
     name: String!
+    config: MapConfig!
     createdAt: Date!
     imageUrl: String
     folders: [Folder!]
@@ -217,25 +221,28 @@ const typeDefs = `
     views: [MapView!]
   }
 
-  type MapViewConfig {
-    areaDataSourceId: String!
-    areaDataColumn: String!
-    areaSetGroupCode: AreaSetGroupCode
-    excludeColumnsString: String!
+  type MapConfig {
     markerDataSourceIds: [String!]!
     membersDataSourceId: String!
-    mapStyleName: MapStyleName!
-    showBoundaryOutline: Boolean!
-    showLabels: Boolean!
-    showLocations: Boolean!
-    showMembers: Boolean!
-    showTurf: Boolean!
   }
 
   type MapView {
     id: String!
     config: MapViewConfig!
     mapId: String!
+  }
+
+  type MapViewConfig {
+    areaDataSourceId: String!
+    areaDataColumn: String!
+    areaSetGroupCode: AreaSetGroupCode
+    excludeColumnsString: String!
+    mapStyleName: MapStyleName!
+    showBoundaryOutline: Boolean!
+    showLabels: Boolean!
+    showLocations: Boolean!
+    showMembers: Boolean!
+    showTurf: Boolean!
   }
 
   type Organisation {
@@ -298,6 +305,11 @@ const typeDefs = `
     code: Int!
   }
 
+  type UpdateMapConfigResponse {
+    code: Int!
+    result: String
+  }
+
   type UpdateMapResponse {
     code: Int!
     result: Map
@@ -348,12 +360,13 @@ const typeDefs = `
       id: String!
       map: MapInput!
     ): UpdateMapResponse @auth(write: { mapIdArg: "id" })
-    upsertMapView(
-      id: String
-      config: MapViewConfigInput!
+    updateMapConfig(
       mapId: String!
-    ): UpsertMapViewResponse @auth(write: { mapIdArg: "mapId" })
-     upsertFolder(
+      mapConfig: MapConfigInput!
+      viewId: String
+      viewConfig: MapViewConfigInput!
+    ): UpdateMapConfigResponse @auth(write: { mapIdArg: "mapId" })
+    upsertFolder(
       id: String!
       name: String!
       notes: String!

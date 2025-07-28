@@ -21,7 +21,8 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig, mapRef } = useContext(MapContext);
+  const { mapConfig, updateMapConfig, viewConfig, updateViewConfig, mapRef } =
+    useContext(MapContext);
   const { insertPlacedMarker, placedMarkersLoading, folders, insertFolder } =
     useContext(MarkerAndTurfContext);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
@@ -40,7 +41,7 @@ export default function MarkersControl() {
   const handleManualSearch = () => {
     setTimeout(() => {
       const geocoderInput = document.querySelector(
-        ".mapboxgl-ctrl-geocoder--input"
+        ".mapboxgl-ctrl-geocoder--input",
       ) as HTMLInputElement;
       if (geocoderInput) {
         geocoderInput.focus();
@@ -50,7 +51,7 @@ export default function MarkersControl() {
             e.preventDefault();
             geocoderInput.focus();
           },
-          { once: true }
+          { once: true },
         );
       }
     }, 200);
@@ -88,18 +89,18 @@ export default function MarkersControl() {
   const getDataSourceDropdownItems = () => {
     const markerDataSources = getDataSources();
     return markerDataSources.map((dataSource) => {
-      const selected = viewConfig.markerDataSourceIds.includes(dataSource.id);
+      const selected = mapConfig.markerDataSourceIds.includes(dataSource.id);
       return {
         type: "item" as const,
         icon: selected ? <Check /> : null,
         label: dataSource.name,
         onClick: () => {
-          updateViewConfig({
+          updateMapConfig({
             markerDataSourceIds: selected
-              ? viewConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id
+              ? mapConfig.markerDataSourceIds.filter(
+                  (id) => id !== dataSource.id,
                 )
-              : [...viewConfig.markerDataSourceIds, dataSource.id],
+              : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
         },
       };
@@ -161,7 +162,9 @@ export default function MarkersControl() {
         showLayer={viewConfig.showLocations}
         setLayer={(show) => updateViewConfig({ showLocations: show })}
       >
-        {placedMarkersLoading && <LoaderPinwheel className="animate-spin" size={16} />}
+        {placedMarkersLoading && (
+          <LoaderPinwheel className="animate-spin" size={16} />
+        )}
         <IconButtonWithTooltip
           align="start"
           side="right"
