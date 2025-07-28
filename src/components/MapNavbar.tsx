@@ -8,7 +8,7 @@ import {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
   UpsertMapViewMutation,
-  UpsertMapViewMutationVariables
+  UpsertMapViewMutationVariables,
 } from "@/__generated__/types";
 import { LIST_MAPS_QUERY } from "@/app/(private)/dashboard/queries";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -101,7 +101,7 @@ export default function MapNavbar() {
     }
 
     const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve,
+      resolve
     ) {
       mapRef?.current?.once("render", function () {
         resolve(mapRef.current?.getCanvas().toDataURL());
@@ -153,6 +153,7 @@ export default function MapNavbar() {
         </Link>
         <div className="flex items-center gap-2 text-sm text-neutral-600">
           <Link
+            id="joyride-maps-navbar-breadcrumbs-maps"
             href="/dashboard"
             className="text-neutral-500 hover:text-neutral-800"
           >
@@ -206,4 +207,3 @@ export default function MapNavbar() {
     </nav>
   );
 }
-

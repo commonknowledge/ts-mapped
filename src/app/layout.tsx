@@ -1,7 +1,7 @@
 import "nprogress/nprogress.css";
 import "./global.css";
 import { gql } from "@apollo/client";
-import { Provider as JotaiProvider } from 'jotai'
+import { Provider as JotaiProvider } from "jotai";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import {
   ListOrganisationsQuery,
@@ -13,8 +13,8 @@ import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
+import MultiRouteTour from "@/tours/MultiRouteTour";
 import type { Metadata } from "next";
-
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -51,6 +51,7 @@ export default async function RootLayout({
               <NProgressProvider>
                 <JotaiProvider>
                   <main>{children}</main>
+                  <MultiRouteTour />
                 </JotaiProvider>
               </NProgressProvider>
             </ApolloProvider>

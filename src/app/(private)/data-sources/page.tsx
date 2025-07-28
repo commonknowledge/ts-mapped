@@ -1,5 +1,4 @@
 "use client";
-
 import { gql, useQuery } from "@apollo/client";
 import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useContext } from "react";
@@ -12,6 +11,7 @@ import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import MultiRouteTour from "@/tours/MultiRouteTour";
 import { DataSourceType } from "@/types";
 import { DataSourceCard } from "./components/DataSourceCard";
 
@@ -41,6 +41,17 @@ export default function DataSourcesPage() {
 
   return (
     <div className="">
+      <span
+        id="data-sources-tour-start"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 1,
+          height: 1,
+          pointerEvents: "none",
+        }}
+      />
       <div className="flex items-center justify-between">
         <PageHeader
           title="Data sources"
