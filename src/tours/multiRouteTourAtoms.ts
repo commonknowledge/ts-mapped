@@ -18,7 +18,7 @@ export const multiRouteTourStepsAtom = atom<Step[]>([
   {
     target: "#joyride-recent-maps-button-new-map",
     content: "Click here to create a new map.",
-    data: { route: "/dashboard", next: "/map/[id]" },
+    data: { route: "/dashboard", next: "/map/[id]", disableNext: true },
   },
   {
     target: "body",
@@ -33,10 +33,29 @@ export const multiRouteTourStepsAtom = atom<Step[]>([
     content: "Click here to go back to the dashboard",
   },
   {
-    target: "#joyride-sidebar-data-sources",
-    content: "Click to create a new data source",
-    data: { route: "/dashboard", next: "/data-sources", previous: "/map/[id]" },
+    target: "body",
+    placement: "center",
+    data: { route: "/dashboard", previous: "back" },
+    content: "We're back on the dashboard, let's add a data source.",
     disableBeacon: true,
+  },
+  {
+    target: "#joyride-sidebar-data-sources",
+    content: "Click to go to the data sources page",
+    data: { route: "/dashboard", next: "/data-sources", previous: "/map/[id]", disableNext: true },
+  },
+  {
+    target: "body",
+    placement: "center",
+    data: { route: "/data-sources", previous: "/dashboard" },
+    content:
+      "Now we're on the data sources page. Here you can connect Maps up to a range of data providers, but for now we're just going to upload a CSV containing a demo member list.",
+    disableBeacon: true,
+  },
+  {
+    target: "#joyride-datasources-addnew",
+    content: "Click here to create a new data source",
+    data: { route: "/data-sources", previous: "/dashboard" },
   },
   {
     target: "#data-sources-tour-start",

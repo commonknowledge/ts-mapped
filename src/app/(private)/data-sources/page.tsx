@@ -57,7 +57,7 @@ export default function DataSourcesPage() {
           title="Data sources"
           description="Here you can find all the data sources that are available to use to import into your maps."
         />
-        <Link href="/data-sources/new">
+        <Link href="/data-sources/new" id="joyride-datasources-addnew">
           <Button variant="default" size="lg">
             <PlusIcon className="w-4 h-4" />
             Add new
