@@ -24,9 +24,6 @@ import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSources
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
-import MarkerDragOverlay from "./MarkerDragOverlay";
-import SortableFolderItem from "./SortableFolderItem";
-import UnassignedFolder from "./UnassignedFolder";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -34,7 +31,10 @@ import {
   getNewPositionAfter,
   getNewPositionBefore,
   sortByPositionAndId,
-} from "./utils";
+} from "@/app/(private)/map/[id]/utils";
+import MarkerDragOverlay from "./MarkerDragOverlay";
+import SortableFolderItem from "./SortableFolderItem";
+import UnassignedFolder from "./UnassignedFolder";
 
 export default function MarkersList() {
   const { viewConfig } = useContext(MapContext);

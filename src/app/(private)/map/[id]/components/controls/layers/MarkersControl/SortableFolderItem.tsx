@@ -16,6 +16,7 @@ import { SyntheticEvent, useContext, useMemo, useState } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -26,7 +27,6 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
-import { sortByPositionAndId } from "./utils";
 
 // Folder component
 export default function SortableFolderItem({

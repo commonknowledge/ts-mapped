@@ -71,7 +71,7 @@ export const MapContext = createContext<{
 
   views: View[];
   deleteView: (viewId: string) => void;
-  insertView: (view: View) => void;
+  insertView: (view: Omit<View, "position">) => void;
   updateView: (view: View) => void;
   dirtyViewIds: string[];
 

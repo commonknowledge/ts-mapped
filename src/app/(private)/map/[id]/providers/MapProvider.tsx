@@ -15,6 +15,7 @@ import {
 } from "@/app/(private)/map/[id]/data";
 import { DEFAULT_ZOOM } from "@/constants";
 import { View } from "../types";
+import { getNewLastPosition } from "../utils";
 
 export default function MapProvider({
   children,
@@ -60,8 +61,8 @@ export default function MapProvider({
     setViews(views.filter((v) => v.id !== viewId));
   };
 
-  const insertView = (view: View) => {
-    setViews([...views, view]);
+  const insertView = (view: Omit<View, "position">) => {
+    setViews([...views, { ...view, position: getNewLastPosition(views) }]);
     setDirtyViewIds([...dirtyViewIds, view.id]);
   };
 

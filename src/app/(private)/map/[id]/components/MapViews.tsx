@@ -21,6 +21,12 @@ import {
   MapContext,
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
+import {
+  compareByPositionAndId,
+  getNewPositionAfter,
+  getNewPositionBefore,
+  sortByPositionAndId,
+} from "@/app/(private)/map/[id]/utils";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -32,12 +38,6 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import { View } from "../types";
-import {
-  compareByPositionAndId,
-  getNewPositionAfter,
-  getNewPositionBefore,
-  sortByPositionAndId,
-} from "./controls/layers/MarkersControl/utils";
 
 export default function MapViews() {
   const {
@@ -74,11 +74,10 @@ export default function MapViews() {
       return;
     }
 
-    const newView: View = {
+    const newView = {
       id: uuidv4(),
       name: newViewName.trim(),
       config: new ViewConfig(),
-      position: views.length,
     };
 
     insertView(newView);
@@ -245,7 +244,10 @@ function SortableViewItem({
 
     deleteView(view.id);
     if (view.id === selectedViewId) {
-      setSelectedViewId(views[0].id);
+      const nextView = views.find((v) => v.id !== view.id);
+      if (nextView) {
+        setSelectedViewId(nextView.id);
+      }
     }
   };
 
@@ -295,7 +297,7 @@ function SortableViewItem({
         <ContextMenuItem onClick={() => setRenamingViewId(view.id)}>
           Rename
         </ContextMenuItem>
-        {views.length > 0 && (
+        {views.length > 1 && (
           <>
             <ContextMenuSeparator />
             <ContextMenuItem
