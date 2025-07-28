@@ -30,6 +30,7 @@ import {
 import { insertMapView, updateMapView } from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
+  deletePlacedMarkersByFolderId,
   upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
@@ -107,6 +108,7 @@ const MutationResolvers: MutationResolversType = {
   },
   deleteFolder: async (_: unknown, { id }: { id: string }) => {
     try {
+      await deletePlacedMarkersByFolderId(id);
       await deleteFolder(id);
       return { code: 200 };
     } catch (error) {

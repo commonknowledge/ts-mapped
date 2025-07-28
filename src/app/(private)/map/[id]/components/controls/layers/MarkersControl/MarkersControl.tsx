@@ -23,8 +23,13 @@ export default function MarkersControl() {
   const router = useRouter();
   const { mapConfig, updateMapConfig, viewConfig, updateViewConfig, mapRef } =
     useContext(MapContext);
-  const { insertPlacedMarker, placedMarkersLoading, folders, insertFolder } =
-    useContext(MarkerAndTurfContext);
+  const {
+    insertPlacedMarker,
+    placedMarkersLoading,
+    folders,
+    foldersLoading,
+    insertFolder,
+  } = useContext(MarkerAndTurfContext);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
   const { getDataSources } = useContext(DataSourcesContext);
@@ -150,6 +155,8 @@ export default function MarkersControl() {
     },
   ];
 
+  const loading = foldersLoading || placedMarkersLoading;
+
   return (
     <ControlItemWrapper className="markers-control">
       <AddMembersDataModal
@@ -162,9 +169,7 @@ export default function MarkersControl() {
         showLayer={viewConfig.showLocations}
         setLayer={(show) => updateViewConfig({ showLocations: show })}
       >
-        {placedMarkersLoading && (
-          <LoaderPinwheel className="animate-spin" size={16} />
-        )}
+        {loading && <LoaderPinwheel className="animate-spin" size={16} />}
         <IconButtonWithTooltip
           align="start"
           side="right"

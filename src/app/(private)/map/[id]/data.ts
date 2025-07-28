@@ -94,6 +94,7 @@ export const useMapQuery = (mapId: string | null) =>
             id
             name
             notes
+            position
           }
           placedMarkers {
             id
@@ -261,8 +262,15 @@ export const useUpsertFolderMutation = () => {
       $name: String!
       $notes: String!
       $mapId: String!
+      $position: Float!
     ) {
-      upsertFolder(id: $id, name: $name, notes: $notes, mapId: $mapId) {
+      upsertFolder(
+        id: $id
+        name: $name
+        notes: $notes
+        position: $position
+        mapId: $mapId
+      ) {
         code
         result {
           id

@@ -181,6 +181,7 @@ export type Folder = {
   id: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   notes: Scalars["String"]["output"];
+  position: Scalars["Float"]["output"];
 };
 
 export enum GeocodingType {
@@ -402,6 +403,7 @@ export type MutationUpsertFolderArgs = {
   mapId: Scalars["String"]["input"];
   name: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
+  position: Scalars["Float"]["input"];
 };
 
 export type MutationUpsertPlacedMarkerArgs = {
@@ -928,6 +930,7 @@ export type MapQuery = {
       id: string;
       name: string;
       notes: string;
+      position: number;
     }> | null;
     placedMarkers?: Array<{
       __typename?: "PlacedMarker";
@@ -1003,6 +1006,7 @@ export type UpsertFolderMutationVariables = Exact<{
   name: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
+  position: Scalars["Float"]["input"];
 }>;
 
 export type UpsertFolderMutation = {
@@ -1534,6 +1538,7 @@ export type FolderResolvers<
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  position?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1806,7 +1811,10 @@ export type MutationResolvers<
     Maybe<ResolversTypes["UpsertFolderResponse"]>,
     ParentType,
     ContextType,
-    RequireFields<MutationUpsertFolderArgs, "id" | "mapId" | "name" | "notes">
+    RequireFields<
+      MutationUpsertFolderArgs,
+      "id" | "mapId" | "name" | "notes" | "position"
+    >
   >;
   upsertPlacedMarker?: Resolver<
     Maybe<ResolversTypes["UpsertPlacedMarkerResponse"]>,

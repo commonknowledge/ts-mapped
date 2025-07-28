@@ -54,6 +54,7 @@ export default function SortableMarkerItem({
 
     // Don't fly if currently dragging, clicking delete, or no map present
     if (
+      isEditing ||
       isCurrentlyDragging ||
       (e.target as HTMLElement).closest("button") ||
       !map

@@ -11,71 +11,72 @@ import {
 } from "./data";
 
 export const useFolders = (mapId: string | null) => {
-  const ref = useRef<Folder[]>([]);
-  const [folders, _setFolders] = useState<Folder[]>([]);
-
-  // Use a combination of ref and state, because Mapbox native components don't
-  // update on state changes - ref is needed for them to update the latest state,
-  // instead of the initial state.
-  const setFolders = useCallback(
-    (folders: Folder[]) => {
-      ref.current = folders;
-      _setFolders(folders);
-    },
-    [_setFolders],
-  );
+  const [folders, setFolders] = useState<Folder[]>([]);
 
   const [deleteFolderMutation] = useDeleteFolderMutation();
   const [upsertFolderMutation, { loading }] = useUpsertFolderMutation();
 
   /* Complex actions */
-  const deleteFolder = (id: string) => {
-    if (!mapId) {
-      return;
-    }
+  const deleteFolder = useCallback(
+    (id: string) => {
+      if (!mapId) {
+        return;
+      }
 
-    deleteFolderMutation({
-      variables: {
-        id,
-        mapId,
-      },
-    });
-    const newFolders = ref.current.filter((m) => m.id !== id);
-    setFolders(newFolders);
-  };
+      deleteFolderMutation({
+        variables: {
+          id,
+          mapId,
+        },
+      });
+      const newFolders = folders.filter((m) => m.id !== id);
+      setFolders(newFolders);
+    },
+    [deleteFolderMutation, folders, mapId],
+  );
 
-  const insertFolder = async (newFolder: Folder) => {
-    if (!mapId) {
-      return;
-    }
+  const insertFolder = useCallback(
+    (newFolder: Omit<Folder, "position">) => {
+      if (!mapId) {
+        return;
+      }
 
-    const newFolders = [...ref.current, newFolder];
-    setFolders(newFolders);
+      const newPosition = getNewLastPosition(folders);
+      const positionedFolder = { ...newFolder, position: newPosition };
 
-    upsertFolderMutation({
-      variables: {
-        ...newFolder,
-        mapId,
-      },
-    });
-  };
+      const newFolders = [...folders, positionedFolder];
+      setFolders(newFolders);
 
-  const updateFolder = (updatedFolder: Folder) => {
-    if (!mapId) {
-      return;
-    }
+      upsertFolderMutation({
+        variables: {
+          ...positionedFolder,
+          mapId,
+        },
+      });
+    },
+    [folders, mapId, upsertFolderMutation],
+  );
 
-    upsertFolderMutation({
-      variables: {
-        ...updatedFolder,
-        mapId,
-      },
-    });
+  const updateFolder = useCallback(
+    (updatedFolder: Folder) => {
+      if (!mapId) {
+        return;
+      }
 
-    setFolders(
-      ref.current.map((f) => (f.id === updatedFolder.id ? updatedFolder : f)),
-    );
-  };
+      upsertFolderMutation({
+        variables: {
+          ...updatedFolder,
+          mapId,
+        },
+      });
+
+      setFolders(
+        folders.map((f) => (f.id === updatedFolder.id ? updatedFolder : f)),
+      );
+    },
+    [folders, mapId, upsertFolderMutation],
+  );
+
   return {
     folders,
     setFolders,
