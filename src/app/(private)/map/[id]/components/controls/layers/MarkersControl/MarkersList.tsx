@@ -10,9 +10,13 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Database, Table } from "lucide-react";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { PlacedMarker } from "@/__generated__/types";
 import DataSourceIcon from "@/app/(private)/map/[id]/components/DataSourceIcon";
@@ -20,8 +24,8 @@ import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSources
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
-import FolderItem from "./FolderItem";
 import MarkerDragOverlay from "./MarkerDragOverlay";
+import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
 import {
   compareByPositionAndId,
@@ -29,12 +33,14 @@ import {
   getNewLastPosition,
   getNewPositionAfter,
   getNewPositionBefore,
+  sortByPositionAndId,
 } from "./utils";
 
 export default function MarkersList() {
   const { viewConfig } = useContext(MapContext);
   const {
     folders,
+    updateFolder,
     placedMarkers,
     preparePlacedMarkerUpdate,
     commitPlacedMarkerUpdates,
@@ -137,18 +143,12 @@ export default function MarkersList() {
     [placedMarkers, preparePlacedMarkerUpdate],
   );
 
-  const handleDragEnd = useCallback(
+  const handleDragEndMarker = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
 
-      // Update UI
-      setActiveId(null);
-
-      let activeMarker = null;
-      if (active.id.toString().startsWith("marker-")) {
-        const activeMarkerId = active.id.toString().replace("marker-", "");
-        activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
-      }
+      const activeMarkerId = active.id.toString().replace("marker-", "");
+      const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
 
       if (!activeMarker) {
         return;
@@ -162,7 +162,7 @@ export default function MarkersList() {
       // Handle reordering within the same container
       // Simpler to do it here than in onDragOver, as the library
       // automatically handles re-ordering while drag is in progress
-      if (activeMarker && over && over.id.toString().startsWith("marker-")) {
+      if (over && over.id.toString().startsWith("marker-")) {
         const overMarkerId = over.id.toString().replace("marker-", "");
         const overMarker = placedMarkers.find((m) => m.id === overMarkerId);
 
@@ -198,16 +198,80 @@ export default function MarkersList() {
           });
         }
       }
+    },
+    [placedMarkers, preparePlacedMarkerUpdate, setPulsingFolderId],
+  );
+
+  const handleDragEndFolder = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      const activeFolderId = active.id.toString().replace("folder-drag-", "");
+      const activeFolder = folders.find((m) => m.id === activeFolderId);
+
+      if (!activeFolder) {
+        return;
+      }
+
+      if (over && over.id.toString().startsWith("folder-drag-")) {
+        const overFolderId = over.id.toString().replace("folder-drag-", "");
+        const overFolder = folders.find((m) => m.id === overFolderId);
+
+        if (overFolder && activeFolder.id !== overFolder.id) {
+          let newPosition = 0;
+
+          const activeWasBeforeOver =
+            compareByPositionAndId(activeFolder, overFolder) < 0;
+
+          // Get other folders to position against
+          const otherFolders = folders.filter((m) => m.id !== activeFolder.id);
+
+          if (activeWasBeforeOver) {
+            // If active folder was before, make it after
+            newPosition = getNewPositionAfter(
+              overFolder.position,
+              otherFolders,
+            );
+          } else {
+            // If active folder was after, make it before
+            newPosition = getNewPositionBefore(
+              overFolder.position,
+              otherFolders,
+            );
+          }
+
+          updateFolder({
+            ...activeFolder,
+            position: newPosition,
+          });
+        }
+      }
+    },
+    [folders, updateFolder],
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active } = event;
+
+      // Update UI
+      setActiveId(null);
+
+      const activeId = active.id.toString();
+      if (activeId.startsWith("marker-")) {
+        handleDragEndMarker(event);
+      } else if (activeId.startsWith("folder-drag-")) {
+        handleDragEndFolder(event);
+      }
 
       commitPlacedMarkerUpdates();
     },
-    [
-      commitPlacedMarkerUpdates,
-      placedMarkers,
-      preparePlacedMarkerUpdate,
-      setPulsingFolderId,
-    ],
+    [commitPlacedMarkerUpdates, handleDragEndFolder, handleDragEndMarker],
   );
+
+  const sortedFolders = useMemo(() => {
+    return sortByPositionAndId(folders);
+  }, [folders]);
 
   // Get active marker for drag overlay
   const getActiveMarker = () => {
@@ -229,18 +293,26 @@ export default function MarkersList() {
         <div
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
-          {/* Folders */}
-          {folders.map((folder) => (
-            <FolderItem
-              key={folder.id}
-              folder={folder}
-              markers={placedMarkers.filter((p) => p.folderId === folder.id)}
-              activeId={activeId}
-              setKeyboardCapture={setKeyboardCapture}
-              isPulsing={pulsingFolderId === folder.id}
-            />
-          ))}
-
+          <ol>
+            {/* Folders */}
+            <SortableContext
+              items={sortedFolders.map((f) => `folder-drag-${f.id}`)}
+              strategy={verticalListSortingStrategy}
+            >
+              {sortedFolders.map((folder) => (
+                <SortableFolderItem
+                  key={folder.id}
+                  folder={folder}
+                  markers={placedMarkers.filter(
+                    (p) => p.folderId === folder.id,
+                  )}
+                  activeId={activeId}
+                  setKeyboardCapture={setKeyboardCapture}
+                  isPulsing={pulsingFolderId === folder.id}
+                />
+              ))}
+            </SortableContext>
+          </ol>
           {/* Unassigned markers */}
           <div>
             <UnassignedFolder

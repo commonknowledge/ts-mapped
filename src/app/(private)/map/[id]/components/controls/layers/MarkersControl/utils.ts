@@ -1,7 +1,7 @@
 export const sortByPositionAndId = <T extends { id: string; position: number }>(
   items: T[],
 ) => {
-  return items.sort(compareByPositionAndId);
+  return items.toSorted(compareByPositionAndId);
 };
 
 export const compareByPositionAndId = (

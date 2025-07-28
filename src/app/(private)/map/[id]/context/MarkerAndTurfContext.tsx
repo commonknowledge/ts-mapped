@@ -9,8 +9,9 @@ export const MarkerAndTurfContext = createContext<{
   setEditingTurf: (turf: Turf | null) => void;
 
   folders: Folder[];
+  foldersLoading: boolean;
   deleteFolder: (id: string) => void;
-  insertFolder: (folder: Folder) => void;
+  insertFolder: (folder: Omit<Folder, "position">) => void;
   updateFolder: (folder: Folder) => void;
 
   placedMarkers: PlacedMarker[];
@@ -36,6 +37,7 @@ export const MarkerAndTurfContext = createContext<{
   editingTurf: null,
   setEditingTurf: () => null,
   folders: [],
+  foldersLoading: false,
   deleteFolder: () => null,
   insertFolder: () => null,
   updateFolder: () => null,
