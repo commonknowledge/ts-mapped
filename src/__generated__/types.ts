@@ -293,6 +293,8 @@ export type MapView = {
   config: MapViewConfig;
   id: Scalars["String"]["output"];
   mapId: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  position: Scalars["Float"]["output"];
 };
 
 export type MapViewConfig = {
@@ -320,6 +322,13 @@ export type MapViewConfigInput = {
   showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
   showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
   showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+export type MapViewInput = {
+  config: MapViewConfigInput;
+  id: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
+  position: Scalars["Float"]["input"];
 };
 
 export type Mutation = {
@@ -394,8 +403,7 @@ export type MutationUpdateMapArgs = {
 export type MutationUpdateMapConfigArgs = {
   mapConfig: MapConfigInput;
   mapId: Scalars["String"]["input"];
-  viewConfig: MapViewConfigInput;
-  viewId?: InputMaybe<Scalars["String"]["input"]>;
+  views: Array<MapViewInput>;
 };
 
 export type MutationUpsertFolderArgs = {
@@ -531,7 +539,6 @@ export type Turf = {
 export type UpdateMapConfigResponse = {
   __typename?: "UpdateMapConfigResponse";
   code: Scalars["Int"]["output"];
-  result?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type UpdateMapResponse = {
@@ -830,22 +837,6 @@ export type UpdateMapNameMutation = {
   } | null;
 };
 
-export type UpdateMapConfigMutationVariables = Exact<{
-  mapId: Scalars["String"]["input"];
-  mapConfig: MapConfigInput;
-  viewId?: InputMaybe<Scalars["String"]["input"]>;
-  viewConfig: MapViewConfigInput;
-}>;
-
-export type UpdateMapConfigMutation = {
-  __typename?: "Mutation";
-  updateMapConfig?: {
-    __typename?: "UpdateMapConfigResponse";
-    code: number;
-    result?: string | null;
-  } | null;
-};
-
 export type UpdateMapImageMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   mapInput: MapInput;
@@ -953,6 +944,8 @@ export type MapQuery = {
     views?: Array<{
       __typename?: "MapView";
       id: string;
+      name: string;
+      position: number;
       config: {
         __typename?: "MapViewConfig";
         areaDataSourceId: string;
@@ -988,6 +981,20 @@ export type AreaStatsQuery = {
     column: string;
     columnType: ColumnType;
     stats: Array<{ __typename?: "AreaStat"; areaCode: string; value: any }>;
+  } | null;
+};
+
+export type UpdateMapConfigMutationVariables = Exact<{
+  mapId: Scalars["String"]["input"];
+  mapConfig: MapConfigInput;
+  views: Array<MapViewInput> | MapViewInput;
+}>;
+
+export type UpdateMapConfigMutation = {
+  __typename?: "Mutation";
+  updateMapConfig?: {
+    __typename?: "UpdateMapConfigResponse";
+    code: number;
   } | null;
 };
 
@@ -1243,6 +1250,7 @@ export type ResolversTypes = {
   MapView: ResolverTypeWrapper<MapView>;
   MapViewConfig: ResolverTypeWrapper<MapViewConfig>;
   MapViewConfigInput: MapViewConfigInput;
+  MapViewInput: MapViewInput;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
   Operation: Operation;
@@ -1299,6 +1307,7 @@ export type ResolversParentTypes = {
   MapView: MapView;
   MapViewConfig: MapViewConfig;
   MapViewConfigInput: MapViewConfigInput;
+  MapViewInput: MapViewInput;
   Mutation: {};
   MutationResponse: MutationResponse;
   Organisation: Organisation;
@@ -1689,6 +1698,8 @@ export type MapViewResolvers<
   config?: Resolver<ResolversTypes["MapViewConfig"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   mapId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  position?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1802,10 +1813,7 @@ export type MutationResolvers<
     Maybe<ResolversTypes["UpdateMapConfigResponse"]>,
     ParentType,
     ContextType,
-    RequireFields<
-      MutationUpdateMapConfigArgs,
-      "mapConfig" | "mapId" | "viewConfig"
-    >
+    RequireFields<MutationUpdateMapConfigArgs, "mapConfig" | "mapId" | "views">
   >;
   upsertFolder?: Resolver<
     Maybe<ResolversTypes["UpsertFolderResponse"]>,
@@ -1968,7 +1976,6 @@ export type UpdateMapConfigResponseResolvers<
     ResolversParentTypes["UpdateMapConfigResponse"] = ResolversParentTypes["UpdateMapConfigResponse"],
 > = {
   code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
-  result?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

@@ -10,7 +10,9 @@ import { MapViewConfig } from "@/__generated__/types";
 
 export interface MapViewTable {
   id: Generated<string>;
+  name: string;
   config: JSONColumnType<MapViewConfig>;
+  position: number;
   mapId: string;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }

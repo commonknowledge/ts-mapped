@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
-import { getNewLastPosition } from "./components/controls/layers/MarkersControl/utils";
+import { getNewLastPosition } from "@/app/(private)/map/[id]/utils";
 import {
   useDeleteFolderMutation,
   useDeletePlacedMarkerMutation,

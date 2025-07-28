@@ -1,3 +1,4 @@
+import { MapView } from "@/__generated__/types";
 import { PointFeature } from "@/types";
 
 export interface DataSourceMarkers {
@@ -11,3 +12,5 @@ export interface MarkerQueriesResult {
   data: DataSourceMarkers[] | null;
   error: string;
 }
+
+export type View = Omit<MapView, "mapId">;

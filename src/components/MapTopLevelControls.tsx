@@ -50,8 +50,6 @@ export default function MapTopLevelControls({
       }
     } catch {
       alert("Error deleting map.");
-      // Optionally log error
-      // console.error(e);
     }
   };
 

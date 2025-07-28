@@ -12,6 +12,7 @@ import {
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
 import mapStyles from "../styles";
+import { View } from "../types";
 
 export class MapConfig implements MapConfigInput {
   public markerDataSourceIds: string[] = [];
@@ -60,6 +61,7 @@ export const MapContext = createContext<{
   /* State */
   mapConfig: MapConfig;
   updateMapConfig: (config: Partial<MapConfig>) => void;
+  saveMapConfig: () => Promise<void>;
 
   mapName: string | null;
   setMapName: (name: string | null) => void;
@@ -67,11 +69,17 @@ export const MapContext = createContext<{
   boundingBox: BoundingBoxInput | null;
   setBoundingBox: (boundingBox: BoundingBoxInput | null) => void;
 
-  viewConfig: ViewConfig;
-  updateViewConfig: (config: Partial<ViewConfig>) => void;
+  views: View[];
+  deleteView: (viewId: string) => void;
+  insertView: (view: Omit<View, "position">) => void;
+  updateView: (view: View) => void;
+  dirtyViewIds: string[];
 
   viewId: string | null;
   setViewId: (id: string) => void;
+
+  viewConfig: ViewConfig;
+  updateViewConfig: (config: Partial<ViewConfig>) => void;
 
   zoom: number;
   setZoom: (zoom: number) => void;
@@ -83,10 +91,16 @@ export const MapContext = createContext<{
   mapRef: null,
   mapConfig: new MapConfig(),
   updateMapConfig: () => null,
+  saveMapConfig: () => Promise.resolve(),
   mapName: null,
   setMapName: () => null,
   boundingBox: null,
   setBoundingBox: () => null,
+  views: [],
+  deleteView: () => null,
+  insertView: () => null,
+  updateView: () => null,
+  dirtyViewIds: [],
   viewConfig: new ViewConfig(),
   updateViewConfig: () => null,
   viewId: null,

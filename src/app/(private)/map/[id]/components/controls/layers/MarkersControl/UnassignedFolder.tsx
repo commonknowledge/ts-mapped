@@ -5,10 +5,10 @@ import {
 } from "@dnd-kit/sortable";
 import { useMemo } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
+import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
-import { sortByPositionAndId } from "./utils";
 
 // Unassigned folder component (behaves like a regular folder)
 export default function UnassignedFolder({

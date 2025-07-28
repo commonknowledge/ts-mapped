@@ -27,7 +27,7 @@ import {
   findMapById,
   updateMap,
 } from "@/server/repositories/Map";
-import { insertMapView, updateMapView } from "@/server/repositories/MapView";
+import { upsertMapView } from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
   deletePlacedMarkersByFolderId,
@@ -278,20 +278,16 @@ const MutationResolvers: MutationResolversType = {
   },
   updateMapConfig: async (_: unknown, args: MutationUpdateMapConfigArgs) => {
     try {
-      const { mapId, mapConfig, viewId, viewConfig } = args;
-      let updatedMapView = null;
+      const { mapId, mapConfig, views } = args;
       await updateMap(mapId, { config: JSON.stringify(mapConfig) });
-      if (viewId) {
-        updatedMapView = await updateMapView(viewId, {
-          config: JSON.stringify(viewConfig),
-        });
-      } else {
-        updatedMapView = await insertMapView({
-          config: JSON.stringify(viewConfig),
-          mapId: args.mapId,
+      for (const view of views) {
+        await upsertMapView({
+          ...view,
+          config: JSON.stringify(view.config),
+          mapId,
         });
       }
-      return { code: 200, result: updatedMapView.id };
+      return { code: 200 };
     } catch (error) {
       logger.error(`Could not upsert map view: ${JSON.stringify(args)}`, {
         error,

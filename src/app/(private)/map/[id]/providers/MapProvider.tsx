@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
 import { BoundingBoxInput } from "@/__generated__/types";
@@ -9,8 +9,13 @@ import {
   MapContext,
   ViewConfig,
 } from "@/app/(private)/map/[id]/context/MapContext";
-import { useMapQuery } from "@/app/(private)/map/[id]/data";
+import {
+  useMapQuery,
+  useUpdateMapConfigMutation,
+} from "@/app/(private)/map/[id]/data";
 import { DEFAULT_ZOOM } from "@/constants";
+import { View } from "../types";
+import { getNewLastPosition } from "../utils";
 
 export default function MapProvider({
   children,
@@ -27,7 +32,8 @@ export default function MapProvider({
 
   const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
   const [mapConfig, setMapConfig] = useState(new MapConfig());
-  const [viewConfig, setViewConfig] = useState(new ViewConfig());
+  const [dirtyViewIds, setDirtyViewIds] = useState<string[]>([]);
+  const [views, setViews] = useState<View[]>([]);
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
@@ -39,7 +45,36 @@ export default function MapProvider({
   };
 
   const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
-    setViewConfig(new ViewConfig({ ...viewConfig, ...nextViewConfig }));
+    const view = views.find((v) => v.id === viewId);
+    if (!view) {
+      return;
+    }
+    const nextView = {
+      ...view,
+      config: new ViewConfig({ ...view.config, ...nextViewConfig }),
+    };
+    setViews(views.map((v) => (v.id === view.id ? nextView : v)));
+    setDirtyViewIds([...dirtyViewIds, view.id]);
+  };
+
+  const deleteView = (viewId: string) => {
+    setViews(views.filter((v) => v.id !== viewId));
+  };
+
+  const insertView = (view: Omit<View, "position">) => {
+    setViews([...views, { ...view, position: getNewLastPosition(views) }]);
+    setDirtyViewIds([...dirtyViewIds, view.id]);
+  };
+
+  const updateView = (view: View) => {
+    setViews(views.map((v) => (v.id === view.id ? view : v)));
+    setDirtyViewIds([...dirtyViewIds, view.id]);
+  };
+
+  const [_saveMapConfig] = useUpdateMapConfigMutation();
+  const saveMapConfig = async () => {
+    await _saveMapConfig({ variables: { mapId, mapConfig, views } });
+    setDirtyViewIds([]);
   };
 
   /* Effects */
@@ -58,9 +93,14 @@ export default function MapProvider({
       const nextView = mapData.map.views[0];
       const nextViewId = nextView.id;
       setViewId(nextViewId);
-      setViewConfig(new ViewConfig(nextView.config));
+      setViews(mapData.map.views || []);
     }
   }, [mapData]);
+
+  const viewConfig = useMemo(() => {
+    const savedConfig = views.find((v) => v.id === viewId)?.config || {};
+    return new ViewConfig({ ...savedConfig });
+  }, [viewId, views]);
 
   return (
     <MapContext
@@ -69,14 +109,20 @@ export default function MapProvider({
         mapRef,
         mapConfig,
         updateMapConfig,
+        saveMapConfig,
         mapName,
         setMapName,
         boundingBox,
         setBoundingBox,
-        viewConfig,
-        updateViewConfig,
+        dirtyViewIds,
+        views,
+        deleteView,
+        insertView,
+        updateView,
         viewId,
         setViewId,
+        viewConfig,
+        updateViewConfig,
         zoom,
         setZoom,
         mapQuery,

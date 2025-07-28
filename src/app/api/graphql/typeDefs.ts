@@ -99,6 +99,13 @@ const typeDefs = `
     membersDataSourceId: String
   }
 
+  input MapViewInput {
+    id: String!
+    name: String!
+    config: MapViewConfigInput!
+    position: Float!
+  }
+
   input MapViewConfigInput {
     areaDataSourceId: String
     areaDataColumn: String
@@ -229,6 +236,8 @@ const typeDefs = `
 
   type MapView {
     id: String!
+    name: String!
+    position: Float!
     config: MapViewConfig!
     mapId: String!
   }
@@ -308,7 +317,6 @@ const typeDefs = `
 
   type UpdateMapConfigResponse {
     code: Int!
-    result: String
   }
 
   type UpdateMapResponse {
@@ -364,8 +372,7 @@ const typeDefs = `
     updateMapConfig(
       mapId: String!
       mapConfig: MapConfigInput!
-      viewId: String
-      viewConfig: MapViewConfigInput!
+      views: [MapViewInput!]!
     ): UpdateMapConfigResponse @auth(write: { mapIdArg: "mapId" })
     upsertFolder(
       id: String!
