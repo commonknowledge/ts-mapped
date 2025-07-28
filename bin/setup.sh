@@ -60,7 +60,7 @@ fi
 # 4. Import the database dump
 pretty_print "Step 4: Importing the database dump. This may take up to 10 minutes. Please make a cup of tea!\n"
 (
-  docker compose exec -u postgres -T postgres psql < ts-mapped.psql > /dev/null 2>&1 &
+  docker compose exec -u postgres -T postgres psql < ts-mapped.psql > /dev/null &
   pid=$!
   loading $pid
   wait $pid

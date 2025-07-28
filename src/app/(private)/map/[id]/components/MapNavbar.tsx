@@ -112,7 +112,7 @@ export default function MapNavbar() {
     }
 
     const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve
+      resolve,
     ) {
       mapRef?.current?.once("render", function () {
         resolve(mapRef.current?.getCanvas().toDataURL());

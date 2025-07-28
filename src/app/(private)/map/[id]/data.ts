@@ -28,20 +28,25 @@ import {
 import { DataSourceMarkers } from "./types";
 
 export const useDataSourcesQuery = () =>
-  useQuery<DataSourcesQuery>(gql`
-    query DataSources {
-      dataSources {
-        id
-        name
-        config
-        columnDefs {
+  useQuery<DataSourcesQuery>(
+    gql`
+      query DataSources {
+        dataSources {
+          id
           name
-          type
+          config
+          columnDefs {
+            name
+            type
+          }
+          recordCount
         }
-        recordCount
       }
-    }
-  `);
+    `,
+    {
+      fetchPolicy: "cache-and-network",
+    },
+  );
 
 export const useDataRecordsQuery = (variables: {
   dataSourceId: string;
