@@ -5,6 +5,7 @@ export interface FolderTable {
   name: string;
   mapId: string;
   notes: string;
+  position: number;
 }
 
 export type Folder = Selectable<FolderTable>;

@@ -183,6 +183,7 @@ const typeDefs = `
     id: String!
     name: String!
     notes: String!
+    position: Float!
   }
 
   type JobInfo {
@@ -370,6 +371,7 @@ const typeDefs = `
       id: String!
       name: String!
       notes: String!
+      position: Float!
       mapId: String!
     ): UpsertFolderResponse @auth(write: { mapIdArg: "mapId" })
     upsertPlacedMarker(

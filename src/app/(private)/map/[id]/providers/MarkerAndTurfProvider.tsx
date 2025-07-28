@@ -31,8 +31,14 @@ export default function MarkerAndTurfProvider({
   });
 
   /* Persisted map features */
-  const { folders, setFolders, deleteFolder, insertFolder, updateFolder } =
-    useFolders(mapId);
+  const {
+    folders,
+    loading: foldersLoading,
+    setFolders,
+    deleteFolder,
+    insertFolder,
+    updateFolder,
+  } = useFolders(mapId);
 
   const {
     placedMarkers,
@@ -72,6 +78,7 @@ export default function MarkerAndTurfProvider({
         editingTurf,
         setEditingTurf,
         folders,
+        foldersLoading,
         deleteFolder,
         insertFolder,
         updateFolder,
