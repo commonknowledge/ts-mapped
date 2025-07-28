@@ -179,6 +179,12 @@ const typeDefs = `
     name: String!
   }
 
+  type Folder {
+    id: String!
+    name: String!
+    notes: String!
+  }
+
   type JobInfo {
     lastCompleted: String
     status: JobStatus
@@ -209,6 +215,7 @@ const typeDefs = `
     config: MapConfig!
     createdAt: Date!
     imageUrl: String
+    folders: [Folder!]
     placedMarkers: [PlacedMarker!]
     turfs: [Turf!]
     views: [MapView!]
@@ -248,6 +255,8 @@ const typeDefs = `
     label: String!
     notes: String!
     point: Point!
+    folderId: String
+    position: Float!
   }
 
   type Point {
@@ -306,6 +315,16 @@ const typeDefs = `
     result: Map
   }
 
+  type UpsertMapViewResponse {
+    code: Int!
+    result: String
+  }
+
+  type UpsertFolderResponse {
+    code: Int!
+    result: Folder
+  }
+
   type UpsertPlacedMarkerResponse {
     code: Int!
     result: PlacedMarker
@@ -323,6 +342,7 @@ const typeDefs = `
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
     createMap(organisationId: String!): CreateMapResponse @auth(read: { organisationIdArg: "organisationId" })
+    deleteFolder(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     deletePlacedMarker(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
@@ -335,6 +355,7 @@ const typeDefs = `
       looseGeocodingConfig: LooseGeocodingConfigInput
       looseEnrichments: [LooseEnrichmentInput!]
     ): MutationResponse @auth(write: { dataSourceIdArg: "id" })
+    deleteMap(id: String!): MutationResponse @auth(write: { mapIdArg: "id" })
     updateMap(
       id: String!
       map: MapInput!
@@ -345,12 +366,20 @@ const typeDefs = `
       viewId: String
       viewConfig: MapViewConfigInput!
     ): UpdateMapConfigResponse @auth(write: { mapIdArg: "mapId" })
+    upsertFolder(
+      id: String!
+      name: String!
+      notes: String!
+      mapId: String!
+    ): UpsertFolderResponse @auth(write: { mapIdArg: "mapId" })
     upsertPlacedMarker(
-      id: String
+      id: String!
       label: String!
       notes: String!
       point: PointInput!
       mapId: String!
+      folderId: String
+      position: Float!
     ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
     upsertTurf(
       id: String

@@ -143,7 +143,7 @@ export default function DataSourceEnrichmentDashboard({
             </Button>
             {enrichmentError && (
               <div>
-                <small>{enrichmentError}</small>
+                <span className="text-xs text-red-500">{enrichmentError}</span>
               </div>
             )}
           </div>

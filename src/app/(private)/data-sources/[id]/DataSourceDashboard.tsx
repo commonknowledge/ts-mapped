@@ -165,7 +165,7 @@ export default function DataSourceDashboard({
             </Button>
             {importError && (
               <div>
-                <small>{importError}</small>
+                <span className="text-xs text-red-500">{importError}</span>
               </div>
             )}
           </div>
@@ -195,7 +195,11 @@ export default function DataSourceDashboard({
                     ]
                   : k
               }
-              value={dataSource.config[k]}
+              value={
+                typeof dataSource.config[k] === "string"
+                  ? dataSource.config[k]
+                  : JSON.stringify(dataSource.config[k])
+              }
               badge={k === "type"}
               border
             />
@@ -213,7 +217,11 @@ export default function DataSourceDashboard({
             <Label className="text-lg">Columns</Label>
             <DataListRow
               label="Name column"
-              value={`"${dataSource.columnRoles.nameColumn}"`}
+              value={
+                dataSource.columnRoles.nameColumn
+                  ? `"${dataSource.columnRoles.nameColumn}"`
+                  : "None"
+              }
               border
             />
           </div>

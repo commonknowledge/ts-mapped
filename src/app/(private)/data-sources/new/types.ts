@@ -1,9 +1,9 @@
 import z from "zod";
 import { DataSourceType } from "@/types";
 import {
-  AirtableConfig,
+  ActionNetworkConfigSchema,
   AirtableConfigSchema,
-  MailchimpConfig,
+  GoogleSheetsConfigSchema,
   MailchimpConfigSchema,
 } from "@/zod";
 
@@ -17,13 +17,11 @@ export const NewCSVConfigSchema = z.object({
 export type NewCSVConfig = z.infer<typeof NewCSVConfigSchema>;
 
 export const NewDataSourceConfigSchema = z.discriminatedUnion("type", [
+  ActionNetworkConfigSchema,
   AirtableConfigSchema,
   MailchimpConfigSchema,
+  GoogleSheetsConfigSchema,
   NewCSVConfigSchema,
 ]);
 
-export type NewDataSourceConfig =
-  | AirtableConfig
-  | MailchimpConfig
-  | NewCSVConfig
-  | { type: "" }; // Initial state
+export type NewDataSourceConfig = z.infer<typeof NewDataSourceConfigSchema>;

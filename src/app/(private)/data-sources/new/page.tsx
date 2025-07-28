@@ -1,8 +1,8 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { useRouter } from "next/navigation";
-import { SyntheticEvent, useContext, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SyntheticEvent, useCallback, useContext, useState } from "react";
 import {
   CreateDataSourceMutation,
   CreateDataSourceMutationVariables,
@@ -31,24 +31,39 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { DataSourceConfig } from "@/zod";
+import ActionNetworkFields from "./fields/ActionNetworkFields";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
+import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
 import { NewDataSourceConfig, NewDataSourceConfigSchema } from "./types";
 
+// Loose type for incomplete config
+type ConfigState = Partial<NewDataSourceConfig> | { type: "" };
+
 export default function NewDataSourcePage() {
-  const [name, setName] = useState("");
-  const [config, setConfig] = useState<NewDataSourceConfig>({
-    type: "",
+  const { organisationId } = useContext(OrganisationsContext);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Saved state from OAuth flow - { dataSourceName, dataSourceType }
+  const state: Record<string, string> = JSON.parse(
+    searchParams.get("state") || "{}",
+  );
+
+  const [name, setName] = useState(state.dataSourceName || "");
+  const [config, setConfig] = useState<ConfigState>({
+    type: (state.dataSourceType as DataSourceType) || "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const { organisationId } = useContext(OrganisationsContext);
 
-  const onChangeConfig = (update: Partial<NewDataSourceConfig>) => {
-    setConfig(Object.assign({}, config, update));
-  };
+  const onChangeConfig = useCallback(
+    (update: Partial<NewDataSourceConfig>) => {
+      setConfig(Object.assign({}, config, update));
+    },
+    [config],
+  );
 
   const [createDataSource] = useMutation<
     CreateDataSourceMutation,
@@ -72,6 +87,8 @@ export default function NewDataSourcePage() {
     }
   `);
 
+  const { data: validConfig } = NewDataSourceConfigSchema.safeParse(config);
+
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -82,7 +99,11 @@ export default function NewDataSourcePage() {
         throw new Error("No organisation selected");
       }
 
-      const preparedConfig = await prepareDataSource(config);
+      if (!validConfig) {
+        throw new Error("Invalid config");
+      }
+
+      const preparedConfig = await prepareDataSource(validConfig);
 
       const result = await createDataSource({
         variables: { name, organisationId, rawConfig: preparedConfig },
@@ -103,7 +124,6 @@ export default function NewDataSourcePage() {
     setLoading(false);
   };
 
-  const { data: validConfig } = NewDataSourceConfigSchema.safeParse(config);
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
       <Breadcrumb className="mb-4">
@@ -130,6 +150,7 @@ export default function NewDataSourcePage() {
             required
           />
         </DataListRow>
+
         <DataListRow label="Type" border>
           <Select
             value={config.type}
@@ -152,14 +173,24 @@ export default function NewDataSourcePage() {
 
         {/* Each field set only displays if config.type matches */}
         <div className="mb-10">
-          <AirtableFields config={config} onChange={onChangeConfig} />
-          <CSVFields config={config} onChange={onChangeConfig} />
-          <MailchimpFields config={config} onChange={onChangeConfig} />
+          {config.type !== "" && (
+            <>
+              <ActionNetworkFields config={config} onChange={onChangeConfig} />
+              <AirtableFields config={config} onChange={onChangeConfig} />
+              <CSVFields config={config} onChange={onChangeConfig} />
+              <GoogleSheetsFields
+                dataSourceName={name}
+                config={config}
+                onChange={onChangeConfig}
+              />
+              <MailchimpFields config={config} onChange={onChangeConfig} />
+            </>
+          )}
         </div>
         <Button disabled={!validConfig || loading}>Submit</Button>
         {error && (
           <div>
-            <small>{error}</small>
+            <span className="text-xs text-red-500">{error}</span>
           </div>
         )}
       </form>
@@ -167,18 +198,13 @@ export default function NewDataSourcePage() {
   );
 }
 
-// Take preparatory actions before this data source can be created
 const prepareDataSource = async (
-  clientConfig: NewDataSourceConfig,
+  config: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
-  if (clientConfig.type === "") {
-    throw new Error("Invalid data source config");
+  if (config.type === DataSourceType.csv) {
+    const url = await uploadFile(config.file);
+    return { ...config, url };
   }
 
-  if (clientConfig.type !== DataSourceType.csv) {
-    return clientConfig;
-  }
-
-  const url = await uploadFile(clientConfig.file);
-  return { ...clientConfig, url };
+  return config;
 };

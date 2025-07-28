@@ -40,12 +40,19 @@ const WebhookPayload = z.object({
 });
 
 export class AirtableAdaptor implements DataSourceAdaptor {
+  private dataSourceId: string;
   private apiKey: string;
   private baseId: string;
   private tableId: string;
   private cachedFieldNames: string[] | null = null;
 
-  constructor(apiKey: string, baseId: string, tableId: string) {
+  constructor(
+    dataSourceId: string,
+    apiKey: string,
+    baseId: string,
+    tableId: string,
+  ) {
+    this.dataSourceId = dataSourceId;
     this.apiKey = apiKey;
     this.baseId = baseId;
     this.tableId = tableId;
@@ -355,19 +362,21 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       }));
   }
 
-  async removeDevWebhooks(dataSourceId: string): Promise<void> {
+  async removeDevWebhooks(): Promise<void> {
     const webhooks = await this.listWebhooks("ngrok");
-    await this.removeWebhooks(dataSourceId, webhooks);
+    await this.removeWebhooks(webhooks);
   }
 
-  async toggleWebhook(dataSourceId: string, enable: boolean): Promise<void> {
+  async toggleWebhook(enable: boolean): Promise<void> {
     const publicUrl = await getPublicUrl();
     const webhooks = await this.listWebhooks(publicUrl);
 
     // Remove webhooks on user request
     if (!enable) {
-      logger.info(`Removing Airtable webhooks for data source ${dataSourceId}`);
-      await this.removeWebhooks(dataSourceId, webhooks);
+      logger.info(
+        `Removing Airtable webhooks for data source ${this.dataSourceId}`,
+      );
+      await this.removeWebhooks(webhooks);
       return;
     }
 
@@ -383,15 +392,15 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
 
     // Cleanup expired webhooks
-    await this.removeWebhooks(dataSourceId, webhooks);
+    await this.removeWebhooks(webhooks);
 
     const url = `https://api.airtable.com/v0/bases/${this.baseId}/webhooks`;
     const notificationUrl = await getPublicUrl(
-      `/api/data-sources/${dataSourceId}/webhook`,
+      `/api/data-sources/${this.dataSourceId}/webhook`,
     );
 
     logger.info(
-      `Airtable notification URL for data source ${dataSourceId}: ${notificationUrl}`,
+      `Airtable notification URL for data source ${this.dataSourceId}: ${notificationUrl}`,
     );
 
     const response = await fetch(url, {
@@ -417,20 +426,17 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       const responseText = await response.text();
       if (responseText.includes("TOO_MANY_WEBHOOKS_IN_BASE")) {
         logger.error(
-          `Airtable has too many webhooks. Try running ${"`"}npm run cmd -- removeDevWebhooks --id ${dataSourceId}${"`"}`,
+          `Airtable has too many webhooks. Try running ${"`"}npm run cmd -- removeDevWebhooks --id ${this.dataSourceId}${"`"}`,
         );
       }
       throw Error(`Bad webhooks response: ${response.status}, ${responseText}`);
     }
   }
 
-  async removeWebhooks(
-    dataSourceId: string,
-    webhooks: Webhook[],
-  ): Promise<void> {
+  async removeWebhooks(webhooks: Webhook[]): Promise<void> {
     for (const webhook of webhooks) {
       logger.info(
-        `Removing Airtable webhook for data source ${dataSourceId}: ${webhook.id}`,
+        `Removing Airtable webhook for data source ${this.dataSourceId}: ${webhook.id}`,
       );
       const url = `https://api.airtable.com/v0/bases/${this.baseId}/webhooks/${webhook.id}`;
 
@@ -482,7 +488,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
           fields[column.def.name] = column.value;
         }
         return {
-          id: record.externalId,
+          id: record.externalRecord.externalId,
           fields,
         };
       });

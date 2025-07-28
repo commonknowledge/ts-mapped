@@ -124,12 +124,24 @@ export default function DataSourceConfigForm({
               onCheckedChange={(v) => setAutoImport(v)}
             />
           </DataListRow>
+          {dataSource.config.type === DataSourceType.actionnetwork && (
+            <div className="text-sm mb-4">
+              <p className="mb-2">
+                Add this URL as a webhook in your Action Network settings, with
+                all triggers enabled:
+              </p>
+              <pre className="rounded border p-2">
+                {process.env.NEXT_PUBLIC_BASE_URL}/api/data-sources/
+                {dataSource.id}/webhook
+              </pre>
+            </div>
+          )}
         </>
       )}
       <Button disabled={!validGeocodingConfig || loading}>Submit</Button>
       {error && (
         <div>
-          <small>{error}</small>
+          <span className="text-xs text-red-500">{error}</span>
         </div>
       )}
     </form>

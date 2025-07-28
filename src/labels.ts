@@ -6,7 +6,12 @@ import {
   EnrichmentSourceType,
   GeocodingType,
 } from "./__generated__/types";
-import { AirtableConfig, CSVConfig, MailchimpConfig } from "./zod";
+import {
+  AirtableConfig,
+  CSVConfig,
+  GoogleSheetsConfig,
+  MailchimpConfig,
+} from "./zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "UK Postcode",
@@ -18,21 +23,27 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
 type DataSourceConfigKey =
   | keyof AirtableConfig
   | keyof CSVConfig
+  | keyof GoogleSheetsConfig
   | keyof MailchimpConfig;
 
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
   baseId: "Base ID",
-  url: "URL",
   listId: "List ID",
+  oAuthCredentials: "OAuth Credentials",
+  serverPrefix: "Server Prefix",
+  sheetName: "Sheet Name",
+  spreadsheetId: "Spreadsheet ID",
   tableId: "Table ID",
   type: "Type",
-  serverPrefix: "Server Prefix",
+  url: "URL",
 };
 
 export const DataSourceTypeLabels: Record<DataSourceType, string> = {
+  actionnetwork: "Action Network",
   airtable: "Airtable",
   csv: "CSV",
+  googlesheets: "Google Sheets",
   mailchimp: "Mailchimp",
 };
 

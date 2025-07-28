@@ -15,6 +15,8 @@
 
 1. Run `bin/setup.sh` and follow the instuctions.
 2. Run `bin/run.sh` to start Mapped!
+3. Open the dev server at https://localhost:3000
+4. Log in with username `hello@commonknowledge.coop` and password `1234`.
 
 ### Migrations
 
@@ -27,11 +29,15 @@
 - Add commands to `bin/cmd.ts`.
 - Run commands with `npm run cmd -- [command] [...args]`
 
-7. Start the server with `./bin/run.sh`
+### Tests
 
-# Further Details
+- Run tests with `npm test`
+- This will download `test_credentials.json` from BitWarden Secrets manager, which is required to test the data source adaptors.
+- Filter tests with `npm test -t [filter]`
 
-## Seed Data
+## Further Details
+
+### Seed Data
 
 The SQL import includes the following:
 

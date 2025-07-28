@@ -15,15 +15,16 @@ export default function LayerHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-row gap-2 items-center group">
-      <div
-        style={{ backgroundColor: color }}
-        className="rounded-full w-3 h-3"
+    <div className="flex flex-row items-center gap-1 relative">
+      <LayerVisibilityToggle
+        layer={showLayer}
+        setLayer={setLayer}
+        backgroundColor={color}
       />
+
       <Label>{label}</Label>
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex flex-row">
+      <div className=" transition-opacity ml-auto flex flex-row items-center">
         {children}
-        <LayerVisibilityToggle layer={showLayer} setLayer={setLayer} />
       </div>
     </div>
   );

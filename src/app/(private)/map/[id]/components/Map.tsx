@@ -6,6 +6,7 @@ import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
 import { useContext, useEffect, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
+import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
@@ -88,10 +89,11 @@ export default function Map({
         geocoder.on("result", (event) => {
           const result = event.result;
           insertPlacedMarker({
-            id: `placed-marker-temp-${new Date().getTime()}`,
+            id: uuidv4(),
             label: result.place_name,
             notes: "",
             point: { lng: result.center[0], lat: result.center[1] },
+            folderId: null,
           });
         });
 

@@ -17,12 +17,8 @@ export class MapConfig implements MapConfigInput {
   public markerDataSourceIds: string[] = [];
   public membersDataSourceId = "";
 
-  // __typename comes from the GraphQL query result
-  // Must be removed before saving the config back to the server
-  constructor(params: Partial<MapConfig> & { __typename?: string } = {}) {
-    const cleanParams = { ...params };
-    delete cleanParams.__typename;
-    Object.assign(this, cleanParams);
+  constructor(params: Partial<MapConfig> = {}) {
+    Object.assign(this, params);
   }
 }
 
@@ -38,12 +34,8 @@ export class ViewConfig implements MapViewConfigInput {
   public showLocations = true;
   public showTurf = true;
 
-  // __typename comes from the GraphQL query result
-  // Must be removed before saving the config back to the server
-  constructor(params: Partial<ViewConfig> & { __typename?: string } = {}) {
-    const cleanParams = { ...params };
-    delete cleanParams.__typename;
-    Object.assign(this, cleanParams);
+  constructor(params: Partial<ViewConfig> = {}) {
+    Object.assign(this, params);
   }
 
   getExcludeColumns() {

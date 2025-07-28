@@ -3,11 +3,11 @@ import { Input } from "@/shadcn/ui/input";
 import { DataSourceType } from "@/types";
 import { NewDataSourceConfig } from "../types";
 
-export default function CSVInputs({
+export default function CSVFields({
   config,
   onChange,
 }: {
-  config: NewDataSourceConfig;
+  config: Partial<NewDataSourceConfig>;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
   if (config.type !== DataSourceType.csv) {

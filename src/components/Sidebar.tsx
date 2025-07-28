@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock2, DatabaseIcon, PlusIcon } from "lucide-react";
+import { Clock2, DatabaseIcon } from "lucide-react";
 import Image from "next/image";
 import { SyntheticEvent, useContext } from "react";
 import { useCurrentUser } from "@/hooks";
@@ -54,11 +54,13 @@ export default function Sidebar({ slug }: { slug: string }) {
             alt="Mapped"
             width={320}
             height={32}
+            priority
           />
         </Link>
-        <Button variant="outline" size="sm">
+        {/* TODO: Implement functionality */}
+        {/*         <Button variant="outline" size="sm">
           <PlusIcon className="w-4 h-4" />
-        </Button>
+        </Button> */}
       </div>
 
       {/* Organisation Selector */}
@@ -91,7 +93,7 @@ export default function Sidebar({ slug }: { slug: string }) {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+                  "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
                   isActive(item.href) && "bg-neutral-100 text-primary",
                 )}
               >
