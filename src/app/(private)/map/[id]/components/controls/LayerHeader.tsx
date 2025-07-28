@@ -15,7 +15,7 @@ export default function LayerHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-row  items-center gap-1">
+    <div className="flex flex-row items-center gap-1 relative">
       <LayerVisibilityToggle
         layer={showLayer}
         setLayer={setLayer}

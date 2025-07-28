@@ -3,6 +3,7 @@ import {
   DatabaseIcon,
   Ellipsis,
   FolderPlusIcon,
+  LoaderPinwheel,
   MapPinIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -160,6 +161,7 @@ export default function MarkersControl() {
         showLayer={viewConfig.showLocations}
         setLayer={(show) => updateViewConfig({ showLocations: show })}
       >
+        {placedMarkersLoading && <LoaderPinwheel className="animate-spin" size={16} />}
         <IconButtonWithTooltip
           align="start"
           side="right"
@@ -171,11 +173,6 @@ export default function MarkersControl() {
         </IconButtonWithTooltip>
       </LayerHeader>
       <MarkersList />
-      {/* {placedMarkersLoading && (
-        <span className="ml-3 mb-3 text-xs text-muted-foreground">
-          Saving...
-        </span>
-      )} */}
     </ControlItemWrapper>
   );
 }
