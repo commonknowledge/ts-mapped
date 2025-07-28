@@ -93,6 +93,7 @@ export default function Map({
             label: result.place_name,
             notes: "",
             point: { lng: result.center[0], lat: result.center[1] },
+            folderId: null,
           });
         });
 

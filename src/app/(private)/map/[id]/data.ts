@@ -7,6 +7,8 @@ import {
   DataRecordsQuery,
   DataRecordsQueryVariables,
   DataSourcesQuery,
+  DeleteFolderMutationMutation,
+  DeleteFolderMutationMutationVariables,
   DeletePlacedMarkerMutationMutation,
   DeletePlacedMarkerMutationMutationVariables,
   DeleteTurfMutation,
@@ -15,6 +17,8 @@ import {
   MapQueryVariables,
   Operation,
   SortInput,
+  UpsertFolderMutation,
+  UpsertFolderMutationVariables,
   UpsertPlacedMarkerMutation,
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
@@ -81,6 +85,11 @@ export const useMapQuery = (mapId: string | null) =>
       query Map($id: String!) {
         map(id: $id) {
           name
+          folders {
+            id
+            name
+            notes
+          }
           placedMarkers {
             id
             label
@@ -89,6 +98,8 @@ export const useMapQuery = (mapId: string | null) =>
               lat
               lng
             }
+            folderId
+            position
           }
           turfs {
             id
@@ -225,6 +236,37 @@ export const useAreaStatsQuery = ({
     },
   );
 
+export const useDeleteFolderMutation = () => {
+  return useMutation<
+    DeleteFolderMutationMutation,
+    DeleteFolderMutationMutationVariables
+  >(gql`
+    mutation DeleteFolderMutation($id: String!, $mapId: String!) {
+      deleteFolder(id: $id, mapId: $mapId) {
+        code
+      }
+    }
+  `);
+};
+
+export const useUpsertFolderMutation = () => {
+  return useMutation<UpsertFolderMutation, UpsertFolderMutationVariables>(gql`
+    mutation UpsertFolder(
+      $id: String!
+      $name: String!
+      $notes: String!
+      $mapId: String!
+    ) {
+      upsertFolder(id: $id, name: $name, notes: $notes, mapId: $mapId) {
+        code
+        result {
+          id
+        }
+      }
+    }
+  `);
+};
+
 export const useDeletePlacedMarkerMutation = () => {
   return useMutation<
     DeletePlacedMarkerMutationMutation,
@@ -249,6 +291,8 @@ export const useUpsertPlacedMarkerMutation = () => {
       $notes: String!
       $point: PointInput!
       $mapId: String!
+      $folderId: String
+      $position: Float!
     ) {
       upsertPlacedMarker(
         id: $id
@@ -256,6 +300,8 @@ export const useUpsertPlacedMarkerMutation = () => {
         notes: $notes
         point: $point
         mapId: $mapId
+        folderId: $folderId
+        position: $position
       ) {
         code
         result {

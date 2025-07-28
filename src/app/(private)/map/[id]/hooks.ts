@@ -1,15 +1,97 @@
 import { useCallback, useRef, useState } from "react";
-import { PlacedMarker, Turf } from "@/__generated__/types";
+import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
+import { getNewLastPosition } from "./components/controls/layers/MarkersControl/utils";
 import {
+  useDeleteFolderMutation,
   useDeletePlacedMarkerMutation,
   useDeleteTurfMutation,
+  useUpsertFolderMutation,
   useUpsertPlacedMarkerMutation,
   useUpsertTurfMutation,
 } from "./data";
 
+export const useFolders = (mapId: string | null) => {
+  const ref = useRef<Folder[]>([]);
+  const [folders, _setFolders] = useState<Folder[]>([]);
+
+  // Use a combination of ref and state, because Mapbox native components don't
+  // update on state changes - ref is needed for them to update the latest state,
+  // instead of the initial state.
+  const setFolders = useCallback(
+    (folders: Folder[]) => {
+      ref.current = folders;
+      _setFolders(folders);
+    },
+    [_setFolders],
+  );
+
+  const [deleteFolderMutation] = useDeleteFolderMutation();
+  const [upsertFolderMutation, { loading }] = useUpsertFolderMutation();
+
+  /* Complex actions */
+  const deleteFolder = (id: string) => {
+    if (!mapId) {
+      return;
+    }
+
+    deleteFolderMutation({
+      variables: {
+        id,
+        mapId,
+      },
+    });
+    const newFolders = ref.current.filter((m) => m.id !== id);
+    setFolders(newFolders);
+  };
+
+  const insertFolder = async (newFolder: Folder) => {
+    if (!mapId) {
+      return;
+    }
+
+    const newFolders = [...ref.current, newFolder];
+    setFolders(newFolders);
+
+    upsertFolderMutation({
+      variables: {
+        ...newFolder,
+        mapId,
+      },
+    });
+  };
+
+  const updateFolder = (updatedFolder: Folder) => {
+    if (!mapId) {
+      return;
+    }
+
+    upsertFolderMutation({
+      variables: {
+        ...updatedFolder,
+        mapId,
+      },
+    });
+
+    setFolders(
+      ref.current.map((f) => (f.id === updatedFolder.id ? updatedFolder : f)),
+    );
+  };
+  return {
+    folders,
+    setFolders,
+    deleteFolder,
+    insertFolder,
+    updateFolder,
+    loading,
+  };
+};
+
 export const usePlacedMarkers = (mapId: string | null) => {
   const ref = useRef<PlacedMarker[]>([]);
   const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
+
+  // Use a ref to keep track of dirty (unpersisted) markers, for immediate flagging
+  const dirty = useRef<Record<string, PlacedMarker | null>>({});
 
   // Use a combination of ref and state, because Mapbox native components don't
   // update on state changes - ref is needed for them to update the latest state,
@@ -42,49 +124,88 @@ export const usePlacedMarkers = (mapId: string | null) => {
     setPlacedMarkers(newMarkers);
   };
 
-  const insertPlacedMarker = async (newMarker: PlacedMarker) => {
+  const insertPlacedMarker = useCallback(
+    (newMarker: Omit<PlacedMarker, "position">) => {
+      if (!mapId) {
+        return;
+      }
+
+      const newPosition = getNewLastPosition(ref.current);
+      const positionedMarker = { ...newMarker, position: newPosition };
+
+      const newMarkers = [...ref.current, positionedMarker];
+      setPlacedMarkers(newMarkers);
+
+      upsertPlacedMarkerMutation({
+        variables: {
+          ...positionedMarker,
+          mapId,
+        },
+      });
+    },
+    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
+  );
+
+  const updatePlacedMarker = useCallback(
+    (placedMarker: PlacedMarker) => {
+      if (!mapId) {
+        return;
+      }
+
+      upsertPlacedMarkerMutation({
+        variables: {
+          ...placedMarker,
+          mapId,
+        },
+      });
+
+      setPlacedMarkers(
+        ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
+      );
+    },
+    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
+  );
+
+  /**
+   * Two functions, preparePlacedMarkerUpdate and commitPlacedMarkerUpdates
+   * to aggregate updates before sending them to the API. Originally
+   * added for the drag-and-drop functionality of the marker sidebar.
+   */
+  const preparePlacedMarkerUpdate = useCallback(
+    (placedMarker: PlacedMarker) => {
+      setPlacedMarkers(
+        ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
+      );
+      dirty.current[placedMarker.id] = placedMarker;
+    },
+    [setPlacedMarkers],
+  );
+
+  const commitPlacedMarkerUpdates = useCallback(() => {
     if (!mapId) {
       return;
     }
 
-    const newMarkers = [...ref.current, newMarker];
-    setPlacedMarkers(newMarkers);
-
-    upsertPlacedMarkerMutation({
-      variables: {
-        id: newMarker.id,
-        label: newMarker.label,
-        notes: newMarker.notes,
-        point: newMarker.point,
-        mapId,
-      },
-    });
-  };
-
-  const updatePlacedMarker = (updatedMarker: PlacedMarker) => {
-    if (!mapId) {
-      return;
+    for (const placedMarker of Object.values(dirty.current)) {
+      if (placedMarker) {
+        upsertPlacedMarkerMutation({
+          variables: {
+            ...placedMarker,
+            mapId,
+          },
+        });
+        dirty.current[placedMarker.id] = null;
+      }
     }
+  }, [mapId, upsertPlacedMarkerMutation]);
 
-    upsertPlacedMarkerMutation({
-      variables: {
-        id: updatedMarker.id,
-        label: updatedMarker.label,
-        notes: updatedMarker.notes,
-        point: { lat: updatedMarker.point.lat, lng: updatedMarker.point.lng },
-        mapId,
-      },
-    });
-
-    setPlacedMarkers(
-      ref.current.map((m) => (m.id === updatedMarker.id ? updatedMarker : m)),
-    );
-  };
   return {
     placedMarkers,
     setPlacedMarkers,
     deletePlacedMarker,
     insertPlacedMarker,
+    preparePlacedMarkerUpdate,
+    commitPlacedMarkerUpdates,
     updatePlacedMarker,
     loading,
   };
