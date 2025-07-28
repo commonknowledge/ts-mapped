@@ -15,6 +15,7 @@ import { Link } from "@/components/Link";
 import MapTopLevelControls from "@/components/MapTopLevelControls";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
+import MapViews from "./MapViews";
 
 export default function MapNavbar() {
   const {
@@ -188,11 +189,12 @@ export default function MapNavbar() {
                 </Button>
               </>
             ) : (
-              <p>{mapName || "Loading..."}</p>
+              <p className="truncate max-w-[300px]">{mapName || "Loading..."}</p>
             )}
             <MapTopLevelControls setIsEditingName={setIsEditingName} />
           </div>
         </div>
+        <MapViews />
       </div>
 
       <div className="flex items-center gap-4">
