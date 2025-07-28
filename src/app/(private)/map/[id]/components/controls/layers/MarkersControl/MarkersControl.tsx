@@ -5,6 +5,7 @@ import {
   FolderPlusIcon,
   LoaderPinwheel,
   MapPinIcon,
+  Search,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
@@ -109,22 +110,24 @@ export default function MarkersControl() {
 
   const getDropdownItems = () => [
     {
-      type: "submenu" as const,
+      type: "label" as const,
       label: "Add Single Marker",
-      icon: <MapPinIcon className="w-4 h-4 text-muted-foreground" />,
-      items: [
-        {
-          type: "item" as const,
-          label: "Search for a location",
-          onClick: () => handleManualSearch(),
-        },
-        {
-          type: "item" as const,
-          label: "Drop a pin on the map",
-          onClick: () => handleDropPin(),
-        },
-      ],
     },
+    {
+      type: "item" as const,
+      label: "Search for a location",
+      icon: <Search className="w-4 h-4 text-muted-foreground" />,
+      onClick: () => handleManualSearch(),
+    },
+    {
+      type: "item" as const,
+      label: "Drop a pin on the map",
+      icon: <MapPinIcon className="w-4 h-4 text-muted-foreground" />,
+      onClick: () => handleDropPin(),
+    },
+   
+    { type: "separator" as const },
+   
     {
       type: "submenu" as const,
       label: "Add Marker Collection",
@@ -142,6 +145,7 @@ export default function MarkersControl() {
       ],
     },
     { type: "separator" as const },
+    
     {
       type: "item" as const,
       icon: <FolderPlusIcon className="w-4 h-4 text-muted-foreground" />,

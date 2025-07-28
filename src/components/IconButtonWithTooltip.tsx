@@ -30,6 +30,11 @@ export interface DropdownSeparator {
   type: "separator";
 }
 
+export interface DropdownLabel {
+  type: "label";
+  label: string;
+}
+
 export interface DropdownSubMenu {
   type: "submenu";
   label: string;
@@ -40,6 +45,7 @@ export interface DropdownSubMenu {
 export type DropdownMenuItemType =
   | DropdownItem
   | DropdownSeparator
+  | DropdownLabel
   | DropdownSubMenu;
 
 // Main component props
@@ -77,6 +83,9 @@ export default function IconButtonWithTooltip({
     switch (item.type) {
       case "separator":
         return <DropdownMenuSeparator key={`separator-${index}`} />;
+
+      case "label":
+        return <DropdownMenuLabel key={`label-${index}`}>{item.label}</DropdownMenuLabel>;
 
       case "submenu":
         return (
@@ -165,8 +174,6 @@ export default function IconButtonWithTooltip({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align={align} side={side}>
-                <DropdownMenuLabel>{dropdownLabel}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
                 {dropdownItems.map(renderDropdownItem)}
                 {renderSubDropdownItems()}
               </DropdownMenuContent>

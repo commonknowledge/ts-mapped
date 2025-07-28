@@ -1,14 +1,22 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, X } from "lucide-react";
-import { useState } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Filter, ListFilter, Plus, Search, Settings2, X } from "lucide-react";
+import { useContext, useState } from "react";
 import { ColumnDef, DataRecord, SortInput } from "@/__generated__/types";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
+import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+    DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
@@ -20,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import mapStyles, { mapColors } from "../../styles";
 
 interface DataTableProps {
   title?: string;
@@ -63,6 +72,7 @@ export function DataTable({
 }: DataTableProps) {
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.floor((recordCount || 0) / DATA_RECORDS_PAGE_SIZE);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const getSortIcon = (columnName: string) => {
     const state = sort.find((c) => c.name === columnName);
@@ -92,45 +102,98 @@ export function DataTable({
     }
   };
 
+  const handleSearch = () => {
+    // TODO: Implement server-side search
+    console.log("Searching for:", filter);
+  };
+
+
+
   return (
-    <div className="flex flex-col gap-2 h-full">
-      <div className="flex items-center justify-between p-1">
+    <div className="flex flex-col  h-full">
+      <div className="flex items-center justify-between px-3 py-2 border-b">
         <div className="flex items-center gap-4">
           {title && (
-            <div className="flex flex-row gap-2">
-              <p className="font-bold whitespace-nowrap">{title}</p>
+            <div className="flex flex-row gap-2 text-sm">
+              <p className="font-semibold whitespace-nowrap">{title}</p>
               {recordCount !== undefined && <p>{recordCount}</p>}
             </div>
           )}
-          <Input
-            placeholder="Filter all columns..."
-            value={filter ?? ""}
-            onChange={(event) => setFilter(event.target.value)}
-            className="max-w-sm shadow-none"
-          />
         </div>
         <div className="flex items-center gap-2">
+          {isSearchOpen ? (
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search..."
+                  value={filter ?? ""}
+                  onChange={(event) => setFilter(event.target.value)}
+                  className="pl-8 w-48 text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch();
+                    }
+                  }}
+                />
+              </div>
+              <Button 
+                size="sm" 
+                onClick={handleSearch}
+                className="text-xs"
+              >
+                Search
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsSearchOpen(false)}
+                className="text-xs"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsSearchOpen(true)}
+              className="text-xs"
+            >
+              <Search className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          )}
+          {onClose && (
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center justify-between px-3 py-2 border-b">
+        <AdvancedFilters />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto shadow-none">
-                Columns <ChevronDown />
+              <Button variant="outline" size="table" className="ml-auto shadow-none">
+                Display <Settings2 className="text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {columns.map((column) => {
                 return (
                   <DropdownMenuCheckboxItem
-                    key={column.name}
-                    checked={!hiddenColumns.includes(column.name)}
-                    onCheckedChange={(visible) => {
-                      if (visible) {
-                        setHiddenColumns(
-                          hiddenColumns.filter((c) => c !== column.name),
-                        );
-                      } else {
-                        setHiddenColumns([...hiddenColumns, column.name]);
-                      }
-                    }}
+                  key={column.name}
+                  checked={!hiddenColumns.includes(column.name)}
+                  onCheckedChange={(visible) => {
+                    if (visible) {
+                      setHiddenColumns(
+                        hiddenColumns.filter((c) => c !== column.name),
+                      );
+                    } else {
+                      setHiddenColumns([...hiddenColumns, column.name]);
+                    }
+                  }}
                   >
                     {column.name}
                   </DropdownMenuCheckboxItem>
@@ -138,12 +201,8 @@ export function DataTable({
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {onClose && (
-            <X className="w-4 h-4 cursor-pointer" onClick={onClose} />
-          )}
-        </div>
-      </div>
-      <div className="rounded-md border bg-white grow min-h-0">
+              </div>
+      <div className="  bg-white grow min-h-0">
         <Table containerClassName="h-full">
           <TableHeader className="bg-neutral-100 ">
             <TableRow>
@@ -227,6 +286,106 @@ export function DataTable({
           {">>"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+
+function AdvancedFilters() {
+  
+  const { turfs, placedMarkers } = useContext(MarkerAndTurfContext);
+
+
+  // Filter out the members data source from the general data sources
+
+  
+
+  const columnItems = [
+    {
+      label: "Name",
+      value: "name",
+    },
+    {
+      label: "Address",
+      value: "address",
+    },
+    {
+      label: "Constituency",
+      value: "constituency",
+    },
+    {
+      label: "RSVP",
+      value: "rsvp",
+    },
+  ];  
+
+  return (
+    <div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="table" className="ml-auto shadow-none  ">
+            <ListFilter className="text-muted-foreground" />
+            Filter
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center" side="right">
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              Filter by Layer
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+             
+              {/* Markers */}
+              {placedMarkers.length > 0 && (
+                <>
+                  <DropdownMenuLabel>Proximity to Marker</DropdownMenuLabel>
+                  {placedMarkers.map(ds => (
+                    <DropdownMenuItem key={`markers_${ds.id}`} className="flex items-center gap-1 text-xs">
+                      <div className="h-2 w-2 rounded-full"
+                      style={{
+                        backgroundColor: mapColors.markers.color,
+                    
+                      }}
+                      />
+                      {ds.label}
+                      
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+              
+              {/* Areas */}
+              {turfs.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Within Area</DropdownMenuLabel>
+                  {turfs.map(turf => (
+                    <DropdownMenuItem key={`turf_${turf.id}`} className="flex items-center gap-1 text-xs">
+                      <div className="h-2 w-2 rounded-full"
+                      style={{
+                        backgroundColor: mapColors.areas.color,
+                    
+                      }}
+                      />
+                      {turf.label}
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+              
+            
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Filter by Field</DropdownMenuLabel>
+          {columnItems.map((item) => (
+            <DropdownMenuItem key={item.value}>
+              {item.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

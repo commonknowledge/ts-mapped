@@ -47,7 +47,7 @@ export default function MapTable() {
   };
 
   return (
-    <div className="p-2 h-full">
+    <div className="h-full">
       <DataTable
         title={dataSource.name}
         loading={dataRecordsQuery ? dataRecordsQuery.loading : true}
