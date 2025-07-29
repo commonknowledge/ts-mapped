@@ -73,6 +73,9 @@ export function DataTable({
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.floor((recordCount || 0) / DATA_RECORDS_PAGE_SIZE);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [viewActiveFilters, setViewActiveFilters] = useState(false);
+
+
 
   const getSortIcon = (columnName: string) => {
     const state = sort.find((c) => c.name === columnName);
@@ -171,6 +174,7 @@ export function DataTable({
         </div>
       </div>
       <div className="flex items-center justify-between px-3 py-2 border-b">
+
         <AdvancedFilters />
 
           <DropdownMenu>
@@ -294,6 +298,30 @@ export function DataTable({
 function AdvancedFilters() {
   
   const { turfs, placedMarkers } = useContext(MarkerAndTurfContext);
+  const [selectedFilters, setSelectedFilters] = useState<Array<{
+    id: string;
+    type: 'marker' | 'area' | 'field';
+    label: string;
+    value: string;
+  }>>([]);
+
+  const handleFilterChange = (type: 'marker' | 'area' | 'field', id: string, label: string, value: string) => {
+    const filterId = `${type}_${id}`;
+    const exists = selectedFilters.find(f => f.id === filterId);
+    
+    if (!exists) {
+      setSelectedFilters(prev => [...prev, {
+        id: filterId,
+        type,
+        label,
+        value
+      }]);
+    }
+  };
+
+  const removeFilter = (filterId: string) => {
+    setSelectedFilters(prev => prev.filter(f => f.id !== filterId));
+  };
 
 
   // Filter out the members data source from the general data sources
@@ -320,67 +348,122 @@ function AdvancedFilters() {
   ];  
 
   return (
-    <div>
+    <div className="flex  gap-2">
+      {/* Filter Chips */}
+      {selectedFilters.length > 0 && (
+        
+        <div className="flex flex-wrap gap-2 ">
+          {selectedFilters.map((filter) => (
+            <div
+              key={filter.id}
+              className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs border ${
+                filter.type === 'marker' 
+                  ? 'bg-red-100 text-red-800 border-red-200' 
+                  : filter.type === 'area'
+                  ? 'bg-green-100 text-green-800 border-green-200'
+                  : 'bg-blue-100 text-blue-800 border-blue-200'
+              }`}
+            >
+              <div 
+                className={`w-2 h-2 rounded-full ${
+                  filter.type === 'marker' 
+                    ? 'bg-red-500' 
+                    : filter.type === 'area'
+                    ? 'bg-green-500'
+                    : 'bg-blue-500'
+                }`}
+              />
+              {filter.label}
+              <button
+                onClick={() => removeFilter(filter.id)}
+                className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="table" className="ml-auto shadow-none  ">
+          <Button variant="outline" size="table" className="ml-auto shadow-none">
             <ListFilter className="text-muted-foreground" />
             Filter
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" side="right">
+          <DropdownMenuLabel>Filter by Layer</DropdownMenuLabel>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              Filter by Layer
+              <div className="h-3 w-3 rounded-full mr-2"
+                style={{
+                  backgroundColor: mapColors.markers.color,
+                }}
+              />
+              Proximity to Marker
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-             
               {/* Markers */}
               {placedMarkers.length > 0 && (
                 <>
-                  <DropdownMenuLabel>Proximity to Marker</DropdownMenuLabel>
                   {placedMarkers.map(ds => (
-                    <DropdownMenuItem key={`markers_${ds.id}`} className="flex items-center gap-1 text-xs">
+                    <DropdownMenuItem 
+                      key={`markers_${ds.id}`} 
+                      className="flex items-center gap-1 text-xs"
+                      onClick={() => handleFilterChange('marker', ds.id, ds.label, `Within 5 miles of ${ds.label}`)}
+                    >
                       <div className="h-2 w-2 rounded-full"
-                      style={{
-                        backgroundColor: mapColors.markers.color,
-                    
-                      }}
+                        style={{
+                          backgroundColor: mapColors.markers.color,
+                        }}
                       />
                       {ds.label}
-                      
                     </DropdownMenuItem>
                   ))}
                 </>
               )}
-              
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <div className="h-3 w-3 rounded-full mr-2"
+                style={{
+                  backgroundColor: mapColors.areas.color,
+                }}
+              />
+              Within Area
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
               {/* Areas */}
               {turfs.length > 0 && (
                 <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Within Area</DropdownMenuLabel>
                   {turfs.map(turf => (
-                    <DropdownMenuItem key={`turf_${turf.id}`} className="flex items-center gap-1 text-xs">
+                    <DropdownMenuItem 
+                      key={`turf_${turf.id}`} 
+                      className="flex items-center gap-1 text-xs"
+                      onClick={() => handleFilterChange('area', turf.id, turf.label, `Within ${turf.label}`)}
+                    >
                       <div className="h-2 w-2 rounded-full"
-                      style={{
-                        backgroundColor: mapColors.areas.color,
-                    
-                      }}
+                        style={{
+                          backgroundColor: mapColors.areas.color,
+                        }}
                       />
                       {turf.label}
                     </DropdownMenuItem>
                   ))}
                 </>
               )}
-              
-            
             </DropdownMenuSubContent>
           </DropdownMenuSub>
           
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Filter by Field</DropdownMenuLabel>
           {columnItems.map((item) => (
-            <DropdownMenuItem key={item.value}>
+            <DropdownMenuItem 
+              key={item.value}
+              onClick={() => handleFilterChange('field', item.value, item.label, `${item.label} is Yes`)}
+            >
               {item.label}
             </DropdownMenuItem>
           ))}
