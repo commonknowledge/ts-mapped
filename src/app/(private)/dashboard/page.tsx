@@ -15,7 +15,6 @@ import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { MapCard } from "./components/MapCard";
-import { LIST_MAPS_QUERY } from "./queries";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -23,7 +22,16 @@ export default function DashboardPage() {
   const { organisationId } = useContext(OrganisationsContext);
   const [createMapLoading, setCreateMapLoading] = useState(false);
   const { data, loading } = useQuery<ListMapsQuery, ListMapsQueryVariables>(
-    LIST_MAPS_QUERY,
+    gql`
+      query ListMaps($organisationId: String!) {
+        maps(organisationId: $organisationId) {
+          id
+          name
+          createdAt
+          imageUrl
+        }
+      }
+    `,
     {
       variables: { organisationId: organisationId || "" },
       skip: !organisationId,
