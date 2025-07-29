@@ -91,6 +91,9 @@ export default function Sidebar({ slug }: { slug: string }) {
           {navItems.map((item) => (
             <li key={item.href}>
               <Link
+                id={`joyride-sidebar-${item.label
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}`}
                 href={item.href}
                 className={cn(
                   "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",

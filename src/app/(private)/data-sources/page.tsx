@@ -1,5 +1,4 @@
 "use client";
-
 import { gql, useQuery } from "@apollo/client";
 import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useContext } from "react";
@@ -31,18 +30,33 @@ export default function DataSourcesPage() {
         }
       }
     `,
-    { variables: { organisationId }, skip: !organisationId },
+    {
+      variables: { organisationId },
+      skip: !organisationId,
+      fetchPolicy: "network-only",
+    },
   );
   const dataSources = data?.dataSources || [];
 
   return (
     <div className="">
+      <span
+        id="data-sources-tour-start"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 1,
+          height: 1,
+          pointerEvents: "none",
+        }}
+      />
       <div className="flex items-center justify-between">
         <PageHeader
           title="Data sources"
           description="Here you can find all the data sources that are available to use to import into your maps."
         />
-        <Link href="/data-sources/new">
+        <Link href="/data-sources/new" id="joyride-datasources-addnew">
           <Button variant="default" size="lg">
             <PlusIcon className="w-4 h-4" />
             Add new

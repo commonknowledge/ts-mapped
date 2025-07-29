@@ -126,6 +126,7 @@ export default function MapNavbar() {
         </Link>
         <div className="flex items-center gap-2 text-sm text-neutral-600">
           <Link
+            id="joyride-maps-navbar-breadcrumbs-maps"
             href="/dashboard"
             className="text-neutral-500 hover:text-neutral-800"
           >

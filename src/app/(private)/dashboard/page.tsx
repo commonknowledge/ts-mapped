@@ -3,7 +3,7 @@
 import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   CreateMapMutation,
   CreateMapMutationVariables,
@@ -14,10 +14,13 @@ import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { useMultiRouteTour } from "@/tours/useMultiRouteTour";
 import { MapCard } from "./components/MapCard";
 
 export default function DashboardPage() {
   const router = useRouter();
+
+  const { startTour, active } = useMultiRouteTour();
   const apolloClient = useApolloClient();
   const { organisationId } = useContext(OrganisationsContext);
   const [createMapLoading, setCreateMapLoading] = useState(false);
@@ -39,6 +42,14 @@ export default function DashboardPage() {
     },
   );
   const maps = data?.maps || [];
+
+  // Start multi-route tour if data is loaded and there are no maps
+  useEffect(() => {
+    if (!loading && maps.length === 0 && !active) {
+      startTour();
+    }
+  }, [loading, maps.length, startTour, active]);
+
   const [createMap] = useMutation<
     CreateMapMutation,
     CreateMapMutationVariables
@@ -76,12 +87,24 @@ export default function DashboardPage() {
 
   return (
     <div className="">
+      <span
+        id="dashboard-tour-start"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 1,
+          height: 1,
+          pointerEvents: "none",
+        }}
+      />
       <div className="flex items-center justify-between">
         <PageHeader title="Recent Maps" />
         <Button
           type="button"
           onClick={() => onClickNew()}
           disabled={createMapLoading}
+          id="joyride-recent-maps-button-new-map"
         >
           + New
         </Button>
