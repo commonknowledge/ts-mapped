@@ -14,7 +14,7 @@ export async function createMap(organisationId: string) {
     .insertInto("map")
     .values({
       organisationId,
-      name: `New Map (${new Date().toLocaleDateString()})`,
+      name: "Untitled Map",
       config: JSON.stringify(createBlankConfig()),
     })
     .returningAll()

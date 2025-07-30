@@ -1,6 +1,6 @@
 "use client";
 
-import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
@@ -18,7 +18,6 @@ import { MapCard } from "./components/MapCard";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const apolloClient = useApolloClient();
   const { organisationId } = useContext(OrganisationsContext);
   const [createMapLoading, setCreateMapLoading] = useState(false);
   const { data, loading } = useQuery<ListMapsQuery, ListMapsQueryVariables>(
@@ -61,13 +60,6 @@ export default function DashboardPage() {
     setCreateMapLoading(true);
     const response = await createMap({ variables: { organisationId } });
     if (response?.data?.createMap?.result?.id) {
-      // Clear the cached result for ListMaps so the new map appears
-      // Simpler than manually inserting the new map into the cache
-      apolloClient.cache.evict({
-        id: "ROOT_QUERY",
-        fieldName: "maps",
-        args: { organisationId },
-      });
       router.push(`/map/${response.data.createMap.result.id}`);
     } else {
       setCreateMapLoading(false);
