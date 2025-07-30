@@ -5,7 +5,7 @@ import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
 import { useContext, useEffect, useState } from "react";
-import MapGL from "react-map-gl/mapbox";
+import MapGL, { NavigationControl } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
@@ -198,6 +198,7 @@ export default function Map({
     >
       {ready && (
         <>
+          <NavigationControl showZoom={true} showCompass={false} />
           <Choropleth />
           <TurfPolygons />
           <Markers />

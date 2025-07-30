@@ -12,13 +12,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import {
-  SyntheticEvent,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { SyntheticEvent, useContext, useMemo, useRef, useState } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
@@ -104,7 +98,7 @@ export default function SortableFolderItem({
   const onClickDelete = () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost."
+        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost.",
       )
     ) {
       return;
@@ -156,7 +150,7 @@ export default function SortableFolderItem({
             <span
               className={cn(
                 "text-xs text-muted-foreground bg-transparent transition-transform duration-300",
-                isPulsing ? "animate-pulse  transform scale-110" : ""
+                isPulsing ? "animate-pulse  transform scale-110" : "",
               )}
               style={{
                 color: isPulsing ? mapColors.markers.color : "",
@@ -166,7 +160,9 @@ export default function SortableFolderItem({
             </span>
           </div>
         </ContextMenuTrigger>
-        <ContextMenuContentWithFocus shouldFocusTarget={isEditing} targetRef={inputRef}
+        <ContextMenuContentWithFocus
+          shouldFocusTarget={isEditing}
+          targetRef={inputRef}
         >
           <ContextMenuItem
             onClick={() => {

@@ -75,7 +75,7 @@ export default function MapViews() {
         renamingViewId || isCreating
           ? { start: [], cancel: [], end: [] }
           : undefined,
-    })
+    }),
   );
 
   const handleCreateView = () => {
@@ -308,7 +308,7 @@ function SortableViewItem({
           <div
             className={cn(
               "transition-all duration-300 bg-neutral-400 rounded-full",
-              isDirty ? "w-2 h-2" : "w-0 h-0"
+              isDirty ? "w-2 h-2" : "w-0 h-0",
             )}
           />
         </div>

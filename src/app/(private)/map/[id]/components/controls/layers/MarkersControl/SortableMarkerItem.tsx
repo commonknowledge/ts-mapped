@@ -24,7 +24,7 @@ export default function SortableMarkerItem({
   activeId: string | null;
   setKeyboardCapture: (captured: boolean) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null);
   const {
     attributes,
     listeners,
@@ -111,7 +111,10 @@ export default function SortableMarkerItem({
           )}
         </li>
       </ContextMenuTrigger>
-      <ContextMenuContentWithFocus targetRef={inputRef} shouldFocusTarget={isEditing}>
+      <ContextMenuContentWithFocus
+        targetRef={inputRef}
+        shouldFocusTarget={isEditing}
+      >
         <ContextMenuItem
           onClick={() => {
             setEditText(marker.label);
