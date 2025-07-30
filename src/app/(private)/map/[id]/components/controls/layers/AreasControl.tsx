@@ -1,15 +1,15 @@
 import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Turf } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
+import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
-  ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
@@ -19,11 +19,7 @@ import LayerHeader from "../LayerHeader";
 
 export default function AreasControl() {
   const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
-  const { turfs, turfsLoading, setEditingTurf, updateTurf, deleteTurf } =
-    useContext(MarkerAndTurfContext);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editText, setEditText] = useState("");
-  const [contextMenuIndex, setContextMenuIndex] = useState<number | null>(null);
+  const { turfs, turfsLoading } = useContext(MarkerAndTurfContext);
   const [, setFormattedDates] = useState<Record<string, string>>({});
   const [isAddingArea, setAddingArea] = useState(false);
 
@@ -38,30 +34,18 @@ export default function AreasControl() {
           .replace("T", " ");
         return acc;
       },
-      {} as Record<string, string>,
+      {} as Record<string, string>
     );
 
     setFormattedDates(dates);
   }, [turfs]);
-
-  const handleFlyTo = (turf: Turf) => {
-    // Calculate the center of the polygon using turf.js
-    const center = turfLib.center(turf.geometry);
-    const map = mapRef?.current;
-    if (map) {
-      map.flyTo({
-        center: center.geometry.coordinates as [number, number],
-        zoom: 12,
-      });
-    }
-  };
 
   const handleAddArea = () => {
     const map = mapRef?.current;
     if (map) {
       // Find the polygon draw button and click it
       const drawButton = document.querySelector(
-        ".mapbox-gl-draw_polygon",
+        ".mapbox-gl-draw_polygon"
       ) as HTMLButtonElement;
       if (drawButton) {
         drawButton.click();
@@ -101,84 +85,94 @@ export default function AreasControl() {
       <div className="relative">
         {/* Disable interactions while turfs are loading/updating in the background */}
         {turfsLoading && <Loading blockInteraction />}
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <ul
-              className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
-            >
-              {turfs.map((turf, index) => (
-                <div
-                  key={turf.id}
-                  className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm"
-                  onClick={() => handleFlyTo(turf)}
-                  onContextMenu={() => setContextMenuIndex(index)}
-                >
-                  {editingIndex === index ? (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        updateTurf({ ...turf, label: editText });
-                        setEditingIndex(null);
-                      }}
-                      className="w-full flex items-center p-0"
-                    >
-                      <Input
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        autoFocus
-                      />
-                      <Button type="submit" variant="link">
-                        <Check className="h-4 w-4 text-green-500" />
-                      </Button>
-                    </form>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-2 pl-1">
-                        <div
-                          style={{ backgroundColor: mapColors.areas.color }}
-                          className="w-2 h-2 rounded-full"
-                        />
-
-                        <div className="text-sm">{turf.label}</div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </ul>
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            {contextMenuIndex !== null && (
-              <>
-                <ContextMenuItem
-                  onClick={() => {
-                    const turf = turfs[contextMenuIndex];
-                    setEditText(turf.label);
-                    setEditingIndex(contextMenuIndex);
-                    setEditingTurf(turf);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </ContextMenuItem>
-                <ContextMenuItem
-                  onClick={() => {
-                    const existingTurf = turfs.find(
-                      (t, i) => i === contextMenuIndex,
-                    );
-                    if (existingTurf) {
-                      deleteTurf(existingTurf.id);
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </ContextMenuItem>
-              </>
-            )}
-          </ContextMenuContent>
-        </ContextMenu>
+        <ul
+          className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
+        >
+          {turfs.map((turf) => (
+            <TurfItem key={turf.id} turf={turf} />
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
+
+const TurfItem = ({ turf }: { turf: Turf }) => {
+  const [isEditing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(turf.label);
+  const { mapRef } = useContext(MapContext);
+  const { updateTurf, deleteTurf } = useContext(MarkerAndTurfContext);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFlyTo = (turf: Turf) => {
+    // Calculate the center of the polygon using turf.js
+    const center = turfLib.center(turf.geometry);
+    const map = mapRef?.current;
+    if (map) {
+      map.flyTo({
+        center: center.geometry.coordinates as [number, number],
+        zoom: 12,
+      });
+    }
+  };
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm"
+          onClick={() => handleFlyTo(turf)}
+        >
+          {isEditing ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateTurf({ ...turf, label: editText });
+                setEditing(false);
+              }}
+              className="w-full flex items-center p-0"
+            >
+              <Input
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                ref={inputRef}
+              />
+              <Button type="submit" variant="link">
+                <Check className="h-3 w-3" />
+              </Button>
+            </form>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 pl-1">
+                <div
+                  style={{ backgroundColor: mapColors.areas.color }}
+                  className="w-2 h-2 rounded-full"
+                />
+
+                <div className="text-sm">{turf.label}</div>
+              </div>
+            </>
+          )}
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContentWithFocus targetRef={inputRef} shouldFocusTarget={isEditing}>
+        <ContextMenuItem
+          onClick={() => {
+            setEditing(true);
+          }}
+        >
+          <Pencil className="h-4 w-4" />
+          Edit
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            deleteTurf(turf.id);
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContentWithFocus>
+    </ContextMenu>
+  );
+};

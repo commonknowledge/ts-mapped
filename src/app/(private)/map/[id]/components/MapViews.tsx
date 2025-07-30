@@ -15,7 +15,7 @@ import {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Layers, Plus, X } from "lucide-react";
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapContext,
@@ -27,10 +27,10 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/(private)/map/[id]/utils";
+import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
-  ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
@@ -50,6 +50,15 @@ export default function MapViews() {
   const [isCreating, setIsCreating] = useState(false);
   const [newViewName, setNewViewName] = useState("");
   const [renamingViewId, setRenamingViewId] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isCreating) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
+    }
+  }, [isCreating]);
 
   // DnD sensors
   const sensors = useSensors(
@@ -66,7 +75,7 @@ export default function MapViews() {
         renamingViewId || isCreating
           ? { start: [], cancel: [], end: [] }
           : undefined,
-    }),
+    })
   );
 
   const handleCreateView = () => {
@@ -152,11 +161,11 @@ export default function MapViews() {
                   onChange={(e) => setNewViewName(e.target.value)}
                   placeholder="View name..."
                   className="text-sm border-none outline-none bg-transparent w-auto"
-                  autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleCreateView();
                     if (e.key === "Escape") setIsCreating(false);
                   }}
+                  ref={inputRef}
                 />
                 <Check
                   onClick={handleCreateView}
@@ -203,10 +212,24 @@ function SortableViewItem({
     deleteView,
     updateView,
   } = useContext(MapContext);
-  const [editName, setEditName] = useState("");
+  const [editName, setEditName] = useState(view.name);
   const isSelected = selectedViewId === view.id;
   const isRenaming = renamingViewId === view.id;
   const isDirty = dirtyViewIds.includes(view.id);
+
+  // Focus management
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isFocusing = useRef(false);
+
+  useEffect(() => {
+    if (isRenaming) {
+      // Prevent the blur handler triggering too fast
+      isFocusing.current = true;
+      setTimeout(() => {
+        isFocusing.current = false;
+      }, 500);
+    }
+  }, [isRenaming]);
 
   const {
     attributes,
@@ -228,13 +251,11 @@ function SortableViewItem({
 
   const handleDoubleClick = () => {
     setRenamingViewId(view.id);
-    setEditName(view.name);
   };
 
   const handleSaveRename = () => {
     updateView({ ...view, name: editName });
     setRenamingViewId(null);
-    setEditName("");
   };
 
   const handleDeleteView = () => {
@@ -274,26 +295,28 @@ function SortableViewItem({
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               className="text-sm border-none outline-none bg-transparent min-w-0"
-              autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSaveRename();
                 if (e.key === "Escape") setRenamingViewId(null);
               }}
-              onBlur={handleSaveRename}
+              onBlur={() => !isFocusing.current && handleSaveRename()}
+              ref={inputRef}
             />
           ) : (
             <h2>{view.name}</h2>
           )}
-
           <div
             className={cn(
               "transition-all duration-300 bg-neutral-400 rounded-full",
-              isDirty ? "w-2 h-2" : "w-0 h-0",
+              isDirty ? "w-2 h-2" : "w-0 h-0"
             )}
           />
         </div>
       </ContextMenuTrigger>
-      <ContextMenuContent>
+      <ContextMenuContentWithFocus
+        shouldFocusTarget={isRenaming}
+        targetRef={inputRef}
+      >
         <ContextMenuItem onClick={() => setRenamingViewId(view.id)}>
           Rename
         </ContextMenuItem>
@@ -308,7 +331,7 @@ function SortableViewItem({
             </ContextMenuItem>
           </>
         )}
-      </ContextMenuContent>
+      </ContextMenuContentWithFocus>
     </ContextMenu>
   );
 }

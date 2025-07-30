@@ -1,15 +1,15 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Pencil, Trash2 } from "lucide-react";
-import { SyntheticEvent, useContext, useState } from "react";
+import { SyntheticEvent, useContext, useRef, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
+import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
-  ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
@@ -24,6 +24,7 @@ export default function SortableMarkerItem({
   activeId: string | null;
   setKeyboardCapture: (captured: boolean) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null)
   const {
     attributes,
     listeners,
@@ -92,8 +93,8 @@ export default function SortableMarkerItem({
               <Input
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                autoFocus
                 className="flex-1"
+                ref={inputRef}
               />
               <Button type="submit" size="sm" variant="ghost">
                 <Check className="h-3 w-3" />
@@ -110,7 +111,7 @@ export default function SortableMarkerItem({
           )}
         </li>
       </ContextMenuTrigger>
-      <ContextMenuContent>
+      <ContextMenuContentWithFocus targetRef={inputRef} shouldFocusTarget={isEditing}>
         <ContextMenuItem
           onClick={() => {
             setEditText(marker.label);
@@ -125,7 +126,7 @@ export default function SortableMarkerItem({
           <Trash2 className="h-4 w-4" />
           Delete
         </ContextMenuItem>
-      </ContextMenuContent>
+      </ContextMenuContentWithFocus>
     </ContextMenu>
   );
 }
