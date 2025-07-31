@@ -9,10 +9,12 @@ export default function MarketingNavbar() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       const response = await fetch("/api/auth/login", {
         body: JSON.stringify({ email, password }),
@@ -22,8 +24,8 @@ export default function MarketingNavbar() {
         throw new Error(`Response code ${response.status}`);
       }
       location.reload();
-    } catch (e) {
-      console.error(`Login failed: ${e}`);
+    } catch {
+      setError("Login failed, please check your credentials.");
       setLoading(false);
     }
   };
@@ -41,14 +43,15 @@ export default function MarketingNavbar() {
           </Link>
         </div>
       </div>
-      <form onSubmit={onSubmitLogin} className="flex gap-2">
+      <form onSubmit={onSubmitLogin} className="flex gap-2 items-center">
+        <span className="text-sm">{error}</span>
         <input
           name="email"
           type="email"
           placeholder="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="px-3 py-1 border border-neutral-300 rounded text-sm"
+          className="px-3 py-1 border border-neutral-300 rounded text-sm w-[240px]"
         />
         <input
           name="password"

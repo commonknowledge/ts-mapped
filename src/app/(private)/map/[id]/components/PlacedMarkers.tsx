@@ -4,6 +4,7 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useContext(MapContext);
@@ -14,7 +15,8 @@ export default function PlacedMarkers() {
     features: placedMarkers.map((marker) => ({
       type: "Feature",
       properties: {
-        text: marker.label,
+        [MARKER_ID_KEY]: marker.id,
+        [MARKER_NAME_KEY]: marker.label,
       },
       geometry: {
         type: "Point",
