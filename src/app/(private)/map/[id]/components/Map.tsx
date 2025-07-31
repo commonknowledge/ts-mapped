@@ -145,6 +145,7 @@ export default function Map({
         const geocoder = new MapboxGeocoder({
           accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
           mapboxgl: mapboxgl,
+          countries: "GB", // TODO: remove when we support other countries
         });
 
         // Listen for search results

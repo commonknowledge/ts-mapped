@@ -1,3 +1,4 @@
+import { Point as GeoJSONPoint } from "geojson";
 import {
   findAreaByCode,
   findAreaByName,
@@ -5,7 +6,11 @@ import {
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
 import { GeocodeResult, Point } from "@/types";
-import { GeocodingConfig } from "@/zod";
+import {
+  AddressGeocodingConfig,
+  AreaGeocodingConfig,
+  GeocodingConfig,
+} from "@/zod";
 
 interface MappingDataRecord {
   externalId: string;
@@ -30,12 +35,20 @@ const _geocodeRecord = async (
   dataRecord: MappingDataRecord,
   geocodingConfig: GeocodingConfig,
 ): Promise<GeocodeResult> => {
-  const dataRecordJson = dataRecord.json;
-  // TODO: Implement the other types
-  if (geocodingConfig.type !== "Code") {
-    throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
+  if (geocodingConfig.type === "Code" || geocodingConfig.type === "Name") {
+    return geocodeRecordByArea(dataRecord, geocodingConfig);
   }
+  if (geocodingConfig.type === "Address") {
+    return geocodeRecordByAddress(dataRecord, geocodingConfig);
+  }
+  throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
+};
 
+const geocodeRecordByArea = async (
+  dataRecord: MappingDataRecord,
+  geocodingConfig: AreaGeocodingConfig,
+) => {
+  const dataRecordJson = dataRecord.json;
   const { column: areaColumn, areaSetCode } = geocodingConfig;
   if (!(areaColumn in dataRecordJson)) {
     throw new Error(`Missing area column "${areaColumn}" in row`);
@@ -68,6 +81,60 @@ const _geocodeRecord = async (
     area.samplePoint,
     geocodingConfig.areaSetCode,
   );
+  for (const area of mappedAreas) {
+    geocodeResult.areas[area.areaSetCode] = area.code;
+  }
+
+  return geocodeResult;
+};
+
+const geocodeRecordByAddress = async (
+  dataRecord: MappingDataRecord,
+  geocodingConfig: AddressGeocodingConfig,
+) => {
+  const dataRecordJson = dataRecord.json;
+  const { columns: addressColumns } = geocodingConfig;
+  for (const addressColumn of addressColumns) {
+    if (!(addressColumn in dataRecordJson)) {
+      throw new Error(`Missing area column "${addressColumn}" in row`);
+    }
+  }
+
+  // TODO: remove UK when other countries are supported
+  const address =
+    addressColumns.map((c) => dataRecordJson[c]).join(", ") + ", UK";
+  const geocodeUrl = new URL(
+    "https://api.mapbox.com/search/geocode/v6/forward",
+  );
+  geocodeUrl.searchParams.set("q", address);
+  geocodeUrl.searchParams.set(
+    "access_token",
+    process.env.MAPBOX_SECRET_TOKEN || "",
+  );
+
+  const response = await fetch(geocodeUrl);
+  if (!response.ok) {
+    throw new Error(`Geocode request failed: ${response.status}`);
+  }
+  const results: { features?: { id: string; geometry: GeoJSONPoint }[] } =
+    await response.json();
+  if (!results.features?.length) {
+    throw new Error(`Geocode request returned no features`);
+  }
+
+  const feature = results.features[0];
+  const point = {
+    lng: feature.geometry.coordinates[0],
+    lat: feature.geometry.coordinates[1],
+  };
+
+  const geocodeResult: GeocodeResult = {
+    areas: {},
+    centralPoint: point,
+    samplePoint: point,
+  };
+
+  const mappedAreas = await findAreasByPoint(JSON.stringify(feature.geometry));
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }

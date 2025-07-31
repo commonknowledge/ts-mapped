@@ -45,6 +45,7 @@ export default async function DataSourcePage({
           geocodingConfig {
             type
             column
+            columns
             areaSetCode
           }
           enrichmentInfo {

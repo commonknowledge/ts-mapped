@@ -78,6 +78,7 @@ const typeDefs = `
   input LooseGeocodingConfigInput {
     type: GeocodingType!
     column: String
+    columns: [String!]
     areaSetCode: AreaSetCode
   }
 
@@ -206,6 +207,7 @@ const typeDefs = `
   type LooseGeocodingConfig {
     type: GeocodingType!
     column: String
+    columns: [String!]
     areaSetCode: AreaSetCode
   }
 

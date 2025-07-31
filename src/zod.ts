@@ -95,31 +95,37 @@ export const EnrichmentSchema = z.discriminatedUnion("sourceType", [
 
 export type Enrichment = z.infer<typeof EnrichmentSchema>;
 
-const GeocodingOnAddressSchema = z.object({
+const AddressGeocodingConfigSchema = z.object({
   type: z.literal(GeocodingType.Address),
-  column: z.string().nonempty(),
+  columns: z.array(z.string().nonempty()),
 });
 
-const GeocodingOnAreaSetTypeSchema = z.enum([
+export type AddressGeocodingConfig = z.infer<
+  typeof AddressGeocodingConfigSchema
+>;
+
+const AreaGeocodingTypeSchema = z.enum([
   GeocodingType.Name,
   GeocodingType.Code,
 ]);
-export const GeocodingOnAreaSetType = GeocodingOnAreaSetTypeSchema.Enum;
+export const AreaGeocodingType = AreaGeocodingTypeSchema.Enum;
 
-const GeocodingOnAreaSetSchema = z.object({
-  type: GeocodingOnAreaSetTypeSchema,
+const AreaGeocodingSchema = z.object({
+  type: AreaGeocodingTypeSchema,
   column: z.string().nonempty(),
   areaSetCode: z.nativeEnum(AreaSetCode),
 });
 
-const GeocodingDisabledSchema = z.object({
+export type AreaGeocodingConfig = z.infer<typeof AreaGeocodingSchema>;
+
+const DisabledGeocodingSchema = z.object({
   type: z.literal(GeocodingType.None),
 });
 
 export const GeocodingConfigSchema = z.discriminatedUnion("type", [
-  GeocodingOnAddressSchema,
-  GeocodingOnAreaSetSchema,
-  GeocodingDisabledSchema,
+  AddressGeocodingConfigSchema,
+  AreaGeocodingSchema,
+  DisabledGeocodingSchema,
 ]);
 
 export type GeocodingConfig = z.infer<typeof GeocodingConfigSchema>;

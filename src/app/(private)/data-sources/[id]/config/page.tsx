@@ -42,6 +42,7 @@ export default async function DataSourceConfigPage({
           geocodingConfig {
             type
             column
+            columns
             areaSetCode
           }
         }
