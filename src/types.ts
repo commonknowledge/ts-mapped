@@ -34,7 +34,6 @@ export interface GeocodeResult {
 }
 
 export interface MarkerData {
-  id: number;
   properties: Record<string, unknown>;
   coordinates: number[];
 }

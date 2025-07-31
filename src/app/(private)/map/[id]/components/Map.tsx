@@ -5,14 +5,14 @@ import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
 import { useContext, useEffect, useState } from "react";
-import MapGL, { NavigationControl } from "react-map-gl/mapbox";
+import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
-import { DEFAULT_ZOOM } from "@/constants";
-import { DrawDeleteEvent } from "@/types";
+import { DEFAULT_ZOOM, MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
+import { DrawDeleteEvent, MarkerData } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
 import Markers from "./Markers";
@@ -31,15 +31,7 @@ export default function Map({
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const map = mapRef?.current;
-    return () => {
-      if (draw && map) {
-        map.getMap().removeControl(draw);
-      }
-    };
-  }, [mapRef, draw]);
+  const [hoverMarker, setHoverMarker] = useState<MarkerData | null>(null);
 
   const markerLayers = [
     mapConfig.membersDataSourceId,
@@ -56,6 +48,55 @@ export default function Map({
     .filter(Boolean)
     .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]);
 
+  useEffect(() => {
+    const map = mapRef?.current;
+
+    const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      if (map) {
+        const features = map.queryRenderedFeatures(e.point, {
+          // Filter out layers that aren't ready
+          layers: markerLayers.filter((layer) => map.getLayer(layer)),
+        });
+        if (features?.length) {
+          const feature = features[0];
+          setHoverMarker({
+            coordinates: [e.lngLat.lng, e.lngLat.lat],
+            properties: feature.properties || {},
+          });
+          map.getCanvas().style.cursor = "pointer";
+        } else {
+          setHoverMarker(null);
+          map.getCanvas().style.cursor = "";
+        }
+      }
+    };
+
+    const onMouseLeave = () => {
+      if (map) {
+        setHoverMarker(null);
+        map.getCanvas().style.cursor = "";
+      }
+    };
+
+    map?.on("mousemove", onMouseMove);
+    map?.on("mouseleave", onMouseLeave);
+
+    return () => {
+      if (map) {
+        map.off("mousemove", onMouseMove);
+        map.off("mouseleave", onMouseLeave);
+      }
+    };
+  }, [draw, mapRef, markerLayers]);
+
+  useEffect(() => {
+    const map = mapRef?.current;
+
+    if (draw && map) {
+      map.getMap().removeControl(draw);
+    }
+  }, [draw, mapRef]);
+
   return (
     <MapGL
       initialViewState={{
@@ -67,6 +108,7 @@ export default function Map({
       style={{ flexGrow: 1 }}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
       mapStyle={`mapbox://styles/mapbox/${viewConfig.getMapStyle().slug}`}
+      interactiveLayerIds={markerLayers}
       onClick={(e) => {
         const map = e.target;
         const features = map.queryRenderedFeatures(e.point, {
@@ -74,7 +116,6 @@ export default function Map({
         });
         if (features.length && features[0].geometry.type === "Point") {
           setSelectedMarker({
-            id: 1,
             properties: features[0].properties || {},
             coordinates: features[0].geometry.coordinates,
           });
@@ -225,6 +266,20 @@ export default function Map({
           <TurfPolygons />
           <Markers />
           <PlacedMarkers />
+          {hoverMarker && (
+            <Popup
+              longitude={hoverMarker.coordinates[0]}
+              latitude={hoverMarker.coordinates[1]}
+              closeButton={false}
+            >
+              <div>
+                <strong>
+                  {String(hoverMarker.properties[MARKER_NAME_KEY]) ||
+                    `ID: ${hoverMarker.properties[MARKER_ID_KEY]}`}
+                </strong>
+              </div>
+            </Popup>
+          )}
         </>
       )}
     </MapGL>
