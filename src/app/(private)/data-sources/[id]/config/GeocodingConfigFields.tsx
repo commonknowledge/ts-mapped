@@ -6,6 +6,13 @@ import {
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
+import { Button } from "@/shadcn/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/shadcn/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -13,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { GeocodingOnAreaSetType } from "@/zod";
+import { AreaGeocodingType } from "@/zod";
 
 /**
  * This is a little complicated as it includes a front-end only
@@ -34,6 +41,7 @@ export default function GeocodingConfigFields({
   onChange: (config: Partial<LooseGeocodingConfig>) => void;
 }) {
   const column = geocodingConfig.column || "";
+  const columns = geocodingConfig.columns || [];
   const areaSetCode = geocodingConfig.areaSetCode || "";
 
   // Convert "Postcode" type to a valid geocoding config
@@ -57,21 +65,6 @@ export default function GeocodingConfigFields({
 
   return (
     <>
-      <DataListRow label="Location column">
-        <Select value={column} onValueChange={(column) => onChange({ column })}>
-          <SelectTrigger className="w-[360px]">
-            <SelectValue placeholder="Select a column to geocode on" />
-          </SelectTrigger>
-          <SelectContent>
-            {dataSource?.columnDefs.map((cd) => (
-              <SelectItem key={cd.name} value={cd.name}>
-                {cd.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </DataListRow>
-
       <DataListRow label="Location type">
         <Select value={typeSelectValue} onValueChange={onTypeChange}>
           <SelectTrigger className="w-[360px]">
@@ -89,28 +82,79 @@ export default function GeocodingConfigFields({
         </Select>
       </DataListRow>
 
-      {typeSelectValue in GeocodingOnAreaSetType && (
-        <DataListRow label="Area type">
-          <Select
-            value={areaSetCode}
-            onValueChange={(areaSetCode) =>
-              onChange({ areaSetCode } as { areaSetCode: AreaSetCode })
-            }
-          >
-            <SelectTrigger className="w-[360px]">
-              <SelectValue placeholder="What kind of area is this?" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(AreaSetCodeLabels)
-                .filter((type) => type !== AreaSetCode.PC)
-                .map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {AreaSetCodeLabels[type as AreaSetCode]}
+      {typeSelectValue === GeocodingType.Address && (
+        <DataListRow label="Location columns">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                {columns.length ? columns.join(", ") : "Select"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {dataSource?.columnDefs.map((cd) => (
+                <DropdownMenuCheckboxItem
+                  key={cd.name}
+                  checked={columns.includes(cd.name)}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      onChange({ columns: columns.concat([cd.name]) });
+                    } else {
+                      onChange({
+                        columns: columns.filter((c) => c !== cd.name),
+                      });
+                    }
+                  }}
+                >
+                  {cd.name}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </DataListRow>
+      )}
+
+      {typeSelectValue in AreaGeocodingType && (
+        <>
+          <DataListRow label="Location column">
+            <Select
+              value={column}
+              onValueChange={(column) => onChange({ column })}
+            >
+              <SelectTrigger className="w-[360px]">
+                <SelectValue placeholder="Select a column to geocode on" />
+              </SelectTrigger>
+              <SelectContent>
+                {dataSource?.columnDefs.map((cd) => (
+                  <SelectItem key={cd.name} value={cd.name}>
+                    {cd.name}
                   </SelectItem>
                 ))}
-            </SelectContent>
-          </Select>
-        </DataListRow>
+              </SelectContent>
+            </Select>
+          </DataListRow>
+          <DataListRow label="Area type">
+            <Select
+              value={areaSetCode}
+              onValueChange={(areaSetCode) =>
+                onChange({ areaSetCode } as { areaSetCode: AreaSetCode })
+              }
+            >
+              <SelectTrigger className="w-[360px]">
+                <SelectValue placeholder="What kind of area is this?" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(AreaSetCodeLabels)
+                  .filter((type) => type !== AreaSetCode.PC)
+                  .map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {AreaSetCodeLabels[type as AreaSetCode]}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </DataListRow>
+        </>
       )}
     </>
   );

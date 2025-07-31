@@ -31,7 +31,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
-import { GeocodingOnAreaSetType } from "@/zod";
+import { AreaGeocodingType } from "@/zod";
 
 export default function DataSourceDashboard({
   dataSource,
@@ -119,7 +119,7 @@ export default function DataSourceDashboard({
 
   const isPostcodeData =
     dataSource.geocodingConfig.areaSetCode === AreaSetCode.PC;
-  const isAreaData = dataSource.geocodingConfig.type in GeocodingOnAreaSetType;
+  const isAreaData = dataSource.geocodingConfig.type in AreaGeocodingType;
 
   const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
 
@@ -239,11 +239,13 @@ export default function DataSourceDashboard({
               border
             />
             <DataListRow
-              label="Location column"
+              label="Location column(s)"
               value={
                 dataSource.geocodingConfig.column
                   ? `"${dataSource.geocodingConfig.column}"`
-                  : "None"
+                  : dataSource.geocodingConfig.columns?.length
+                    ? dataSource.geocodingConfig.columns.join(", ")
+                    : "None"
               }
               border
             />

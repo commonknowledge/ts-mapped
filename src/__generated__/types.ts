@@ -241,12 +241,14 @@ export type LooseGeocodingConfig = {
   __typename?: "LooseGeocodingConfig";
   areaSetCode?: Maybe<AreaSetCode>;
   column?: Maybe<Scalars["String"]["output"]>;
+  columns?: Maybe<Array<Scalars["String"]["output"]>>;
   type: GeocodingType;
 };
 
 export type LooseGeocodingConfigInput = {
   areaSetCode?: InputMaybe<AreaSetCode>;
   column?: InputMaybe<Scalars["String"]["input"]>;
+  columns?: InputMaybe<Array<Scalars["String"]["input"]>>;
   type: GeocodingType;
 };
 
@@ -571,19 +573,6 @@ export type UpsertTurfResponse = {
   result?: Maybe<Turf>;
 };
 
-export type CreateMapMutationVariables = Exact<{
-  organisationId: Scalars["String"]["input"];
-}>;
-
-export type CreateMapMutation = {
-  __typename?: "Mutation";
-  createMap?: {
-    __typename?: "CreateMapResponse";
-    code: number;
-    result?: { __typename?: "Map"; id: string } | null;
-  } | null;
-};
-
 export type ListMapsQueryVariables = Exact<{
   organisationId: Scalars["String"]["input"];
 }>;
@@ -597,6 +586,19 @@ export type ListMapsQuery = {
     createdAt: any;
     imageUrl?: string | null;
   }> | null;
+};
+
+export type CreateMapMutationVariables = Exact<{
+  organisationId: Scalars["String"]["input"];
+}>;
+
+export type CreateMapMutation = {
+  __typename?: "Mutation";
+  createMap?: {
+    __typename?: "CreateMapResponse";
+    code: number;
+    result?: { __typename?: "Map"; id: string } | null;
+  } | null;
 };
 
 export type EnqueueImportDataSourceJobMutationVariables = Exact<{
@@ -694,6 +696,7 @@ export type DataSourceConfigQuery = {
       __typename?: "LooseGeocodingConfig";
       type: GeocodingType;
       column?: string | null;
+      columns?: Array<string> | null;
       areaSetCode?: AreaSetCode | null;
     };
   } | null;
@@ -778,6 +781,7 @@ export type DataSourceQuery = {
       __typename?: "LooseGeocodingConfig";
       type: GeocodingType;
       column?: string | null;
+      columns?: Array<string> | null;
       areaSetCode?: AreaSetCode | null;
     };
     enrichmentInfo?: {
@@ -1636,6 +1640,11 @@ export type LooseGeocodingConfigResolvers<
     ContextType
   >;
   column?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  columns?: Resolver<
+    Maybe<Array<ResolversTypes["String"]>>,
+    ParentType,
+    ContextType
+  >;
   type?: Resolver<ResolversTypes["GeocodingType"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

@@ -35,7 +35,7 @@ const enrichmentTypeChecks: Record<EnrichmentSourceType, LooseEnrichment> = {
 const geocodingTypeChecks: Record<GeocodingType, LooseGeocodingConfig> = {
   [GeocodingType.Address]: {
     type: GeocodingType.Address,
-    column: "test",
+    columns: ["test"],
   } satisfies GeocodingConfig,
   [GeocodingType.Code]: {
     type: GeocodingType.Code,
