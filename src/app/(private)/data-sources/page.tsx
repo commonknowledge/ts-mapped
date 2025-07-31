@@ -31,7 +31,11 @@ export default function DataSourcesPage() {
         }
       }
     `,
-    { variables: { organisationId }, skip: !organisationId },
+    {
+      variables: { organisationId },
+      skip: !organisationId,
+      fetchPolicy: "network-only",
+    },
   );
   const dataSources = data?.dataSources || [];
 

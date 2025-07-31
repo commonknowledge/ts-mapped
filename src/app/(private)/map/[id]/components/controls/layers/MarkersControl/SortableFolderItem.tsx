@@ -12,15 +12,15 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { SyntheticEvent, useContext, useMemo, useState } from "react";
+import { SyntheticEvent, useContext, useMemo, useRef, useState } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils";
+import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
-  ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
@@ -42,6 +42,8 @@ export default function SortableFolderItem({
   isPulsing: boolean;
   setKeyboardCapture: (captured: boolean) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const { setNodeRef: setHeaderNodeRef, isOver: isHeaderOver } = useDroppable({
     id: `folder-${folder.id}`,
   });
@@ -133,7 +135,7 @@ export default function SortableFolderItem({
                 <Input
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  autoFocus
+                  ref={inputRef}
                   className="flex-1"
                 />
                 <Button type="submit" size="sm" variant="ghost">
@@ -158,7 +160,10 @@ export default function SortableFolderItem({
             </span>
           </div>
         </ContextMenuTrigger>
-        <ContextMenuContent>
+        <ContextMenuContentWithFocus
+          shouldFocusTarget={isEditing}
+          targetRef={inputRef}
+        >
           <ContextMenuItem
             onClick={() => {
               setEditText(folder.name);
@@ -173,7 +178,7 @@ export default function SortableFolderItem({
             <Trash2 className="h-4 w-4" />
             Delete
           </ContextMenuItem>
-        </ContextMenuContent>
+        </ContextMenuContentWithFocus>
       </ContextMenu>
       {isExpanded && (
         <>
