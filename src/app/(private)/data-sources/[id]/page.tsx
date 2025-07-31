@@ -29,7 +29,7 @@ export default async function DataSourcePage({
           }
           config
           columnRoles {
-            nameColumn
+            nameColumns
           }
           enrichments {
             sourceType

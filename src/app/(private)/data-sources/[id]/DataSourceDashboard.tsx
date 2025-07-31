@@ -216,10 +216,10 @@ export default function DataSourceDashboard({
           <div className="mb-4">
             <Label className="text-lg">Columns</Label>
             <DataListRow
-              label="Name column"
+              label="Name columns"
               value={
-                dataSource.columnRoles.nameColumn
-                  ? `"${dataSource.columnRoles.nameColumn}"`
+                dataSource.columnRoles.nameColumns?.length
+                  ? dataSource.columnRoles.nameColumns.join(", ")
                   : "None"
               }
               border

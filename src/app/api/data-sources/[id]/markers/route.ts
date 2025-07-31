@@ -43,15 +43,18 @@ export async function GET(
         if (dr.geocodeResult?.centralPoint) {
           const centralPoint = dr.geocodeResult.centralPoint;
           const coordinates = [centralPoint.lng, centralPoint.lat];
-          const nameColumn = dataSource?.columnRoles.nameColumn;
+          const nameColumns = dataSource?.columnRoles.nameColumns;
           const feature = {
             type: "Feature",
             properties: {
               ...dr.json,
               [MARKER_ID_KEY]: dr.externalId,
               // If no name column is specified, show the ID as the marker name instead
-              [MARKER_NAME_KEY]: nameColumn
-                ? dr.json[nameColumn]
+              [MARKER_NAME_KEY]: nameColumns?.length
+                ? nameColumns
+                    .map((c) => dr.json[c])
+                    .filter(Boolean)
+                    .join(", ")
                 : dr.externalId,
             },
             geometry: {

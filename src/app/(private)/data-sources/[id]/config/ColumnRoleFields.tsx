@@ -1,36 +1,49 @@
 import { DataSourceConfigQuery } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
+import { Button } from "@/shadcn/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shadcn/ui/select";
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/shadcn/ui/dropdown-menu";
 
 export default function ColumnRoleFields({
   dataSource,
-  nameColumn,
-  setNameColumn,
+  nameColumns,
+  setNameColumns,
 }: {
   dataSource: DataSourceConfigQuery["dataSource"];
-  nameColumn: string;
-  setNameColumn: (nc: string) => void;
+  nameColumns: string[];
+  setNameColumns: (ncs: string[]) => void;
 }) {
   return (
-    <DataListRow label="Name column">
-      <Select value={nameColumn} onValueChange={setNameColumn}>
-        <SelectTrigger className="w-[360px]">
-          <SelectValue placeholder="Select a name column" />
-        </SelectTrigger>
-        <SelectContent>
+    <DataListRow label="Name columns">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">
+            {nameColumns.length ? nameColumns.join(", ") : "Select"}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
           {dataSource?.columnDefs.map((cd) => (
-            <SelectItem key={cd.name} value={cd.name}>
+            <DropdownMenuCheckboxItem
+              key={cd.name}
+              checked={nameColumns.includes(cd.name)}
+              onSelect={(e) => e.preventDefault()}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setNameColumns(nameColumns.concat([cd.name]));
+                } else {
+                  setNameColumns(nameColumns.filter((c) => c !== cd.name));
+                }
+              }}
+            >
               {cd.name}
-            </SelectItem>
+            </DropdownMenuCheckboxItem>
           ))}
-        </SelectContent>
-      </Select>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </DataListRow>
   );
 }
