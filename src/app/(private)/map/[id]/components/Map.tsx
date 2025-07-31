@@ -46,7 +46,15 @@ export default function Map({
     ...mapConfig.markerDataSourceIds,
   ]
     .filter(Boolean)
-    .map((id) => `${id}-markers-pins`);
+    .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
+    .concat(["search-history-pins", "search-history-labels"]);
+
+  const clusterLayers = [
+    mapConfig.membersDataSourceId,
+    ...mapConfig.markerDataSourceIds,
+  ]
+    .filter(Boolean)
+    .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]);
 
   return (
     <MapGL
@@ -70,8 +78,21 @@ export default function Map({
             properties: features[0].properties || {},
             coordinates: features[0].geometry.coordinates,
           });
+          map.flyTo({
+            center: features[0].geometry.coordinates as [number, number],
+            zoom: 12,
+          });
         } else {
           setSelectedMarker(null);
+        }
+        const clusters = map.queryRenderedFeatures(e.point, {
+          layers: clusterLayers,
+        });
+        if (clusters.length && clusters[0].geometry.type === "Point") {
+          map.flyTo({
+            center: clusters[0].geometry.coordinates as [number, number],
+            zoom: map.getZoom() + 2,
+          });
         }
       }}
       onLoad={() => {
@@ -95,6 +116,7 @@ export default function Map({
             point: { lng: result.center[0], lat: result.center[1] },
             folderId: null,
           });
+          geocoder.clear();
         });
 
         map.addControl(geocoder, "top-right");
