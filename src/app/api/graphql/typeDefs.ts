@@ -72,7 +72,7 @@ const typeDefs = `
   }
 
   input ColumnRolesInput {
-    nameColumn: String!
+    nameColumns: [String!]!
   }
 
   input LooseGeocodingConfigInput {
@@ -146,7 +146,7 @@ const typeDefs = `
   }
 
   type ColumnRoles {
-    nameColumn: String
+    nameColumns: [String!]
   }
 
   type DataRecord {

@@ -84,11 +84,11 @@ export type ColumnDef = {
 
 export type ColumnRoles = {
   __typename?: "ColumnRoles";
-  nameColumn?: Maybe<Scalars["String"]["output"]>;
+  nameColumns?: Maybe<Array<Scalars["String"]["output"]>>;
 };
 
 export type ColumnRolesInput = {
-  nameColumn: Scalars["String"]["input"];
+  nameColumns: Array<Scalars["String"]["input"]>;
 };
 
 export enum ColumnType {
@@ -689,7 +689,10 @@ export type DataSourceConfigQuery = {
       name: string;
       type: ColumnType;
     }>;
-    columnRoles: { __typename?: "ColumnRoles"; nameColumn?: string | null };
+    columnRoles: {
+      __typename?: "ColumnRoles";
+      nameColumns?: Array<string> | null;
+    };
     geocodingConfig: {
       __typename?: "LooseGeocodingConfig";
       type: GeocodingType;
@@ -760,7 +763,10 @@ export type DataSourceQuery = {
       name: string;
       type: ColumnType;
     }>;
-    columnRoles: { __typename?: "ColumnRoles"; nameColumn?: string | null };
+    columnRoles: {
+      __typename?: "ColumnRoles";
+      nameColumns?: Array<string> | null;
+    };
     enrichments: Array<{
       __typename?: "LooseEnrichment";
       sourceType: EnrichmentSourceType;
@@ -1376,8 +1382,8 @@ export type ColumnRolesResolvers<
   ParentType extends
     ResolversParentTypes["ColumnRoles"] = ResolversParentTypes["ColumnRoles"],
 > = {
-  nameColumn?: Resolver<
-    Maybe<ResolversTypes["String"]>,
+  nameColumns?: Resolver<
+    Maybe<Array<ResolversTypes["String"]>>,
     ParentType,
     ContextType
   >;
