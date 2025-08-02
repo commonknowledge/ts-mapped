@@ -9,12 +9,12 @@ const createBlankConfig = (): MapConfig => {
   };
 };
 
-export async function createMap(organisationId: string) {
+export async function createMap(organisationId: string, name = "Untitled Map") {
   return db
     .insertInto("map")
     .values({
       organisationId,
-      name: "Untitled Map",
+      name,
       config: JSON.stringify(createBlankConfig()),
     })
     .returningAll()
@@ -23,28 +23,6 @@ export async function createMap(organisationId: string) {
 
 export async function deleteMap(id: string) {
   return db.deleteFrom("map").where("id", "=", id).executeTakeFirstOrThrow();
-}
-
-export async function ensureOrganisationMap(organisationId: string) {
-  const existingMap = await db
-    .selectFrom("map")
-    .where("organisationId", "=", organisationId)
-    .selectAll()
-    .executeTakeFirst();
-
-  if (existingMap) {
-    return existingMap;
-  }
-
-  return db
-    .insertInto("map")
-    .values({
-      organisationId,
-      name: "Example Map",
-      config: JSON.stringify(createBlankConfig()),
-    })
-    .returningAll()
-    .executeTakeFirstOrThrow();
 }
 
 export function findMapById(id: string) {
