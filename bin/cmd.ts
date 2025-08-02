@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
@@ -6,7 +7,6 @@ import importPostcodes from "@/server/commands/importPostcodes";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
-import { ensureOrganisationMap } from "@/server/repositories/Map";
 import {
   findOrganisationByName,
   upsertOrganisation,

@@ -107,7 +107,7 @@ export async function findDataSourcesByType(type: DataSourceType) {
     .execute();
 }
 
-export function findDataSourcesByUserId(userId: string) {
+export function findReadableDataSources(userId: string) {
   return db
     .selectFrom("dataSource")
     .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
@@ -116,9 +116,27 @@ export function findDataSourcesByUserId(userId: string) {
       "organisation.id",
       "organisationUser.organisationId",
     )
-    .where("organisationUser.userId", "=", userId)
+    .where((eb) => {
+      return eb.or([
+        eb("organisationUser.userId", "=", userId),
+        eb("public", "=", true),
+      ]);
+    })
     .selectAll("dataSource")
     .execute();
+}
+
+export async function findCSVDataSourceByUrl(url: string) {
+  return await db
+    .selectFrom("dataSource")
+    .where(({ eb, ref }) => {
+      return eb(ref("config", "->>").key("type"), "=", DataSourceType.csv);
+    })
+    .where(({ eb, ref }) => {
+      return eb(ref("config", "->>").key("url"), "=", url);
+    })
+    .selectAll()
+    .executeTakeFirst();
 }
 
 export async function updateDataSource(

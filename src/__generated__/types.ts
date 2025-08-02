@@ -436,6 +436,7 @@ export type MutationResponse = {
 
 export enum Operation {
   AVG = "AVG",
+  MODE = "MODE",
   SUM = "SUM",
 }
 
@@ -496,6 +497,7 @@ export type QueryDataSourceArgs = {
 };
 
 export type QueryDataSourcesArgs = {
+  includePublic?: InputMaybe<Scalars["Boolean"]["input"]>;
   organisationId?: InputMaybe<Scalars["String"]["input"]>;
 };
 

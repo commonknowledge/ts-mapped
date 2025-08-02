@@ -1,9 +1,12 @@
+import * as fs from "fs";
+import { join } from "path";
 import readline from "readline";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
 import { getAbsoluteUrl } from "@/server/services/urls";
 import { ExternalRecord } from "@/types";
+import { getBaseDir } from "../utils";
 import { DataSourceAdaptor } from "./abstract";
 
 export class CSVAdaptor implements DataSourceAdaptor {
@@ -37,11 +40,20 @@ export class CSVAdaptor implements DataSourceAdaptor {
   }
 
   async createReadStream() {
+    if (this.url.startsWith("file://")) {
+      return this.createFileReadStream(this.url);
+    }
     const response = await fetch(this.url);
     if (!response.body) {
       throw new Error(`Could not read URL ${this.url}`);
     }
     return Readable.from(response.body);
+  }
+
+  createFileReadStream(url: string) {
+    const relativePath = url.replace(/^file:\/\//, "");
+    const absolutePath = join(getBaseDir(), relativePath);
+    return fs.createReadStream(absolutePath);
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {

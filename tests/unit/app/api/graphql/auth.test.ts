@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
 import {
+  _checkArg as checkArg,
   _checkArgs as checkArgs,
   _checkAuth as checkAuth,
   _dataSourceGuard as dataSourceGuard,
-  _getGuard as getGuard,
   _mapGuard as mapGuard,
   _organisationGuard as organisationGuard,
 } from "@/app/api/graphql/auth";
@@ -194,7 +194,7 @@ describe("Auth Functions", () => {
       expect(result).toBe(true);
     });
 
-    it.only("should return false when read permission fails even if write permission passes", async () => {
+    it("should return false when read permission fails even if write permission passes", async () => {
       const authDirective: AuthDirectiveArgs = {
         read: { dataSourceIdArg: "dataSourceId" },
         write: { organisationIdArg: "organisationId" },
@@ -321,20 +321,25 @@ describe("Auth Functions", () => {
     });
   });
 
-  describe("getGuard", () => {
-    it("should return dataSourceGuard for dataSourceIdArg", () => {
-      const guard = getGuard("dataSourceIdArg");
-      expect(guard).toBe(dataSourceGuard);
+  describe("checkArg", () => {
+     it("should return true when the arg passes its guard", async () => {
+      const result = await checkArg(
+        "dataSourceIdArg",
+        testDataSource.id,
+        testUser.id,
+        "read",
+      );
+      expect(result).toBe(true);
     });
 
-    it("should return mapGuard for mapIdArg", () => {
-      const guard = getGuard("mapIdArg");
-      expect(guard).toBe(mapGuard);
-    });
-
-    it("should return organisationGuard for organisationIdArg", () => {
-      const guard = getGuard("organisationIdArg");
-      expect(guard).toBe(organisationGuard);
+    it("should return false when any protected arg fails its guard", async () => {
+       const result = await checkArg(
+        "dataSourceIdArg",
+        testDataSource.id,
+        otherUser.id,
+        "read",
+      );
+      expect(result).toBe(false);
     });
   });
 

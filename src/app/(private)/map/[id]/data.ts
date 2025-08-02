@@ -32,7 +32,7 @@ import { DataSourceMarkers } from "./types";
 export const useDataSourcesQuery = () =>
   useQuery<DataSourcesQuery>(gql`
     query DataSources {
-      dataSources {
+      dataSources(includePublic: true) {
         id
         name
         config

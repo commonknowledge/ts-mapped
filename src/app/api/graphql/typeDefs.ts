@@ -60,6 +60,7 @@ const typeDefs = `
 
   enum Operation {
     AVG
+    MODE
     SUM
   }
 
@@ -295,7 +296,7 @@ const typeDefs = `
     ): AreaStats @auth(read: { dataSourceIdArg: "dataSourceId" })
 
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
-    dataSources(organisationId: String): [DataSource!] @auth
+    dataSources(organisationId: String, includePublic: Boolean): [DataSource!] @auth
 
     map(id: String!): Map @auth(read: { mapIdArg: "id" })
     maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })

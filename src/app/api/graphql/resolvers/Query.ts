@@ -6,7 +6,7 @@ import {
 import { GraphQLContext } from "@/app/api/graphql/context";
 import {
   findDataSourceById,
-  findDataSourcesByUserId,
+  findReadableDataSources,
 } from "@/server/repositories/DataSource";
 import {
   findMapById,
@@ -53,16 +53,25 @@ const QueryResolvers: QueryResolversType = {
 
   dataSources: async (
     _: unknown,
-    { organisationId }: { organisationId?: string | null },
+    { organisationId, includePublic },
     context: GraphQLContext,
   ) => {
     if (!context.currentUser) {
       return [];
     }
-    const dataSources = await findDataSourcesByUserId(context.currentUser.id);
-    return dataSources.filter(
-      (ds) => !organisationId || ds.organisationId === organisationId,
-    );
+    const dataSources = await findReadableDataSources(context.currentUser.id);
+    return dataSources.filter((ds) => {
+      if (includePublic && ds.public) {
+        return true;
+      }
+      if (!organisationId) {
+        return true;
+      }
+      if (organisationId === ds.organisationId) {
+        return true;
+      }
+      return false;
+    });
   },
 
   map: async (_: unknown, { id }: { id: string }) => {
