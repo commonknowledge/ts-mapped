@@ -5,12 +5,14 @@ import {
   GraphQLSchema,
   defaultFieldResolver,
 } from "graphql";
-import { AuthDirectiveArgs } from "@/__generated__/types";
-import { findDataSourceByIdAndOwnerId } from "@/server/repositories/DataSource";
+import { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
+import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findMapById } from "@/server/repositories/Map";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import logger from "@/server/services/logger";
 import { GraphQLContext } from "./context";
+
+type AccessType = keyof AuthDirectiveArgs;
 
 /**
  * Handle @auth(...) directives (see https://the-guild.dev/graphql/tools/docs/schema-directives)
@@ -36,7 +38,7 @@ export const applyAuthDirective = (schema: GraphQLSchema) => {
       return {
         ...fieldConfig,
         resolve: async function (source, args, context: GraphQLContext, info) {
-          const authSuccess = await checkAuth(authDirective, args, context);
+          const authSuccess = await _checkAuth(authDirective, args, context);
           if (!authSuccess) {
             throw new GraphQLError("Unauthorized");
           }
@@ -47,56 +49,150 @@ export const applyAuthDirective = (schema: GraphQLSchema) => {
   });
 };
 
-const checkAuth = async (
+export const _checkAuth = async (
   authDirective: AuthDirectiveArgs,
   fieldArgs: Record<string, string>,
   context: GraphQLContext,
 ): Promise<boolean> => {
   try {
     const userId = context.currentUser?.id;
-    if (!userId) {
-      return false;
-    }
-    // At the moment, all users have read/write permissions on their
-    // organisations and data sources
-    const argNames = { ...authDirective.read, ...authDirective.write };
-    if (argNames.organisationIdArg) {
-      const organisationId = fieldArgs[argNames.organisationIdArg];
-      const organisationUser = await findOrganisationUser(
-        organisationId,
+
+    if (authDirective.write) {
+      const canWrite = await _checkArgs(
+        authDirective.write,
+        fieldArgs,
         userId,
+        "write",
       );
-      if (!organisationUser) {
+      if (!canWrite) {
         return false;
       }
     }
-    if (argNames.dataSourceIdArg) {
-      const dataSourceId = fieldArgs[argNames.dataSourceIdArg];
-      const dataSource = await findDataSourceByIdAndOwnerId(
-        dataSourceId,
+
+    if (authDirective.read) {
+      const canRead = await _checkArgs(
+        authDirective.read,
+        fieldArgs,
         userId,
+        "read",
       );
-      if (!dataSource) {
+      if (!canRead) {
         return false;
       }
     }
-    if (argNames.mapIdArg) {
-      const mapId = fieldArgs[argNames.mapIdArg];
-      const map = await findMapById(mapId);
-      if (!map) {
-        return false;
-      }
-      const organisationUser = await findOrganisationUser(
-        map.organisationId,
-        userId,
-      );
-      if (!organisationUser) {
-        return false;
-      }
-    }
+
     return true;
   } catch (error) {
     logger.error("Auth error", { error });
     return false;
   }
+};
+
+export const _checkArgs = async (
+  protectedArgs: ProtectedArgs,
+  fieldArgs: Record<string, string>,
+  userId: string | null | undefined,
+  accessType: AccessType,
+) => {
+  // Restructure protectedArgs for simpler TypeScript inference
+  // e.g. { dataSourceIdArg: "id", mapIdArg: "mapId" } => [["dataSourceIdArg", "id"], ["mapIdArg", "mapId"]]
+  const argTypesAndNames = Object.entries(protectedArgs) as [
+    keyof ProtectedArgs,
+    string,
+  ][];
+  for (const [argType, argName] of argTypesAndNames) {
+    const guard = _getGuard(argType);
+    const fieldValue = fieldArgs[argName];
+    const success = await guard(fieldValue, userId, accessType);
+    if (!success) {
+      return false;
+    }
+  }
+  return true;
+};
+
+export const _getGuard = (argType: keyof ProtectedArgs) => {
+  // Map to ensure that all args have guards
+  return {
+    dataSourceIdArg: _dataSourceGuard,
+    mapIdArg: _mapGuard,
+    organisationIdArg: _organisationGuard,
+  }[argType];
+};
+
+export const _dataSourceGuard = async (
+  dataSourceId: string | null | undefined,
+  userId: string | null | undefined,
+  accessType: AccessType,
+) => {
+  if (!dataSourceId) {
+    return false;
+  }
+
+  const dataSource = await findDataSourceById(dataSourceId);
+  if (!dataSource) {
+    return false;
+  }
+
+  if (accessType === "read" && dataSource.public) {
+    return true;
+  }
+
+  if (!userId) {
+    return false;
+  }
+
+  const organisationUser = await findOrganisationUser(
+    dataSource.organisationId,
+    userId,
+  );
+  if (!organisationUser) {
+    return false;
+  }
+
+  return true;
+};
+
+export const _mapGuard = async (
+  mapId: string | null | undefined,
+  userId: string | null | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  accessType: AccessType,
+) => {
+  if (!mapId || !userId) {
+    return false;
+  }
+
+  const map = await findMapById(mapId);
+  if (!map) {
+    return false;
+  }
+
+  const organisationUser = await findOrganisationUser(
+    map.organisationId,
+    userId,
+  );
+  if (!organisationUser) {
+    return false;
+  }
+
+  return true;
+};
+
+export const _organisationGuard = async (
+  organisationId: string | null | undefined,
+  userId: string | null | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  accessType: AccessType,
+) => {
+  if (!organisationId || !userId) {
+    return false;
+  }
+
+  const organisationUser = await findOrganisationUser(organisationId, userId);
+  if (!organisationUser) {
+    return false;
+  }
+
+  return true;
 };

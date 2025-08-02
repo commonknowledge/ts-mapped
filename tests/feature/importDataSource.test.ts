@@ -34,6 +34,7 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
       areaSetCode: "PC",
     }),
     organisationId: org.id,
+    public: false,
   });
 
   // 3. Call importDataSource
