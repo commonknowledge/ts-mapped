@@ -25,8 +25,8 @@ export default function DataSourceConfigForm({
   dataSource: Exclude<DataSourceConfigQuery["dataSource"], null | undefined>;
 }) {
   // Columns config
-  const [nameColumn, setNameColumn] = useState<string>(
-    dataSource.columnRoles.nameColumn || "",
+  const [nameColumns, setNameColumns] = useState<string[]>(
+    dataSource.columnRoles.nameColumns || [],
   );
 
   // Geocoding config
@@ -62,7 +62,7 @@ export default function DataSourceConfigForm({
     }
   `);
 
-  const columnRoles = { nameColumn };
+  const columnRoles = { nameColumns };
 
   const { data: validGeocodingConfig } =
     GeocodingConfigSchema.safeParse(geocodingConfig);
@@ -102,8 +102,8 @@ export default function DataSourceConfigForm({
       <h2 className="text-xl tracking-tight font-light">Data setup</h2>
       <ColumnRoleFields
         dataSource={dataSource}
-        nameColumn={nameColumn}
-        setNameColumn={setNameColumn}
+        nameColumns={nameColumns}
+        setNameColumns={setNameColumns}
       />
       <Separator className="mb-4" />
       <h2 className="text-xl tracking-tight font-light">Geocoding setup</h2>

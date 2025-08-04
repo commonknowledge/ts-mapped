@@ -37,7 +37,7 @@ export default async function DataSourceConfigPage({
             type
           }
           columnRoles {
-            nameColumn
+            nameColumns
           }
           geocodingConfig {
             type
