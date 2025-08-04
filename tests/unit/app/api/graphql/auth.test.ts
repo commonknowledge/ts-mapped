@@ -322,7 +322,7 @@ describe("Auth Functions", () => {
   });
 
   describe("checkArg", () => {
-     it("should return true when the arg passes its guard", async () => {
+    it("should return true when the arg passes its guard", async () => {
       const result = await checkArg(
         "dataSourceIdArg",
         testDataSource.id,
@@ -333,7 +333,7 @@ describe("Auth Functions", () => {
     });
 
     it("should return false when any protected arg fails its guard", async () => {
-       const result = await checkArg(
+      const result = await checkArg(
         "dataSourceIdArg",
         testDataSource.id,
         otherUser.id,

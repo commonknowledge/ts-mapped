@@ -12,11 +12,11 @@ const credentials = inject("credentials");
 
 test("importDataSource imports John Lennon record from Airtable", async () => {
   // 1. Create test organisation
-  const org = await upsertOrganisation({ name: "Test Org" });
+  const org = await upsertOrganisation({ name: "Test Import Org" });
 
   // 2. Create test data source with Airtable credentials
   const dataSource = await createDataSource({
-    name: "Test Airtable Source",
+    name: "Test Import Airtable Source",
     autoEnrich: false,
     autoImport: false,
     config: JSON.stringify({

@@ -24,19 +24,27 @@ import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { DataSourceType } from "@/types";
 import { DataSourceConfig, GeocodingConfig } from "@/zod";
 
-const DATA_SOURCE_NAME = "2024 GE Results";
+const MAP_AND_DATA_SOURCE_NAME = "2024 GE Results";
 
+/**
+ * Ensures that a map called `MAP_AND_DATA_SOURCE_NAME` exists for
+ * the provided organisation, with the choropleth visualization set
+ * to display the 2024 GE results.
+ *
+ * This file also includes the logic to ensure the data source exists,
+ * and should be revisited when work on the movement library begins.
+ */
 const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
   const maps = await findMapsByOrganisationId(orgId);
   let map = null;
   for (const m of maps) {
-    if (m.name === DATA_SOURCE_NAME) {
+    if (m.name === MAP_AND_DATA_SOURCE_NAME) {
       map = m;
       break;
     }
   }
   if (!map) {
-    map = await createMap(orgId, DATA_SOURCE_NAME);
+    map = await createMap(orgId, MAP_AND_DATA_SOURCE_NAME);
   }
 
   const views = await findMapViewsByMapId(map.id);
@@ -96,7 +104,7 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
       column: "ONS ID",
     };
     const newDataSource = {
-      name: "2024 GE Results",
+      name: MAP_AND_DATA_SOURCE_NAME,
       organisationId: commonKnowledgeOrg.id,
       autoEnrich: false,
       autoImport: false,

@@ -23,7 +23,7 @@ export const applyAuthDirective = (schema: GraphQLSchema) => {
       const authDirective: AuthDirectiveArgs | undefined = getDirective(
         schema,
         fieldConfig,
-        "auth"
+        "auth",
       )?.[0];
       if (!authDirective) {
         return fieldConfig;
@@ -31,7 +31,7 @@ export const applyAuthDirective = (schema: GraphQLSchema) => {
       const isNonNullable = fieldConfig.type instanceof GraphQLNonNull;
       if (isNonNullable) {
         throw new Error(
-          `Field ${fieldConfig.astNode?.name.value} must be nullable to use the @auth directive.`
+          `Field ${fieldConfig.astNode?.name.value} must be nullable to use the @auth directive.`,
         );
       }
       const { resolve = defaultFieldResolver } = fieldConfig;
@@ -52,7 +52,7 @@ export const applyAuthDirective = (schema: GraphQLSchema) => {
 export const _checkAuth = async (
   authDirective: AuthDirectiveArgs,
   fieldArgs: Record<string, string>,
-  context: GraphQLContext
+  context: GraphQLContext,
 ): Promise<boolean> => {
   try {
     const userId = context.currentUser?.id;
@@ -62,7 +62,7 @@ export const _checkAuth = async (
         authDirective.write,
         fieldArgs,
         userId,
-        "write"
+        "write",
       );
       if (!canWrite) {
         return false;
@@ -74,7 +74,7 @@ export const _checkAuth = async (
         authDirective.read,
         fieldArgs,
         userId,
-        "read"
+        "read",
       );
       if (!canRead) {
         return false;
@@ -92,7 +92,7 @@ export const _checkArgs = async (
   protectedArgs: ProtectedArgs,
   fieldArgs: Record<string, string>,
   userId: string | null | undefined,
-  accessType: AccessType
+  accessType: AccessType,
 ) => {
   // Restructure protectedArgs for simpler TypeScript inference
   // e.g. { dataSourceIdArg: "id", mapIdArg: "mapId" } => [["dataSourceIdArg", "id"], ["mapIdArg", "mapId"]]
@@ -114,7 +114,7 @@ export const _checkArg = (
   argType: keyof ProtectedArgs,
   fieldValue: string | null | undefined,
   userId: string | null | undefined,
-  accessType: AccessType
+  accessType: AccessType,
 ) => {
   // Select the guard using a map to ensure that all arg types have guards
   const guard = {
@@ -128,7 +128,7 @@ export const _checkArg = (
 export const _dataSourceGuard = async (
   dataSourceId: string | null | undefined,
   userId: string | null | undefined,
-  accessType: AccessType
+  accessType: AccessType,
 ) => {
   if (!dataSourceId) {
     return false;
@@ -149,7 +149,7 @@ export const _dataSourceGuard = async (
 
   const organisationUser = await findOrganisationUser(
     dataSource.organisationId,
-    userId
+    userId,
   );
   if (!organisationUser) {
     return false;
@@ -162,7 +162,7 @@ export const _mapGuard = async (
   mapId: string | null | undefined,
   userId: string | null | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  accessType: AccessType
+  accessType: AccessType,
 ) => {
   if (!mapId || !userId) {
     return false;
@@ -175,7 +175,7 @@ export const _mapGuard = async (
 
   const organisationUser = await findOrganisationUser(
     map.organisationId,
-    userId
+    userId,
   );
   if (!organisationUser) {
     return false;
@@ -188,7 +188,7 @@ export const _organisationGuard = async (
   organisationId: string | null | undefined,
   userId: string | null | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  accessType: AccessType
+  accessType: AccessType,
 ) => {
   if (!organisationId || !userId) {
     return false;
