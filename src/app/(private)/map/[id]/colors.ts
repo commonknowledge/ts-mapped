@@ -1,4 +1,5 @@
 import {
+  ScaleOrdinal,
   ScaleSequential,
   scaleLinear,
   scaleOrdinal,
@@ -8,6 +9,7 @@ import { interpolateOrRd, schemeCategory10 } from "d3-scale-chromatic";
 import { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 import { useMemo } from "react";
 import { AreaStats, ColumnType } from "@/__generated__/types";
+import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
 
 export interface CategoricColorScheme {
   columnType: ColumnType.String;
@@ -20,8 +22,6 @@ export interface NumericColorScheme {
   maxValue: number;
   colorScale: ScaleSequential<string, never>;
 }
-
-const DEFAULT_FILL_COLOR = "rgba(0, 0, 0, 0)";
 
 export const useColorScheme = (
   areaStats: AreaStats | null | undefined,
@@ -40,7 +40,7 @@ export const useColorScheme = (
       const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
       const colorMap: Record<string, string> = {};
       distinctValues.forEach((v) => {
-        colorMap[v] = colorScale(v);
+        colorMap[v] = getCategoricalColor(v, colorScale);
       });
       return {
         columnType: ColumnType.String,
@@ -75,6 +75,13 @@ export const useColorScheme = (
       colorScale,
     };
   }, [areaStats]);
+};
+
+const getCategoricalColor = (
+  key: string,
+  colorScale: ScaleOrdinal<string, string, never>,
+) => {
+  return PARTY_COLORS[key.toLowerCase()] ?? colorScale(key);
 };
 
 export const useFillColor = (

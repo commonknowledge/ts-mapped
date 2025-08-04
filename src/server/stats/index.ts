@@ -29,20 +29,40 @@ export const getAreaStats = async (
     return { column, columnType: ColumnType.String, stats };
   }
 
-  const query = db
-    .selectFrom("dataRecord")
-    .select([
-      sql`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
-      db.fn(operation, [sql`(json->>${column})::float`]).as("value"),
-    ])
-    .where("dataRecord.dataSourceId", "=", dataSourceId)
-    .where(getBoundingBoxSQL(boundingBox))
-    .groupBy("areaCode");
-
   try {
+    const dataSource = await findDataSourceById(dataSourceId);
+    if (!dataSource) {
+      throw new Error(`Data source not found: ${dataSourceId}`);
+    }
+
+    const columnDef = dataSource.columnDefs.find((c) => c.name === column);
+    if (!columnDef) {
+      throw new Error(`Data source column not found: ${column}`);
+    }
+
+    let safeOperation = operation;
+    if (columnDef.type !== ColumnType.Number) {
+      safeOperation = Operation.MODE;
+    }
+
+    const valueSelect =
+      safeOperation === Operation.MODE
+        ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
+        : db.fn(safeOperation, [sql`(json->>${column})::float`]).as("value");
+
+    const query = db
+      .selectFrom("dataRecord")
+      .select([
+        sql`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
+        valueSelect,
+      ])
+      .where("dataRecord.dataSourceId", "=", dataSourceId)
+      .where(getBoundingBoxSQL(boundingBox))
+      .groupBy("areaCode");
+
     const result = await query.execute();
     const stats = filterResult(result);
-    return { column, columnType: ColumnType.Number, stats };
+    return { column, columnType: columnDef.type, stats };
   } catch (error) {
     logger.error(`Failed to get area stats`, { error });
   }

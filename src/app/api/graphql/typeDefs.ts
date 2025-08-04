@@ -1,5 +1,11 @@
 const typeDefs = `
-  directive @auth(read: ArgNames, write: ArgNames) on FIELD_DEFINITION
+  directive @auth(read: ProtectedArgs, write: ProtectedArgs) on FIELD_DEFINITION
+
+  input ProtectedArgs {
+    dataSourceIdArg: String
+    mapIdArg: String
+    organisationIdArg: String
+  }
 
   scalar Date
   scalar JSON
@@ -54,13 +60,8 @@ const typeDefs = `
 
   enum Operation {
     AVG
+    MODE
     SUM
-  }
-
-  input ArgNames {
-    dataSourceIdArg: String
-    mapIdArg: String
-    organisationIdArg: String
   }
 
 
@@ -168,6 +169,7 @@ const typeDefs = `
     columnRoles: ColumnRoles!
     enrichments: [LooseEnrichment!]!
     geocodingConfig: LooseGeocodingConfig!
+    public: Boolean!
 
     enrichmentDataSources: [EnrichmentDataSource!]
     enrichmentInfo: JobInfo
@@ -296,7 +298,7 @@ const typeDefs = `
     ): AreaStats @auth(read: { dataSourceIdArg: "dataSourceId" })
 
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
-    dataSources(organisationId: String): [DataSource!] @auth
+    dataSources(organisationId: String, includePublic: Boolean): [DataSource!] @auth
 
     map(id: String!): Map @auth(read: { mapIdArg: "id" })
     maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })

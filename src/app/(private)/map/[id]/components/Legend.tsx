@@ -47,19 +47,21 @@ export default function Legend({
       );
     });
   } else {
-    bars = Object.keys(colorScheme.colorMap).map((key) => (
-      <div
-        className=""
-        key={key}
-        style={{ backgroundColor: colorScheme.colorMap[key] }}
-      >
-        {key}
-      </div>
-    ));
+    bars = Object.keys(colorScheme.colorMap)
+      .toSorted()
+      .map((key) => (
+        <div
+          className="p-1 w-full items-center justify-center flex text-xs"
+          key={key}
+          style={{ backgroundColor: colorScheme.colorMap[key] }}
+        >
+          {key}
+        </div>
+      ));
   }
 
   return (
-    <div className="flex flex-col  rounded-sm overflow-hidden absolute bottom-10 left-2 w-2xs bg-white border border-neutral-200">
+    <div className="flex flex-col rounded-sm overflow-scroll absolute bottom-10 left-2 w-2xs bg-white border border-neutral-200">
       <p className="text-xs flex items-center gap-0.5 font-medium px-2 py-1">
         {dataSource?.name} <DotIcon className="w-4 h-4 text-muted-foreground" />{" "}
         {viewConfig.areaDataColumn}

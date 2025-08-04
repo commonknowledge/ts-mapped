@@ -20,6 +20,7 @@ export interface DataSourceTable {
   enrichments: JSONColumnType<Enrichment[]>;
   geocodingConfig: JSONColumnType<GeocodingConfig>;
   organisationId: string;
+  public: boolean;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }
 

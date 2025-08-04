@@ -63,12 +63,6 @@ export type AreaStats = {
   stats: Array<AreaStat>;
 };
 
-export type ArgNames = {
-  dataSourceIdArg?: InputMaybe<Scalars["String"]["input"]>;
-  mapIdArg?: InputMaybe<Scalars["String"]["input"]>;
-  organisationIdArg?: InputMaybe<Scalars["String"]["input"]>;
-};
-
 export type BoundingBoxInput = {
   east: Scalars["Float"]["input"];
   north: Scalars["Float"]["input"];
@@ -135,6 +129,7 @@ export type DataSource = {
   id: Scalars["String"]["output"];
   importInfo?: Maybe<JobInfo>;
   name: Scalars["String"]["output"];
+  public: Scalars["Boolean"]["output"];
   recordCount?: Maybe<Scalars["Int"]["output"]>;
   records?: Maybe<Array<DataRecord>>;
 };
@@ -443,6 +438,7 @@ export type MutationResponse = {
 
 export enum Operation {
   AVG = "AVG",
+  MODE = "MODE",
   SUM = "SUM",
 }
 
@@ -473,6 +469,12 @@ export type PointInput = {
   lng: Scalars["Float"]["input"];
 };
 
+export type ProtectedArgs = {
+  dataSourceIdArg?: InputMaybe<Scalars["String"]["input"]>;
+  mapIdArg?: InputMaybe<Scalars["String"]["input"]>;
+  organisationIdArg?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type Query = {
   __typename?: "Query";
   areaStats?: Maybe<AreaStats>;
@@ -497,6 +499,7 @@ export type QueryDataSourceArgs = {
 };
 
 export type QueryDataSourcesArgs = {
+  includePublic?: InputMaybe<Scalars["Boolean"]["input"]>;
   organisationId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -1224,7 +1227,6 @@ export type ResolversTypes = {
   AreaSetGroupCode: AreaSetGroupCode;
   AreaStat: ResolverTypeWrapper<AreaStat>;
   AreaStats: ResolverTypeWrapper<AreaStats>;
-  ArgNames: ArgNames;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]["output"]>;
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
@@ -1268,6 +1270,7 @@ export type ResolversTypes = {
   PlacedMarker: ResolverTypeWrapper<PlacedMarker>;
   Point: ResolverTypeWrapper<Point>;
   PointInput: PointInput;
+  ProtectedArgs: ProtectedArgs;
   Query: ResolverTypeWrapper<{}>;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
   SortInput: SortInput;
@@ -1286,7 +1289,6 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   AreaStat: AreaStat;
   AreaStats: AreaStats;
-  ArgNames: ArgNames;
   Boolean: Scalars["Boolean"]["output"];
   BoundingBoxInput: BoundingBoxInput;
   ColumnDef: ColumnDef;
@@ -1324,6 +1326,7 @@ export type ResolversParentTypes = {
   PlacedMarker: PlacedMarker;
   Point: Point;
   PointInput: PointInput;
+  ProtectedArgs: ProtectedArgs;
   Query: {};
   RecordsProcessedEvent: RecordsProcessedEvent;
   SortInput: SortInput;
@@ -1339,8 +1342,8 @@ export type ResolversParentTypes = {
 };
 
 export type AuthDirectiveArgs = {
-  read?: Maybe<ArgNames>;
-  write?: Maybe<ArgNames>;
+  read?: Maybe<ProtectedArgs>;
+  write?: Maybe<ProtectedArgs>;
 };
 
 export type AuthDirectiveResolver<
@@ -1480,6 +1483,7 @@ export type DataSourceResolvers<
     ContextType
   >;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  public?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   recordCount?: Resolver<
     Maybe<ResolversTypes["Int"]>,
     ParentType,

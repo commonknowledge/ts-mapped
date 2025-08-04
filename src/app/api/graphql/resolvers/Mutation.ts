@@ -85,6 +85,7 @@ const MutationResolvers: MutationResolversType = {
         enrichments: JSON.stringify([]),
         geocodingConfig: JSON.stringify(geocodingConfig),
         columnDefs: JSON.stringify(columnDefs),
+        public: false,
       });
 
       logger.info(`Created ${config.type} data source: ${dataSource.id}`);

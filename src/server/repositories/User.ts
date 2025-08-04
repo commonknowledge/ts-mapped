@@ -19,6 +19,10 @@ export async function upsertUser(
     .executeTakeFirstOrThrow();
 }
 
+export async function deleteUser(id: string) {
+  return db.deleteFrom("user").where("id", "=", id).executeTakeFirstOrThrow();
+}
+
 export async function findUserByEmailAndPassword({
   email,
   password,

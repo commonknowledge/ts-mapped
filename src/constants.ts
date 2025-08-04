@@ -1,3 +1,5 @@
+export const ADMIN_ORGANISATION_NAME = "Common Knowledge";
+
 export const MARKER_ID_KEY = "__externalId";
 export const MARKER_NAME_KEY = "__name";
 
