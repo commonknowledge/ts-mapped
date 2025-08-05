@@ -23,6 +23,7 @@ export default function MapStyleSelector() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { boundariesPanelOpen, setBoundariesPanelOpen } =
     useContext(ChoroplethContext);
+
   return (
     <div className="h-14 rounded-lg absolute left-1/2 bottom-8 -translate-x-1/2 py-2 px-4 z-10  bg-white  shadow-lg">
       <div className="flex gap-2 items-center h-full">

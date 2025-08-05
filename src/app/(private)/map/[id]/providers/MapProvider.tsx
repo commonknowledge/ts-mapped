@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapRef } from "react-map-gl/mapbox";
+import { v4 as uuidv4 } from "uuid";
 import { BoundingBoxInput } from "@/__generated__/types";
 import {
   MapConfig,
@@ -94,6 +95,15 @@ export default function MapProvider({
       const nextViewId = nextView.id;
       setViewId(nextViewId);
       setViews(mapData.map.views || []);
+    } else {
+      const newView = {
+        id: uuidv4(),
+        name: "Default View",
+        config: new ViewConfig(),
+        position: 0,
+      };
+      setViewId(newView.id);
+      setViews([newView]);
     }
   }, [mapData]);
 

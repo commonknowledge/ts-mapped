@@ -4,7 +4,7 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -32,6 +32,7 @@ export default function Map({
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [ready, setReady] = useState(false);
   const [hoverMarker, setHoverMarker] = useState<MarkerData | null>(null);
+  const prevPointer = useRef("");
 
   const markerLayers = [
     mapConfig.membersDataSourceId,
@@ -48,6 +49,7 @@ export default function Map({
     .filter(Boolean)
     .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]);
 
+  // Hover behavior
   useEffect(() => {
     const map = mapRef?.current;
 
@@ -63,10 +65,15 @@ export default function Map({
             coordinates: [e.lngLat.lng, e.lngLat.lat],
             properties: feature.properties || {},
           });
+          if (map.getCanvas().style.cursor !== "pointer") {
+            prevPointer.current = map.getCanvas().style.cursor || "";
+          }
           map.getCanvas().style.cursor = "pointer";
         } else {
           setHoverMarker(null);
-          map.getCanvas().style.cursor = "";
+          if (map.getCanvas().style.cursor === "pointer") {
+            map.getCanvas().style.cursor = prevPointer.current;
+          }
         }
       }
     };
@@ -87,15 +94,45 @@ export default function Map({
         map.off("mouseleave", onMouseLeave);
       }
     };
-  }, [draw, mapRef, markerLayers]);
+  }, [mapRef, markerLayers]);
 
+  // Draw component cleanup
   useEffect(() => {
     const map = mapRef?.current;
 
-    if (draw && map) {
-      map.getMap().removeControl(draw);
-    }
+    return () => {
+      if (draw && map) {
+        map.getMap().removeControl(draw);
+      }
+    };
   }, [draw, mapRef]);
+
+  // Show/Hide labels
+  const toggleLabelVisibility = useCallback(
+    (show: boolean) => {
+      const map = mapRef?.current;
+
+      if (map) {
+        const style = map.getStyle();
+        const labelLayerIds = style.layers
+          .filter(
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+          )
+          .map((layer) => layer.id);
+
+        labelLayerIds.forEach((id) => {
+          map
+            .getMap()
+            .setLayoutProperty(id, "visibility", show ? "visible" : "none");
+        });
+      }
+    },
+    [mapRef],
+  );
+
+  useEffect(() => {
+    toggleLabelVisibility(viewConfig.showLabels);
+  }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
   return (
     <MapGL
@@ -141,6 +178,8 @@ export default function Map({
         if (!map) {
           return;
         }
+
+        toggleLabelVisibility(viewConfig.showLabels);
 
         const geocoder = new MapboxGeocoder({
           accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
