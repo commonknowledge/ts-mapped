@@ -6,17 +6,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import CTA from "@/components/CTA";
+import { isPrivateRoute } from "@/config/routes";
 
 export default function ConditionalMarketingFooter() {
   const pathname = usePathname();
 
   // I feel like there is better logic for this, something that catches all the private routes
   // and doesn't need to be updated when new private routes are added
-  if (
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/data-sources") ||
-    pathname.startsWith("/map/")
-  ) {
+  if (isPrivateRoute(pathname)) {
     return null;
   }
 

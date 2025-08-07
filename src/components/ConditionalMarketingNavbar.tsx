@@ -4,19 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { isPrivateRoute } from "@/config/routes";
 import { Button } from "@/shadcn/ui/button";
 
 export default function ConditionalMarketingNavbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // I feel like there is better logic for this, something that catches all the private routes
-  // and doesn't need to be updated when new private routes are added
-  if (
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/data-sources") ||
-    pathname.startsWith("/map/")
-  ) {
+  if (isPrivateRoute(pathname)) {
     return null;
   }
 
