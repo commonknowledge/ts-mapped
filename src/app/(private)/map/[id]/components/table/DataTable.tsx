@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, X } from "lucide-react";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { ColumnDef, DataRecord, SortInput } from "@/__generated__/types";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
@@ -11,7 +11,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { Input } from "@/shadcn/ui/input";
 import {
   Table,
   TableBody,
@@ -29,8 +28,6 @@ interface DataTableProps {
   data: DataRecord[];
   recordCount?: number | null | undefined;
 
-  filter: string;
-  setFilter: (filter: string) => void;
   pageIndex: number;
   setPageIndex: (page: number) => void;
   sort: SortInput[];
@@ -40,6 +37,8 @@ interface DataTableProps {
   selectedRecordId?: string;
 
   onClose?: () => void;
+  filter?: ReactNode;
+  search?: ReactNode;
 }
 
 export function DataTable({
@@ -50,8 +49,6 @@ export function DataTable({
   data,
   recordCount,
 
-  filter,
-  setFilter,
   pageIndex,
   setPageIndex,
   sort,
@@ -60,6 +57,9 @@ export function DataTable({
   onRowClick,
   selectedRecordId,
   onClose,
+
+  filter,
+  search,
 }: DataTableProps) {
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.floor((recordCount || 0) / DATA_RECORDS_PAGE_SIZE);
@@ -102,14 +102,9 @@ export function DataTable({
               {recordCount !== undefined && <p>{recordCount}</p>}
             </div>
           )}
-          <Input
-            placeholder="Filter all columns..."
-            value={filter ?? ""}
-            onChange={(event) => setFilter(event.target.value)}
-            className="max-w-sm shadow-none"
-          />
         </div>
         <div className="flex items-center gap-2">
+          {search}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto shadow-none">
@@ -143,66 +138,69 @@ export function DataTable({
           )}
         </div>
       </div>
-      <div className="rounded-md border bg-white grow min-h-0">
-        <Table containerClassName="h-full">
-          <TableHeader className="bg-neutral-100 ">
-            <TableRow>
-              {columns
-                .filter((c) => !hiddenColumns.includes(c.name))
-                .map((column) => {
-                  return (
-                    <TableHead key={column.name}>
-                      <div className="flex items-center">
-                        <div
-                          onClick={() => onClickSort(column.name)}
-                          className="flex cursor-pointer items-center h-8 p-0 hover:bg-transparent group"
-                        >
-                          {column.name}
-                          <span className="ml-2 h-4 w-4">
-                            {getSortIcon(column.name)}
-                          </span>
+      <div className="grow min-h-0 flex flex-col gap-4">
+        {filter}
+        <div className="rounded-md border bg-white">
+          <Table containerClassName="h-full">
+            <TableHeader className="bg-neutral-100 ">
+              <TableRow>
+                {columns
+                  .filter((c) => !hiddenColumns.includes(c.name))
+                  .map((column) => {
+                    return (
+                      <TableHead key={column.name}>
+                        <div className="flex items-center">
+                          <div
+                            onClick={() => onClickSort(column.name)}
+                            className="flex cursor-pointer items-center h-8 p-0 hover:bg-transparent group"
+                          >
+                            {column.name}
+                            <span className="ml-2 h-4 w-4">
+                              {getSortIcon(column.name)}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </TableHead>
-                  );
-                })}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell>Loading...</TableCell>
+                      </TableHead>
+                    );
+                  })}
               </TableRow>
-            ) : data.length ? (
-              data.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.id === selectedRecordId && "selected"}
-                  onClick={() => onRowClick?.(row)}
-                  //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
-                  className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id ? "bg-blue-50" : ""}`}
-                >
-                  {columns
-                    .filter((c) => !hiddenColumns.includes(c.name))
-                    .map((column) => (
-                      <TableCell key={column.name}>
-                        {String(row.json[column.name] || "-")}
-                      </TableCell>
-                    ))}
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell>Loading...</TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ) : data.length ? (
+                data.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.id === selectedRecordId && "selected"}
+                    onClick={() => onRowClick?.(row)}
+                    //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
+                    className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id ? "bg-blue-50" : ""}`}
+                  >
+                    {columns
+                      .filter((c) => !hiddenColumns.includes(c.name))
+                      .map((column) => (
+                        <TableCell key={column.name}>
+                          {String(row.json[column.name] || "-")}
+                        </TableCell>
+                      ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
       <div className="flex items-center justify-center gap-2">
         <Button onClick={() => setPageIndex(0)} disabled={pageIndex <= 0}>

@@ -135,13 +135,15 @@ export type DataSource = {
 };
 
 export type DataSourceRecordCountArgs = {
-  filter?: InputMaybe<Scalars["String"]["input"]>;
+  filter?: InputMaybe<RecordFilterInput>;
+  search?: InputMaybe<Scalars["String"]["input"]>;
   sort?: InputMaybe<Array<SortInput>>;
 };
 
 export type DataSourceRecordsArgs = {
-  filter?: InputMaybe<Scalars["String"]["input"]>;
+  filter?: InputMaybe<RecordFilterInput>;
   page?: InputMaybe<Scalars["Int"]["input"]>;
+  search?: InputMaybe<Scalars["String"]["input"]>;
   sort?: InputMaybe<Array<SortInput>>;
 };
 
@@ -169,6 +171,17 @@ export type EnrichmentDataSource = {
 export enum EnrichmentSourceType {
   Area = "Area",
   DataSource = "DataSource",
+}
+
+export enum FilterOperator {
+  AND = "AND",
+  OR = "OR",
+}
+
+export enum FilterType {
+  GEO = "GEO",
+  MULTI = "MULTI",
+  TEXT = "TEXT",
 }
 
 export type Folder = {
@@ -424,11 +437,11 @@ export type MutationUpsertPlacedMarkerArgs = {
 export type MutationUpsertTurfArgs = {
   area: Scalars["Float"]["input"];
   createdAt: Scalars["Date"]["input"];
-  geometry: Scalars["JSON"]["input"];
   id?: InputMaybe<Scalars["String"]["input"]>;
   label: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
+  polygon: Scalars["JSON"]["input"];
 };
 
 export type MutationResponse = {
@@ -467,6 +480,11 @@ export type Point = {
 export type PointInput = {
   lat: Scalars["Float"]["input"];
   lng: Scalars["Float"]["input"];
+};
+
+export type PolygonInput = {
+  coordinates: Array<Array<Array<Scalars["Float"]["input"]>>>;
+  type: Scalars["String"]["input"];
 };
 
 export type ProtectedArgs = {
@@ -511,6 +529,17 @@ export type QueryMapsArgs = {
   organisationId: Scalars["String"]["input"];
 };
 
+export type RecordFilterInput = {
+  children?: InputMaybe<Array<RecordFilterInput>>;
+  column?: InputMaybe<Scalars["String"]["input"]>;
+  distance?: InputMaybe<Scalars["Int"]["input"]>;
+  operator?: InputMaybe<FilterOperator>;
+  placedMarker?: InputMaybe<Scalars["String"]["input"]>;
+  search?: InputMaybe<Scalars["String"]["input"]>;
+  turf?: InputMaybe<Scalars["String"]["input"]>;
+  type: FilterType;
+};
+
 export type RecordsProcessedEvent = {
   __typename?: "RecordsProcessedEvent";
   at: Scalars["String"]["output"];
@@ -535,10 +564,10 @@ export type Turf = {
   __typename?: "Turf";
   area: Scalars["Float"]["output"];
   createdAt: Scalars["Date"]["output"];
-  geometry: Scalars["JSON"]["output"];
   id: Scalars["String"]["output"];
   label: Scalars["String"]["output"];
   notes: Scalars["String"]["output"];
+  polygon: Scalars["JSON"]["output"];
 };
 
 export type UpdateMapConfigResponse = {
@@ -888,7 +917,8 @@ export type DataSourcesQuery = {
 
 export type DataRecordsQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
-  filter: Scalars["String"]["input"];
+  filter: RecordFilterInput;
+  search: Scalars["String"]["input"];
   page: Scalars["Int"]["input"];
   sort: Array<SortInput> | SortInput;
 }>;
@@ -951,7 +981,7 @@ export type MapQuery = {
       label: string;
       notes: string;
       area: number;
-      geometry: any;
+      polygon: any;
       createdAt: any;
     }> | null;
     views?: Array<{
@@ -1082,7 +1112,7 @@ export type UpsertTurfMutationVariables = Exact<{
   label: Scalars["String"]["input"];
   notes: Scalars["String"]["input"];
   area: Scalars["Float"]["input"];
-  geometry: Scalars["JSON"]["input"];
+  polygon: Scalars["JSON"]["input"];
   createdAt: Scalars["Date"]["input"];
   mapId: Scalars["String"]["input"];
 }>;
@@ -1241,6 +1271,8 @@ export type ResolversTypes = {
   Date: ResolverTypeWrapper<Scalars["Date"]["output"]>;
   EnrichmentDataSource: ResolverTypeWrapper<EnrichmentDataSource>;
   EnrichmentSourceType: EnrichmentSourceType;
+  FilterOperator: FilterOperator;
+  FilterType: FilterType;
   Float: ResolverTypeWrapper<Scalars["Float"]["output"]>;
   Folder: ResolverTypeWrapper<Folder>;
   GeocodingType: GeocodingType;
@@ -1270,8 +1302,10 @@ export type ResolversTypes = {
   PlacedMarker: ResolverTypeWrapper<PlacedMarker>;
   Point: ResolverTypeWrapper<Point>;
   PointInput: PointInput;
+  PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
   Query: ResolverTypeWrapper<{}>;
+  RecordFilterInput: RecordFilterInput;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
   SortInput: SortInput;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
@@ -1326,8 +1360,10 @@ export type ResolversParentTypes = {
   PlacedMarker: PlacedMarker;
   Point: Point;
   PointInput: PointInput;
+  PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
   Query: {};
+  RecordFilterInput: RecordFilterInput;
   RecordsProcessedEvent: RecordsProcessedEvent;
   SortInput: SortInput;
   String: Scalars["String"]["output"];
@@ -1858,7 +1894,7 @@ export type MutationResolvers<
     ContextType,
     RequireFields<
       MutationUpsertTurfArgs,
-      "area" | "createdAt" | "geometry" | "label" | "mapId" | "notes"
+      "area" | "createdAt" | "label" | "mapId" | "notes" | "polygon"
     >
   >;
 };
@@ -1982,10 +2018,10 @@ export type TurfResolvers<
 > = {
   area?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes["Date"], ParentType, ContextType>;
-  geometry?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   label?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  polygon?: Resolver<ResolversTypes["JSON"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

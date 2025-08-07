@@ -258,7 +258,7 @@ export default function Map({
                   `Area: ${roundedArea.toFixed(2)}m²`,
                 notes: "",
                 area: roundedArea,
-                geometry: feature.geometry,
+                polygon: feature.geometry,
                 createdAt: new Date().toISOString(),
               });
               newDraw.deleteAll();

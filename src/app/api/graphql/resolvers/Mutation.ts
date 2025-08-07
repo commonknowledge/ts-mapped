@@ -1,3 +1,4 @@
+import { Polygon } from "geojson";
 import { v4 as uuidv4 } from "uuid";
 import {
   ColumnDef,
@@ -10,6 +11,7 @@ import {
   MutationUpdateDataSourceConfigArgs,
   MutationUpdateMapArgs,
   MutationUpdateMapConfigArgs,
+  PolygonInput,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
   UpsertTurfResponse,
@@ -316,7 +318,7 @@ const MutationResolvers: MutationResolversType = {
       label,
       notes,
       area,
-      geometry,
+      polygon,
       createdAt,
       mapId,
     }: {
@@ -324,7 +326,7 @@ const MutationResolvers: MutationResolversType = {
       label: string;
       notes: string;
       area: number;
-      geometry: unknown;
+      polygon: PolygonInput;
       createdAt: string;
       mapId: string;
     },
@@ -338,7 +340,7 @@ const MutationResolvers: MutationResolversType = {
         label,
         notes,
         area,
-        geometry: JSON.stringify(geometry),
+        polygon: polygon as Polygon,
         createdAt: new Date(createdAt),
         mapId,
       };

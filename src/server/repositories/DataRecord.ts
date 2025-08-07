@@ -1,14 +1,23 @@
-import { sql } from "kysely";
-import { SortInput } from "@/__generated__/types";
+import { SelectQueryBuilder, sql } from "kysely";
+import {
+  FilterType,
+  RecordFilterInput,
+  SortInput,
+} from "@/__generated__/types";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { NewDataRecord } from "@/server/models/DataRecord";
-import { db } from "@/server/services/database";
+import { Database, db } from "@/server/services/database";
 
 export async function countDataRecordsForDataSource(
   dataSourceId: string,
-  filter: string | null | undefined,
+  filter: RecordFilterInput | null | undefined,
+  search: string | null | undefined,
 ): Promise<number> {
-  const result = await filterDataRecordsByDataSource(dataSourceId, filter)
+  const result = await filterDataRecordsByDataSource(
+    dataSourceId,
+    filter,
+    search,
+  )
     .select(({ fn }) => [fn.countAll().as("count")])
     .executeTakeFirst();
   return Number(result?.count) || 0;
@@ -25,24 +34,66 @@ export function getFirstDataRecord(dataSourceId: string) {
 
 function filterDataRecordsByDataSource(
   dataSourceId: string,
-  filter: string | null | undefined,
+  filter: RecordFilterInput | null | undefined,
+  search: string | null | undefined,
 ) {
   let q = db.selectFrom("dataRecord").where("dataSourceId", "=", dataSourceId);
 
-  if (filter) {
-    q = q.where(sql<boolean>`json_text_search ILIKE ${"%" + filter + "%"}`);
+  const applyFilter = (
+    q: SelectQueryBuilder<Database, "dataRecord", unknown>,
+    filter: RecordFilterInput | null | undefined,
+  ) => {
+    if (filter?.type === FilterType.MULTI) {
+      for (const f of filter.children || []) {
+        q = applyFilter(q, f);
+      }
+    }
+    if (filter?.type === FilterType.GEO) {
+      if (filter.placedMarker) {
+        const metres = (filter.distance || 0) * 1000;
+        q = q.where(sql<boolean>`
+          ST_DWithin(geocode_point, (SELECT point FROM placed_marker WHERE id = ${filter.placedMarker}), ${metres})
+        `);
+      }
+      if (filter.turf) {
+        q = q.where(
+          sql<boolean>`ST_Intersects(geocode_point, (SELECT polygon FROM turf WHERE id = ${filter.turf}))`,
+        );
+      }
+    }
+    if (filter?.type === FilterType.TEXT) {
+      q = q.where(({ eb, ref, fn }) => {
+        return eb(
+          fn("lower", [ref("json", "->>").key(filter.column || "")]),
+          "=",
+          filter.search?.toLowerCase() || "",
+        );
+      });
+    }
+    return q;
+  };
+
+  if (search) {
+    const words = search
+      .split(" ")
+      .map((w) => w.trim())
+      .filter(Boolean);
+    for (const w of words) {
+      q = q.where(sql<boolean>`json_text_search ILIKE ${"%" + w + "%"}`);
+    }
   }
 
-  return q;
+  return applyFilter(q, filter);
 }
 
 export function findDataRecordsByDataSource(
   dataSourceId: string,
-  filter: string | null | undefined,
+  filter: RecordFilterInput | null | undefined,
+  search: string | null | undefined,
   page: number,
   sort: SortInput[],
 ) {
-  let q = filterDataRecordsByDataSource(dataSourceId, filter)
+  let q = filterDataRecordsByDataSource(dataSourceId, filter, search)
     .offset(page * DATA_RECORDS_PAGE_SIZE)
     .limit(DATA_RECORDS_PAGE_SIZE)
     .selectAll();

@@ -17,6 +17,7 @@ import {
   MapQuery,
   MapQueryVariables,
   Operation,
+  RecordFilterInput,
   SortInput,
   UpdateMapConfigMutation,
   UpdateMapConfigMutationVariables,
@@ -47,7 +48,8 @@ export const useDataSourcesQuery = () =>
 
 export const useDataRecordsQuery = (variables: {
   dataSourceId: string;
-  filter: string;
+  filter: RecordFilterInput;
+  search: string;
   page: number;
   sort: SortInput[];
 }) =>
@@ -55,7 +57,8 @@ export const useDataRecordsQuery = (variables: {
     gql`
       query DataRecords(
         $dataSourceId: String!
-        $filter: String!
+        $filter: RecordFilterInput!
+        $search: String!
         $page: Int!
         $sort: [SortInput!]!
       ) {
@@ -66,7 +69,7 @@ export const useDataRecordsQuery = (variables: {
             name
             type
           }
-          records(filter: $filter, page: $page, sort: $sort) {
+          records(filter: $filter, search: $search, page: $page, sort: $sort) {
             id
             externalId
             geocodePoint {
@@ -75,7 +78,7 @@ export const useDataRecordsQuery = (variables: {
             }
             json
           }
-          recordCount(filter: $filter)
+          recordCount(filter: $filter, search: $search)
         }
       }
     `,
@@ -114,7 +117,7 @@ export const useMapQuery = (mapId: string | null) =>
             label
             notes
             area
-            geometry
+            polygon
             createdAt
           }
           views {
@@ -366,7 +369,7 @@ export const useUpsertTurfMutation = () => {
       $label: String!
       $notes: String!
       $area: Float!
-      $geometry: JSON!
+      $polygon: JSON!
       $createdAt: Date!
       $mapId: String!
     ) {
@@ -375,7 +378,7 @@ export const useUpsertTurfMutation = () => {
         label: $label
         notes: $notes
         area: $area
-        geometry: $geometry
+        polygon: $polygon
         createdAt: $createdAt
         mapId: $mapId
       ) {

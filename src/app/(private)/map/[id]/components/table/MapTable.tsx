@@ -1,8 +1,11 @@
 import { useContext } from "react";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+import { Input } from "@/shadcn/ui/input";
 import { DataTable } from "./DataTable";
+import TableFilter from "./TableFilter";
 
 interface DataRecord {
   id: string;
@@ -20,12 +23,15 @@ export default function MapTable() {
     setSelectedRecordId,
     tableFilter,
     setTableFilter,
+    tableSearch,
+    setTableSearch,
     tablePage,
     setTablePage,
     tableSort,
     setTableSort,
     dataRecordsQuery,
   } = useContext(TableContext);
+  const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
 
   if (!selectedDataSourceId) {
     return null;
@@ -46,6 +52,25 @@ export default function MapTable() {
     setSelectedRecordId(row.id);
   };
 
+  const filter = (
+    <TableFilter
+      filter={tableFilter}
+      setFilter={setTableFilter}
+      columns={dataSource.columnDefs}
+      placedMarkers={placedMarkers}
+      turfs={turfs}
+    />
+  );
+
+  const search = (
+    <Input
+      type="text"
+      placeholder="Search"
+      value={tableSearch}
+      onChange={(e) => setTableSearch(e.target.value)}
+    />
+  );
+
   return (
     <div className="p-2 h-full">
       <DataTable
@@ -54,8 +79,8 @@ export default function MapTable() {
         columns={dataSource.columnDefs}
         data={dataRecordsQuery?.data?.dataSource?.records || []}
         recordCount={dataRecordsQuery?.data?.dataSource?.recordCount}
-        filter={tableFilter}
-        setFilter={setTableFilter}
+        filter={filter}
+        search={search}
         pageIndex={tablePage}
         setPageIndex={setTablePage}
         sort={tableSort}

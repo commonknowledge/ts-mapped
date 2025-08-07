@@ -36,6 +36,17 @@ const typeDefs = `
     DataSource
   }
 
+  enum FilterOperator {
+    AND
+    OR
+  }
+
+  enum FilterType {
+    GEO
+    MULTI
+    TEXT
+  }
+
   enum GeocodingType {
     Address
     Code
@@ -63,7 +74,6 @@ const typeDefs = `
     MODE
     SUM
   }
-
 
   input BoundingBoxInput {
     north: Float!
@@ -126,6 +136,22 @@ const typeDefs = `
     lng: Float!
   }
 
+  input PolygonInput {
+    type: String!
+    coordinates: [[[Float!]!]!]!
+  }
+
+  input RecordFilterInput {
+    children: [RecordFilterInput!]
+    column: String
+    distance: Int
+    operator: FilterOperator
+    placedMarker: String
+    search: String
+    turf: String
+    type: FilterType!
+  }
+
   input SortInput {
     name: String!
     desc: Boolean!
@@ -175,9 +201,9 @@ const typeDefs = `
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    records(filter: String, page: Int, sort: [SortInput!]): [DataRecord!]
+    records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!]): [DataRecord!]
 
-    recordCount(filter: String, sort: [SortInput!]): Int
+    recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): Int
   }
 
   """
@@ -283,7 +309,7 @@ const typeDefs = `
     label: String!
     notes: String!
     area: Float!
-    geometry: JSON!
+    polygon: JSON!
     createdAt: Date!
   }
 
@@ -399,7 +425,7 @@ const typeDefs = `
       label: String!
       notes: String!
       area: Float!
-      geometry: JSON!
+      polygon: JSON!
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
