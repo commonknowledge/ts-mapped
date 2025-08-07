@@ -57,11 +57,11 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={` p-6  flex flex-col md:flex-row gap-4 ${
+      className={` px-2 md:px-6 py-6  flex flex-col md:flex-row gap-4 ${
         alternate ? "md:flex-row-reverse" : ""
       }`}
     >
-      <div className="w-1/2">
+      <div className="w-full md:w-1/2">
         <h3 className="text-3xl font-bold tracking-tight mb-3">{title}</h3>
         <p className="text-3xl mb-5 text-balance">{description}</p>
         {bulletPoints && (
@@ -80,7 +80,7 @@ function FeatureCard({
           alt={title}
           width={1400}
           height={1000}
-          className="rounded-lg cursor-pointer hover:opacity-90 transition-opacity w-1/2"
+          className="rounded-lg cursor-pointer hover:opacity-90 transition-opacity w-full md:w-1/2 object-contain"
         />
       )}
     </div>

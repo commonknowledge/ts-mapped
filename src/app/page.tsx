@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import CTA from "@/components/CTA";
 import HomepageFeatureSection from "@/components/HomepageFeatureSection";
 import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
@@ -15,17 +14,32 @@ export default function HomePage() {
   }
 
   return (
-    <div className="overflow-hidden">
-      <div className="flex flex-col items-center justify-center relative bg-brand-background pt-32 py-16 p-4 overflow-hidden">
-        <div className="flex flex-col items-center justify-center z-10">
+    <div className="">
+      <div className=" overflow-hiddenflex flex-col items-center justify-center relative bg-brand-background md:pt-32 pt-16 py-16 p-4 overflow-hidden">
+        <Image
+          src="/pattern.svg"
+          alt="Mapped"
+          className="absolute -top-10 -right-4 w-1/2"
+          height={533}
+          width={512}
+        />
+        <Image
+          src="/pattern.svg"
+          alt="Mapped"
+          className="absolute -bottom-4 -left-4 rotate-180 w-1/2"
+          height={533}
+          width={512}
+        />
+        <div className="flex flex-col items-center justify-center">
           <Image
             src="/hero.svg"
             alt="Mapped"
             height={456}
             width={1024}
             priority={true}
+            className="w-full h-[40vh] object-contain z-30"
           />
-          <p className="text-5xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8">
+          <p className="md:text-5xl text-3xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8 z-30">
             Enhance your organising strategy with visual mapping tools.
           </p>
           <Link
@@ -36,24 +50,9 @@ export default function HomePage() {
             <Button>Sign up to waitlist</Button>
           </Link>
         </div>
-        <Image
-          src="/pattern.svg"
-          alt="Mapped"
-          className="absolute -top-40 -right-4"
-          height={533}
-          width={512}
-        />
-        <Image
-          src="/pattern.svg"
-          alt="Mapped"
-          className="absolute -bottom-4 -left-4 rotate-180"
-          height={533}
-          width={512}
-        />
       </div>
 
       <HomepageFeatureSection />
-      <CTA />
     </div>
   );
 }
