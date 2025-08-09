@@ -4,7 +4,7 @@ import "./privacy.css";
 
 export default function PrivacyPage() {
   return (
-    <div className="max-w-6xl mx-auto py-6">
+    <div className="max-w-4xl mx-auto py-6 mt-20 px-4">
       <h1>Privacy Policy</h1>
       <p>Effective date: 07/01/2025</p>
       <h2>1. Introduction</h2>
