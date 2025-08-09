@@ -1,6 +1,7 @@
 import { FilterIcon, XIcon } from "lucide-react";
 import {
   ColumnDef,
+  FilterOperator,
   FilterType,
   PlacedMarker,
   RecordFilterInput,
@@ -14,6 +15,7 @@ import MultiDropdownMenu, {
 } from "@/components/MultiDropdownMenu";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
+import { Toggle } from "@/shadcn/ui/toggle";
 
 interface TableFilterProps {
   columns: ColumnDef[];
@@ -116,40 +118,57 @@ function MultiFilter({
   ];
 
   return (
-    <div className="flex gap-2 items-center">
-      <MultiDropdownMenu
-        align="start"
-        side="bottom"
-        dropdownLabel="Filters"
-        dropdownItems={dropdownItems}
-      >
-        Filter <FilterIcon className="w-4 h-4" />
-      </MultiDropdownMenu>
-      <ul className="flex gap-2 items-center">
-        {children.map((child, i) => (
-          <li key={i} className="flex gap-1 items-center">
-            <ChildFilter
-              filter={child}
-              columns={columns}
-              setFilter={(child) => setChildFilter(i, child)}
-              placedMarkers={placedMarkers}
-              turfs={turfs}
-            />
-            <Button
-              variant="ghost"
-              type="button"
-              onClick={() => {
-                setFilter({
-                  ...filter,
-                  children: filter.children?.filter((_, j) => i !== j),
-                });
-              }}
-            >
-              <XIcon className="w-2 h-2" />
-            </Button>
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2 items-center">
+        <MultiDropdownMenu
+          align="start"
+          side="bottom"
+          dropdownLabel="Filters"
+          dropdownItems={dropdownItems}
+        >
+          Filter <FilterIcon className="w-4 h-4" />
+        </MultiDropdownMenu>
+        <ul className="flex gap-2 items-center">
+          {children.map((child, i) => (
+            <li key={i} className="flex gap-1 items-center">
+              <ChildFilter
+                filter={child}
+                columns={columns}
+                setFilter={(child) => setChildFilter(i, child)}
+                placedMarkers={placedMarkers}
+                turfs={turfs}
+              />
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => {
+                  setFilter({
+                    ...filter,
+                    children: filter.children?.filter((_, j) => i !== j),
+                  });
+                }}
+              >
+                <XIcon className="w-2 h-2" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <Toggle
+          pressed={filter.operator !== FilterOperator.OR}
+          onPressedChange={(value) =>
+            setFilter({
+              ...filter,
+              operator: value ? FilterOperator.AND : FilterOperator.OR,
+            })
+          }
+        >
+          <span>
+            {filter.operator === FilterOperator.OR ? "Match any" : "Match all"}
+          </span>
+        </Toggle>
+      </div>
     </div>
   );
 }

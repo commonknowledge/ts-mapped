@@ -1,5 +1,6 @@
-import { SelectQueryBuilder, sql } from "kysely";
+import { AliasableExpression, ExpressionBuilder, SqlBool, sql } from "kysely";
 import {
+  FilterOperator,
   FilterType,
   RecordFilterInput,
   SortInput,
@@ -40,37 +41,40 @@ function filterDataRecordsByDataSource(
   let q = db.selectFrom("dataRecord").where("dataSourceId", "=", dataSourceId);
 
   const applyFilter = (
-    q: SelectQueryBuilder<Database, "dataRecord", unknown>,
+    eb: ExpressionBuilder<Database, "dataRecord">,
     filter: RecordFilterInput | null | undefined,
-  ) => {
-    if (filter?.type === FilterType.MULTI) {
-      for (const f of filter.children || []) {
-        q = applyFilter(q, f);
+  ): AliasableExpression<SqlBool> => {
+    if (filter?.type === FilterType.MULTI && filter.children?.length) {
+      if (filter.operator === FilterOperator.OR) {
+        return eb.or(filter.children.map((c) => applyFilter(eb, c)));
+      } else {
+        return eb.and(filter.children.map((c) => applyFilter(eb, c)));
       }
     }
+
     if (filter?.type === FilterType.GEO) {
       if (filter.placedMarker) {
         const metres = (filter.distance || 0) * 1000;
-        q = q.where(sql<boolean>`
+        return sql<boolean>`
           ST_DWithin(geocode_point, (SELECT point FROM placed_marker WHERE id = ${filter.placedMarker}), ${metres})
-        `);
+        `;
       }
       if (filter.turf) {
-        q = q.where(
-          sql<boolean>`ST_Intersects(geocode_point, (SELECT polygon FROM turf WHERE id = ${filter.turf}))`,
-        );
+        return sql<boolean>`ST_Intersects(geocode_point, (SELECT polygon FROM turf WHERE id = ${filter.turf}))`;
       }
     }
+
     if (filter?.type === FilterType.TEXT) {
-      q = q.where(({ eb, ref, fn }) => {
-        return eb(
-          fn("lower", [ref("json", "->>").key(filter.column || "")]),
-          "=",
-          filter.search?.toLowerCase() || "",
-        );
-      });
+      return eb(
+        eb.fn("lower", [eb.ref("json", "->>").key(filter?.column || "")]),
+        "=",
+        filter?.search?.toLowerCase() || "",
+      );
     }
-    return q;
+
+    // Trivially always true fallthrough expression for reliability
+    // (e.g. in the case of a broken filter, return everything rather than nothing)
+    return eb(eb.val(1), "=", 1);
   };
 
   if (search) {
@@ -78,12 +82,13 @@ function filterDataRecordsByDataSource(
       .split(" ")
       .map((w) => w.trim())
       .filter(Boolean);
+
     for (const w of words) {
       q = q.where(sql<boolean>`json_text_search ILIKE ${"%" + w + "%"}`);
     }
   }
 
-  return applyFilter(q, filter);
+  return q.where(({ eb }) => applyFilter(eb, filter));
 }
 
 export function findDataRecordsByDataSource(
