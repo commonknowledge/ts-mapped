@@ -7,6 +7,7 @@ import {
   AreaStatsQueryVariables,
   DataRecordsQuery,
   DataRecordsQueryVariables,
+  DataSourceView,
   DataSourcesQuery,
   DeleteFolderMutationMutation,
   DeleteFolderMutationMutationVariables,
@@ -172,14 +173,17 @@ export const useMapQuery = (mapId: string | null) =>
 export const useMarkerQueries = ({
   membersDataSourceId,
   markerDataSourceIds,
+  dataSourceViews,
 }: {
   membersDataSourceId: string;
   markerDataSourceIds: string[];
+  dataSourceViews: DataSourceView[];
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<DataSourceMarkers[]>([]);
   const cache = useRef<Record<string, DataSourceMarkers>>({});
+  const markersByDataSource = useRef<Record<string, DataSourceMarkers>>({});
 
   useEffect(() => {
     const fetchMarkers = async () => {
@@ -191,15 +195,29 @@ export const useMarkerQueries = ({
       ].filter(Boolean);
       try {
         for (const id of dataSourceIds) {
-          if (!cache.current[id]) {
-            const response = await fetch(`/api/data-sources/${id}/markers`);
+          const filter = JSON.stringify(
+            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.filter ||
+              null,
+          );
+          const search =
+            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.search ||
+            "";
+          const cacheId = `${id}:${filter}:${search}`;
+          if (!cache.current[cacheId]) {
+            const params = new URLSearchParams();
+            params.set("filter", filter);
+            params.set("search", search);
+            const response = await fetch(
+              `/api/data-sources/${id}/markers?${params.toString()}`,
+            );
             if (!response.ok) {
               throw new Error(`Bad response: ${response.status}`);
             }
             const dataSourceMarkers = await response.json();
-            cache.current[id] = dataSourceMarkers;
+            cache.current[cacheId] = dataSourceMarkers;
           }
-          setData(Object.values(cache.current));
+          markersByDataSource.current[id] = cache.current[cacheId];
+          setData(Object.values(markersByDataSource.current));
         }
       } catch (e) {
         console.error("Fetch markers error", e);
@@ -208,7 +226,7 @@ export const useMarkerQueries = ({
       setLoading(false);
     };
     fetchMarkers();
-  }, [markerDataSourceIds, membersDataSourceId]);
+  }, [dataSourceViews, markerDataSourceIds, membersDataSourceId]);
 
   return { loading, data, error };
 };

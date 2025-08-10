@@ -119,10 +119,12 @@ export function findDataRecordsByDataSource(
   return q.execute();
 }
 
-export function streamDataRecordsByDataSource(dataSourceId: string) {
-  return db
-    .selectFrom("dataRecord")
-    .where("dataSourceId", "=", dataSourceId)
+export function streamDataRecordsByDataSource(
+  dataSourceId: string,
+  filter: RecordFilterInput | null,
+  search: string,
+) {
+  return filterDataRecordsByDataSource(dataSourceId, filter, search)
     .selectAll()
     .stream();
 }
