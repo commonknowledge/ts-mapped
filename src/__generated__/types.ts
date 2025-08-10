@@ -130,7 +130,7 @@ export type DataSource = {
   importInfo?: Maybe<JobInfo>;
   name: Scalars["String"]["output"];
   public: Scalars["Boolean"]["output"];
-  recordCount?: Maybe<Scalars["Int"]["output"]>;
+  recordCount?: Maybe<RecordCount>;
   records?: Maybe<Array<DataRecord>>;
 };
 
@@ -546,6 +546,12 @@ export type QueryMapsArgs = {
   organisationId: Scalars["String"]["input"];
 };
 
+export type RecordCount = {
+  __typename?: "RecordCount";
+  count: Scalars["Int"]["output"];
+  matched: Scalars["Int"]["output"];
+};
+
 export type RecordFilter = {
   __typename?: "RecordFilter";
   children?: Maybe<Array<RecordFilter>>;
@@ -827,7 +833,6 @@ export type DataSourceQuery = {
     autoEnrich: boolean;
     autoImport: boolean;
     config: any;
-    recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
@@ -867,6 +872,7 @@ export type DataSourceQuery = {
       lastCompleted?: string | null;
       status?: JobStatus | null;
     } | null;
+    recordCount?: { __typename?: "RecordCount"; count: number } | null;
   } | null;
 };
 
@@ -941,12 +947,12 @@ export type DataSourcesQuery = {
     id: string;
     name: string;
     config: any;
-    recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
       type: ColumnType;
     }>;
+    recordCount?: { __typename?: "RecordCount"; count: number } | null;
   }> | null;
 };
 
@@ -964,7 +970,6 @@ export type DataRecordsQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
-    recordCount?: number | null;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
@@ -977,6 +982,11 @@ export type DataRecordsQuery = {
       json: any;
       geocodePoint?: { __typename?: "Point"; lat: number; lng: number } | null;
     }> | null;
+    recordCount?: {
+      __typename?: "RecordCount";
+      count: number;
+      matched: number;
+    } | null;
   } | null;
 };
 
@@ -1362,6 +1372,7 @@ export type ResolversTypes = {
   PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
   Query: ResolverTypeWrapper<{}>;
+  RecordCount: ResolverTypeWrapper<RecordCount>;
   RecordFilter: ResolverTypeWrapper<RecordFilter>;
   RecordFilterInput: RecordFilterInput;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
@@ -1424,6 +1435,7 @@ export type ResolversParentTypes = {
   PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
   Query: {};
+  RecordCount: RecordCount;
   RecordFilter: RecordFilter;
   RecordFilterInput: RecordFilterInput;
   RecordsProcessedEvent: RecordsProcessedEvent;
@@ -1584,7 +1596,7 @@ export type DataSourceResolvers<
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   public?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   recordCount?: Resolver<
-    Maybe<ResolversTypes["Int"]>,
+    Maybe<ResolversTypes["RecordCount"]>,
     ParentType,
     ContextType,
     Partial<DataSourceRecordCountArgs>
@@ -2067,6 +2079,16 @@ export type QueryResolvers<
   >;
 };
 
+export type RecordCountResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["RecordCount"] = ResolversParentTypes["RecordCount"],
+> = {
+  count?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  matched?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type RecordFilterResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -2236,6 +2258,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   PlacedMarker?: PlacedMarkerResolvers<ContextType>;
   Point?: PointResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  RecordCount?: RecordCountResolvers<ContextType>;
   RecordFilter?: RecordFilterResolvers<ContextType>;
   RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
   Sort?: SortResolvers<ContextType>;

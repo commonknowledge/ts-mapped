@@ -2,6 +2,9 @@ export const ADMIN_ORGANISATION_NAME = "Common Knowledge";
 
 export const MARKER_ID_KEY = "__externalId";
 export const MARKER_NAME_KEY = "__name";
+export const MARKER_MATCHED_KEY = "__matched";
+// Different database derived column name because underscores get mangled by camelCase translation
+export const MARKER_MATCHED_COLUMN = "mappedMatched";
 
 export const MAX_COLUMN_KEY = "__maxColumn";
 

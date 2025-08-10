@@ -42,7 +42,9 @@ export const useDataSourcesQuery = () =>
           name
           type
         }
-        recordCount
+        recordCount {
+          count
+        }
       }
     }
   `);
@@ -79,7 +81,10 @@ export const useDataRecordsQuery = (variables: {
             }
             json
           }
-          recordCount(filter: $filter, search: $search)
+          recordCount(filter: $filter, search: $search) {
+            count
+            matched
+          }
         }
       }
     `,

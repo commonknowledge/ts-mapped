@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { MARKER_NAME_KEY } from "@/constants";
+import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
@@ -65,6 +65,9 @@ function DataSourceMarkers({
       cluster={true}
       clusterMaxZoom={14}
       clusterRadius={50}
+      clusterProperties={{
+        matched_count: ["+", ["case", ["get", MARKER_MATCHED_KEY], 1, 0]],
+      }}
     >
       <Layer
         id={`${sourceId}-circles`}
@@ -82,7 +85,12 @@ function DataSourceMarkers({
             1000,
             100,
           ],
-          "circle-opacity": 0.6,
+          "circle-opacity": [
+            "case",
+            ["==", ["get", "matched_count"], 0],
+            0.3,
+            0.6,
+          ],
         }}
       />
       <Layer
@@ -117,7 +125,7 @@ function DataSourceMarkers({
             6, // Larger radius at higher zoom levels
           ],
           "circle-color": colors.color,
-          "circle-opacity": 1,
+          "circle-opacity": ["case", ["get", MARKER_MATCHED_KEY], 1, 0.5],
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",
         }}

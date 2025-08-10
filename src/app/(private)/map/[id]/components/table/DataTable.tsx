@@ -26,7 +26,7 @@ interface DataTableProps {
   loading: boolean;
   columns: ColumnDef[];
   data: DataRecord[];
-  recordCount?: number | null | undefined;
+  recordCount?: { count: number; matched: number } | null | undefined;
 
   pageIndex: number;
   setPageIndex: (page: number) => void;
@@ -62,7 +62,9 @@ export function DataTable({
   search,
 }: DataTableProps) {
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
-  const lastPageIndex = Math.floor((recordCount || 0) / DATA_RECORDS_PAGE_SIZE);
+  const lastPageIndex = Math.floor(
+    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE,
+  );
 
   const getSortIcon = (columnName: string) => {
     const state = sort.find((c) => c.name === columnName);
@@ -99,7 +101,10 @@ export function DataTable({
           {title && (
             <div className="flex flex-row gap-2">
               <p className="font-bold whitespace-nowrap">{title}</p>
-              {recordCount !== undefined && <p>{recordCount}</p>}
+              {recordCount && <span>{recordCount?.matched}</span>}
+              {recordCount && recordCount.count !== recordCount.matched && (
+                <span>{`(${recordCount.count})`}</span>
+              )}
             </div>
           )}
         </div>

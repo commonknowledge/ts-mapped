@@ -211,7 +211,7 @@ const typeDefs = `
 
     records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!]): [DataRecord!]
 
-    recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): Int
+    recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): RecordCount
   }
 
   type DataSourceView {
@@ -318,6 +318,11 @@ const typeDefs = `
   type Point {
     lat: Float!
     lng: Float!
+  }
+
+  type RecordCount {
+    count: Int!
+    matched: Int!
   }
 
   type RecordFilter {

@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RecordFilterInput } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
+import {
+  MARKER_ID_KEY,
+  MARKER_MATCHED_COLUMN,
+  MARKER_MATCHED_KEY,
+  MARKER_NAME_KEY,
+} from "@/constants";
 import { DataRecord } from "@/server/models/DataRecord";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -49,7 +54,7 @@ export async function GET(
       let row = await stream.next();
       let firstItemWritten = false;
       while (row.value) {
-        const dr: DataRecord = row.value;
+        const dr: DataRecord & { [MARKER_MATCHED_COLUMN]: boolean } = row.value;
         if (dr.geocodeResult?.centralPoint) {
           const centralPoint = dr.geocodeResult.centralPoint;
           const coordinates = [centralPoint.lng, centralPoint.lat];
@@ -66,6 +71,7 @@ export async function GET(
                     .filter(Boolean)
                     .join(", ")
                 : dr.externalId,
+              [MARKER_MATCHED_KEY]: dr[MARKER_MATCHED_COLUMN],
             },
             geometry: {
               type: "Point",

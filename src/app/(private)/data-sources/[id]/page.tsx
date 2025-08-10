@@ -56,7 +56,9 @@ export default async function DataSourcePage({
             lastCompleted
             status
           }
-          recordCount
+          recordCount {
+            count
+          }
         }
       }
     `,

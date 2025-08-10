@@ -5,7 +5,7 @@ import {
   RecordFilterInput,
   SortInput,
 } from "@/__generated__/types";
-import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
+import { DATA_RECORDS_PAGE_SIZE, MARKER_MATCHED_COLUMN } from "@/constants";
 import { NewDataRecord } from "@/server/models/DataRecord";
 import { Database, db } from "@/server/services/database";
 
@@ -13,15 +13,28 @@ export async function countDataRecordsForDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
-): Promise<number> {
-  const result = await filterDataRecordsByDataSource(
-    dataSourceId,
-    filter,
-    search,
-  )
-    .select(({ fn }) => [fn.countAll().as("count")])
+): Promise<{ count: number; matched: number }> {
+  const result = await db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .select(({ eb, fn }) => [
+      fn.countAll().as("count"),
+      fn
+        .count(
+          eb
+            .case()
+            .when(applyFilterAndSearch(eb, filter, search))
+            .then(1)
+            .else(null)
+            .end(),
+        )
+        .as("matched"),
+    ])
     .executeTakeFirst();
-  return Number(result?.count) || 0;
+  return {
+    count: Number(result?.count) || 0,
+    matched: Number(result?.matched) || 0,
+  };
 }
 
 export function getFirstDataRecord(dataSourceId: string) {
@@ -33,22 +46,19 @@ export function getFirstDataRecord(dataSourceId: string) {
     .executeTakeFirst();
 }
 
-function filterDataRecordsByDataSource(
-  dataSourceId: string,
+function applyFilterAndSearch(
+  eb: ExpressionBuilder<Database, "dataRecord">,
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
 ) {
-  let q = db.selectFrom("dataRecord").where("dataSourceId", "=", dataSourceId);
-
   const applyFilter = (
-    eb: ExpressionBuilder<Database, "dataRecord">,
     filter: RecordFilterInput | null | undefined,
   ): AliasableExpression<SqlBool> => {
     if (filter?.type === FilterType.MULTI && filter.children?.length) {
       if (filter.operator === FilterOperator.OR) {
-        return eb.or(filter.children.map((c) => applyFilter(eb, c)));
+        return eb.or(filter.children.map((c) => applyFilter(c)));
       } else {
-        return eb.and(filter.children.map((c) => applyFilter(eb, c)));
+        return eb.and(filter.children.map((c) => applyFilter(c)));
       }
     }
 
@@ -77,18 +87,19 @@ function filterDataRecordsByDataSource(
     return eb(eb.val(1), "=", 1);
   };
 
-  if (search) {
-    const words = search
-      .split(" ")
-      .map((w) => w.trim())
-      .filter(Boolean);
-
-    for (const w of words) {
-      q = q.where(sql<boolean>`json_text_search ILIKE ${"%" + w + "%"}`);
-    }
+  if (!search) {
+    return applyFilter(filter);
   }
 
-  return q.where(({ eb }) => applyFilter(eb, filter));
+  const words = search
+    .split(" ")
+    .map((w) => w.trim())
+    .filter(Boolean);
+
+  return eb.and([
+    applyFilter(filter),
+    ...words.map((w) => sql<boolean>`json_text_search ILIKE ${"%" + w + "%"}`),
+  ]);
 }
 
 export function findDataRecordsByDataSource(
@@ -98,7 +109,10 @@ export function findDataRecordsByDataSource(
   page: number,
   sort: SortInput[],
 ) {
-  let q = filterDataRecordsByDataSource(dataSourceId, filter, search)
+  let q = db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .where((eb) => applyFilterAndSearch(eb, filter, search))
     .offset(page * DATA_RECORDS_PAGE_SIZE)
     .limit(DATA_RECORDS_PAGE_SIZE)
     .selectAll();
@@ -124,8 +138,14 @@ export function streamDataRecordsByDataSource(
   filter: RecordFilterInput | null,
   search: string,
 ) {
-  return filterDataRecordsByDataSource(dataSourceId, filter, search)
+  return db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
     .selectAll()
+    .select([
+      (eb) =>
+        applyFilterAndSearch(eb, filter, search).as(MARKER_MATCHED_COLUMN),
+    ])
     .stream();
 }
 
