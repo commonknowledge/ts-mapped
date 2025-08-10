@@ -48,19 +48,19 @@ export const useDataSourcesQuery = () =>
 
 export const useDataRecordsQuery = (variables: {
   dataSourceId: string;
-  filter: RecordFilterInput;
-  search: string;
+  filter?: RecordFilterInput;
+  search?: string;
   page: number;
-  sort: SortInput[];
+  sort?: SortInput[];
 }) =>
   useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
     gql`
       query DataRecords(
         $dataSourceId: String!
-        $filter: RecordFilterInput!
-        $search: String!
+        $filter: RecordFilterInput
+        $search: String
         $page: Int!
-        $sort: [SortInput!]!
+        $sort: [SortInput!]
       ) {
         dataSource(id: $dataSourceId) {
           id
@@ -135,6 +135,26 @@ export const useMapQuery = (mapId: string | null) =>
               showLocations
               showMembers
               showTurf
+            }
+            dataSourceViews {
+              dataSourceId
+              filter {
+                children {
+                  column
+                  distance
+                  operator
+                  placedMarker
+                  search
+                  turf
+                  type
+                }
+                type
+              }
+              search
+              sort {
+                name
+                desc
+              }
             }
           }
         }

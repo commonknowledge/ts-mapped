@@ -158,6 +158,21 @@ export type DataSourceEvent = {
   recordsImported?: Maybe<RecordsProcessedEvent>;
 };
 
+export type DataSourceView = {
+  __typename?: "DataSourceView";
+  dataSourceId: Scalars["String"]["output"];
+  filter: RecordFilter;
+  search: Scalars["String"]["output"];
+  sort: Array<Sort>;
+};
+
+export type DataSourceViewInput = {
+  dataSourceId: Scalars["String"]["input"];
+  filter: RecordFilterInput;
+  search: Scalars["String"]["input"];
+  sort: Array<SortInput>;
+};
+
 /**
  * Used to display a list of connected sources
  * in the data source dashboard.
@@ -301,6 +316,7 @@ export enum MapStyleName {
 export type MapView = {
   __typename?: "MapView";
   config: MapViewConfig;
+  dataSourceViews: Array<DataSourceView>;
   id: Scalars["String"]["output"];
   mapId: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
@@ -336,6 +352,7 @@ export type MapViewConfigInput = {
 
 export type MapViewInput = {
   config: MapViewConfigInput;
+  dataSourceViews: Array<DataSourceViewInput>;
   id: Scalars["String"]["input"];
   name: Scalars["String"]["input"];
   position: Scalars["Float"]["input"];
@@ -529,6 +546,18 @@ export type QueryMapsArgs = {
   organisationId: Scalars["String"]["input"];
 };
 
+export type RecordFilter = {
+  __typename?: "RecordFilter";
+  children?: Maybe<Array<RecordFilter>>;
+  column?: Maybe<Scalars["String"]["output"]>;
+  distance?: Maybe<Scalars["Int"]["output"]>;
+  operator?: Maybe<FilterOperator>;
+  placedMarker?: Maybe<Scalars["String"]["output"]>;
+  search?: Maybe<Scalars["String"]["output"]>;
+  turf?: Maybe<Scalars["String"]["output"]>;
+  type: FilterType;
+};
+
 export type RecordFilterInput = {
   children?: InputMaybe<Array<RecordFilterInput>>;
   column?: InputMaybe<Scalars["String"]["input"]>;
@@ -544,6 +573,12 @@ export type RecordsProcessedEvent = {
   __typename?: "RecordsProcessedEvent";
   at: Scalars["String"]["output"];
   count: Scalars["Int"]["output"];
+};
+
+export type Sort = {
+  __typename?: "Sort";
+  desc: Scalars["Boolean"]["output"];
+  name: Scalars["String"]["output"];
 };
 
 export type SortInput = {
@@ -917,10 +952,10 @@ export type DataSourcesQuery = {
 
 export type DataRecordsQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
-  filter: RecordFilterInput;
-  search: Scalars["String"]["input"];
+  filter?: InputMaybe<RecordFilterInput>;
+  search?: InputMaybe<Scalars["String"]["input"]>;
   page: Scalars["Int"]["input"];
-  sort: Array<SortInput> | SortInput;
+  sort?: InputMaybe<Array<SortInput> | SortInput>;
 }>;
 
 export type DataRecordsQuery = {
@@ -1002,6 +1037,26 @@ export type MapQuery = {
         showMembers: boolean;
         showTurf: boolean;
       };
+      dataSourceViews: Array<{
+        __typename?: "DataSourceView";
+        dataSourceId: string;
+        search: string;
+        filter: {
+          __typename?: "RecordFilter";
+          type: FilterType;
+          children?: Array<{
+            __typename?: "RecordFilter";
+            column?: string | null;
+            distance?: number | null;
+            operator?: FilterOperator | null;
+            placedMarker?: string | null;
+            search?: string | null;
+            turf?: string | null;
+            type: FilterType;
+          }> | null;
+        };
+        sort: Array<{ __typename?: "Sort"; name: string; desc: boolean }>;
+      }>;
     }> | null;
   } | null;
 };
@@ -1268,6 +1323,8 @@ export type ResolversTypes = {
   DataRecord: ResolverTypeWrapper<DataRecord>;
   DataSource: ResolverTypeWrapper<DataSource>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
+  DataSourceView: ResolverTypeWrapper<DataSourceView>;
+  DataSourceViewInput: DataSourceViewInput;
   Date: ResolverTypeWrapper<Scalars["Date"]["output"]>;
   EnrichmentDataSource: ResolverTypeWrapper<EnrichmentDataSource>;
   EnrichmentSourceType: EnrichmentSourceType;
@@ -1305,8 +1362,10 @@ export type ResolversTypes = {
   PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
   Query: ResolverTypeWrapper<{}>;
+  RecordFilter: ResolverTypeWrapper<RecordFilter>;
   RecordFilterInput: RecordFilterInput;
   RecordsProcessedEvent: ResolverTypeWrapper<RecordsProcessedEvent>;
+  Sort: ResolverTypeWrapper<Sort>;
   SortInput: SortInput;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   Subscription: ResolverTypeWrapper<{}>;
@@ -1333,6 +1392,8 @@ export type ResolversParentTypes = {
   DataRecord: DataRecord;
   DataSource: DataSource;
   DataSourceEvent: DataSourceEvent;
+  DataSourceView: DataSourceView;
+  DataSourceViewInput: DataSourceViewInput;
   Date: Scalars["Date"]["output"];
   EnrichmentDataSource: EnrichmentDataSource;
   Float: Scalars["Float"]["output"];
@@ -1363,8 +1424,10 @@ export type ResolversParentTypes = {
   PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
   Query: {};
+  RecordFilter: RecordFilter;
   RecordFilterInput: RecordFilterInput;
   RecordsProcessedEvent: RecordsProcessedEvent;
+  Sort: Sort;
   SortInput: SortInput;
   String: Scalars["String"]["output"];
   Subscription: {};
@@ -1574,6 +1637,18 @@ export type DataSourceEventResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type DataSourceViewResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["DataSourceView"] = ResolversParentTypes["DataSourceView"],
+> = {
+  dataSourceId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  filter?: Resolver<ResolversTypes["RecordFilter"], ParentType, ContextType>;
+  search?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  sort?: Resolver<Array<ResolversTypes["Sort"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface DateScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes["Date"], any> {
   name: "Date";
@@ -1751,6 +1826,11 @@ export type MapViewResolvers<
     ResolversParentTypes["MapView"] = ResolversParentTypes["MapView"],
 > = {
   config?: Resolver<ResolversTypes["MapViewConfig"], ParentType, ContextType>;
+  dataSourceViews?: Resolver<
+    Array<ResolversTypes["DataSourceView"]>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   mapId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
@@ -1987,6 +2067,34 @@ export type QueryResolvers<
   >;
 };
 
+export type RecordFilterResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["RecordFilter"] = ResolversParentTypes["RecordFilter"],
+> = {
+  children?: Resolver<
+    Maybe<Array<ResolversTypes["RecordFilter"]>>,
+    ParentType,
+    ContextType
+  >;
+  column?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  distance?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
+  operator?: Resolver<
+    Maybe<ResolversTypes["FilterOperator"]>,
+    ParentType,
+    ContextType
+  >;
+  placedMarker?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  search?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  turf?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  type?: Resolver<ResolversTypes["FilterType"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type RecordsProcessedEventResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -1994,6 +2102,16 @@ export type RecordsProcessedEventResolvers<
 > = {
   at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   count?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SortResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["Sort"] = ResolversParentTypes["Sort"],
+> = {
+  desc?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2098,6 +2216,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   DataRecord?: DataRecordResolvers<ContextType>;
   DataSource?: DataSourceResolvers<ContextType>;
   DataSourceEvent?: DataSourceEventResolvers<ContextType>;
+  DataSourceView?: DataSourceViewResolvers<ContextType>;
   Date?: GraphQLScalarType;
   EnrichmentDataSource?: EnrichmentDataSourceResolvers<ContextType>;
   Folder?: FolderResolvers<ContextType>;
@@ -2117,7 +2236,9 @@ export type Resolvers<ContextType = GraphQLContext> = {
   PlacedMarker?: PlacedMarkerResolvers<ContextType>;
   Point?: PointResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  RecordFilter?: RecordFilterResolvers<ContextType>;
   RecordsProcessedEvent?: RecordsProcessedEventResolvers<ContextType>;
+  Sort?: SortResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Turf?: TurfResolvers<ContextType>;
   UpdateMapConfigResponse?: UpdateMapConfigResponseResolvers<ContextType>;

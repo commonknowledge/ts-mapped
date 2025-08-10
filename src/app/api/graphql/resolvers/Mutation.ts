@@ -287,6 +287,7 @@ const MutationResolvers: MutationResolversType = {
         await upsertMapView({
           ...view,
           config: JSON.stringify(view.config),
+          dataSourceViews: JSON.stringify(view.dataSourceViews),
           mapId,
         });
       }

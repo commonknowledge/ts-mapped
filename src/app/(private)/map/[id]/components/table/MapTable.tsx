@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import { DataSourceView, FilterType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
@@ -13,7 +14,7 @@ interface DataRecord {
 }
 
 export default function MapTable() {
-  const { mapRef } = useContext(MapContext);
+  const { mapRef, view, updateView } = useContext(MapContext);
   const { getDataSourceById } = useContext(DataSourcesContext);
 
   const {
@@ -21,14 +22,8 @@ export default function MapTable() {
     handleDataSourceSelect,
     selectedRecordId,
     setSelectedRecordId,
-    tableFilter,
-    setTableFilter,
-    tableSearch,
-    setTableSearch,
     tablePage,
     setTablePage,
-    tableSort,
-    setTableSort,
     dataRecordsQuery,
   } = useContext(TableContext);
   const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
@@ -52,10 +47,38 @@ export default function MapTable() {
     setSelectedRecordId(row.id);
   };
 
+  const dataSourceView = view?.dataSourceViews.find(
+    (dsv) => dsv.dataSourceId === dataSource.id,
+  );
+  const updateDataSourceView = (update: Partial<DataSourceView>) => {
+    if (view) {
+      let dataSourceViews = view.dataSourceViews;
+      if (dataSourceView) {
+        dataSourceViews = view.dataSourceViews.map((dsv) => {
+          if (dsv.dataSourceId === dataSource.id) {
+            return { ...dsv, ...update };
+          }
+          return dsv;
+        });
+      } else {
+        dataSourceViews = [
+          {
+            dataSourceId: dataSource.id,
+            filter: { type: FilterType.MULTI },
+            search: "",
+            sort: [],
+            ...update,
+          },
+        ];
+      }
+      updateView({ ...view, dataSourceViews });
+    }
+  };
+
   const filter = (
     <TableFilter
-      filter={tableFilter}
-      setFilter={setTableFilter}
+      filter={dataSourceView?.filter || { type: FilterType.MULTI }}
+      setFilter={(filter) => updateDataSourceView({ filter })}
       columns={dataSource.columnDefs}
       placedMarkers={placedMarkers}
       turfs={turfs}
@@ -66,8 +89,8 @@ export default function MapTable() {
     <Input
       type="text"
       placeholder="Search"
-      value={tableSearch}
-      onChange={(e) => setTableSearch(e.target.value)}
+      value={dataSourceView?.search || ""}
+      onChange={(e) => updateDataSourceView({ search: e.target.value })}
     />
   );
 
@@ -83,8 +106,8 @@ export default function MapTable() {
         search={search}
         pageIndex={tablePage}
         setPageIndex={setTablePage}
-        sort={tableSort}
-        setSort={setTableSort}
+        sort={dataSourceView?.sort || []}
+        setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
         selectedRecordId={selectedRecordId || undefined}
         onClose={() => handleDataSourceSelect("")}

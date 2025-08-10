@@ -1,31 +1,31 @@
 "use client";
 
-import { ReactNode, useState } from "react";
-import {
-  FilterType,
-  RecordFilterInput,
-  SortInput,
-} from "@/__generated__/types";
+import { ReactNode, useContext, useMemo, useState } from "react";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { useDataRecordsQuery } from "../data";
 
 const TableProvider = ({ children }: { children: ReactNode }) => {
+  const { view } = useContext(MapContext);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<string>("");
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
-  const [tableFilter, setTableFilter] = useState<RecordFilterInput>({
-    type: FilterType.MULTI,
-  });
   const [tablePage, setTablePage] = useState(0);
-  const [tableSearch, setTableSearch] = useState("");
-  const [tableSort, setTableSort] = useState<SortInput[]>([]);
+
+  const dataSourceView = useMemo(
+    () =>
+      view?.dataSourceViews.find(
+        (dsv) => dsv.dataSourceId === selectedDataSourceId,
+      ),
+    [selectedDataSourceId, view?.dataSourceViews],
+  );
 
   const dataRecordsQuery = useDataRecordsQuery({
     dataSourceId: selectedDataSourceId,
     page: tablePage,
-    search: tableSearch,
-    filter: tableFilter,
-    sort: tableSort,
+    search: dataSourceView?.search,
+    filter: dataSourceView?.filter,
+    sort: dataSourceView?.sort,
   });
 
   const handleDataSourceSelect = (dataSourceId: string) => {
@@ -39,14 +39,8 @@ const TableProvider = ({ children }: { children: ReactNode }) => {
   return (
     <TableContext
       value={{
-        tableFilter,
-        setTableFilter,
         tablePage,
         setTablePage,
-        tableSearch,
-        setTableSearch,
-        tableSort,
-        setTableSort,
 
         selectedDataSourceId,
         handleDataSourceSelect,

@@ -86,6 +86,13 @@ const typeDefs = `
     nameColumns: [String!]!
   }
 
+  input DataSourceViewInput {
+    dataSourceId: String!
+    filter: RecordFilterInput!
+    search: String!
+    sort: [SortInput!]!
+  }
+
   input LooseGeocodingConfigInput {
     type: GeocodingType!
     column: String
@@ -115,6 +122,7 @@ const typeDefs = `
     id: String!
     name: String!
     config: MapViewConfigInput!
+    dataSourceViews: [DataSourceViewInput!]!
     position: Float!
   }
 
@@ -206,6 +214,13 @@ const typeDefs = `
     recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): Int
   }
 
+  type DataSourceView {
+    dataSourceId: String!
+    filter: RecordFilter!
+    search: String!
+    sort: [Sort!]!
+  }
+
   """
   Used to display a list of connected sources
   in the data source dashboard.
@@ -269,6 +284,7 @@ const typeDefs = `
     name: String!
     position: Float!
     config: MapViewConfig!
+    dataSourceViews: [DataSourceView!]!
     mapId: String!
   }
 
@@ -304,6 +320,17 @@ const typeDefs = `
     lng: Float!
   }
 
+  type RecordFilter {
+    children: [RecordFilter!]
+    column: String
+    distance: Int
+    operator: FilterOperator
+    placedMarker: String
+    search: String
+    turf: String
+    type: FilterType!
+  }
+
   type Turf {
     id: String!
     label: String!
@@ -311,6 +338,11 @@ const typeDefs = `
     area: Float!
     polygon: JSON!
     createdAt: Date!
+  }
+
+  type Sort {
+    name: String!
+    desc: Boolean!
   }
 
   type Query {
