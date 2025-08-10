@@ -188,7 +188,7 @@ export const useMarkerQueries = ({
   const [error, setError] = useState("");
   const [data, setData] = useState<DataSourceMarkers[]>([]);
   const cache = useRef<Record<string, DataSourceMarkers>>({});
-  const markersByDataSource = useRef<Record<string, DataSourceMarkers>>({});
+  const cacheKeyByDataSource = useRef<Record<string, string>>({});
 
   useEffect(() => {
     const fetchMarkers = async () => {
@@ -221,8 +221,14 @@ export const useMarkerQueries = ({
             const dataSourceMarkers = await response.json();
             cache.current[cacheId] = dataSourceMarkers;
           }
-          markersByDataSource.current[id] = cache.current[cacheId];
-          setData(Object.values(markersByDataSource.current));
+          cacheKeyByDataSource.current[id] = cacheId;
+          // For each active cache key, get the cached value
+          // which will be a DataSourceMarkers object
+          setData(
+            Object.values(cacheKeyByDataSource.current)
+              .map((k) => cache.current[k])
+              .filter(Boolean),
+          );
         }
       } catch (e) {
         console.error("Fetch markers error", e);
