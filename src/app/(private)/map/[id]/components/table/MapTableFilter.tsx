@@ -1,6 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import { FilterIcon, XIcon } from "lucide-react";
-import { useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   FilterDataRecordsQuery,
   FilterDataRecordsQueryVariables,
@@ -31,10 +31,12 @@ import {
 import { DropdownMenuItem } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
+import { mapColors } from "../../styles";
 
 interface TableFilterProps {
   filter: RecordFilterInput;
   setFilter: (f: RecordFilterInput) => void;
+  triggerBoundsFitting?: () => void;
 }
 
 export default function MapTableFilter({
@@ -49,24 +51,47 @@ export default function MapTableFilter({
 }
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
-  const { mapConfig } = useContext(MapContext);
-  const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
+  const { mapConfig, mapRef } = useContext(MapContext);
+  const { placedMarkers, turfs, markerQueries } =
+    useContext(MarkerAndTurfContext);
   const { getDataSourceById } = useContext(DataSourcesContext);
   const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
 
   const tableDataSource = getDataSourceById(tableDataSourceId);
   const columns = tableDataSource?.columnDefs || [];
 
-  // Put filter updates on a timeout for better UI responsiveness
-  const setFilter = (f: RecordFilterInput) => {
-    setTimeout(() => {
-      _setFilter(f);
-    }, 1);
-  };
-
   const children = filter.children || [];
+
+  // Use a ref to track the latest filter state for bounds fitting
+  const latestFilterRef = useRef(filter);
+  latestFilterRef.current = filter;
+
+  // Debounce timer ref
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Function to trigger bounds fitting with debouncing
+  const triggerBoundsFitting = useCallback(() => {
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    // Set new timer
+    debounceTimerRef.current = setTimeout(() => {
+      fitBoundsToFilteredItems();
+    }, 100);
+  }, []);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [triggerBoundsFitting]);
+
   const setChildFilter = (index: number, childFilter: RecordFilterInput) => {
-    setFilter({
+    const updatedFilter = {
       ...filter,
       children: children.map((f, i) => {
         if (i === index) {
@@ -74,11 +99,180 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         }
         return f;
       }),
-    });
+    };
+    _setFilter(updatedFilter);
+    triggerBoundsFitting();
   };
 
   const addFilter = (childFilter: RecordFilterInput) => {
-    setFilter({ ...filter, children: children.concat([childFilter]) });
+    const newFilter = { ...filter, children: children.concat([childFilter]) };
+    _setFilter(newFilter);
+    triggerBoundsFitting();
+  };
+
+  // Function to fit map bounds to show all filtered items
+  const fitBoundsToFilteredItems = () => {
+    if (!mapRef?.current) return;
+
+    const allCoordinates: [number, number][] = [];
+
+    // Get coordinates from all current filters
+    const currentFilters = filter.children || [];
+
+    for (const filterItem of currentFilters) {
+      if (filterItem.type === FilterType.GEO) {
+        if (filterItem.placedMarker) {
+          // Add placed marker coordinates
+          const marker = placedMarkers.find(
+            (m) => m.id === filterItem.placedMarker
+          );
+          if (marker) {
+            allCoordinates.push([marker.point.lng, marker.point.lat]);
+          }
+        } else if (filterItem.turf) {
+          // Add turf polygon bounds
+          const turf = turfs.find((t) => t.id === filterItem.turf);
+          if (turf) {
+            try {
+              const bounds = getPolygonBounds(turf.polygon);
+              if (bounds) {
+                allCoordinates.push([bounds[0], bounds[1]]); // minLng, minLat
+                allCoordinates.push([bounds[2], bounds[3]]); // maxLng, maxLat
+              }
+            } catch (error) {
+              console.warn("Could not calculate turf bounds:", error);
+            }
+          }
+        } else if (filterItem.dataRecordId) {
+          // Add data record coordinates from marker queries
+          console.log(
+            "Looking for member/marker with ID:",
+            filterItem.dataRecordId
+          );
+          console.log("Available marker queries:", markerQueries);
+
+          if (markerQueries?.data && Array.isArray(markerQueries.data)) {
+            console.log("Processing marker queries data:", markerQueries.data);
+            for (const queryResult of markerQueries.data) {
+              console.log("Checking query result:", queryResult);
+              if (queryResult.markers?.features) {
+                console.log(
+                  "Features in this query:",
+                  queryResult.markers.features
+                );
+                const feature = queryResult.markers.features.find(
+                  (f: { properties?: { __recordId?: string } }) => {
+                    console.log("Checking feature properties:", f.properties);
+                    return f.properties?.__recordId === filterItem.dataRecordId;
+                  }
+                );
+                if (feature) {
+                  console.log("Found matching feature:", feature);
+                  // Check if coordinates exist in the feature
+                  if (feature.geometry?.coordinates) {
+                    const [lng, lat] = feature.geometry.coordinates;
+                    console.log("Found coordinates for member:", { lng, lat });
+                    allCoordinates.push([lng, lat]);
+                    break; // Found the record, no need to check other queries
+                  } else {
+                    console.log(
+                      "Feature found but no coordinates in geometry:",
+                      feature.geometry
+                    );
+                    // Try to find coordinates in properties or other locations
+                    if (
+                      feature.properties?.__lng &&
+                      feature.properties?.__lat
+                    ) {
+                      const lng = Number(feature.properties.__lng);
+                      const lat = Number(feature.properties.__lat);
+                      console.log("Found coordinates in properties:", {
+                        lng,
+                        lat,
+                      });
+                      allCoordinates.push([lng, lat]);
+                      break;
+                    }
+                  }
+                }
+              } else {
+                console.log("No features in this query result");
+              }
+            }
+          } else {
+            console.log("No marker queries data available");
+          }
+        }
+      }
+    }
+
+    // If we have coordinates, fit the bounds
+    if (allCoordinates.length > 0) {
+      console.log("Fitting bounds to coordinates:", allCoordinates);
+
+      if (allCoordinates.length === 1) {
+        // Single point - fly to it
+        mapRef.current.flyTo({
+          center: allCoordinates[0],
+          zoom: 12,
+          duration: 1000,
+        });
+      } else {
+        // Multiple points - calculate bounds and fit
+        const bounds = calculateBoundsFromCoordinates(allCoordinates);
+        mapRef.current.fitBounds(bounds, {
+          padding: 50,
+          duration: 1000,
+        });
+      }
+    }
+  };
+
+  // Helper function to calculate bounds from a list of coordinates
+  const calculateBoundsFromCoordinates = (
+    coordinates: [number, number][]
+  ): [number, number, number, number] => {
+    let minLng = Infinity,
+      maxLng = -Infinity,
+      minLat = Infinity,
+      maxLat = -Infinity;
+
+    for (const [lng, lat] of coordinates) {
+      minLng = Math.min(minLng, lng);
+      maxLng = Math.max(maxLng, lng);
+      minLat = Math.min(minLat, lat);
+      maxLat = Math.max(maxLat, lat);
+    }
+
+    return [minLng, minLat, maxLng, maxLat];
+  };
+
+  // Helper function to calculate bounds for a polygon
+  const getPolygonBounds = (polygon: {
+    coordinates?: number[][][];
+  }): [number, number, number, number] | null => {
+    try {
+      if (polygon?.coordinates && Array.isArray(polygon.coordinates[0])) {
+        const coords = polygon.coordinates[0]; // First ring of polygon
+        let minLng = Infinity,
+          maxLng = -Infinity,
+          minLat = Infinity,
+          maxLat = -Infinity;
+
+        for (const coord of coords) {
+          const [lng, lat] = coord;
+          minLng = Math.min(minLng, lng);
+          maxLng = Math.max(maxLng, lng);
+          minLat = Math.min(minLat, lat);
+          maxLat = Math.max(maxLat, lat);
+        }
+
+        return [minLng, minLat, maxLng, maxLat];
+      }
+    } catch (error) {
+      console.warn("Error calculating polygon bounds:", error);
+    }
+    return null;
   };
 
   const placedMarkerItems: DropdownMenuItemType[] = placedMarkers.map((m) => {
@@ -90,6 +284,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
           type: FilterType.GEO,
           placedMarker: m.id,
           label: m.label,
+          distance: 1,
         });
       },
     };
@@ -118,6 +313,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
           dataRecordId: id,
           dataSourceId: mapConfig.membersDataSourceId,
           label,
+          distance: 1,
         });
       }}
     />
@@ -138,42 +334,56 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                 dataRecordId: id,
                 dataSourceId: dataSourceId,
                 label,
+                distance: 1,
               });
             }}
           />
         ),
       };
-    },
+    }
   );
 
   const dropdownItems = [
-    {
-      type: "subcomponent",
-      label: "Members",
-      component: memberCommand,
-    } as DropdownSubComponent,
-    {
-      type: "submenu",
-      label: "Markers",
-      items: labelledMarkerCommands.map(
-        ({ label, component }) =>
-          ({
+    ...(memberCommand
+      ? [
+          {
             type: "subcomponent",
-            label,
-            component,
-          }) as DropdownSubComponent,
-      ),
-    } as DropdownSubMenu,
-    {
-      type: "submenu",
-      label: "Locations",
-      items: placedMarkerItems,
-    } as DropdownSubMenu,
-    {
-      type: "submenu",
-      label: "Areas",
-      items: turfItems,
-    } as DropdownSubMenu,
+            label: "Promixty to Member",
+            component: memberCommand,
+          } as DropdownSubComponent,
+        ]
+      : []),
+    ...(labelledMarkerCommands.length > 0
+      ? [
+          {
+            type: "submenu",
+            label: "Promixty to Marker",
+            items: [
+              ...labelledMarkerCommands.map(
+                ({ label, component }) =>
+                  ({
+                    type: "subcomponent",
+                    label,
+                    component,
+                  }) as DropdownSubComponent
+              ),
+              ...(labelledMarkerCommands.length > 0
+                ? [{ type: "separator" as const }]
+                : []),
+              ...placedMarkerItems,
+            ],
+          } as DropdownSubMenu,
+        ]
+      : []),
+    ...(turfItems.length > 0
+      ? [
+          {
+            type: "submenu",
+            label: "Within Area",
+            items: turfItems,
+          } as DropdownSubMenu,
+        ]
+      : []),
     { type: "separator" } as DropdownSeparator,
     ...(columns.map((c) => {
       return {
@@ -190,8 +400,44 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   ];
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-2 items-center">
+    <>
+      {/* Overlay that dims everything when filters are active */}
+      {filter.children && filter.children.length > 0 && (
+        <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
+      )}
+      
+      <div className="flex  gap-2 relative z-50">
+        <div className="flex gap-2 items-center flex-wrap">
+        <ul className="flex gap-2 items-center text-sm ">
+          {children.map((child, i) => (
+            <li
+              key={i}
+              className="flex gap-1 items-center border rounded-md pl-2 flex-1"
+            >
+              <ChildFilter
+                filter={child}
+                setFilter={(child) => setChildFilter(i, child)}
+                triggerBoundsFitting={triggerBoundsFitting}
+              />
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => {
+                  const updatedFilter = {
+                    ...filter,
+                    children: filter.children?.filter((_, j) => i !== j),
+                  };
+                  _setFilter(updatedFilter);
+                  // Trigger bounds fitting when removing a filter
+                  setTimeout(() => triggerBoundsFitting(), 50);
+                }}
+                className="px-2! border-l rounded-none text-muted-foreground h-7"
+              >
+                <XIcon className="w-2 h-2" />
+              </Button>
+            </li>
+          ))}
+        </ul>
         <MultiDropdownMenu
           align="start"
           side="bottom"
@@ -200,73 +446,81 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         >
           Filter <FilterIcon className="w-4 h-4" />
         </MultiDropdownMenu>
-        <ul className="flex gap-2 items-center">
-          {children.map((child, i) => (
-            <li key={i} className="flex gap-1 items-center">
-              <ChildFilter
-                filter={child}
-                setFilter={(child) => setChildFilter(i, child)}
-              />
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={() => {
-                  setFilter({
-                    ...filter,
-                    children: filter.children?.filter((_, j) => i !== j),
-                  });
-                }}
-              >
-                <XIcon className="w-2 h-2" />
-              </Button>
-            </li>
-          ))}
-        </ul>
       </div>
       <div>
         <Toggle
           pressed={filter.operator !== FilterOperator.OR}
-          onPressedChange={(value) =>
-            setFilter({
+          onPressedChange={(value) => {
+            const updatedFilter = {
               ...filter,
               operator: value ? FilterOperator.AND : FilterOperator.OR,
-            })
-          }
+            };
+            _setFilter(updatedFilter);
+            // Trigger bounds fitting when changing operator
+            setTimeout(() => triggerBoundsFitting(), 50);
+          }}
         >
           <span>
             {filter.operator === FilterOperator.OR ? "Match any" : "Match all"}
           </span>
         </Toggle>
       </div>
-    </div>
+    </>
   );
 }
 
-function ChildFilter({ filter, setFilter }: TableFilterProps) {
+function ChildFilter({
+  filter,
+  setFilter,
+  triggerBoundsFitting,
+}: TableFilterProps) {
+  const color = filter.placedMarker
+    ? mapColors.markers.color
+    : filter.turf
+      ? mapColors.areas.color
+      : mapColors.member.color;
+
   const hasDistance = filter.placedMarker || filter.dataRecordId;
   return (
     <div className="flex gap-1 items-center">
       {filter.type === FilterType.GEO ? (
         <>
-          <span>within</span>
+          <span className="text-muted-foreground px-1">within</span>
           {hasDistance && (
             <>
               <Input
                 type="number"
                 placeholder="Distance"
                 value={filter.distance || 0}
-                onChange={(e) =>
-                  setFilter({
+                onChange={(e) => {
+                  const updatedFilter = {
                     ...filter,
                     distance: parseInt(e.target.value, 10) || 0,
-                  })
-                }
+                  };
+                  setFilter(updatedFilter);
+                  // Trigger bounds fitting when changing distance
+                  if (triggerBoundsFitting) {
+                    setTimeout(() => triggerBoundsFitting(), 50);
+                  }
+                }}
                 required
+                className="w-16 h-7 p-2 text-sm text-center border-y-0 rounded-none bg-neutral-100 font-medium"
               />
-              <span className="whitespace-nowrap">km of</span>
+              <span className="whitespace-nowrap text-muted-foreground px-1">
+                km of
+              </span>
             </>
           )}
-          <span>{filter.label || "Unknown location"}</span>
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{
+              backgroundColor: color,
+            }}
+          />
+
+          <span className="whitespace-nowrap max-w-[100px] truncate">
+            {filter.label || "Unknown location"}
+          </span>
         </>
       ) : (
         <>
@@ -276,7 +530,15 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
             type="text"
             placeholder="Search"
             value={filter.search || ""}
-            onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+            onChange={(e) => {
+              const updatedFilter = { ...filter, search: e.target.value };
+              setFilter(updatedFilter);
+              // Trigger bounds fitting when changing search
+              if (triggerBoundsFitting) {
+                setTimeout(() => triggerBoundsFitting(), 50);
+              }
+            }}
+            className="w-20 h-7 p-2 text-sm text-center border-y-0 rounded-none bg-neutral-100 font-medium"
             required
           />
         </>
@@ -314,7 +576,7 @@ function DataRecordCommand({
         }
       }
     `,
-    { variables: { dataSourceId, search } },
+    { variables: { dataSourceId, search } }
   );
 
   const getItemLabel = (record: {
