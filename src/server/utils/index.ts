@@ -27,7 +27,7 @@ export const batch = <T>(records: T[], batchSize: number) => {
  * `batchSize`.
  */
 export const batchAsync = async function* <T>(
-  records: AsyncGenerator<T, unknown, unknown>,
+  records: AsyncGenerator<T, unknown, unknown> | AsyncIterableIterator<T>,
   batchSize: number,
 ) {
   let batch = [];

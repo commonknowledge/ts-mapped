@@ -33,6 +33,10 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     throw new Error("Method not implemented.");
   }
 
+  tagRecords(): Promise<void> {
+    throw new Error("Unimplemented.");
+  }
+
   async toggleWebhook(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enable: boolean,

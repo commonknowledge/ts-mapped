@@ -326,6 +326,46 @@ describe.skip("Google Sheets adaptor tests", () => {
     expect(updatedRecord[3].json["BatchTestField"]).toBeFalsy();
   });
 
+  test("tagRecords attempts to tag records", async () => {
+    const adaptor = new GoogleSheetsAdaptor(
+      uuid,
+      credentials.googlesheets.spreadsheetId,
+      credentials.googlesheets.sheetName,
+      credentials.googlesheets.oAuthCredentials,
+    );
+
+    // Get a record first
+    const firstRecord = await adaptor.fetchFirst();
+    if (!firstRecord) {
+      throw new Error("No records found in Action Network");
+    }
+
+    const taggedRecords = [
+      {
+        externalId: firstRecord.externalId,
+        json: firstRecord.json,
+        tag: {
+          name: "My View",
+          present: true,
+        },
+      },
+    ];
+
+    await adaptor.tagRecords(taggedRecords);
+
+    let updatedRecords = await adaptor.fetchByExternalId([
+      firstRecord.externalId,
+    ]);
+
+    expect(updatedRecords[0].json["My View"]).toBe("true");
+
+    taggedRecords[0].tag.present = false;
+    await adaptor.tagRecords(taggedRecords);
+    updatedRecords = await adaptor.fetchByExternalId([firstRecord.externalId]);
+
+    expect(updatedRecords[0].json["My View"]).toBe("false");
+  });
+
   test("access token refresh works when token is expired", async () => {
     // Create adaptor with expired token
     const expiredCredentials = {

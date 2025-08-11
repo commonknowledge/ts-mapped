@@ -108,7 +108,7 @@ export default function MultiDropdownMenu({
 
       case "item":
         return (
-          <DropdownMenuItem key={item.label} onClick={item.onClick}>
+          <DropdownMenuItem key={`item-${index}`} onClick={item.onClick}>
             {item.icon && item.icon}
             {item.label}
           </DropdownMenuItem>
@@ -136,7 +136,10 @@ export default function MultiDropdownMenu({
                 return <DropdownMenuSeparator key={`sub-separator-${index}`} />;
               }
               return (
-                <DropdownMenuItem key={item.label} onClick={item.onClick}>
+                <DropdownMenuItem
+                  key={`sub-item-${index}`}
+                  onClick={item.onClick}
+                >
                   {item.icon && item.icon}
                   {item.label}
                 </DropdownMenuItem>

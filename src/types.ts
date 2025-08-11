@@ -55,6 +55,15 @@ export interface ServerSession {
   currentUser: CurrentUser | null;
 }
 
+export interface TaggedRecord {
+  externalId: string;
+  json: Record<string, unknown>;
+  tag: {
+    name: string;
+    present: boolean;
+  };
+}
+
 export interface UploadResponseBody {
   url: string;
 }

@@ -290,6 +290,12 @@ const MutationResolvers: MutationResolversType = {
           dataSourceViews: JSON.stringify(view.dataSourceViews),
           mapId,
         });
+        for (const dsv of view.dataSourceViews) {
+          await enqueue("tagDataSource", {
+            dataSourceId: dsv.dataSourceId,
+            viewId: view.id,
+          });
+        }
       }
       return { code: 200 };
     } catch (error) {
