@@ -41,13 +41,26 @@ export interface DropdownSubMenu {
   type: "submenu";
   label: string;
   icon?: React.ReactNode;
-  items: (DropdownItem | DropdownSeparator)[];
+  items: (
+    | DropdownItem
+    | DropdownSeparator
+    | DropdownSubComponent
+    | DropdownSubMenu
+  )[];
+}
+
+export interface DropdownSubComponent {
+  type: "subcomponent";
+  label: string;
+  icon?: React.ReactNode;
+  component: React.ReactNode;
 }
 
 export type DropdownMenuItemType =
   | DropdownItem
   | DropdownSeparator
-  | DropdownSubMenu;
+  | DropdownSubMenu
+  | DropdownSubComponent;
 
 export default function MultiDropdownMenu({
   children,
@@ -76,22 +89,20 @@ export default function MultiDropdownMenu({
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               {item.items.map((subItem, subIndex) => {
-                if (subItem.type === "separator") {
-                  return (
-                    <DropdownMenuSeparator key={`sub-separator-${subIndex}`} />
-                  );
-                }
-                return (
-                  <DropdownMenuItem
-                    key={subItem.label}
-                    onClick={subItem.onClick}
-                  >
-                    {subItem.icon && subItem.icon}
-                    {subItem.label}
-                  </DropdownMenuItem>
-                );
+                return renderDropdownItem(subItem, subIndex);
               })}
             </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        );
+
+      case "subcomponent":
+        return (
+          <DropdownMenuSub key={`submenu-${index}`}>
+            <DropdownMenuSubTrigger>
+              {item.icon && <span className="mr-2">{item.icon}</span>}
+              {item.label}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>{item.component}</DropdownMenuSubContent>
           </DropdownMenuSub>
         );
 

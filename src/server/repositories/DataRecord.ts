@@ -72,6 +72,12 @@ function applyFilterAndSearch(
       if (filter.turf) {
         return sql<boolean>`ST_Intersects(geocode_point, (SELECT polygon FROM turf WHERE id = ${filter.turf}))`;
       }
+      if (filter.dataRecordId) {
+        const metres = (filter.distance || 0) * 1000;
+        return sql<boolean>`
+          ST_DWithin(geocode_point, (SELECT geocode_point FROM data_record WHERE id = ${filter.dataRecordId}), ${metres})
+        `;
+      }
     }
 
     if (filter?.type === FilterType.TEXT) {

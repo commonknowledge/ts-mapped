@@ -152,7 +152,10 @@ const typeDefs = `
   input RecordFilterInput {
     children: [RecordFilterInput!]
     column: String
+    dataSourceId: String
+    dataRecordId: String
     distance: Int
+    label: String
     operator: FilterOperator
     placedMarker: String
     search: String
@@ -328,7 +331,10 @@ const typeDefs = `
   type RecordFilter {
     children: [RecordFilter!]
     column: String
+    dataSourceId: String
+    dataRecordId: String
     distance: Int
+    label: String
     operator: FilterOperator
     placedMarker: String
     search: String

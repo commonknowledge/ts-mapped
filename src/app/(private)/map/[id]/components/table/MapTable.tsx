@@ -2,11 +2,10 @@ import { useContext } from "react";
 import { DataSourceView, FilterType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { Input } from "@/shadcn/ui/input";
 import { DataTable } from "./DataTable";
-import TableFilter from "./TableFilter";
+import MapTableFilter from "./MapTableFilter";
 
 interface DataRecord {
   id: string;
@@ -26,7 +25,6 @@ export default function MapTable() {
     setTablePage,
     dataRecordsQuery,
   } = useContext(TableContext);
-  const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
 
   if (!selectedDataSourceId) {
     return null;
@@ -62,6 +60,7 @@ export default function MapTable() {
         });
       } else {
         dataSourceViews = [
+          ...dataSourceViews,
           {
             dataSourceId: dataSource.id,
             filter: { type: FilterType.MULTI },
@@ -76,12 +75,9 @@ export default function MapTable() {
   };
 
   const filter = (
-    <TableFilter
+    <MapTableFilter
       filter={dataSourceView?.filter || { type: FilterType.MULTI }}
       setFilter={(filter) => updateDataSourceView({ filter })}
-      columns={dataSource.columnDefs}
-      placedMarkers={placedMarkers}
-      turfs={turfs}
     />
   );
 

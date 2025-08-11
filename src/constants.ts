@@ -1,8 +1,10 @@
 export const ADMIN_ORGANISATION_NAME = "Common Knowledge";
 
-export const MARKER_ID_KEY = "__externalId";
+export const MARKER_ID_KEY = "__recordId";
+export const MARKER_EXTERNAL_ID_KEY = "__externalId";
 export const MARKER_NAME_KEY = "__name";
 export const MARKER_MATCHED_KEY = "__matched";
+export const MARKER_RADIUS_KEY = "__radius";
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 

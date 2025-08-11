@@ -46,7 +46,7 @@ export interface Point {
 
 export interface PointFeature {
   type: "Feature";
-  properties: Record<string, string>;
+  properties: Record<string, string | number>;
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 

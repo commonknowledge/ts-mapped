@@ -556,7 +556,10 @@ export type RecordFilter = {
   __typename?: "RecordFilter";
   children?: Maybe<Array<RecordFilter>>;
   column?: Maybe<Scalars["String"]["output"]>;
+  dataRecordId?: Maybe<Scalars["String"]["output"]>;
+  dataSourceId?: Maybe<Scalars["String"]["output"]>;
   distance?: Maybe<Scalars["Int"]["output"]>;
+  label?: Maybe<Scalars["String"]["output"]>;
   operator?: Maybe<FilterOperator>;
   placedMarker?: Maybe<Scalars["String"]["output"]>;
   search?: Maybe<Scalars["String"]["output"]>;
@@ -567,7 +570,10 @@ export type RecordFilter = {
 export type RecordFilterInput = {
   children?: InputMaybe<Array<RecordFilterInput>>;
   column?: InputMaybe<Scalars["String"]["input"]>;
+  dataRecordId?: InputMaybe<Scalars["String"]["input"]>;
+  dataSourceId?: InputMaybe<Scalars["String"]["input"]>;
   distance?: InputMaybe<Scalars["Int"]["input"]>;
+  label?: InputMaybe<Scalars["String"]["input"]>;
   operator?: InputMaybe<FilterOperator>;
   placedMarker?: InputMaybe<Scalars["String"]["input"]>;
   search?: InputMaybe<Scalars["String"]["input"]>;
@@ -935,6 +941,28 @@ export type UpdateMapImageMutation = {
       id: string;
       imageUrl?: string | null;
     } | null;
+  } | null;
+};
+
+export type FilterDataRecordsQueryVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+  search?: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type FilterDataRecordsQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    columnRoles: {
+      __typename?: "ColumnRoles";
+      nameColumns?: Array<string> | null;
+    };
+    records?: Array<{
+      __typename?: "DataRecord";
+      id: string;
+      externalId: string;
+      json: any;
+    }> | null;
   } | null;
 };
 
@@ -2100,7 +2128,18 @@ export type RecordFilterResolvers<
     ContextType
   >;
   column?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  dataRecordId?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
+  dataSourceId?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
   distance?: Resolver<Maybe<ResolversTypes["Int"]>, ParentType, ContextType>;
+  label?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   operator?: Resolver<
     Maybe<ResolversTypes["FilterOperator"]>,
     ParentType,
