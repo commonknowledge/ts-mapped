@@ -109,8 +109,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
 
   const addFilter = (childFilter: RecordFilterInput) => {
     const newFilter = { ...filter, children: children.concat([childFilter]) };
-    console.log("Adding filter:", childFilter);
-    console.log("New filter state:", newFilter);
+
     _setFilter(newFilter);
 
     // Use triggerBoundsFitting with the new filter state
@@ -125,8 +124,6 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
 
     // Get coordinates from all current filters
     const currentFilters = (filterToUse || filter).children || [];
-
-    console.log("Fitting bounds for filters:", currentFilters);
 
     for (const filterItem of currentFilters) {
       if (filterItem.type === FilterType.GEO) {
@@ -160,33 +157,20 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
           }
         } else if (filterItem.dataRecordId) {
           // Add data record coordinates from marker queries with radius
-          console.log(
-            "Looking for member/marker with ID:",
-            filterItem.dataRecordId
-          );
-          console.log("Available marker queries:", markerQueries);
 
           if (markerQueries?.data && Array.isArray(markerQueries.data)) {
-            console.log("Processing marker queries data:", markerQueries.data);
             for (const queryResult of markerQueries.data) {
-              console.log("Checking query result:", queryResult);
               if (queryResult.markers?.features) {
-                console.log(
-                  "Features in this query:",
-                  queryResult.markers.features
-                );
                 const feature = queryResult.markers.features.find(
                   (f: { properties?: { __recordId?: string } }) => {
-                    console.log("Checking feature properties:", f.properties);
                     return f.properties?.__recordId === filterItem.dataRecordId;
                   }
                 );
                 if (feature) {
-                  console.log("Found matching feature:", feature);
                   // Check if coordinates exist in the feature
                   if (feature.geometry?.coordinates) {
                     const [lng, lat] = feature.geometry.coordinates;
-                    console.log("Found coordinates for member:", { lng, lat });
+
                     const distance = filterItem.distance || 1; // Default to 1km
                     const radiusCoordinates = calculateRadiusCoordinates(
                       lng,
@@ -196,10 +180,6 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                     allCoordinates.push(...radiusCoordinates);
                     break; // Found the record, no need to check other queries
                   } else {
-                    console.log(
-                      "Feature found but no coordinates in geometry:",
-                      feature.geometry
-                    );
                     // Try to find coordinates in properties or other locations
                     if (
                       feature.properties?.__lng &&
@@ -207,10 +187,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                     ) {
                       const lng = Number(feature.properties.__lng);
                       const lat = Number(feature.properties.__lat);
-                      console.log("Found coordinates in properties:", {
-                        lng,
-                        lat,
-                      });
+
                       const distance = filterItem.distance || 1; // Default to 1km
                       const radiusCoordinates = calculateRadiusCoordinates(
                         lng,
@@ -223,11 +200,9 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                   }
                 }
               } else {
-                console.log("No features in this query result");
               }
             }
           } else {
-            console.log("No marker queries data available");
           }
         }
       }
@@ -235,8 +210,6 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
 
     // If we have coordinates, fit the bounds
     if (allCoordinates.length > 0) {
-      console.log("Fitting bounds to coordinates:", allCoordinates);
-
       if (allCoordinates.length === 1) {
         // Single point - fly to it
         mapRef.current.flyTo({
