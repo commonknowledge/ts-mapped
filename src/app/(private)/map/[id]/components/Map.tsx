@@ -19,6 +19,7 @@ import {
 import { DrawDeleteEvent, MarkerData } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
+import FilterMarkers from "./FilterMarkers";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import TurfPolygons from "./TurfPolygons";
@@ -309,6 +310,7 @@ export default function Map({
           <Choropleth />
           <TurfPolygons />
           <Markers />
+          <FilterMarkers />
           <PlacedMarkers />
           {hoverMarker && (
             <Popup

@@ -13,7 +13,7 @@ import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAnd
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 
-export default function Markers() {
+export default function FilterMarkers() {
   const { mapConfig, view } = useContext(MapContext);
   const { markerQueries, placedMarkers } = useContext(MarkerAndTurfContext);
 
@@ -87,13 +87,13 @@ export default function Markers() {
 
   return (
     <>
-      <FilterMarkers markers={memberFilterMarkers} isMembers={true} />
-      <FilterMarkers markers={otherFilterMarkers} isMembers={false} />
+      <Markers markers={memberFilterMarkers} isMembers={true} />
+      <Markers markers={otherFilterMarkers} isMembers={false} />
     </>
   );
 }
 
-function FilterMarkers({
+function Markers({
   markers,
   isMembers,
 }: {
