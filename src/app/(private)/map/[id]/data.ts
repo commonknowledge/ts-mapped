@@ -147,7 +147,10 @@ export const useMapQuery = (mapId: string | null) =>
               filter {
                 children {
                   column
+                  dataSourceId
+                  dataRecordId
                   distance
+                  label
                   operator
                   placedMarker
                   search
