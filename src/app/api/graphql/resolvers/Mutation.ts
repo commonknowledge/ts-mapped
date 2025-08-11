@@ -29,7 +29,10 @@ import {
   findMapById,
   updateMap,
 } from "@/server/repositories/Map";
-import { upsertMapView } from "@/server/repositories/MapView";
+import {
+  findMapViewsByMapId,
+  upsertMapView,
+} from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
   deletePlacedMarkersByFolderId,
@@ -158,6 +161,21 @@ const MutationResolvers: MutationResolversType = {
     { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
     await enqueue("importDataSource", { dataSourceId });
+    return { code: 200 };
+  },
+  saveMapViewsToCRM: async (
+    _: unknown,
+    { id }: { id: string },
+  ): Promise<MutationResponse> => {
+    const views = await findMapViewsByMapId(id);
+    for (const view of views) {
+      for (const dsv of view.dataSourceViews) {
+        await enqueue("tagDataSource", {
+          dataSourceId: dsv.dataSourceId,
+          viewId: view.id,
+        });
+      }
+    }
     return { code: 200 };
   },
   updateDataSourceConfig: async (
@@ -290,12 +308,6 @@ const MutationResolvers: MutationResolversType = {
           dataSourceViews: JSON.stringify(view.dataSourceViews),
           mapId,
         });
-        for (const dsv of view.dataSourceViews) {
-          await enqueue("tagDataSource", {
-            dataSourceId: dsv.dataSourceId,
-            viewId: view.id,
-          });
-        }
       }
       return { code: 200 };
     } catch (error) {

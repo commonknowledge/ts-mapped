@@ -429,6 +429,7 @@ const typeDefs = `
     deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
+    saveMapViewsToCRM(id: String!): MutationResponse @auth(write: { mapIdArg: "id" })
     updateDataSourceConfig(
       id: String!
       autoEnrich: Boolean

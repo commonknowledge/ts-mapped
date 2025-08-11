@@ -3,7 +3,6 @@ import { DataSourceView, FilterType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
-import { Input } from "@/shadcn/ui/input";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 
@@ -46,7 +45,7 @@ export default function MapTable() {
   };
 
   const dataSourceView = view?.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === dataSource.id
+    (dsv) => dsv.dataSourceId === dataSource.id,
   );
   const updateDataSourceView = (update: Partial<DataSourceView>) => {
     if (view) {
@@ -81,15 +80,6 @@ export default function MapTable() {
     />
   );
 
-  const search = (
-    <Input
-      type="text"
-      placeholder="Search"
-      value={dataSourceView?.search || ""}
-      onChange={(e) => updateDataSourceView({ search: e.target.value })}
-    />
-  );
-
   return (
     <div className="h-full">
       <DataTable
@@ -99,7 +89,8 @@ export default function MapTable() {
         data={dataRecordsQuery?.data?.dataSource?.records || []}
         recordCount={dataRecordsQuery?.data?.dataSource?.recordCount}
         filter={filter}
-        search={search}
+        search={dataSourceView?.search}
+        setSearch={(s) => updateDataSourceView({ search: s })}
         pageIndex={tablePage}
         setPageIndex={setTablePage}
         sort={dataSourceView?.sort || []}

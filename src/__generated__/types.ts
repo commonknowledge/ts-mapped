@@ -368,6 +368,7 @@ export type Mutation = {
   deleteTurf?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
   enqueueImportDataSourceJob?: Maybe<MutationResponse>;
+  saveMapViewsToCRM?: Maybe<MutationResponse>;
   updateDataSourceConfig?: Maybe<MutationResponse>;
   updateMap?: Maybe<UpdateMapResponse>;
   updateMapConfig?: Maybe<UpdateMapConfigResponse>;
@@ -411,6 +412,10 @@ export type MutationEnqueueEnrichDataSourceJobArgs = {
 
 export type MutationEnqueueImportDataSourceJobArgs = {
   dataSourceId: Scalars["String"]["input"];
+};
+
+export type MutationSaveMapViewsToCrmArgs = {
+  id: Scalars["String"]["input"];
 };
 
 export type MutationUpdateDataSourceConfigArgs = {
@@ -944,6 +949,15 @@ export type UpdateMapImageMutation = {
   } | null;
 };
 
+export type SaveMapViewsToCrmMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+}>;
+
+export type SaveMapViewsToCrmMutation = {
+  __typename?: "Mutation";
+  saveMapViewsToCRM?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
 export type FilterDataRecordsQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
   search?: InputMaybe<Scalars["String"]["input"]>;
@@ -1085,7 +1099,10 @@ export type MapQuery = {
           children?: Array<{
             __typename?: "RecordFilter";
             column?: string | null;
+            dataSourceId?: string | null;
+            dataRecordId?: string | null;
             distance?: number | null;
+            label?: string | null;
             operator?: FilterOperator | null;
             placedMarker?: string | null;
             search?: string | null;
@@ -1971,6 +1988,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationEnqueueImportDataSourceJobArgs, "dataSourceId">
+  >;
+  saveMapViewsToCRM?: Resolver<
+    Maybe<ResolversTypes["MutationResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationSaveMapViewsToCrmArgs, "id">
   >;
   updateDataSourceConfig?: Resolver<
     Maybe<ResolversTypes["MutationResponse"]>,

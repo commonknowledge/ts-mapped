@@ -5,7 +5,7 @@ import {
   GeoJsonProperties,
   Polygon,
 } from "geojson";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { RecordFilterInput } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -25,65 +25,77 @@ export default function FilterMarkers() {
     markerQueries?.data?.find((ds) => ds.dataSourceId === id),
   );
 
-  let memberFilterMarkers: Feature<Polygon, GeoJsonProperties>[] = [];
-  let otherFilterMarkers: Feature<Polygon, GeoJsonProperties>[] = [];
-
-  // For each data source being filtered, get the markers that are being used
-  for (const dataSourceView of view?.dataSourceViews || []) {
-    // Get the marker IDs from the filter
-    const filterMarkers = getFilterMarkers(dataSourceView.filter);
-    // Create a GeoJSON feature for each marker in the filter, with the radius in the feature properties
-    const filterMarkerFeatures = filterMarkers
-      .map((filterMarker) => {
-        if (filterMarker.placedMarkerId) {
-          const placedMarker = placedMarkers.find(
-            (placedMarker) => placedMarker.id === filterMarker.placedMarkerId,
-          );
-          if (placedMarker) {
-            return circle(
-              [placedMarker.point.lng, placedMarker.point.lat],
-              filterMarker.radius,
-              {
+  const { memberFilterMarkers, otherFilterMarkers } = useMemo(() => {
+    let memberFilterMarkers: Feature<Polygon, GeoJsonProperties>[] = [];
+    let otherFilterMarkers: Feature<Polygon, GeoJsonProperties>[] = [];
+    // For each data source being filtered, get the markers that are being used
+    for (const dataSourceView of view?.dataSourceViews || []) {
+      // Get the marker IDs from the filter
+      const filterMarkers = getFilterMarkers(dataSourceView.filter);
+      // Create a GeoJSON feature for each marker in the filter, with the radius in the feature properties
+      const filterMarkerFeatures = filterMarkers
+        .map((filterMarker) => {
+          if (filterMarker.placedMarkerId) {
+            const placedMarker = placedMarkers.find(
+              (placedMarker) => placedMarker.id === filterMarker.placedMarkerId,
+            );
+            if (placedMarker) {
+              return circle(
+                [placedMarker.point.lng, placedMarker.point.lat],
+                filterMarker.radius,
+                {
+                  units: "kilometers",
+                  properties: {
+                    fill: mapColors.markers.color,
+                  },
+                },
+              );
+            }
+          }
+          if (filterMarker.dataRecordId && filterMarker.dataSourceId) {
+            const allMarkers =
+              filterMarker.dataSourceId === mapConfig.membersDataSourceId
+                ? memberMarkers
+                : dataSourceMarkers.find(
+                    (dsm) => dsm?.dataSourceId === filterMarker.dataSourceId,
+                  );
+            const marker = allMarkers?.markers.features.find(
+              (feature) =>
+                feature.properties[MARKER_ID_KEY] === filterMarker.dataRecordId,
+            );
+            if (marker) {
+              return circle(marker.geometry.coordinates, filterMarker.radius, {
                 units: "kilometers",
                 properties: {
-                  fill: mapColors.markers.color,
+                  fill:
+                    filterMarker.dataSourceId === mapConfig.membersDataSourceId
+                      ? mapColors.member.color
+                      : mapColors.markers.color,
                 },
-              },
-            );
+              });
+            }
           }
-        }
-        if (filterMarker.dataRecordId && filterMarker.dataSourceId) {
-          const allMarkers =
-            filterMarker.dataSourceId === mapConfig.membersDataSourceId
-              ? memberMarkers
-              : dataSourceMarkers.find(
-                  (dsm) => dsm?.dataSourceId === filterMarker.dataSourceId,
-                );
-          const marker = allMarkers?.markers.features.find(
-            (feature) =>
-              feature.properties[MARKER_ID_KEY] === filterMarker.dataRecordId,
-          );
-          if (marker) {
-            return circle(marker.geometry.coordinates, filterMarker.radius, {
-              units: "kilometers",
-              properties: {
-                fill:
-                  filterMarker.dataSourceId === mapConfig.membersDataSourceId
-                    ? mapColors.member.color
-                    : mapColors.markers.color,
-              },
-            });
-          }
-        }
-      })
-      .filter((f) => f !== undefined);
+        })
+        .filter((f) => f !== undefined);
 
-    if (dataSourceView.dataSourceId === mapConfig.membersDataSourceId) {
-      memberFilterMarkers = filterMarkerFeatures;
-    } else {
-      otherFilterMarkers = otherFilterMarkers.concat(filterMarkerFeatures);
+      if (dataSourceView.dataSourceId === mapConfig.membersDataSourceId) {
+        memberFilterMarkers = filterMarkerFeatures;
+      } else {
+        otherFilterMarkers = otherFilterMarkers.concat(filterMarkerFeatures);
+      }
     }
-  }
+
+    return {
+      memberFilterMarkers,
+      otherFilterMarkers,
+    };
+  }, [
+    dataSourceMarkers,
+    mapConfig.membersDataSourceId,
+    memberMarkers,
+    placedMarkers,
+    view?.dataSourceViews,
+  ]);
 
   return (
     <>

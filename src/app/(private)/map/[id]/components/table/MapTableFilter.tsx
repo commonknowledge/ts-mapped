@@ -6,7 +6,9 @@ import {
   FilterDataRecordsQueryVariables,
   FilterOperator,
   FilterType,
+  PlacedMarker,
   RecordFilterInput,
+  Turf,
 } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -19,6 +21,7 @@ import MultiDropdownMenu, {
   DropdownSubComponent,
   DropdownSubMenu,
 } from "@/components/MultiDropdownMenu";
+import { MARKER_ID_KEY } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
   Command,
@@ -32,11 +35,12 @@ import { DropdownMenuItem } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { mapColors } from "../../styles";
+import { MarkerQueriesResult } from "../../types";
 
 interface TableFilterProps {
   filter: RecordFilterInput;
   setFilter: (f: RecordFilterInput) => void;
-  triggerBoundsFitting?: (filterToUse?: RecordFilterInput) => void;
+  triggerBoundsFitting?: () => void;
 }
 
 export default function MapTableFilter({
@@ -66,23 +70,43 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const latestFilterRef = useRef(filter);
   latestFilterRef.current = filter;
 
+  // Update filter on timeout for better UI response
+  const setFilter = (f: RecordFilterInput) => {
+    setTimeout(() => {
+      _setFilter(f);
+    }, 1);
+  };
+
   // Debounce timer ref
-  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to trigger bounds fitting with debouncing
-  const triggerBoundsFitting = useCallback(
-    (filterToUse?: RecordFilterInput) => {
-      // Clear any existing timer
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+  const triggerBoundsFitting = useCallback(() => {
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    // Set new timer
+    debounceTimerRef.current = setTimeout(() => {
+      if (mapRef?.current) {
+        const boundsOrPoint = getBoundsOfFilteredItems(
+          filter,
+          placedMarkers,
+          turfs,
+          markerQueries,
+        );
+        if (Array.isArray(boundsOrPoint)) {
+          mapRef.current.fitBounds(boundsOrPoint, {
+            padding: 50,
+            duration: 1000,
+          });
+        } else if (boundsOrPoint) {
+          mapRef.current.flyTo(boundsOrPoint);
+        }
       }
-      // Set new timer
-      debounceTimerRef.current = setTimeout(() => {
-        fitBoundsToFilteredItems(filterToUse);
-      }, 100);
-    },
-    []
-  );
+    }, 100);
+  }, [filter, mapRef, markerQueries, placedMarkers, turfs]);
 
   // Clean up timer on unmount
   useEffect(() => {
@@ -91,7 +115,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [triggerBoundsFitting]);
+  }, []);
 
   const setChildFilter = (index: number, childFilter: RecordFilterInput) => {
     const updatedFilter = {
@@ -103,197 +127,17 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         return f;
       }),
     };
-    _setFilter(updatedFilter);
-    triggerBoundsFitting(updatedFilter);
+    setFilter(updatedFilter);
+    triggerBoundsFitting();
   };
 
   const addFilter = (childFilter: RecordFilterInput) => {
     const newFilter = { ...filter, children: children.concat([childFilter]) };
 
-    _setFilter(newFilter);
+    setFilter(newFilter);
 
     // Use triggerBoundsFitting with the new filter state
-    triggerBoundsFitting(newFilter);
-  };
-
-  // Function to fit map bounds to show all filtered items
-  const fitBoundsToFilteredItems = (filterToUse?: RecordFilterInput) => {
-    if (!mapRef?.current) return;
-
-    const allCoordinates: [number, number][] = [];
-
-    // Get coordinates from all current filters
-    const currentFilters = (filterToUse || filter).children || [];
-
-    for (const filterItem of currentFilters) {
-      if (filterItem.type === FilterType.GEO) {
-        if (filterItem.placedMarker) {
-          // Add placed marker coordinates with radius
-          const marker = placedMarkers.find(
-            (m) => m.id === filterItem.placedMarker
-          );
-          if (marker) {
-            const distance = filterItem.distance || 1; // Default to 1km
-            const radiusCoordinates = calculateRadiusCoordinates(
-              marker.point.lng,
-              marker.point.lat,
-              distance
-            );
-            allCoordinates.push(...radiusCoordinates);
-          }
-        } else if (filterItem.turf) {
-          // Add turf polygon bounds
-          const turf = turfs.find((t) => t.id === filterItem.turf);
-          if (turf) {
-            try {
-              const bounds = getPolygonBounds(turf.polygon);
-              if (bounds) {
-                allCoordinates.push([bounds[0], bounds[1]]); // minLng, minLat
-                allCoordinates.push([bounds[2], bounds[3]]); // maxLng, maxLat
-              }
-            } catch (error) {
-              console.warn("Could not calculate turf bounds:", error);
-            }
-          }
-        } else if (filterItem.dataRecordId) {
-          // Add data record coordinates from marker queries with radius
-
-          if (markerQueries?.data && Array.isArray(markerQueries.data)) {
-            for (const queryResult of markerQueries.data) {
-              if (queryResult.markers?.features) {
-                const feature = queryResult.markers.features.find(
-                  (f: { properties?: { __recordId?: string } }) => {
-                    return f.properties?.__recordId === filterItem.dataRecordId;
-                  }
-                );
-                if (feature) {
-                  // Check if coordinates exist in the feature
-                  if (feature.geometry?.coordinates) {
-                    const [lng, lat] = feature.geometry.coordinates;
-
-                    const distance = filterItem.distance || 1; // Default to 1km
-                    const radiusCoordinates = calculateRadiusCoordinates(
-                      lng,
-                      lat,
-                      distance
-                    );
-                    allCoordinates.push(...radiusCoordinates);
-                    break; // Found the record, no need to check other queries
-                  } else {
-                    // Try to find coordinates in properties or other locations
-                    if (
-                      feature.properties?.__lng &&
-                      feature.properties?.__lat
-                    ) {
-                      const lng = Number(feature.properties.__lng);
-                      const lat = Number(feature.properties.__lat);
-
-                      const distance = filterItem.distance || 1; // Default to 1km
-                      const radiusCoordinates = calculateRadiusCoordinates(
-                        lng,
-                        lat,
-                        distance
-                      );
-                      allCoordinates.push(...radiusCoordinates);
-                      break;
-                    }
-                  }
-                }
-              } else {
-              }
-            }
-          } else {
-          }
-        }
-      }
-    }
-
-    // If we have coordinates, fit the bounds
-    if (allCoordinates.length > 0) {
-      if (allCoordinates.length === 1) {
-        // Single point - fly to it
-        mapRef.current.flyTo({
-          center: allCoordinates[0],
-          zoom: 12,
-          duration: 1000,
-        });
-      } else {
-        // Multiple points - calculate bounds and fit
-        const bounds = calculateBoundsFromCoordinates(allCoordinates);
-        mapRef.current.fitBounds(bounds, {
-          padding: 50,
-          duration: 1000,
-        });
-      }
-    }
-  };
-
-  // Helper function to calculate bounds from a list of coordinates
-  const calculateBoundsFromCoordinates = (
-    coordinates: [number, number][]
-  ): [number, number, number, number] => {
-    let minLng = Infinity,
-      maxLng = -Infinity,
-      minLat = Infinity,
-      maxLat = -Infinity;
-
-    for (const [lng, lat] of coordinates) {
-      minLng = Math.min(minLng, lng);
-      maxLng = Math.max(maxLng, lng);
-      minLat = Math.min(minLat, lat);
-      maxLat = Math.max(maxLat, lat);
-    }
-
-    return [minLng, minLat, maxLng, maxLat];
-  };
-
-  // Helper function to calculate bounds for a polygon
-  const getPolygonBounds = (polygon: {
-    coordinates?: number[][][];
-  }): [number, number, number, number] | null => {
-    try {
-      if (polygon?.coordinates && Array.isArray(polygon.coordinates[0])) {
-        const coords = polygon.coordinates[0]; // First ring of polygon
-        let minLng = Infinity,
-          maxLng = -Infinity,
-          minLat = Infinity,
-          maxLat = -Infinity;
-
-        for (const coord of coords) {
-          const [lng, lat] = coord;
-          minLng = Math.min(minLng, lng);
-          maxLng = Math.max(maxLng, lng);
-          minLat = Math.min(minLat, lat);
-          maxLat = Math.max(maxLat, lat);
-        }
-
-        return [minLng, minLat, maxLng, maxLat];
-      }
-    } catch (error) {
-      console.warn("Error calculating polygon bounds:", error);
-    }
-    return null;
-  };
-
-  // Helper function to calculate coordinates for a radius around a point
-  const calculateRadiusCoordinates = (
-    centerLng: number,
-    centerLat: number,
-    radiusKm: number
-  ): [number, number][] => {
-    // Convert km to degrees (approximate)
-    // 1 degree of latitude ≈ 111 km
-    // 1 degree of longitude ≈ 111 * cos(latitude) km
-    const latDelta = radiusKm / 111;
-    const lngDelta = radiusKm / (111 * Math.cos((centerLat * Math.PI) / 180));
-
-    // Return 4 corner points of the bounding box around the radius
-    return [
-      [centerLng - lngDelta, centerLat - latDelta], // Southwest
-      [centerLng + lngDelta, centerLat - latDelta], // Southeast
-      [centerLng + lngDelta, centerLat + latDelta], // Northeast
-      [centerLng - lngDelta, centerLat + latDelta], // Northwest
-    ];
+    triggerBoundsFitting();
   };
 
   const placedMarkerItems: DropdownMenuItemType[] = placedMarkers.map((m) => {
@@ -361,7 +205,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
           />
         ),
       };
-    }
+    },
   );
 
   const dropdownItems = [
@@ -369,7 +213,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
       ? [
           {
             type: "subcomponent",
-            label: "Promixty to Member",
+            label: "Proximity to Member",
             component: memberCommand,
           } as DropdownSubComponent,
         ]
@@ -378,7 +222,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
       ? [
           {
             type: "submenu",
-            label: "Promixty to Marker",
+            label: "Proximity to Marker",
             items: [
               ...labelledMarkerCommands.map(
                 ({ label, component }) =>
@@ -386,7 +230,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                     type: "subcomponent",
                     label,
                     component,
-                  }) as DropdownSubComponent
+                  }) as DropdownSubComponent,
               ),
               ...(labelledMarkerCommands.length > 0
                 ? [{ type: "separator" as const }]
@@ -442,9 +286,9 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                     ...filter,
                     children: filter.children?.filter((_, j) => i !== j),
                   };
-                  _setFilter(updatedFilter);
+                  setFilter(updatedFilter);
                   // Trigger bounds fitting immediately when removing a filter
-                  triggerBoundsFitting(updatedFilter);
+                  triggerBoundsFitting();
                 }}
                 className="px-2! border-l rounded-none text-muted-foreground h-7"
               >
@@ -470,9 +314,9 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
               ...filter,
               operator: value ? FilterOperator.AND : FilterOperator.OR,
             };
-            _setFilter(updatedFilter);
+            setFilter(updatedFilter);
             // Trigger bounds fitting when changing operator
-            setTimeout(() => triggerBoundsFitting(updatedFilter), 50);
+            triggerBoundsFitting();
           }}
         >
           <span className="text-sm text-muted-foreground font-normal">
@@ -525,7 +369,7 @@ function ChildFilter({
                   setFilter(updatedFilter);
                   // Trigger bounds fitting when changing distance
                   if (triggerBoundsFitting) {
-                    triggerBoundsFitting(updatedFilter);
+                    triggerBoundsFitting();
                   }
                 }}
                 required
@@ -560,7 +404,7 @@ function ChildFilter({
               setFilter(updatedFilter);
               // Trigger bounds fitting when changing search
               if (triggerBoundsFitting) {
-                triggerBoundsFitting(updatedFilter);
+                triggerBoundsFitting();
               }
             }}
             className="w-20 h-7 p-2 text-sm text-center border-y-0 rounded-none bg-neutral-100 font-medium"
@@ -601,7 +445,7 @@ function DataRecordCommand({
         }
       }
     `,
-    { variables: { dataSourceId, search } }
+    { variables: { dataSourceId, search } },
   );
 
   const getItemLabel = (record: {
@@ -650,3 +494,175 @@ function DataRecordCommand({
     </Command>
   );
 }
+const getBoundsOfFilteredItems = (
+  filter: RecordFilterInput,
+  placedMarkers: PlacedMarker[],
+  turfs: Turf[],
+  markerQueries: MarkerQueriesResult | null,
+) => {
+  const allCoordinates: [number, number][] = [];
+
+  // Get coordinates from all current filters
+  const currentFilters = filter.children || [];
+
+  for (const filterItem of currentFilters) {
+    if (filterItem.type === FilterType.GEO) {
+      if (filterItem.placedMarker) {
+        // Add placed marker coordinates with radius
+        const marker = placedMarkers.find(
+          (m) => m.id === filterItem.placedMarker,
+        );
+        if (marker) {
+          const distance = filterItem.distance || 1; // Default to 1km
+          const radiusCoordinates = calculateRadiusCoordinates(
+            marker.point.lng,
+            marker.point.lat,
+            distance,
+          );
+          allCoordinates.push(...radiusCoordinates);
+        }
+      } else if (filterItem.turf) {
+        // Add turf polygon bounds
+        const turf = turfs.find((t) => t.id === filterItem.turf);
+        if (turf) {
+          try {
+            const bounds = getPolygonBounds(turf.polygon);
+            if (bounds) {
+              allCoordinates.push([bounds[0], bounds[1]]); // minLng, minLat
+              allCoordinates.push([bounds[2], bounds[3]]); // maxLng, maxLat
+            }
+          } catch (error) {
+            console.warn("Could not calculate turf bounds:", error);
+          }
+        }
+      } else if (filterItem.dataRecordId) {
+        // Add data record coordinates from marker queries with radius
+        if (markerQueries?.data && Array.isArray(markerQueries.data)) {
+          for (const queryResult of markerQueries.data) {
+            if (queryResult.markers?.features) {
+              const feature = queryResult.markers.features.find((feature) => {
+                return (
+                  feature.properties[MARKER_ID_KEY] === filterItem.dataRecordId
+                );
+              });
+              if (feature) {
+                // Check if coordinates exist in the feature
+                if (feature.geometry?.coordinates) {
+                  const [lng, lat] = feature.geometry.coordinates;
+
+                  const distance = filterItem.distance || 1; // Default to 1km
+                  const radiusCoordinates = calculateRadiusCoordinates(
+                    lng,
+                    lat,
+                    distance,
+                  );
+                  allCoordinates.push(...radiusCoordinates);
+                  break; // Found the record, no need to check other queries
+                } else {
+                  // Try to find coordinates in properties or other locations
+                  if (feature.properties?.__lng && feature.properties?.__lat) {
+                    const lng = Number(feature.properties.__lng);
+                    const lat = Number(feature.properties.__lat);
+
+                    const distance = filterItem.distance || 1; // Default to 1km
+                    const radiusCoordinates = calculateRadiusCoordinates(
+                      lng,
+                      lat,
+                      distance,
+                    );
+                    allCoordinates.push(...radiusCoordinates);
+                    break;
+                  }
+                }
+              }
+            } else {
+            }
+          }
+        } else {
+        }
+      }
+    }
+  }
+
+  // If we have coordinates, fit the bounds
+  if (allCoordinates.length > 0) {
+    if (allCoordinates.length === 1) {
+      // Single point - fly to it
+      return {
+        center: allCoordinates[0],
+        zoom: 12,
+        duration: 1000,
+      };
+    }
+    // Multiple points - calculate bounds and fit
+    return calculateBoundsFromCoordinates(allCoordinates);
+  }
+};
+
+// Helper function to calculate bounds from a list of coordinates
+const calculateBoundsFromCoordinates = (
+  coordinates: [number, number][],
+): [number, number, number, number] => {
+  let minLng = Infinity,
+    maxLng = -Infinity,
+    minLat = Infinity,
+    maxLat = -Infinity;
+
+  for (const [lng, lat] of coordinates) {
+    minLng = Math.min(minLng, lng);
+    maxLng = Math.max(maxLng, lng);
+    minLat = Math.min(minLat, lat);
+    maxLat = Math.max(maxLat, lat);
+  }
+
+  return [minLng, minLat, maxLng, maxLat];
+};
+
+// Helper function to calculate bounds for a polygon
+const getPolygonBounds = (polygon: {
+  coordinates?: number[][][];
+}): [number, number, number, number] | null => {
+  try {
+    if (polygon?.coordinates && Array.isArray(polygon.coordinates[0])) {
+      const coords = polygon.coordinates[0]; // First ring of polygon
+      let minLng = Infinity,
+        maxLng = -Infinity,
+        minLat = Infinity,
+        maxLat = -Infinity;
+
+      for (const coord of coords) {
+        const [lng, lat] = coord;
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+      }
+
+      return [minLng, minLat, maxLng, maxLat];
+    }
+  } catch (error) {
+    console.warn("Error calculating polygon bounds:", error);
+  }
+  return null;
+};
+
+// Helper function to calculate coordinates for a radius around a point
+const calculateRadiusCoordinates = (
+  centerLng: number,
+  centerLat: number,
+  radiusKm: number,
+): [number, number][] => {
+  // Convert km to degrees (approximate)
+  // 1 degree of latitude ≈ 111 km
+  // 1 degree of longitude ≈ 111 * cos(latitude) km
+  const latDelta = radiusKm / 111;
+  const lngDelta = radiusKm / (111 * Math.cos((centerLat * Math.PI) / 180));
+
+  // Return 4 corner points of the bounding box around the radius
+  return [
+    [centerLng - lngDelta, centerLat - latDelta], // Southwest
+    [centerLng + lngDelta, centerLat - latDelta], // Southeast
+    [centerLng + lngDelta, centerLat + latDelta], // Northeast
+    [centerLng - lngDelta, centerLat + latDelta], // Northwest
+  ];
+};
