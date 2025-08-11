@@ -400,14 +400,8 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   ];
 
   return (
-    <>
-      {/* Overlay that dims everything when filters are active */}
-      {filter.children && filter.children.length > 0 && (
-        <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
-      )}
-      
-      <div className="flex  gap-2 relative z-50">
-        <div className="flex gap-2 items-center flex-wrap">
+    <div className="flex  gap-2">
+      <div className="flex gap-2 items-center flex-wrap">
         <ul className="flex gap-2 items-center text-sm ">
           {children.map((child, i) => (
             <li
@@ -465,7 +459,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
           </span>
         </Toggle>
       </div>
-    </>
+    </div>
   );
 }
 
