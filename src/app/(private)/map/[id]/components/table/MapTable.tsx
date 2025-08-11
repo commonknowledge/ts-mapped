@@ -46,7 +46,7 @@ export default function MapTable() {
   };
 
   const dataSourceView = view?.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === dataSource.id,
+    (dsv) => dsv.dataSourceId === dataSource.id
   );
   const updateDataSourceView = (update: Partial<DataSourceView>) => {
     if (view) {
@@ -91,7 +91,7 @@ export default function MapTable() {
   );
 
   return (
-    <div className="p-2 h-full">
+    <div className="h-full">
       <DataTable
         title={dataSource.name}
         loading={dataRecordsQuery ? dataRecordsQuery.loading : true}

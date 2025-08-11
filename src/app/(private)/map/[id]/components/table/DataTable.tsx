@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Search,
+  Settings2,
+  X,
+} from "lucide-react";
 import { ReactNode, useState } from "react";
 import { ColumnDef, DataRecord, SortInput } from "@/__generated__/types";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
@@ -11,6 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
+import { Input } from "@/shadcn/ui/input";
 import {
   Table,
   TableBody,
@@ -39,6 +47,7 @@ interface DataTableProps {
   onClose?: () => void;
   filter?: ReactNode;
   search?: ReactNode;
+  setSearch?: (search: string) => void;
 }
 
 export function DataTable({
@@ -60,10 +69,12 @@ export function DataTable({
 
   filter,
   search,
+  setSearch,
 }: DataTableProps) {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.floor(
-    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE,
+    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE
   );
 
   const getSortIcon = (columnName: string) => {
@@ -88,15 +99,15 @@ export function DataTable({
     } else {
       setSort(
         sort.map((c) =>
-          c.name === columnName ? { name: columnName, desc: true } : c,
-        ),
+          c.name === columnName ? { name: columnName, desc: true } : c
+        )
       );
     }
   };
 
   return (
-    <div className="flex flex-col gap-2 h-full">
-      <div className="flex items-center justify-between p-1">
+    <div className="flex flex-col  h-full">
+      <div className="flex items-center justify-between px-3 py-2 border-b">
         <div className="flex items-center gap-4">
           {title && (
             <div className="flex flex-row gap-2">
@@ -109,11 +120,66 @@ export function DataTable({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {search}
+          {isSearchOpen ? (
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search..."
+                  value={search ?? ""}
+                  onChange={(event) => setSearch(event.target.value)}
+                  className="pl-8 w-48 text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setIsSearchOpen(false);
+                    }
+                  }}
+                />
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setIsSearchOpen(false)}
+                className="text-xs"
+              >
+                Search
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSearchOpen(false)}
+                className="text-xs"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSearchOpen(true)}
+              className="text-xs"
+            >
+              <Search className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          )}
+          {onClose && (
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="grow min-h-0 flex flex-col ">
+        <div className="flex items-center gap-2 px-3 py-2 border-b justify-between">
+          {filter}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto shadow-none">
-                Columns <ChevronDown />
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto shadow-none"
+              >
+                Display <Settings2 className="text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -125,7 +191,7 @@ export function DataTable({
                     onCheckedChange={(visible) => {
                       if (visible) {
                         setHiddenColumns(
-                          hiddenColumns.filter((c) => c !== column.name),
+                          hiddenColumns.filter((c) => c !== column.name)
                         );
                       } else {
                         setHiddenColumns([...hiddenColumns, column.name]);
@@ -138,14 +204,8 @@ export function DataTable({
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {onClose && (
-            <X className="w-4 h-4 cursor-pointer" onClick={onClose} />
-          )}
         </div>
-      </div>
-      <div className="grow min-h-0 flex flex-col gap-4">
-        {filter}
-        <div className="rounded-md border bg-white">
+        <div className="bg-white">
           <Table containerClassName="h-full">
             <TableHeader className="bg-neutral-100 ">
               <TableRow>

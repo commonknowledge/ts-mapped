@@ -475,8 +475,18 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
             setTimeout(() => triggerBoundsFitting(updatedFilter), 50);
           }}
         >
-          <span>
-            {filter.operator === FilterOperator.OR ? "Match any" : "Match all"}
+          <span className="text-sm text-muted-foreground font-normal">
+            {filter.operator === FilterOperator.OR ? (
+              <span>
+                Match <span className="font-medium text-primary">Any</span> |{" "}
+                <span className="text-muted-foreground">All</span>
+              </span>
+            ) : (
+              <span>
+                Match <span className="text-muted-foreground">Any</span> |{" "}
+                <span className="font-medium text-primary">All</span>
+              </span>
+            )}
           </span>
         </Toggle>
       </div>
