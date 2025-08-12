@@ -63,27 +63,6 @@ export default function Sidebar({ slug }: { slug: string }) {
         </Button> */}
       </div>
 
-      {/* Organisation Selector */}
-      <div className="p-4 border-b border-neutral-200">
-        <label className="text-sm font-medium text-neutral-700 mb-2 block">
-          Organisation
-        </label>
-        <Select
-          onValueChange={(value) => setOrganisationId(value)}
-          value={organisationId || ""}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select an organisation" />
-          </SelectTrigger>
-          <SelectContent>
-            {organisations.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                {o.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-4">
@@ -105,6 +84,27 @@ export default function Sidebar({ slug }: { slug: string }) {
         </ul>
       </nav>
 
+      {/* Organisation Selector */}
+      <div className="p-4 border-t border-neutral-200">
+        <label className="text-sm font-medium text-neutral-700 mb-2 block">
+          Organisation
+        </label>
+        <Select
+          onValueChange={(value) => setOrganisationId(value)}
+          value={organisationId || ""}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select an organisation" />
+          </SelectTrigger>
+          <SelectContent>
+            {organisations.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                {o.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       {/* User Section */}
       <div className="p-4 border-t border-neutral-200">
         <div className="flex items-center gap-3 mb-3">

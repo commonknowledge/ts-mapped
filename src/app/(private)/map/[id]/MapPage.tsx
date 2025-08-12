@@ -44,6 +44,7 @@ export default function MapPage() {
       <MapNavbar />
       <div className="flex w-full grow min-h-0 relative">
         <Controls />
+        <ChoroplethControl />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative">

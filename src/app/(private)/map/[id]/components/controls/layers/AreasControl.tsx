@@ -58,7 +58,7 @@ export default function AreasControl() {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2">
+    <div className="flex flex-col gap-1 p-3">
       <LayerHeader
         label="Areas"
         color={mapColors.areas.color}

@@ -1,4 +1,4 @@
-import { PanelLeft } from "lucide-react";
+import { PanelLeft, Scan } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
@@ -7,12 +7,18 @@ import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
+import ChoroplethControl from "./ChoroplethControl";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { Toggle } from "@/shadcn/ui/toggle";
+import { ChoroplethContext } from "../../context/ChoroplethContext";
+
 
 export default function Controls() {
+
   const { mapRef } = useContext(MapContext);
   const { selectedDataSourceId } = useContext(TableContext);
   const [showControls, setShowControls] = useState(true);
-
+  const { boundariesPanelOpen, setBoundariesPanelOpen } = useContext(ChoroplethContext);
   const controlPanelWidth = 280;
 
   // Reset map when UI shifts
@@ -44,11 +50,10 @@ export default function Controls() {
 
       {/* Control panel with transition */}
       <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden z-20 ${
-          showControls
-            ? "translate-x-0 opacity-100"
-            : "-translate-x-full opacity-0"
-        }`}
+        className={`transition-all duration-300 ease-in-out overflow-hidden z-20 ${showControls
+          ? "translate-x-0 opacity-100"
+          : "-translate-x-full opacity-0"
+          }`}
         style={{
           width: showControls ? `${controlPanelWidth}px` : "0px",
           minWidth: showControls ? `${controlPanelWidth}px` : "0px",
@@ -70,7 +75,7 @@ export default function Controls() {
 
           {/* Content */}
           <div
-            className="flex flex-col overflow-y-auto"
+            className="flex flex-col overflow-y-auto flex-1"
             style={{ width: `${controlPanelWidth}px` }}
           >
             <MembersControl />
@@ -78,9 +83,33 @@ export default function Controls() {
             <MarkersControl />
             <Separator />
             <AreasControl />
+            <div className="flex flex-col  mt-auto">
+              <Separator />
+              <TooltipProvider>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Toggle
+                      pressed={boundariesPanelOpen}
+                      onPressedChange={(value) => setBoundariesPanelOpen(value)}
+                      className={`relative p-6 rounded-none ${boundariesPanelOpen ? "bg-neutral-200" : ""}`}
+                    >
+                      <Scan className="w-4 h-4  text-muted-foreground" />
+                      <h3 className="text-sm font-medium">Boundaries</h3>
+
+                    </Toggle>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{boundariesPanelOpen ? "Hide" : "Show"} boundaries</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+            </div>
           </div>
+
         </div>
-      </div>
+      </div >
     </>
   );
 }

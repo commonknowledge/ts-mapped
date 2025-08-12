@@ -26,11 +26,12 @@ export default function ChoroplethControl() {
 
   if (!boundariesPanelOpen) return null;
 
+
   return (
-    <div className="absolute z-50 bottom-26 left-1/2 -translate-x-1/2 flex flex-col gap-4 bg-white rounded-lg shadow-lg p-4 w-80 border border-neutral-200">
+    <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-68">
       {/* Boundary Outline Section */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
+        <div className="flex items-center gap-2  pb-2">
           <Scan className="w-4 h-4 text-muted-foreground" />
           <h3 className="text-sm font-medium">Boundaries</h3>
         </div>
@@ -70,78 +71,76 @@ export default function ChoroplethControl() {
         </div>
       </div>
       {/* Data Source Section */}
-      <div className="space-y-3 bg-neutral-50 rounded-lg p-3 border border-neutral-200">
-        <div className="flex items-center gap-2">
-          <PaintBucketIcon className="w-4 h-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium">Shade Boundaries</h3>
+      <div className="flex items-center gap-2">
+        <PaintBucketIcon className="w-4 h-4 text-muted-foreground" />
+        <h3 className="text-sm font-medium">Shade Boundaries</h3>
+      </div>
+
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label
+            htmlFor="areaDataSourceId"
+            className="text-sm text-neutral-600"
+          >
+            Data Source
+          </Label>
+          <Select
+            value={viewConfig.areaDataSourceId}
+            onValueChange={(value) => {
+              updateViewConfig({ areaDataSourceId: value });
+            }}
+            disabled={!viewConfig.areaSetGroupCode}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a data source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NULL_UUID}>None</SelectItem>
+              {dataSources.map((ds: { id: string; name: string }) => (
+                <SelectItem key={ds.id} value={ds.id}>
+                  {ds.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label
-              htmlFor="areaDataSourceId"
-              className="text-sm text-neutral-600"
-            >
-              Data Source
-            </Label>
-            <Select
-              value={viewConfig.areaDataSourceId}
-              onValueChange={(value) => {
-                updateViewConfig({ areaDataSourceId: value });
-              }}
-              disabled={!viewConfig.areaSetGroupCode}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a data source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NULL_UUID}>None</SelectItem>
-                {dataSources.map((ds: { id: string; name: string }) => (
-                  <SelectItem key={ds.id} value={ds.id}>
-                    {ds.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Column Selection */}
-          <div
-            className={`space-y-2 transition-all duration-300 overflow-hidden ${
-              viewConfig.areaDataSourceId === NULL_UUID
-                ? "max-h-0 opacity-0"
-                : "max-h-96 opacity-100"
+        {/* Column Selection */}
+        <div
+          className={`space-y-2 transition-all duration-300 overflow-hidden ${viewConfig.areaDataSourceId === NULL_UUID
+            ? "max-h-0 opacity-0"
+            : "max-h-96 opacity-100"
             }`}
-          >
-            <div className="flex items-center gap-2">
-              <CornerDownRight className="w-4 h-4 text-muted-foreground" />
-              <Label className="text-sm text-neutral-600">Data Column</Label>
-            </div>
-
-            <Select
-              value={viewConfig.areaDataColumn}
-              onValueChange={(value) =>
-                updateViewConfig({ areaDataColumn: value })
-              }
-              disabled={!viewConfig.areaSetGroupCode}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a column" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={MAX_COLUMN_KEY}>
-                  Highest-value column
-                </SelectItem>
-                {dataSource?.columnDefs.map((cd: { name: string }) => (
-                  <SelectItem key={cd.name} value={cd.name}>
-                    {cd.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        >
+          <div className="flex items-center gap-2">
+            <CornerDownRight className="w-4 h-4 text-muted-foreground" />
+            <Label className="text-sm text-neutral-600">Data Column</Label>
           </div>
+
+          <Select
+            value={viewConfig.areaDataColumn}
+            onValueChange={(value) =>
+              updateViewConfig({ areaDataColumn: value })
+            }
+            disabled={!viewConfig.areaSetGroupCode}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a column" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={MAX_COLUMN_KEY}>
+                Highest-value column
+              </SelectItem>
+              {dataSource?.columnDefs.map((cd: { name: string }) => (
+                <SelectItem key={cd.name} value={cd.name}>
+                  {cd.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
       {/* Exclude Columns Input */}
       {viewConfig.areaDataColumn === MAX_COLUMN_KEY && (
         <div className="space-y-2">
