@@ -270,50 +270,54 @@ export function DataTable({
                   </TableCell>
                 </TableRow>
               )}
+              {lastPageIndex > 0 && (
+                <TableRow>
+                  <TableCell colSpan={columns.length + 1} className="p-0">
+                    <div className="flex items-center gap-2 p-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPageIndex(0)}
+                        disabled={pageIndex <= 0}
+                        className="text-muted-foreground font-normal"
+                      >
+                        <ChevronsLeft className="w-4 h-4" /> First Page
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPageIndex(pageIndex - 1)}
+                        disabled={pageIndex <= 0}
+                        className="text-muted-foreground font-normal"
+                      >
+                        <ChevronLeft className="w-4 h-4" /> Previous Page
+                      </Button>
+                      <span className="text-muted-foreground font-normal whitespace-nowrap">
+                        Page {pageIndex + 1} of {lastPageIndex + 1}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPageIndex(pageIndex + 1)}
+                        disabled={pageIndex >= lastPageIndex}
+                        className="text-muted-foreground font-normal"
+                      >
+                        <ChevronRight className="w-4 h-4" /> Next Page
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPageIndex(lastPageIndex)}
+                        disabled={pageIndex >= lastPageIndex}
+                        className="text-muted-foreground font-normal"
+                      >
+                        <ChevronsRight className="w-4 h-4" /> Last Page
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
-            {lastPageIndex > 0 && (
-              <div className="flex items-center gap-2 p-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPageIndex(0)}
-                  disabled={pageIndex <= 0}
-                  className="text-muted-foreground font-normal"
-                >
-                  <ChevronsLeft className="w-4 h-4" /> First Page
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPageIndex(pageIndex - 1)}
-                  disabled={pageIndex <= 0}
-                  className="text-muted-foreground font-normal"
-                >
-                  <ChevronLeft className="w-4 h-4" /> Previous Page
-                </Button>
-                <span className="text-muted-foreground font-normal whitespace-nowrap">
-                  Page {pageIndex + 1} of {lastPageIndex + 1}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPageIndex(pageIndex + 1)}
-                  disabled={pageIndex >= lastPageIndex}
-                  className="text-muted-foreground font-normal"
-                >
-                  <ChevronRight className="w-4 h-4" /> Next Page
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPageIndex(lastPageIndex)}
-                  disabled={pageIndex >= lastPageIndex}
-                  className="text-muted-foreground font-normal"
-                >
-                  <ChevronsRight className="w-4 h-4" /> Last Page
-                </Button>
-              </div>
-            )}
           </Table>
         </div>
       </div>
