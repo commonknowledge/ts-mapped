@@ -1,8 +1,8 @@
 import { useContext, useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { useFillColor } from "@/app/(private)/map/[id]/colors";
-import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { useFillColor } from "@/components/Map/colors";
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { MapContext } from "@/components/Map/context/MapContext";
 
 export default function Choropleth() {
   // Keep track of area codes that have feature state, to clean if necessary

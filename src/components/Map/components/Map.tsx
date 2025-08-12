@@ -7,10 +7,10 @@ import * as mapboxgl from "mapbox-gl";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { MAPBOX_SOURCE_IDS } from "@/components/Map/sources";
+import { mapColors } from "@/components/Map/styles";
 import {
   DEFAULT_ZOOM,
   MARKER_EXTERNAL_ID_KEY,

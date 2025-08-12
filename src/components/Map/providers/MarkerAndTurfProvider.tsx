@@ -3,14 +3,10 @@
 import { ReactNode, useContext, useEffect, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Turf } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { useMarkerQueries } from "@/app/(private)/map/[id]/data";
-import {
-  useFolders,
-  usePlacedMarkers,
-  useTurfs,
-} from "@/app/(private)/map/[id]/hooks";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { useMarkerQueries } from "@/components/Map/data";
+import { useFolders, usePlacedMarkers, useTurfs } from "@/components/Map/hooks";
 import { MarkerData } from "@/types";
 
 export default function MarkerAndTurfProvider({

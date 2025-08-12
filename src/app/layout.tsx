@@ -2,11 +2,14 @@ import "nprogress/nprogress.css";
 import "./global.css";
 import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { headers } from "next/headers";
 import {
   ListOrganisationsQuery,
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
+import PublicMapPage from "@/components/PublicMap/PublicMapPage";
+import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
@@ -35,6 +38,31 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const host = headersList.get("host");
+
+  const mainHost = new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
+  );
+  if (host && host !== mainHost.host) {
+    return (
+      <html
+        lang="en"
+        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
+      >
+        <body className={ibmPlexSans.className}>
+          <ApolloProvider ignoreAuthErrors>
+            <NProgressProvider>
+              <main>
+                <PublicMapPage host={host} />
+              </main>
+            </NProgressProvider>
+          </ApolloProvider>
+        </body>
+      </html>
+    );
+  }
+
   const serverSession = await getServerSession();
   const organisations = await getOrganisations();
   return (

@@ -9,6 +9,7 @@ import { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findMapById } from "@/server/repositories/Map";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
+import { findPublicMapByMapId } from "@/server/repositories/PublicMap";
 import logger from "@/server/services/logger";
 import { GraphQLContext } from "./context";
 
@@ -161,10 +162,22 @@ export const _dataSourceGuard = async (
 export const _mapGuard = async (
   mapId: string | null | undefined,
   userId: string | null | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   accessType: AccessType,
 ) => {
-  if (!mapId || !userId) {
+  if (!mapId) {
+    return false;
+  }
+
+  if (accessType === "read") {
+    const publicMap = await findPublicMapByMapId(mapId);
+    console.log("find public map", publicMap, mapId);
+    if (publicMap?.published) {
+      return true;
+    }
+  }
+
+  if (!userId) {
     return false;
   }
 

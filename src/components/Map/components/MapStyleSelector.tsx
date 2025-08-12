@@ -1,8 +1,8 @@
 import { Paintbrush, Scan, Type } from "lucide-react";
 import { useContext } from "react";
 import { MapStyleName } from "@/__generated__/types";
-import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { MapContext } from "@/components/Map/context/MapContext";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,

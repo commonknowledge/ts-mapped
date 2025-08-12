@@ -17,17 +17,14 @@ import { CSS } from "@dnd-kit/utilities";
 import { Check, Layers, Plus, X } from "lucide-react";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import {
-  MapContext,
-  ViewConfig,
-} from "@/app/(private)/map/[id]/context/MapContext";
+import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import { MapContext, ViewConfig } from "@/components/Map/context/MapContext";
 import {
   compareByPositionAndId,
   getNewPositionAfter,
   getNewPositionBefore,
   sortByPositionAndId,
-} from "@/app/(private)/map/[id]/utils";
-import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+} from "@/components/Map/utils";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,

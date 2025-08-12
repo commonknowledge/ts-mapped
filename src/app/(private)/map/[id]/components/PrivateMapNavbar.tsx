@@ -10,17 +10,17 @@ import {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
 } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { Link } from "@/components/Link";
-import MapTopLevelControls from "@/components/MapTopLevelControls";
+import MapViews from "@/components/Map/components/MapViews";
+import { MapContext } from "@/components/Map/context/MapContext";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
-import MapViews from "./MapViews";
+import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
 
 /**
  * TODO: Move complex logic into MapProvider
  */
-export default function MapNavbar() {
+export default function PrivateMapNavbar() {
   const { mapName, setMapName, mapId, saveMapConfig, mapRef } =
     useContext(MapContext);
 
@@ -186,7 +186,7 @@ export default function MapNavbar() {
                 {mapName || "Loading..."}
               </p>
             )}
-            <MapTopLevelControls setIsEditingName={setIsEditingName} />
+            <PrivateMapNavbarControls setIsEditingName={setIsEditingName} />
           </div>
         </div>
         <MapViews />

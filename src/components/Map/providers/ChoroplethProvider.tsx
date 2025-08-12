@@ -2,9 +2,9 @@
 
 import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { useAreaStatsQuery } from "@/app/(private)/map/[id]/data";
-import { getChoroplethLayerConfig } from "@/app/(private)/map/[id]/sources";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { useAreaStatsQuery } from "@/components/Map/data";
+import { getChoroplethLayerConfig } from "@/components/Map/sources";
 import { ChoroplethContext } from "../context/ChoroplethContext";
 
 export default function ChoroplethProvider({

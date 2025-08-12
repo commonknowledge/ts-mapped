@@ -56,10 +56,7 @@ const QueryResolvers: QueryResolversType = {
     { organisationId, includePublic },
     context: GraphQLContext,
   ) => {
-    if (!context.currentUser) {
-      return [];
-    }
-    const dataSources = await findReadableDataSources(context.currentUser.id);
+    const dataSources = await findReadableDataSources(context.currentUser?.id);
     return dataSources.filter((ds) => {
       if (includePublic && ds.public) {
         return true;

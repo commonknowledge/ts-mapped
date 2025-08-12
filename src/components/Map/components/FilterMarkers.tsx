@@ -8,8 +8,8 @@ import {
 import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { RecordFilterInput } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 

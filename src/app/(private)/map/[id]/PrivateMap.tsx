@@ -2,26 +2,26 @@
 
 import { useContext } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
+import Legend from "@/components/Map/components/Legend";
+import Loading from "@/components/Map/components/Loading";
+import Map from "@/components/Map/components/Map";
+import MapStyleSelector from "@/components/Map/components/MapStyleSelector";
+import MapTable from "@/components/Map/components/table/MapTable";
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { TableContext } from "@/components/Map/context/TableContext";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import ChoroplethControl from "./components/controls/ChoroplethControl";
-import Controls from "./components/controls/Controls";
-import Legend from "./components/Legend";
-import Loading from "./components/Loading";
-import Map from "./components/Map";
-import MapNavbar from "./components/MapNavbar";
-import MapStyleSelector from "./components/MapStyleSelector";
-import MapTable from "./components/table/MapTable";
-import { ChoroplethContext } from "./context/ChoroplethContext";
-import { DataSourcesContext } from "./context/DataSourcesContext";
-import { MapContext } from "./context/MapContext";
-import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
-import { TableContext } from "./context/TableContext";
+import PrivateMapControls from "./components/controls/PrivateMapControls";
+import PrivateMapNavbar from "./components/PrivateMapNavbar";
 
-export default function MapPage() {
+export default function PrivateMap() {
   const { mapQuery, mapRef } = useContext(MapContext);
   const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
@@ -41,9 +41,9 @@ export default function MapPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <MapNavbar />
+      <PrivateMapNavbar />
       <div className="flex w-full grow min-h-0 relative">
-        <Controls />
+        <PrivateMapControls />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>

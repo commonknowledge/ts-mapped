@@ -9,14 +9,14 @@ import {
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import AddMembersDataModal from "@/app/(private)/map/[id]/components/controls/AddMemberModal";
-import ControlItemWrapper from "@/app/(private)/map/[id]/components/controls/ControlItemWrapper";
-import LayerHeader from "@/app/(private)/map/[id]/components/controls/LayerHeader";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { mapColors } from "@/components/Map/styles";
+import AddMembersDataModal from "../../AddMemberModal";
+import ControlItemWrapper from "../../ControlItemWrapper";
+import LayerHeader from "../../LayerHeader";
 import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {

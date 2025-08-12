@@ -9,11 +9,8 @@ import {
   MapConfig,
   MapContext,
   ViewConfig,
-} from "@/app/(private)/map/[id]/context/MapContext";
-import {
-  useMapQuery,
-  useUpdateMapConfigMutation,
-} from "@/app/(private)/map/[id]/data";
+} from "@/components/Map/context/MapContext";
+import { useMapQuery, useUpdateMapConfigMutation } from "@/components/Map/data";
 import { DEFAULT_ZOOM } from "@/constants";
 import { View } from "../types";
 import { getNewLastPosition } from "../utils";
@@ -21,9 +18,11 @@ import { getNewLastPosition } from "../utils";
 export default function MapProvider({
   children,
   mapId,
+  viewId: initialViewId,
 }: {
   children: ReactNode;
   mapId: string;
+  viewId?: string;
 }) {
   /* Map Ref */
   const mapRef = useRef<MapRef>(null);
@@ -35,7 +34,7 @@ export default function MapProvider({
   const [mapConfig, setMapConfig] = useState(new MapConfig());
   const [dirtyViewIds, setDirtyViewIds] = useState<string[]>([]);
   const [views, setViews] = useState<View[]>([]);
-  const [viewId, setViewId] = useState<string | null>(null);
+  const [viewId, setViewId] = useState<string | null>(initialViewId || null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   /* GraphQL Data */
@@ -95,7 +94,9 @@ export default function MapProvider({
     }
 
     if (mapData?.map?.views && mapData.map.views.length > 0) {
-      const nextView = mapData.map.views[0];
+      const nextView =
+        mapData.map.views.find((v) => v.id === initialViewId) ||
+        mapData.map.views[0];
       setViewId(nextView.id);
       setViews(mapData.map.views);
     } else {
@@ -109,7 +110,7 @@ export default function MapProvider({
       setViewId(newView.id);
       setViews([newView]);
     }
-  }, [mapData]);
+  }, [initialViewId, mapData]);
 
   const viewConfig = useMemo(() => {
     return new ViewConfig({ ...view?.config });

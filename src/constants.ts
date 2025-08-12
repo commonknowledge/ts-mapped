@@ -22,3 +22,5 @@ export const DEFAULT_ZOOM = 5;
 // maximum page size (e.g. Airtable = 100) to simplify
 // importDataRecords / enrichDataRecords code (no pagination)
 export const DATA_RECORDS_JOB_BATCH_SIZE = 10;
+
+export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";

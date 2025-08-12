@@ -1,9 +1,9 @@
 import { FeatureCollection, Polygon } from "geojson";
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { mapColors } from "@/components/Map/styles";
 
 export default function TurfPolygons() {
   const { viewConfig } = useContext(MapContext);

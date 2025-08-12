@@ -1,10 +1,10 @@
 import { PlusIcon } from "lucide-react";
 import React, { useContext } from "react";
 
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Link } from "@/components/Link";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,

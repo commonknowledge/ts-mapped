@@ -6,7 +6,7 @@ import {
   DeleteMapMutation,
   DeleteMapMutationVariables,
 } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MapContext } from "@/components/Map/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 
-export default function MapTopLevelControls({
+export default function PrivateMapNavbarControls({
   setIsEditingName,
 }: {
   setIsEditingName: (isEditing: boolean) => void;

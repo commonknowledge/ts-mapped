@@ -1,4 +1,6 @@
 import { useContext } from "react";
+import { MapContext } from "@/components/Map//context/MapContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import {
   Dialog,
@@ -8,8 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
-import { DataSourcesContext } from "../../context/DataSourcesContext";
-import { MapContext } from "../../context/MapContext";
 
 export default function AddMembersDataModal({
   open,

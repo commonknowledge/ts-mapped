@@ -10,10 +10,10 @@ import {
   RecordFilterInput,
   Turf,
 } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { TableContext } from "@/components/Map/context/TableContext";
 import MultiDropdownMenu, {
   DropdownItem,
   DropdownMenuItemType,

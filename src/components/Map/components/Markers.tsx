@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";

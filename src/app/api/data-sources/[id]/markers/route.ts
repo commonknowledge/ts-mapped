@@ -10,7 +10,7 @@ import {
 } from "@/constants";
 import { DataRecord } from "@/server/models/DataRecord";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
-import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findReadableDataSource } from "@/server/repositories/DataSource";
 
 /**
  * Replace a GraphQL query so that streams can be used, to avoid
@@ -22,12 +22,10 @@ export async function GET(
 ): Promise<NextResponse> {
   const realParams = await args.params;
   const { currentUser } = await getServerSession();
-  // TODO: fine-grained access control
-  if (!currentUser) {
-    return new NextResponse("Forbidden", { status: 403 });
-  }
-
-  const dataSource = await findDataSourceById(realParams.id);
+  const dataSource = await findReadableDataSource(
+    realParams.id,
+    currentUser?.id,
+  );
   if (!dataSource) {
     return new NextResponse("Not found", { status: 404 });
   }

@@ -5,7 +5,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useMemo } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
-import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils";
+import { sortByPositionAndId } from "@/components/Map/utils";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";

@@ -1,8 +1,8 @@
 "use client";
 
 import { ReactNode, useContext, useMemo, useState } from "react";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { TableContext } from "@/components/Map/context/TableContext";
 import { useDataRecordsQuery } from "../data";
 
 const TableProvider = ({ children }: { children: ReactNode }) => {

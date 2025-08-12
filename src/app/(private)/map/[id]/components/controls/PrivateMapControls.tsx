@@ -1,14 +1,14 @@
 import { PanelLeft } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { TableContext } from "@/components/Map/context/TableContext";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
 
-export default function Controls() {
+export default function PrivateMapControls() {
   const { mapRef } = useContext(MapContext);
   const { selectedDataSourceId } = useContext(TableContext);
   const [showControls, setShowControls] = useState(true);

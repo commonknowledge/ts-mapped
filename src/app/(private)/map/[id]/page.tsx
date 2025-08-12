@@ -1,27 +1,15 @@
-import MapPage from "./MapPage";
-import ChoroplethProvider from "./providers/ChoroplethProvider";
-import DataSourcesProvider from "./providers/DataSourcesProvider";
-import MapProvider from "./providers/MapProvider";
-import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
-import TableProvider from "./providers/TableProvider";
+import MapProviders from "@/components/Map/MapProviders";
+import PrivateMap from "./PrivateMap";
 
-export default async function MapPageWrapper({
+export default async function MapPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   return (
-    <MapProvider mapId={id}>
-      <DataSourcesProvider>
-        <ChoroplethProvider>
-          <MarkerAndTurfProvider>
-            <TableProvider>
-              <MapPage />
-            </TableProvider>
-          </MarkerAndTurfProvider>
-        </ChoroplethProvider>
-      </DataSourcesProvider>
-    </MapProvider>
+    <MapProviders mapId={id}>
+      <PrivateMap />
+    </MapProviders>
   );
 }
