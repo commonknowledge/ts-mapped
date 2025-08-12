@@ -4,6 +4,10 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Search,
   Settings2,
   X,
@@ -107,8 +111,8 @@ export function DataTable({
 
   return (
     <div className="flex flex-col  h-full">
-      <div className="flex items-center justify-between px-3 py-2 border-b">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between px-3 py-2 border-b h-12">
+        <div className="flex items-center gap-4 flex-1">
           {title && (
             <div className="flex flex-row gap-2">
               <p className="font-bold whitespace-nowrap">{title}</p>
@@ -119,7 +123,40 @@ export function DataTable({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 flex-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto shadow-none"
+              >
+                <Settings2 className="text-muted-foreground" />Display
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {columns.map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.name}
+                    checked={!hiddenColumns.includes(column.name)}
+                    onCheckedChange={(visible) => {
+                      if (visible) {
+                        setHiddenColumns(
+                          hiddenColumns.filter((c) => c !== column.name),
+                        );
+                      } else {
+                        setHiddenColumns([...hiddenColumns, column.name]);
+                      }
+                    }}
+                  >
+                    {column.name}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {isSearchOpen ? (
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -174,42 +211,10 @@ export function DataTable({
       <div className="grow min-h-0 flex flex-col ">
         <div className="flex items-center gap-2 px-3 py-2 border-b justify-between">
           {filter}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto shadow-none"
-              >
-                Display <Settings2 className="text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {columns.map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.name}
-                    checked={!hiddenColumns.includes(column.name)}
-                    onCheckedChange={(visible) => {
-                      if (visible) {
-                        setHiddenColumns(
-                          hiddenColumns.filter((c) => c !== column.name),
-                        );
-                      } else {
-                        setHiddenColumns([...hiddenColumns, column.name]);
-                      }
-                    }}
-                  >
-                    {column.name}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
-        <div className="bg-white">
-          <Table containerClassName="h-full">
-            <TableHeader className="bg-neutral-100 ">
+        <div className="bg-white grow min-h-0">
+          <Table containerClassName="h-full overflow-y-auto">
+            <TableHeader className="bg-neutral-100 sticky top-0">
               <TableRow>
                 {columns
                   .filter((c) => !hiddenColumns.includes(c.name))
@@ -232,7 +237,7 @@ export function DataTable({
                   })}
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody >
               {loading ? (
                 <TableRow>
                   <TableCell>Loading...</TableCell>
@@ -266,31 +271,50 @@ export function DataTable({
                 </TableRow>
               )}
             </TableBody>
+            {/* Pagination */}
+            <div className="flex items-center gap-2 p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPageIndex(0)}
+                disabled={pageIndex <= 0}
+                className="text-muted-foreground font-normal"
+              >
+                <ChevronsLeft className="w-4 h-4" /> First Page
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPageIndex(pageIndex - 1)}
+                disabled={pageIndex <= 0}
+                className="text-muted-foreground font-normal"
+              >
+                <ChevronLeft className="w-4 h-4" /> Previous Page
+              </Button>
+              <span className="text-muted-foreground font-normal whitespace-nowrap">
+                Page {pageIndex + 1} of {lastPageIndex + 1}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPageIndex(pageIndex + 1)}
+                disabled={pageIndex >= lastPageIndex}
+                className="text-muted-foreground font-normal"
+              >
+                <ChevronRight className="w-4 h-4" /> Next Page
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPageIndex(lastPageIndex)}
+                disabled={pageIndex >= lastPageIndex}
+                className="text-muted-foreground font-normal"
+              >
+                <ChevronsRight className="w-4 h-4" /> Last Page
+              </Button>
+            </div>
           </Table>
         </div>
-      </div>
-      <div className="flex items-center justify-center gap-2">
-        <Button onClick={() => setPageIndex(0)} disabled={pageIndex <= 0}>
-          {"<<"}
-        </Button>
-        <Button
-          onClick={() => setPageIndex(pageIndex - 1)}
-          disabled={pageIndex <= 0}
-        >
-          {"<"}
-        </Button>
-        <Button
-          onClick={() => setPageIndex(pageIndex + 1)}
-          disabled={pageIndex >= lastPageIndex}
-        >
-          {">"}
-        </Button>
-        <Button
-          onClick={() => setPageIndex(lastPageIndex)}
-          disabled={pageIndex >= lastPageIndex}
-        >
-          {">>"}
-        </Button>
       </div>
     </div>
   );
