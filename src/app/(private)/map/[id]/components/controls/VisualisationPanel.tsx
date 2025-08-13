@@ -1,4 +1,4 @@
-import { CornerDownRight, PaintBucketIcon, Scan, ChevronDown, Check, Calculator, Link, Palette, Info, ArrowUpDown } from "lucide-react";
+import { CornerDownRight, PaintBucketIcon, Scan, ChevronDown, Check, Calculator, Link, Palette, Info, ArrowUpDown, Pentagon, Database } from "lucide-react";
 import { useContext, useState, useMemo } from "react";
 import { AreaSetGroupCode } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
@@ -69,7 +69,7 @@ function DataSourceCard({
   );
 }
 
-export default function ChoroplethControl() {
+export default function VisualisePanel() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { boundariesPanelOpen } = useContext(ChoroplethContext);
   const { getDataSources, getChoroplethDataSource } =
@@ -88,11 +88,11 @@ export default function ChoroplethControl() {
   const filteredDataSources = useMemo(() => {
     let sources = dataSources;
 
-    if (activeTab === 'public') {
-      sources = sources.filter(ds => ds.isPublic);
-    } else if (activeTab === 'user') {
-      sources = sources.filter(ds => !ds.isPublic);
-    }
+    // if (activeTab === 'public') {
+    //   sources = sources.filter(ds => ds.isPublic);
+    // } else if (activeTab === 'user') {
+    //   sources = sources.filter(ds => !ds.isPublic);
+    // }
 
     // // Only show data sources that have geographic data or can be mapped
     // return sources.filter(ds =>
@@ -136,7 +136,31 @@ export default function ChoroplethControl() {
 
   return (
     <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto">
-      {/* Step 1: Choose Visualization Type */}
+      {/* Step 1: Select Boundary Set */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium"><Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map Locality Shapes</Label>
+        <Select
+          value={viewConfig.areaSetGroupCode || NULL_UUID}
+          onValueChange={(value) => updateViewConfig({ areaSetGroupCode: value as AreaSetGroupCode | null })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Choose boundaries..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NULL_UUID}>No Locality</SelectItem>
+            {Object.entries(AREA_SET_GROUP_LABELS).map(([code, label]) => (
+              <SelectItem key={code} value={code}>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-gray-300 rounded-sm"></div>
+                  {label}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Step 2: Choose Visualization Type */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium">Create Visualization</h3>
 
@@ -165,29 +189,6 @@ export default function ChoroplethControl() {
         </div>
       </div>
 
-      {/* Step 2: Select Boundary Set */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Select Map Boundaries</Label>
-        <Select
-          value={viewConfig.areaSetGroupCode || NULL_UUID}
-          onValueChange={(value) => updateViewConfig({ areaSetGroupCode: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Choose boundaries..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NULL_UUID}>No boundaries</SelectItem>
-            {Object.entries(AREA_SET_GROUP_LABELS).map(([code, label]) => (
-              <SelectItem key={code} value={code}>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-gray-300 rounded-sm"></div>
-                  {label}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* Step 3: Data Source (only for choropleth) */}
       {viewConfig.visualizationType === 'choropleth' && viewConfig.areaDataSourceId && (
@@ -195,7 +196,7 @@ export default function ChoroplethControl() {
           <Separator />
           {/* Data Source Selection */}
           <div className="space-y-2">
-            <Label className="text-sm text-neutral-600">Data Source</Label>
+            <Label className="text-sm text-neutral-600"><Database className="w-4 h-4 text-muted-foreground" /> Data Source</Label>
 
             {viewConfig.areaDataSourceId ? (
               // Show selected data source as a card
@@ -211,7 +212,7 @@ export default function ChoroplethControl() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => updateViewConfig({ areaDataSourceId: null })}
+                  onClick={() => updateViewConfig({ areaDataSourceId: undefined })}
                   className="text-xs text-gray-500 hover:text-gray-700"
                 >
                   Change data source
@@ -339,22 +340,14 @@ export default function ChoroplethControl() {
               {viewConfig.areaSetGroupCode && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <Pentagon className="w-4 h-4 text-blue-500 pt-1" />
                     <div className="text-sm">
                       <p className="font-medium text-blue-900">
-                        Using {viewConfig.areaSetGroupCode === 'constituencies' ? 'Constituencies' :
-                          viewConfig.areaSetGroupCode === 'msoas' ? 'MSOAs' :
-                            viewConfig.areaSetGroupCode === 'postcodes' ? 'Postcode Areas' :
-                              viewConfig.areaSetGroupCode} boundaries
+                        Using {viewConfig.areaSetGroupCode === 'WMC24' ? 'Westminster Constituencies' :
+                          viewConfig.areaSetGroupCode === 'OA21' ? 'Census Output Areas' :
+                            viewConfig.areaSetGroupCode} shapes
                       </p>
-                      <p className="text-blue-700 text-xs mt-1">
-                        {viewConfig.areaSetGroupCode === 'constituencies' &&
-                          'Match your data to constituency names or postcodes'}
-                        {viewConfig.areaSetGroupCode === 'msoas' &&
-                          'Match your data to MSOA codes or names'}
-                        {viewConfig.areaSetGroupCode === 'postcodes' &&
-                          'Match your data to postcode areas (first 3-4 characters)'}
-                      </p>
+
                     </div>
                   </div>
                 </div>
@@ -451,7 +444,7 @@ export default function ChoroplethControl() {
 
             <Select
               value={viewConfig.colorScheme || 'red-blue'}
-              onValueChange={(value) => updateViewConfig({ colorScheme: value })}
+              onValueChange={(value) => updateViewConfig({ colorScheme: value as 'red-blue' | 'green-yellow-red' | 'viridis' | 'plasma' | 'diverging' | 'sequential' })}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose color scheme..." />

@@ -1,18 +1,19 @@
 import { scaleLinear } from "d3-scale";
-import { DotIcon } from "lucide-react";
+import { Database, DotIcon } from "lucide-react";
 import { useContext } from "react";
 import { AreaStats, ColumnType } from "@/__generated__/types";
 import { useColorScheme } from "../colors";
 import { DataSourcesContext } from "../context/DataSourcesContext";
 import { MapContext } from "../context/MapContext";
+import { ChoroplethContext } from "../context/ChoroplethContext";
 
-export default function Legend({
-  areaStats,
-}: {
-  areaStats: AreaStats | null | undefined;
-}) {
+export default function Legend() {
   const { viewConfig } = useContext(MapContext);
   const { getChoroplethDataSource } = useContext(DataSourcesContext);
+  const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
+    useContext(ChoroplethContext);
+
+  const areaStats = areaStatsQuery?.data?.areaStats;
 
   const dataSource = getChoroplethDataSource();
 
@@ -61,10 +62,13 @@ export default function Legend({
   }
 
   return (
-    <div className="flex flex-col rounded-sm overflow-scroll absolute bottom-10 left-2 w-2xs bg-white border border-neutral-200">
-      <p className="text-xs flex items-center gap-0.5 font-medium px-2 py-1">
-        {dataSource?.name} <DotIcon className="w-4 h-4 text-muted-foreground" />{" "}
-        {viewConfig.areaDataColumn}
+    <div className="flex flex-col rounded-sm overflow-scroll bg-white border border-neutral-200">
+      <p className=" flex  gap-2  items-center text-xs font-mono p-2"><Database className="w-4 h-4 text-muted-foreground" /> Locality Data Legend</p>
+      <p className="flex items-center gap-0.5 font-medium px-2 py-1">
+        {dataSource?.name}
+      </p>
+      <p className="text-sm flex items-center gap-0.5 font-medium px-2 py-1">
+        Column: {viewConfig.areaDataColumn}
       </p>
       <div className="flex">{bars}</div>
     </div>

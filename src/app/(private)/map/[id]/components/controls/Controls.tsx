@@ -82,7 +82,6 @@ export default function Controls() {
             <div className="flex flex-col  mt-auto">
               <Separator />
               <VisualiseControl />
-
             </div>
           </div>
 

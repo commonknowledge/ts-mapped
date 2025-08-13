@@ -7,7 +7,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
-import ChoroplethControl from "./components/controls/ChoroplethControl";
+import ChoroplethControl from "./components/controls/VisualisationPanel";
 import Controls from "./components/controls/Controls";
 import Legend from "./components/Legend";
 import Loading from "./components/Loading";
@@ -20,6 +20,7 @@ import { DataSourcesContext } from "./context/DataSourcesContext";
 import { MapContext } from "./context/MapContext";
 import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
 import { TableContext } from "./context/TableContext";
+import VisualisePanel from "./components/controls/VisualisationPanel";
 
 export default function MapPage() {
   const { mapQuery, mapRef } = useContext(MapContext);
@@ -44,7 +45,7 @@ export default function MapPage() {
       <MapNavbar />
       <div className="flex w-full grow min-h-0 relative">
         <Controls />
-        <ChoroplethControl />
+        <VisualisePanel />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative">
@@ -53,7 +54,7 @@ export default function MapPage() {
               />
               <MapStyleSelector />
               <ChoroplethControl />
-              <Legend areaStats={areaStatsQuery?.data?.areaStats} />
+              <Legend />
             </ResizablePanel>
             {selectedDataSourceId && (
               <>
