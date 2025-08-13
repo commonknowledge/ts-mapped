@@ -7,10 +7,7 @@ import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
-import ChoroplethControl from "./ChoroplethControl";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shadcn/ui/tooltip";
-import { Toggle } from "@/shadcn/ui/toggle";
-import { ChoroplethContext } from "../../context/ChoroplethContext";
+import VisualiseControl from "./layers/VisualiseControl";
 
 
 export default function Controls() {
@@ -18,7 +15,6 @@ export default function Controls() {
   const { mapRef } = useContext(MapContext);
   const { selectedDataSourceId } = useContext(TableContext);
   const [showControls, setShowControls] = useState(true);
-  const { boundariesPanelOpen, setBoundariesPanelOpen } = useContext(ChoroplethContext);
   const controlPanelWidth = 280;
 
   // Reset map when UI shifts
@@ -85,25 +81,7 @@ export default function Controls() {
             <AreasControl />
             <div className="flex flex-col  mt-auto">
               <Separator />
-              <TooltipProvider>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Toggle
-                      pressed={boundariesPanelOpen}
-                      onPressedChange={(value) => setBoundariesPanelOpen(value)}
-                      className={`relative p-6 rounded-none ${boundariesPanelOpen ? "bg-neutral-200" : ""}`}
-                    >
-                      <Scan className="w-4 h-4  text-muted-foreground" />
-                      <h3 className="text-sm font-medium">Boundaries</h3>
-
-                    </Toggle>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{boundariesPanelOpen ? "Hide" : "Show"} boundaries</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <VisualiseControl />
 
             </div>
           </div>

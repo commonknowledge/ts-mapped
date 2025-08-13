@@ -34,6 +34,8 @@ export class ViewConfig implements MapViewConfigInput {
   public showMembers = true;
   public showLocations = true;
   public showTurf = true;
+  public calculationType?: 'value' | 'count' | 'sum' | 'average';
+  public colorScheme?: 'red-blue' | 'green-yellow-red' | 'viridis' | 'plasma' | 'diverging' | 'sequential';
 
   constructor(params: Partial<ViewConfig> = {}) {
     Object.assign(this, params);
