@@ -45,7 +45,10 @@ export interface mapColor {
   textColor?: string;
 }
 
-export const mapColors: Record<string, mapColor> = {
+export const mapColors: Record<
+  "member" | "dataSource" | "markers" | "areas",
+  mapColor
+> = {
   member: {
     name: "Member",
     color: "#678DE3",

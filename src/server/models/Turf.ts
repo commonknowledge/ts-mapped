@@ -1,18 +1,12 @@
-import { Geometry } from "geojson";
-import {
-  Generated,
-  Insertable,
-  JSONColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
+import { Polygon } from "geojson";
+import { Generated, Insertable, Selectable, Updateable } from "kysely";
 
 export interface TurfTable {
   id: Generated<string>;
   label: string;
   notes: string;
   area: number;
-  geometry: JSONColumnType<Geometry>;
+  polygon: Polygon;
   createdAt: Date;
   mapId: string;
 }

@@ -18,7 +18,7 @@ export default function MarkerAndTurfProvider({
 }: {
   children: ReactNode;
 }) {
-  const { mapId, mapQuery, mapConfig } = useContext(MapContext);
+  const { mapId, mapQuery, mapConfig, view } = useContext(MapContext);
   /* State */
 
   const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
@@ -28,6 +28,7 @@ export default function MarkerAndTurfProvider({
   const markerQueries = useMarkerQueries({
     membersDataSourceId: mapConfig.membersDataSourceId,
     markerDataSourceIds: mapConfig.markerDataSourceIds,
+    dataSourceViews: view?.dataSourceViews || [],
   });
 
   /* Persisted map features */

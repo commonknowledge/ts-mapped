@@ -14,7 +14,7 @@ export default function TurfPolygons() {
     features: turfs.map((t) => ({
       type: "Feature" as const,
       id: t.id,
-      geometry: t.geometry as Polygon,
+      geometry: t.polygon as Polygon,
       properties: {
         area: t.area,
         createdAt: t.createdAt,

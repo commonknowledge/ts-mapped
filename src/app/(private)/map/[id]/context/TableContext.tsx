@@ -3,7 +3,6 @@ import { createContext } from "react";
 import {
   DataRecordsQuery,
   DataRecordsQueryVariables,
-  SortInput,
 } from "@/__generated__/types";
 
 export const TableContext = createContext<{
@@ -14,12 +13,8 @@ export const TableContext = createContext<{
   selectedRecordId: string | null;
   setSelectedRecordId: (recordId: string | null) => void;
 
-  tableFilter: string;
-  setTableFilter: (filter: string) => void;
   tablePage: number;
   setTablePage: (page: number) => void;
-  tableSort: SortInput[];
-  setTableSort: (tableSort: SortInput[]) => void;
 
   /* GraphQL Queries */
   dataRecordsQuery: QueryResult<
@@ -27,15 +22,11 @@ export const TableContext = createContext<{
     DataRecordsQueryVariables
   > | null;
 }>({
-  tableFilter: "",
-  setTableFilter: () => null,
-  tablePage: 0,
-  setTablePage: () => null,
-  tableSort: [],
-  setTableSort: () => null,
   selectedDataSourceId: "",
   handleDataSourceSelect: () => null,
   selectedRecordId: null,
   setSelectedRecordId: () => null,
+  tablePage: 0,
+  setTablePage: () => null,
   dataRecordsQuery: null,
 });

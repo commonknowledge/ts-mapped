@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { RecordFilterInput } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
+import {
+  MARKER_EXTERNAL_ID_KEY,
+  MARKER_ID_KEY,
+  MARKER_MATCHED_COLUMN,
+  MARKER_MATCHED_KEY,
+  MARKER_NAME_KEY,
+} from "@/constants";
 import { DataRecord } from "@/server/models/DataRecord";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -11,7 +18,7 @@ import { findDataSourceById } from "@/server/repositories/DataSource";
  */
 export async function GET(
   request: NextRequest,
-  args: { params: Promise<{ id: string }> },
+  args: { params: Promise<{ id: string; filter: string; search: string }> },
 ): Promise<NextResponse> {
   const realParams = await args.params;
   const { currentUser } = await getServerSession();
@@ -25,6 +32,11 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
+  const filter: RecordFilterInput | null = JSON.parse(
+    request?.nextUrl?.searchParams.get("filter") || "null",
+  );
+  const search = request?.nextUrl?.searchParams.get("search") || "";
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -35,11 +47,15 @@ export async function GET(
         ),
       );
 
-      const stream = streamDataRecordsByDataSource(dataSource.id);
+      const stream = streamDataRecordsByDataSource(
+        dataSource.id,
+        filter,
+        search,
+      );
       let row = await stream.next();
       let firstItemWritten = false;
       while (row.value) {
-        const dr: DataRecord = row.value;
+        const dr: DataRecord & { [MARKER_MATCHED_COLUMN]: boolean } = row.value;
         if (dr.geocodeResult?.centralPoint) {
           const centralPoint = dr.geocodeResult.centralPoint;
           const coordinates = [centralPoint.lng, centralPoint.lat];
@@ -48,7 +64,8 @@ export async function GET(
             type: "Feature",
             properties: {
               ...dr.json,
-              [MARKER_ID_KEY]: dr.externalId,
+              [MARKER_ID_KEY]: dr.id,
+              [MARKER_EXTERNAL_ID_KEY]: dr.externalId,
               // If no name column is specified, show the ID as the marker name instead
               [MARKER_NAME_KEY]: nameColumns?.length
                 ? nameColumns
@@ -56,6 +73,7 @@ export async function GET(
                     .filter(Boolean)
                     .join(", ")
                 : dr.externalId,
+              [MARKER_MATCHED_KEY]: dr[MARKER_MATCHED_COLUMN],
             },
             geometry: {
               type: "Point",

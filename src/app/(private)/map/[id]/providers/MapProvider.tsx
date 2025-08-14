@@ -45,8 +45,12 @@ export default function MapProvider({
     setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
   };
 
+  const view = useMemo(
+    () => views.find((v) => v.id === viewId) || null,
+    [viewId, views],
+  );
+
   const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
-    const view = views.find((v) => v.id === viewId);
     if (!view) {
       return;
     }
@@ -92,14 +96,14 @@ export default function MapProvider({
 
     if (mapData?.map?.views && mapData.map.views.length > 0) {
       const nextView = mapData.map.views[0];
-      const nextViewId = nextView.id;
-      setViewId(nextViewId);
-      setViews(mapData.map.views || []);
+      setViewId(nextView.id);
+      setViews(mapData.map.views);
     } else {
       const newView = {
         id: uuidv4(),
         name: "Default View",
         config: new ViewConfig(),
+        dataSourceViews: [],
         position: 0,
       };
       setViewId(newView.id);
@@ -108,9 +112,8 @@ export default function MapProvider({
   }, [mapData]);
 
   const viewConfig = useMemo(() => {
-    const savedConfig = views.find((v) => v.id === viewId)?.config || {};
-    return new ViewConfig({ ...savedConfig });
-  }, [viewId, views]);
+    return new ViewConfig({ ...view?.config });
+  }, [view]);
 
   return (
     <MapContext
@@ -129,7 +132,7 @@ export default function MapProvider({
         deleteView,
         insertView,
         updateView,
-        viewId,
+        view,
         setViewId,
         viewConfig,
         updateViewConfig,

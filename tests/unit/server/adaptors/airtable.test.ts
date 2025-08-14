@@ -227,4 +227,44 @@ describe("Airtable adaptor tests", () => {
     const newRec = await adaptor.fetchByExternalId([all[0].externalId]);
     expect(newRec[0].json["Mapped: Test Field"]).toBe(newValue);
   });
+
+  test("tagRecords updates a record", async () => {
+    const adaptor = new AirtableAdaptor(
+      "test-data-source",
+      credentials.airtable.apiKey,
+      credentials.airtable.baseId,
+      credentials.airtable.tableId,
+    );
+
+    // Get a record first
+    const firstRecord = await adaptor.fetchFirst();
+    if (!firstRecord) {
+      throw new Error("No records found in Airtable");
+    }
+
+    const taggedRecords = [
+      {
+        externalId: firstRecord.externalId,
+        json: firstRecord.json,
+        tag: {
+          name: "My View",
+          present: true,
+        },
+      },
+    ];
+
+    await adaptor.tagRecords(taggedRecords);
+
+    let updatedRecords = await adaptor.fetchByExternalId([
+      firstRecord.externalId,
+    ]);
+
+    expect(updatedRecords[0].json["My View"]).toBe(true);
+
+    taggedRecords[0].tag.present = false;
+    await adaptor.tagRecords(taggedRecords);
+    updatedRecords = await adaptor.fetchByExternalId([firstRecord.externalId]);
+
+    expect(updatedRecords[0].json["My View"]).toBeFalsy();
+  });
 });

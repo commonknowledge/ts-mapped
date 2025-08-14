@@ -46,7 +46,7 @@ export default function MapPage() {
         <Controls />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
-            <ResizablePanel className="relative">
+            <ResizablePanel className="relative" id="map" order={0}>
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
@@ -57,7 +57,11 @@ export default function MapPage() {
             {selectedDataSourceId && (
               <>
                 <ResizableHandle withHandle />
-                <ResizablePanel onResize={() => mapRef?.current?.resize()}>
+                <ResizablePanel
+                  onResize={() => mapRef?.current?.resize()}
+                  id="table"
+                  order={1}
+                >
                   <MapTable />
                 </ResizablePanel>
               </>

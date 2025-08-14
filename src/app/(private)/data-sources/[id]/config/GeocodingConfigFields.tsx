@@ -114,6 +114,26 @@ export default function GeocodingConfigFields({
         </DataListRow>
       )}
 
+      {typeSelectValue === "Postcode" && (
+        <DataListRow label="Location column">
+          <Select
+            value={column}
+            onValueChange={(column) => onChange({ column })}
+          >
+            <SelectTrigger className="w-[360px]">
+              <SelectValue placeholder="Select a column to geocode on" />
+            </SelectTrigger>
+            <SelectContent>
+              {dataSource?.columnDefs.map((cd) => (
+                <SelectItem key={cd.name} value={cd.name}>
+                  {cd.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </DataListRow>
+      )}
+
       {typeSelectValue in AreaGeocodingType && (
         <>
           <DataListRow label="Location column">

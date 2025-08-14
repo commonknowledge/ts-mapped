@@ -11,10 +11,15 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { MAPBOX_SOURCE_IDS } from "@/app/(private)/map/[id]/sources";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
-import { DEFAULT_ZOOM, MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
+import {
+  DEFAULT_ZOOM,
+  MARKER_EXTERNAL_ID_KEY,
+  MARKER_NAME_KEY,
+} from "@/constants";
 import { DrawDeleteEvent, MarkerData } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
+import FilterMarkers from "./FilterMarkers";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import TurfPolygons from "./TurfPolygons";
@@ -258,7 +263,7 @@ export default function Map({
                   `Area: ${roundedArea.toFixed(2)}m²`,
                 notes: "",
                 area: roundedArea,
-                geometry: feature.geometry,
+                polygon: feature.geometry,
                 createdAt: new Date().toISOString(),
               });
               newDraw.deleteAll();
@@ -305,6 +310,7 @@ export default function Map({
           <Choropleth />
           <TurfPolygons />
           <Markers />
+          <FilterMarkers />
           <PlacedMarkers />
           {hoverMarker && (
             <Popup
@@ -315,7 +321,7 @@ export default function Map({
               <div>
                 <strong>
                   {String(hoverMarker.properties[MARKER_NAME_KEY]) ||
-                    `ID: ${hoverMarker.properties[MARKER_ID_KEY]}`}
+                    `ID: ${hoverMarker.properties[MARKER_EXTERNAL_ID_KEY]}`}
                 </strong>
               </div>
             </Popup>
