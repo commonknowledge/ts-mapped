@@ -49,8 +49,8 @@ export default function Choropleth() {
     }
   }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
 
-  const fillColor = useFillColor(areaStatsQuery?.data?.areaStats);
-  if (!viewConfig.areaSetGroupCode) {
+  const fillColor = useFillColor(areaStatsQuery?.data?.areaStats, viewConfig.colorScheme || 'red-blue');
+  if (!viewConfig.areaSetGroupCode || !viewConfig.visualizationType) {
     return null;
   }
   return (
@@ -61,20 +61,22 @@ export default function Choropleth() {
       type="vector"
       url={`mapbox://${sourceId}`}
     >
-      {/* Fill Layer */}
-      <Layer
-        id={`${sourceId}-fill`}
-        source={sourceId}
-        source-layer={layerId}
-        type="fill"
-        paint={{
-          "fill-color": fillColor,
-          "fill-opacity": 0.5,
-        }}
-      />
+      {/* Fill Layer - only show for choropleth */}
+      {viewConfig.visualizationType === 'choropleth' && (
+        <Layer
+          id={`${sourceId}-fill`}
+          source={sourceId}
+          source-layer={layerId}
+          type="fill"
+          paint={{
+            "fill-color": fillColor,
+            "fill-opacity": 0.5,
+          }}
+        />
+      )}
 
-      {/* Line Layer */}
-      {viewConfig.showBoundaryOutline && (
+      {/* Line Layer - show for both boundary-only and choropleth */}
+      {(viewConfig.visualizationType === 'boundary-only' || viewConfig.visualizationType === 'choropleth') && (
         <Layer
           id={`${sourceId}-line`}
           source={sourceId}

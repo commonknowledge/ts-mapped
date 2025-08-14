@@ -119,6 +119,9 @@ const typeDefs = `
     showLocations: Boolean
     showMembers: Boolean
     showTurf: Boolean
+    visualizationType: String
+    calculationType: String
+    colorScheme: String
   }
 
   input PointInput {
@@ -257,6 +260,9 @@ const typeDefs = `
     showLocations: Boolean!
     showMembers: Boolean!
     showTurf: Boolean!
+    visualizationType: String
+    calculationType: String
+    colorScheme: String
   }
 
   type Organisation {

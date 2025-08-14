@@ -107,14 +107,13 @@ export default function SortableFolderItem({
   };
 
   return (
-    <li ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <li ref={setNodeRef} style={style} {...attributes} {...listeners} className="border border-neutral-200 rounded">
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
             ref={isDraggingMarker ? setHeaderNodeRef : null}
-            className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-neutral-100 rounded transition-colors ${
-              isHeaderOver ? "bg-blue-50" : ""
-            }`}
+            className={`flex items-center gap-2 hover:bg-neutral-100  transition-colors p-2 ${isHeaderOver ? "bg-blue-50" : ""
+              }`}
             onClick={onClickFolder}
           >
             {isExpanded ? (

@@ -5,7 +5,16 @@ import {
   scaleOrdinal,
   scaleSequential,
 } from "d3-scale";
-import { interpolateOrRd, schemeCategory10 } from "d3-scale-chromatic";
+import {
+  interpolateOrRd,
+  schemeCategory10,
+  interpolateRdBu,
+  interpolateRdYlGn,
+  interpolateViridis,
+  interpolatePlasma,
+  interpolateBrBG,
+  interpolateBlues,
+} from "d3-scale-chromatic";
 import { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 import { useMemo } from "react";
 import { AreaStats, ColumnType } from "@/__generated__/types";
@@ -23,8 +32,44 @@ export interface NumericColorScheme {
   colorScale: ScaleSequential<string, never>;
 }
 
+const getInterpolator = (
+  scheme:
+    | "red-blue"
+    | "green-yellow-red"
+    | "viridis"
+    | "plasma"
+    | "diverging"
+    | "sequential"
+    | undefined,
+) => {
+  switch (scheme) {
+    case "red-blue":
+      return interpolateRdBu;
+    case "green-yellow-red":
+      // Reverse RdYlGn to get green->yellow->red
+      return (t: number) => interpolateRdYlGn(1 - t);
+    case "viridis":
+      return interpolateViridis;
+    case "plasma":
+      return interpolatePlasma;
+    case "diverging":
+      return interpolateBrBG;
+    case "sequential":
+      return interpolateBlues;
+    default:
+      return interpolateOrRd;
+  }
+};
+
 export const useColorScheme = (
   areaStats: AreaStats | null | undefined,
+  scheme?:
+    | "red-blue"
+    | "green-yellow-red"
+    | "viridis"
+    | "plasma"
+    | "diverging"
+    | "sequential",
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
@@ -64,9 +109,10 @@ export const useColorScheme = (
       return null;
     }
 
+    const interpolator = getInterpolator(scheme);
     const colorScale = scaleSequential()
       .domain([minValue, maxValue])
-      .interpolator(interpolateOrRd);
+      .interpolator(interpolator);
 
     return {
       columnType: ColumnType.Number,
@@ -74,7 +120,7 @@ export const useColorScheme = (
       maxValue,
       colorScale,
     };
-  }, [areaStats]);
+  }, [areaStats, scheme]);
 };
 
 const getCategoricalColor = (
@@ -86,8 +132,15 @@ const getCategoricalColor = (
 
 export const useFillColor = (
   areaStats: AreaStats | null | undefined,
+  scheme?:
+    | "red-blue"
+    | "green-yellow-red"
+    | "viridis"
+    | "plasma"
+    | "diverging"
+    | "sequential",
 ): DataDrivenPropertyValueSpecification<string> => {
-  const colorScheme = useColorScheme(areaStats);
+  const colorScheme = useColorScheme(areaStats, scheme);
   // useMemo to cache calculated fillColor
   return useMemo(() => {
     if (!colorScheme) {

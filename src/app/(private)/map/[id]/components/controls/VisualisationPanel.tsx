@@ -136,31 +136,7 @@ export default function VisualisePanel() {
 
   return (
     <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto">
-      {/* Step 1: Select Boundary Set */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium"><Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map Locality Shapes</Label>
-        <Select
-          value={viewConfig.areaSetGroupCode || NULL_UUID}
-          onValueChange={(value) => updateViewConfig({ areaSetGroupCode: value as AreaSetGroupCode | null })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Choose boundaries..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NULL_UUID}>No Locality</SelectItem>
-            {Object.entries(AREA_SET_GROUP_LABELS).map(([code, label]) => (
-              <SelectItem key={code} value={code}>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-gray-300 rounded-sm"></div>
-                  {label}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Step 2: Choose Visualization Type */}
+      {/* Step 1: Choose Visualization Type */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium">Create Visualization</h3>
 
@@ -170,7 +146,9 @@ export default function VisualisePanel() {
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-200 hover:border-gray-300'
               }`}
-            onClick={() => updateViewConfig({ visualizationType: 'boundary-only' })}
+            onClick={() => updateViewConfig({
+              visualizationType: viewConfig.visualizationType === 'boundary-only' ? undefined : 'boundary-only'
+            })}
           >
             <div className="w-8 h-8 mx-auto mb-2 bg-gray-200 rounded"></div>
             <span className="text-xs">Boundary Outline</span>
@@ -181,7 +159,9 @@ export default function VisualisePanel() {
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-200 hover:border-gray-300'
               }`}
-            onClick={() => updateViewConfig({ visualizationType: 'choropleth' })}
+            onClick={() => updateViewConfig({
+              visualizationType: viewConfig.visualizationType === 'choropleth' ? undefined : 'choropleth'
+            })}
           >
             <div className="w-8 h-8 mx-auto mb-2 bg-gradient-to-br from-red-400 to-blue-400 rounded"></div>
             <span className="text-xs">Filled Map</span>
@@ -189,9 +169,36 @@ export default function VisualisePanel() {
         </div>
       </div>
 
+      {/* Step 2: Select Locality Shapes */}
+      {viewConfig.visualizationType && (
+        <div className="space-y-2">
+          <Label className="text-sm font-medium"><Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map Locality Shapes</Label>
+          <Select
+            value={viewConfig.areaSetGroupCode || NULL_UUID}
+            onValueChange={(value) => updateViewConfig({ areaSetGroupCode: value as AreaSetGroupCode | null })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose boundaries..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NULL_UUID}>No Locality</SelectItem>
+              {Object.entries(AREA_SET_GROUP_LABELS).map(([code, label]) => (
+                <SelectItem key={code} value={code}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-300 rounded-sm"></div>
+                    {label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+
 
       {/* Step 3: Data Source (only for choropleth) */}
-      {viewConfig.visualizationType === 'choropleth' && viewConfig.areaDataSourceId && (
+      {viewConfig.visualizationType === 'choropleth' && (
         <>
           <Separator />
           {/* Data Source Selection */}
@@ -212,7 +219,7 @@ export default function VisualisePanel() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => updateViewConfig({ areaDataSourceId: undefined })}
+                  onClick={() => updateViewConfig({ areaDataSourceId: undefined, areaDataColumn: undefined })}
                   className="text-xs text-gray-500 hover:text-gray-700"
                 >
                   Change data source
@@ -292,6 +299,7 @@ export default function VisualisePanel() {
                 </SelectContent>
               </Select>
             </div>
+
           )}
 
           {/* Boundary Matching - only show for count calculations */}
@@ -375,7 +383,8 @@ export default function VisualisePanel() {
             </div>
           )}
 
-          {/* Calculation Type */}
+          {/* Need to come back to this */}
+          {/* Calculation Type
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Calculator className="w-4 h-4 text-muted-foreground" />
@@ -433,7 +442,7 @@ export default function VisualisePanel() {
                 <span className="text-xs">Average values</span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Color Scheme Selection */}
           <div className="space-y-2">

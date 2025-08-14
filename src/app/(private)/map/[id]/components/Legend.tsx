@@ -17,36 +17,67 @@ export default function Legend() {
 
   const dataSource = getChoroplethDataSource();
 
-  const colorScheme = useColorScheme(areaStats);
+  const colorScheme = useColorScheme(areaStats, viewConfig.colorScheme || 'red-blue');
   if (!colorScheme) {
     return null;
   }
 
-  let bars = [];
+  let bars = [] as any;
   if (colorScheme.columnType === ColumnType.Number) {
-    const numSteps = 6;
-    const stepScale = scaleLinear()
-      .domain([0, numSteps - 1])
-      .range([colorScheme.minValue, colorScheme.maxValue]);
+    const numStops = 24;
+    const stops = new Array(numStops + 1)
+      .fill(null)
+      .map((_, i) => {
+        const t = i / numStops;
+        const value =
+          colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue);
+        const color = colorScheme.colorScale(value);
+        return `${color} ${t * 100}%`;
+      })
+      .join(", ");
 
-    bars = new Array(numSteps).fill(null).map((_, i) => {
-      const step = stepScale(i);
-      const color = colorScheme.colorScale(step);
-      return (
+    const numTicks = 5 as number; // number of numeric step labels
+    const denom = Math.max(numTicks - 1, 1);
+
+    bars = (
+      <div className="w-full">
         <div
-          className="p-1 w-full items-center justify-center flex text-xs"
-          key={i}
-          style={{ backgroundColor: color, color: color }}
-        >
-          <p
-            className="drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]
- text-white"
-          >
-            {Math.round(step * 100) / 100}
-          </p>
+          className="w-full h-4 border border-neutral-200"
+          style={{ background: `linear-gradient(to right, ${stops})` }}
+        />
+        <div className="relative mt-1 h-6">
+          {Array.from({ length: numTicks }).map((_, i) => {
+            const t = i / denom;
+            const value =
+              colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue);
+            const positionStyle =
+              i === 0
+                ? { left: 0, transform: "translateX(0%)" }
+                : i === numTicks - 1
+                  ? { left: "100%", transform: "translateX(-100%)" }
+                  : { left: `${t * 100}%`, transform: "translateX(-50%)" };
+            const alignClass = i === 0 ? "items-start" : i === numTicks - 1 ? "items-end" : "items-center";
+            return (
+              <div
+                key={i}
+                className={`absolute flex flex-col ${alignClass}`}
+                style={positionStyle as any}
+              >
+                {/* <div className="w-px h-2 bg-neutral-300" /> */}
+                <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
+                  {(() => {
+                    const isPercent = colorScheme.minValue >= 0 && colorScheme.maxValue <= 1;
+                    return isPercent
+                      ? `${Math.round(value * 100)}%`
+                      : Math.round(value * 100) / 100;
+                  })()}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      );
-    });
+      </div>
+    );
   } else {
     bars = Object.keys(colorScheme.colorMap)
       .toSorted()
@@ -62,15 +93,18 @@ export default function Legend() {
   }
 
   return (
-    <div className="flex flex-col rounded-sm overflow-scroll bg-white border border-neutral-200">
-      <p className=" flex  gap-2  items-center text-xs font-mono p-2"><Database className="w-4 h-4 text-muted-foreground" /> Locality Data Legend</p>
-      <p className="flex items-center gap-0.5 font-medium px-2 py-1">
-        {dataSource?.name}
-      </p>
-      <p className="text-sm flex items-center gap-0.5 font-medium px-2 py-1">
-        Column: {viewConfig.areaDataColumn}
-      </p>
-      <div className="flex">{bars}</div>
+    <div className="flex flex-col gap-1 rounded-sm overflow-scroll bg-white border border-neutral-200">
+      <p className=" flex  gap-2 items-center text-xs font-mono p-2"><Database className="w-4 h-4 text-muted-foreground" /> Locality Data Legend</p>
+      <div className="flex flex-col ">
+
+        <p className="flex items-center font-medium px-2 ">
+          {dataSource?.name}
+        </p>
+        <p className="text-sm flex items-center gap-0.5 font-medium px-2 ">
+          {viewConfig.areaDataColumn}
+        </p>
+      </div>
+      <div className="flex px-2 ">{bars}</div>
     </div>
   );
 }

@@ -121,18 +121,21 @@ export const useMapQuery = (mapId: string | null) =>
             id
             name
             position
-            config {
-              areaDataSourceId
-              areaDataColumn
-              areaSetGroupCode
-              excludeColumnsString
-              mapStyleName
-              showBoundaryOutline
-              showLabels
-              showLocations
-              showMembers
-              showTurf
-            }
+                         config {
+               areaDataSourceId
+               areaDataColumn
+               areaSetGroupCode
+               excludeColumnsString
+               mapStyleName
+               showBoundaryOutline
+               showLabels
+               showLocations
+               showMembers
+               showTurf
+               visualizationType
+               calculationType
+               colorScheme
+             }
           }
         }
       }

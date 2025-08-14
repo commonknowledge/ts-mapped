@@ -33,13 +33,13 @@ export default function UnassignedFolder({
   return (
     <div className="mb-3">
       {folders.length > 0 && (
-        <div ref={setNodeRef} className="px-1 py-3">
-          <Separator orientation="horizontal" className="h-4 w-full" />
+        <div ref={setNodeRef} className="px-1 py-1">
+          {/* <Separator orientation="horizontal" className="h-4 w-full" /> */}
         </div>
       )}
 
       <div
-        className={cn("mt-1 space-y-0.5", folders.length > 0 ? "ml-3" : "ml-1")}
+        className={cn("mt-1 space-y-0.5 ml-1")}
       >
         <SortableContext
           items={sortedMarkers.map((marker) => `marker-${marker.id}`)}

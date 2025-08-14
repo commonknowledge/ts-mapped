@@ -14,35 +14,48 @@ export default function VisualiseControl() {
     const { viewConfig } = useContext(MapContext);
 
     return (
-        <>
+        <div
+            className={`flex flex-col hover:bg-neutral-50 cursor-pointer border-r border-neutral-200 ${boundariesPanelOpen ? "bg-neutral-100" : ""}`}
+            role="button"
+            aria-pressed={boundariesPanelOpen}
+            tabIndex={0}
+            onClick={() => setBoundariesPanelOpen(!boundariesPanelOpen)}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setBoundariesPanelOpen(!boundariesPanelOpen);
+                }
+            }}
+        >
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Toggle
-                            pressed={boundariesPanelOpen}
-                            onPressedChange={(value) => setBoundariesPanelOpen(value)}
-                            className={`relative p-3 rounded-none flex items-center justify-between ${boundariesPanelOpen ? "bg-neutral-200" : ""}`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <LandPlot className="w-4 h-4  text-muted-foreground" />
-                                <h3 className="text-sm font-medium">Visualise Localities</h3>
-                            </div>
-                            {/* <PlusIcon className="w-4 h-4 text-muted-foreground" /> */}
-                        </Toggle>
+                        <div className="flex items-center gap-2 p-3">
+                            <LandPlot className="w-4 h-4  text-muted-foreground" />
+                            <h3 className="text-sm font-medium">Visualise Localities</h3>
+                        </div>
+
                     </TooltipTrigger>
                     <TooltipContent>
-                        <p>{boundariesPanelOpen ? "Hide" : "Show"} boundaries</p>
+                        <p>{boundariesPanelOpen ? "Hide" : "Show"} Localities panel</p>
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
-            <div className="p-3 flex flex-col gap-2">
-                <div className="flex flex-col gap-2 text-sm font-medium border border-neutral-200 rounded-sm p-2" >
-                    <div className="flex gap-2 font-mono text-xs">
-                        <Pentagon className="w-4 h-4 text-muted-foreground" />Selected Shape
+            {viewConfig.visualizationType && (
+                <>
+                    <div className="p-3 flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 text-sm font-medium border border-neutral-200 rounded-sm p-2 bg-white" >
+                            <div className="flex gap-2 font-mono text-xs">
+                                <Pentagon className="w-4 h-4 text-muted-foreground" />Selected Shape
+                            </div>
+                            {viewConfig.areaSetGroupCode ? AREA_SET_GROUP_LABELS[viewConfig.areaSetGroupCode as AreaSetGroupCode] : "No Locality"}
+                        </div>
+                        {viewConfig.visualizationType === 'choropleth' && viewConfig.areaDataSourceId && (
+                            <Legend />
+                        )}
                     </div>
-                    {viewConfig.areaSetGroupCode ? AREA_SET_GROUP_LABELS[viewConfig.areaSetGroupCode as AreaSetGroupCode] : "No Locality"}</div>
-                <Legend />
-            </div>
-        </>
+                </>
+            )}
+        </div>
     );
 }
