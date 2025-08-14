@@ -8,8 +8,12 @@ import {
 import { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findMapById } from "@/server/repositories/Map";
+import { findMapViewById } from "@/server/repositories/MapView";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { findPublicMapByMapId } from "@/server/repositories/PublicMap";
+import {
+  findPublicMapByMapId,
+  findPublicMapByViewId,
+} from "@/server/repositories/PublicMap";
 import logger from "@/server/services/logger";
 import { GraphQLContext } from "./context";
 
@@ -118,11 +122,20 @@ export const _checkArg = (
   accessType: AccessType,
 ) => {
   // Select the guard using a map to ensure that all arg types have guards
-  const guard = {
+  const guards: Record<
+    keyof ProtectedArgs,
+    (
+      v: string | null | undefined,
+      uid: string | null | undefined,
+      access: AccessType,
+    ) => Promise<boolean>
+  > = {
     dataSourceIdArg: _dataSourceGuard,
     mapIdArg: _mapGuard,
     organisationIdArg: _organisationGuard,
-  }[argType];
+    viewIdArg: _viewGuard,
+  };
+  const guard = guards[argType];
   return guard(fieldValue, userId, accessType);
 };
 
@@ -171,7 +184,6 @@ export const _mapGuard = async (
 
   if (accessType === "read") {
     const publicMap = await findPublicMapByMapId(mapId);
-    console.log("find public map", publicMap, mapId);
     if (publicMap?.published) {
       return true;
     }
@@ -208,6 +220,49 @@ export const _organisationGuard = async (
   }
 
   const organisationUser = await findOrganisationUser(organisationId, userId);
+  if (!organisationUser) {
+    return false;
+  }
+
+  return true;
+};
+
+export const _viewGuard = async (
+  viewId: string | null | undefined,
+  userId: string | null | undefined,
+
+  accessType: AccessType,
+) => {
+  if (!viewId || !userId) {
+    return false;
+  }
+
+  if (accessType === "read") {
+    const publicMap = await findPublicMapByViewId(viewId);
+    if (publicMap?.published) {
+      return true;
+    }
+  }
+
+  if (!userId) {
+    return false;
+  }
+
+  const view = await findMapViewById(viewId);
+  if (!view) {
+    return false;
+  }
+
+  const map = await findMapById(view.mapId);
+  if (!map) {
+    return false;
+  }
+
+  const organisationUser = await findOrganisationUser(
+    map.organisationId,
+    userId,
+  );
+
   if (!organisationUser) {
     return false;
   }

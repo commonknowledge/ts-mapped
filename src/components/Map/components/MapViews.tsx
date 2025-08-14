@@ -35,6 +35,7 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import { View } from "../types";
+import PublishViewModal from "./PublishViewModal";
 
 export default function MapViews() {
   const {
@@ -47,6 +48,7 @@ export default function MapViews() {
   const [isCreating, setIsCreating] = useState(false);
   const [newViewName, setNewViewName] = useState("");
   const [renamingViewId, setRenamingViewId] = useState<string | null>(null);
+  const [publishingViewId, setPublishingViewId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export default function MapViews() {
         renamingViewId || isCreating
           ? { start: [], cancel: [], end: [] }
           : undefined,
-    }),
+    })
   );
 
   const handleCreateView = () => {
@@ -147,6 +149,7 @@ export default function MapViews() {
                 key={view.id}
                 view={view}
                 renamingViewId={renamingViewId}
+                setPublishingViewId={setPublishingViewId}
                 setRenamingViewId={setRenamingViewId}
               />
             ))}
@@ -188,6 +191,12 @@ export default function MapViews() {
           </div>
         </SortableContext>
       </DndContext>
+      {publishingViewId && (
+        <PublishViewModal
+          viewId={publishingViewId}
+          onClose={() => setPublishingViewId(null)}
+        />
+      )}
     </>
   );
 }
@@ -196,10 +205,12 @@ export default function MapViews() {
 function SortableViewItem({
   renamingViewId,
   setRenamingViewId,
+  setPublishingViewId,
   view,
 }: {
   renamingViewId: string | null;
   setRenamingViewId: (id: string | null) => void;
+  setPublishingViewId: (id: string | null) => void;
   view: View;
 }) {
   const {
@@ -306,7 +317,7 @@ function SortableViewItem({
           <div
             className={cn(
               "transition-all duration-300 bg-neutral-400 rounded-full",
-              isDirty ? "w-2 h-2" : "w-0 h-0",
+              isDirty ? "w-2 h-2" : "w-0 h-0"
             )}
           />
         </div>
@@ -317,6 +328,9 @@ function SortableViewItem({
       >
         <ContextMenuItem onClick={() => setRenamingViewId(view.id)}>
           Rename
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => setPublishingViewId(view.id)}>
+          Publish
         </ContextMenuItem>
         {views.length > 1 && (
           <>

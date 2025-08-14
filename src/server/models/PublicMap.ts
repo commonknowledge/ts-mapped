@@ -8,7 +8,7 @@ import {
 
 export interface PublicMapTable {
   id: Generated<string>;
-  hostname: string;
+  host: string;
   name: string;
   description: string;
   descriptionLink: string;

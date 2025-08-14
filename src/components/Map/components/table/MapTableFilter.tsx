@@ -1,6 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import { FilterIcon, XIcon } from "lucide-react";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   FilterDataRecordsQuery,
   FilterDataRecordsQueryVariables,
@@ -40,7 +40,6 @@ import { MarkerQueriesResult } from "../../types";
 interface TableFilterProps {
   filter: RecordFilterInput;
   setFilter: (f: RecordFilterInput) => void;
-  triggerBoundsFitting?: () => void;
 }
 
 export default function MapTableFilter({
@@ -80,15 +79,16 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   // Debounce timer ref
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to trigger bounds fitting with debouncing
-  const triggerBoundsFitting = useCallback(() => {
+  useEffect(() => {
     // Clear any existing timer
+    console.log("use effect pan");
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
     }
     // Set new timer
     debounceTimerRef.current = setTimeout(() => {
+      console.log("panning");
       if (mapRef?.current) {
         const boundsOrPoint = getBoundsOfFilteredItems(
           filter,
@@ -128,16 +128,11 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
       }),
     };
     setFilter(updatedFilter);
-    triggerBoundsFitting();
   };
 
   const addFilter = (childFilter: RecordFilterInput) => {
     const newFilter = { ...filter, children: children.concat([childFilter]) };
-
     setFilter(newFilter);
-
-    // Use triggerBoundsFitting with the new filter state
-    triggerBoundsFitting();
   };
 
   const placedMarkerItems: DropdownMenuItemType[] = placedMarkers.map((m) => {
@@ -271,12 +266,11 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
           {children.map((child, i) => (
             <li
               key={i}
-              className="flex gap-1 items-center border rounded-md pl-2 flex-1"
+              className="flex items-center border rounded-md pl-2 flex-1"
             >
               <ChildFilter
                 filter={child}
                 setFilter={(child) => setChildFilter(i, child)}
-                triggerBoundsFitting={triggerBoundsFitting}
               />
               <Button
                 variant="ghost"
@@ -287,8 +281,6 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                     children: filter.children?.filter((_, j) => i !== j),
                   };
                   setFilter(updatedFilter);
-                  // Trigger bounds fitting immediately when removing a filter
-                  triggerBoundsFitting();
                 }}
                 className="px-2! border-l rounded-none text-muted-foreground h-7"
               >
@@ -315,8 +307,6 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
               operator: value ? FilterOperator.AND : FilterOperator.OR,
             };
             setFilter(updatedFilter);
-            // Trigger bounds fitting when changing operator
-            triggerBoundsFitting();
           }}
         >
           <span className="text-sm text-muted-foreground font-normal">
@@ -338,11 +328,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   );
 }
 
-function ChildFilter({
-  filter,
-  setFilter,
-  triggerBoundsFitting,
-}: TableFilterProps) {
+function ChildFilter({ filter, setFilter }: TableFilterProps) {
   const color = filter.placedMarker
     ? mapColors.markers.color
     : filter.turf
@@ -367,10 +353,6 @@ function ChildFilter({
                     distance: parseInt(e.target.value, 10) || 0,
                   };
                   setFilter(updatedFilter);
-                  // Trigger bounds fitting when changing distance
-                  if (triggerBoundsFitting) {
-                    triggerBoundsFitting();
-                  }
                 }}
                 required
                 className="w-16 h-7 p-2 text-sm text-center border-y-0 rounded-none bg-neutral-100 font-medium"
@@ -402,10 +384,6 @@ function ChildFilter({
             onChange={(e) => {
               const updatedFilter = { ...filter, search: e.target.value };
               setFilter(updatedFilter);
-              // Trigger bounds fitting when changing search
-              if (triggerBoundsFitting) {
-                triggerBoundsFitting();
-              }
             }}
             className="w-20 h-7 p-2 text-sm text-center border-y-0 rounded-none bg-neutral-100 font-medium"
             required
@@ -434,6 +412,7 @@ function DataRecordCommand({
     gql`
       query FilterDataRecords($dataSourceId: String!, $search: String) {
         dataSource(id: $dataSourceId) {
+          id
           columnRoles {
             nameColumns
           }

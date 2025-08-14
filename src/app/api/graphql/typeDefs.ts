@@ -5,6 +5,7 @@ const typeDefs = `
     dataSourceIdArg: String
     mapIdArg: String
     organisationIdArg: String
+    viewIdArg: String
   }
 
   scalar Date
@@ -323,6 +324,17 @@ const typeDefs = `
     lng: Float!
   }
 
+  type PublicMap {
+    id: String!
+    viewId: String!
+    mapId: String!
+    host: String!
+    name: String!
+    description: String!
+    descriptionLink: String!
+    published: Boolean!
+  }
+
   type RecordCount {
     count: Int!
     matched: Int!
@@ -372,6 +384,7 @@ const typeDefs = `
     map(id: String!): Map @auth(read: { mapIdArg: "id" })
     maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })
     organisations: [Organisation!] @auth
+    publicMap(viewId: String!): PublicMap @auth(write: { viewIdArg: "viewId" })
   }
 
   type CreateDataSourceResponse {
@@ -410,6 +423,11 @@ const typeDefs = `
   type UpsertPlacedMarkerResponse {
     code: Int!
     result: PlacedMarker
+  }
+
+  type UpsertPublicMapResponse {
+    code: Int!
+    result: PublicMap
   }
 
   type UpsertTurfResponse {
@@ -464,6 +482,14 @@ const typeDefs = `
       folderId: String
       position: Float!
     ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
+    upsertPublicMap(
+      viewId: String!
+      host: String!
+      name: String!
+      description: String!
+      descriptionLink: String!
+      published: Boolean!
+    ): UpsertPublicMapResponse @auth(write: { viewIdArg: "viewId" })
     upsertTurf(
       id: String
       label: String!

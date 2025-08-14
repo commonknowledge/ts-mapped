@@ -7,12 +7,12 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn("id", "uuid", (col) =>
       col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
-    .addColumn("hostname", "text", (col) => col.notNull())
+    .addColumn("host", "text", (col) => col.notNull().unique())
     .addColumn("name", "text", (col) => col.notNull())
     .addColumn("description", "text", (col) => col.notNull().defaultTo(""))
     .addColumn("descriptionLink", "text", (col) => col.notNull().defaultTo(""))
     .addColumn("mapId", "uuid", (col) => col.notNull())
-    .addColumn("viewId", "uuid", (col) => col.notNull())
+    .addColumn("viewId", "uuid", (col) => col.notNull().unique())
     .addColumn("published", "boolean", (col) => col.notNull().defaultTo(false))
     .addColumn("createdAt", "text", (col) =>
       col.defaultTo(sql`CURRENT_TIMESTAMP`).notNull(),

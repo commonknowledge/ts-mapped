@@ -1,11 +1,11 @@
 import MapProviders from "@/components/Map/MapProviders";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
-import { findPublicMapByHostname } from "@/server/repositories/PublicMap";
+import { findPublicMapByHost } from "@/server/repositories/PublicMap";
 import PublicMap from "./PublicMap";
 
 export default async function PublicMapPage({ host }: { host: string }) {
-  const publicMap = await findPublicMapByHostname(host);
-  if (!publicMap) {
+  const publicMap = await findPublicMapByHost(host);
+  if (!publicMap?.published) {
     return (
       <div className="h-dvh w-full flex flex-col items-center gap-4 pt-40">
         <h1 className="font-bold text-2xl">Map not found</h1>

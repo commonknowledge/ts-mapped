@@ -374,6 +374,7 @@ export type Mutation = {
   updateMapConfig?: Maybe<UpdateMapConfigResponse>;
   upsertFolder?: Maybe<UpsertFolderResponse>;
   upsertPlacedMarker?: Maybe<UpsertPlacedMarkerResponse>;
+  upsertPublicMap?: Maybe<UpsertPublicMapResponse>;
   upsertTurf?: Maybe<UpsertTurfResponse>;
 };
 
@@ -456,6 +457,15 @@ export type MutationUpsertPlacedMarkerArgs = {
   position: Scalars["Float"]["input"];
 };
 
+export type MutationUpsertPublicMapArgs = {
+  description: Scalars["String"]["input"];
+  descriptionLink: Scalars["String"]["input"];
+  host: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
+  published: Scalars["Boolean"]["input"];
+  viewId: Scalars["String"]["input"];
+};
+
 export type MutationUpsertTurfArgs = {
   area: Scalars["Float"]["input"];
   createdAt: Scalars["Date"]["input"];
@@ -513,6 +523,19 @@ export type ProtectedArgs = {
   dataSourceIdArg?: InputMaybe<Scalars["String"]["input"]>;
   mapIdArg?: InputMaybe<Scalars["String"]["input"]>;
   organisationIdArg?: InputMaybe<Scalars["String"]["input"]>;
+  viewIdArg?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type PublicMap = {
+  __typename?: "PublicMap";
+  description: Scalars["String"]["output"];
+  descriptionLink: Scalars["String"]["output"];
+  host: Scalars["String"]["output"];
+  id: Scalars["String"]["output"];
+  mapId: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  published: Scalars["Boolean"]["output"];
+  viewId: Scalars["String"]["output"];
 };
 
 export type Query = {
@@ -523,6 +546,7 @@ export type Query = {
   map?: Maybe<Map>;
   maps?: Maybe<Array<Map>>;
   organisations?: Maybe<Array<Organisation>>;
+  publicMap?: Maybe<PublicMap>;
 };
 
 export type QueryAreaStatsArgs = {
@@ -549,6 +573,10 @@ export type QueryMapArgs = {
 
 export type QueryMapsArgs = {
   organisationId: Scalars["String"]["input"];
+};
+
+export type QueryPublicMapArgs = {
+  viewId: Scalars["String"]["input"];
 };
 
 export type RecordCount = {
@@ -649,6 +677,12 @@ export type UpsertPlacedMarkerResponse = {
   __typename?: "UpsertPlacedMarkerResponse";
   code: Scalars["Int"]["output"];
   result?: Maybe<PlacedMarker>;
+};
+
+export type UpsertPublicMapResponse = {
+  __typename?: "UpsertPublicMapResponse";
+  code: Scalars["Int"]["output"];
+  result?: Maybe<PublicMap>;
 };
 
 export type UpsertTurfResponse = {
@@ -958,6 +992,61 @@ export type SaveMapViewsToCrmMutation = {
   saveMapViewsToCRM?: { __typename?: "MutationResponse"; code: number } | null;
 };
 
+export type DeleteMapMutationVariables = Exact<{
+  id: Scalars["String"]["input"];
+}>;
+
+export type DeleteMapMutation = {
+  __typename?: "Mutation";
+  deleteMap?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
+export type ListOrganisationsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type ListOrganisationsQuery = {
+  __typename?: "Query";
+  organisations?: Array<{
+    __typename?: "Organisation";
+    id: string;
+    name: string;
+  }> | null;
+};
+
+export type PublicMapQueryVariables = Exact<{
+  viewId: Scalars["String"]["input"];
+}>;
+
+export type PublicMapQuery = {
+  __typename?: "Query";
+  publicMap?: {
+    __typename?: "PublicMap";
+    id: string;
+    host: string;
+    name: string;
+    description: string;
+    descriptionLink: string;
+    published: boolean;
+  } | null;
+};
+
+export type UpsertPublicMapMutationVariables = Exact<{
+  viewId: Scalars["String"]["input"];
+  host: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
+  description: Scalars["String"]["input"];
+  descriptionLink: Scalars["String"]["input"];
+  published: Scalars["Boolean"]["input"];
+}>;
+
+export type UpsertPublicMapMutation = {
+  __typename?: "Mutation";
+  upsertPublicMap?: {
+    __typename?: "UpsertPublicMapResponse";
+    code: number;
+    result?: { __typename?: "PublicMap"; host: string } | null;
+  } | null;
+};
+
 export type FilterDataRecordsQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
   search?: InputMaybe<Scalars["String"]["input"]>;
@@ -967,6 +1056,7 @@ export type FilterDataRecordsQuery = {
   __typename?: "Query";
   dataSource?: {
     __typename?: "DataSource";
+    id: string;
     columnRoles: {
       __typename?: "ColumnRoles";
       nameColumns?: Array<string> | null;
@@ -1236,26 +1326,6 @@ export type UpsertTurfMutation = {
   } | null;
 };
 
-export type ListOrganisationsQueryVariables = Exact<{ [key: string]: never }>;
-
-export type ListOrganisationsQuery = {
-  __typename?: "Query";
-  organisations?: Array<{
-    __typename?: "Organisation";
-    id: string;
-    name: string;
-  }> | null;
-};
-
-export type DeleteMapMutationVariables = Exact<{
-  id: Scalars["String"]["input"];
-}>;
-
-export type DeleteMapMutation = {
-  __typename?: "Mutation";
-  deleteMap?: { __typename?: "MutationResponse"; code: number } | null;
-};
-
 export type ResolverTypeWrapper<T> = Promise<T> | T;
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
@@ -1416,6 +1486,7 @@ export type ResolversTypes = {
   PointInput: PointInput;
   PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
+  PublicMap: ResolverTypeWrapper<PublicMap>;
   Query: ResolverTypeWrapper<{}>;
   RecordCount: ResolverTypeWrapper<RecordCount>;
   RecordFilter: ResolverTypeWrapper<RecordFilter>;
@@ -1431,6 +1502,7 @@ export type ResolversTypes = {
   UpsertFolderResponse: ResolverTypeWrapper<UpsertFolderResponse>;
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
   UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
+  UpsertPublicMapResponse: ResolverTypeWrapper<UpsertPublicMapResponse>;
   UpsertTurfResponse: ResolverTypeWrapper<UpsertTurfResponse>;
 };
 
@@ -1479,6 +1551,7 @@ export type ResolversParentTypes = {
   PointInput: PointInput;
   PolygonInput: PolygonInput;
   ProtectedArgs: ProtectedArgs;
+  PublicMap: PublicMap;
   Query: {};
   RecordCount: RecordCount;
   RecordFilter: RecordFilter;
@@ -1494,6 +1567,7 @@ export type ResolversParentTypes = {
   UpsertFolderResponse: UpsertFolderResponse;
   UpsertMapViewResponse: UpsertMapViewResponse;
   UpsertPlacedMarkerResponse: UpsertPlacedMarkerResponse;
+  UpsertPublicMapResponse: UpsertPublicMapResponse;
   UpsertTurfResponse: UpsertTurfResponse;
 };
 
@@ -2031,6 +2105,20 @@ export type MutationResolvers<
       "id" | "label" | "mapId" | "notes" | "point" | "position"
     >
   >;
+  upsertPublicMap?: Resolver<
+    Maybe<ResolversTypes["UpsertPublicMapResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<
+      MutationUpsertPublicMapArgs,
+      | "description"
+      | "descriptionLink"
+      | "host"
+      | "name"
+      | "published"
+      | "viewId"
+    >
+  >;
   upsertTurf?: Resolver<
     Maybe<ResolversTypes["UpsertTurfResponse"]>,
     ParentType,
@@ -2085,6 +2173,22 @@ export type PointResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PublicMapResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["PublicMap"] = ResolversParentTypes["PublicMap"],
+> = {
+  description?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  descriptionLink?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  host?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  mapId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  published?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  viewId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -2127,6 +2231,12 @@ export type QueryResolvers<
     Maybe<Array<ResolversTypes["Organisation"]>>,
     ParentType,
     ContextType
+  >;
+  publicMap?: Resolver<
+    Maybe<ResolversTypes["PublicMap"]>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryPublicMapArgs, "viewId">
   >;
 };
 
@@ -2280,6 +2390,20 @@ export type UpsertPlacedMarkerResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UpsertPublicMapResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["UpsertPublicMapResponse"] = ResolversParentTypes["UpsertPublicMapResponse"],
+> = {
+  code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  result?: Resolver<
+    Maybe<ResolversTypes["PublicMap"]>,
+    ParentType,
+    ContextType
+  >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UpsertTurfResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -2319,6 +2443,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Organisation?: OrganisationResolvers<ContextType>;
   PlacedMarker?: PlacedMarkerResolvers<ContextType>;
   Point?: PointResolvers<ContextType>;
+  PublicMap?: PublicMapResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RecordCount?: RecordCountResolvers<ContextType>;
   RecordFilter?: RecordFilterResolvers<ContextType>;
@@ -2331,6 +2456,7 @@ export type Resolvers<ContextType = GraphQLContext> = {
   UpsertFolderResponse?: UpsertFolderResponseResolvers<ContextType>;
   UpsertMapViewResponse?: UpsertMapViewResponseResolvers<ContextType>;
   UpsertPlacedMarkerResponse?: UpsertPlacedMarkerResponseResolvers<ContextType>;
+  UpsertPublicMapResponse?: UpsertPublicMapResponseResolvers<ContextType>;
   UpsertTurfResponse?: UpsertTurfResponseResolvers<ContextType>;
 };
 

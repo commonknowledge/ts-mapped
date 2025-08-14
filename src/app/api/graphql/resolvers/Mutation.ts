@@ -14,6 +14,7 @@ import {
   PolygonInput,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
+  UpsertPublicMapResponse,
   UpsertTurfResponse,
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -30,6 +31,7 @@ import {
   updateMap,
 } from "@/server/repositories/Map";
 import {
+  findMapViewById,
   findMapViewsByMapId,
   upsertMapView,
 } from "@/server/repositories/MapView";
@@ -38,6 +40,10 @@ import {
   deletePlacedMarkersByFolderId,
   upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
+import {
+  findPublicMapByHost,
+  upsertPublicMap,
+} from "@/server/repositories/PublicMap";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import logger from "@/server/services/logger";
 import { deleteFile } from "@/server/services/minio";
@@ -327,6 +333,34 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200, result: placedMarker };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });
+    }
+    return { code: 500 };
+  },
+  upsertPublicMap: async (
+    _,
+    { viewId, host, name, description, descriptionLink, published },
+  ): Promise<UpsertPublicMapResponse> => {
+    try {
+      const existingPublicMap = await findPublicMapByHost(host);
+      if (existingPublicMap && existingPublicMap.viewId !== viewId) {
+        return { code: 409 };
+      }
+      const view = await findMapViewById(viewId);
+      if (!view) {
+        return { code: 404 };
+      }
+      const result = await upsertPublicMap({
+        mapId: view.mapId,
+        viewId,
+        host,
+        name,
+        description,
+        descriptionLink,
+        published,
+      });
+      return { code: 200, result };
+    } catch (error) {
+      logger.error(`Could not upsert public map`, { error });
     }
     return { code: 500 };
   },
