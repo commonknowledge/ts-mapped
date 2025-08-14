@@ -280,11 +280,11 @@ export default function Map({
         const bounds = e.target.getBounds();
         const boundingBox = bounds
           ? {
-              north: bounds.getNorth(),
-              east: bounds.getEast(),
-              south: bounds.getSouth(),
-              west: bounds.getWest(),
-            }
+            north: bounds.getNorth(),
+            east: bounds.getEast(),
+            south: bounds.getSouth(),
+            west: bounds.getWest(),
+          }
           : null;
         setBoundingBox(boundingBox);
         setZoom(e.viewState.zoom);
@@ -320,6 +320,7 @@ export default function Map({
               </div>
             </Popup>
           )}
+          <Choropleth />
         </>
       )}
     </MapGL>
