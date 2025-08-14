@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AreaSetCode,
   AreaSetGroupCode,
@@ -242,7 +242,7 @@ export const useMarkerQueries = ({
     fetchMarkers();
   }, [dataSourceViews, markerDataSourceIds, membersDataSourceId]);
 
-  return { loading, data, error };
+  return useMemo(() => ({ loading, data, error }), [data, error, loading]);
 };
 
 export const useAreaStatsQuery = ({

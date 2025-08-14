@@ -132,7 +132,8 @@ export function DataTable({
                 size="sm"
                 className="ml-auto shadow-none"
               >
-                <Settings2 className="text-muted-foreground" />Display
+                <Settings2 className="text-muted-foreground" />
+                Display
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -237,7 +238,7 @@ export function DataTable({
                   })}
               </TableRow>
             </TableHeader>
-            <TableBody >
+            <TableBody>
               {loading ? (
                 <TableRow>
                   <TableCell>Loading...</TableCell>

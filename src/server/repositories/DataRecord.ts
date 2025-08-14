@@ -55,10 +55,10 @@ function applyFilterAndSearch(
     filter: RecordFilterInput | null | undefined,
   ): AliasableExpression<SqlBool> => {
     if (filter?.type === FilterType.MULTI && filter.children?.length) {
-      if (filter.operator === FilterOperator.OR) {
-        return eb.or(filter.children.map((c) => applyFilter(c)));
-      } else {
+      if (filter.operator === FilterOperator.AND) {
         return eb.and(filter.children.map((c) => applyFilter(c)));
+      } else {
+        return eb.or(filter.children.map((c) => applyFilter(c)));
       }
     }
 
