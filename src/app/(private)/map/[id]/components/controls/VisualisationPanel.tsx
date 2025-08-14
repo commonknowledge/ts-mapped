@@ -135,7 +135,7 @@ export default function VisualisePanel() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto">
+    <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200 " >
       {/* Step 1: Choose Visualization Type */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium">Create Visualization</h3>

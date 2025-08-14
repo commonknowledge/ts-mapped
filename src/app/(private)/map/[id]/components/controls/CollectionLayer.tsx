@@ -3,6 +3,7 @@ import React from 'react'
 import DataSourceIcon from '../DataSourceIcon'
 import CollectionIcon from '../Icons'
 import { mapColors } from '@/app/(private)/map/[id]/styles'
+import { GoogleSheetsIconSVG, MailchimpIconSVG } from '../DataSourceIcon'
 
 export default function CollectionLayer({ dataSource, isSelected, onClick, handleDataSourceSelect, layerType }: { dataSource: any, isSelected: boolean, onClick: () => void, handleDataSourceSelect: (id: string) => void, layerType: string }) {
     const layerColor = layerType === 'member' ? mapColors.member.color : mapColors.markers.color;
