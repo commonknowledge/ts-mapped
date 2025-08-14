@@ -1,4 +1,4 @@
-import { CornerDownRight, PaintBucketIcon, Scan, ChevronDown, Check, Calculator, Link, Palette, Info, ArrowUpDown, Pentagon, Database } from "lucide-react";
+import { CornerDownRight, PaintBucketIcon, Scan, ChevronDown, Check, Calculator, Link, Palette, Info, ArrowUpDown, Pentagon, Database, CircleAlert } from "lucide-react";
 import { useContext, useState, useMemo } from "react";
 import { AreaSetGroupCode } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
@@ -192,6 +192,22 @@ export default function VisualisePanel() {
               ))}
             </SelectContent>
           </Select>
+          {viewConfig.visualizationType === 'choropleth' && !viewConfig.areaDataSourceId && (
+            <div className="flex items-center gap-2">
+              <CircleAlert className="w-4 h-4 text-yellow-500" />
+              <p className="text-xs text-gray-500">
+                No data source selected. Please select a data source to create a choropleth.
+              </p>
+            </div>
+          )}
+          {viewConfig.visualizationType === 'choropleth' && viewConfig.areaDataSourceId && viewConfig.areaDataColumn && !viewConfig.areaSetGroupCode && (
+            <div className="flex items-center gap-2">
+              <CircleAlert className="w-4 h-4 text-yellow-500" />
+              <p className="text-xs text-gray-500">
+                No locality shapes selected. Please select a locality set to render the filled map.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -227,6 +243,7 @@ export default function VisualisePanel() {
               </div>
             ) : (
               // Show button to open modal when no data source selected
+
               <Button
                 variant="outline"
                 className="w-full justify-between h-10"
@@ -303,7 +320,7 @@ export default function VisualisePanel() {
           )}
 
           {/* Boundary Matching - only show for count calculations */}
-          {viewConfig.areaDataColumn && (
+          {viewConfig.areaDataColumn && viewConfig.areaSetGroupCode && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
