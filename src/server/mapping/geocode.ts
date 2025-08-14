@@ -101,12 +101,12 @@ const geocodeRecordByAddress = async (
   }
 
   // TODO: remove UK when other countries are supported
-  const address =
-    addressColumns.map((c) => dataRecordJson[c]).join(", ") + ", UK";
+  const address = addressColumns.map((c) => dataRecordJson[c]).join(", ");
   const geocodeUrl = new URL(
     "https://api.mapbox.com/search/geocode/v6/forward",
   );
   geocodeUrl.searchParams.set("q", address);
+  geocodeUrl.searchParams.set("country", "GB");
   geocodeUrl.searchParams.set(
     "access_token",
     process.env.MAPBOX_SECRET_TOKEN || "",
