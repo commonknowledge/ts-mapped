@@ -24,6 +24,7 @@ export interface MultiDropdownMenuProps {
   dropdownSubIcon?: React.ReactNode;
   align?: "center" | "start" | "end";
   side?: "top" | "bottom" | "left" | "right";
+  preventAutoFocus?: boolean;
 }
 
 // Dropdown item types
@@ -31,7 +32,7 @@ export interface DropdownItem {
   type: "item";
   label: string;
   icon?: React.ReactNode;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 }
 
 export interface DropdownSeparator {
@@ -76,6 +77,7 @@ export default function MultiDropdownMenu({
   dropdownSubIcon,
   align,
   side,
+  preventAutoFocus,
 }: MultiDropdownMenuProps) {
   const renderDropdownItem = (item: DropdownMenuItemType, index: number) => {
     switch (item.type) {
@@ -168,7 +170,15 @@ export default function MultiDropdownMenu({
           <div>{children}</div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={align} side={side}>
+      <DropdownMenuContent
+        align={align}
+        side={side}
+        onCloseAutoFocus={(event) => {
+          if (preventAutoFocus) {
+            event.preventDefault();
+          }
+        }}
+      >
         <DropdownMenuLabel>{dropdownLabel}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {dropdownItems?.map(renderDropdownItem)}

@@ -204,6 +204,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
               dropdownItems={dropdownItems}
               variant="outline"
               buttonSize="sm"
+              preventAutoFocus
             >
               {children.length ? (
                 <ListFilter className="w-4 h-4" />
