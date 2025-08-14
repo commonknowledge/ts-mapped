@@ -1,16 +1,14 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
 export default function Markers() {
-  const { mapConfig, mapRef, viewConfig } = useContext(MapContext);
+  const { mapConfig, viewConfig } = useContext(MapContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
-  const { selectedDataSourceId } = useContext(TableContext);
 
   const memberMarkers = markerQueries?.data?.find(
     (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
@@ -19,27 +17,6 @@ export default function Markers() {
   const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
     markerQueries?.data?.find((ds) => ds.dataSourceId === id),
   );
-
-  // Pan to markers when the table view is opened / filters changed
-  useEffect(() => {
-    const coordinates: [number, number][] = [];
-    for (const query of markerQueries?.data || []) {
-      if (query.dataSourceId === selectedDataSourceId) {
-        for (const feature of query.markers.features) {
-          if (feature.properties[MARKER_MATCHED_KEY]) {
-            coordinates.push(feature.geometry.coordinates);
-          }
-        }
-        break;
-      }
-    }
-    if (coordinates.length) {
-      mapRef?.current?.fitBounds(calculateBoundsFromCoordinates(coordinates), {
-        padding: 50,
-        duration: 1000,
-      });
-    }
-  }, [mapRef, markerQueries, selectedDataSourceId]);
 
   return (
     <>
@@ -225,18 +202,4 @@ function DataSourceMarkers({
       />
     </Source>
   );
-}
-
-function calculateBoundsFromCoordinates(
-  coordinates: [number, number][],
-): [number, number, number, number] {
-  const lngs = coordinates.map(([lng]) => lng);
-  const lats = coordinates.map(([, lat]) => lat);
-
-  return [
-    Math.min(...lngs),
-    Math.min(...lats),
-    Math.max(...lngs),
-    Math.max(...lats),
-  ];
 }

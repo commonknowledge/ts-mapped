@@ -5,7 +5,8 @@ import {
   GeoJsonProperties,
   Polygon,
 } from "geojson";
-import { useContext, useMemo } from "react";
+import { LngLatBoundsLike } from "mapbox-gl";
+import { useContext, useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { RecordFilterInput } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -14,15 +15,24 @@ import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 
 export default function FilterMarkers() {
-  const { mapConfig, view } = useContext(MapContext);
-  const { markerQueries, placedMarkers } = useContext(MarkerAndTurfContext);
+  const { mapRef, mapConfig, view } = useContext(MapContext);
+  const { markerQueries, placedMarkers, turfs } =
+    useContext(MarkerAndTurfContext);
 
-  const memberMarkers = markerQueries?.data?.find(
-    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
+  const memberMarkers = useMemo(
+    () =>
+      markerQueries?.data?.find(
+        (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
+      ),
+    [mapConfig.membersDataSourceId, markerQueries?.data],
   );
 
-  const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
-    markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+  const dataSourceMarkers = useMemo(
+    () =>
+      mapConfig.markerDataSourceIds.map((id) =>
+        markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+      ),
+    [mapConfig.markerDataSourceIds, markerQueries?.data],
   );
 
   const { memberFilterMarkers, otherFilterMarkers } = useMemo(() => {
@@ -97,6 +107,39 @@ export default function FilterMarkers() {
     view?.dataSourceViews,
   ]);
 
+  const filterTurfs: Polygon[] = useMemo(() => {
+    let filterTurfs: Polygon[] = [];
+    for (const dataSourceView of view?.dataSourceViews || []) {
+      const filter = dataSourceView.filter;
+      const dataSourceTurfs = getFilterTurfs(filter)
+        .map((turfId) => turfs.find((t) => t.id === turfId)?.polygon)
+        .filter((t) => t !== undefined);
+      filterTurfs = filterTurfs.concat(dataSourceTurfs);
+    }
+    return filterTurfs;
+  }, [turfs, view?.dataSourceViews]);
+
+  // Pan to markers when the table view is opened / filters changed
+  useEffect(() => {
+    if (
+      memberFilterMarkers.length ||
+      otherFilterMarkers.length ||
+      filterTurfs.length
+    ) {
+      const allPolygons = memberFilterMarkers
+        .concat(otherFilterMarkers)
+        .map((m) => m.geometry)
+        .concat(filterTurfs);
+      const bounds = calculateBounds(allPolygons);
+      if (bounds) {
+        mapRef?.current?.fitBounds(bounds, {
+          padding: 50,
+          duration: 1000,
+        });
+      }
+    }
+  }, [mapRef, memberFilterMarkers, otherFilterMarkers, filterTurfs]);
+
   return (
     <>
       <Markers markers={memberFilterMarkers} isMembers={true} />
@@ -169,4 +212,50 @@ const getFilterMarkers = (filter: RecordFilterInput): FilterMarkerConfig[] => {
     filterMarkers = filterMarkers.concat(getFilterMarkers(childFilter));
   }
   return filterMarkers;
+};
+
+const getFilterTurfs = (filter: RecordFilterInput): string[] => {
+  let filterTurfs: string[] = [];
+  if (filter.turf) {
+    filterTurfs.push(filter.turf);
+  }
+  for (const childFilter of filter.children || []) {
+    filterTurfs = filterTurfs.concat(getFilterTurfs(childFilter));
+  }
+  return filterTurfs;
+};
+
+const calculateBounds = (polygons: Polygon[]): LngLatBoundsLike | null => {
+  if (polygons.length === 0) {
+    return null;
+  }
+
+  let minLng = null;
+  let maxLng = null;
+  let minLat = null;
+  let maxLat = null;
+
+  // Iterate through all polygons
+  for (const polygon of polygons) {
+    // Iterate through all rings (exterior + holes)
+    for (const ring of polygon.coordinates) {
+      // Iterate through all coordinates in the ring
+      for (const [lng, lat] of ring) {
+        minLng = minLng === null ? lng : Math.min(minLng, lng);
+        maxLng = maxLng === null ? lng : Math.max(maxLng, lng);
+        minLat = minLat === null ? lat : Math.min(minLat, lat);
+        maxLat = maxLat === null ? lat : Math.max(maxLat, lat);
+      }
+    }
+  }
+
+  if (!minLng || !maxLng || !minLat || !maxLat) {
+    return null;
+  }
+
+  // Return in Mapbox fitBounds format: [[west, south], [east, north]]
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ];
 };
