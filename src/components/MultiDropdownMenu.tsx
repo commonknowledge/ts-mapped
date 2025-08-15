@@ -16,6 +16,7 @@ export interface MultiDropdownMenuProps {
   children: React.ReactNode;
   buttonClassName?: string;
   buttonSize?: "default" | "sm" | "lg" | "icon";
+  variant?: "ghost" | "outline" | "default";
   dropdownLabel: string;
   dropdownItems: DropdownMenuItemType[];
   dropdownSubLabel?: string;
@@ -23,6 +24,7 @@ export interface MultiDropdownMenuProps {
   dropdownSubIcon?: React.ReactNode;
   align?: "center" | "start" | "end";
   side?: "top" | "bottom" | "left" | "right";
+  preventAutoFocus?: boolean;
 }
 
 // Dropdown item types
@@ -30,7 +32,7 @@ export interface DropdownItem {
   type: "item";
   label: string;
   icon?: React.ReactNode;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 }
 
 export interface DropdownSeparator {
@@ -39,7 +41,7 @@ export interface DropdownSeparator {
 
 export interface DropdownSubMenu {
   type: "submenu";
-  label: string;
+  label: string | React.ReactNode;
   icon?: React.ReactNode;
   items: (
     | DropdownItem
@@ -51,7 +53,7 @@ export interface DropdownSubMenu {
 
 export interface DropdownSubComponent {
   type: "subcomponent";
-  label: string;
+  label: string | React.ReactNode;
   icon?: React.ReactNode;
   component: React.ReactNode;
 }
@@ -66,6 +68,7 @@ export default function MultiDropdownMenu({
   children,
   buttonClassName,
   buttonSize,
+  variant,
   // Dropdown props (optional)
   dropdownLabel,
   dropdownItems,
@@ -74,6 +77,7 @@ export default function MultiDropdownMenu({
   dropdownSubIcon,
   align,
   side,
+  preventAutoFocus,
 }: MultiDropdownMenuProps) {
   const renderDropdownItem = (item: DropdownMenuItemType, index: number) => {
     switch (item.type) {
@@ -155,7 +159,7 @@ export default function MultiDropdownMenu({
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Button
-          variant="ghost"
+          variant={variant || "ghost"}
           size={buttonSize || "default"}
           className={cn(
             "text-muted-foreground hover:text-primary transition-colors",
@@ -166,7 +170,15 @@ export default function MultiDropdownMenu({
           <div>{children}</div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={align} side={side}>
+      <DropdownMenuContent
+        align={align}
+        side={side}
+        onCloseAutoFocus={(event) => {
+          if (preventAutoFocus) {
+            event.preventDefault();
+          }
+        }}
+      >
         <DropdownMenuLabel>{dropdownLabel}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {dropdownItems?.map(renderDropdownItem)}

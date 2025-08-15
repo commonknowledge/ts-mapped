@@ -8,6 +8,10 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
+  restrictToHorizontalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
+import {
   SortableContext,
   horizontalListSortingStrategy,
   sortableKeyboardCoordinates,
@@ -138,6 +142,7 @@ export default function MapViews() {
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        modifiers={[restrictToHorizontalAxis, restrictToParentElement]}
       >
         <SortableContext
           items={sortedViews.map((view) => view.id)}
@@ -250,7 +255,7 @@ function SortableViewItem({
   } = useSortable({ id: view.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
   };
 
