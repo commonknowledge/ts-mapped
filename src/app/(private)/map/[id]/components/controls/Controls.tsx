@@ -1,33 +1,19 @@
 import { PanelLeft } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
 
-export default function Controls() {
-  const { mapRef } = useContext(MapContext);
-  const { selectedDataSourceId } = useContext(TableContext);
-  const [showControls, setShowControls] = useState(true);
-
-  const controlPanelWidth = 280;
-
-  // Reset map when UI shifts
-  useEffect(() => {
-    if (mapRef?.current) {
-      const timeoutId = setTimeout(() => {
-        if (mapRef?.current) {
-          mapRef.current.resize();
-        }
-      }, 350);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [selectedDataSourceId, showControls, mapRef]);
-
+export default function Controls({
+  controlPanelWidth,
+  showControls,
+  setShowControls,
+}: {
+  controlPanelWidth: number;
+  showControls: boolean;
+  setShowControls: (show: boolean) => void;
+}) {
   return (
     <>
       {/* Toggle button - always visible */}
@@ -44,14 +30,14 @@ export default function Controls() {
 
       {/* Control panel with transition */}
       <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden z-20 ${
+        className={`absolute top-0 left-0 h-full transition-all duration-300 ease-in-out overflow-hidden z-20 ${
           showControls
             ? "translate-x-0 opacity-100"
             : "-translate-x-full opacity-0"
         }`}
         style={{
-          width: showControls ? `${controlPanelWidth}px` : "0px",
-          minWidth: showControls ? `${controlPanelWidth}px` : "0px",
+          width: `${controlPanelWidth}px`,
+          minWidth: `${controlPanelWidth}px`,
         }}
       >
         <div className="flex flex-col bg-white z-10 h-full border-r border-neutral-200">
