@@ -349,6 +349,10 @@ const MutationResolvers: MutationResolversType = {
       if (!view) {
         return { code: 404 };
       }
+      const map = await findMapById(view.mapId);
+      if (!map) {
+        return { code: 404 };
+      }
       const result = await upsertPublicMap({
         mapId: view.mapId,
         viewId,

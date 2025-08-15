@@ -13,6 +13,7 @@ import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import {
   findPublicMapByMapId,
   findPublicMapByViewId,
+  findPublishedPublicMapByDataSourceId,
 } from "@/server/repositories/PublicMap";
 import logger from "@/server/services/logger";
 import { GraphQLContext } from "./context";
@@ -153,8 +154,14 @@ export const _dataSourceGuard = async (
     return false;
   }
 
-  if (accessType === "read" && dataSource.public) {
-    return true;
+  if (accessType === "read") {
+    if (dataSource.public) {
+      return true;
+    }
+    const publicMap = await findPublishedPublicMapByDataSourceId(dataSource.id);
+    if (publicMap) {
+      return true;
+    }
   }
 
   if (!userId) {
@@ -165,11 +172,11 @@ export const _dataSourceGuard = async (
     dataSource.organisationId,
     userId,
   );
-  if (!organisationUser) {
-    return false;
+  if (organisationUser) {
+    return true;
   }
 
-  return true;
+  return false;
 };
 
 export const _mapGuard = async (
@@ -202,11 +209,11 @@ export const _mapGuard = async (
     map.organisationId,
     userId,
   );
-  if (!organisationUser) {
-    return false;
+  if (organisationUser) {
+    return true;
   }
 
-  return true;
+  return false;
 };
 
 export const _organisationGuard = async (
@@ -220,11 +227,11 @@ export const _organisationGuard = async (
   }
 
   const organisationUser = await findOrganisationUser(organisationId, userId);
-  if (!organisationUser) {
-    return false;
+  if (organisationUser) {
+    return true;
   }
 
-  return true;
+  return false;
 };
 
 export const _viewGuard = async (
@@ -263,9 +270,9 @@ export const _viewGuard = async (
     userId,
   );
 
-  if (!organisationUser) {
-    return false;
+  if (organisationUser) {
+    return true;
   }
 
-  return true;
+  return false;
 };

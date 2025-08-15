@@ -33,6 +33,7 @@ export default function Map({
     useContext(MapContext);
   const { insertPlacedMarker, setSelectedMarker, deleteTurf, insertTurf } =
     useContext(MarkerAndTurfContext);
+  const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [ready, setReady] = useState(false);
@@ -117,7 +118,7 @@ export default function Map({
     (show: boolean) => {
       const map = mapRef?.current;
 
-      if (map) {
+      if (map && styleLoaded) {
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
@@ -132,7 +133,7 @@ export default function Map({
         });
       }
     },
-    [mapRef],
+    [mapRef, styleLoaded],
   );
 
   useEffect(() => {
@@ -302,6 +303,7 @@ export default function Map({
       onStyleData={(e) => {
         /* @ts-expect-error The style property is missing in the MapBox type definitions */
         onSourceLoad(e.style.globalId);
+        setStyleLoaded(true);
       }}
     >
       {ready && (

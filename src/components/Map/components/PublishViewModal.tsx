@@ -41,7 +41,7 @@ export default function PublishViewModal({
         }
       }
     `,
-    { variables: { viewId }, fetchPolicy: "network-only" }
+    { variables: { viewId }, fetchPolicy: "network-only" },
   );
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function PublishViewModal({
       });
       if (result.data?.upsertPublicMap?.code === 200) {
         setHost(null);
-        return
+        return;
       }
       setError("Unknown error.");
     } catch (e) {
@@ -202,7 +202,7 @@ function PublishViewForm({
   const [name, setName] = useState(publicMap?.name || "");
   const [description, setDescription] = useState(publicMap?.description || "");
   const [descriptionLink, setDescriptionLink] = useState(
-    publicMap?.descriptionLink || ""
+    publicMap?.descriptionLink || "",
   );
 
   return (

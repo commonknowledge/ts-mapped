@@ -9,8 +9,11 @@ import {
   MARKER_NAME_KEY,
 } from "@/constants";
 import { DataRecord } from "@/server/models/DataRecord";
+import { DataSource } from "@/server/models/DataSource";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
-import { findReadableDataSource } from "@/server/repositories/DataSource";
+import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
+import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/PublicMap";
 
 /**
  * Replace a GraphQL query so that streams can be used, to avoid
@@ -22,11 +25,13 @@ export async function GET(
 ): Promise<NextResponse> {
   const realParams = await args.params;
   const { currentUser } = await getServerSession();
-  const dataSource = await findReadableDataSource(
-    realParams.id,
-    currentUser?.id,
-  );
+  const dataSource = await findDataSourceById(realParams.id);
   if (!dataSource) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
+  const canRead = await checkAccess(dataSource, currentUser?.id);
+  if (!canRead) {
     return new NextResponse("Not found", { status: 404 });
   }
 
@@ -98,3 +103,31 @@ export async function GET(
     },
   });
 }
+
+const checkAccess = async (
+  dataSource: DataSource,
+  userId: string | undefined | null,
+): Promise<boolean> => {
+  if (dataSource.public) {
+    return true;
+  }
+
+  const publicMap = await findPublishedPublicMapByDataSourceId(dataSource.id);
+  if (publicMap) {
+    return true;
+  }
+
+  if (!userId) {
+    return false;
+  }
+
+  const organisationUser = await findOrganisationUser(
+    dataSource.organisationId,
+    userId,
+  );
+  if (organisationUser) {
+    return true;
+  }
+
+  return false;
+};

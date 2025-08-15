@@ -15,6 +15,7 @@ export interface MapTable {
   imageUrl: string | null;
   config: JSONColumnType<MapConfig>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
+  dataSources: Generated<string[]>;
 }
 
 export type Map = Selectable<MapTable>;

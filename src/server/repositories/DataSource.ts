@@ -107,20 +107,7 @@ export async function findDataSourcesByType(type: DataSourceType) {
     .execute();
 }
 
-export function findReadableDataSource(
-  id: string,
-  userId: string | null | undefined,
-) {
-  return getReadableDataSourcesQuery(userId)
-    .where("dataSource.id", "=", id)
-    .executeTakeFirst();
-}
-
 export function findReadableDataSources(userId: string | null | undefined) {
-  return getReadableDataSourcesQuery(userId).execute();
-}
-
-function getReadableDataSourcesQuery(userId: string | null | undefined) {
   return db
     .selectFrom("dataSource")
     .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
@@ -136,7 +123,8 @@ function getReadableDataSourcesQuery(userId: string | null | undefined) {
       }
       return eb.or(filter);
     })
-    .selectAll("dataSource");
+    .selectAll("dataSource")
+    .execute();
 }
 
 export async function findCSVDataSourceByUrl(url: string) {
