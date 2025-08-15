@@ -7,7 +7,7 @@ import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
 function hexToRgb(hex: string) {
-  const normalized = hex.replace('#', '');
+  const normalized = hex.replace("#", "");
   const bigint = parseInt(normalized, 16);
   const r = (bigint >> 16) & 255;
   const g = (bigint >> 8) & 255;
@@ -25,11 +25,11 @@ export default function Markers() {
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = markerQueries?.data?.find(
-    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
+    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId
   );
 
   const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
-    markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+    markerQueries?.data?.find((ds) => ds.dataSourceId === id)
   );
 
   return (
@@ -76,7 +76,7 @@ function DataSourceMarkers({
       key={sourceId}
       type="geojson"
       data={safeMarkers}
-    // Disable clustering; use heatmap for density instead
+      // Disable clustering; use heatmap for density instead
     >
       {/* Heatmap layer replaces cluster circles/counts */}
       <Layer
@@ -129,15 +129,7 @@ function DataSourceMarkers({
         source={sourceId}
         minzoom={8}
         paint={{
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            8,
-            3,
-            16,
-            8,
-          ],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
           "circle-color": colors.color,
           "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, 1],
           "circle-stroke-width": 1,
@@ -156,7 +148,8 @@ function DataSourceMarkers({
           "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           "text-size": 12,
           "text-transform": "uppercase",
-          "text-offset": [0, -1.25],
+          "text-offset": [0, 0.75],
+          "text-anchor": "top",
         }}
         paint={{
           "text-color": colors.color,

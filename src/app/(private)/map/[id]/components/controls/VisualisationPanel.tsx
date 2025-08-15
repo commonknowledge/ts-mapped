@@ -1,10 +1,28 @@
-import { CornerDownRight, PaintBucketIcon, Scan, ChevronDown, Check, Calculator, Link, Palette, Info, ArrowUpDown, Pentagon, Database, CircleAlert } from "lucide-react";
-import { useContext, useState, useMemo } from "react";
-import { AreaSetGroupCode } from "@/__generated__/types";
+import {
+  ArrowUpDown,
+  Check,
+  ChevronDown,
+  CircleAlert,
+  CornerDownRight,
+  Database,
+  Info,
+  Palette,
+  Pentagon,
+} from "lucide-react";
+import { useContext, useMemo, useState } from "react";
+import { AreaSetGroupCode, DataSource } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { Button } from "@/shadcn/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn/ui/dialog";
+import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -13,27 +31,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { AREA_SET_GROUP_LABELS } from "../../sources";
-import { Button } from "@/shadcn/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shadcn/ui/dialog";
-import { Input } from "@/shadcn/ui/input";
 import { Separator } from "@/shadcn/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shadcn/ui/tooltip";
+import { AREA_SET_GROUP_LABELS } from "../../sources";
 
 // Add this component above the main ChoroplethControl component:
 function DataSourceCard({
   dataSource,
   isSelected,
-  onClick
+  onClick,
 }: {
-  dataSource: any;
+  dataSource: DataSource;
   isSelected: boolean;
   onClick: () => void;
 }) {
   return (
     <div
-      className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-        }`}
+      className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${
+        isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200"
+      }`}
       onClick={onClick}
     >
       <div className="flex items-start gap-3">
@@ -54,7 +75,8 @@ function DataSourceCard({
           </div>
 
           <p className="text-xs text-gray-600">
-            {dataSource.columnDefs.length} columns • {dataSource.recordCount || 'Unknown'} records
+            {dataSource.columnDefs.length} columns •{" "}
+            {dataSource.recordCount || "Unknown"} records
           </p>
         </div>
 
@@ -76,9 +98,9 @@ export default function VisualisePanel() {
     useContext(DataSourcesContext);
 
   // Add this state
-  const [activeTab, setActiveTab] = useState<'all' | 'public' | 'user'>('all');
+  const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
   // Add these states
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const dataSources = getDataSources();
@@ -111,11 +133,12 @@ export default function VisualisePanel() {
     let sources = filteredDataSources;
 
     if (searchQuery) {
-      sources = sources.filter(ds =>
-        ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ds.columnDefs.some(col =>
-          col.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+      sources = sources.filter(
+        (ds) =>
+          ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          ds.columnDefs.some((col) =>
+            col.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     }
 
@@ -135,33 +158,45 @@ export default function VisualisePanel() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200 " >
+    <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200 ">
       {/* Step 1: Choose Visualization Type */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium">Create Visualization</h3>
 
         <div className="grid grid-cols-2 gap-2">
           <button
-            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualizationType === 'boundary-only'
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-200 hover:border-gray-300'
-              }`}
-            onClick={() => updateViewConfig({
-              visualizationType: viewConfig.visualizationType === 'boundary-only' ? undefined : 'boundary-only'
-            })}
+            className={`p-3 rounded-lg border-2 text-center transition-all ${
+              viewConfig.visualizationType === "boundary-only"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+            onClick={() =>
+              updateViewConfig({
+                visualizationType:
+                  viewConfig.visualizationType === "boundary-only"
+                    ? undefined
+                    : "boundary-only",
+              })
+            }
           >
             <div className="w-8 h-8 mx-auto mb-2 bg-gray-200 rounded"></div>
             <span className="text-xs">Boundary Outline</span>
           </button>
 
           <button
-            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualizationType === 'choropleth'
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-200 hover:border-gray-300'
-              }`}
-            onClick={() => updateViewConfig({
-              visualizationType: viewConfig.visualizationType === 'choropleth' ? undefined : 'choropleth'
-            })}
+            className={`p-3 rounded-lg border-2 text-center transition-all ${
+              viewConfig.visualizationType === "choropleth"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+            onClick={() =>
+              updateViewConfig({
+                visualizationType:
+                  viewConfig.visualizationType === "choropleth"
+                    ? undefined
+                    : "choropleth",
+              })
+            }
           >
             <div className="w-8 h-8 mx-auto mb-2 bg-gradient-to-br from-red-400 to-blue-400 rounded"></div>
             <span className="text-xs">Filled Map</span>
@@ -172,10 +207,18 @@ export default function VisualisePanel() {
       {/* Step 2: Select Locality Shapes */}
       {viewConfig.visualizationType && (
         <div className="space-y-2">
-          <Label className="text-sm font-medium"><Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map Locality Shapes</Label>
+          <Label className="text-sm font-medium">
+            <Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map
+            Locality Shapes
+          </Label>
           <Select
             value={viewConfig.areaSetGroupCode || NULL_UUID}
-            onValueChange={(value) => updateViewConfig({ areaSetGroupCode: value as AreaSetGroupCode | null })}
+            onValueChange={(value) =>
+              updateViewConfig({
+                areaSetGroupCode:
+                  value === NULL_UUID ? null : (value as AreaSetGroupCode),
+              })
+            }
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose boundaries..." />
@@ -192,40 +235,48 @@ export default function VisualisePanel() {
               ))}
             </SelectContent>
           </Select>
-          {viewConfig.visualizationType === 'choropleth' && !viewConfig.areaDataSourceId && (
-            <div className="flex items-center gap-2">
-              <CircleAlert className="w-4 h-4 text-yellow-500" />
-              <p className="text-xs text-gray-500">
-                No data source selected. Please select a data source to create a choropleth.
-              </p>
-            </div>
-          )}
-          {viewConfig.visualizationType === 'choropleth' && viewConfig.areaDataSourceId && viewConfig.areaDataColumn && !viewConfig.areaSetGroupCode && (
-            <div className="flex items-center gap-2">
-              <CircleAlert className="w-4 h-4 text-yellow-500" />
-              <p className="text-xs text-gray-500">
-                No locality shapes selected. Please select a locality set to render the filled map.
-              </p>
-            </div>
-          )}
+          {viewConfig.visualizationType === "choropleth" &&
+            !viewConfig.areaDataSourceId && (
+              <div className="flex items-center gap-2">
+                <CircleAlert className="w-4 h-4 text-yellow-500" />
+                <p className="text-xs text-gray-500">
+                  No data source selected. Please select a data source to create
+                  a choropleth.
+                </p>
+              </div>
+            )}
+          {viewConfig.visualizationType === "choropleth" &&
+            viewConfig.areaDataSourceId &&
+            viewConfig.areaDataColumn &&
+            !viewConfig.areaSetGroupCode && (
+              <div className="flex items-center gap-2">
+                <CircleAlert className="w-4 h-4 text-yellow-500" />
+                <p className="text-xs text-gray-500">
+                  No locality shapes selected. Please select a locality set to
+                  render the filled map.
+                </p>
+              </div>
+            )}
         </div>
       )}
 
-
-
       {/* Step 3: Data Source (only for choropleth) */}
-      {viewConfig.visualizationType === 'choropleth' && (
+      {viewConfig.visualizationType === "choropleth" && (
         <>
           <Separator />
           {/* Data Source Selection */}
           <div className="space-y-2">
-            <Label className="text-sm text-neutral-600"><Database className="w-4 h-4 text-muted-foreground" /> Data Source</Label>
+            <Label className="text-sm text-neutral-600">
+              <Database className="w-4 h-4 text-muted-foreground" /> Data Source
+            </Label>
 
             {viewConfig.areaDataSourceId ? (
               // Show selected data source as a card
               <div className="space-y-2">
                 <DataSourceCard
-                  dataSource={dataSources.find(ds => ds.id === viewConfig.areaDataSourceId)}
+                  dataSource={dataSources.find(
+                    (ds) => ds.id === viewConfig.areaDataSourceId
+                  )}
                   isSelected={true}
                   onClick={() => {
                     // Open modal to change selection
@@ -235,7 +286,12 @@ export default function VisualisePanel() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => updateViewConfig({ areaDataSourceId: undefined, areaDataColumn: undefined })}
+                  onClick={() =>
+                    updateViewConfig({
+                      areaDataSourceId: undefined,
+                      areaDataColumn: undefined,
+                    })
+                  }
                   className="text-xs text-gray-500 hover:text-gray-700"
                 >
                   Change data source
@@ -261,7 +317,9 @@ export default function VisualisePanel() {
               <div className="flex items-center gap-2">
                 <CornerDownRight className="w-4 h-4 text-muted-foreground" />
                 <Label className="text-sm text-neutral-600">
-                  {viewConfig.calculationType === 'count' ? 'Data Boundary Field' : 'Data Column'}
+                  {viewConfig.calculationType === "count"
+                    ? "Data Boundary Field"
+                    : "Data Column"}
                 </Label>
               </div>
 
@@ -272,33 +330,35 @@ export default function VisualisePanel() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={
-                    viewConfig.calculationType === 'count'
-                      ? 'Select boundary identifier column'
-                      : 'Select a column'
-                  } />
+                  <SelectValue
+                    placeholder={
+                      viewConfig.calculationType === "count"
+                        ? "Select boundary identifier column"
+                        : "Select a column"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {viewConfig.calculationType === 'count' ? (
+                  {viewConfig.calculationType === "count" ? (
                     // For counting, show columns that could be boundary identifiers
                     <>
                       <SelectItem value={MAX_COLUMN_KEY}>
                         Auto-detect boundary column
                       </SelectItem>
                       {dataSource?.columnDefs
-                        .filter(col =>
-                          col.name.toLowerCase().includes('postcode') ||
-                          col.name.toLowerCase().includes('constituency') ||
-                          col.name.toLowerCase().includes('area') ||
-                          col.name.toLowerCase().includes('ward') ||
-                          col.name.toLowerCase().includes('district')
+                        .filter(
+                          (col) =>
+                            col.name.toLowerCase().includes("postcode") ||
+                            col.name.toLowerCase().includes("constituency") ||
+                            col.name.toLowerCase().includes("area") ||
+                            col.name.toLowerCase().includes("ward") ||
+                            col.name.toLowerCase().includes("district")
                         )
                         .map((cd: { name: string }) => (
                           <SelectItem key={cd.name} value={cd.name}>
                             {cd.name}
                           </SelectItem>
-                        ))
-                      }
+                        ))}
                     </>
                   ) : (
                     // For existing values, show all columns
@@ -316,7 +376,6 @@ export default function VisualisePanel() {
                 </SelectContent>
               </Select>
             </div>
-
           )}
 
           {/* Boundary Matching - only show for count calculations */}
@@ -324,7 +383,10 @@ export default function VisualisePanel() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
-                <Label className="text-xs text-muted-foreground font-normal">Your Data Boundary will be matched with the map boundaries that you've selected</Label>
+                <Label className="text-xs text-muted-foreground font-normal">
+                  Your Data Boundary will be matched with the map boundaries
+                  that you&apos;ve selected
+                </Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -333,26 +395,37 @@ export default function VisualisePanel() {
                     <TooltipContent className="max-w-sm space-y-2">
                       <p className="text-sm font-medium">Smart Matching</p>
                       <p className="text-xs">
-                        We automatically match your data to map boundaries based on what you select.
+                        We automatically match your data to map boundaries based
+                        on what you select.
                       </p>
 
                       <div className="space-y-2">
                         <div className="text-xs">
-                          <span className="font-medium">Example:</span> Your data has postcode "SW1 1AA"
+                          <span className="font-medium">Example:</span> Your
+                          data has postcode &quot;SW1 1AA&quot;
                         </div>
 
                         <div className="space-y-1 text-xs">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                            <span><strong>Postcodes:</strong> Matches "SW1"</span>
+                            <span>
+                              <strong>Postcodes:</strong> Matches
+                              &quot;SW1&quot;
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                            <span><strong>Constituencies:</strong> Matches "Westminster"</span>
+                            <span>
+                              <strong>Constituencies:</strong> Matches
+                              &quot;Westminster&quot;
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                            <span><strong>MSOAs:</strong> Matches "E05000001"</span>
+                            <span>
+                              <strong>MSOAs:</strong> Matches
+                              &quot;E05000001&quot;
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -368,17 +441,18 @@ export default function VisualisePanel() {
                     <Pentagon className="w-4 h-4 text-blue-500 pt-1" />
                     <div className="text-sm">
                       <p className="font-medium text-blue-900">
-                        Using {viewConfig.areaSetGroupCode === 'WMC24' ? 'Westminster Constituencies' :
-                          viewConfig.areaSetGroupCode === 'OA21' ? 'Census Output Areas' :
-                            viewConfig.areaSetGroupCode} shapes
+                        Using{" "}
+                        {viewConfig.areaSetGroupCode === "WMC24"
+                          ? "Westminster Constituencies"
+                          : viewConfig.areaSetGroupCode === "OA21"
+                            ? "Census Output Areas"
+                            : viewConfig.areaSetGroupCode}{" "}
+                        shapes
                       </p>
-
                     </div>
                   </div>
                 </div>
               )}
-
-
             </div>
           )}
 
@@ -469,8 +543,18 @@ export default function VisualisePanel() {
             </div>
 
             <Select
-              value={viewConfig.colorScheme || 'red-blue'}
-              onValueChange={(value) => updateViewConfig({ colorScheme: value as 'red-blue' | 'green-yellow-red' | 'viridis' | 'plasma' | 'diverging' | 'sequential' })}
+              value={viewConfig.colorScheme || "red-blue"}
+              onValueChange={(value) =>
+                updateViewConfig({
+                  colorScheme: value as
+                    | "red-blue"
+                    | "green-yellow-red"
+                    | "viridis"
+                    | "plasma"
+                    | "diverging"
+                    | "sequential",
+                })
+              }
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose color scheme..." />
@@ -534,7 +618,10 @@ export default function VisualisePanel() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Select value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+              <Select
+                value={activeTab}
+                onValueChange={(value) => setActiveTab(value as any)}
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -565,7 +652,6 @@ export default function VisualisePanel() {
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

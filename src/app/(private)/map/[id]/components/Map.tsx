@@ -42,7 +42,6 @@ export default function Map({
     .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
     .concat(["search-history-pins", "search-history-labels"]);
 
-
   // Hover behavior
   useEffect(() => {
     const map = mapRef?.current;
@@ -110,7 +109,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
           )
           .map((layer) => layer.id);
 
@@ -121,7 +120,7 @@ export default function Map({
         });
       }
     },
-    [mapRef],
+    [mapRef]
   );
 
   useEffect(() => {
@@ -157,7 +156,6 @@ export default function Map({
         } else {
           setSelectedMarker(null);
         }
-
       }}
       onLoad={() => {
         const map = mapRef?.current;
@@ -266,11 +264,11 @@ export default function Map({
         const bounds = e.target.getBounds();
         const boundingBox = bounds
           ? {
-            north: bounds.getNorth(),
-            east: bounds.getEast(),
-            south: bounds.getSouth(),
-            west: bounds.getWest(),
-          }
+              north: bounds.getNorth(),
+              east: bounds.getEast(),
+              south: bounds.getSouth(),
+              west: bounds.getWest(),
+            }
           : null;
         setBoundingBox(boundingBox);
         setZoom(e.viewState.zoom);
@@ -290,8 +288,8 @@ export default function Map({
           <NavigationControl showZoom={true} showCompass={false} />
           <Choropleth />
           <TurfPolygons />
-          <Markers />
           <PlacedMarkers />
+          <Markers />
           {hoverMarker && (
             <Popup
               longitude={hoverMarker.coordinates[0]}
@@ -306,7 +304,6 @@ export default function Map({
               </div>
             </Popup>
           )}
-          <Choropleth />
         </>
       )}
     </MapGL>

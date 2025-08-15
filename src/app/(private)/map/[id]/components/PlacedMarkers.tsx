@@ -33,32 +33,32 @@ export default function PlacedMarkers() {
           type="circle"
           source="search-history"
           paint={{
-            "circle-radius": ["interpolate", ["linear"], ["zoom"], 0, 4, 10, 6],
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
             "circle-color": mapColors.markers.color,
             "circle-opacity": 0.8,
             "circle-stroke-width": 1,
             "circle-stroke-color": "#ffffff",
           }}
         />
+
+        {/* Labels for pins at higher zooms */}
         <Layer
-          id="search-history-labels"
+          id={`search-history-labels`}
           type="symbol"
-          minzoom={10}
           source="search-history"
+          minzoom={12}
           layout={{
-            "text-field": [
-              "concat",
-              ["slice", ["get", "text"], 0, 20],
-              ["case", [">", ["length", ["get", "text"]], 20], "...", ""],
-            ],
+            "text-field": ["get", MARKER_NAME_KEY],
+            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
             "text-size": 12,
-            "text-anchor": "top",
+            "text-transform": "uppercase",
             "text-offset": [0, 0.75],
+            "text-anchor": "top",
           }}
           paint={{
             "text-color": mapColors.markers.color,
             "text-halo-color": "#ffffff",
-            "text-halo-width": 2,
+            "text-halo-width": 1,
           }}
         />
       </Source>
