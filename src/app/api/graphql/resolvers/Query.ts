@@ -13,7 +13,10 @@ import {
   findMapsByOrganisationId,
 } from "@/server/repositories/Map";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
-import { findPublicMapByViewId } from "@/server/repositories/PublicMap";
+import {
+  findPublicMapByHost,
+  findPublicMapByViewId,
+} from "@/server/repositories/PublicMap";
 import { getAreaStats } from "@/server/stats";
 
 const QueryResolvers: QueryResolversType = {
@@ -100,6 +103,13 @@ const QueryResolvers: QueryResolversType = {
   publicMap: async (_: unknown, { viewId }: { viewId: string }) => {
     const publicMap = await findPublicMapByViewId(viewId);
     if (!publicMap) {
+      return null;
+    }
+    return publicMap;
+  },
+  publishedPublicMap: async (_: unknown, { host }: { host: string }) => {
+    const publicMap = await findPublicMapByHost(host);
+    if (!publicMap?.published) {
       return null;
     }
     return publicMap;

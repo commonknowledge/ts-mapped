@@ -6,6 +6,7 @@ import Legend from "@/components/Map/components/Legend";
 import Loading from "@/components/Map/components/Loading";
 import Map from "@/components/Map/components/Map";
 import MapStyleSelector from "@/components/Map/components/MapStyleSelector";
+import { CONTROL_PANEL_WIDTH } from "@/components/Map/components/Sidebar";
 import MapTable from "@/components/Map/components/table/MapTable";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
@@ -53,9 +54,8 @@ export default function PrivateMap() {
     areaStatsQuery?.loading ||
     markerQueries?.loading;
 
-  const controlPanelWidth = 280;
   const paddedStyle = showControls
-    ? { paddingLeft: `${controlPanelWidth}px` }
+    ? { paddingLeft: `${CONTROL_PANEL_WIDTH}px` }
     : {};
 
   return (
@@ -65,7 +65,6 @@ export default function PrivateMap() {
         <PrivateMapControls
           showControls={showControls}
           setShowControls={setShowControls}
-          controlPanelWidth={controlPanelWidth}
         />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">

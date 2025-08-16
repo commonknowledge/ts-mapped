@@ -5,7 +5,11 @@ import {
   RecordFilterInput,
   SortInput,
 } from "@/__generated__/types";
-import { DATA_RECORDS_PAGE_SIZE, MARKER_MATCHED_COLUMN } from "@/constants";
+import {
+  DATA_RECORDS_PAGE_SIZE,
+  MARKER_MATCHED_COLUMN,
+  SORT_BY_NAME_COLUMNS,
+} from "@/constants";
 import { NewDataRecord } from "@/server/models/DataRecord";
 import { Database, db } from "@/server/services/database";
 
@@ -108,23 +112,27 @@ function applyFilterAndSearch(
   ]);
 }
 
-export function findDataRecordsByDataSource(
+export async function findDataRecordsByDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
   page: number,
   sort: SortInput[],
+  all: boolean | null | undefined,
 ) {
   let q = db
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .where((eb) => applyFilterAndSearch(eb, filter, search))
-    .offset(page * DATA_RECORDS_PAGE_SIZE)
-    .limit(DATA_RECORDS_PAGE_SIZE)
     .selectAll();
 
+  if (!all) {
+    q = q.limit(DATA_RECORDS_PAGE_SIZE).offset(page * DATA_RECORDS_PAGE_SIZE);
+  }
+
   if (sort.length) {
-    for (const s of sort) {
+    const preparedSort = await prepareSort(sort, dataSourceId);
+    for (const s of preparedSort) {
       q = q.orderBy(
         ({ ref }) => {
           return ref("json", "->>").key(s.name);
@@ -137,6 +145,28 @@ export function findDataRecordsByDataSource(
   }
 
   return q.execute();
+}
+
+/**
+ * Process special sort keys like SORT_BY_NAME_COLUMNS into actual column names
+ */
+async function prepareSort(sort: SortInput[], dataSourceId: string) {
+  const preparedSort = [];
+  for (const s of sort) {
+    if (s.name === SORT_BY_NAME_COLUMNS) {
+      const dataSource = await db
+        .selectFrom("dataSource")
+        .where("id", "=", dataSourceId)
+        .select("columnRoles")
+        .executeTakeFirstOrThrow();
+      for (const nameColumn of dataSource.columnRoles.nameColumns || []) {
+        preparedSort.push({ name: nameColumn, desc: s.desc });
+      }
+    } else {
+      preparedSort.push(s);
+    }
+  }
+  return preparedSort;
 }
 
 export function streamDataRecordsByDataSource(

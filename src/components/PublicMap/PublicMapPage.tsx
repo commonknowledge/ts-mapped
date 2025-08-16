@@ -1,11 +1,35 @@
+import { gql } from "@apollo/client";
+import {
+  PublishedPublicMapQuery,
+  PublishedPublicMapQueryVariables,
+} from "@/__generated__/types";
 import MapProviders from "@/components/Map/MapProviders";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
-import { findPublicMapByHost } from "@/server/repositories/PublicMap";
+import { getClient } from "@/services/apollo";
 import PublicMap from "./PublicMap";
+import PublicMapProvider from "./PublicMapProvider";
 
 export default async function PublicMapPage({ host }: { host: string }) {
-  const publicMap = await findPublicMapByHost(host);
-  if (!publicMap?.published) {
+  const apolloClient = await getClient();
+  const publicMapQuery = await apolloClient.query<
+    PublishedPublicMapQuery,
+    PublishedPublicMapQueryVariables
+  >({
+    query: gql`
+      query PublishedPublicMap($host: String!) {
+        publishedPublicMap(host: $host) {
+          id
+          mapId
+          viewId
+          name
+          description
+          descriptionLink
+        }
+      }
+    `,
+    variables: { host },
+  });
+  if (!publicMapQuery.data.publishedPublicMap) {
     return (
       <div className="h-dvh w-full flex flex-col items-center gap-4 pt-40">
         <h1 className="font-bold text-2xl">Map not found</h1>
@@ -21,9 +45,12 @@ export default async function PublicMapPage({ host }: { host: string }) {
       </div>
     );
   }
+  const publicMap = publicMapQuery.data.publishedPublicMap;
   return (
     <MapProviders mapId={publicMap.mapId} viewId={publicMap.viewId}>
-      <PublicMap />
+      <PublicMapProvider publicMap={publicMap}>
+        <PublicMap />
+      </PublicMapProvider>
     </MapProviders>
   );
 }

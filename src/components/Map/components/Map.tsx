@@ -26,8 +26,10 @@ import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
   onSourceLoad,
+  hideDrawControls,
 }: {
   onSourceLoad: (sourceId: string) => void;
+  hideDrawControls?: boolean;
 }) {
   const { mapRef, mapConfig, viewConfig, setBoundingBox, setZoom } =
     useContext(MapContext);
@@ -187,97 +189,99 @@ export default function Map({
 
         toggleLabelVisibility(viewConfig.showLabels);
 
-        const geocoder = new MapboxGeocoder({
-          accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
-          mapboxgl: mapboxgl,
-          countries: "GB", // TODO: remove when we support other countries
-        });
-
-        // Listen for search results
-        geocoder.on("result", (event) => {
-          const result = event.result;
-          insertPlacedMarker({
-            id: uuidv4(),
-            label: result.place_name,
-            notes: "",
-            point: { lng: result.center[0], lat: result.center[1] },
-            folderId: null,
+        if (!hideDrawControls) {
+          const geocoder = new MapboxGeocoder({
+            accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
+            mapboxgl: mapboxgl,
+            countries: "GB", // TODO: remove when we support other countries
           });
-          geocoder.clear();
-        });
 
-        map.addControl(geocoder, "top-right");
+          // Listen for search results
+          geocoder.on("result", (event) => {
+            const result = event.result;
+            insertPlacedMarker({
+              id: uuidv4(),
+              label: result.place_name,
+              notes: "",
+              point: { lng: result.center[0], lat: result.center[1] },
+              folderId: null,
+            });
+            geocoder.clear();
+          });
 
-        // Initialize draw if not already done
-        if (!draw) {
-          const newDraw = new MapboxDraw({
-            displayControlsDefault: false,
-            controls: {
-              polygon: true,
-            },
-            userProperties: true,
-            styles: [
-              {
-                id: "gl-draw-polygon-fill",
-                type: "fill",
-                filter: [
-                  "all",
-                  ["==", "$type", "Polygon"],
-                  ["!=", "mode", "draw"],
-                ],
-                paint: {
-                  "fill-color": mapColors.areas.color,
-                  "fill-opacity": 0.3,
-                },
+          map.addControl(geocoder, "top-right");
+
+          // Initialize draw if not already done
+          if (!draw) {
+            const newDraw = new MapboxDraw({
+              displayControlsDefault: false,
+              controls: {
+                polygon: true,
               },
-              {
-                id: "gl-draw-polygon-stroke",
-                type: "line",
-                filter: [
-                  "all",
-                  ["==", "$type", "Polygon"],
-                  ["!=", "mode", "draw"],
-                ],
-                paint: {
-                  "line-color": mapColors.areas.color,
-                  "line-width": 2,
+              userProperties: true,
+              styles: [
+                {
+                  id: "gl-draw-polygon-fill",
+                  type: "fill",
+                  filter: [
+                    "all",
+                    ["==", "$type", "Polygon"],
+                    ["!=", "mode", "draw"],
+                  ],
+                  paint: {
+                    "fill-color": mapColors.areas.color,
+                    "fill-opacity": 0.3,
+                  },
                 },
-              },
-            ],
-          });
-          setDraw(newDraw);
+                {
+                  id: "gl-draw-polygon-stroke",
+                  type: "line",
+                  filter: [
+                    "all",
+                    ["==", "$type", "Polygon"],
+                    ["!=", "mode", "draw"],
+                  ],
+                  paint: {
+                    "line-color": mapColors.areas.color,
+                    "line-width": 2,
+                  },
+                },
+              ],
+            });
+            setDraw(newDraw);
 
-          const mapInstance = map.getMap();
-          mapInstance.addControl(newDraw, "top-right");
+            const mapInstance = map.getMap();
+            mapInstance.addControl(newDraw, "top-right");
 
-          // Add event listeners for drawing
-          mapInstance.on("draw.create", () => {
-            const data = newDraw.getAll();
-            if (data.features.length > 0) {
-              const feature = data.features[data.features.length - 1];
-              const area = turf.area(feature);
-              const roundedArea = Math.round(area * 100) / 100;
-              insertTurf({
-                id: `turf-temp-${new Date().getTime()}`,
-                label:
-                  feature.properties?.name ||
-                  `Area: ${roundedArea.toFixed(2)}m²`,
-                notes: "",
-                area: roundedArea,
-                polygon: feature.geometry,
-                createdAt: new Date().toISOString(),
-              });
-              newDraw.deleteAll();
-            }
-          });
+            // Add event listeners for drawing
+            mapInstance.on("draw.create", () => {
+              const data = newDraw.getAll();
+              if (data.features.length > 0) {
+                const feature = data.features[data.features.length - 1];
+                const area = turf.area(feature);
+                const roundedArea = Math.round(area * 100) / 100;
+                insertTurf({
+                  id: `turf-temp-${new Date().getTime()}`,
+                  label:
+                    feature.properties?.name ||
+                    `Area: ${roundedArea.toFixed(2)}m²`,
+                  notes: "",
+                  area: roundedArea,
+                  polygon: feature.geometry,
+                  createdAt: new Date().toISOString(),
+                });
+                newDraw.deleteAll();
+              }
+            });
 
-          // Add delete handler
-          mapInstance.on("draw.delete", (e: DrawDeleteEvent) => {
-            const deletedIds = e.features.map((f) => f.id);
-            for (const id of deletedIds) {
-              deleteTurf(id);
-            }
-          });
+            // Add delete handler
+            mapInstance.on("draw.delete", (e: DrawDeleteEvent) => {
+              const deletedIds = e.features.map((f) => f.id);
+              for (const id of deletedIds) {
+                deleteTurf(id);
+              }
+            });
+          }
         }
 
         setReady(true);

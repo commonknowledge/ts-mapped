@@ -213,7 +213,7 @@ const typeDefs = `
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!]): [DataRecord!]
+    records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!], all: Boolean): [DataRecord!]
 
     recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): RecordCount
   }
@@ -385,6 +385,7 @@ const typeDefs = `
     maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })
     organisations: [Organisation!] @auth
     publicMap(viewId: String!): PublicMap @auth(write: { viewIdArg: "viewId" })
+    publishedPublicMap(host: String!): PublicMap
   }
 
   type CreateDataSourceResponse {

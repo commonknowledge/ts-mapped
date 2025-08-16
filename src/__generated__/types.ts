@@ -141,6 +141,7 @@ export type DataSourceRecordCountArgs = {
 };
 
 export type DataSourceRecordsArgs = {
+  all?: InputMaybe<Scalars["Boolean"]["input"]>;
   filter?: InputMaybe<RecordFilterInput>;
   page?: InputMaybe<Scalars["Int"]["input"]>;
   search?: InputMaybe<Scalars["String"]["input"]>;
@@ -547,6 +548,7 @@ export type Query = {
   maps?: Maybe<Array<Map>>;
   organisations?: Maybe<Array<Organisation>>;
   publicMap?: Maybe<PublicMap>;
+  publishedPublicMap?: Maybe<PublicMap>;
 };
 
 export type QueryAreaStatsArgs = {
@@ -577,6 +579,10 @@ export type QueryMapsArgs = {
 
 export type QueryPublicMapArgs = {
   viewId: Scalars["String"]["input"];
+};
+
+export type QueryPublishedPublicMapArgs = {
+  host: Scalars["String"]["input"];
 };
 
 export type RecordCount = {
@@ -1323,6 +1329,54 @@ export type UpsertTurfMutation = {
     __typename?: "UpsertTurfResponse";
     code: number;
     result?: { __typename?: "Turf"; id: string } | null;
+  } | null;
+};
+
+export type PublishedPublicMapQueryVariables = Exact<{
+  host: Scalars["String"]["input"];
+}>;
+
+export type PublishedPublicMapQuery = {
+  __typename?: "Query";
+  publishedPublicMap?: {
+    __typename?: "PublicMap";
+    id: string;
+    mapId: string;
+    viewId: string;
+    name: string;
+    description: string;
+    descriptionLink: string;
+  } | null;
+};
+
+export type PublicMapDataRecordsQueryVariables = Exact<{
+  dataSourceId: Scalars["String"]["input"];
+  filter?: InputMaybe<RecordFilterInput>;
+  sort?: InputMaybe<Array<SortInput> | SortInput>;
+}>;
+
+export type PublicMapDataRecordsQuery = {
+  __typename?: "Query";
+  dataSource?: {
+    __typename?: "DataSource";
+    id: string;
+    name: string;
+    columnRoles: {
+      __typename?: "ColumnRoles";
+      nameColumns?: Array<string> | null;
+    };
+    records?: Array<{
+      __typename?: "DataRecord";
+      id: string;
+      externalId: string;
+      json: any;
+      geocodePoint?: { __typename?: "Point"; lat: number; lng: number } | null;
+    }> | null;
+    recordCount?: {
+      __typename?: "RecordCount";
+      count: number;
+      matched: number;
+    } | null;
   } | null;
 };
 
@@ -2237,6 +2291,12 @@ export type QueryResolvers<
     ParentType,
     ContextType,
     RequireFields<QueryPublicMapArgs, "viewId">
+  >;
+  publishedPublicMap?: Resolver<
+    Maybe<ResolversTypes["PublicMap"]>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryPublishedPublicMapArgs, "host">
   >;
 };
 
