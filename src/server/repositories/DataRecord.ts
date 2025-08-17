@@ -1,4 +1,10 @@
-import { AliasableExpression, ExpressionBuilder, SqlBool, sql } from "kysely";
+import {
+  AliasableExpression,
+  ExpressionBuilder,
+  SelectQueryBuilder,
+  SqlBool,
+  sql,
+} from "kysely";
 import {
   FilterOperator,
   FilterType,
@@ -8,10 +14,12 @@ import {
 import {
   DATA_RECORDS_PAGE_SIZE,
   MARKER_MATCHED_COLUMN,
+  SORT_BY_LOCATION,
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
 import { NewDataRecord } from "@/server/models/DataRecord";
 import { Database, db } from "@/server/services/database";
+import { Point } from "@/types";
 
 export async function countDataRecordsForDataSource(
   dataSourceId: string,
@@ -130,43 +138,60 @@ export async function findDataRecordsByDataSource(
     q = q.limit(DATA_RECORDS_PAGE_SIZE).offset(page * DATA_RECORDS_PAGE_SIZE);
   }
 
-  if (sort.length) {
-    const preparedSort = await prepareSort(sort, dataSourceId);
-    for (const s of preparedSort) {
-      q = q.orderBy(
-        ({ ref }) => {
-          return ref("json", "->>").key(s.name);
-        },
-        s.desc ? "desc" : "asc",
-      );
-    }
-  } else {
-    q = q.orderBy("id asc");
+  // Async work required for sorting has to be done here, as applySort()
+  // cannot return a query builder and be async (Kysely throws an error
+  // when awaiting an un-executed expression.)
+  let nameColumns: string[] = [];
+  const hasSortByName = sort.some((s) => s.name === SORT_BY_NAME_COLUMNS);
+  if (hasSortByName) {
+    const dataSource = await db
+      .selectFrom("dataSource")
+      .where("id", "=", dataSourceId)
+      .select("columnRoles")
+      .executeTakeFirstOrThrow();
+    nameColumns = dataSource.columnRoles.nameColumns || [];
   }
+
+  for (const s of sort) {
+    q = applySort(q, s, nameColumns);
+  }
+
+  // Default sort by ID
+  q = q.orderBy("id asc");
 
   return q.execute();
 }
 
-/**
- * Process special sort keys like SORT_BY_NAME_COLUMNS into actual column names
- */
-async function prepareSort(sort: SortInput[], dataSourceId: string) {
-  const preparedSort = [];
-  for (const s of sort) {
-    if (s.name === SORT_BY_NAME_COLUMNS) {
-      const dataSource = await db
-        .selectFrom("dataSource")
-        .where("id", "=", dataSourceId)
-        .select("columnRoles")
-        .executeTakeFirstOrThrow();
-      for (const nameColumn of dataSource.columnRoles.nameColumns || []) {
-        preparedSort.push({ name: nameColumn, desc: s.desc });
-      }
-    } else {
-      preparedSort.push(s);
+function applySort<T>(
+  q: SelectQueryBuilder<Database, "dataRecord", T>,
+  sort: SortInput,
+  nameColumns: string[],
+) {
+  const order = sort.desc ? "desc" : "asc";
+
+  if (sort.name === SORT_BY_NAME_COLUMNS) {
+    for (const c of nameColumns) {
+      q = q.orderBy(({ ref }) => ref("json", "->>").key(c), order);
     }
+    return q;
   }
-  return preparedSort;
+
+  if (sort.name === SORT_BY_LOCATION) {
+    if (!sort.location) {
+      return q;
+    }
+    return q.orderBy(
+      (eb) =>
+        eb(
+          "dataRecord.geocodePoint",
+          "<->",
+          sql<Point>`ST_SetSRID(ST_MakePoint(${sort.location?.lng}, ${sort.location?.lat}), 4326)`,
+        ),
+      order,
+    );
+  }
+
+  return q.orderBy(({ ref }) => ref("json", "->>").key(sort.name), order);
 }
 
 export function streamDataRecordsByDataSource(

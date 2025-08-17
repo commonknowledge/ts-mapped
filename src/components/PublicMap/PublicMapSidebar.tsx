@@ -2,38 +2,56 @@
 
 import { gql, useQuery } from "@apollo/client";
 import { LoaderPinwheel, PanelLeft } from "lucide-react";
-import { useContext } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
 } from "@/__generated__/types";
-import Sidebar from "@/components/Map/components/Sidebar";
 import { MapContext } from "@/components/Map/context/MapContext";
-import { SORT_BY_NAME_COLUMNS } from "@/constants";
+import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
+import { cn } from "@/shadcn/utils";
+import { Point } from "@/types";
 import { PublicMapContext } from "./PublicMapContext";
+import PublicMapGeocoder from "./PublicMapGeocoder";
 
-export default function PublicMapSidebar({
-  showControls,
-  setShowControls,
-}: {
-  showControls: boolean;
-  setShowControls: (show: boolean) => void;
-}) {
+export default function PublicMapSidebar() {
   const { publicMap } = useContext(PublicMapContext);
   const { mapConfig } = useContext(MapContext);
+  const [hideSidebar, setHideSidebar] = useState(false);
+
+  const dataSourceIds = [mapConfig.membersDataSourceId]
+    .concat(mapConfig.markerDataSourceIds)
+    .filter(Boolean);
+
+  const [loadedSources, setLoadedSources] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  const [location, setLocation] = useState<Point | null>(null);
+
+  const onLoadDataSource = useCallback(
+    (dataSourceId: string, loaded: boolean) => {
+      setLoadedSources((sources) => ({ ...sources, [dataSourceId]: loaded }));
+    },
+    [],
+  );
 
   // Should never happen
   if (!publicMap) {
     return;
   }
 
-  const dataSourceIds = [mapConfig.membersDataSourceId]
-    .concat(mapConfig.markerDataSourceIds)
-    .filter(Boolean);
+  const loadingSources =
+    Object.values(loadedSources).filter(Boolean).length < dataSourceIds.length;
 
   return (
-    <Sidebar setShowControls={setShowControls} showControls={showControls}>
+    <div
+      className={cn(
+        "w-[280px] absolute top-0 left-0 z-10 bg-white flex flex-col",
+        hideSidebar ? "h-auto" : "h-full",
+      )}
+    >
       {/* Header */}
       <div className="flex flex-col gap-2 border-b border-neutral-200 pl-4 pt-1 pr-1 pb-4">
         <div className="flex items-center justify-between gap-2">
@@ -41,7 +59,7 @@ export default function PublicMapSidebar({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setShowControls(!showControls)}
+            onClick={() => setHideSidebar(!hideSidebar)}
           >
             <PanelLeft className="w-4 h-4" />
             <span className="sr-only">Toggle sidebar</span>
@@ -58,20 +76,51 @@ export default function PublicMapSidebar({
           </a>
         )}
       </div>
-      {/* Listings */}
-      {dataSourceIds.map((id) => (
-        <DataRecordsList key={id} dataSourceId={id} />
-      ))}
-    </Sidebar>
+      {!hideSidebar && (
+        <>
+          <div className="p-4">
+            <PublicMapGeocoder onGeocode={(p) => setLocation(p)} />
+          </div>
+          <div className="overflow-y-auto">
+            {/* Listings */}
+            {dataSourceIds.map((id) => (
+              <DataRecordsList
+                key={id}
+                dataSourceId={id}
+                location={location}
+                onLoadingChange={onLoadDataSource}
+              />
+            ))}
+            {loadingSources && (
+              <div className="p-4 pt-0">
+                <LoaderPinwheel className="animate-spin" />
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
-function DataRecordsList({ dataSourceId }: { dataSourceId: string }) {
+function DataRecordsList({
+  dataSourceId,
+  location,
+  onLoadingChange,
+}: {
+  dataSourceId: string;
+  location: Point | null;
+  onLoadingChange: (dataSourceId: string, loaded: boolean) => void;
+}) {
   const { mapRef, view } = useContext(MapContext);
 
   const filter = view?.dataSourceViews.find(
     (dsv) => dsv.dataSourceId === dataSourceId,
   )?.filter;
+
+  const sort = location
+    ? [{ name: SORT_BY_LOCATION, location, desc: false }]
+    : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
 
   const dataRecordsQuery = useQuery<
     PublicMapDataRecordsQuery,
@@ -109,17 +158,17 @@ function DataRecordsList({ dataSourceId }: { dataSourceId: string }) {
       variables: {
         dataSourceId,
         filter,
-        sort: [{ name: SORT_BY_NAME_COLUMNS, desc: false }],
+        sort,
       },
     },
   );
 
+  useEffect(() => {
+    onLoadingChange(dataSourceId, !dataRecordsQuery.loading);
+  }, [dataRecordsQuery.loading, dataSourceId, onLoadingChange]);
+
   if (dataRecordsQuery.loading) {
-    return (
-      <div className="p-4">
-        <LoaderPinwheel className="animate-spin" />
-      </div>
-    );
+    return;
   }
 
   const records = dataRecordsQuery.data?.dataSource?.records || [];
@@ -141,7 +190,7 @@ function DataRecordsList({ dataSourceId }: { dataSourceId: string }) {
   };
 
   return (
-    <div className="flex flex-col py-4 gap-2">
+    <div className="flex flex-col gap-2 mb-2">
       <h2 className="text-lg font-semibold px-4">
         {dataRecordsQuery.data?.dataSource?.name}
       </h2>

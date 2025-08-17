@@ -6,7 +6,6 @@ import Legend from "@/components/Map/components/Legend";
 import Loading from "@/components/Map/components/Loading";
 import Map from "@/components/Map/components/Map";
 import MapStyleSelector from "@/components/Map/components/MapStyleSelector";
-import { CONTROL_PANEL_WIDTH } from "@/components/Map/components/Sidebar";
 import MapTable from "@/components/Map/components/table/MapTable";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
@@ -19,7 +18,9 @@ import {
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import ChoroplethControl from "./components/controls/ChoroplethControl";
-import PrivateMapControls from "./components/controls/PrivateMapControls";
+import PrivateMapControls, {
+  CONTROL_PANEL_WIDTH,
+} from "./components/controls/PrivateMapControls";
 import PrivateMapNavbar from "./components/PrivateMapNavbar";
 
 export default function PrivateMap() {

@@ -167,6 +167,7 @@ const typeDefs = `
   input SortInput {
     name: String!
     desc: Boolean!
+    location: PointInput
   }
 
   type AreaStat {

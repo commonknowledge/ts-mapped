@@ -634,6 +634,7 @@ export type Sort = {
 
 export type SortInput = {
   desc: Scalars["Boolean"]["input"];
+  location?: InputMaybe<PointInput>;
   name: Scalars["String"]["input"];
 };
 

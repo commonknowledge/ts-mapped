@@ -47,7 +47,11 @@ export default async function PublicMapPage({ host }: { host: string }) {
   }
   const publicMap = publicMapQuery.data.publishedPublicMap;
   return (
-    <MapProviders mapId={publicMap.mapId} viewId={publicMap.viewId}>
+    <MapProviders
+      mapId={publicMap.mapId}
+      viewId={publicMap.viewId}
+      forPublicMap
+    >
       <PublicMapProvider publicMap={publicMap}>
         <PublicMap />
       </PublicMapProvider>
