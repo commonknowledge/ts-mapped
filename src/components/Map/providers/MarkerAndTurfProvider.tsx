@@ -7,7 +7,6 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { useMarkerQueries } from "@/components/Map/data";
 import { useFolders, usePlacedMarkers, useTurfs } from "@/components/Map/hooks";
-import { MarkerData } from "@/types";
 
 export default function MarkerAndTurfProvider({
   children,
@@ -18,7 +17,6 @@ export default function MarkerAndTurfProvider({
   /* State */
 
   const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
-  const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
 
   /* GraphQL Data */
   const markerQueries = useMarkerQueries({
@@ -86,8 +84,6 @@ export default function MarkerAndTurfProvider({
         preparePlacedMarkerUpdate,
         commitPlacedMarkerUpdates,
         updatePlacedMarker,
-        selectedMarker,
-        setSelectedMarker,
         turfs,
         turfsLoading,
         deleteTurf,

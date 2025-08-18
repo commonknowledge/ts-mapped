@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { RecordFilterInput } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
 import {
+  MARKER_DATA_SOURCE_ID_KEY,
   MARKER_EXTERNAL_ID_KEY,
   MARKER_ID_KEY,
   MARKER_MATCHED_COLUMN,
@@ -68,6 +69,7 @@ export async function GET(
             properties: {
               ...dr.json,
               [MARKER_ID_KEY]: dr.id,
+              [MARKER_DATA_SOURCE_ID_KEY]: dr.dataSourceId,
               [MARKER_EXTERNAL_ID_KEY]: dr.externalId,
               // If no name column is specified, show the ID as the marker name instead
               [MARKER_NAME_KEY]: nameColumns?.length

@@ -42,6 +42,9 @@ export const useDataSourcesQuery = () =>
           name
           type
         }
+        columnRoles {
+          nameColumns
+        }
         recordCount {
           count
         }

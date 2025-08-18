@@ -76,6 +76,12 @@ const typeDefs = `
     SUM
   }
 
+  enum PublicMapColumnType {
+    CommaSeparatedList
+    Boolean
+    String
+  }
+
   input BoundingBoxInput {
     north: Float!
     east: Float!
@@ -148,6 +154,21 @@ const typeDefs = `
   input PolygonInput {
     type: String!
     coordinates: [[[Float!]!]!]!
+  }
+
+  input PublicMapDataSourceConfigInput {
+    dataSourceId: String!
+    nameColumns: [String!]!
+    nameLabel: String!
+    descriptionColumn: String!
+    descriptionLabel: String!
+    additionalColumns: [PublicMapColumnInput!]!
+  }
+
+  input PublicMapColumnInput {
+    label: String!
+    sourceColumns: [String!]!
+    type: PublicMapColumnType!
   }
 
   input RecordFilterInput {
@@ -334,6 +355,22 @@ const typeDefs = `
     description: String!
     descriptionLink: String!
     published: Boolean!
+    dataSourceConfigs: [PublicMapDataSourceConfig!]!
+  }
+
+  type PublicMapDataSourceConfig {
+    dataSourceId: String!
+    nameColumns: [String!]!
+    nameLabel: String!
+    descriptionColumn: String!
+    descriptionLabel: String!
+    additionalColumns: [PublicMapColumn!]!
+  }
+
+  type PublicMapColumn {
+    label: String!
+    sourceColumns: [String!]!
+    type: PublicMapColumnType!
   }
 
   type RecordCount {
@@ -490,6 +527,7 @@ const typeDefs = `
       name: String!
       description: String!
       descriptionLink: String!
+      dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
       published: Boolean!
     ): UpsertPublicMapResponse @auth(write: { viewIdArg: "viewId" })
     upsertTurf(

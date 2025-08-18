@@ -338,7 +338,15 @@ const MutationResolvers: MutationResolversType = {
   },
   upsertPublicMap: async (
     _,
-    { viewId, host, name, description, descriptionLink, published },
+    {
+      viewId,
+      host,
+      name,
+      dataSourceConfigs,
+      description,
+      descriptionLink,
+      published,
+    },
   ): Promise<UpsertPublicMapResponse> => {
     try {
       const existingPublicMap = await findPublicMapByHost(host);
@@ -358,6 +366,7 @@ const MutationResolvers: MutationResolversType = {
         viewId,
         host,
         name,
+        dataSourceConfigs: JSON.stringify(dataSourceConfigs),
         description,
         descriptionLink,
         published,

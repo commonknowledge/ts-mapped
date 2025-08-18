@@ -6,7 +6,7 @@ import Map from "@/components/Map/components/Map";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
-import PublicMapSidebar from "./PublicMapSidebar";
+import PublicMapSidebar from "./PublicMapSidebar/PublicMapSidebar";
 
 export default function PublicMap() {
   const { mapQuery } = useContext(MapContext);

@@ -107,6 +107,7 @@ const QueryResolvers: QueryResolversType = {
     }
     return publicMap;
   },
+
   publishedPublicMap: async (_: unknown, { host }: { host: string }) => {
     const publicMap = await findPublicMapByHost(host);
     if (!publicMap?.published) {

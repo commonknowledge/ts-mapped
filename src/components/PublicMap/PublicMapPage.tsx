@@ -24,6 +24,18 @@ export default async function PublicMapPage({ host }: { host: string }) {
           name
           description
           descriptionLink
+          dataSourceConfigs {
+            dataSourceId
+            nameColumns
+            nameLabel
+            descriptionColumn
+            descriptionLabel
+            additionalColumns {
+              label
+              sourceColumns
+              type
+            }
+          }
         }
       }
     `,

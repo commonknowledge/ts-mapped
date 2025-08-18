@@ -7,14 +7,13 @@ import {
   MapPinIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { v4 as uuidv4 } from "uuid";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { mapColors } from "@/components/Map/styles";
-import AddMembersDataModal from "../../AddMemberModal";
 import ControlItemWrapper from "../../ControlItemWrapper";
 import LayerHeader from "../../LayerHeader";
 import MarkersList from "./MarkersList";
@@ -30,8 +29,6 @@ export default function MarkersControl() {
     foldersLoading,
     insertFolder,
   } = useContext(MarkerAndTurfContext);
-  const [dataSourcesModalOpen, setDataSourcesModalOpen] =
-    useState<boolean>(false);
   const { getDataSources } = useContext(DataSourcesContext);
 
   const createFolder = () => {
@@ -159,10 +156,6 @@ export default function MarkersControl() {
 
   return (
     <ControlItemWrapper className="markers-control">
-      <AddMembersDataModal
-        open={dataSourcesModalOpen}
-        onOpenChange={setDataSourcesModalOpen}
-      />
       <LayerHeader
         label="Markers"
         color={mapColors.markers.color}

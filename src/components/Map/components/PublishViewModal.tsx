@@ -1,13 +1,28 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { LoaderPinwheel } from "lucide-react";
-import { useEffect, useState } from "react";
+import { LoaderPinwheel, X } from "lucide-react";
 import {
+  FormEvent,
+  Fragment,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  ColumnDef,
+  PublicMap,
+  PublicMapColumn,
+  PublicMapColumnType,
+  PublicMapDataSourceConfig,
   PublicMapQuery,
   PublicMapQueryVariables,
   UpsertPublicMapMutation,
   UpsertPublicMapMutationVariables,
 } from "@/__generated__/types";
+import ColumnsMultiSelect from "@/components/ColumnsMultiSelect";
 import DataListRow from "@/components/DataListRow";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -17,6 +32,23 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { Input } from "@/shadcn/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
+import { Separator } from "@/shadcn/ui/separator";
+import { Switch } from "@/shadcn/ui/switch";
+
+type PublicMapConfig = Omit<PublicMap, "id" | "mapId">;
+interface DataSource {
+  id: string;
+  name: string;
+  columnDefs: ColumnDef[];
+  columnRoles: { nameColumns?: string[] | null };
+}
 
 export default function PublishViewModal({
   viewId,
@@ -25,8 +57,30 @@ export default function PublishViewModal({
   viewId: string;
   onClose: () => void;
 }) {
+  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { mapConfig } = useContext(MapContext);
   const [error, setError] = useState("");
-  const [host, setHost] = useState<string | null>(null);
+  const [showConfigForm, setShowConfigForm] = useState(false);
+
+  const mapDataSources = useMemo(() => {
+    return mapConfig
+      .getDataSourceIds()
+      .map((id) => getDataSourceById(id))
+      .filter((ds) => ds !== null);
+  }, [getDataSourceById, mapConfig]);
+
+  const [publicMap, setPublicMap] = useState<PublicMapConfig>({
+    host: "",
+    name: "",
+    description: "",
+    descriptionLink: "",
+    published: false,
+    viewId,
+    dataSourceConfigs: mapDataSources.map((ds) => createDataSourceConfig(ds)),
+  });
+
+  // Stores the last published host (only changes when form is submitted)
+  const [publishedHost, setPublishedHost] = useState("");
 
   const publicMapQuery = useQuery<PublicMapQuery, PublicMapQueryVariables>(
     gql`
@@ -38,6 +92,18 @@ export default function PublishViewModal({
           description
           descriptionLink
           published
+          dataSourceConfigs {
+            dataSourceId
+            nameLabel
+            nameColumns
+            descriptionLabel
+            descriptionColumn
+            additionalColumns {
+              label
+              sourceColumns
+              type
+            }
+          }
         }
       }
     `,
@@ -45,13 +111,19 @@ export default function PublishViewModal({
   );
 
   useEffect(() => {
-    if (
-      publicMapQuery.data?.publicMap?.host &&
-      publicMapQuery.data.publicMap.published
-    ) {
-      setHost(publicMapQuery.data.publicMap.host);
+    if (publicMapQuery.data?.publicMap) {
+      const publicMap = { ...publicMapQuery.data.publicMap, viewId };
+      const dataSourceConfigs = [...publicMap.dataSourceConfigs];
+      // Ensure a config item exists for all data sources
+      for (const ds of mapDataSources) {
+        if (!dataSourceConfigs.some((dsc) => dsc.dataSourceId === ds.id)) {
+          dataSourceConfigs.push(createDataSourceConfig(ds));
+        }
+      }
+      setPublicMap({ ...publicMap, dataSourceConfigs });
+      setPublishedHost(publicMapQuery.data.publicMap.host);
     }
-  }, [publicMapQuery?.data]);
+  }, [mapDataSources, publicMapQuery.data, viewId]);
 
   const [upsertPublicMap, { loading }] = useMutation<
     UpsertPublicMapMutation,
@@ -64,6 +136,7 @@ export default function PublishViewModal({
       $description: String!
       $descriptionLink: String!
       $published: Boolean!
+      $dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
     ) {
       upsertPublicMap(
         viewId: $viewId
@@ -72,57 +145,33 @@ export default function PublishViewModal({
         description: $description
         descriptionLink: $descriptionLink
         published: $published
+        dataSourceConfigs: $dataSourceConfigs
       ) {
         code
         result {
           host
+          published
         }
       }
     }
   `);
 
-  const onClickUnpublish = async () => {
-    if (!viewId || !publicMapQuery.data?.publicMap) {
-      return;
-    }
-    setError("");
-    try {
-      const result = await upsertPublicMap({
-        variables: {
-          ...publicMapQuery.data.publicMap,
-          viewId,
-          published: false,
-        },
-      });
-      if (result.data?.upsertPublicMap?.code === 200) {
-        setHost(null);
-        return;
-      }
-      setError("Unknown error.");
-    } catch (e) {
-      console.error("Failed to unpublish public map", e);
-      setError("Unknown error.");
-    }
-  };
-
-  const onSubmitForm = async (variables: PublishViewFormVariables) => {
+  const onSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!viewId) {
       return;
     }
     setError("");
     try {
       const result = await upsertPublicMap({
-        variables: {
-          host: makeHost(variables.subdomain),
-          name: variables.name,
-          description: variables.description,
-          descriptionLink: variables.descriptionLink,
-          viewId,
-          published: true,
-        },
+        variables: publicMap,
       });
-      if (result.data?.upsertPublicMap?.result?.host) {
-        setHost(result.data.upsertPublicMap.result.host);
+      if (result.data?.upsertPublicMap?.result) {
+        setPublishedHost(
+          result.data.upsertPublicMap.result.published
+            ? result.data.upsertPublicMap.result.host
+            : "",
+        );
       }
       if (result.data?.upsertPublicMap?.code === 409) {
         setError("A public map already exists for this subdomain.");
@@ -151,11 +200,11 @@ export default function PublishViewModal({
               Ensure no private data is used in this map, as it will become
               public!{" "}
             </span>
-            {host && (
+            {publishedHost && (
               <span className="font-bold">
                 This view is published at{" "}
-                <a href={getPublicMapUrl(host)} target="_blank">
-                  {getPublicMapUrl(host)}
+                <a href={getPublicMapUrl(publishedHost)} target="_blank">
+                  {getPublicMapUrl(publishedHost)}
                 </a>
               </span>
             )}
@@ -163,12 +212,25 @@ export default function PublishViewModal({
         </DialogHeader>
         {publicMapQuery.loading ? (
           <LoaderPinwheel className="animate-spin" />
+        ) : showConfigForm ? (
+          <ConfigureDataForm
+            onClickBack={() => setShowConfigForm(false)}
+            onSubmitForm={onSubmitForm}
+            updatePublicMap={(changes) =>
+              setPublicMap({ ...publicMap, ...changes })
+            }
+            publicMap={publicMap}
+            dataSources={mapDataSources}
+            loading={loading}
+          />
         ) : (
           <PublishViewForm
-            onClickUnpublish={onClickUnpublish}
+            onClickConfigure={() => setShowConfigForm(true)}
             onSubmitForm={onSubmitForm}
-            publicMap={publicMapQuery.data?.publicMap}
-            published={Boolean(host)}
+            updatePublicMap={(changes) =>
+              setPublicMap({ ...publicMap, ...changes })
+            }
+            publicMap={publicMap}
             loading={loading}
           />
         )}
@@ -178,57 +240,43 @@ export default function PublishViewModal({
   );
 }
 
-interface PublishViewFormVariables {
-  subdomain: string;
-  name: string;
-  description: string;
-  descriptionLink: string;
-}
-
 function PublishViewForm({
-  onClickUnpublish,
+  onClickConfigure,
   onSubmitForm,
+  updatePublicMap,
   publicMap,
-  published,
   loading,
 }: {
-  onClickUnpublish: () => void;
-  onSubmitForm: (variables: PublishViewFormVariables) => void;
-  publicMap: PublicMapQuery["publicMap"];
-  published: boolean;
+  onClickConfigure: () => void;
+  onSubmitForm: (e: FormEvent<HTMLFormElement>) => void;
+  updatePublicMap: (publicMap: Partial<PublicMapConfig>) => void;
+  publicMap: PublicMapConfig;
   loading: boolean;
 }) {
-  const [subdomain, setSubdomain] = useState(getSubdomain(publicMap?.host));
-  const [name, setName] = useState(publicMap?.name || "");
-  const [description, setDescription] = useState(publicMap?.description || "");
-  const [descriptionLink, setDescriptionLink] = useState(
-    publicMap?.descriptionLink || "",
-  );
-
   return (
-    <form
-      className="flex flex-col gap-4 relative"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmitForm({ subdomain, name, description, descriptionLink });
-      }}
-    >
+    <form className="flex flex-col gap-4 relative" onSubmit={onSubmitForm}>
       <DataListRow label="Subdomain">
         <Input
           type="text"
           placeholder="my-map"
-          value={subdomain}
-          onChange={(e) => setSubdomain(e.target.value)}
+          value={getSubdomain(publicMap.host)}
+          onChange={(e) => updatePublicMap({ host: makeHost(e.target.value) })}
           required
           pattern="^[a-z]+(-[a-z]+)*$"
+        />
+      </DataListRow>
+      <DataListRow label="Published">
+        <Switch
+          checked={publicMap.published}
+          onCheckedChange={(published) => updatePublicMap({ published })}
         />
       </DataListRow>
       <DataListRow label="Name">
         <Input
           type="text"
           placeholder="My Map"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={publicMap.name}
+          onChange={(e) => updatePublicMap({ name: e.target.value })}
           required
         />
       </DataListRow>
@@ -236,37 +284,284 @@ function PublishViewForm({
         <Input
           type="text"
           placeholder="A public map made by me."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={publicMap.description}
+          onChange={(e) => updatePublicMap({ description: e.target.value })}
         />
       </DataListRow>
       <DataListRow label="Project Link">
         <Input
           type="text"
           placeholder="https://example.com"
-          value={descriptionLink}
-          onChange={(e) => setDescriptionLink(e.target.value)}
+          value={publicMap.descriptionLink}
+          onChange={(e) => updatePublicMap({ descriptionLink: e.target.value })}
         />
       </DataListRow>
       <div className="flex gap-4">
-        {published && (
-          <Button
-            className="basis-0 grow"
-            disabled={loading}
-            type="button"
-            variant="outline"
-            onClick={onClickUnpublish}
-          >
-            Unpublish
-          </Button>
-        )}
+        <Button
+          className="basis-0 grow"
+          disabled={loading}
+          type="button"
+          variant="outline"
+          onClick={onClickConfigure}
+        >
+          Configure data
+        </Button>
         <Button className="basis-0 grow" disabled={loading} type="submit">
-          {published ? "Update" : "Publish"}
+          Update
         </Button>
       </div>
     </form>
   );
 }
+
+function ConfigureDataForm({
+  onClickBack,
+  onSubmitForm,
+  updatePublicMap,
+  publicMap,
+  dataSources,
+  loading,
+}: {
+  onClickBack: () => void;
+  onSubmitForm: (e: FormEvent<HTMLFormElement>) => void;
+  updatePublicMap: (publicMap: Partial<PublicMapConfig>) => void;
+  publicMap: PublicMapConfig;
+  dataSources: DataSource[];
+  loading: boolean;
+}) {
+  console.log("dsc", publicMap.dataSourceConfigs);
+  return (
+    <form onSubmit={onSubmitForm}>
+      {dataSources.map((ds, i) => {
+        return (
+          <Fragment key={ds.id}>
+            <DataSourceFields
+              dataSource={ds}
+              publicMap={publicMap}
+              updatePublicMap={updatePublicMap}
+            />
+            {i < dataSources.length - 1 && <Separator className="mb-4" />}
+          </Fragment>
+        );
+      })}
+      <div className="flex gap-4">
+        <Button
+          className="basis-0 grow"
+          disabled={loading}
+          type="button"
+          variant="outline"
+          onClick={onClickBack}
+        >
+          Back
+        </Button>
+        <Button className="basis-0 grow" disabled={loading} type="submit">
+          Update
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function DataSourceFields({
+  dataSource,
+  publicMap,
+  updatePublicMap,
+}: {
+  dataSource: DataSource;
+  publicMap: PublicMapConfig;
+  updatePublicMap: (publicMap: Partial<PublicMapConfig>) => void;
+}) {
+  const dataSourceConfig = publicMap.dataSourceConfigs.find(
+    (dsc) => dsc.dataSourceId === dataSource.id,
+  );
+  const nameLabel = dataSourceConfig?.nameLabel || "";
+  const nameColumns = dataSourceConfig?.nameColumns || [];
+  const descriptionLabel = dataSourceConfig?.descriptionLabel || "";
+  const descriptionColumn = dataSourceConfig?.descriptionColumn || "";
+  const additionalColumns = dataSourceConfig?.additionalColumns || [];
+
+  const onChange = (config: Partial<PublicMapDataSourceConfig>) => {
+    const dataSourceConfigs = [];
+    let found = false;
+    for (const dsc of publicMap.dataSourceConfigs) {
+      if (dsc.dataSourceId === dataSource.id) {
+        found = true;
+        dataSourceConfigs.push({ ...dsc, ...config });
+      } else {
+        dataSourceConfigs.push(dsc);
+      }
+    }
+    if (!found) {
+      dataSourceConfigs.push({
+        ...createDataSourceConfig(dataSource),
+        ...config,
+        dataSourceId: dataSource.id,
+      });
+    }
+    updatePublicMap({ dataSourceConfigs });
+  };
+
+  const onChangeAdditionalColumn = (
+    index: number,
+    changes: Partial<PublicMapColumn>,
+  ) => {
+    onChange({
+      additionalColumns: additionalColumns.map((ac, i) => {
+        if (i === index) {
+          return { ...ac, ...changes };
+        }
+        return ac;
+      }),
+    });
+  };
+
+  return (
+    <div>
+      <h2>{dataSource.name}</h2>
+      <DataListRow label="Name columns">
+        <ColumnsMultiSelect
+          columns={nameColumns}
+          columnDefs={dataSource.columnDefs}
+          onChange={(columns) => onChange({ nameColumns: columns })}
+        />
+      </DataListRow>
+      <DataListRow
+        label="Name label"
+        description="A label to describe to users what the name represents (e.g. Member Name, Company Name, etc.)"
+      >
+        <Input
+          value={nameLabel}
+          onChange={(e) => onChange({ nameLabel: e.target.value })}
+        />
+      </DataListRow>
+      <DataListRow label="Description/subtitle column">
+        <Select
+          value={descriptionColumn}
+          onValueChange={(descriptionColumn) => onChange({ descriptionColumn })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a column" />
+          </SelectTrigger>
+          <SelectContent>
+            {dataSource.columnDefs.map((cd) => (
+              <SelectItem key={cd.name} value={cd.name}>
+                {cd.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </DataListRow>
+      <DataListRow
+        label="Description/subtitle label"
+        description="A label to describe to users what the description represents (e.g. Address, Further Info, etc.)"
+      >
+        <Input
+          value={descriptionLabel}
+          onChange={(e) => onChange({ descriptionLabel: e.target.value })}
+        />
+      </DataListRow>
+      <div className="flex flex-col gap-2 py-4">
+        <span className="text-sm leading-none font-medium">
+          Additional information
+        </span>
+        {additionalColumns.map((additionalColumn, i) => {
+          return (
+            <div key={i} className="grid grid-cols-12 gap-2">
+              <div className="col-span-5">
+                <ColumnsMultiSelect
+                  buttonClassName="w-full"
+                  columns={additionalColumn.sourceColumns}
+                  columnDefs={dataSource.columnDefs}
+                  onChange={(columns) =>
+                    onChangeAdditionalColumn(i, { sourceColumns: columns })
+                  }
+                />
+              </div>
+              <Input
+                className="col-span-3"
+                placeholder="Label"
+                value={additionalColumn.label}
+                onChange={(e) =>
+                  onChangeAdditionalColumn(i, { label: e.target.value })
+                }
+              />
+              <div className="col-span-3">
+                <Select
+                  value={additionalColumn.type}
+                  onValueChange={(type) =>
+                    onChangeAdditionalColumn(i, {
+                      type: type as PublicMapColumnType,
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a data type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={PublicMapColumnType.String}>
+                      Text
+                    </SelectItem>
+                    <SelectItem value={PublicMapColumnType.Boolean}>
+                      True/false
+                    </SelectItem>
+                    <SelectItem value={PublicMapColumnType.CommaSeparatedList}>
+                      Comma-separated list
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                className="!px-0"
+                onClick={() =>
+                  onChange({
+                    additionalColumns: additionalColumns.filter(
+                      (_, index) => index !== i,
+                    ),
+                  })
+                }
+              >
+                <X />
+              </Button>
+            </div>
+          );
+        })}
+        <Button
+          className="mr-auto"
+          type="button"
+          variant="outline"
+          onClick={() =>
+            onChange({
+              additionalColumns: additionalColumns.concat([
+                {
+                  label: "",
+                  sourceColumns: [],
+                  type: PublicMapColumnType.String,
+                },
+              ]),
+            })
+          }
+        >
+          Add
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+const createDataSourceConfig = (
+  dataSource: DataSource,
+): PublicMapDataSourceConfig => {
+  return {
+    dataSourceId: dataSource.id,
+    nameLabel: "Name",
+    nameColumns: dataSource.columnRoles.nameColumns || [],
+    descriptionLabel: "Description",
+    descriptionColumn: "",
+    additionalColumns: [],
+  };
+};
 
 const getBaseUrl = () =>
   new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001");

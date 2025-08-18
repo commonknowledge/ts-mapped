@@ -14,6 +14,7 @@ export const DATA_RECORDS_JOB_BATCH_SIZE = 10;
 export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";
 
 export const MARKER_ID_KEY = "__recordId";
+export const MARKER_DATA_SOURCE_ID_KEY = "__dataSourceId";
 export const MARKER_EXTERNAL_ID_KEY = "__externalId";
 export const MARKER_NAME_KEY = "__name";
 export const MARKER_MATCHED_KEY = "__matched";

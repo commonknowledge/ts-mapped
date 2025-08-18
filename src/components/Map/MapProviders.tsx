@@ -1,5 +1,6 @@
 import { Fragment, ReactNode } from "react";
 import ChoroplethProvider from "./providers/ChoroplethProvider";
+import DataRecordProvider from "./providers/DataRecordProvider";
 import DataSourcesProvider from "./providers/DataSourcesProvider";
 import MapProvider from "./providers/MapProvider";
 import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
@@ -25,11 +26,13 @@ export default async function MapProviders({
   return (
     <MapProvider mapId={mapId} viewId={viewId}>
       <MaybeDataSourcesProvider>
-        <ChoroplethProvider>
-          <MarkerAndTurfProvider>
-            <MaybeTableProvider>{children}</MaybeTableProvider>
-          </MarkerAndTurfProvider>
-        </ChoroplethProvider>
+        <DataRecordProvider>
+          <ChoroplethProvider>
+            <MarkerAndTurfProvider>
+              <MaybeTableProvider>{children}</MaybeTableProvider>
+            </MarkerAndTurfProvider>
+          </ChoroplethProvider>
+        </DataRecordProvider>
       </MaybeDataSourcesProvider>
     </MapProvider>
   );

@@ -7,16 +7,19 @@ import * as mapboxgl from "mapbox-gl";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
+import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { MAPBOX_SOURCE_IDS } from "@/components/Map/sources";
 import { mapColors } from "@/components/Map/styles";
 import {
   DEFAULT_ZOOM,
+  MARKER_DATA_SOURCE_ID_KEY,
   MARKER_EXTERNAL_ID_KEY,
+  MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
-import { DrawDeleteEvent, MarkerData } from "@/types";
+import { DrawDeleteEvent } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
@@ -33,28 +36,26 @@ export default function Map({
 }) {
   const { mapRef, mapConfig, viewConfig, setBoundingBox, setZoom } =
     useContext(MapContext);
-  const { insertPlacedMarker, setSelectedMarker, deleteTurf, insertTurf } =
+  const { insertPlacedMarker, deleteTurf, insertTurf } =
     useContext(MarkerAndTurfContext);
+  const { setSelectedDataRecord } = useContext(DataRecordContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [ready, setReady] = useState(false);
-  const [hoverMarker, setHoverMarker] = useState<MarkerData | null>(null);
+  const [hoverMarker, setHoverMarker] = useState<{
+    coordinates: [number, number];
+    properties: Record<string, unknown>;
+  } | null>(null);
   const prevPointer = useRef("");
 
-  const markerLayers = [
-    mapConfig.membersDataSourceId,
-    ...mapConfig.markerDataSourceIds,
-  ]
-    .filter(Boolean)
+  const markerLayers = mapConfig
+    .getDataSourceIds()
     .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
     .concat(["search-history-pins", "search-history-labels"]);
 
-  const clusterLayers = [
-    mapConfig.membersDataSourceId,
-    ...mapConfig.markerDataSourceIds,
-  ]
-    .filter(Boolean)
+  const clusterLayers = mapConfig
+    .getDataSourceIds()
     .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]);
 
   // Hover behavior
@@ -160,16 +161,21 @@ export default function Map({
           layers: markerLayers,
         });
         if (features.length && features[0].geometry.type === "Point") {
-          setSelectedMarker({
-            properties: features[0].properties || {},
-            coordinates: features[0].geometry.coordinates,
+          const properties = features[0].properties;
+          const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
+          const dataSourceId = properties
+            ? properties[MARKER_DATA_SOURCE_ID_KEY]
+            : null;
+          setSelectedDataRecord({
+            id: dataRecordId,
+            dataSourceId: dataSourceId,
           });
           map.flyTo({
             center: features[0].geometry.coordinates as [number, number],
             zoom: 12,
           });
         } else {
-          setSelectedMarker(null);
+          setSelectedDataRecord(null);
         }
         const clusters = map.queryRenderedFeatures(e.point, {
           layers: clusterLayers,

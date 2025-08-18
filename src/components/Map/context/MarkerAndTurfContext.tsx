@@ -1,6 +1,5 @@
 import { createContext } from "react";
 import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
-import { MarkerData } from "@/types";
 import { MarkerQueriesResult } from "../types";
 
 export const MarkerAndTurfContext = createContext<{
@@ -21,9 +20,6 @@ export const MarkerAndTurfContext = createContext<{
   preparePlacedMarkerUpdate: (placedMarker: PlacedMarker) => void;
   commitPlacedMarkerUpdates: () => void;
   updatePlacedMarker: (placedMarker: PlacedMarker) => void;
-
-  selectedMarker: MarkerData | null;
-  setSelectedMarker: (marker: MarkerData | null) => void;
 
   turfs: Turf[];
   turfsLoading: boolean;
@@ -48,8 +44,6 @@ export const MarkerAndTurfContext = createContext<{
   preparePlacedMarkerUpdate: () => null,
   commitPlacedMarkerUpdates: () => null,
   updatePlacedMarker: () => null,
-  selectedMarker: null,
-  setSelectedMarker: () => null,
   turfs: [],
   turfsLoading: false,
   deleteTurf: () => null,

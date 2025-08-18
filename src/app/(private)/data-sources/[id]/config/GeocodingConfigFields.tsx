@@ -4,15 +4,9 @@ import {
   GeocodingType,
   LooseGeocodingConfig,
 } from "@/__generated__/types";
+import ColumnsMultiSelect from "@/components/ColumnsMultiSelect";
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
-import { Button } from "@/shadcn/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/shadcn/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -84,33 +78,11 @@ export default function GeocodingConfigFields({
 
       {typeSelectValue === GeocodingType.Address && (
         <DataListRow label="Location columns">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                {columns.length ? columns.join(", ") : "Select"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {dataSource?.columnDefs.map((cd) => (
-                <DropdownMenuCheckboxItem
-                  key={cd.name}
-                  checked={columns.includes(cd.name)}
-                  onSelect={(e) => e.preventDefault()}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      onChange({ columns: columns.concat([cd.name]) });
-                    } else {
-                      onChange({
-                        columns: columns.filter((c) => c !== cd.name),
-                      });
-                    }
-                  }}
-                >
-                  {cd.name}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ColumnsMultiSelect
+            columns={columns}
+            columnDefs={dataSource?.columnDefs || []}
+            onChange={(columns) => onChange({ columns })}
+          />
         </DataListRow>
       )}
 

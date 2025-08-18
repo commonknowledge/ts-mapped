@@ -21,6 +21,13 @@ export class MapConfig implements MapConfigInput {
   constructor(params: Partial<MapConfig> = {}) {
     Object.assign(this, params);
   }
+
+  getDataSourceIds() {
+    return new Set([this.membersDataSourceId].concat(this.markerDataSourceIds))
+      .values()
+      .toArray()
+      .filter(Boolean);
+  }
 }
 
 export class ViewConfig implements MapViewConfigInput {
