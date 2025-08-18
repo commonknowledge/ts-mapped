@@ -1,10 +1,14 @@
 import { CornerDownRight, PaintBucketIcon, Scan } from "lucide-react";
 import { useContext } from "react";
-import { AreaSetGroupCode } from "@/__generated__/types";
+import {
+  AreaSetCode,
+  AreaSetGroupCode,
+  LooseGeocodingConfig,
+} from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { COUNT_RECORDS_KEY, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Label } from "@/shadcn/ui/label";
 import {
   Select,
@@ -60,11 +64,13 @@ export default function ChoroplethControl() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={NULL_UUID}>None</SelectItem>
-              {Object.keys(AREA_SET_GROUP_LABELS).map((code) => (
-                <SelectItem key={code} value={code}>
-                  {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
-                </SelectItem>
-              ))}
+              {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
+                (code) => (
+                  <SelectItem key={code} value={code}>
+                    {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -129,14 +135,19 @@ export default function ChoroplethControl() {
                 <SelectValue placeholder="Select a column" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={MAX_COLUMN_KEY}>
-                  Highest-value column
-                </SelectItem>
-                {dataSource?.columnDefs.map((cd: { name: string }) => (
-                  <SelectItem key={cd.name} value={cd.name}>
-                    {cd.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value={COUNT_RECORDS_KEY}>Count records</SelectItem>
+                {dataSource?.geocodingConfig.areaSetCode && (
+                  <>
+                    <SelectItem value={MAX_COLUMN_KEY}>
+                      Highest-value column
+                    </SelectItem>
+                    {dataSource?.columnDefs.map((cd: { name: string }) => (
+                      <SelectItem key={cd.name} value={cd.name}>
+                        {cd.name}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -162,3 +173,21 @@ export default function ChoroplethControl() {
     </div>
   );
 }
+
+const getValidAreaSetGroupCodes = (
+  dataSourceGeocodingConfig: LooseGeocodingConfig | null | undefined,
+): AreaSetGroupCode[] => {
+  if (!dataSourceGeocodingConfig) {
+    return [];
+  }
+  if (dataSourceGeocodingConfig.areaSetCode) {
+    const validAreaSetGroupCodes: Record<AreaSetCode, AreaSetGroupCode[]> = {
+      [AreaSetCode.PC]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
+      [AreaSetCode.OA21]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
+      [AreaSetCode.MSOA21]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
+      [AreaSetCode.WMC24]: [AreaSetGroupCode.WMC24],
+    };
+    return validAreaSetGroupCodes[dataSourceGeocodingConfig.areaSetCode];
+  }
+  return [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24];
+};

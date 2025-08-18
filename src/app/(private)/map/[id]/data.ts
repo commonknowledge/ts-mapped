@@ -42,6 +42,11 @@ export const useDataSourcesQuery = () =>
           name
           type
         }
+        geocodingConfig {
+          areaSetCode
+          type
+          column
+        }
         recordCount {
           count
         }

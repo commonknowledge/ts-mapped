@@ -8,7 +8,9 @@ export const MARKER_RADIUS_KEY = "__radius";
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 
+// Generated choropleth stats
 export const MAX_COLUMN_KEY = "__maxColumn";
+export const COUNT_RECORDS_KEY = "__countRecords";
 
 export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
 

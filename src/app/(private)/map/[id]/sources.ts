@@ -73,10 +73,11 @@ export const MAPBOX_SOURCE_IDS = Object.values(
 ).flatMap((sources) => sources.map((source) => source.mapbox.sourceId));
 
 export const getChoroplethLayerConfig = (
+  dataSourceAreaSetCode: AreaSetCode | null | undefined,
   areaSetGroupCode: AreaSetGroupCode | null,
   zoom: number,
 ) => {
-  if (areaSetGroupCode) {
+  if (dataSourceAreaSetCode && areaSetGroupCode) {
     const sources = CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode] || [];
     for (const source of sources) {
       if (source.minZoom <= zoom && source.maxZoom > zoom) {

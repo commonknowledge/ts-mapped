@@ -994,6 +994,12 @@ export type DataSourcesQuery = {
       name: string;
       type: ColumnType;
     }>;
+    geocodingConfig: {
+      __typename?: "LooseGeocodingConfig";
+      areaSetCode?: AreaSetCode | null;
+      type: GeocodingType;
+      column?: string | null;
+    };
     recordCount?: { __typename?: "RecordCount"; count: number } | null;
   }> | null;
 };

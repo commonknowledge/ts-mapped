@@ -6,6 +6,7 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { useAreaStatsQuery } from "@/app/(private)/map/[id]/data";
 import { getChoroplethLayerConfig } from "@/app/(private)/map/[id]/sources";
 import { ChoroplethContext } from "../context/ChoroplethContext";
+import { DataSourcesContext } from "../context/DataSourcesContext";
 
 export default function ChoroplethProvider({
   children,
@@ -13,6 +14,7 @@ export default function ChoroplethProvider({
   children: ReactNode;
 }) {
   const { boundingBox, viewConfig, zoom } = useContext(MapContext);
+  const { getChoroplethDataSource } = useContext(DataSourcesContext);
 
   /* State */
 
@@ -28,8 +30,12 @@ export default function ChoroplethProvider({
   /* Derived State */
 
   const choroplethLayerConfig = useMemo(() => {
-    return getChoroplethLayerConfig(viewConfig.areaSetGroupCode, zoom);
-  }, [viewConfig.areaSetGroupCode, zoom]);
+    return getChoroplethLayerConfig(
+      getChoroplethDataSource()?.geocodingConfig.areaSetCode,
+      viewConfig.areaSetGroupCode,
+      zoom,
+    );
+  }, [getChoroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
 
   /* GraphQL Data */
   const areaStatsQuery = useAreaStatsQuery({

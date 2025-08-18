@@ -5,7 +5,7 @@ import {
   ColumnType,
   Operation,
 } from "@/__generated__/types";
-import { MAX_COLUMN_KEY } from "@/constants";
+import { COUNT_RECORDS_KEY, MAX_COLUMN_KEY } from "@/constants";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import { Database } from "@/server/services/database";
@@ -27,6 +27,15 @@ export const getAreaStats = async (
       boundingBox,
     );
     return { column, columnType: ColumnType.String, stats };
+  }
+
+  if (column === COUNT_RECORDS_KEY) {
+    const stats = await getRecordCountByArea(
+      areaSetCode,
+      dataSourceId,
+      boundingBox,
+    );
+    return { column, columnType: ColumnType.Number, stats };
   }
 
   try {
@@ -151,6 +160,35 @@ export const getMaxColumnByArea = async (
   try {
     const result = await q.execute(db);
     return filterResult(result.rows);
+  } catch (error) {
+    logger.error(`Failed to get area max column by area`, { error });
+  }
+  return [];
+};
+
+export const getRecordCountByArea = async (
+  areaSetCode: string,
+  dataSourceId: string,
+  boundingBox: BoundingBoxInput | null = null,
+) => {
+  try {
+    const query = db
+      .selectFrom("dataRecord")
+      .select([
+        sql`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
+        ({ fn }) => fn.countAll().as("value"),
+      ])
+      .where("dataRecord.dataSourceId", "=", dataSourceId)
+      .where(getBoundingBoxSQL(boundingBox))
+      .groupBy("areaCode");
+
+    const result = await query.execute();
+    // Ensure the counts are numbers, not strings (returned by Postgres)
+    const stats = filterResult(result).map((stat) => ({
+      ...stat,
+      value: Number(stat.value),
+    }));
+    return stats;
   } catch (error) {
     logger.error(`Failed to get area max column by area`, { error });
   }
