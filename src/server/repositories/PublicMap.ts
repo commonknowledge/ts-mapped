@@ -11,10 +11,11 @@ export function findPublicMapByHost(host: string) {
     .executeTakeFirst();
 }
 
-export function findPublicMapByMapId(mapId: string) {
+export function findPublishedPublicMapByMapId(mapId: string) {
   return db
     .selectFrom("publicMap")
     .where("mapId", "=", mapId)
+    .where("published", "=", true)
     .selectAll()
     .executeTakeFirst();
 }

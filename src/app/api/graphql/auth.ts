@@ -11,9 +11,9 @@ import { findMapById } from "@/server/repositories/Map";
 import { findMapViewById } from "@/server/repositories/MapView";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import {
-  findPublicMapByMapId,
   findPublicMapByViewId,
   findPublishedPublicMapByDataSourceId,
+  findPublishedPublicMapByMapId,
 } from "@/server/repositories/PublicMap";
 import logger from "@/server/services/logger";
 import { GraphQLContext } from "./context";
@@ -190,8 +190,8 @@ export const _mapGuard = async (
   }
 
   if (accessType === "read") {
-    const publicMap = await findPublicMapByMapId(mapId);
-    if (publicMap?.published) {
+    const publicMap = await findPublishedPublicMapByMapId(mapId);
+    if (publicMap) {
       return true;
     }
   }
