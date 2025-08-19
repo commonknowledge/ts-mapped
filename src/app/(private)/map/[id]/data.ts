@@ -215,6 +215,9 @@ export const useAreaStatsQuery = ({
   useDummyBoundingBox: boolean;
   calculationType?: CalculationType | null;
 }) => {
+  // Use a dummy column for counts to avoid un-necessary refetching
+  const columnOrCount =
+    calculationType === CalculationType.Count ? "__count" : column;
   const skipCondition =
     !dataSourceId ||
     (!column && calculationType !== CalculationType.Count) ||
@@ -251,7 +254,7 @@ export const useAreaStatsQuery = ({
       variables: {
         areaSetCode,
         dataSourceId,
-        column,
+        column: columnOrCount,
         excludeColumns,
         // Using a dummy boundingBox is required for fetchMore() to update this query's data.
         // Note: this makes the first query return no data. Only fetchMore() returns data.

@@ -31,11 +31,7 @@ export default function UnassignedFolder({
 
   return (
     <div className="mb-3">
-      {folders.length > 0 && (
-        <div ref={setNodeRef} className="px-1 py-1">
-          {/* <Separator orientation="horizontal" className="h-4 w-full" /> */}
-        </div>
-      )}
+      {folders.length > 0 && <div ref={setNodeRef} className="px-1 py-1" />}
 
       <div className={cn("mt-1 space-y-0.5 ml-1")}>
         <SortableContext

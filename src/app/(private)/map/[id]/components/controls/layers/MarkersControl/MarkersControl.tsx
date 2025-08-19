@@ -5,12 +5,12 @@ import { v4 as uuidv4 } from "uuid";
 import AddMembersDataModal from "@/app/(private)/map/[id]/components/controls/AddMemberModal";
 import ControlItemWrapper from "@/app/(private)/map/[id]/components/controls/ControlItemWrapper";
 import LayerHeader from "@/app/(private)/map/[id]/components/controls/LayerHeader";
+import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import CollectionIcon from "../../../Icons";
 import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {

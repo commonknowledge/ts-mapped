@@ -1,10 +1,6 @@
 import React from "react";
 
-export default function CollectionIcon({
-  color = "currentColor",
-}: {
-  color?: string;
-}) {
+export function CollectionIcon({ color = "currentColor" }: { color?: string }) {
   return (
     <svg width="13" height="14" viewBox="0 0 13 14" fill="none">
       <circle cx="2.78571" cy="8.59577" r="2.78571" fill={color} />

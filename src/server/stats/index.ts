@@ -72,7 +72,7 @@ export const getAreaStats = async (
       .groupBy("areaCode");
 
     const result = await query.execute();
-    const stats = filterResult(result);
+    const stats = filterResult(result, columnDef.type);
     return { column, columnType: columnDef.type, stats };
   } catch (error) {
     logger.error(`Failed to get area stats`, { error });
@@ -161,7 +161,7 @@ export const getMaxColumnByArea = async (
   `;
   try {
     const result = await q.execute(db);
-    return filterResult(result.rows);
+    return filterResult(result.rows, ColumnType.String);
   } catch (error) {
     logger.error(`Failed to get area max column by area`, { error });
   }
@@ -187,10 +187,7 @@ export const getRecordCountByArea = async (
     const result = await query.execute();
 
     // Ensure the counts are numbers, not strings (returned by Postgres)
-    const stats = filterResult(result).map((stat) => ({
-      ...stat,
-      value: Number(stat.value),
-    }));
+    const stats = filterResult(result, ColumnType.Number);
 
     return stats;
   } catch (error) {
@@ -219,13 +216,23 @@ const getBoundingBoxSQL = (boundingBox: BoundingBoxInput | null) => {
     `;
 };
 
-const filterResult = (result: unknown[]) =>
-  result.filter(
-    (r) =>
+const filterResult = (result: unknown[], columnType: ColumnType) => {
+  const filtered: AreaStat[] = [];
+  for (const r of result) {
+    if (
       r &&
       typeof r === "object" &&
       "areaCode" in r &&
+      typeof r.areaCode === "string" &&
       "value" in r &&
-      r.areaCode !== null &&
-      r.value !== null,
-  ) as AreaStat[];
+      r.value !== null
+    ) {
+      if (columnType === ColumnType.Number) {
+        filtered.push({ ...r, value: Number(r.value) } as AreaStat);
+      } else {
+        filtered.push(r as AreaStat);
+      }
+    }
+  }
+  return filtered;
+};

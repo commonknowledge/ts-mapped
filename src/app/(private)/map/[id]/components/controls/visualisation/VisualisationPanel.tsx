@@ -298,7 +298,7 @@ export default function VisualisationPanel() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem key={MAX_COLUMN_KEY} value={MAX_COLUMN_KEY}>
-                        Largest column (String)
+                        Highest-value column (String)
                       </SelectItem>
                       {dataSources
                         .find((ds) => ds.id === viewConfig.areaDataSourceId)

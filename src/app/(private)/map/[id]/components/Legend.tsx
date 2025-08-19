@@ -1,6 +1,11 @@
 import { Database } from "lucide-react";
 import { useContext } from "react";
-import { ColorScheme, ColumnType } from "@/__generated__/types";
+import {
+  CalculationType,
+  ColorScheme,
+  ColumnType,
+} from "@/__generated__/types";
+import { MAX_COLUMN_KEY } from "@/constants";
 import { useColorScheme } from "../colors";
 import { ChoroplethContext } from "../context/ChoroplethContext";
 import { DataSourcesContext } from "../context/DataSourcesContext";
@@ -71,7 +76,6 @@ export default function Legend() {
                 className={`absolute flex flex-col ${alignClass}`}
                 style={positionStyle}
               >
-                {/* <div className="w-px h-2 bg-neutral-300" /> */}
                 <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
                   {(() => {
                     const isPercent =
@@ -104,15 +108,19 @@ export default function Legend() {
   return (
     <div className="flex flex-col gap-1 rounded-sm overflow-scroll bg-white border border-neutral-200">
       <p className=" flex  gap-2 items-center text-xs font-mono p-2">
-        <Database className="w-4 h-4 text-muted-foreground" /> Locality Data
-        Legend
+        <Database className="w-4 h-4 text-muted-foreground" />
+        Locality Data Legend
       </p>
       <div className="flex flex-col ">
         <p className="flex items-center font-medium px-2 ">
           {dataSource?.name}
         </p>
         <p className="text-sm flex items-center gap-0.5 font-medium px-2 ">
-          {viewConfig.areaDataColumn}
+          {viewConfig.areaDataColumn === MAX_COLUMN_KEY
+            ? "Highest-value column"
+            : viewConfig.calculationType === CalculationType.Count
+              ? "Count"
+              : viewConfig.areaDataColumn}
         </p>
       </div>
       <div className="flex px-2 ">{bars}</div>

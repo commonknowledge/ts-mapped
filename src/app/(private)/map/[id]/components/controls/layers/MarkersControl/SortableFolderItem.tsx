@@ -111,7 +111,7 @@ export default function SortableFolderItem({
       style={style}
       {...attributes}
       {...listeners}
-      className="border border-neutral-200 rounded-sm"
+      className="border border-neutral-200 rounded-sm mb-2"
     >
       <ContextMenu>
         <ContextMenuTrigger asChild>

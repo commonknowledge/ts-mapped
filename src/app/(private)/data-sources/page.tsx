@@ -15,6 +15,7 @@ import {
   ListDataSourcesQuery,
   ListDataSourcesQueryVariables,
 } from "@/__generated__/types";
+import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { AreaSetGroupCodeLabels } from "@/labels";
@@ -23,7 +24,6 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import DataSourceItem from "../map/[id]/components/DataSourceItem";
-import CollectionIcon from "../map/[id]/components/Icons";
 import { mapColors } from "../map/[id]/styles";
 
 export default function DataSourcesPage() {
