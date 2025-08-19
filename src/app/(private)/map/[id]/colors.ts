@@ -6,14 +6,14 @@ import {
   scaleSequential,
 } from "d3-scale";
 import {
+  interpolateBlues,
+  interpolateBrBG,
   interpolateOrRd,
-  schemeCategory10,
+  interpolatePlasma,
   interpolateRdBu,
   interpolateRdYlGn,
   interpolateViridis,
-  interpolatePlasma,
-  interpolateBrBG,
-  interpolateBlues,
+  schemeCategory10,
 } from "d3-scale-chromatic";
 import { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 import { useMemo } from "react";
@@ -42,7 +42,7 @@ const getInterpolator = (
     | "plasma"
     | "diverging"
     | "sequential"
-    | undefined,
+    | undefined
 ) => {
   switch (scheme) {
     case "red-blue":
@@ -71,7 +71,7 @@ export const useColorScheme = (
     | "viridis"
     | "plasma"
     | "diverging"
-    | "sequential",
+    | "sequential"
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
@@ -141,7 +141,7 @@ export const useColorScheme = (
 
 const getCategoricalColor = (
   key: string,
-  colorScale: ScaleOrdinal<string, string, never>,
+  colorScale: ScaleOrdinal<string, string, never>
 ) => {
   return PARTY_COLORS[key.toLowerCase()] ?? colorScale(key);
 };
@@ -155,7 +155,7 @@ export const useFillColor = (
     | "plasma"
     | "diverging"
     | "sequential",
-  isCount?: boolean,
+  isCount?: boolean
 ): DataDrivenPropertyValueSpecification<string> => {
   const colorScheme = useColorScheme(areaStats, scheme);
   // useMemo to cache calculated fillColor
@@ -182,9 +182,13 @@ export const useFillColor = (
       return [
         "interpolate",
         ["linear"],
-        isCount ? ["coalesce", ["feature-state", "value"], 0] : ["feature-state", "value"],
-        0, colorScheme.colorScale(0),
-        1, colorScheme.colorScale(1)
+        isCount
+          ? ["coalesce", ["feature-state", "value"], 0]
+          : ["feature-state", "value"],
+        0,
+        colorScheme.colorScale(0),
+        1,
+        colorScheme.colorScale(1),
       ];
     }
 
@@ -201,7 +205,9 @@ export const useFillColor = (
     return [
       "interpolate",
       ["linear"],
-      isCount ? ["coalesce", ["feature-state", "value"], 0] : ["feature-state", "value"],
+      isCount
+        ? ["coalesce", ["feature-state", "value"], 0]
+        : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
   }, [colorScheme]);

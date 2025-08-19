@@ -1,16 +1,13 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { useFillColor } from "@/app/(private)/map/[id]/colors";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
-import { COUNT_RECORDS_KEY } from "@/constants";
 
 export default function Choropleth() {
   // Keep track of area codes that have feature state, to clean if necessary
   const areaCodesToClean = useRef<Record<string, boolean>>({});
-  const { mapRef, viewConfig, mapConfig } = useContext(MapContext);
+  const { mapRef, viewConfig } = useContext(MapContext);
   const {
     areaStatsQuery,
     lastLoadedSourceId,
@@ -18,9 +15,6 @@ export default function Choropleth() {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
   } = useContext(ChoroplethContext);
-
-
-
 
   /* Set Mapbox feature state on receiving new AreaStats */
   useEffect(() => {
@@ -36,14 +30,13 @@ export default function Choropleth() {
 
     const nextAreaCodesToClean: Record<string, boolean> = {};
     areaStatsQuery.data.areaStats?.stats.forEach((stat) => {
-
       mapRef.current?.setFeatureState(
         {
           source: sourceId,
           sourceLayer: layerId,
           id: stat.areaCode,
         },
-        stat,
+        stat
       );
       nextAreaCodesToClean[stat.areaCode] = true;
     });
@@ -63,10 +56,9 @@ export default function Choropleth() {
 
   const fillColor = useFillColor(
     areaStatsQuery?.data?.areaStats,
-    viewConfig.colorScheme || 'red-blue',
-    viewConfig.calculationType === 'count'
+    viewConfig.colorScheme || "red-blue",
+    viewConfig.calculationType === "count"
   );
-
 
   if (!viewConfig.areaSetGroupCode || !viewConfig.visualizationType) {
     return null;
@@ -80,9 +72,8 @@ export default function Choropleth() {
       type="vector"
       url={`mapbox://${sourceId}`}
     >
-
       {/* Fill Layer - only show for choropleth */}
-      {viewConfig.visualizationType === 'choropleth' && (
+      {viewConfig.visualizationType === "choropleth" && (
         <Layer
           id={`${sourceId}-fill`}
           source={sourceId}
@@ -96,7 +87,8 @@ export default function Choropleth() {
       )}
 
       {/* Line Layer - show for both boundary-only and choropleth */}
-      {(viewConfig.visualizationType === 'boundary-only' || viewConfig.visualizationType === 'choropleth') && (
+      {(viewConfig.visualizationType === "boundary-only" ||
+        viewConfig.visualizationType === "choropleth") && (
         <Layer
           id={`${sourceId}-line`}
           source={sourceId}
