@@ -23,8 +23,12 @@ import { TableContext } from "./context/TableContext";
 
 export default function MapPage() {
   const { mapQuery, mapRef } = useContext(MapContext);
-  const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
-    useContext(ChoroplethContext);
+  const {
+    areaStatsLoading,
+    areaStatsQuery,
+    setBoundariesPanelOpen,
+    setLastLoadedSourceId,
+  } = useContext(ChoroplethContext);
   const { dataSourcesLoading } = useContext(DataSourcesContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
@@ -64,7 +68,12 @@ export default function MapPage() {
       <div className="flex w-full grow min-h-0 relative">
         <Controls
           showControls={showControls}
-          setShowControls={setShowControls}
+          setShowControls={(show) => {
+            setShowControls(show);
+            if (!show) {
+              setBoundariesPanelOpen(false);
+            }
+          }}
           controlPanelWidth={controlPanelWidth}
         />
         <VisualisationPanel
