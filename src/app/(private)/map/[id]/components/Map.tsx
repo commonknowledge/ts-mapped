@@ -47,13 +47,6 @@ export default function Map({
     .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
     .concat(["search-history-pins", "search-history-labels"]);
 
-  const clusterLayers = [
-    mapConfig.membersDataSourceId,
-    ...mapConfig.markerDataSourceIds,
-  ]
-    .filter(Boolean)
-    .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]);
-
   // Hover behavior
   useEffect(() => {
     const map = mapRef?.current;
@@ -167,15 +160,6 @@ export default function Map({
           });
         } else {
           setSelectedMarker(null);
-        }
-        const clusters = map.queryRenderedFeatures(e.point, {
-          layers: clusterLayers,
-        });
-        if (clusters.length && clusters[0].geometry.type === "Point") {
-          map.flyTo({
-            center: clusters[0].geometry.coordinates as [number, number],
-            zoom: map.getZoom() + 2,
-          });
         }
       }}
       onLoad={() => {
@@ -309,9 +293,9 @@ export default function Map({
           <NavigationControl showZoom={true} showCompass={false} />
           <Choropleth />
           <TurfPolygons />
-          <Markers />
           <FilterMarkers />
           <PlacedMarkers />
+          <Markers />
           {hoverMarker && (
             <Popup
               longitude={hoverMarker.coordinates[0]}

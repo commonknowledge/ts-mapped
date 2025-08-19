@@ -1,6 +1,6 @@
 import {
   BoundingBoxInput,
-  Operation,
+  CalculationType,
   QueryResolvers as QueryResolversType,
 } from "@/__generated__/types";
 import { GraphQLContext } from "@/app/api/graphql/context";
@@ -22,14 +22,14 @@ const QueryResolvers: QueryResolversType = {
       areaSetCode,
       dataSourceId,
       column,
-      operation,
       excludeColumns,
       boundingBox,
+      calculationType,
     }: {
       areaSetCode: string;
       dataSourceId: string;
+      calculationType: CalculationType;
       column: string;
-      operation: Operation;
       excludeColumns: string[];
       boundingBox?: BoundingBoxInput | null;
     },
@@ -37,8 +37,8 @@ const QueryResolvers: QueryResolversType = {
     getAreaStats(
       areaSetCode,
       dataSourceId,
+      calculationType,
       column,
-      operation,
       excludeColumns,
       boundingBox,
     ),

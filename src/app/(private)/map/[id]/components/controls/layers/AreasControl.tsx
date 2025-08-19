@@ -15,6 +15,7 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import Loading from "../../Loading";
+import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
 
 export default function AreasControl() {
@@ -58,7 +59,7 @@ export default function AreasControl() {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2">
+    <div className="flex flex-col gap-1 p-3">
       <LayerHeader
         label="Areas"
         color={mapColors.areas.color}
@@ -83,6 +84,7 @@ export default function AreasControl() {
       </LayerHeader>
 
       <div className="relative">
+        {turfs.length === 0 && <EmptyLayer message="Add an Area Layer" />}
         {/* Disable interactions while turfs are loading/updating in the background */}
         {turfsLoading && <Loading blockInteraction />}
         <ul

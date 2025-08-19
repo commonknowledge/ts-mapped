@@ -70,6 +70,22 @@ export type BoundingBoxInput = {
   west: Scalars["Float"]["input"];
 };
 
+export enum CalculationType {
+  Average = "Average",
+  Count = "Count",
+  Sum = "Sum",
+  Value = "Value",
+}
+
+export enum ColorScheme {
+  Diverging = "Diverging",
+  GreenYellowRed = "GreenYellowRed",
+  Plasma = "Plasma",
+  RedBlue = "RedBlue",
+  Sequential = "Sequential",
+  Viridis = "Viridis",
+}
+
 export type ColumnDef = {
   __typename?: "ColumnDef";
   name: Scalars["String"]["output"];
@@ -328,6 +344,8 @@ export type MapViewConfig = {
   areaDataColumn: Scalars["String"]["output"];
   areaDataSourceId: Scalars["String"]["output"];
   areaSetGroupCode?: Maybe<AreaSetGroupCode>;
+  calculationType?: Maybe<CalculationType>;
+  colorScheme?: Maybe<ColorScheme>;
   excludeColumnsString: Scalars["String"]["output"];
   mapStyleName: MapStyleName;
   showBoundaryOutline: Scalars["Boolean"]["output"];
@@ -335,12 +353,15 @@ export type MapViewConfig = {
   showLocations: Scalars["Boolean"]["output"];
   showMembers: Scalars["Boolean"]["output"];
   showTurf: Scalars["Boolean"]["output"];
+  visualisationType?: Maybe<VisualisationType>;
 };
 
 export type MapViewConfigInput = {
   areaDataColumn?: InputMaybe<Scalars["String"]["input"]>;
   areaDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
   areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
+  calculationType?: InputMaybe<CalculationType>;
+  colorScheme?: InputMaybe<ColorScheme>;
   excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
   mapStyleName?: InputMaybe<MapStyleName>;
   showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -348,6 +369,7 @@ export type MapViewConfigInput = {
   showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
   showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
   showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
+  visualisationType?: InputMaybe<VisualisationType>;
 };
 
 export type MapViewInput = {
@@ -471,12 +493,6 @@ export type MutationResponse = {
   code: Scalars["Int"]["output"];
 };
 
-export enum Operation {
-  AVG = "AVG",
-  MODE = "MODE",
-  SUM = "SUM",
-}
-
 export type Organisation = {
   __typename?: "Organisation";
   id: Scalars["String"]["output"];
@@ -528,10 +544,10 @@ export type Query = {
 export type QueryAreaStatsArgs = {
   areaSetCode: AreaSetCode;
   boundingBox?: InputMaybe<BoundingBoxInput>;
+  calculationType: CalculationType;
   column: Scalars["String"]["input"];
   dataSourceId: Scalars["String"]["input"];
   excludeColumns: Array<Scalars["String"]["input"]>;
-  operation: Operation;
 };
 
 export type QueryDataSourceArgs = {
@@ -656,6 +672,11 @@ export type UpsertTurfResponse = {
   code: Scalars["Int"]["output"];
   result?: Maybe<Turf>;
 };
+
+export enum VisualisationType {
+  BoundaryOnly = "BoundaryOnly",
+  Choropleth = "Choropleth",
+}
 
 export type ListMapsQueryVariables = Exact<{
   organisationId: Scalars["String"]["input"];
@@ -914,6 +935,34 @@ export type ListDataSourcesQuery = {
     name: string;
     config: any;
     createdAt: any;
+    public: boolean;
+    autoEnrich: boolean;
+    autoImport: boolean;
+    columnDefs: Array<{
+      __typename?: "ColumnDef";
+      name: string;
+      type: ColumnType;
+    }>;
+    columnRoles: {
+      __typename?: "ColumnRoles";
+      nameColumns?: Array<string> | null;
+    };
+    recordCount?: { __typename?: "RecordCount"; count: number } | null;
+    geocodingConfig: {
+      __typename?: "LooseGeocodingConfig";
+      type: GeocodingType;
+      column?: string | null;
+      columns?: Array<string> | null;
+      areaSetCode?: AreaSetCode | null;
+    };
+    enrichments: Array<{
+      __typename?: "LooseEnrichment";
+      sourceType: EnrichmentSourceType;
+      areaSetCode?: AreaSetCode | null;
+      areaProperty?: string | null;
+      dataSourceId?: string | null;
+      dataSourceColumn?: string | null;
+    }>;
   }> | null;
 };
 
@@ -994,6 +1043,12 @@ export type DataSourcesQuery = {
       name: string;
       type: ColumnType;
     }>;
+    geocodingConfig: {
+      __typename?: "LooseGeocodingConfig";
+      areaSetCode?: AreaSetCode | null;
+      type: GeocodingType;
+      column?: string | null;
+    };
     recordCount?: { __typename?: "RecordCount"; count: number } | null;
   }> | null;
 };
@@ -1088,6 +1143,9 @@ export type MapQuery = {
         showLocations: boolean;
         showMembers: boolean;
         showTurf: boolean;
+        visualisationType?: VisualisationType | null;
+        calculationType?: CalculationType | null;
+        colorScheme?: ColorScheme | null;
       };
       dataSourceViews: Array<{
         __typename?: "DataSourceView";
@@ -1120,11 +1178,11 @@ export type AreaStatsQueryVariables = Exact<{
   areaSetCode: AreaSetCode;
   dataSourceId: Scalars["String"]["input"];
   column: Scalars["String"]["input"];
-  operation: Operation;
   excludeColumns:
     | Array<Scalars["String"]["input"]>
     | Scalars["String"]["input"];
   boundingBox?: InputMaybe<BoundingBoxInput>;
+  calculationType: CalculationType;
 }>;
 
 export type AreaStatsQuery = {
@@ -1369,6 +1427,8 @@ export type ResolversTypes = {
   AreaStats: ResolverTypeWrapper<AreaStats>;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]["output"]>;
   BoundingBoxInput: BoundingBoxInput;
+  CalculationType: CalculationType;
+  ColorScheme: ColorScheme;
   ColumnDef: ResolverTypeWrapper<ColumnDef>;
   ColumnRoles: ResolverTypeWrapper<ColumnRoles>;
   ColumnRolesInput: ColumnRolesInput;
@@ -1409,7 +1469,6 @@ export type ResolversTypes = {
   MapViewInput: MapViewInput;
   Mutation: ResolverTypeWrapper<{}>;
   MutationResponse: ResolverTypeWrapper<MutationResponse>;
-  Operation: Operation;
   Organisation: ResolverTypeWrapper<Organisation>;
   PlacedMarker: ResolverTypeWrapper<PlacedMarker>;
   Point: ResolverTypeWrapper<Point>;
@@ -1432,6 +1491,7 @@ export type ResolversTypes = {
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
   UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
   UpsertTurfResponse: ResolverTypeWrapper<UpsertTurfResponse>;
+  VisualisationType: VisualisationType;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1911,6 +1971,16 @@ export type MapViewConfigResolvers<
     ParentType,
     ContextType
   >;
+  calculationType?: Resolver<
+    Maybe<ResolversTypes["CalculationType"]>,
+    ParentType,
+    ContextType
+  >;
+  colorScheme?: Resolver<
+    Maybe<ResolversTypes["ColorScheme"]>,
+    ParentType,
+    ContextType
+  >;
   excludeColumnsString?: Resolver<
     ResolversTypes["String"],
     ParentType,
@@ -1930,6 +2000,11 @@ export type MapViewConfigResolvers<
   showLocations?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   showMembers?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   showTurf?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  visualisationType?: Resolver<
+    Maybe<ResolversTypes["VisualisationType"]>,
+    ParentType,
+    ContextType
+  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2096,7 +2171,11 @@ export type QueryResolvers<
     ContextType,
     RequireFields<
       QueryAreaStatsArgs,
-      "areaSetCode" | "column" | "dataSourceId" | "excludeColumns" | "operation"
+      | "areaSetCode"
+      | "calculationType"
+      | "column"
+      | "dataSourceId"
+      | "excludeColumns"
     >
   >;
   dataSource?: Resolver<

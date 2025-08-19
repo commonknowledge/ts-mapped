@@ -22,6 +22,22 @@ const typeDefs = `
     WMC24
   }
 
+  enum CalculationType {
+    Value
+    Count
+    Sum
+    Average
+  }
+
+  enum ColorScheme {
+    RedBlue
+    GreenYellowRed
+    Viridis
+    Plasma
+    Diverging
+    Sequential
+  }
+
   enum ColumnType {
     Empty
     Boolean
@@ -69,10 +85,9 @@ const typeDefs = `
     Satellite
   }
 
-  enum Operation {
-    AVG
-    MODE
-    SUM
+  enum VisualisationType {
+    BoundaryOnly
+    Choropleth
   }
 
   input BoundingBoxInput {
@@ -137,6 +152,9 @@ const typeDefs = `
     showLocations: Boolean
     showMembers: Boolean
     showTurf: Boolean
+    visualisationType: VisualisationType
+    calculationType: CalculationType
+    colorScheme: ColorScheme
   }
 
   input PointInput {
@@ -302,6 +320,9 @@ const typeDefs = `
     showLocations: Boolean!
     showMembers: Boolean!
     showTurf: Boolean!
+    visualisationType: VisualisationType
+    calculationType: CalculationType
+    colorScheme: ColorScheme
   }
 
   type Organisation {
@@ -361,9 +382,9 @@ const typeDefs = `
       areaSetCode: AreaSetCode!
       dataSourceId: String!
       column: String!
-      operation: Operation!
       excludeColumns: [String!]!
       boundingBox: BoundingBoxInput
+      calculationType: CalculationType!
     ): AreaStats @auth(read: { dataSourceIdArg: "dataSourceId" })
 
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })

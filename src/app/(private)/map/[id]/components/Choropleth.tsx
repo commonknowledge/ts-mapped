@@ -1,5 +1,10 @@
 import { useContext, useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
+import {
+  CalculationType,
+  ColorScheme,
+  VisualisationType,
+} from "@/__generated__/types";
 import { useFillColor } from "@/app/(private)/map/[id]/colors";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
@@ -18,41 +23,52 @@ export default function Choropleth() {
 
   /* Set Mapbox feature state on receiving new AreaStats */
   useEffect(() => {
-    if (!areaStatsQuery?.data) {
+    if (!areaStatsQuery?.data || !mapRef?.current) {
       return;
     }
 
-    if (mapRef?.current?.getSource(sourceId)) {
-      const nextAreaCodesToClean: Record<string, boolean> = {};
-      areaStatsQuery.data.areaStats?.stats.forEach((stat) => {
-        mapRef?.current?.setFeatureState(
-          {
-            source: sourceId,
-            sourceLayer: layerId,
-            id: stat.areaCode,
-          },
-          stat,
-        );
-        nextAreaCodesToClean[stat.areaCode] = true;
-      });
-      // Remove lingering feature states
-      for (const areaCode in Object.keys(areaCodesToClean.current)) {
-        if (!nextAreaCodesToClean[areaCode]) {
-          mapRef?.current?.removeFeatureState({
-            source: sourceId,
-            sourceLayer: layerId,
-            id: areaCode,
-          });
-        }
-      }
-      areaCodesToClean.current = nextAreaCodesToClean;
+    // Check if the source exists before proceeding
+    const source = mapRef.current.getSource(sourceId);
+    if (!source) {
+      return;
     }
+
+    const nextAreaCodesToClean: Record<string, boolean> = {};
+    areaStatsQuery.data.areaStats?.stats.forEach((stat) => {
+      mapRef.current?.setFeatureState(
+        {
+          source: sourceId,
+          sourceLayer: layerId,
+          id: stat.areaCode,
+        },
+        stat,
+      );
+      nextAreaCodesToClean[stat.areaCode] = true;
+    });
+
+    // Remove lingering feature states
+    for (const areaCode of Object.keys(areaCodesToClean.current)) {
+      if (!nextAreaCodesToClean[areaCode]) {
+        mapRef?.current?.removeFeatureState({
+          source: sourceId,
+          sourceLayer: layerId,
+          id: areaCode,
+        });
+      }
+    }
+    areaCodesToClean.current = nextAreaCodesToClean;
   }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
 
-  const fillColor = useFillColor(areaStatsQuery?.data?.areaStats);
-  if (!viewConfig.areaSetGroupCode) {
+  const fillColor = useFillColor(
+    areaStatsQuery?.data?.areaStats,
+    viewConfig.colorScheme || ColorScheme.RedBlue,
+    viewConfig.calculationType === CalculationType.Count,
+  );
+
+  if (!viewConfig.areaSetGroupCode || !viewConfig.visualisationType) {
     return null;
   }
+
   return (
     <Source
       id={sourceId}
@@ -61,20 +77,23 @@ export default function Choropleth() {
       type="vector"
       url={`mapbox://${sourceId}`}
     >
-      {/* Fill Layer */}
-      <Layer
-        id={`${sourceId}-fill`}
-        source={sourceId}
-        source-layer={layerId}
-        type="fill"
-        paint={{
-          "fill-color": fillColor,
-          "fill-opacity": 0.5,
-        }}
-      />
+      {/* Fill Layer - only show for choropleth */}
+      {viewConfig.visualisationType === VisualisationType.Choropleth && (
+        <Layer
+          id={`${sourceId}-fill`}
+          source={sourceId}
+          source-layer={layerId}
+          type="fill"
+          paint={{
+            "fill-color": fillColor,
+            "fill-opacity": 0.8, // Higher opacity to ensure colors are visible
+          }}
+        />
+      )}
 
-      {/* Line Layer */}
-      {viewConfig.showBoundaryOutline && (
+      {/* Line Layer - show for both boundary-only and choropleth */}
+      {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
+        viewConfig.visualisationType === VisualisationType.Choropleth) && (
         <Layer
           id={`${sourceId}-line`}
           source={sourceId}

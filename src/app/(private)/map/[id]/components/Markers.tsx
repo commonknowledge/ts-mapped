@@ -6,6 +6,20 @@ import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  const bigint = parseInt(normalized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return { r, g, b };
+}
+
+function rgbaString(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export default function Markers() {
   const { mapConfig, viewConfig } = useContext(MapContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
@@ -62,109 +76,21 @@ function DataSourceMarkers({
       key={sourceId}
       type="geojson"
       data={safeMarkers}
-      cluster={true}
-      clusterMaxZoom={14}
-      clusterRadius={50}
-      clusterProperties={{
-        matched_count: ["+", ["case", ["get", MARKER_MATCHED_KEY], 1, 0]],
-      }}
+      // Disable clustering; use heatmap for density instead
     >
-      <Layer
-        id={`${sourceId}-circles`}
-        type="circle"
-        source={sourceId}
-        filter={["has", "point_count"]}
-        paint={{
-          "circle-color": colors.color,
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["get", "point_count"],
-            1,
-            50,
-            1000,
-            100,
-          ],
-          "circle-opacity": [
-            "case",
-            ["==", ["get", "matched_count"], 0],
-            0.3,
-            0.6,
-          ],
-        }}
-      />
-      <Layer
-        id={`${sourceId}-counts`}
-        type="symbol"
-        source={sourceId}
-        filter={["has", "point_count"]}
-        layout={{
-          "text-field": ["get", "point_count_abbreviated"],
-          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
-          "text-size": 16,
-        }}
-        paint={{
-          "text-color": "#000000",
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 1,
-        }}
-      />
-      <Layer
-        id={`${sourceId}-pins`}
-        type="circle"
-        source={sourceId}
-        filter={["!", ["has", "point_count"]]}
-        paint={{
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            4, // Smaller radius at low zoom levels
-            10,
-            6, // Larger radius at higher zoom levels
-          ],
-          "circle-color": colors.color,
-          "circle-opacity": ["case", ["get", MARKER_MATCHED_KEY], 1, 0.5],
-          "circle-stroke-width": 1,
-          "circle-stroke-color": "#ffffff",
-        }}
-      />
-      <Layer
-        id={`${sourceId}-labels`}
-        type="symbol"
-        source="markers"
-        filter={["!", ["has", "point_count"]]}
-        minzoom={10}
-        layout={{
-          "text-field": ["get", MARKER_NAME_KEY],
-          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
-          "text-size": 12,
-          "text-transform": "uppercase",
-          "text-offset": [0, -1.25],
-        }}
-        paint={{
-          "text-color": colors.color,
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 1,
-        }}
-      />
-      {/* This layer here for styling purposes as it adds a glow effect to the markers */}
+      {/* Heatmap layer replaces cluster circles/counts */}
       <Layer
         id={`${sourceId}-heatmap`}
         type="heatmap"
         source={sourceId}
-        filter={["has", "point_count"]}
+        maxzoom={9}
         paint={{
-          // Increase weight based on point count
+          // Uniform weight (adjust if you have a numeric property to weight by)
           "heatmap-weight": [
-            "interpolate",
-            ["linear"],
-            ["get", "point_count"],
-            0,
-            0,
-            10,
-            1,
+            "case",
+            ["get", MARKER_MATCHED_KEY],
+            1, // Full weight for matched points
+            0.2, // Reduced weight for unmatched points (adjust as needed)
           ],
           // Increase intensity as zoom level increases
           "heatmap-intensity": [
@@ -173,31 +99,75 @@ function DataSourceMarkers({
             ["zoom"],
             0,
             1,
-            15,
+            9,
             3,
           ],
-          // Assign colors to heatmap based on density
+          // Color ramp using the layer's base color
           "heatmap-color": [
             "interpolate",
             ["linear"],
             ["heatmap-density"],
             0,
-            "rgba(103, 141, 227, 0)",
+            rgbaString(colors.color, 0),
             0.2,
-            "rgba(103, 141, 227, 0.2)",
+            rgbaString(colors.color, 0.2),
             0.4,
-            "rgba(103, 141, 227, 0.4)",
+            rgbaString(colors.color, 0.4),
             0.6,
-            "rgba(103, 141, 227, 0.6)",
+            rgbaString(colors.color, 0.6),
             0.8,
-            "rgba(103, 141, 227, 0.8)",
+            rgbaString(colors.color, 0.8),
             1,
-            "rgba(103, 141, 227, 1)",
+            rgbaString(colors.color, 1),
           ],
-          // Adjust radius based on zoom level
-          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 2, 10, 20],
-          // Opacity based on zoom level
-          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 15, 0],
+          // Radius scales with zoom
+          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 2, 9, 20],
+          // Transition from heatmap to circles by zoom level
+          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 9, 0],
+        }}
+      />
+
+      {/* Individual pins for higher zooms */}
+      <Layer
+        id={`${sourceId}-pins`}
+        type="circle"
+        source={sourceId}
+        minzoom={8}
+        paint={{
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
+          "circle-color": colors.color,
+          "circle-opacity": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            7,
+            0,
+            8,
+            ["case", ["get", MARKER_MATCHED_KEY], 1, 0.5],
+          ],
+          "circle-stroke-width": 1,
+          "circle-stroke-color": "#ffffff",
+        }}
+      />
+
+      {/* Labels for pins at higher zooms */}
+      <Layer
+        id={`${sourceId}-labels`}
+        type="symbol"
+        source={sourceId}
+        minzoom={12}
+        layout={{
+          "text-field": ["get", MARKER_NAME_KEY],
+          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+          "text-size": 12,
+          "text-transform": "uppercase",
+          "text-offset": [0, 1],
+          "text-anchor": "top",
+        }}
+        paint={{
+          "text-color": colors.color,
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 1,
         }}
       />
     </Source>

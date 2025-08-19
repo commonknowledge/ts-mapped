@@ -10,16 +10,15 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Database, Table } from "lucide-react";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { PlacedMarker } from "@/__generated__/types";
-import DataSourceIcon from "@/app/(private)/map/[id]/components/DataSourceIcon";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
@@ -32,6 +31,8 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/(private)/map/[id]/utils";
+import CollectionLayer from "../../CollectionLayer";
+import EmptyLayer from "../../Emptylayer";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
@@ -292,11 +293,31 @@ export default function MarkersList() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveId(null)}
+        modifiers={[restrictToVerticalAxis]}
       >
         <div
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           <ol>
+            {markerDataSources.length === 0 && placedMarkers.length === 0 && (
+              <EmptyLayer message="Add a Marker Layer" />
+            )}
+            {/* Data sources */}
+            {markerDataSources.length > 0 && (
+              <ul>
+                {markerDataSources.map((dataSource) => (
+                  <li key={dataSource.id} className="mb-2">
+                    <CollectionLayer
+                      dataSource={dataSource}
+                      isSelected={dataSource.id === selectedDataSourceId}
+                      onClick={() => handleDataSourceSelect(dataSource.id)}
+                      handleDataSourceSelect={handleDataSourceSelect}
+                      layerType="marker"
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
             {/* Folders */}
             <SortableContext
               items={sortedFolders.map((f) => `folder-drag-${f.id}`)}
@@ -325,41 +346,6 @@ export default function MarkersList() {
               setKeyboardCapture={setKeyboardCapture}
             />
           </div>
-
-          {/* Data sources */}
-          {markerDataSources.length > 0 && (
-            <div className="gap-2 p-2 mt-3 bg-muted rounded">
-              <div className="flex items-center gap-2">
-                <Database className="h-3 w-3 text-muted-foreground shrink-0" />
-                <p className="text-xs text-muted-foreground whitespace-nowrap">
-                  Data sources
-                </p>
-              </div>
-
-              <ul>
-                {markerDataSources.map((dataSource) => (
-                  <li key={dataSource.id} className="text-sm mt-2">
-                    <div
-                      className={`text-sm cursor-pointer rounded hover:bg-neutral-100 transition-colors flex items-center justify-between gap-2 ${
-                        dataSource.id === selectedDataSourceId
-                          ? "bg-neutral-100"
-                          : ""
-                      }`}
-                      onClick={() => handleDataSourceSelect(dataSource.id)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <DataSourceIcon type={dataSource.config.type} />
-                        {dataSource.name}
-                      </div>
-                      {dataSource.id === selectedDataSourceId && (
-                        <Table className="w-4 h-4 text-neutral-500" />
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
 
         {createPortal(

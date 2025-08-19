@@ -4,6 +4,7 @@ import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
+import VisualiseControl from "./layers/VisualiseControl";
 
 export default function Controls({
   controlPanelWidth,
@@ -56,7 +57,7 @@ export default function Controls({
 
           {/* Content */}
           <div
-            className="flex flex-col overflow-y-auto"
+            className="flex flex-col overflow-y-auto flex-1"
             style={{ width: `${controlPanelWidth}px` }}
           >
             <MembersControl />
@@ -64,6 +65,10 @@ export default function Controls({
             <MarkersControl />
             <Separator />
             <AreasControl />
+            <div className="flex flex-col  mt-auto">
+              <Separator />
+              <VisualiseControl />
+            </div>
           </div>
         </div>
       </div>

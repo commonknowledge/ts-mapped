@@ -7,8 +7,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
-import ChoroplethControl from "./components/controls/ChoroplethControl";
 import Controls from "./components/controls/Controls";
+import VisualisationPanel from "./components/controls/visualisation/VisualisationPanel";
 import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
@@ -67,6 +67,7 @@ export default function MapPage() {
           setShowControls={setShowControls}
           controlPanelWidth={controlPanelWidth}
         />
+        <VisualisationPanel />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>
@@ -74,8 +75,7 @@ export default function MapPage() {
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
               <MapStyleSelector />
-              <ChoroplethControl />
-              <Legend areaStats={areaStatsQuery?.data?.areaStats} />
+              <Legend />
             </ResizablePanel>
             {selectedDataSourceId && (
               <>

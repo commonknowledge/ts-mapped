@@ -5,6 +5,7 @@ import {
   AreaSetGroupCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
+  CalculationType,
   DataRecordsQuery,
   DataRecordsQueryVariables,
   DataSourceView,
@@ -17,7 +18,6 @@ import {
   DeleteTurfMutationVariables,
   MapQuery,
   MapQueryVariables,
-  Operation,
   RecordFilterInput,
   SortInput,
   UpdateMapConfigMutation,
@@ -41,6 +41,11 @@ export const useDataSourcesQuery = () =>
         columnDefs {
           name
           type
+        }
+        geocodingConfig {
+          areaSetCode
+          type
+          column
         }
         recordCount {
           count
@@ -141,6 +146,9 @@ export const useMapQuery = (mapId: string | null) =>
               showLocations
               showMembers
               showTurf
+              visualisationType
+              calculationType
+              colorScheme
             }
             dataSourceViews {
               dataSourceId
@@ -252,6 +260,7 @@ export const useAreaStatsQuery = ({
   column,
   excludeColumns,
   useDummyBoundingBox,
+  calculationType,
 }: {
   areaSetGroupCode: AreaSetGroupCode | null;
   areaSetCode: AreaSetCode;
@@ -259,24 +268,33 @@ export const useAreaStatsQuery = ({
   column: string;
   excludeColumns: string[];
   useDummyBoundingBox: boolean;
-}) =>
-  useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
+  calculationType?: CalculationType | null;
+}) => {
+  // Use a dummy column for counts to avoid un-necessary refetching
+  const columnOrCount =
+    calculationType === CalculationType.Count ? "__count" : column;
+  const skipCondition =
+    !dataSourceId ||
+    (!column && calculationType !== CalculationType.Count) ||
+    !areaSetGroupCode;
+
+  return useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
     gql`
       query AreaStats(
         $areaSetCode: AreaSetCode!
         $dataSourceId: String!
         $column: String!
-        $operation: Operation!
         $excludeColumns: [String!]!
         $boundingBox: BoundingBoxInput
+        $calculationType: CalculationType!
       ) {
         areaStats(
           areaSetCode: $areaSetCode
           dataSourceId: $dataSourceId
           column: $column
-          operation: $operation
           excludeColumns: $excludeColumns
           boundingBox: $boundingBox
+          calculationType: $calculationType
         ) {
           column
           columnType
@@ -291,19 +309,20 @@ export const useAreaStatsQuery = ({
       variables: {
         areaSetCode,
         dataSourceId,
-        column,
-        operation: Operation.AVG,
+        column: columnOrCount,
         excludeColumns,
         // Using a dummy boundingBox is required for fetchMore() to update this query's data.
         // Note: this makes the first query return no data. Only fetchMore() returns data.
         boundingBox: useDummyBoundingBox
           ? { north: 0, east: 0, south: 0, west: 0 }
           : null,
+        calculationType: calculationType || CalculationType.Value,
       },
-      skip: !dataSourceId || !column || !areaSetGroupCode,
+      skip: skipCondition,
       notifyOnNetworkStatusChange: true,
     },
   );
+};
 
 export const useUpdateMapConfigMutation = () => {
   return useMutation<UpdateMapConfigMutation, UpdateMapConfigMutationVariables>(

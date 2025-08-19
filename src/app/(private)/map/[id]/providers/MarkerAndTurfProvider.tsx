@@ -23,6 +23,9 @@ export default function MarkerAndTurfProvider({
 
   const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
+  const [selectedPlacedMarkerId, setSelectedPlacedMarkerId] = useState<
+    string | null
+  >(null);
 
   /* GraphQL Data */
   const markerQueries = useMarkerQueries({
@@ -92,6 +95,8 @@ export default function MarkerAndTurfProvider({
         updatePlacedMarker,
         selectedMarker,
         setSelectedMarker,
+        selectedPlacedMarkerId,
+        setSelectedPlacedMarkerId,
         turfs,
         turfsLoading,
         deleteTurf,
