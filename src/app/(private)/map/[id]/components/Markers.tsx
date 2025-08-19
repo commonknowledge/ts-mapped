@@ -25,11 +25,11 @@ export default function Markers() {
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = markerQueries?.data?.find(
-    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId
+    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
   );
 
   const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
-    markerQueries?.data?.find((ds) => ds.dataSourceId === id)
+    markerQueries?.data?.find((ds) => ds.dataSourceId === id),
   );
 
   return (
@@ -136,11 +136,15 @@ function DataSourceMarkers({
         paint={{
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
           "circle-color": colors.color,
-          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, [
-            "case",
-            ["get", MARKER_MATCHED_KEY],
-            1, 0.5
-          ]],
+          "circle-opacity": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            7,
+            0,
+            8,
+            ["case", ["get", MARKER_MATCHED_KEY], 1, 0.5],
+          ],
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",
         }}
