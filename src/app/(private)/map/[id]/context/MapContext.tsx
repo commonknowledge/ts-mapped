@@ -4,11 +4,14 @@ import { MapRef } from "react-map-gl/mapbox";
 import {
   AreaSetGroupCode,
   BoundingBoxInput,
+  CalculationType,
+  ColorScheme,
   MapConfigInput,
   MapQuery,
   MapQueryVariables,
   MapStyleName,
   MapViewConfigInput,
+  VisualisationType,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
 import mapStyles from "../styles";
@@ -34,9 +37,9 @@ export class ViewConfig implements MapViewConfigInput {
   public showMembers = true;
   public showLocations = true;
   public showTurf = true;
-  public calculationType: 'value' | 'count' | 'sum' | 'average' = 'value';
-  public colorScheme?: 'red-blue' | 'green-yellow-red' | 'viridis' | 'plasma' | 'diverging' | 'sequential';
-  public visualizationType?: 'boundary-only' | 'choropleth';
+  public calculationType?: CalculationType | null = CalculationType.Value;
+  public colorScheme?: ColorScheme | null = ColorScheme.RedBlue;
+  public visualisationType?: VisualisationType | null;
 
   constructor(params: Partial<ViewConfig> = {}) {
     Object.assign(this, params);

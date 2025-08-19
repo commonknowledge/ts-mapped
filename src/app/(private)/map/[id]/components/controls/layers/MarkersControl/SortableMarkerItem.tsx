@@ -67,23 +67,12 @@ export default function SortableMarkerItem({
       return;
     }
 
-    console.log("Setting selectedPlacedMarkerId to:", marker.id);
     setSelectedPlacedMarkerId(marker.id);
     map.flyTo({
       center: marker.point,
       zoom: 12,
     });
   };
-
-  // Debug logging
-  console.log(
-    "Rendering marker:",
-    marker.id,
-    "selectedPlacedMarkerId:",
-    selectedPlacedMarkerId,
-    "should show border:",
-    marker.id === selectedPlacedMarkerId
-  );
 
   return (
     <ContextMenu>

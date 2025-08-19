@@ -1,28 +1,29 @@
-import { scaleLinear } from "d3-scale";
-import { Database, DotIcon } from "lucide-react";
+import { Database } from "lucide-react";
 import { useContext } from "react";
-import { AreaStats, ColumnType } from "@/__generated__/types";
+import { ColorScheme, ColumnType } from "@/__generated__/types";
 import { useColorScheme } from "../colors";
+import { ChoroplethContext } from "../context/ChoroplethContext";
 import { DataSourcesContext } from "../context/DataSourcesContext";
 import { MapContext } from "../context/MapContext";
-import { ChoroplethContext } from "../context/ChoroplethContext";
 
 export default function Legend() {
   const { viewConfig } = useContext(MapContext);
   const { getChoroplethDataSource } = useContext(DataSourcesContext);
-  const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
-    useContext(ChoroplethContext);
+  const { areaStatsQuery } = useContext(ChoroplethContext);
 
   const areaStats = areaStatsQuery?.data?.areaStats;
 
   const dataSource = getChoroplethDataSource();
 
-  const colorScheme = useColorScheme(areaStats, viewConfig.colorScheme || 'red-blue');
+  const colorScheme = useColorScheme(
+    areaStats,
+    viewConfig.colorScheme || ColorScheme.RedBlue,
+  );
   if (!colorScheme) {
     return null;
   }
 
-  let bars = [] as any;
+  let bars;
   if (colorScheme.columnType === ColumnType.Number) {
     const numStops = 24;
     const stops = new Array(numStops + 1)
@@ -30,7 +31,8 @@ export default function Legend() {
       .map((_, i) => {
         const t = i / numStops;
         const value =
-          colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue);
+          colorScheme.minValue +
+          t * (colorScheme.maxValue - colorScheme.minValue);
         const color = colorScheme.colorScale(value);
         return `${color} ${t * 100}%`;
       })
@@ -49,24 +51,31 @@ export default function Legend() {
           {Array.from({ length: numTicks }).map((_, i) => {
             const t = i / denom;
             const value =
-              colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue);
+              colorScheme.minValue +
+              t * (colorScheme.maxValue - colorScheme.minValue);
             const positionStyle =
               i === 0
                 ? { left: 0, transform: "translateX(0%)" }
                 : i === numTicks - 1
                   ? { left: "100%", transform: "translateX(-100%)" }
                   : { left: `${t * 100}%`, transform: "translateX(-50%)" };
-            const alignClass = i === 0 ? "items-start" : i === numTicks - 1 ? "items-end" : "items-center";
+            const alignClass =
+              i === 0
+                ? "items-start"
+                : i === numTicks - 1
+                  ? "items-end"
+                  : "items-center";
             return (
               <div
                 key={i}
                 className={`absolute flex flex-col ${alignClass}`}
-                style={positionStyle as any}
+                style={positionStyle}
               >
                 {/* <div className="w-px h-2 bg-neutral-300" /> */}
                 <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
                   {(() => {
-                    const isPercent = colorScheme.minValue >= 0 && colorScheme.maxValue <= 1;
+                    const isPercent =
+                      colorScheme.minValue >= 0 && colorScheme.maxValue <= 1;
                     return isPercent
                       ? `${Math.round(value * 100)}%`
                       : Math.round(value * 100) / 100;
@@ -94,9 +103,11 @@ export default function Legend() {
 
   return (
     <div className="flex flex-col gap-1 rounded-sm overflow-scroll bg-white border border-neutral-200">
-      <p className=" flex  gap-2 items-center text-xs font-mono p-2"><Database className="w-4 h-4 text-muted-foreground" /> Locality Data Legend</p>
+      <p className=" flex  gap-2 items-center text-xs font-mono p-2">
+        <Database className="w-4 h-4 text-muted-foreground" /> Locality Data
+        Legend
+      </p>
       <div className="flex flex-col ">
-
         <p className="flex items-center font-medium px-2 ">
           {dataSource?.name}
         </p>

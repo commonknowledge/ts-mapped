@@ -15,8 +15,8 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import Loading from "../../Loading";
-import LayerHeader from "../LayerHeader";
 import EmptyLayer from "../Emptylayer";
+import LayerHeader from "../LayerHeader";
 
 export default function AreasControl() {
   const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
@@ -84,9 +84,7 @@ export default function AreasControl() {
       </LayerHeader>
 
       <div className="relative">
-        {turfs.length === 0 && (
-          <EmptyLayer message="Add an Area Layer" />
-        )}
+        {turfs.length === 0 && <EmptyLayer message="Add an Area Layer" />}
         {/* Disable interactions while turfs are loading/updating in the background */}
         {turfsLoading && <Loading blockInteraction />}
         <ul

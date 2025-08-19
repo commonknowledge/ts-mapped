@@ -79,7 +79,7 @@ export default function MarkersList() {
       keyboardCodes: keyboardCapture
         ? { start: [], cancel: [], end: [] }
         : undefined,
-    })
+    }),
   );
 
   // Drag and drop handlers
@@ -120,7 +120,7 @@ export default function MarkersList() {
         }
 
         const folderMarkers = placedMarkers.filter(
-          (m) => m.folderId === folderId
+          (m) => m.folderId === folderId,
         );
 
         const newPosition = append
@@ -134,7 +134,7 @@ export default function MarkersList() {
         });
       } else if (over.id === "unassigned") {
         const unassignedMarkers = placedMarkers.filter(
-          (m) => m.folderId === null
+          (m) => m.folderId === null,
         );
         const newPosition = getNewFirstPosition(unassignedMarkers);
         preparePlacedMarkerUpdate({
@@ -144,7 +144,7 @@ export default function MarkersList() {
         });
       }
     },
-    [placedMarkers, preparePlacedMarkerUpdate]
+    [placedMarkers, preparePlacedMarkerUpdate],
   );
 
   const handleDragEndMarker = useCallback(
@@ -179,20 +179,20 @@ export default function MarkersList() {
           // Get other markers to position against
           const otherMarkers = placedMarkers.filter(
             (m) =>
-              m.id !== activeMarker.id && m.folderId === activeMarker.folderId
+              m.id !== activeMarker.id && m.folderId === activeMarker.folderId,
           );
 
           if (activeWasBeforeOver) {
             // If active marker was before, make it after
             newPosition = getNewPositionAfter(
               overMarker.position,
-              otherMarkers
+              otherMarkers,
             );
           } else {
             // If active marker was after, make it before
             newPosition = getNewPositionBefore(
               overMarker.position,
-              otherMarkers
+              otherMarkers,
             );
           }
 
@@ -203,7 +203,7 @@ export default function MarkersList() {
         }
       }
     },
-    [placedMarkers, preparePlacedMarkerUpdate, setPulsingFolderId]
+    [placedMarkers, preparePlacedMarkerUpdate, setPulsingFolderId],
   );
 
   const handleDragEndFolder = useCallback(
@@ -234,13 +234,13 @@ export default function MarkersList() {
             // If active folder was before, make it after
             newPosition = getNewPositionAfter(
               overFolder.position,
-              otherFolders
+              otherFolders,
             );
           } else {
             // If active folder was after, make it before
             newPosition = getNewPositionBefore(
               overFolder.position,
-              otherFolders
+              otherFolders,
             );
           }
 
@@ -251,7 +251,7 @@ export default function MarkersList() {
         }
       }
     },
-    [folders, updateFolder]
+    [folders, updateFolder],
   );
 
   const handleDragEnd = useCallback(
@@ -270,7 +270,7 @@ export default function MarkersList() {
 
       commitPlacedMarkerUpdates();
     },
-    [commitPlacedMarkerUpdates, handleDragEndFolder, handleDragEndMarker]
+    [commitPlacedMarkerUpdates, handleDragEndFolder, handleDragEndMarker],
   );
 
   const sortedFolders = useMemo(() => {
@@ -328,7 +328,7 @@ export default function MarkersList() {
                   key={folder.id}
                   folder={folder}
                   markers={placedMarkers.filter(
-                    (p) => p.folderId === folder.id
+                    (p) => p.folderId === folder.id,
                   )}
                   activeId={activeId}
                   setKeyboardCapture={setKeyboardCapture}
@@ -354,7 +354,7 @@ export default function MarkersList() {
               <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
             )}
           </DragOverlay>,
-          document.body
+          document.body,
         )}
       </DndContext>
     </div>

@@ -3,6 +3,7 @@
 import { DataSourceType } from "@/types";
 import {
   AreaSetCode,
+  AreaSetGroupCode,
   EnrichmentSourceType,
   GeocodingType,
 } from "./__generated__/types";
@@ -17,6 +18,11 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "UK Postcode",
   OA21: "Census Output Area (2021)",
   MSOA21: "Middle Super Output Area (2021)",
+  WMC24: "Westminster Constituency (2024)",
+};
+
+export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
+  OA21: "Census Output Area (2021)",
   WMC24: "Westminster Constituency (2024)",
 };
 

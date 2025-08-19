@@ -1,33 +1,40 @@
 "use client";
 
 import { gql, useQuery } from "@apollo/client";
-import { LoaderPinwheel, PlusIcon, Database, Globe, BookOpen, Pentagon, Users } from "lucide-react";
+import {
+  BookOpen,
+  Database,
+  LoaderPinwheel,
+  Pentagon,
+  PlusIcon,
+  Users,
+} from "lucide-react";
 import { useContext, useState } from "react";
 import {
+  AreaSetGroupCode,
   ListDataSourcesQuery,
   ListDataSourcesQueryVariables,
 } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
+import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceType } from "@/types";
-import { DataSourceCard } from "./components/DataSourceCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import { AreaSetGroupCode } from "@/__generated__/types";
-import { AREA_SET_GROUP_LABELS } from "@/app/(private)/map/[id]/sources";
 import DataSourceItem from "../map/[id]/components/DataSourceItem";
 import CollectionIcon from "../map/[id]/components/Icons";
 import { mapColors } from "../map/[id]/styles";
 
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
-  const [activeTab, setActiveTab] = useState<"your-data" | "mapped-library">("your-data");
+  const [activeTab, setActiveTab] = useState<"your-data" | "mapped-library">(
+    "your-data",
+  );
 
   const { data, loading } = useQuery<
-    any,
-    { organisationId?: string | null }
+    ListDataSourcesQuery,
+    ListDataSourcesQueryVariables
   >(
     gql`
       query ListDataSources($organisationId: String) {
@@ -75,48 +82,57 @@ export default function DataSourcesPage() {
   const mappedDataLibrary = {
     localityShapes: [
       {
-        id: 'boundaries-wmc24',
-        name: AREA_SET_GROUP_LABELS[AreaSetGroupCode.WMC24],
-        description: 'Westminster Parliamentary Constituencies for UK mapping',
-        type: 'boundary',
-        category: 'Locality Shapes'
+        id: "boundaries-wmc24",
+        name: AreaSetGroupCodeLabels[AreaSetGroupCode.WMC24],
+        description: "Westminster Parliamentary Constituencies for UK mapping",
+        type: "boundary",
+        category: "Locality Shapes",
       },
       {
-        id: 'boundaries-oa21',
-        name: AREA_SET_GROUP_LABELS[AreaSetGroupCode.OA21],
-        description: 'Census Output Areas for detailed area mapping',
-        type: 'boundary',
-        category: 'Locality Shapes'
-      }
+        id: "boundaries-oa21",
+        name: AreaSetGroupCodeLabels[AreaSetGroupCode.OA21],
+        description: "Census Output Areas for detailed area mapping",
+        type: "boundary",
+        category: "Locality Shapes",
+      },
     ],
     referenceData: [
       {
-        id: 'ge-2024',
-        name: 'General Election 2024',
-        description: 'Elecectoral results for the 2024 General Election',
-        type: 'dataset',
-        category: 'Reference Data'
+        id: "ge-2024",
+        name: "General Election 2024",
+        description: "Elecectoral results for the 2024 General Election",
+        type: "dataset",
+        category: "Reference Data",
       },
       {
-        id: 'deprivation-2021',
-        name: 'Deprivation 2021',
-        description: 'Deprivation data for the 2021 Index of Multiple Deprivation',
-        type: 'dataset',
-        category: 'Reference Data'
-      }
-    ]
+        id: "deprivation-2021",
+        name: "Deprivation 2021",
+        description:
+          "Deprivation data for the 2021 Index of Multiple Deprivation",
+        type: "dataset",
+        category: "Reference Data",
+      },
+    ],
   };
 
   return (
     <div className="">
-
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as "your-data" | "mapped-library")
+        }
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="your-data" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
             Your Data
           </TabsTrigger>
-          <TabsTrigger value="mapped-library" className="flex items-center gap-2">
+          <TabsTrigger
+            value="mapped-library"
+            className="flex items-center gap-2"
+          >
             <BookOpen className="w-4 h-4" />
             Mapped Data Library
           </TabsTrigger>
@@ -150,19 +166,21 @@ export default function DataSourcesPage() {
                 </h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {dataSources
-                    .filter((dataSource: any) => {
+                    .filter((dataSource) => {
                       // Filter for member/activist related data sources
                       const config = dataSource.config;
-                      return config?.type === 'actionnetwork' ||
-                        config?.type === 'mailchimp' ||
-                        dataSource.name.toLowerCase().includes('member') ||
-                        dataSource.name.toLowerCase().includes('activist') ||
-                        dataSource.name.toLowerCase().includes('supporter');
+                      return (
+                        config?.type === "actionnetwork" ||
+                        config?.type === "mailchimp" ||
+                        dataSource.name.toLowerCase().includes("member") ||
+                        dataSource.name.toLowerCase().includes("activist") ||
+                        dataSource.name.toLowerCase().includes("supporter")
+                      );
                     })
-                    .map((dataSource: any) => (
+                    .map((dataSource) => (
                       <DataSourceItem
                         key={dataSource.id}
-                        dataSource={dataSource as any}
+                        dataSource={dataSource}
                         isSelected={false}
                         onClick={() => {
                           // Navigate to data source detail page
@@ -170,19 +188,21 @@ export default function DataSourcesPage() {
                         }}
                       />
                     ))}
-                  {dataSources.filter((dataSource: any) => {
+                  {dataSources.filter((dataSource) => {
                     const config = dataSource.config;
-                    return config?.type === 'actionnetwork' ||
-                      config?.type === 'mailchimp' ||
-                      dataSource.name.toLowerCase().includes('member') ||
-                      dataSource.name.toLowerCase().includes('activist') ||
-                      dataSource.name.toLowerCase().includes('supporter');
+                    return (
+                      config?.type === "actionnetwork" ||
+                      config?.type === "mailchimp" ||
+                      dataSource.name.toLowerCase().includes("member") ||
+                      dataSource.name.toLowerCase().includes("activist") ||
+                      dataSource.name.toLowerCase().includes("supporter")
+                    );
                   }).length === 0 && (
-                      <div className="col-span-full text-center py-8 text-gray-400">
-                        <Users className="w-8 h-8 mx-auto mb-2" />
-                        <p className="text-sm">No member collections yet</p>
-                      </div>
-                    )}
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Users className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No member collections yet</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -194,20 +214,22 @@ export default function DataSourcesPage() {
                 </h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {dataSources
-                    .filter((dataSource: any) => {
+                    .filter((dataSource) => {
                       // Filter for reference/utility data sources
                       const config = dataSource.config;
-                      return config?.type === 'csv' ||
-                        config?.type === 'googlesheets' ||
-                        config?.type === 'airtable' ||
-                        dataSource.name.toLowerCase().includes('reference') ||
-                        dataSource.name.toLowerCase().includes('utility') ||
-                        dataSource.name.toLowerCase().includes('data');
+                      return (
+                        config?.type === "csv" ||
+                        config?.type === "googlesheets" ||
+                        config?.type === "airtable" ||
+                        dataSource.name.toLowerCase().includes("reference") ||
+                        dataSource.name.toLowerCase().includes("utility") ||
+                        dataSource.name.toLowerCase().includes("data")
+                      );
                     })
-                    .map((dataSource: any) => (
+                    .map((dataSource) => (
                       <DataSourceItem
                         key={dataSource.id}
-                        dataSource={dataSource as any}
+                        dataSource={dataSource}
                         isSelected={false}
                         onClick={() => {
                           // Navigate to data source detail page
@@ -215,20 +237,22 @@ export default function DataSourcesPage() {
                         }}
                       />
                     ))}
-                  {dataSources.filter((dataSource: any) => {
+                  {dataSources.filter((dataSource) => {
                     const config = dataSource.config;
-                    return config?.type === 'csv' ||
-                      config?.type === 'googlesheets' ||
-                      config?.type === 'airtable' ||
-                      dataSource.name.toLowerCase().includes('reference') ||
-                      dataSource.name.toLowerCase().includes('utility') ||
-                      dataSource.name.toLowerCase().includes('data');
+                    return (
+                      config?.type === "csv" ||
+                      config?.type === "googlesheets" ||
+                      config?.type === "airtable" ||
+                      dataSource.name.toLowerCase().includes("reference") ||
+                      dataSource.name.toLowerCase().includes("utility") ||
+                      dataSource.name.toLowerCase().includes("data")
+                    );
                   }).length === 0 && (
-                      <div className="col-span-full text-center py-8 text-gray-400">
-                        <Database className="w-8 h-8 mx-auto mb-2" />
-                        <p className="text-sm">No reference data yet</p>
-                      </div>
-                    )}
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Database className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No reference data yet</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -237,7 +261,9 @@ export default function DataSourcesPage() {
                 <div className="text-center py-12 text-gray-500">
                   <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <p className="text-lg font-medium">No data sources yet</p>
-                  <p className="text-sm mb-4">Create your first data source to get started</p>
+                  <p className="text-sm mb-4">
+                    Create your first data source to get started
+                  </p>
                   <Link href="/data-sources/new">
                     <Button variant="outline" size="sm">
                       <PlusIcon className="w-4 h-4 mr-2" />
@@ -283,13 +309,19 @@ export default function DataSourcesPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm truncate">{item.name}</h4>
+                          <h4 className="font-medium text-sm truncate">
+                            {item.name}
+                          </h4>
                           <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
                             Boundary
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600 mb-2">{item.description}</p>
-                        <span className="text-xs text-gray-500">{item.category}</span>
+                        <p className="text-xs text-gray-600 mb-2">
+                          {item.description}
+                        </p>
+                        <span className="text-xs text-gray-500">
+                          {item.category}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -315,13 +347,19 @@ export default function DataSourcesPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm truncate">{item.name}</h4>
+                          <h4 className="font-medium text-sm truncate">
+                            {item.name}
+                          </h4>
                           <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                             Dataset
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600 mb-2">{item.description}</p>
-                        <span className="text-xs text-gray-500">{item.category}</span>
+                        <p className="text-xs text-gray-600 mb-2">
+                          {item.description}
+                        </p>
+                        <span className="text-xs text-gray-500">
+                          {item.category}
+                        </span>
                       </div>
                     </div>
                   </div>

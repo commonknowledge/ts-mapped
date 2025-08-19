@@ -6,7 +6,6 @@ import {
 import { useMemo } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
 import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils";
-import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
 
@@ -38,9 +37,7 @@ export default function UnassignedFolder({
         </div>
       )}
 
-      <div
-        className={cn("mt-1 space-y-0.5 ml-1")}
-      >
+      <div className={cn("mt-1 space-y-0.5 ml-1")}>
         <SortableContext
           items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
           strategy={verticalListSortingStrategy}

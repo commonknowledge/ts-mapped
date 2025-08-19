@@ -97,7 +97,7 @@ export default function SortableFolderItem({
   const onClickDelete = () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost."
+        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost.",
       )
     ) {
       return;
@@ -160,7 +160,7 @@ export default function SortableFolderItem({
             <span
               className={cn(
                 "text-xs text-muted-foreground  transition-transform duration-30 rounded-full bg-neutral-50 px-1",
-                isPulsing ? "animate-pulse  transform scale-110" : ""
+                isPulsing ? "animate-pulse  transform scale-110" : "",
               )}
               style={{
                 color: isPulsing ? "green" : "",

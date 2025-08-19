@@ -110,7 +110,9 @@ program
 
 program
   .command("createsuperuser")
-  .description("Create a superuser with hello@commonknowledge.coop and password 1234")
+  .description(
+    "Create a superuser with hello@commonknowledge.coop and password 1234",
+  )
   .action(async () => {
     try {
       const email = "hello@commonknowledge.coop";
@@ -142,7 +144,6 @@ program
       logger.info(`Email: ${email}`);
       logger.info(`Password: ${password}`);
       logger.info(`Organisation: ${orgName}`);
-
     } catch (error) {
       logger.error("❌ Failed to create superuser", { error });
     }

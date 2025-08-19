@@ -1,11 +1,4 @@
-import {
-  Check,
-  DatabaseIcon,
-  Ellipsis,
-  FolderPlusIcon,
-  LoaderPinwheel,
-  MapPinIcon,
-} from "lucide-react";
+import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -17,8 +10,8 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import MarkersList from "./MarkersList";
 import CollectionIcon from "../../../Icons";
+import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
@@ -104,8 +97,8 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                (id) => id !== dataSource.id,
-              )
+                  (id) => id !== dataSource.id,
+                )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
         },
@@ -117,7 +110,12 @@ export default function MarkersControl() {
     {
       type: "submenu" as const,
       label: "Add Single Marker",
-      icon: <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: mapColors.markers.color }} />,
+      icon: (
+        <div
+          className="w-2.5 h-2.5 rounded-full"
+          style={{ backgroundColor: mapColors.markers.color }}
+        />
+      ),
       items: [
         {
           type: "item" as const,

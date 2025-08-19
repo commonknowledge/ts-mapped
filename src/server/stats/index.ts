@@ -2,10 +2,10 @@ import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
 import {
   AreaStat,
   BoundingBoxInput,
+  CalculationType,
   ColumnType,
-  Operation,
 } from "@/__generated__/types";
-import { COUNT_RECORDS_KEY, MAX_COLUMN_KEY } from "@/constants";
+import { MAX_COLUMN_KEY } from "@/constants";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import { Database } from "@/server/services/database";
@@ -14,41 +14,29 @@ import logger from "@/server/services/logger";
 export const getAreaStats = async (
   areaSetCode: string,
   dataSourceId: string,
+  calculationType: CalculationType,
   column: string,
-  operation: Operation,
   excludeColumns: string[],
-  boundingBox: BoundingBoxInput | null = null
+  boundingBox: BoundingBoxInput | null = null,
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
-  console.log(`getAreaStats called with:`, {
-    areaSetCode,
-    dataSourceId,
-    column,
-    operation,
-    excludeColumns,
-    boundingBox
-  });
-
   if (column === MAX_COLUMN_KEY) {
-    console.log(`getAreaStats: Using MAX_COLUMN_KEY logic`);
     const stats = await getMaxColumnByArea(
       areaSetCode,
       dataSourceId,
       excludeColumns,
-      boundingBox
+      boundingBox,
     );
     return { column, columnType: ColumnType.String, stats };
   }
-  if (column === COUNT_RECORDS_KEY) {
-    console.log(`getAreaStats: Using COUNT_RECORDS_KEY logic`);
+
+  if (calculationType === CalculationType.Count) {
     const stats = await getRecordCountByArea(
       areaSetCode,
       dataSourceId,
-      boundingBox
+      boundingBox,
     );
     return { column, columnType: ColumnType.Number, stats };
   }
-
-  console.log(`getAreaStats: Using standard column logic for column: ${column}`);
 
   try {
     const dataSource = await findDataSourceById(dataSourceId);
@@ -61,15 +49,17 @@ export const getAreaStats = async (
       throw new Error(`Data source column not found: ${column}`);
     }
 
-    let safeOperation = operation;
+    let safeCalculationType = calculationType;
     if (columnDef.type !== ColumnType.Number) {
-      safeOperation = Operation.MODE;
+      safeCalculationType = CalculationType.Value;
     }
 
     const valueSelect =
-      safeOperation === Operation.MODE
+      safeCalculationType === CalculationType.Value
         ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-        : db.fn(safeOperation, [sql`(json->>${column})::float`]).as("value");
+        : db
+            .fn(safeCalculationType, [sql`(json->>${column})::float`])
+            .as("value");
 
     const query = db
       .selectFrom("dataRecord")
@@ -94,7 +84,7 @@ export const getMaxColumnByArea = async (
   areaSetCode: string,
   dataSourceId: string,
   excludeColumns: string[],
-  boundingBox: BoundingBoxInput | null = null
+  boundingBox: BoundingBoxInput | null = null,
 ) => {
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
@@ -103,7 +93,7 @@ export const getMaxColumnByArea = async (
   const columnNames = dataSource.columnDefs
     .filter(
       ({ name, type }) =>
-        !excludeColumns.includes(name) && type === ColumnType.Number
+        !excludeColumns.includes(name) && type === ColumnType.Number,
     )
     .map((c) => c.name);
 
@@ -118,16 +108,16 @@ export const getMaxColumnByArea = async (
     caseBuilder:
       | CaseBuilder<Database, keyof Database, unknown, never>
       | CaseWhenBuilder<Database, keyof Database, unknown, string>,
-    column: string
+    column: string,
   ) => {
     return caseBuilder
       .when(
         db.fn(
           "GREATEST",
-          columnNames.map((c) => sql`json->>${c}`)
+          columnNames.map((c) => sql`json->>${c}`),
         ),
         "=",
-        sql`json->>${column}`
+        sql`json->>${column}`,
       )
       .then(column);
   };
@@ -181,15 +171,9 @@ export const getMaxColumnByArea = async (
 export const getRecordCountByArea = async (
   areaSetCode: string,
   dataSourceId: string,
-  boundingBox: BoundingBoxInput | null = null
+  boundingBox: BoundingBoxInput | null = null,
 ) => {
   try {
-    console.log(`getRecordCountByArea called with:`, {
-      areaSetCode,
-      dataSourceId,
-      boundingBox
-    });
-
     const query = db
       .selectFrom("dataRecord")
       .select([
@@ -200,10 +184,7 @@ export const getRecordCountByArea = async (
       .where(getBoundingBoxSQL(boundingBox))
       .groupBy("areaCode");
 
-    console.log(`getRecordCountByArea SQL query:`, query.compile());
-
     const result = await query.execute();
-    console.log(`getRecordCountByArea raw result:`, result);
 
     // Ensure the counts are numbers, not strings (returned by Postgres)
     const stats = filterResult(result).map((stat) => ({
@@ -211,10 +192,8 @@ export const getRecordCountByArea = async (
       value: Number(stat.value),
     }));
 
-    console.log(`getRecordCountByArea filtered stats:`, stats);
     return stats;
   } catch (error) {
-    console.error(`getRecordCountByArea error:`, error);
     logger.error(`Failed to get area max column by area`, { error });
   }
   return [];
@@ -248,5 +227,5 @@ const filterResult = (result: unknown[]) =>
       "areaCode" in r &&
       "value" in r &&
       r.areaCode !== null &&
-      r.value !== null
+      r.value !== null,
   ) as AreaStat[];

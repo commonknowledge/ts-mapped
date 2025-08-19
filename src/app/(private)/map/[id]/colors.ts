@@ -6,18 +6,18 @@ import {
   scaleSequential,
 } from "d3-scale";
 import {
+  interpolateBlues,
+  interpolateBrBG,
   interpolateOrRd,
-  schemeCategory10,
+  interpolatePlasma,
   interpolateRdBu,
   interpolateRdYlGn,
   interpolateViridis,
-  interpolatePlasma,
-  interpolateBrBG,
-  interpolateBlues,
+  schemeCategory10,
 } from "d3-scale-chromatic";
 import { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 import { useMemo } from "react";
-import { AreaStats, ColumnType } from "@/__generated__/types";
+import { AreaStats, ColorScheme, ColumnType } from "@/__generated__/types";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
 
 export interface CategoricColorScheme {
@@ -34,29 +34,20 @@ export interface NumericColorScheme {
   singleColor?: string;
 }
 
-const getInterpolator = (
-  scheme:
-    | "red-blue"
-    | "green-yellow-red"
-    | "viridis"
-    | "plasma"
-    | "diverging"
-    | "sequential"
-    | undefined,
-) => {
+const getInterpolator = (scheme: ColorScheme | undefined) => {
   switch (scheme) {
-    case "red-blue":
+    case ColorScheme.RedBlue:
       return interpolateRdBu;
-    case "green-yellow-red":
+    case ColorScheme.GreenYellowRed:
       // Reverse RdYlGn to get green->yellow->red
       return (t: number) => interpolateRdYlGn(1 - t);
-    case "viridis":
+    case ColorScheme.Viridis:
       return interpolateViridis;
-    case "plasma":
+    case ColorScheme.Plasma:
       return interpolatePlasma;
-    case "diverging":
+    case ColorScheme.Diverging:
       return interpolateBrBG;
-    case "sequential":
+    case ColorScheme.Sequential:
       return interpolateBlues;
     default:
       return interpolateOrRd;
@@ -65,13 +56,7 @@ const getInterpolator = (
 
 export const useColorScheme = (
   areaStats: AreaStats | null | undefined,
-  scheme?:
-    | "red-blue"
-    | "green-yellow-red"
-    | "viridis"
-    | "plasma"
-    | "diverging"
-    | "sequential",
+  scheme?: ColorScheme,
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
@@ -148,13 +133,7 @@ const getCategoricalColor = (
 
 export const useFillColor = (
   areaStats: AreaStats | null | undefined,
-  scheme?:
-    | "red-blue"
-    | "green-yellow-red"
-    | "viridis"
-    | "plasma"
-    | "diverging"
-    | "sequential",
+  scheme?: ColorScheme,
   isCount?: boolean,
 ): DataDrivenPropertyValueSpecification<string> => {
   const colorScheme = useColorScheme(areaStats, scheme);
@@ -182,9 +161,13 @@ export const useFillColor = (
       return [
         "interpolate",
         ["linear"],
-        isCount ? ["coalesce", ["feature-state", "value"], 0] : ["feature-state", "value"],
-        0, colorScheme.colorScale(0),
-        1, colorScheme.colorScale(1)
+        isCount
+          ? ["coalesce", ["feature-state", "value"], 0]
+          : ["feature-state", "value"],
+        0,
+        colorScheme.colorScale(0),
+        1,
+        colorScheme.colorScale(1),
       ];
     }
 
@@ -201,8 +184,10 @@ export const useFillColor = (
     return [
       "interpolate",
       ["linear"],
-      isCount ? ["coalesce", ["feature-state", "value"], 0] : ["feature-state", "value"],
+      isCount
+        ? ["coalesce", ["feature-state", "value"], 0]
+        : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [colorScheme]);
+  }, [colorScheme, isCount]);
 };

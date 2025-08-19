@@ -1,10 +1,5 @@
 import { AreaSetCode, AreaSetGroupCode } from "@/__generated__/types";
 
-export const AREA_SET_GROUP_LABELS: Record<AreaSetGroupCode, string> = {
-  WMC24: "Westminster Constituencies 2024",
-  OA21: "Census Output Areas 2021",
-};
-
 const MAX_VALID_ZOOM = 24;
 
 export interface ChoroplethLayerConfig {
@@ -73,13 +68,13 @@ const CHOROPLETH_LAYER_CONFIGS: Record<
 };
 
 export const MAPBOX_SOURCE_IDS = Object.values(
-  CHOROPLETH_LAYER_CONFIGS
+  CHOROPLETH_LAYER_CONFIGS,
 ).flatMap((sources) => sources.map((source) => source.mapbox.sourceId));
 
 export const getChoroplethLayerConfig = (
   dataSourceAreaSetCode: AreaSetCode | null | undefined,
   areaSetGroupCode: AreaSetGroupCode | null,
-  zoom: number
+  zoom: number,
 ) => {
   if (dataSourceAreaSetCode && areaSetGroupCode) {
     const sources = CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode] || [];

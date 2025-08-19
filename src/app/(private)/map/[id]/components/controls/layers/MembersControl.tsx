@@ -6,11 +6,11 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import ControlItemWrapper from "../ControlItemWrapper";
-import LayerHeader from "../LayerHeader";
-import CollectionLayer from "../CollectionLayer";
-import EmptyLayer from "../Emptylayer";
 import CollectionIcon from "../../Icons";
+import CollectionLayer from "../CollectionLayer";
+import ControlItemWrapper from "../ControlItemWrapper";
+import EmptyLayer from "../Emptylayer";
+import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
   const router = useRouter();
@@ -71,7 +71,6 @@ export default function MembersControl() {
         className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
       >
         {dataSource ? (
-
           <CollectionLayer
             dataSource={dataSource}
             isSelected={isSelected}
@@ -79,13 +78,18 @@ export default function MembersControl() {
             handleDataSourceSelect={handleDataSourceSelect}
             layerType="member"
           />
-
         ) : (
-          <EmptyLayer message={
-            <p className="flex  items-center gap-2">
-              Add a <span className="text-sm  flex items-center gap-1"><CollectionIcon color={mapColors.member.color} /> Member Collection</span>
-            </p>
-          } />
+          <EmptyLayer
+            message={
+              <p className="flex  items-center gap-2">
+                Add a{" "}
+                <span className="text-sm  flex items-center gap-1">
+                  <CollectionIcon color={mapColors.member.color} /> Member
+                  Collection
+                </span>
+              </p>
+            }
+          />
         )}
       </ul>
     </ControlItemWrapper>

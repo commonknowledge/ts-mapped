@@ -23,14 +23,14 @@ export default function DataSourcesProvider({
       const dataSources = getDataSources();
       return dataSources.find((ds) => ds.id === id) || null;
     },
-    [getDataSources]
+    [getDataSources],
   );
 
   const getChoroplethDataSource = useCallback(() => {
     if (!viewConfig.areaDataSourceId) return null;
     return (
       dataSourcesQuery.data?.dataSources?.find(
-        (ds) => ds.id === viewConfig.areaDataSourceId
+        (ds) => ds.id === viewConfig.areaDataSourceId,
       ) || null
     );
   }, [dataSourcesQuery.data?.dataSources, viewConfig.areaDataSourceId]);
@@ -38,7 +38,7 @@ export default function DataSourcesProvider({
   const getMarkerDataSources = () => {
     const dataSources = getDataSources();
     return dataSources.filter((ds) =>
-      mapConfig.markerDataSourceIds.includes(ds.id)
+      mapConfig.markerDataSourceIds.includes(ds.id),
     );
   };
 

@@ -63,7 +63,6 @@ export default function Sidebar({ slug }: { slug: string }) {
         </Button> */}
       </div>
 
-
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">

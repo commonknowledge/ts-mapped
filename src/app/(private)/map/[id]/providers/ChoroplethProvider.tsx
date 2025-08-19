@@ -32,9 +32,9 @@ export default function ChoroplethProvider({
   const choroplethLayerConfig = useMemo(() => {
     const dataSource = getChoroplethDataSource();
     return getChoroplethLayerConfig(
-      (dataSource as any)?.geocodingConfig?.areaSetCode,
+      dataSource?.geocodingConfig?.areaSetCode,
       viewConfig.areaSetGroupCode,
-      zoom
+      zoom,
     );
   }, [getChoroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
   /* GraphQL Data */
@@ -42,13 +42,11 @@ export default function ChoroplethProvider({
     areaSetGroupCode: viewConfig.areaSetGroupCode,
     areaSetCode: choroplethLayerConfig.areaSetCode,
     dataSourceId: viewConfig.areaDataSourceId,
-    column: viewConfig.areaDataColumn || (viewConfig.calculationType === "count" ? "__countRecords" : ""),
+    column: viewConfig.areaDataColumn,
     excludeColumns: viewConfig.getExcludeColumns(),
     useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
     calculationType: viewConfig.calculationType,
   });
-
-
 
   const { fetchMore: areaStatsFetchMore } = areaStatsQuery;
 

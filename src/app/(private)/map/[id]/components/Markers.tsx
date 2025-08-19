@@ -25,11 +25,11 @@ export default function Markers() {
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = markerQueries?.data?.find(
-    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId
+    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
   );
 
   const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
-    markerQueries?.data?.find((ds) => ds.dataSourceId === id)
+    markerQueries?.data?.find((ds) => ds.dataSourceId === id),
   );
 
   return (
