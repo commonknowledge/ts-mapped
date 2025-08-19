@@ -19,6 +19,7 @@ import {
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { getValidAreaSetGroupCodes } from "@/app/(private)/map/[id]/sources";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
@@ -47,7 +48,6 @@ import {
 import { cn } from "@/shadcn/utils";
 import DataSourceItem from "../../DataSourceItem";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
-import { getValidAreaSetGroupCodes } from "./VisualisationUtilities";
 
 export default function VisualisationPanel({
   positionLeft,
