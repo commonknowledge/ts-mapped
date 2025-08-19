@@ -10,12 +10,12 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Database, Table } from "lucide-react";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { PlacedMarker } from "@/__generated__/types";
@@ -31,11 +31,11 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/(private)/map/[id]/utils";
+import CollectionLayer from "../../CollectionLayer";
+import EmptyLayer from "../../Emptylayer";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
-import CollectionLayer from "../../CollectionLayer";
-import EmptyLayer from "../../Emptylayer";
 
 export default function MarkersList() {
   const { viewConfig } = useContext(MapContext);
@@ -79,7 +79,7 @@ export default function MarkersList() {
       keyboardCodes: keyboardCapture
         ? { start: [], cancel: [], end: [] }
         : undefined,
-    }),
+    })
   );
 
   // Drag and drop handlers
@@ -107,17 +107,20 @@ export default function MarkersList() {
       if (over.id.toString().startsWith("folder")) {
         let folderId: string;
 
-        // Handle both header and footer IDs
+        // Handle header, footer, and draggable element IDs
         let append = false;
         if (over.id.toString().startsWith("folder-footer-")) {
           folderId = over.id.toString().replace("folder-footer-", "");
+          append = true;
+        } else if (over.id.toString().startsWith("folder-drag-")) {
+          folderId = over.id.toString().replace("folder-drag-", "");
           append = true;
         } else {
           folderId = over.id.toString().replace("folder-", "");
         }
 
         const folderMarkers = placedMarkers.filter(
-          (m) => m.folderId === folderId,
+          (m) => m.folderId === folderId
         );
 
         const newPosition = append
@@ -131,7 +134,7 @@ export default function MarkersList() {
         });
       } else if (over.id === "unassigned") {
         const unassignedMarkers = placedMarkers.filter(
-          (m) => m.folderId === null,
+          (m) => m.folderId === null
         );
         const newPosition = getNewFirstPosition(unassignedMarkers);
         preparePlacedMarkerUpdate({
@@ -141,7 +144,7 @@ export default function MarkersList() {
         });
       }
     },
-    [placedMarkers, preparePlacedMarkerUpdate],
+    [placedMarkers, preparePlacedMarkerUpdate]
   );
 
   const handleDragEndMarker = useCallback(
@@ -176,20 +179,20 @@ export default function MarkersList() {
           // Get other markers to position against
           const otherMarkers = placedMarkers.filter(
             (m) =>
-              m.id !== activeMarker.id && m.folderId === activeMarker.folderId,
+              m.id !== activeMarker.id && m.folderId === activeMarker.folderId
           );
 
           if (activeWasBeforeOver) {
             // If active marker was before, make it after
             newPosition = getNewPositionAfter(
               overMarker.position,
-              otherMarkers,
+              otherMarkers
             );
           } else {
             // If active marker was after, make it before
             newPosition = getNewPositionBefore(
               overMarker.position,
-              otherMarkers,
+              otherMarkers
             );
           }
 
@@ -200,7 +203,7 @@ export default function MarkersList() {
         }
       }
     },
-    [placedMarkers, preparePlacedMarkerUpdate, setPulsingFolderId],
+    [placedMarkers, preparePlacedMarkerUpdate, setPulsingFolderId]
   );
 
   const handleDragEndFolder = useCallback(
@@ -231,13 +234,13 @@ export default function MarkersList() {
             // If active folder was before, make it after
             newPosition = getNewPositionAfter(
               overFolder.position,
-              otherFolders,
+              otherFolders
             );
           } else {
             // If active folder was after, make it before
             newPosition = getNewPositionBefore(
               overFolder.position,
-              otherFolders,
+              otherFolders
             );
           }
 
@@ -248,7 +251,7 @@ export default function MarkersList() {
         }
       }
     },
-    [folders, updateFolder],
+    [folders, updateFolder]
   );
 
   const handleDragEnd = useCallback(
@@ -267,7 +270,7 @@ export default function MarkersList() {
 
       commitPlacedMarkerUpdates();
     },
-    [commitPlacedMarkerUpdates, handleDragEndFolder, handleDragEndMarker],
+    [commitPlacedMarkerUpdates, handleDragEndFolder, handleDragEndMarker]
   );
 
   const sortedFolders = useMemo(() => {
@@ -290,6 +293,7 @@ export default function MarkersList() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveId(null)}
+        modifiers={[restrictToVerticalAxis]}
       >
         <div
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
@@ -313,7 +317,6 @@ export default function MarkersList() {
                   </li>
                 ))}
               </ul>
-
             )}
             {/* Folders */}
             <SortableContext
@@ -325,7 +328,7 @@ export default function MarkersList() {
                   key={folder.id}
                   folder={folder}
                   markers={placedMarkers.filter(
-                    (p) => p.folderId === folder.id,
+                    (p) => p.folderId === folder.id
                   )}
                   activeId={activeId}
                   setKeyboardCapture={setKeyboardCapture}
@@ -343,8 +346,6 @@ export default function MarkersList() {
               setKeyboardCapture={setKeyboardCapture}
             />
           </div>
-
-
         </div>
 
         {createPortal(
@@ -353,7 +354,7 @@ export default function MarkersList() {
               <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
             )}
           </DragOverlay>,
-          document.body,
+          document.body
         )}
       </DndContext>
     </div>

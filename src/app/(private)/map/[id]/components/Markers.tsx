@@ -148,7 +148,7 @@ function DataSourceMarkers({
           "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           "text-size": 12,
           "text-transform": "uppercase",
-          "text-offset": [0, 0.75],
+          "text-offset": [0, 1],
           "text-anchor": "top",
         }}
         paint={{

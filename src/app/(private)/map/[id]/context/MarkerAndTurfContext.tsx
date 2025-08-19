@@ -25,6 +25,9 @@ export const MarkerAndTurfContext = createContext<{
   selectedMarker: MarkerData | null;
   setSelectedMarker: (marker: MarkerData | null) => void;
 
+  selectedPlacedMarkerId: string | null;
+  setSelectedPlacedMarkerId: (id: string | null) => void;
+
   turfs: Turf[];
   turfsLoading: boolean;
   deleteTurf: (id: string) => void;
@@ -50,6 +53,8 @@ export const MarkerAndTurfContext = createContext<{
   updatePlacedMarker: () => null,
   selectedMarker: null,
   setSelectedMarker: () => null,
+  selectedPlacedMarkerId: null,
+  setSelectedPlacedMarkerId: () => null,
   turfs: [],
   turfsLoading: false,
   deleteTurf: () => null,

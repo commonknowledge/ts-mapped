@@ -40,6 +40,11 @@ export const useDataSourcesQuery = () =>
           name
           type
         }
+        geocodingConfig {
+          areaSetCode
+          type
+          column
+        }
         recordCount
       }
     }
@@ -79,7 +84,7 @@ export const useDataRecordsQuery = (variables: {
         }
       }
     `,
-    { variables, skip: !variables.dataSourceId },
+    { variables, skip: !variables.dataSourceId }
   );
 
 export const useMapQuery = (mapId: string | null) =>
@@ -121,21 +126,21 @@ export const useMapQuery = (mapId: string | null) =>
             id
             name
             position
-                         config {
-               areaDataSourceId
-               areaDataColumn
-               areaSetGroupCode
-               excludeColumnsString
-               mapStyleName
-               showBoundaryOutline
-               showLabels
-               showLocations
-               showMembers
-               showTurf
-               visualizationType
-               calculationType
-               colorScheme
-             }
+            config {
+              areaDataSourceId
+              areaDataColumn
+              areaSetGroupCode
+              excludeColumnsString
+              mapStyleName
+              showBoundaryOutline
+              showLabels
+              showLocations
+              showMembers
+              showTurf
+              visualizationType
+              calculationType
+              colorScheme
+            }
           }
         }
       }
@@ -144,7 +149,7 @@ export const useMapQuery = (mapId: string | null) =>
       variables: { id: mapId || "" },
       skip: !mapId,
       fetchPolicy: "network-only",
-    },
+    }
   );
 
 // Use API request instead of GraphQL to avoid server memory load
@@ -250,7 +255,7 @@ export const useAreaStatsQuery = ({
       },
       skip: !dataSourceId || !column || !areaSetGroupCode,
       notifyOnNetworkStatusChange: true,
-    },
+    }
   );
 
 export const useUpdateMapConfigMutation = () => {
@@ -265,7 +270,7 @@ export const useUpdateMapConfigMutation = () => {
           code
         }
       }
-    `,
+    `
   );
 };
 

@@ -4,6 +4,7 @@ export const MARKER_ID_KEY = "__externalId";
 export const MARKER_NAME_KEY = "__name";
 
 export const MAX_COLUMN_KEY = "__maxColumn";
+export const COUNT_RECORDS_KEY = "__countRecords";
 
 export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
 

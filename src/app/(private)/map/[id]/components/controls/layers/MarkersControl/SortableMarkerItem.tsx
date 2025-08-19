@@ -35,8 +35,12 @@ export default function SortableMarkerItem({
   } = useSortable({ id: `marker-${marker.id}` });
 
   const { mapRef } = useContext(MapContext);
-  const { updatePlacedMarker, deletePlacedMarker } =
-    useContext(MarkerAndTurfContext);
+  const {
+    updatePlacedMarker,
+    deletePlacedMarker,
+    selectedPlacedMarkerId,
+    setSelectedPlacedMarkerId,
+  } = useContext(MarkerAndTurfContext);
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
@@ -63,11 +67,23 @@ export default function SortableMarkerItem({
       return;
     }
 
+    console.log("Setting selectedPlacedMarkerId to:", marker.id);
+    setSelectedPlacedMarkerId(marker.id);
     map.flyTo({
       center: marker.point,
       zoom: 12,
     });
   };
+
+  // Debug logging
+  console.log(
+    "Rendering marker:",
+    marker.id,
+    "selectedPlacedMarkerId:",
+    selectedPlacedMarkerId,
+    "should show border:",
+    marker.id === selectedPlacedMarkerId
+  );
 
   return (
     <ContextMenu>
@@ -104,7 +120,13 @@ export default function SortableMarkerItem({
             <div className="flex items-center gap-1.5 flex-grow text-sm p-0.5">
               <div
                 className="w-2 h-2 rounded-full aspect-square"
-                style={{ backgroundColor: mapColors.markers.color }}
+                style={{
+                  backgroundColor: mapColors.markers.color,
+                  border:
+                    marker.id === selectedPlacedMarkerId
+                      ? `2px solid ${mapColors.markers.color}`
+                      : "none",
+                }}
               />
               <span className="break-all">{marker.label}</span>
             </div>

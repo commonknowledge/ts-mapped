@@ -1,5 +1,6 @@
 import {
   ArrowUpDown,
+  Calculator,
   Check,
   ChevronDown,
   CircleAlert,
@@ -10,11 +11,16 @@ import {
   Pentagon,
 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
-import { AreaSetGroupCode, DataSource } from "@/__generated__/types";
+import {
+  AreaSetCode,
+  AreaSetGroupCode,
+  DataSource,
+  LooseGeocodingConfig,
+} from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { COUNT_RECORDS_KEY, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -225,14 +231,13 @@ export default function VisualisePanel() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={NULL_UUID}>No Locality</SelectItem>
-              {Object.entries(AREA_SET_GROUP_LABELS).map(([code, label]) => (
-                <SelectItem key={code} value={code}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-gray-300 rounded-sm"></div>
-                    {label}
-                  </div>
-                </SelectItem>
-              ))}
+              {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
+                (code) => (
+                  <SelectItem key={code} value={code}>
+                    {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
+                  </SelectItem>
+                )
+              )}
             </SelectContent>
           </Select>
           {viewConfig.visualizationType === "choropleth" &&
@@ -311,6 +316,70 @@ export default function VisualisePanel() {
             )}
           </div>
 
+          {/* Calculation Type */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Calculation</h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                  viewConfig.calculationType === "value"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => updateViewConfig({ calculationType: "value" })}
+              >
+                <div className="w-6 h-6 mx-auto mb-2 bg-gray-300 rounded"></div>
+                <span className="text-xs">Use existing values</span>
+              </button>
+
+              <button
+                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                  viewConfig.calculationType === "count"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => updateViewConfig({ calculationType: "count" })}
+              >
+                <div className="w-6 h-6 mx-auto mb-2 bg-blue-400 rounded flex items-center justify-center text-white text-xs font-bold">
+                  #
+                </div>
+                <span className="text-xs">Count records</span>
+              </button>
+
+              {/* <button
+                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                  viewConfig.calculationType === "sum"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => updateViewConfig({ calculationType: "sum" })}
+              >
+                <div className="w-6 h-6 mx-auto mb-2 bg-green-400 rounded flex items-center justify-center text-white text-xs font-bold">
+                  Σ
+                </div>
+                <span className="text-xs">Sum values</span>
+              </button>
+
+              <button
+                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                  viewConfig.calculationType === "average"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => updateViewConfig({ calculationType: "average" })}
+              >
+                <div className="w-6 h-6 mx-auto mb-2 bg-purple-400 rounded flex items-center justify-center text-white text-xs font-bold">
+                  x̄
+                </div>
+                <span className="text-xs">Average values</span>
+              </button> */}
+            </div>
+          </div>
+
           {/* Column Selection - only show when data source is selected */}
           {viewConfig.areaDataSourceId && (
             <div className="space-y-2">
@@ -340,8 +409,11 @@ export default function VisualisePanel() {
                 </SelectTrigger>
                 <SelectContent>
                   {viewConfig.calculationType === "count" ? (
-                    // For counting, show columns that could be boundary identifiers
+                    // For counting, show boundary identifier columns
                     <>
+                      <SelectItem value={COUNT_RECORDS_KEY}>
+                        Count records
+                      </SelectItem>
                       <SelectItem value={MAX_COLUMN_KEY}>
                         Auto-detect boundary column
                       </SelectItem>
@@ -474,67 +546,6 @@ export default function VisualisePanel() {
             </div>
           )}
 
-          {/* Need to come back to this */}
-          {/* Calculation Type
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Calculator className="w-4 h-4 text-muted-foreground" />
-              <h3 className="text-sm font-medium">Calculation</h3>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === 'value'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                onClick={() => updateViewConfig({ calculationType: 'value' })}
-              >
-                <div className="w-6 h-6 mx-auto mb-2 bg-gray-300 rounded"></div>
-                <span className="text-xs">Use existing values</span>
-              </button>
-
-              <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === 'count'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                onClick={() => updateViewConfig({ calculationType: 'count' })}
-              >
-                <div className="w-6 h-6 mx-auto mb-2 bg-blue-400 rounded flex items-center justify-center text-white text-xs font-bold">
-                  #
-                </div>
-                <span className="text-xs">Count records</span>
-              </button>
-
-              <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === 'sum'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                onClick={() => updateViewConfig({ calculationType: 'sum' })}
-              >
-                <div className="w-6 h-6 mx-auto mb-2 bg-green-400 rounded flex items-center justify-center text-white text-xs font-bold">
-                  Σ
-                </div>
-                <span className="text-xs">Sum values</span>
-              </button>
-
-              <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === 'average'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                onClick={() => updateViewConfig({ calculationType: 'average' })}
-              >
-                <div className="w-6 h-6 mx-auto mb-2 bg-purple-400 rounded flex items-center justify-center text-white text-xs font-bold">
-                  x̄
-                </div>
-                <span className="text-xs">Average values</span>
-              </button>
-            </div>
-          </div> */}
-
           {/* Color Scheme Selection */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -655,3 +666,21 @@ export default function VisualisePanel() {
     </div>
   );
 }
+
+const getValidAreaSetGroupCodes = (
+  dataSourceGeocodingConfig: LooseGeocodingConfig | null | undefined
+): AreaSetGroupCode[] => {
+  if (!dataSourceGeocodingConfig) {
+    return [];
+  }
+  if (dataSourceGeocodingConfig.areaSetCode) {
+    const validAreaSetGroupCodes: Record<AreaSetCode, AreaSetGroupCode[]> = {
+      [AreaSetCode.PC]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
+      [AreaSetCode.OA21]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
+      [AreaSetCode.MSOA21]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
+      [AreaSetCode.WMC24]: [AreaSetGroupCode.WMC24],
+    };
+    return validAreaSetGroupCodes[dataSourceGeocodingConfig.areaSetCode];
+  }
+  return [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24];
+};

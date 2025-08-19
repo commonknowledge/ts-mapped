@@ -21,7 +21,7 @@ export const ChoroplethContext = createContext<{
 }>({
   boundariesPanelOpen: false,
   setBoundariesPanelOpen: () => null,
-  choroplethLayerConfig: getChoroplethLayerConfig(null, DEFAULT_ZOOM),
+  choroplethLayerConfig: getChoroplethLayerConfig(null, null, DEFAULT_ZOOM),
   lastLoadedSourceId: undefined,
   setLastLoadedSourceId: () => null,
   areaStatsLoading: false,

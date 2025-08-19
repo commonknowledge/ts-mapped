@@ -8,6 +8,7 @@ export const AREA_SET_GROUP_LABELS: Record<AreaSetGroupCode, string> = {
 const MAX_VALID_ZOOM = 24;
 
 export interface ChoroplethLayerConfig {
+  dataSourceAreaSetCode: AreaSetCode | null | undefined;
   areaSetCode: AreaSetCode;
   minZoom: number;
   maxZoom: number;
@@ -27,6 +28,7 @@ const CHOROPLETH_LAYER_CONFIGS: Record<
 > = {
   WMC24: [
     {
+      dataSourceAreaSetCode: AreaSetCode.WMC24,
       areaSetCode: AreaSetCode.WMC24,
       minZoom: 0,
       maxZoom: MAX_VALID_ZOOM,
@@ -41,6 +43,7 @@ const CHOROPLETH_LAYER_CONFIGS: Record<
   ],
   OA21: [
     {
+      dataSourceAreaSetCode: AreaSetCode.MSOA21,
       areaSetCode: AreaSetCode.MSOA21,
       minZoom: 2,
       maxZoom: 10,
@@ -54,6 +57,7 @@ const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
     {
+      dataSourceAreaSetCode: AreaSetCode.OA21,
       areaSetCode: AreaSetCode.OA21,
       minZoom: 10,
       maxZoom: MAX_VALID_ZOOM,
@@ -69,14 +73,15 @@ const CHOROPLETH_LAYER_CONFIGS: Record<
 };
 
 export const MAPBOX_SOURCE_IDS = Object.values(
-  CHOROPLETH_LAYER_CONFIGS,
+  CHOROPLETH_LAYER_CONFIGS
 ).flatMap((sources) => sources.map((source) => source.mapbox.sourceId));
 
 export const getChoroplethLayerConfig = (
+  dataSourceAreaSetCode: AreaSetCode | null | undefined,
   areaSetGroupCode: AreaSetGroupCode | null,
-  zoom: number,
+  zoom: number
 ) => {
-  if (areaSetGroupCode) {
+  if (dataSourceAreaSetCode && areaSetGroupCode) {
     const sources = CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode] || [];
     for (const source of sources) {
       if (source.minZoom <= zoom && source.maxZoom > zoom) {
