@@ -67,7 +67,9 @@ export default function MapPage() {
           setShowControls={setShowControls}
           controlPanelWidth={controlPanelWidth}
         />
-        <VisualisationPanel />
+        <VisualisationPanel
+          positionLeft={showControls ? controlPanelWidth : 0}
+        />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>

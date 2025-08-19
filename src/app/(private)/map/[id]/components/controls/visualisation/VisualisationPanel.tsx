@@ -44,11 +44,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
+import { cn } from "@/shadcn/utils";
 import DataSourceItem from "../../DataSourceItem";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
 import { getValidAreaSetGroupCodes } from "./VisualisationUtilities";
 
-export default function VisualisationPanel() {
+export default function VisualisationPanel({
+  positionLeft,
+}: {
+  positionLeft: number;
+}) {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { boundariesPanelOpen } = useContext(ChoroplethContext);
   const { getDataSources, getChoroplethDataSource } =
@@ -83,7 +88,15 @@ export default function VisualisationPanel() {
   if (!boundariesPanelOpen) return null;
 
   return (
-    <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200 ">
+    <div
+      className={cn(
+        "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
+        "absolute top-0 h-full z-10",
+      )}
+      style={{
+        left: positionLeft,
+      }}
+    >
       {/* Choose Visualization Type */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium">Create Visualization</h3>
