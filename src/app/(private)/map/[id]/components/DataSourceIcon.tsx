@@ -1,4 +1,5 @@
 import { DataSourceType } from "@/types";
+import { Database, Pentagon } from "lucide-react";
 
 const AirtableIconSVG = () => {
   return (
@@ -142,9 +143,9 @@ export const MailchimpIconSVG = () => {
 }
 
 const icons: Record<DataSourceType, React.ReactNode> = {
-  [DataSourceType.actionnetwork]: <div className="bg-neutral-100 p-1 rounded-sm py-0">AN</div>,
+  [DataSourceType.actionnetwork]: <div className=" p-1 rounded-sm py-0">AN</div>,
   [DataSourceType.airtable]: <AirtableIconSVG />,
-  [DataSourceType.csv]: <div className="bg-neutral-100 p-1 rounded-sm py-0">CSV</div>,
+  [DataSourceType.csv]: <div className=" p-1 rounded-sm py-0">CSV</div>,
   [DataSourceType.googlesheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.mailchimp]: <MailchimpIconSVG />,
 };

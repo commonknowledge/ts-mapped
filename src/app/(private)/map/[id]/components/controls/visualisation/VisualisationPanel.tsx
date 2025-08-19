@@ -9,6 +9,7 @@ import {
   Info,
   Palette,
   Pentagon,
+  PlusIcon,
 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import {
@@ -44,58 +45,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
-import { AREA_SET_GROUP_LABELS } from "../../sources";
+import { AREA_SET_GROUP_LABELS } from "../../../sources";
+import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
+import { getValidAreaSetGroupCodes } from "./VisualisationUtilities";
+import DataSourceItem from "../../DataSourceItem";
 
-// Add this component above the main ChoroplethControl component:
-function DataSourceCard({
-  dataSource,
-  isSelected,
-  onClick,
-}: {
-  dataSource: DataSource;
-  isSelected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <div
-      className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${
-        isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200"
-      }`}
-      onClick={onClick}
-    >
-      <div className="flex items-start gap-3">
-        {/* Data Source Icon/Preview */}
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-          {dataSource.name.charAt(0).toUpperCase()}
-        </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-medium text-sm truncate">{dataSource.name}</h4>
-            {dataSource.isPublic && (
-              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                Public
-              </span>
-            )}
-          </div>
-
-          <p className="text-xs text-gray-600">
-            {dataSource.columnDefs.length} columns •{" "}
-            {dataSource.recordCount || "Unknown"} records
-          </p>
-        </div>
-
-        {/* Selection indicator */}
-        {isSelected && (
-          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-            <Check className="w-3 h-3 text-white" />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function VisualisePanel() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
@@ -165,17 +120,16 @@ export default function VisualisePanel() {
 
   return (
     <div className="flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200 ">
-      {/* Step 1: Choose Visualization Type */}
+      {/* Choose Visualization Type */}
       <div className="space-y-3">
         <h3 className="text-sm font-medium">Create Visualization</h3>
 
         <div className="grid grid-cols-2 gap-2">
           <button
-            className={`p-3 rounded-lg border-2 text-center transition-all ${
-              viewConfig.visualizationType === "boundary-only"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
+            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualizationType === "boundary-only"
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-200 hover:border-gray-300"
+              }`}
             onClick={() =>
               updateViewConfig({
                 visualizationType:
@@ -190,11 +144,10 @@ export default function VisualisePanel() {
           </button>
 
           <button
-            className={`p-3 rounded-lg border-2 text-center transition-all ${
-              viewConfig.visualizationType === "choropleth"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
+            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualizationType === "choropleth"
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-200 hover:border-gray-300"
+              }`}
             onClick={() =>
               updateViewConfig({
                 visualizationType:
@@ -210,62 +163,14 @@ export default function VisualisePanel() {
         </div>
       </div>
 
-      {/* Step 2: Select Locality Shapes */}
-      {viewConfig.visualizationType && (
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">
-            <Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map
-            Locality Shapes
-          </Label>
-          <Select
-            value={viewConfig.areaSetGroupCode || NULL_UUID}
-            onValueChange={(value) =>
-              updateViewConfig({
-                areaSetGroupCode:
-                  value === NULL_UUID ? null : (value as AreaSetGroupCode),
-              })
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choose boundaries..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NULL_UUID}>No Locality</SelectItem>
-              {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
-                (code) => (
-                  <SelectItem key={code} value={code}>
-                    {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
-                  </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
-          {viewConfig.visualizationType === "choropleth" &&
-            !viewConfig.areaDataSourceId && (
-              <div className="flex items-center gap-2">
-                <CircleAlert className="w-4 h-4 text-yellow-500" />
-                <p className="text-xs text-gray-500">
-                  No data source selected. Please select a data source to create
-                  a choropleth.
-                </p>
-              </div>
-            )}
-          {viewConfig.visualizationType === "choropleth" &&
-            viewConfig.areaDataSourceId &&
-            viewConfig.areaDataColumn &&
-            !viewConfig.areaSetGroupCode && (
-              <div className="flex items-center gap-2">
-                <CircleAlert className="w-4 h-4 text-yellow-500" />
-                <p className="text-xs text-gray-500">
-                  No locality shapes selected. Please select a locality set to
-                  render the filled map.
-                </p>
-              </div>
-            )}
-        </div>
+
+      {viewConfig.visualizationType === "boundary-only" && (
+        <VisualisationShapeLibrarySelector
+
+        />
       )}
 
-      {/* Step 3: Data Source (only for choropleth) */}
+      {/* Choropleth */}
       {viewConfig.visualizationType === "choropleth" && (
         <>
           <Separator />
@@ -278,10 +183,10 @@ export default function VisualisePanel() {
             {viewConfig.areaDataSourceId ? (
               // Show selected data source as a card
               <div className="space-y-2">
-                <DataSourceCard
+                <DataSourceItem
                   dataSource={dataSources.find(
                     (ds) => ds.id === viewConfig.areaDataSourceId
-                  )}
+                  ) as DataSource}
                   isSelected={true}
                   onClick={() => {
                     // Open modal to change selection
@@ -311,9 +216,62 @@ export default function VisualisePanel() {
                 onClick={() => setIsModalOpen(true)}
               >
                 <span>Select a data source</span>
-                <ChevronDown className="w-4 h-4 ml-2 flex-shrink-0" />
+                <PlusIcon className="w-4 h-4 ml-2 flex-shrink-0" />
               </Button>
             )}
+          </div>
+
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              <Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map
+              Locality Shapes
+            </Label>
+            <Select
+              value={viewConfig.areaSetGroupCode || NULL_UUID}
+              onValueChange={(value) =>
+                updateViewConfig({
+                  areaSetGroupCode:
+                    value === NULL_UUID ? null : (value as AreaSetGroupCode),
+                })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose boundaries..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NULL_UUID}>No Locality</SelectItem>
+                {getValidAreaSetGroupCodes((dataSource as DataSource)?.geocodingConfig).map(
+                  (code) => (
+                    <SelectItem key={code} value={code}>
+                      {AREA_SET_GROUP_LABELS[code as AreaSetGroupCode]}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+            {viewConfig.visualizationType === "choropleth" &&
+              !viewConfig.areaDataSourceId && (
+                <div className="flex items-center gap-2">
+                  <CircleAlert className="w-4 h-4 text-yellow-500" />
+                  <p className="text-xs text-gray-500">
+                    No data source selected. Please select a data source to create
+                    a choropleth.
+                  </p>
+                </div>
+              )}
+            {viewConfig.visualizationType === "choropleth" &&
+              viewConfig.areaDataSourceId &&
+              viewConfig.areaDataColumn &&
+              !viewConfig.areaSetGroupCode && (
+                <div className="flex items-center gap-2">
+                  <CircleAlert className="w-4 h-4 text-yellow-500" />
+                  <p className="text-xs text-gray-500">
+                    No locality shapes selected. Please select a locality set to
+                    render the filled map.
+                  </p>
+                </div>
+              )}
           </div>
 
           {/* Calculation Type */}
@@ -325,11 +283,10 @@ export default function VisualisePanel() {
 
             <div className="grid grid-cols-2 gap-2">
               <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  viewConfig.calculationType === "value"
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === "value" || !viewConfig.calculationType
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
+                  }`}
                 onClick={() => updateViewConfig({ calculationType: "value" })}
               >
                 <div className="w-6 h-6 mx-auto mb-2 bg-gray-300 rounded"></div>
@@ -337,11 +294,10 @@ export default function VisualisePanel() {
               </button>
 
               <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  viewConfig.calculationType === "count"
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === "count"
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
+                  }`}
                 onClick={() => updateViewConfig({ calculationType: "count" })}
               >
                 <div className="w-6 h-6 mx-auto mb-2 bg-blue-400 rounded flex items-center justify-center text-white text-xs font-bold">
@@ -349,109 +305,46 @@ export default function VisualisePanel() {
                 </div>
                 <span className="text-xs">Count records</span>
               </button>
-
-              {/* <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  viewConfig.calculationType === "sum"
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-                onClick={() => updateViewConfig({ calculationType: "sum" })}
-              >
-                <div className="w-6 h-6 mx-auto mb-2 bg-green-400 rounded flex items-center justify-center text-white text-xs font-bold">
-                  Σ
-                </div>
-                <span className="text-xs">Sum values</span>
-              </button>
-
-              <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  viewConfig.calculationType === "average"
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-                onClick={() => updateViewConfig({ calculationType: "average" })}
-              >
-                <div className="w-6 h-6 mx-auto mb-2 bg-purple-400 rounded flex items-center justify-center text-white text-xs font-bold">
-                  x̄
-                </div>
-                <span className="text-xs">Average values</span>
-              </button> */}
             </div>
+
+            {/* Column Selection for "Use existing values" */}
+            {(viewConfig.calculationType === "value" || !viewConfig.calculationType) && viewConfig.areaDataSourceId && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Select column to use for values</Label>
+                <Select
+                  value={viewConfig.areaDataColumn || ""}
+                  onValueChange={(value) => updateViewConfig({ areaDataColumn: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a column..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dataSources.find(ds => ds.id === viewConfig.areaDataSourceId)?.columnDefs.map((col) => (
+                      <SelectItem key={col.name} value={col.name}>
+                        {col.name} ({col.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Geographic Column Reference for "Count records" */}
+            {viewConfig.calculationType === "count" && viewConfig.areaDataSourceId && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Count Records</span>
+                </div>
+                <p className="text-xs text-blue-700">
+                  This will count the number of records in each geographic area based on the boundary shapes you've selected.
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Column Selection - only show when data source is selected */}
-          {viewConfig.areaDataSourceId && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CornerDownRight className="w-4 h-4 text-muted-foreground" />
-                <Label className="text-sm text-neutral-600">
-                  {viewConfig.calculationType === "count"
-                    ? "Data Boundary Field"
-                    : "Data Column"}
-                </Label>
-              </div>
-
-              <Select
-                value={viewConfig.areaDataColumn}
-                onValueChange={(value) =>
-                  updateViewConfig({ areaDataColumn: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      viewConfig.calculationType === "count"
-                        ? "Select boundary identifier column"
-                        : "Select a column"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {viewConfig.calculationType === "count" ? (
-                    // For counting, show boundary identifier columns
-                    <>
-                      <SelectItem value={COUNT_RECORDS_KEY}>
-                        Count records
-                      </SelectItem>
-                      <SelectItem value={MAX_COLUMN_KEY}>
-                        Auto-detect boundary column
-                      </SelectItem>
-                      {dataSource?.columnDefs
-                        .filter(
-                          (col) =>
-                            col.name.toLowerCase().includes("postcode") ||
-                            col.name.toLowerCase().includes("constituency") ||
-                            col.name.toLowerCase().includes("area") ||
-                            col.name.toLowerCase().includes("ward") ||
-                            col.name.toLowerCase().includes("district")
-                        )
-                        .map((cd: { name: string }) => (
-                          <SelectItem key={cd.name} value={cd.name}>
-                            {cd.name}
-                          </SelectItem>
-                        ))}
-                    </>
-                  ) : (
-                    // For existing values, show all columns
-                    <>
-                      <SelectItem value={MAX_COLUMN_KEY}>
-                        Highest-value column
-                      </SelectItem>
-                      {dataSource?.columnDefs.map((cd: { name: string }) => (
-                        <SelectItem key={cd.name} value={cd.name}>
-                          {cd.name}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Boundary Matching - only show for count calculations */}
-          {viewConfig.areaDataColumn && viewConfig.areaSetGroupCode && (
+          {/* Boundary Matching - only show for count calculations or when column is selected */}
+          {(viewConfig.calculationType === "count" || viewConfig.areaDataColumn) && viewConfig.areaSetGroupCode && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -648,9 +541,9 @@ export default function VisualisePanel() {
             <div className="flex-1 overflow-y-auto">
               <div className="grid grid-cols-1 gap-3">
                 {filteredAndSearchedDataSources.map((ds) => (
-                  <DataSourceCard
+                  <DataSourceItem
                     key={ds.id}
-                    dataSource={ds}
+                    dataSource={ds as DataSource}
                     isSelected={viewConfig.areaDataSourceId === ds.id}
                     onClick={() => {
                       updateViewConfig({ areaDataSourceId: ds.id });
@@ -667,20 +560,3 @@ export default function VisualisePanel() {
   );
 }
 
-const getValidAreaSetGroupCodes = (
-  dataSourceGeocodingConfig: LooseGeocodingConfig | null | undefined
-): AreaSetGroupCode[] => {
-  if (!dataSourceGeocodingConfig) {
-    return [];
-  }
-  if (dataSourceGeocodingConfig.areaSetCode) {
-    const validAreaSetGroupCodes: Record<AreaSetCode, AreaSetGroupCode[]> = {
-      [AreaSetCode.PC]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
-      [AreaSetCode.OA21]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
-      [AreaSetCode.MSOA21]: [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24],
-      [AreaSetCode.WMC24]: [AreaSetGroupCode.WMC24],
-    };
-    return validAreaSetGroupCodes[dataSourceGeocodingConfig.areaSetCode];
-  }
-  return [AreaSetGroupCode.OA21, AreaSetGroupCode.WMC24];
-};

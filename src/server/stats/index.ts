@@ -19,7 +19,17 @@ export const getAreaStats = async (
   excludeColumns: string[],
   boundingBox: BoundingBoxInput | null = null
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
+  console.log(`getAreaStats called with:`, {
+    areaSetCode,
+    dataSourceId,
+    column,
+    operation,
+    excludeColumns,
+    boundingBox
+  });
+
   if (column === MAX_COLUMN_KEY) {
+    console.log(`getAreaStats: Using MAX_COLUMN_KEY logic`);
     const stats = await getMaxColumnByArea(
       areaSetCode,
       dataSourceId,
@@ -29,6 +39,7 @@ export const getAreaStats = async (
     return { column, columnType: ColumnType.String, stats };
   }
   if (column === COUNT_RECORDS_KEY) {
+    console.log(`getAreaStats: Using COUNT_RECORDS_KEY logic`);
     const stats = await getRecordCountByArea(
       areaSetCode,
       dataSourceId,
@@ -36,6 +47,8 @@ export const getAreaStats = async (
     );
     return { column, columnType: ColumnType.Number, stats };
   }
+
+  console.log(`getAreaStats: Using standard column logic for column: ${column}`);
 
   try {
     const dataSource = await findDataSourceById(dataSourceId);
@@ -171,6 +184,12 @@ export const getRecordCountByArea = async (
   boundingBox: BoundingBoxInput | null = null
 ) => {
   try {
+    console.log(`getRecordCountByArea called with:`, {
+      areaSetCode,
+      dataSourceId,
+      boundingBox
+    });
+
     const query = db
       .selectFrom("dataRecord")
       .select([
@@ -181,14 +200,21 @@ export const getRecordCountByArea = async (
       .where(getBoundingBoxSQL(boundingBox))
       .groupBy("areaCode");
 
+    console.log(`getRecordCountByArea SQL query:`, query.compile());
+
     const result = await query.execute();
+    console.log(`getRecordCountByArea raw result:`, result);
+
     // Ensure the counts are numbers, not strings (returned by Postgres)
     const stats = filterResult(result).map((stat) => ({
       ...stat,
       value: Number(stat.value),
     }));
+
+    console.log(`getRecordCountByArea filtered stats:`, stats);
     return stats;
   } catch (error) {
+    console.error(`getRecordCountByArea error:`, error);
     logger.error(`Failed to get area max column by area`, { error });
   }
   return [];

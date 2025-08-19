@@ -30,6 +30,8 @@ export interface NumericColorScheme {
   minValue: number;
   maxValue: number;
   colorScale: ScaleSequential<string, never>;
+  isSingleValue?: boolean;
+  singleColor?: string;
 }
 
 const getInterpolator = (
@@ -105,8 +107,22 @@ export const useColorScheme = (
       }
     }
 
+    // Handle case where all values are the same (e.g., all counts are 1)
     if (minValue === maxValue) {
-      return null;
+      // For count records, create a simple color scheme
+      // Use a small range to ensure valid interpolation
+      const interpolator = getInterpolator(scheme);
+      const colorScale = scaleSequential()
+        .domain([0, 1]) // Use 0-1 range for single values
+        .interpolator(interpolator);
+
+      return {
+        columnType: ColumnType.Number,
+        minValue: 0,
+        maxValue: 1,
+        colorScale,
+        isSingleValue: true,
+      };
     }
 
     const interpolator = getInterpolator(scheme);
@@ -139,6 +155,7 @@ export const useFillColor = (
     | "plasma"
     | "diverging"
     | "sequential",
+  isCount?: boolean,
 ): DataDrivenPropertyValueSpecification<string> => {
   const colorScheme = useColorScheme(areaStats, scheme);
   // useMemo to cache calculated fillColor
@@ -159,6 +176,18 @@ export const useFillColor = (
     }
 
     // ColumnType.Number
+    if (colorScheme.isSingleValue) {
+      // When all values are the same, map the value to our 0-1 range
+      // This ensures count data is visible even when all counts are equal
+      return [
+        "interpolate",
+        ["linear"],
+        isCount ? ["coalesce", ["feature-state", "value"], 0] : ["feature-state", "value"],
+        0, colorScheme.colorScale(0),
+        1, colorScheme.colorScale(1)
+      ];
+    }
+
     const numSteps = 30;
     const stepScale = scaleLinear()
       .domain([0, numSteps - 1])
@@ -172,7 +201,7 @@ export const useFillColor = (
     return [
       "interpolate",
       ["linear"],
-      ["feature-state", "value"],
+      isCount ? ["coalesce", ["feature-state", "value"], 0] : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
   }, [colorScheme]);

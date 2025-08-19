@@ -7,7 +7,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
-import ChoroplethControl from "./components/controls/VisualisationPanel";
+import ChoroplethControl from "./components/controls/visualisation/VisualisationPanel";
 import Controls from "./components/controls/Controls";
 import Legend from "./components/Legend";
 import Loading from "./components/Loading";
@@ -20,7 +20,7 @@ import { DataSourcesContext } from "./context/DataSourcesContext";
 import { MapContext } from "./context/MapContext";
 import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
 import { TableContext } from "./context/TableContext";
-import VisualisePanel from "./components/controls/VisualisationPanel";
+import VisualisePanel from "./components/controls/visualisation/VisualisationPanel";
 
 export default function MapPage() {
   const { mapQuery, mapRef } = useContext(MapContext);

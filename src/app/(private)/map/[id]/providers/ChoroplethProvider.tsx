@@ -30,8 +30,9 @@ export default function ChoroplethProvider({
   /* Derived State */
 
   const choroplethLayerConfig = useMemo(() => {
+    const dataSource = getChoroplethDataSource();
     return getChoroplethLayerConfig(
-      getChoroplethDataSource()?.geocodingConfig.areaSetCode,
+      (dataSource as any)?.geocodingConfig?.areaSetCode,
       viewConfig.areaSetGroupCode,
       zoom
     );
@@ -41,10 +42,13 @@ export default function ChoroplethProvider({
     areaSetGroupCode: viewConfig.areaSetGroupCode,
     areaSetCode: choroplethLayerConfig.areaSetCode,
     dataSourceId: viewConfig.areaDataSourceId,
-    column: viewConfig.areaDataColumn,
+    column: viewConfig.areaDataColumn || (viewConfig.calculationType === "count" ? "__countRecords" : ""),
     excludeColumns: viewConfig.getExcludeColumns(),
     useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
+    calculationType: viewConfig.calculationType,
   });
+
+
 
   const { fetchMore: areaStatsFetchMore } = areaStatsQuery;
 

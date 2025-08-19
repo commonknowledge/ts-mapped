@@ -27,6 +27,7 @@ import {
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
 } from "@/__generated__/types";
+import { COUNT_RECORDS_KEY } from "@/constants";
 import { DataSourceMarkers } from "./types";
 
 export const useDataSourcesQuery = () =>
@@ -205,6 +206,7 @@ export const useAreaStatsQuery = ({
   column,
   excludeColumns,
   useDummyBoundingBox,
+  calculationType,
 }: {
   areaSetGroupCode: AreaSetGroupCode | null;
   areaSetCode: AreaSetCode;
@@ -212,8 +214,13 @@ export const useAreaStatsQuery = ({
   column: string;
   excludeColumns: string[];
   useDummyBoundingBox: boolean;
-}) =>
-  useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
+  calculationType?: 'value' | 'count' | 'sum' | 'average';
+}) => {
+
+  const finalColumn = calculationType === "count" ? COUNT_RECORDS_KEY : column;
+  const skipCondition = !dataSourceId || (!column && calculationType !== "count") || !areaSetGroupCode;
+
+  return useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
     gql`
       query AreaStats(
         $areaSetCode: AreaSetCode!
@@ -244,7 +251,7 @@ export const useAreaStatsQuery = ({
       variables: {
         areaSetCode,
         dataSourceId,
-        column,
+        column: finalColumn,
         operation: Operation.AVG,
         excludeColumns,
         // Using a dummy boundingBox is required for fetchMore() to update this query's data.
@@ -253,10 +260,11 @@ export const useAreaStatsQuery = ({
           ? { north: 0, east: 0, south: 0, west: 0 }
           : null,
       },
-      skip: !dataSourceId || !column || !areaSetGroupCode,
+      skip: skipCondition,
       notifyOnNetworkStatusChange: true,
     }
   );
+};
 
 export const useUpdateMapConfigMutation = () => {
   return useMutation<UpdateMapConfigMutation, UpdateMapConfigMutationVariables>(
