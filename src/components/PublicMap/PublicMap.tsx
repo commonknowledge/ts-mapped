@@ -6,10 +6,13 @@ import Map from "@/components/Map/components/Map";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { PublicMapContext } from "./PublicMapContext";
 import PublicMapSidebar from "./PublicMapSidebar/PublicMapSidebar";
+import PublishPublicMapSidebar from "./PublicMapSidebar/PublishPublicMapSidebar";
 
 export default function PublicMap() {
   const { mapQuery } = useContext(MapContext);
+  const { editable } = useContext(PublicMapContext);
   const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
@@ -31,6 +34,7 @@ export default function PublicMap() {
         />
         {loading && <Loading />}
       </div>
+      {editable && <PublishPublicMapSidebar />}
     </div>
   );
 }

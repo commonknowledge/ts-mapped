@@ -3,6 +3,7 @@
 import { gql, useMutation } from "@apollo/client";
 import { ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import {
   SaveMapViewsToCrmMutation,
@@ -21,7 +22,8 @@ import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
  * TODO: Move complex logic into MapProvider
  */
 export default function PrivateMapNavbar() {
-  const { mapName, setMapName, mapId, saveMapConfig, mapRef } =
+  const router = useRouter();
+  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
     useContext(MapContext);
 
   const [isEditingName, setIsEditingName] = useState(false);
@@ -83,6 +85,25 @@ export default function PrivateMapNavbar() {
       setSaveError("Could not save this map view, please try again.");
     }
     setLoading(false);
+  };
+
+  const onClickPublish = async () => {
+    // Should never happen, button is also hidden in this case
+    if (!mapId || !view) {
+      return;
+    }
+
+    // Need to save the map + view before trying to publish it
+    setLoading(true);
+    setSaveError("");
+    try {
+      await saveMapConfig();
+      router.push(`/map/${mapId}/view/${view.id}/publish`);
+    } catch (e) {
+      console.error("UpdateMapConfig failed", e);
+      setSaveError("Could not publish this map view, please try again.");
+      setLoading(false);
+    }
   };
 
   const onClickCRMSave = async () => {
@@ -213,6 +234,16 @@ export default function PrivateMapNavbar() {
             >
               Save to CRM
             </Button>
+            {view && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onClickPublish()}
+                disabled={loading}
+              >
+                Publish
+              </Button>
+            )}
           </div>
         )}
       </div>

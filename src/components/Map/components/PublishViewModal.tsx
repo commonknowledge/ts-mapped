@@ -14,8 +14,8 @@ import {
   PublicMapColumn,
   PublicMapColumnType,
   PublicMapDataSourceConfig,
-  PublicMapQuery,
-  PublicMapQueryVariables,
+  PublicMapModalQuery,
+  PublicMapModalQueryVariables,
   UpsertPublicMapMutation,
   UpsertPublicMapMutationVariables,
 } from "@/__generated__/types";
@@ -82,9 +82,12 @@ export default function PublishViewModal({
   // Stores the last published host (only changes when form is submitted)
   const [publishedHost, setPublishedHost] = useState("");
 
-  const publicMapQuery = useQuery<PublicMapQuery, PublicMapQueryVariables>(
+  const publicMapQuery = useQuery<
+    PublicMapModalQuery,
+    PublicMapModalQueryVariables
+  >(
     gql`
-      query PublicMap($viewId: String!) {
+      query PublicMapModal($viewId: String!) {
         publicMap(viewId: $viewId) {
           id
           host
@@ -329,7 +332,6 @@ function ConfigureDataForm({
   dataSources: DataSource[];
   loading: boolean;
 }) {
-  console.log("dsc", publicMap.dataSourceConfigs);
   return (
     <form onSubmit={onSubmitForm}>
       {dataSources.map((ds, i) => {

@@ -8,7 +8,7 @@ import {
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import PublicMapPage from "@/components/PublicMap/PublicMapPage";
+import PublicMapPage from "@/components/PublicMapPage";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";

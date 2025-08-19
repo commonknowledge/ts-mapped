@@ -4,7 +4,14 @@ import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as turf from "@turf/turf";
 import * as mapboxgl from "mapbox-gl";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
@@ -49,17 +56,29 @@ export default function Map({
   } | null>(null);
   const prevPointer = useRef("");
 
-  const markerLayers = mapConfig
-    .getDataSourceIds()
-    .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
-    .concat(["search-history-pins", "search-history-labels"]);
+  const markerLayers = useMemo(
+    () =>
+      mapConfig
+        .getDataSourceIds()
+        .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
+        .concat(["search-history-pins", "search-history-labels"]),
+    [mapConfig]
+  );
 
-  const clusterLayers = mapConfig
-    .getDataSourceIds()
-    .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]);
+  const clusterLayers = useMemo(
+    () =>
+      mapConfig
+        .getDataSourceIds()
+        .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]),
+    [mapConfig]
+  );
 
   // Hover behavior
   useEffect(() => {
+    if (!ready) {
+      return
+    }
+
     const map = mapRef?.current;
 
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
@@ -103,7 +122,7 @@ export default function Map({
         map.off("mouseleave", onMouseLeave);
       }
     };
-  }, [mapRef, markerLayers]);
+  }, [mapRef, markerLayers, ready]);
 
   // Draw component cleanup
   useEffect(() => {
@@ -125,7 +144,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
           )
           .map((layer) => layer.id);
 
@@ -136,7 +155,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded],
+    [mapRef, styleLoaded]
   );
 
   useEffect(() => {
@@ -157,8 +176,9 @@ export default function Map({
       interactiveLayerIds={markerLayers}
       onClick={(e) => {
         const map = e.target;
+        const validMarkerLayers = markerLayers.filter(l => map.getLayer(l))
         const features = map.queryRenderedFeatures(e.point, {
-          layers: markerLayers,
+          layers: validMarkerLayers,
         });
         if (features.length && features[0].geometry.type === "Point") {
           const properties = features[0].properties;
@@ -177,8 +197,9 @@ export default function Map({
         } else {
           setSelectedDataRecord(null);
         }
+        const validClusterLayers = clusterLayers.filter(l => map.getLayer(l))
         const clusters = map.queryRenderedFeatures(e.point, {
-          layers: clusterLayers,
+          layers: validClusterLayers,
         });
         if (clusters.length && clusters[0].geometry.type === "Point") {
           map.flyTo({

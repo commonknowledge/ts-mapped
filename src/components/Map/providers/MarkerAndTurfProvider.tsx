@@ -1,12 +1,13 @@
 "use client";
 
-import { ReactNode, useContext, useEffect, useState } from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Turf } from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { useMarkerQueries } from "@/components/Map/data";
 import { useFolders, usePlacedMarkers, useTurfs } from "@/components/Map/hooks";
+import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 
 export default function MarkerAndTurfProvider({
   children,
@@ -14,14 +15,36 @@ export default function MarkerAndTurfProvider({
   children: ReactNode;
 }) {
   const { mapId, mapQuery, mapConfig, view } = useContext(MapContext);
+  const { publicMap } = useContext(PublicMapContext);
   /* State */
 
   const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
 
   /* GraphQL Data */
+  const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {
+    let membersDataSourceId = mapConfig.membersDataSourceId;
+    let markerDataSourceIds = mapConfig.markerDataSourceIds;
+
+    // If a public map is being displayed, don't fetch markers that aren't included
+    if (publicMap) {
+      if (
+        !publicMap.dataSourceConfigs.some(
+          (dsc) => dsc.dataSourceId === membersDataSourceId
+        )
+      ) {
+        membersDataSourceId = "";
+      }
+      markerDataSourceIds = markerDataSourceIds.filter((id) =>
+        publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id)
+      );
+    }
+
+    return { membersDataSourceId, markerDataSourceIds }
+  }, [mapConfig.markerDataSourceIds, mapConfig.membersDataSourceId, publicMap]);
+
   const markerQueries = useMarkerQueries({
-    membersDataSourceId: mapConfig.membersDataSourceId,
-    markerDataSourceIds: mapConfig.markerDataSourceIds,
+    membersDataSourceId,
+    markerDataSourceIds,
     dataSourceViews: view?.dataSourceViews || [],
   });
 

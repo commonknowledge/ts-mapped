@@ -3,6 +3,7 @@
 import { QueryResult, gql, useQuery } from "@apollo/client";
 import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import {
+  PublicMap,
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
   PublishedPublicMapQuery,
@@ -13,13 +14,16 @@ import { Point } from "@/types";
 import { PublicMapContext } from "./PublicMapContext";
 
 export default function PublicMapProvider({
-  publicMap,
+  publicMap: initialPublicMap,
+  editable = false,
   children,
 }: {
-  publicMap: PublishedPublicMapQuery["publishedPublicMap"];
+  publicMap: NonNullable<PublishedPublicMapQuery["publishedPublicMap"]>;
+  editable?: boolean;
   children: ReactNode;
 }) {
-  const { mapConfig } = useContext(MapContext);
+  const [publicMap, setPublicMap] =
+    useState<PublishedPublicMapQuery["publishedPublicMap"]>(initialPublicMap);
   const [searchLocation, setSearchLocation] = useState<Point | null>(null);
   const [dataRecordsQueries, setDataRecordsQueries] = useState<
     Record<
@@ -28,7 +32,7 @@ export default function PublicMapProvider({
     >
   >({});
 
-  const onLoad = useCallback(
+  const onLoadDataRecords = useCallback(
     (
       dataSourceId: string,
       q: QueryResult<
@@ -41,21 +45,29 @@ export default function PublicMapProvider({
     [],
   );
 
+  const updatePublicMap = (updates: Partial<PublicMap>) => {
+    if (publicMap) {
+      setPublicMap({ ...publicMap, ...updates });
+    }
+  };
+
   return (
     <PublicMapContext
       value={{
         publicMap,
+        editable,
         dataRecordsQueries,
         searchLocation,
         setSearchLocation,
+        updatePublicMap,
       }}
     >
-      {mapConfig.getDataSourceIds().map((id) => (
+      {publicMap?.dataSourceConfigs.map((dsc) => (
         <DataRecordsQueryComponent
-          key={id}
-          dataSourceId={id}
+          key={dsc.dataSourceId}
+          dataSourceId={dsc.dataSourceId}
           location={searchLocation}
-          onLoad={onLoad}
+          onLoadDataRecords={onLoadDataRecords}
         />
       ))}
       {children}
@@ -67,11 +79,11 @@ export default function PublicMapProvider({
 function DataRecordsQueryComponent({
   dataSourceId,
   location,
-  onLoad,
+  onLoadDataRecords,
 }: {
   dataSourceId: string;
   location: Point | null;
-  onLoad: (
+  onLoadDataRecords: (
     dataSourceId: string,
     q: QueryResult<
       PublicMapDataRecordsQuery,
@@ -131,9 +143,8 @@ function DataRecordsQueryComponent({
   );
 
   useEffect(() => {
-    console.log("onload", dataSourceId);
-    onLoad(dataSourceId, dataRecordsQuery);
-  }, [dataRecordsQuery, dataSourceId, onLoad]);
+    onLoadDataRecords(dataSourceId, dataRecordsQuery);
+  }, [dataRecordsQuery, dataSourceId, onLoadDataRecords]);
 
   return null;
 }

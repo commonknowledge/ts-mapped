@@ -3,11 +3,14 @@ import {
   PublishedPublicMapQuery,
   PublishedPublicMapQueryVariables,
 } from "@/__generated__/types";
-import MapProviders from "@/components/Map/MapProviders";
+import ChoroplethProvider from "@/components/Map/providers/ChoroplethProvider";
+import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
+import MapProvider from "@/components/Map/providers/MapProvider";
+import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvider";
+import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import { getClient } from "@/services/apollo";
-import PublicMap from "./PublicMap";
-import PublicMapProvider from "./PublicMapProvider";
+import PublicMap from "./PublicMap/PublicMap";
 
 export default async function PublicMapPage({ host }: { host: string }) {
   const apolloClient = await getClient();
@@ -21,15 +24,17 @@ export default async function PublicMapPage({ host }: { host: string }) {
           id
           mapId
           viewId
+          host
           name
           description
           descriptionLink
+          published
           dataSourceConfigs {
             dataSourceId
-            nameColumns
             nameLabel
-            descriptionColumn
+            nameColumns
             descriptionLabel
+            descriptionColumn
             additionalColumns {
               label
               sourceColumns
@@ -59,14 +64,16 @@ export default async function PublicMapPage({ host }: { host: string }) {
   }
   const publicMap = publicMapQuery.data.publishedPublicMap;
   return (
-    <MapProviders
-      mapId={publicMap.mapId}
-      viewId={publicMap.viewId}
-      forPublicMap
-    >
+    <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
       <PublicMapProvider publicMap={publicMap}>
-        <PublicMap />
+        <DataRecordProvider>
+          <ChoroplethProvider>
+            <MarkerAndTurfProvider>
+              <PublicMap />
+            </MarkerAndTurfProvider>
+          </ChoroplethProvider>
+        </DataRecordProvider>
       </PublicMapProvider>
-    </MapProviders>
+    </MapProvider>
   );
 }
