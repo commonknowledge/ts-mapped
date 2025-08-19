@@ -76,7 +76,7 @@ export const getChoroplethLayerConfig = (
   areaSetGroupCode: AreaSetGroupCode | null,
   zoom: number,
 ) => {
-  if (dataSourceAreaSetCode && areaSetGroupCode) {
+  if (areaSetGroupCode) {
     const sources = CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode] || [];
     for (const source of sources) {
       if (source.minZoom <= zoom && source.maxZoom > zoom) {

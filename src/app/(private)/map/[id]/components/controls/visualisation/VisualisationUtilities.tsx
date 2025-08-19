@@ -1,6 +1,4 @@
-import { AreaSetCode, LooseGeocodingConfig } from "@/__generated__/types";
-
-import { AreaSetGroupCode } from "@/__generated__/types";
+import { AreaSetCode, AreaSetGroupCode, LooseGeocodingConfig } from "@/__generated__/types";
 
 export const getValidAreaSetGroupCodes = (
   dataSourceGeocodingConfig: LooseGeocodingConfig | null | undefined,
