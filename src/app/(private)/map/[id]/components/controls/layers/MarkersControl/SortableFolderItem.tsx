@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import { SyntheticEvent, useContext, useMemo, useRef, useState } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
-import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { mapColors } from "@/components/Map/styles";
+import { sortByPositionAndId } from "@/components/Map/utils";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,

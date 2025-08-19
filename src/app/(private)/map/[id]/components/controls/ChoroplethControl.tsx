@@ -1,9 +1,10 @@
 import { CornerDownRight, PaintBucketIcon, Scan } from "lucide-react";
 import { useContext } from "react";
 import { AreaSetGroupCode } from "@/__generated__/types";
-import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { AREA_SET_GROUP_LABELS } from "@/components/Map/sources";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -13,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { AREA_SET_GROUP_LABELS } from "../../sources";
 
 export default function ChoroplethControl() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);

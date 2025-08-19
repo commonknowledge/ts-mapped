@@ -8,7 +8,13 @@ import {
 import { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findMapById } from "@/server/repositories/Map";
+import { findMapViewById } from "@/server/repositories/MapView";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
+import {
+  findPublicMapByViewId,
+  findPublishedPublicMapByDataSourceId,
+  findPublishedPublicMapByMapId,
+} from "@/server/repositories/PublicMap";
 import logger from "@/server/services/logger";
 import { GraphQLContext } from "./context";
 
@@ -117,11 +123,20 @@ export const _checkArg = (
   accessType: AccessType,
 ) => {
   // Select the guard using a map to ensure that all arg types have guards
-  const guard = {
+  const guards: Record<
+    keyof ProtectedArgs,
+    (
+      v: string | null | undefined,
+      uid: string | null | undefined,
+      access: AccessType,
+    ) => Promise<boolean>
+  > = {
     dataSourceIdArg: _dataSourceGuard,
     mapIdArg: _mapGuard,
     organisationIdArg: _organisationGuard,
-  }[argType];
+    viewIdArg: _viewGuard,
+  };
+  const guard = guards[argType];
   return guard(fieldValue, userId, accessType);
 };
 
@@ -139,8 +154,14 @@ export const _dataSourceGuard = async (
     return false;
   }
 
-  if (accessType === "read" && dataSource.public) {
-    return true;
+  if (accessType === "read") {
+    if (dataSource.public) {
+      return true;
+    }
+    const publicMap = await findPublishedPublicMapByDataSourceId(dataSource.id);
+    if (publicMap) {
+      return true;
+    }
   }
 
   if (!userId) {
@@ -151,20 +172,31 @@ export const _dataSourceGuard = async (
     dataSource.organisationId,
     userId,
   );
-  if (!organisationUser) {
-    return false;
+  if (organisationUser) {
+    return true;
   }
 
-  return true;
+  return false;
 };
 
 export const _mapGuard = async (
   mapId: string | null | undefined,
   userId: string | null | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   accessType: AccessType,
 ) => {
-  if (!mapId || !userId) {
+  if (!mapId) {
+    return false;
+  }
+
+  if (accessType === "read") {
+    const publicMap = await findPublishedPublicMapByMapId(mapId);
+    if (publicMap) {
+      return true;
+    }
+  }
+
+  if (!userId) {
     return false;
   }
 
@@ -177,11 +209,11 @@ export const _mapGuard = async (
     map.organisationId,
     userId,
   );
-  if (!organisationUser) {
-    return false;
+  if (organisationUser) {
+    return true;
   }
 
-  return true;
+  return false;
 };
 
 export const _organisationGuard = async (
@@ -195,9 +227,52 @@ export const _organisationGuard = async (
   }
 
   const organisationUser = await findOrganisationUser(organisationId, userId);
-  if (!organisationUser) {
+  if (organisationUser) {
+    return true;
+  }
+
+  return false;
+};
+
+export const _viewGuard = async (
+  viewId: string | null | undefined,
+  userId: string | null | undefined,
+
+  accessType: AccessType,
+) => {
+  if (!viewId || !userId) {
     return false;
   }
 
-  return true;
+  if (accessType === "read") {
+    const publicMap = await findPublicMapByViewId(viewId);
+    if (publicMap?.published) {
+      return true;
+    }
+  }
+
+  if (!userId) {
+    return false;
+  }
+
+  const view = await findMapViewById(viewId);
+  if (!view) {
+    return false;
+  }
+
+  const map = await findMapById(view.mapId);
+  if (!map) {
+    return false;
+  }
+
+  const organisationUser = await findOrganisationUser(
+    map.organisationId,
+    userId,
+  );
+
+  if (organisationUser) {
+    return true;
+  }
+
+  return false;
 };

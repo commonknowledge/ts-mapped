@@ -1,13 +1,13 @@
 import { Ellipsis, Table } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import DataSourceIcon from "@/components/Map/components/DataSourceIcon";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { TableContext } from "@/components/Map/context/TableContext";
+import { mapColors } from "@/components/Map/styles";
 import { ScrollArea } from "@/shadcn/ui/scroll-area";
-import DataSourceIcon from "../../DataSourceIcon";
 import ControlItemWrapper from "../ControlItemWrapper";
 import LayerHeader from "../LayerHeader";
 

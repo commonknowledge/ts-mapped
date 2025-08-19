@@ -2,11 +2,12 @@ import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Turf } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import Loading from "@/components/Map/components/Loading";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { mapColors } from "@/components/Map/styles";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -14,7 +15,6 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
-import Loading from "../../Loading";
 import LayerHeader from "../LayerHeader";
 
 export default function AreasControl() {

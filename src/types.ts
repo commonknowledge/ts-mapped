@@ -33,11 +33,6 @@ export interface GeocodeResult {
   samplePoint: Point | null;
 }
 
-export interface MarkerData {
-  properties: Record<string, unknown>;
-  coordinates: number[];
-}
-
 // Property names taken from Mapbox standard
 export interface Point {
   lng: number;

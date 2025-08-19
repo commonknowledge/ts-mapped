@@ -13,6 +13,7 @@ import { MapViewTable } from "@/server/models/MapView";
 import { OrganisationTable } from "@/server/models/Organisation";
 import { OrganisationUserTable } from "@/server/models/OrganisationUser";
 import { PlacedMarkerTable } from "@/server/models/PlacedMarker";
+import { PublicMapTable } from "@/server/models/PublicMap";
 import { TurfTable } from "@/server/models/Turf";
 import { UserTable } from "@/server/models/User";
 import { PointPlugin } from "./plugins";
@@ -38,6 +39,7 @@ export interface Database {
   organisation: OrganisationTable;
   organisationUser: OrganisationUserTable;
   placedMarker: PlacedMarkerTable;
+  publicMap: PublicMapTable;
   turf: TurfTable;
   user: UserTable;
   "pgboss.job": JobTable;

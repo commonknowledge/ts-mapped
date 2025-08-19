@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { RecordFilterInput } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
 import {
+  MARKER_DATA_SOURCE_ID_KEY,
   MARKER_EXTERNAL_ID_KEY,
   MARKER_ID_KEY,
   MARKER_MATCHED_COLUMN,
@@ -9,8 +10,11 @@ import {
   MARKER_NAME_KEY,
 } from "@/constants";
 import { DataRecord } from "@/server/models/DataRecord";
+import { DataSource } from "@/server/models/DataSource";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
+import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/PublicMap";
 
 /**
  * Replace a GraphQL query so that streams can be used, to avoid
@@ -22,13 +26,13 @@ export async function GET(
 ): Promise<NextResponse> {
   const realParams = await args.params;
   const { currentUser } = await getServerSession();
-  // TODO: fine-grained access control
-  if (!currentUser) {
-    return new NextResponse("Forbidden", { status: 403 });
-  }
-
   const dataSource = await findDataSourceById(realParams.id);
   if (!dataSource) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
+  const canRead = await checkAccess(dataSource, currentUser?.id);
+  if (!canRead) {
     return new NextResponse("Not found", { status: 404 });
   }
 
@@ -65,6 +69,7 @@ export async function GET(
             properties: {
               ...dr.json,
               [MARKER_ID_KEY]: dr.id,
+              [MARKER_DATA_SOURCE_ID_KEY]: dr.dataSourceId,
               [MARKER_EXTERNAL_ID_KEY]: dr.externalId,
               // If no name column is specified, show the ID as the marker name instead
               [MARKER_NAME_KEY]: nameColumns?.length
@@ -100,3 +105,31 @@ export async function GET(
     },
   });
 }
+
+const checkAccess = async (
+  dataSource: DataSource,
+  userId: string | undefined | null,
+): Promise<boolean> => {
+  if (dataSource.public) {
+    return true;
+  }
+
+  const publicMap = await findPublishedPublicMapByDataSourceId(dataSource.id);
+  if (publicMap) {
+    return true;
+  }
+
+  if (!userId) {
+    return false;
+  }
+
+  const organisationUser = await findOrganisationUser(
+    dataSource.organisationId,
+    userId,
+  );
+  if (organisationUser) {
+    return true;
+  }
+
+  return false;
+};

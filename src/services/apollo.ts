@@ -5,6 +5,7 @@ import {
   registerApolloClient,
 } from "@apollo/experimental-nextjs-app-support";
 import { getServerSession } from "@/auth";
+import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(
   async () => {
@@ -27,7 +28,7 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
       },
       link: new HttpLink({
         uri: `${
-          process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000"
+          process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL
         }/api/graphql`,
         headers: {
           cookie: `JWT=${jwt || ""}`,

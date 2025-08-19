@@ -3,10 +3,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import { SyntheticEvent, useContext, useRef, useState } from "react";
 import { PlacedMarker } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { mapColors } from "@/components/Map/styles";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
