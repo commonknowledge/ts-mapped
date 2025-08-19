@@ -107,7 +107,7 @@ export default function MarkersList() {
       if (over.id.toString().startsWith("folder")) {
         let folderId: string;
 
-        // Handle header, footer, and draggable element IDs
+        // Handle header, footer, and draggable folder element IDs
         let append = false;
         if (over.id.toString().startsWith("folder-footer-")) {
           folderId = over.id.toString().replace("folder-footer-", "");

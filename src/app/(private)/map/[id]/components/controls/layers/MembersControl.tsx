@@ -39,7 +39,7 @@ export default function MembersControl() {
     }));
     return [
       ...items,
-      { type: "separator" as const },
+      ...(items.length > 0 ? [{ type: "separator" as const }] : []),
       {
         type: "item" as const,
         label: "Add new data source",

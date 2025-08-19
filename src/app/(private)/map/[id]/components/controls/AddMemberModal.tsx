@@ -65,8 +65,8 @@ export default function AddMembersDataModal({
               <div className="flex flex-col flex-1">
                 <span className="font-medium">{dataSource.name}</span>
                 <span className="text-sm text-muted-foreground">
-                  {dataSource.recordCount || 0} location
-                  {dataSource.recordCount !== 1 ? "s" : ""}
+                  {dataSource.recordCount?.count || 0} location
+                  {dataSource.recordCount?.count !== 1 ? "s" : ""}
                 </span>
               </div>
             </label>

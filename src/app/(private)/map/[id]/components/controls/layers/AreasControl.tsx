@@ -108,7 +108,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
 
   const handleFlyTo = (turf: Turf) => {
     // Calculate the center of the polygon using turf.js
-    const center = turfLib.center(turf.geometry);
+    const center = turfLib.center(turf.polygon);
     const map = mapRef?.current;
     if (map) {
       map.flyTo({

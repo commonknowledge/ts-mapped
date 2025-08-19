@@ -1,3 +1,4 @@
+import { Polygon } from "geojson";
 import { v4 as uuidv4 } from "uuid";
 import {
   ColumnDef,
@@ -10,6 +11,7 @@ import {
   MutationUpdateDataSourceConfigArgs,
   MutationUpdateMapArgs,
   MutationUpdateMapConfigArgs,
+  PolygonInput,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
   UpsertTurfResponse,
@@ -27,7 +29,10 @@ import {
   findMapById,
   updateMap,
 } from "@/server/repositories/Map";
-import { upsertMapView } from "@/server/repositories/MapView";
+import {
+  findMapViewsByMapId,
+  upsertMapView,
+} from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
   deletePlacedMarkersByFolderId,
@@ -158,6 +163,21 @@ const MutationResolvers: MutationResolversType = {
     await enqueue("importDataSource", { dataSourceId });
     return { code: 200 };
   },
+  saveMapViewsToCRM: async (
+    _: unknown,
+    { id }: { id: string },
+  ): Promise<MutationResponse> => {
+    const views = await findMapViewsByMapId(id);
+    for (const view of views) {
+      for (const dsv of view.dataSourceViews) {
+        await enqueue("tagDataSource", {
+          dataSourceId: dsv.dataSourceId,
+          viewId: view.id,
+        });
+      }
+    }
+    return { code: 200 };
+  },
   updateDataSourceConfig: async (
     _: unknown,
     {
@@ -285,6 +305,7 @@ const MutationResolvers: MutationResolversType = {
         await upsertMapView({
           ...view,
           config: JSON.stringify(view.config),
+          dataSourceViews: JSON.stringify(view.dataSourceViews),
           mapId,
         });
       }
@@ -316,7 +337,7 @@ const MutationResolvers: MutationResolversType = {
       label,
       notes,
       area,
-      geometry,
+      polygon,
       createdAt,
       mapId,
     }: {
@@ -324,7 +345,7 @@ const MutationResolvers: MutationResolversType = {
       label: string;
       notes: string;
       area: number;
-      geometry: unknown;
+      polygon: PolygonInput;
       createdAt: string;
       mapId: string;
     },
@@ -338,7 +359,7 @@ const MutationResolvers: MutationResolversType = {
         label,
         notes,
         area,
-        geometry: JSON.stringify(geometry),
+        polygon: polygon as Polygon,
         createdAt: new Date(createdAt),
         mapId,
       };

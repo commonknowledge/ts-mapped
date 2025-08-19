@@ -44,7 +44,9 @@ export default function DataSourceDashboard({
   const [lastImported, setLastImported] = useState(
     dataSource.importInfo?.lastCompleted || null,
   );
-  const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
+  const [recordCount, setRecordCount] = useState(
+    dataSource.recordCount?.count || 0,
+  );
 
   const [enqueueImportDataSourceJob] = useMutation<
     EnqueueImportDataSourceJobMutation,

@@ -12,7 +12,9 @@ interface DataSource {
   public: boolean;
   columnDefs: ColumnDef[];
   geocodingConfig: LooseGeocodingConfig;
-  recordCount?: number | null;
+  recordCount?: {
+    count: number;
+  } | null;
   autoImport: boolean;
 }
 
@@ -136,7 +138,7 @@ export default function DataSourceItem({
           <div className="flex flex-wrap items-center gap-x-2 text-xs text-gray-600">
             <span>{dataSource.columnDefs.length} columns</span>
             <span className="text-gray-400">•</span>
-            <span>{dataSource.recordCount || "Unknown"} records</span>
+            <span>{dataSource.recordCount?.count || "Unknown"} records</span>
             <span className="text-gray-400">•</span>
             <span className={geocodingStatus.color}>
               {geocodingStatus.status}

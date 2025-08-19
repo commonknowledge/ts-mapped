@@ -5,6 +5,8 @@ import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useContext, useState } from "react";
 import {
+  SaveMapViewsToCrmMutation,
+  SaveMapViewsToCrmMutationVariables,
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
 } from "@/__generated__/types";
@@ -24,6 +26,7 @@ export default function MapNavbar() {
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [crmSaveLoading, setCRMSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   const [updateMapName] = useMutation(gql`
@@ -53,6 +56,17 @@ export default function MapNavbar() {
     }
   `);
 
+  const [saveMapViewsToCRM] = useMutation<
+    SaveMapViewsToCrmMutation,
+    SaveMapViewsToCrmMutationVariables
+  >(gql`
+    mutation SaveMapViewsToCRM($id: String!) {
+      saveMapViewsToCRM(id: $id) {
+        code
+      }
+    }
+  `);
+
   const onClickSave = async () => {
     // Should never happen, button is also hidden in this case
     if (!mapId) {
@@ -69,6 +83,21 @@ export default function MapNavbar() {
       setSaveError("Could not save this map view, please try again.");
     }
     setLoading(false);
+  };
+
+  const onClickCRMSave = async () => {
+    // Should never happen, button is also hidden in this case
+    if (!mapId) {
+      return;
+    }
+
+    setCRMSaveLoading(true);
+    setSaveError("");
+    const { data } = await saveMapViewsToCRM({ variables: { id: mapId } });
+    if (data?.saveMapViewsToCRM?.code !== 200) {
+      setSaveError("Could not save to your CRM, please try again.");
+    }
+    setCRMSaveLoading(false);
   };
 
   const regenerateMapImage = async () => {
@@ -175,6 +204,14 @@ export default function MapNavbar() {
               disabled={loading}
             >
               Save
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onClickCRMSave()}
+              disabled={crmSaveLoading}
+            >
+              Save to CRM
             </Button>
           </div>
         )}

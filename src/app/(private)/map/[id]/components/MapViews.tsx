@@ -91,6 +91,7 @@ export default function MapViews() {
       id: uuidv4(),
       name: newViewName.trim(),
       config: new ViewConfig(),
+      dataSourceViews: [],
     };
 
     insertView(newView);
@@ -211,14 +212,14 @@ function SortableViewItem({
 }) {
   const {
     dirtyViewIds,
-    viewId: selectedViewId,
+    view: selectedView,
     setViewId: setSelectedViewId,
     views,
     deleteView,
     updateView,
   } = useContext(MapContext);
   const [editName, setEditName] = useState(view.name);
-  const isSelected = selectedViewId === view.id;
+  const isSelected = selectedView?.id === view.id;
   const isRenaming = renamingViewId === view.id;
   const isDirty = dirtyViewIds.includes(view.id);
 
@@ -269,7 +270,7 @@ function SortableViewItem({
     }
 
     deleteView(view.id);
-    if (view.id === selectedViewId) {
+    if (view.id === selectedView?.id) {
       const nextView = views.find((v) => v.id !== view.id);
       if (nextView) {
         setSelectedViewId(nextView.id);

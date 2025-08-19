@@ -258,7 +258,7 @@ export const useTurfs = (mapId: string | null) => {
       variables: {
         label: newTurf.label,
         notes: newTurf.notes,
-        geometry: newTurf.geometry,
+        polygon: newTurf.polygon,
         createdAt: newTurf.createdAt,
         area: newTurf.area,
         mapId,
@@ -282,7 +282,7 @@ export const useTurfs = (mapId: string | null) => {
         id: updatedTurf.id,
         label: updatedTurf.label,
         notes: updatedTurf.notes,
-        geometry: updatedTurf.geometry,
+        polygon: updatedTurf.polygon,
         createdAt: updatedTurf.createdAt,
         area: updatedTurf.area,
         mapId,

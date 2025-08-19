@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { MARKER_NAME_KEY } from "@/constants";
+import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 
@@ -25,11 +25,11 @@ export default function Markers() {
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = markerQueries?.data?.find(
-    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
+    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId
   );
 
   const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
-    markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+    markerQueries?.data?.find((ds) => ds.dataSourceId === id)
   );
 
   return (
@@ -86,7 +86,12 @@ function DataSourceMarkers({
         maxzoom={9}
         paint={{
           // Uniform weight (adjust if you have a numeric property to weight by)
-          "heatmap-weight": 1,
+          "heatmap-weight": [
+            "case",
+            ["get", MARKER_MATCHED_KEY],
+            1, // Full weight for matched points
+            0.2, // Reduced weight for unmatched points (adjust as needed)
+          ],
           // Increase intensity as zoom level increases
           "heatmap-intensity": [
             "interpolate",
@@ -131,7 +136,11 @@ function DataSourceMarkers({
         paint={{
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
           "circle-color": colors.color,
-          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, 1],
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 8, [
+            "case",
+            ["get", MARKER_MATCHED_KEY],
+            1, 0.5
+          ]],
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",
         }}

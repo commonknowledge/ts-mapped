@@ -52,6 +52,17 @@ const typeDefs = `
     DataSource
   }
 
+  enum FilterOperator {
+    AND
+    OR
+  }
+
+  enum FilterType {
+    GEO
+    MULTI
+    TEXT
+  }
+
   enum GeocodingType {
     Address
     Code
@@ -90,6 +101,13 @@ const typeDefs = `
     nameColumns: [String!]!
   }
 
+  input DataSourceViewInput {
+    dataSourceId: String!
+    filter: RecordFilterInput!
+    search: String!
+    sort: [SortInput!]!
+  }
+
   input LooseGeocodingConfigInput {
     type: GeocodingType!
     column: String
@@ -119,6 +137,7 @@ const typeDefs = `
     id: String!
     name: String!
     config: MapViewConfigInput!
+    dataSourceViews: [DataSourceViewInput!]!
     position: Float!
   }
 
@@ -141,6 +160,25 @@ const typeDefs = `
   input PointInput {
     lat: Float!
     lng: Float!
+  }
+
+  input PolygonInput {
+    type: String!
+    coordinates: [[[Float!]!]!]!
+  }
+
+  input RecordFilterInput {
+    children: [RecordFilterInput!]
+    column: String
+    dataSourceId: String
+    dataRecordId: String
+    distance: Int
+    label: String
+    operator: FilterOperator
+    placedMarker: String
+    search: String
+    turf: String
+    type: FilterType!
   }
 
   input SortInput {
@@ -192,9 +230,16 @@ const typeDefs = `
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    records(filter: String, page: Int, sort: [SortInput!]): [DataRecord!]
+    records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!]): [DataRecord!]
 
-    recordCount(filter: String, sort: [SortInput!]): Int
+    recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): RecordCount
+  }
+
+  type DataSourceView {
+    dataSourceId: String!
+    filter: RecordFilter!
+    search: String!
+    sort: [Sort!]!
   }
 
   """
@@ -260,6 +305,7 @@ const typeDefs = `
     name: String!
     position: Float!
     config: MapViewConfig!
+    dataSourceViews: [DataSourceView!]!
     mapId: String!
   }
 
@@ -298,13 +344,37 @@ const typeDefs = `
     lng: Float!
   }
 
+  type RecordCount {
+    count: Int!
+    matched: Int!
+  }
+
+  type RecordFilter {
+    children: [RecordFilter!]
+    column: String
+    dataSourceId: String
+    dataRecordId: String
+    distance: Int
+    label: String
+    operator: FilterOperator
+    placedMarker: String
+    search: String
+    turf: String
+    type: FilterType!
+  }
+
   type Turf {
     id: String!
     label: String!
     notes: String!
     area: Float!
-    geometry: JSON!
+    polygon: JSON!
     createdAt: Date!
+  }
+
+  type Sort {
+    name: String!
+    desc: Boolean!
   }
 
   type Query {
@@ -380,6 +450,7 @@ const typeDefs = `
     deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
+    saveMapViewsToCRM(id: String!): MutationResponse @auth(write: { mapIdArg: "id" })
     updateDataSourceConfig(
       id: String!
       autoEnrich: Boolean
@@ -419,7 +490,7 @@ const typeDefs = `
       label: String!
       notes: String!
       area: Float!
-      geometry: JSON!
+      polygon: JSON!
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })

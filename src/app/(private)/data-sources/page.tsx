@@ -53,7 +53,9 @@ export default function DataSourcesPage() {
           columnRoles {
             nameColumns
           }
-          recordCount
+          recordCount {
+            count
+          }
           geocodingConfig {
             type
             column

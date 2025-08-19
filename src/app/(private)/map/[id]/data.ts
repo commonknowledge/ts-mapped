@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AreaSetCode,
   AreaSetGroupCode,
@@ -8,6 +8,7 @@ import {
   CalculationType,
   DataRecordsQuery,
   DataRecordsQueryVariables,
+  DataSourceView,
   DataSourcesQuery,
   DeleteFolderMutationMutation,
   DeleteFolderMutationMutationVariables,
@@ -17,6 +18,7 @@ import {
   DeleteTurfMutationVariables,
   MapQuery,
   MapQueryVariables,
+  RecordFilterInput,
   SortInput,
   UpdateMapConfigMutation,
   UpdateMapConfigMutationVariables,
@@ -45,24 +47,28 @@ export const useDataSourcesQuery = () =>
           type
           column
         }
-        recordCount
+        recordCount {
+          count
+        }
       }
     }
   `);
 
 export const useDataRecordsQuery = (variables: {
   dataSourceId: string;
-  filter: string;
+  filter?: RecordFilterInput;
+  search?: string;
   page: number;
-  sort: SortInput[];
+  sort?: SortInput[];
 }) =>
   useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
     gql`
       query DataRecords(
         $dataSourceId: String!
-        $filter: String!
+        $filter: RecordFilterInput
+        $search: String
         $page: Int!
-        $sort: [SortInput!]!
+        $sort: [SortInput!]
       ) {
         dataSource(id: $dataSourceId) {
           id
@@ -71,7 +77,7 @@ export const useDataRecordsQuery = (variables: {
             name
             type
           }
-          records(filter: $filter, page: $page, sort: $sort) {
+          records(filter: $filter, search: $search, page: $page, sort: $sort) {
             id
             externalId
             geocodePoint {
@@ -80,7 +86,10 @@ export const useDataRecordsQuery = (variables: {
             }
             json
           }
-          recordCount(filter: $filter)
+          recordCount(filter: $filter, search: $search) {
+            count
+            matched
+          }
         }
       }
     `,
@@ -119,7 +128,7 @@ export const useMapQuery = (mapId: string | null) =>
             label
             notes
             area
-            geometry
+            polygon
             createdAt
           }
           views {
@@ -141,6 +150,29 @@ export const useMapQuery = (mapId: string | null) =>
               calculationType
               colorScheme
             }
+            dataSourceViews {
+              dataSourceId
+              filter {
+                children {
+                  column
+                  dataSourceId
+                  dataRecordId
+                  distance
+                  label
+                  operator
+                  placedMarker
+                  search
+                  turf
+                  type
+                }
+                type
+              }
+              search
+              sort {
+                name
+                desc
+              }
+            }
           }
         }
       }
@@ -157,14 +189,17 @@ export const useMapQuery = (mapId: string | null) =>
 export const useMarkerQueries = ({
   membersDataSourceId,
   markerDataSourceIds,
+  dataSourceViews,
 }: {
   membersDataSourceId: string;
   markerDataSourceIds: string[];
+  dataSourceViews: DataSourceView[];
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<DataSourceMarkers[]>([]);
   const cache = useRef<Record<string, DataSourceMarkers>>({});
+  const cacheKeyByDataSource = useRef<Record<string, string>>({});
 
   useEffect(() => {
     const fetchMarkers = async () => {
@@ -176,15 +211,35 @@ export const useMarkerQueries = ({
       ].filter(Boolean);
       try {
         for (const id of dataSourceIds) {
-          if (!cache.current[id]) {
-            const response = await fetch(`/api/data-sources/${id}/markers`);
+          const filter = JSON.stringify(
+            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.filter ||
+              null,
+          );
+          const search =
+            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.search ||
+            "";
+          const cacheId = `${id}:${filter}:${search}`;
+          if (!cache.current[cacheId]) {
+            const params = new URLSearchParams();
+            params.set("filter", filter);
+            params.set("search", search);
+            const response = await fetch(
+              `/api/data-sources/${id}/markers?${params.toString()}`,
+            );
             if (!response.ok) {
               throw new Error(`Bad response: ${response.status}`);
             }
             const dataSourceMarkers = await response.json();
-            cache.current[id] = dataSourceMarkers;
+            cache.current[cacheId] = dataSourceMarkers;
           }
-          setData(Object.values(cache.current));
+          cacheKeyByDataSource.current[id] = cacheId;
+          // For each active cache key, get the cached value
+          // which will be a DataSourceMarkers object
+          setData(
+            Object.values(cacheKeyByDataSource.current)
+              .map((k) => cache.current[k])
+              .filter(Boolean),
+          );
         }
       } catch (e) {
         console.error("Fetch markers error", e);
@@ -193,9 +248,9 @@ export const useMarkerQueries = ({
       setLoading(false);
     };
     fetchMarkers();
-  }, [markerDataSourceIds, membersDataSourceId]);
+  }, [dataSourceViews, markerDataSourceIds, membersDataSourceId]);
 
-  return { loading, data, error };
+  return useMemo(() => ({ loading, data, error }), [data, error, loading]);
 };
 
 export const useAreaStatsQuery = ({
@@ -385,7 +440,7 @@ export const useUpsertTurfMutation = () => {
       $label: String!
       $notes: String!
       $area: Float!
-      $geometry: JSON!
+      $polygon: JSON!
       $createdAt: Date!
       $mapId: String!
     ) {
@@ -394,7 +449,7 @@ export const useUpsertTurfMutation = () => {
         label: $label
         notes: $notes
         area: $area
-        geometry: $geometry
+        polygon: $polygon
         createdAt: $createdAt
         mapId: $mapId
       ) {

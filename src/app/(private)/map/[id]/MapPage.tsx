@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
   ResizableHandle,
@@ -28,6 +28,20 @@ export default function MapPage() {
   const { dataSourcesLoading } = useContext(DataSourcesContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
+  const [showControls, setShowControls] = useState(true);
+
+  // Resize map when UI changes
+  useEffect(() => {
+    if (mapRef?.current) {
+      const timeoutId = setTimeout(() => {
+        if (mapRef?.current) {
+          mapRef.current.resize();
+        }
+      }, 1);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [mapRef, selectedDataSourceId]);
 
   if (!mapQuery || mapQuery.loading) {
     return <Loading />;
@@ -39,15 +53,24 @@ export default function MapPage() {
     areaStatsQuery?.loading ||
     markerQueries?.loading;
 
+  const controlPanelWidth = 280;
+  const paddedStyle = showControls
+    ? { paddingLeft: `${controlPanelWidth}px` }
+    : {};
+
   return (
     <div className="flex flex-col h-screen">
       <MapNavbar />
       <div className="flex w-full grow min-h-0 relative">
-        <Controls />
+        <Controls
+          showControls={showControls}
+          setShowControls={setShowControls}
+          controlPanelWidth={controlPanelWidth}
+        />
         <VisualisationPanel />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
-            <ResizablePanel className="relative">
+            <ResizablePanel className="relative" id="map" order={0}>
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
@@ -56,9 +79,15 @@ export default function MapPage() {
             </ResizablePanel>
             {selectedDataSourceId && (
               <>
-                <ResizableHandle withHandle />
-                <ResizablePanel onResize={() => mapRef?.current?.resize()}>
-                  <MapTable />
+                <ResizableHandle withHandle style={paddedStyle} />
+                <ResizablePanel
+                  onResize={() => mapRef?.current?.resize()}
+                  id="table"
+                  order={1}
+                >
+                  <div className="transition-all h-full" style={paddedStyle}>
+                    <MapTable />
+                  </div>
                 </ResizablePanel>
               </>
             )}

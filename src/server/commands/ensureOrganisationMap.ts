@@ -1,6 +1,7 @@
 import {
   AreaSetCode,
   AreaSetGroupCode,
+  DataSourceView,
   GeocodingType,
   MapStyleName,
   MapView,
@@ -75,11 +76,14 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
     mapStyleName: MapStyleName.Light,
   };
 
+  const dataSourceViews: DataSourceView[] = [];
+
   const newView: NewMapView = {
     name: "Example View",
     config: JSON.stringify(config),
     mapId: map.id,
     position: 0,
+    dataSourceViews: JSON.stringify(dataSourceViews),
   };
   await upsertMapView(newView);
 

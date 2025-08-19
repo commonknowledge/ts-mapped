@@ -81,7 +81,7 @@ export const MapContext = createContext<{
   updateView: (view: View) => void;
   dirtyViewIds: string[];
 
-  viewId: string | null;
+  view: View | null;
   setViewId: (id: string) => void;
 
   viewConfig: ViewConfig;
@@ -109,7 +109,7 @@ export const MapContext = createContext<{
   dirtyViewIds: [],
   viewConfig: new ViewConfig(),
   updateViewConfig: () => null,
-  viewId: null,
+  view: null,
   setViewId: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
