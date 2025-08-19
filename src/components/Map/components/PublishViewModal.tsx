@@ -97,6 +97,7 @@ export default function PublishViewModal({
           published
           dataSourceConfigs {
             dataSourceId
+            dataSourceLabel
             nameLabel
             nameColumns
             descriptionLabel
@@ -557,6 +558,7 @@ const createDataSourceConfig = (
 ): PublicMapDataSourceConfig => {
   return {
     dataSourceId: dataSource.id,
+    dataSourceLabel: dataSource.name,
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
     descriptionLabel: "Description",

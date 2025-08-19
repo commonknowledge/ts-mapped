@@ -31,6 +31,7 @@ export default async function PublicMapPage({ host }: { host: string }) {
           published
           dataSourceConfigs {
             dataSourceId
+            dataSourceLabel
             nameLabel
             nameColumns
             descriptionLabel

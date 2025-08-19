@@ -29,17 +29,17 @@ export default function MarkerAndTurfProvider({
     if (publicMap) {
       if (
         !publicMap.dataSourceConfigs.some(
-          (dsc) => dsc.dataSourceId === membersDataSourceId
+          (dsc) => dsc.dataSourceId === membersDataSourceId,
         )
       ) {
         membersDataSourceId = "";
       }
       markerDataSourceIds = markerDataSourceIds.filter((id) =>
-        publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id)
+        publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
       );
     }
 
-    return { membersDataSourceId, markerDataSourceIds }
+    return { membersDataSourceId, markerDataSourceIds };
   }, [mapConfig.markerDataSourceIds, mapConfig.membersDataSourceId, publicMap]);
 
   const markerQueries = useMarkerQueries({

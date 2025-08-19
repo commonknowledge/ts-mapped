@@ -19,7 +19,7 @@ export default function PublishPublicMapSidebar() {
   const [hideSidebar, setHideSidebar] = useState(false);
   const [error, setError] = useState("");
   const [publishedHost, setPublishedHost] = useState(
-    publicMap?.published ? publicMap.host : ""
+    publicMap?.published ? publicMap.host : "",
   );
 
   const [upsertPublicMap, { loading }] = useMutation<
@@ -69,7 +69,7 @@ export default function PublishPublicMapSidebar() {
         setPublishedHost(
           result.data.upsertPublicMap.result.published
             ? result.data.upsertPublicMap.result.host
-            : ""
+            : "",
         );
       }
       if (result.data?.upsertPublicMap?.code === 409) {
@@ -85,7 +85,7 @@ export default function PublishPublicMapSidebar() {
     <div
       className={cn(
         "absolute top-0 right-0 z-10 bg-white flex",
-        hideSidebar ? "h-auto" : "h-full"
+        hideSidebar ? "h-auto" : "h-full",
       )}
     >
       <div className="flex flex-col h-full w-[360px]">
@@ -139,35 +139,6 @@ export default function PublishPublicMapSidebar() {
                   checked={publicMap.published}
                   onCheckedChange={(published) =>
                     updatePublicMap({ published })
-                  }
-                />
-              </DataListRow>
-              <DataListRow label="Name">
-                <Input
-                  type="text"
-                  placeholder="My Map"
-                  value={publicMap.name}
-                  onChange={(e) => updatePublicMap({ name: e.target.value })}
-                  required
-                />
-              </DataListRow>
-              <DataListRow label="Description">
-                <Input
-                  type="text"
-                  placeholder="A public map made by me."
-                  value={publicMap.description}
-                  onChange={(e) =>
-                    updatePublicMap({ description: e.target.value })
-                  }
-                />
-              </DataListRow>
-              <DataListRow label="Project Link">
-                <Input
-                  type="text"
-                  placeholder="https://example.com"
-                  value={publicMap.descriptionLink}
-                  onChange={(e) =>
-                    updatePublicMap({ descriptionLink: e.target.value })
                   }
                 />
               </DataListRow>

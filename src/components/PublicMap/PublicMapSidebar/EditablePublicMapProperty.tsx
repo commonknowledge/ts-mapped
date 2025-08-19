@@ -1,27 +1,86 @@
 import { Pencil } from "lucide-react";
 import { FormEvent, ReactNode, useContext, useRef, useState } from "react";
-import { PublicMapQuery } from "@/__generated__/types";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Input } from "@/shadcn/ui/input";
 
 export default function EditablePublicMapProperty({
   property,
+  dataSourceProperty,
+  additionalColumnProperty,
+  placeholder,
   children,
 }: {
-  property: keyof NonNullable<PublicMapQuery["publicMap"]>;
+  property?: "name" | "description" | "descriptionLink";
+  dataSourceProperty?: {
+    dataSourceId: string;
+    property: "dataSourceLabel" | "nameLabel" | "descriptionLabel";
+  };
+  additionalColumnProperty?: {
+    columnIndex: number;
+    dataSourceId: string;
+    property: "label";
+  };
+  placeholder: string;
   children: ReactNode;
 }) {
-  const { publicMap, updatePublicMap } = useContext(PublicMapContext);
+  const {
+    publicMap,
+    updatePublicMap,
+    updateDataSourceConfig,
+    updateAdditionalColumn,
+    editable,
+  } = useContext(PublicMapContext);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const initialValue = publicMap ? String(publicMap[property]) : "";
+  let initialValue = "";
+  if (publicMap) {
+    if (property) {
+      initialValue = publicMap[property];
+    } else if (dataSourceProperty) {
+      const dataSourceConfig = publicMap.dataSourceConfigs.find(
+        (dsc) => dsc.dataSourceId === dataSourceProperty.dataSourceId,
+      );
+      initialValue = dataSourceConfig
+        ? dataSourceConfig[dataSourceProperty.property]
+        : "";
+    } else if (additionalColumnProperty) {
+      const dataSourceConfig = publicMap.dataSourceConfigs.find(
+        (dsc) => dsc.dataSourceId === additionalColumnProperty.dataSourceId,
+      );
+      initialValue =
+        dataSourceConfig &&
+        dataSourceConfig.additionalColumns[additionalColumnProperty.columnIndex]
+          ? dataSourceConfig.additionalColumns[
+              additionalColumnProperty.columnIndex
+            ][additionalColumnProperty.property]
+          : "";
+    }
+  }
 
   const [value, setValue] = useState(initialValue);
   const [isEditing, setEditing] = useState(false);
 
+  if (!editable) {
+    return children;
+  }
+
   const onSubmit = (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
-    updatePublicMap({ [property]: value });
+    if (property) {
+      updatePublicMap({ [property]: value });
+    } else if (dataSourceProperty) {
+      updateDataSourceConfig(dataSourceProperty.dataSourceId, {
+        [dataSourceProperty.property]: value,
+      });
+    } else if (additionalColumnProperty) {
+      updateAdditionalColumn(
+        additionalColumnProperty.dataSourceId,
+        additionalColumnProperty.columnIndex,
+        {
+          [additionalColumnProperty.property]: value,
+        },
+      );
+    }
     setEditing(false);
   };
 
@@ -30,6 +89,7 @@ export default function EditablePublicMapProperty({
       {isEditing ? (
         <Input
           ref={inputRef}
+          placeholder={placeholder}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={() => onSubmit()}

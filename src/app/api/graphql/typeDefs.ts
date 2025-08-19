@@ -158,6 +158,7 @@ const typeDefs = `
 
   input PublicMapDataSourceConfigInput {
     dataSourceId: String!
+    dataSourceLabel: String!
     nameColumns: [String!]!
     nameLabel: String!
     descriptionColumn: String!
@@ -360,6 +361,7 @@ const typeDefs = `
 
   type PublicMapDataSourceConfig {
     dataSourceId: String!
+    dataSourceLabel: String!
     nameColumns: [String!]!
     nameLabel: String!
     descriptionColumn: String!

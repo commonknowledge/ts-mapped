@@ -2,11 +2,10 @@
 
 import { QueryResult } from "@apollo/client";
 import { ArrowLeft, LoaderPinwheel, PanelLeft } from "lucide-react";
-import { Fragment, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
-  PublishedPublicMapQuery,
 } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
@@ -32,16 +31,14 @@ export default function PublicMapSidebar() {
   }
 
   const loadingSources = Object.values(dataRecordsQueries).some(
-    (q) => q.loading
+    (q) => q.loading,
   );
-
-  console.log('description', publicMap.description)
 
   return (
     <div
       className={cn(
         "absolute top-0 left-0 z-10 bg-white flex",
-        hideSidebar ? "h-auto" : "h-full"
+        hideSidebar ? "h-auto" : "h-full",
       )}
     >
       <div className="flex flex-col h-full w-[280px]">
@@ -57,13 +54,9 @@ export default function PublicMapSidebar() {
             </Link>
           )}
           <div className="flex items-center justify-between gap-2">
-            {editable ? (
-              <EditablePublicMapProperty property="name">
-                <h1 className="text-xl font-semibold">{publicMap.name}</h1>
-              </EditablePublicMapProperty>
-            ) : (
+            <EditablePublicMapProperty property="name" placeholder="Map name">
               <h1 className="text-xl font-semibold">{publicMap.name}</h1>
-            )}
+            </EditablePublicMapProperty>
             <Button
               variant="ghost"
               size="icon"
@@ -73,28 +66,27 @@ export default function PublicMapSidebar() {
               <span className="sr-only">Toggle sidebar</span>
             </Button>
           </div>
-          {editable ? (
-            <EditablePublicMapProperty property="description">
-              <p>{publicMap.description}</p>
-            </EditablePublicMapProperty>
-          ) : (
-            publicMap.description && <p>{publicMap.description}</p>
-          )}
-          {editable ? (
-            <EditablePublicMapProperty property="descriptionLink">
-              <span className="underline">{publicMap.descriptionLink}</span>
-            </EditablePublicMapProperty>
-          ) : (
-            publicMap.descriptionLink && (
+          <EditablePublicMapProperty
+            property="description"
+            placeholder="Map description"
+          >
+            <p>{publicMap.description}</p>
+          </EditablePublicMapProperty>
+          <EditablePublicMapProperty
+            property="descriptionLink"
+            placeholder="https://example.com"
+          >
+            {publicMap.descriptionLink && (
               <a
                 className="underline"
                 href={publicMap.descriptionLink}
                 target="_blank"
+                onClick={(e) => editable && e.preventDefault()}
               >
                 {publicMap.descriptionLink}
               </a>
-            )
-          )}
+            )}
+          </EditablePublicMapProperty>
         </div>
         {!hideSidebar && (
           <>
@@ -114,7 +106,6 @@ export default function PublicMapSidebar() {
                   dataRecordsQuery && (
                     <DataRecordsList
                       key={dsc.dataSourceId}
-                      publicMap={publicMap}
                       dataRecordsQuery={dataRecordsQuery}
                       onSelect={setSelectedDataRecord}
                     />
@@ -136,23 +127,25 @@ export default function PublicMapSidebar() {
 }
 
 function DataRecordsList({
-  publicMap,
   dataRecordsQuery,
   onSelect,
 }: {
-  publicMap: PublishedPublicMapQuery["publishedPublicMap"];
   dataRecordsQuery: QueryResult<
     PublicMapDataRecordsQuery,
     PublicMapDataRecordsQueryVariables
   >;
   onSelect: (r: { id: string; dataSourceId: string }) => void;
 }) {
+  const { publicMap } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
 
   const records = dataRecordsQuery?.data?.dataSource?.records || [];
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id
+    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
   );
+  const dataSourceLabel =
+    dataSourceConfig?.dataSourceLabel ||
+    dataRecordsQuery.data?.dataSource?.name;
 
   const getName = (record: {
     externalId: string;
@@ -173,9 +166,19 @@ function DataRecordsList({
 
   return (
     <div className="flex flex-col gap-2 mb-2">
-      <h2 className="text-lg font-semibold px-4">
-        {dataRecordsQuery.data?.dataSource?.name}
-      </h2>
+      <div className="px-4">
+        {dataRecordsQuery?.data?.dataSource && (
+          <EditablePublicMapProperty
+            dataSourceProperty={{
+              dataSourceId: dataRecordsQuery.data.dataSource.id,
+              property: "dataSourceLabel",
+            }}
+            placeholder="Data list heading"
+          >
+            <h2 className="text-lg font-semibold">{dataSourceLabel}</h2>
+          </EditablePublicMapProperty>
+        )}
+      </div>
       <ul className="flex flex-col gap-2 px-2">
         {records.map((r) => (
           <li
@@ -197,8 +200,8 @@ function DataRecordsList({
               }
             }}
           >
-            {getName(r)}
-            {getDescription(r)}
+            <span>{getName(r)}</span>
+            <span className="text-sm">{getDescription(r)}</span>
           </li>
         ))}
       </ul>

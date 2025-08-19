@@ -34,6 +34,7 @@ export default async function PublicMapAdminPage({
           published
           dataSourceConfigs {
             dataSourceId
+            dataSourceLabel
             nameLabel
             nameColumns
             descriptionLabel
@@ -69,13 +70,13 @@ export default async function PublicMapAdminPage({
     <MapProvider mapId={mapId} viewId={viewId}>
       <DataSourcesProvider>
         <DataRecordProvider>
-        <PublicMapProvider publicMap={publicMap} editable>
-          <ChoroplethProvider>
-            <MarkerAndTurfProvider>
-              <PublicMap />
-            </MarkerAndTurfProvider>
-          </ChoroplethProvider>
-        </PublicMapProvider>
+          <PublicMapProvider publicMap={publicMap} editable>
+            <ChoroplethProvider>
+              <MarkerAndTurfProvider>
+                <PublicMap />
+              </MarkerAndTurfProvider>
+            </ChoroplethProvider>
+          </PublicMapProvider>
         </DataRecordProvider>
       </DataSourcesProvider>
     </MapProvider>

@@ -38,20 +38,20 @@ export default function DataSourcesSelect() {
           <DropdownMenuCheckboxItem
             key={ds.id}
             checked={publicMap?.dataSourceConfigs.some(
-              (dsc) => dsc.dataSourceId === ds.id
+              (dsc) => dsc.dataSourceId === ds.id,
             )}
             onSelect={(e) => e.preventDefault()}
             onCheckedChange={(checked) => {
               if (checked) {
                 updatePublicMap({
                   dataSourceConfigs: [createDataSourceConfig(ds)].concat(
-                    publicMap?.dataSourceConfigs || []
+                    publicMap?.dataSourceConfigs || [],
                   ),
                 });
               } else {
                 updatePublicMap({
                   dataSourceConfigs: publicMap?.dataSourceConfigs.filter(
-                    (dsc) => dsc.dataSourceId !== ds.id
+                    (dsc) => dsc.dataSourceId !== ds.id,
                   ),
                 });
               }
@@ -66,13 +66,14 @@ export default function DataSourcesSelect() {
 }
 
 const createDataSourceConfig = (
-  dataSource: DataSource
+  dataSource: DataSource,
 ): PublicMapDataSourceConfig => {
   return {
     dataSourceId: dataSource.id,
+    dataSourceLabel: dataSource.name,
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
-    descriptionLabel: "Description",
+    descriptionLabel: "",
     descriptionColumn: "",
     additionalColumns: [],
   };

@@ -62,7 +62,7 @@ export default function Map({
         .getDataSourceIds()
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig]
+    [mapConfig],
   );
 
   const clusterLayers = useMemo(
@@ -70,13 +70,13 @@ export default function Map({
       mapConfig
         .getDataSourceIds()
         .flatMap((id) => [`${id}-markers-circles`, `${id}-markers-counts`]),
-    [mapConfig]
+    [mapConfig],
   );
 
   // Hover behavior
   useEffect(() => {
     if (!ready) {
-      return
+      return;
     }
 
     const map = mapRef?.current;
@@ -144,7 +144,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
           )
           .map((layer) => layer.id);
 
@@ -155,7 +155,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded]
+    [mapRef, styleLoaded],
   );
 
   useEffect(() => {
@@ -176,7 +176,7 @@ export default function Map({
       interactiveLayerIds={markerLayers}
       onClick={(e) => {
         const map = e.target;
-        const validMarkerLayers = markerLayers.filter(l => map.getLayer(l))
+        const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
         const features = map.queryRenderedFeatures(e.point, {
           layers: validMarkerLayers,
         });
@@ -197,7 +197,7 @@ export default function Map({
         } else {
           setSelectedDataRecord(null);
         }
-        const validClusterLayers = clusterLayers.filter(l => map.getLayer(l))
+        const validClusterLayers = clusterLayers.filter((l) => map.getLayer(l));
         const clusters = map.queryRenderedFeatures(e.point, {
           layers: validClusterLayers,
         });

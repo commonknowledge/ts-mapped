@@ -4,8 +4,10 @@ import { QueryResult, gql, useQuery } from "@apollo/client";
 import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import {
   PublicMap,
+  PublicMapColumn,
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
+  PublicMapDataSourceConfig,
   PublishedPublicMapQuery,
 } from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -51,6 +53,49 @@ export default function PublicMapProvider({
     }
   };
 
+  const updateDataSourceConfig = (
+    dataSourceId: string,
+    updates: Partial<PublicMapDataSourceConfig>,
+  ) => {
+    if (publicMap) {
+      setPublicMap({
+        ...publicMap,
+        dataSourceConfigs: publicMap.dataSourceConfigs.map((dsc) => {
+          if (dsc.dataSourceId === dataSourceId) {
+            return { ...dsc, ...updates };
+          }
+          return dsc;
+        }),
+      });
+    }
+  };
+
+  const updateAdditionalColumn = (
+    dataSourceId: string,
+    columnIndex: number,
+    updates: Partial<PublicMapColumn>,
+  ) => {
+    if (publicMap) {
+      setPublicMap({
+        ...publicMap,
+        dataSourceConfigs: publicMap.dataSourceConfigs.map((dsc) => {
+          if (dsc.dataSourceId === dataSourceId) {
+            return {
+              ...dsc,
+              additionalColumns: dsc.additionalColumns.map((c, i) => {
+                if (i === columnIndex) {
+                  return { ...c, ...updates };
+                }
+                return c;
+              }),
+            };
+          }
+          return dsc;
+        }),
+      });
+    }
+  };
+
   return (
     <PublicMapContext
       value={{
@@ -60,6 +105,8 @@ export default function PublicMapProvider({
         searchLocation,
         setSearchLocation,
         updatePublicMap,
+        updateDataSourceConfig,
+        updateAdditionalColumn,
       }}
     >
       {publicMap?.dataSourceConfigs.map((dsc) => (

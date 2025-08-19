@@ -8,13 +8,13 @@ import PrivateMap from "./PrivateMap";
 
 export default async function MapPage({
   params,
-  searchParams
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams:  Promise<{ viewId: string | undefined }>
+  searchParams: Promise<{ viewId: string | undefined }>;
 }) {
   const { id } = await params;
-  const { viewId } = await searchParams
+  const { viewId } = await searchParams;
   return (
     <MapProvider mapId={id} viewId={viewId}>
       <DataSourcesProvider>
