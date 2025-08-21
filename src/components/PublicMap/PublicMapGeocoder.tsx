@@ -8,8 +8,10 @@ import { Search } from "lucide-react";
 
 export default function PublicMapGeocoder({
   onGeocode,
+  colourScheme,
 }: {
   onGeocode: (point: Point) => void;
+  colourScheme?: { primary: string; muted: string };
 }) {
   const { mapRef } = useContext(MapContext);
   const [search, setSearch] = useState("");
@@ -42,9 +44,17 @@ export default function PublicMapGeocoder({
           onChange={(e) => setSearch(e.target.value)}
           disabled={loading}
           placeholder="Search by address or postcode"
-          className="bg-white border border-neutral-300 rounded-md shadow-none pl-8"
+          className="bg-white borderrounded-md shadow-none pl-8"
+          style={{
+            borderColor: colourScheme?.primary || "#d1d5db",
+          }}
         />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4  pointer-events-none"
+          style={{
+            color: colourScheme?.primary || "#6b7280",
+          }}
+        />
       </div>
       {notFound && <small className="text-red-500">Not found</small>}
     </form>

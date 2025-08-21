@@ -155,12 +155,24 @@ export default function PublishPublicMapSidebar() {
         {/* Header */}
         <div className="flex flex-col gap-2 border-b border-neutral-200 p-4">
           <div className="flex items-center gap-2 justify-between">
-            <Button disabled={loading} type="submit">
+            <Button
+              disabled={loading}
+              type="button"
+              onClick={() =>
+                onSubmitForm({
+                  preventDefault: () => {},
+                } as FormEvent<HTMLFormElement>)
+              }
+            >
               <Globe className="w-4 h-4" /> Publish Map
             </Button>
-            <Button disabled={loading} type="submit" variant="outline">
-              <ExternalLink className="w-4 h-4" /> View
-            </Button>
+            {publishedHost && (
+              <Link href={getPublicMapUrl(publishedHost)}>
+                <Button disabled={loading} type="submit" variant="outline">
+                  <ExternalLink className="w-4 h-4" /> View
+                </Button>
+              </Link>
+            )}
           </div>
           {error && <span className="text-sm text-red-500">{error}</span>}
         </div>

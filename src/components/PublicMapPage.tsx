@@ -5,6 +5,7 @@ import {
 } from "@/__generated__/types";
 import ChoroplethProvider from "@/components/Map/providers/ChoroplethProvider";
 import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
+import DataSourcesProvider from "@/components/Map/providers/DataSourcesProvider";
 import MapProvider from "@/components/Map/providers/MapProvider";
 import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvider";
 import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
@@ -66,15 +67,17 @@ export default async function PublicMapPage({ host }: { host: string }) {
   const publicMap = publicMapQuery.data.publishedPublicMap;
   return (
     <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
-      <PublicMapProvider publicMap={publicMap}>
+      <DataSourcesProvider>
         <DataRecordProvider>
-          <ChoroplethProvider>
-            <MarkerAndTurfProvider>
-              <PublicMap />
-            </MarkerAndTurfProvider>
-          </ChoroplethProvider>
+          <PublicMapProvider publicMap={publicMap}>
+            <ChoroplethProvider>
+              <MarkerAndTurfProvider>
+                <PublicMap />
+              </MarkerAndTurfProvider>
+            </ChoroplethProvider>
+          </PublicMapProvider>
         </DataRecordProvider>
-      </PublicMapProvider>
+      </DataSourcesProvider>
     </MapProvider>
   );
 }

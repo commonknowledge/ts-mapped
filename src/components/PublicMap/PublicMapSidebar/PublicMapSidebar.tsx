@@ -8,6 +8,7 @@ import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
 } from "@/__generated__/types";
+import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import PublicMapGeocoder from "@/components/PublicMap/PublicMapGeocoder";
@@ -26,7 +27,30 @@ export default function PublicMapSidebar() {
     dataRecordsQueries,
     setSearchLocation,
     recordSidebarVisible,
+    setRecordSidebarVisible,
+    activeTabId,
   } = useContext(PublicMapContext);
+  const { setSelectedDataRecord } = useContext(DataRecordContext);
+
+  // Function to open record sidebar and select first record
+  const openRecordSidebar = () => {
+    setRecordSidebarVisible(true);
+
+    // Select the first record from the active data source
+    const currentDataSourceId =
+      activeTabId || publicMap?.dataSourceConfigs[0]?.dataSourceId;
+
+    if (currentDataSourceId && dataRecordsQueries[currentDataSourceId]) {
+      const firstRecord =
+        dataRecordsQueries[currentDataSourceId]?.data?.dataSource?.records?.[0];
+      if (firstRecord) {
+        setSelectedDataRecord({
+          id: firstRecord.id,
+          dataSourceId: currentDataSourceId,
+        });
+      }
+    }
+  };
 
   // Should never happen
   if (!publicMap) {
@@ -92,7 +116,10 @@ export default function PublicMapSidebar() {
               >
                 {publicMap.descriptionLink && (
                   <a
-                    className="underline text-sm opacity-80"
+                    className="underline text-sm "
+                    style={{
+                      color: colourScheme.primary,
+                    }}
                     href={publicMap.descriptionLink}
                     target="_blank"
                     onClick={(e) => editable && e.preventDefault()}
@@ -102,7 +129,10 @@ export default function PublicMapSidebar() {
                 )}
               </EditablePublicMapProperty>
             </div>
-            <PublicMapGeocoder onGeocode={(p) => setSearchLocation(p)} />
+            <PublicMapGeocoder
+              onGeocode={(p) => setSearchLocation(p)}
+              colourScheme={colourScheme}
+            />
           </div>
         </div>
         <div className="overflow-y-auto">
@@ -114,7 +144,14 @@ export default function PublicMapSidebar() {
               }, 0)}{" "}
               Listings
             </span>
-            {editable && <DataSourcesSelect />}
+            <div className="flex items-center gap-2">
+              {!recordSidebarVisible && (
+                <Button variant="outline" size="sm" onClick={openRecordSidebar}>
+                  View Details
+                </Button>
+              )}
+              {editable && <DataSourcesSelect />}
+            </div>
           </div>
           <DataSourceTabs
             colourScheme={colourScheme}

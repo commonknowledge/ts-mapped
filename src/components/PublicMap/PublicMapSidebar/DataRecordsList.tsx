@@ -24,7 +24,7 @@ export default function DataRecordsList({
   onSelect,
   colourScheme,
 }: DataRecordsListProps) {
-  const { publicMap } = useContext(PublicMapContext);
+  const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
 
   const records = dataRecordsQuery?.data?.dataSource?.records || [];
@@ -63,6 +63,8 @@ export default function DataRecordsList({
                   id: r.id,
                   dataSourceId: dataRecordsQuery.data?.dataSource?.id,
                 });
+                // Also open the sidebar when a record is selected
+                setRecordSidebarVisible(true);
               }
               if (r.geocodePoint) {
                 mapRef?.current?.flyTo({
