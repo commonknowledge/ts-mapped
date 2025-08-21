@@ -1,14 +1,13 @@
 "use client";
 
 import { QueryResult } from "@apollo/client";
-import { ArrowLeft, LoaderPinwheel, PanelLeft } from "lucide-react";
+import { LoaderPinwheel, PanelLeft } from "lucide-react";
+import Image from "next/image";
 import { useContext, useState } from "react";
 import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
 } from "@/__generated__/types";
-import { Link } from "@/components/Link";
-import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import PublicMapGeocoder from "@/components/PublicMap/PublicMapGeocoder";
@@ -16,14 +15,18 @@ import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import DataRecordSidebar from "./DataRecordSidebar";
 import DataSourcesSelect from "./DataSourcesSelect";
+import DataSourceTabs from "./DataSourceTabs";
 import EditablePublicMapProperty from "./EditablePublicMapProperty";
-import { buildName } from "./utils";
+import { Separator } from "@/shadcn/ui/separator";
 
 export default function PublicMapSidebar() {
-  const { publicMap, editable, dataRecordsQueries, setSearchLocation } =
-    useContext(PublicMapContext);
-  const { setSelectedDataRecord } = useContext(DataRecordContext);
-  const [hideSidebar, setHideSidebar] = useState(false);
+  const {
+    publicMap,
+    editable,
+    dataRecordsQueries,
+    setSearchLocation,
+    recordSidebarVisible,
+  } = useContext(PublicMapContext);
 
   // Should never happen
   if (!publicMap) {
@@ -31,180 +34,110 @@ export default function PublicMapSidebar() {
   }
 
   const loadingSources = Object.values(dataRecordsQueries).some(
-    (q) => q.loading,
+    (q) => q.loading
   );
 
+  const selectedColour = "#FF6B6B";
+  const colourScheme = {
+    primary: selectedColour,
+    muted: selectedColour + "20",
+    extraMuted: selectedColour + "7",
+  };
+
   return (
-    <div
-      className={cn(
-        "absolute top-0 left-0 z-10 bg-white flex",
-        hideSidebar ? "h-auto" : "h-full",
-      )}
-    >
-      <div className="flex flex-col h-full w-[280px]">
+    <div className={cn("absolute top-0 left-0 z-10 bg-white flex h-full")}>
+      <div className="flex flex-col h-full w-[310px] border-r border-neutral-200">
         {/* Header */}
-        <div className="flex flex-col gap-2 border-b border-neutral-200 pl-4 py-4 pr-1">
-          {editable && (
-            <Link
-              className="flex gap-2 items-center text-sm text-muted-foreground"
-              href={`/map/${publicMap.mapId}?viewId=${publicMap.viewId}`}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to view
-            </Link>
-          )}
-          <div className="flex items-center justify-between gap-2">
-            <EditablePublicMapProperty property="name" placeholder="Map name">
-              <h1 className="text-xl font-semibold">{publicMap.name}</h1>
-            </EditablePublicMapProperty>
-            <Button
+        <div className="flex flex-col gap-2 border-b border-neutral-200">
+          <div
+            style={{ backgroundColor: colourScheme.muted }}
+            className="p-4 flex flex-col gap-6"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <Image
+                src="/mapped-logo-colours.svg"
+                alt="Logo"
+                width={200}
+                height={200}
+                className="w-1/2"
+              />
+              <Separator
+                orientation="vertical"
+                className="h-full bg-neutral-400"
+              />
+              <EditablePublicMapProperty property="name" placeholder="Map name">
+                <h1 className="text-lg font-semibold text-balance leading-tight">
+                  {publicMap.name}
+                </h1>
+              </EditablePublicMapProperty>
+              {/* <Button
               variant="ghost"
               size="icon"
               onClick={() => setHideSidebar(!hideSidebar)}
-            >
+              >
               <PanelLeft className="w-4 h-4" />
               <span className="sr-only">Toggle sidebar</span>
-            </Button>
-          </div>
-          <EditablePublicMapProperty
-            property="description"
-            placeholder="Map description"
-          >
-            <p>{publicMap.description}</p>
-          </EditablePublicMapProperty>
-          <EditablePublicMapProperty
-            property="descriptionLink"
-            placeholder="https://example.com"
-          >
-            {publicMap.descriptionLink && (
-              <a
-                className="underline"
-                href={publicMap.descriptionLink}
-                target="_blank"
-                onClick={(e) => editable && e.preventDefault()}
+              </Button> */}
+            </div>
+            <div className="flex flex-col gap-1">
+              <EditablePublicMapProperty
+                property="description"
+                placeholder="Map description"
               >
-                {publicMap.descriptionLink}
-              </a>
-            )}
-          </EditablePublicMapProperty>
+                <p>{publicMap.description}</p>
+              </EditablePublicMapProperty>
+              <EditablePublicMapProperty
+                property="descriptionLink"
+                placeholder="https://example.com"
+              >
+                {publicMap.descriptionLink && (
+                  <a
+                    className="underline text-sm opacity-80"
+                    href={publicMap.descriptionLink}
+                    target="_blank"
+                    onClick={(e) => editable && e.preventDefault()}
+                  >
+                    {publicMap.descriptionLink}
+                  </a>
+                )}
+              </EditablePublicMapProperty>
+            </div>
+            <PublicMapGeocoder onGeocode={(p) => setSearchLocation(p)} />
+          </div>
         </div>
-        {!hideSidebar && (
-          <>
-            <div className="p-4">
-              <PublicMapGeocoder onGeocode={(p) => setSearchLocation(p)} />
+        <div className="overflow-y-auto">
+          {/* Listings */}
+          <div className="p-4 flex items-center justify-between">
+            <span className="text-sm font-semibold">
+              {Object.values(dataRecordsQueries).reduce((total, query) => {
+                return total + (query.data?.dataSource?.records?.length || 0);
+              }, 0)}{" "}
+              Listings
+            </span>
+            {editable && <DataSourcesSelect />}
+          </div>
+          <DataSourceTabs
+            colourScheme={colourScheme}
+            editable={editable}
+            dataRecordsQueries={dataRecordsQueries}
+          />
+          {loadingSources && (
+            <div className="p-4 pt-0">
+              <LoaderPinwheel className="animate-spin" />
             </div>
-            <div className="overflow-y-auto">
-              {/* Listings */}
-              {editable && (
-                <div className="px-4 mb-4">
-                  <DataSourcesSelect />
-                </div>
-              )}
-              {publicMap.dataSourceConfigs.map((dsc) => {
-                const dataRecordsQuery = dataRecordsQueries[dsc.dataSourceId];
-                return (
-                  dataRecordsQuery && (
-                    <DataRecordsList
-                      key={dsc.dataSourceId}
-                      dataRecordsQuery={dataRecordsQuery}
-                      onSelect={setSelectedDataRecord}
-                    />
-                  )
-                );
-              })}
-              {loadingSources && (
-                <div className="p-4 pt-0">
-                  <LoaderPinwheel className="animate-spin" />
-                </div>
-              )}
+          )}
+          {/* No listings */}
+          {editable && publicMap.dataSourceConfigs.length === 0 && (
+            <div className="flex flex-col gap-2 p-2 border border-neutral-200 rounded-md border-dashed">
+              <p className="text-sm text-neutral-500">
+                No data sources added yet. Add a data source to get started.
+              </p>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
-      {!hideSidebar && <DataRecordSidebar />}
-    </div>
-  );
-}
 
-function DataRecordsList({
-  dataRecordsQuery,
-  onSelect,
-}: {
-  dataRecordsQuery: QueryResult<
-    PublicMapDataRecordsQuery,
-    PublicMapDataRecordsQueryVariables
-  >;
-  onSelect: (r: { id: string; dataSourceId: string }) => void;
-}) {
-  const { publicMap } = useContext(PublicMapContext);
-  const { mapRef } = useContext(MapContext);
-
-  const records = dataRecordsQuery?.data?.dataSource?.records || [];
-  const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
-  );
-  const dataSourceLabel =
-    dataSourceConfig?.dataSourceLabel ||
-    dataRecordsQuery.data?.dataSource?.name;
-
-  const getName = (record: {
-    externalId: string;
-    json: Record<string, unknown>;
-  }) => {
-    const nameColumns = dataSourceConfig?.nameColumns;
-    if (!nameColumns?.length) {
-      return record.externalId;
-    }
-    const name = buildName(nameColumns, record.json);
-    return name || record.externalId;
-  };
-
-  const getDescription = (record: { json: Record<string, unknown> }) => {
-    const descriptionColumn = dataSourceConfig?.descriptionColumn;
-    return descriptionColumn ? String(record.json[descriptionColumn]) : null;
-  };
-
-  return (
-    <div className="flex flex-col gap-2 mb-2">
-      <div className="px-4">
-        {dataRecordsQuery?.data?.dataSource && (
-          <EditablePublicMapProperty
-            dataSourceProperty={{
-              dataSourceId: dataRecordsQuery.data.dataSource.id,
-              property: "dataSourceLabel",
-            }}
-            placeholder="Data list heading"
-          >
-            <h2 className="text-lg font-semibold">{dataSourceLabel}</h2>
-          </EditablePublicMapProperty>
-        )}
-      </div>
-      <ul className="flex flex-col gap-2 px-2">
-        {records.map((r) => (
-          <li
-            className="cursor-pointer hover:bg-accent rounded p-2 flex flex-col gap-2"
-            key={r.id}
-            role="button"
-            onClick={() => {
-              if (dataRecordsQuery.data?.dataSource?.id) {
-                onSelect({
-                  id: r.id,
-                  dataSourceId: dataRecordsQuery.data?.dataSource?.id,
-                });
-              }
-              if (r.geocodePoint) {
-                mapRef?.current?.flyTo({
-                  center: r.geocodePoint,
-                  zoom: 14,
-                });
-              }
-            }}
-          >
-            <span>{getName(r)}</span>
-            <span className="text-sm">{getDescription(r)}</span>
-          </li>
-        ))}
-      </ul>
+      {recordSidebarVisible && <DataRecordSidebar />}
     </div>
   );
 }

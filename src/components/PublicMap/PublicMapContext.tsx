@@ -22,13 +22,19 @@ export const PublicMapContext = createContext<{
   updatePublicMap: (publicMap: Partial<PublicMap>) => void;
   updateDataSourceConfig: (
     dataSourceId: string,
-    config: Partial<PublicMapDataSourceConfig>,
+    config: Partial<PublicMapDataSourceConfig>
   ) => void;
   updateAdditionalColumn: (
     dataSourceId: string,
     columnIndex: number,
-    config: Partial<PublicMapColumn>,
+    config: Partial<PublicMapColumn>
   ) => void;
+  activeTabId: string | null;
+  setActiveTabId: (tabId: string | null) => void;
+  activePublishTab: string;
+  setActivePublishTab: (tab: string) => void;
+  recordSidebarVisible: boolean;
+  setRecordSidebarVisible: (visible: boolean) => void;
 }>({
   publicMap: null,
   editable: false,
@@ -38,4 +44,10 @@ export const PublicMapContext = createContext<{
   updatePublicMap: () => null,
   updateDataSourceConfig: () => null,
   updateAdditionalColumn: () => null,
+  activeTabId: null,
+  setActiveTabId: () => null,
+  activePublishTab: "publish settings",
+  setActivePublishTab: () => null,
+  recordSidebarVisible: false,
+  setRecordSidebarVisible: () => null,
 });

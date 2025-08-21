@@ -1,33 +1,18 @@
 import { Check, X } from "lucide-react";
 import { Fragment, useContext, useMemo } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import ColumnsMultiSelect from "@/components/ColumnsMultiSelect";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
-import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Button } from "@/shadcn/ui/button";
-import { Label } from "@/shadcn/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shadcn/ui/select";
+import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "./EditablePublicMapProperty";
 import { buildName } from "./utils";
 
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
-  const {
-    dataRecordsQueries,
-    publicMap,
-    editable,
-    updateDataSourceConfig,
-    updateAdditionalColumn,
-  } = useContext(PublicMapContext);
+  const { dataRecordsQueries, publicMap, editable, updateDataSourceConfig } =
+    useContext(PublicMapContext);
   const selectedDataRecordDetails = useMemo(() => {
     if (!selectedDataRecord) {
       return null;
@@ -35,7 +20,7 @@ export default function DataRecordSidebar() {
     const dataRecordsQuery =
       dataRecordsQueries[selectedDataRecord.dataSourceId];
     return dataRecordsQuery.data?.dataSource?.records?.find(
-      (r) => r.id === selectedDataRecord.id,
+      (r) => r.id === selectedDataRecord.id
     );
   }, [dataRecordsQueries, selectedDataRecord]);
 
@@ -44,16 +29,12 @@ export default function DataRecordSidebar() {
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === selectedDataRecord?.dataSourceId,
+    (dsc) => dsc.dataSourceId === selectedDataRecord?.dataSourceId
   );
-
-  const dataSource = dataSourceConfig
-    ? getDataSourceById(dataSourceConfig.dataSourceId)
-    : null;
 
   const name = buildName(
     dataSourceConfig?.nameColumns || [],
-    selectedDataRecordDetails.json,
+    selectedDataRecordDetails.json
   );
   const description =
     selectedDataRecordDetails.json[dataSourceConfig?.descriptionColumn || ""];
@@ -62,131 +43,53 @@ export default function DataRecordSidebar() {
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 py-2 px-4 w-[280px]",
-        editable ? "gap-8" : "",
+        "flex flex-col gap-4 p-4 w-[280px] ",
+        editable ? "gap-8" : ""
       )}
     >
       {/* Name */}
-      <div className="flex flex-col gap-2">
-        <EditablePublicMapProperty
-          dataSourceProperty={{
-            dataSourceId: selectedDataRecord.dataSourceId,
-            property: "nameLabel",
-          }}
-          placeholder="Name label"
-        >
-          <span className="font-medium text-lg">
-            {dataSourceConfig?.nameLabel || "Name"}
-          </span>
-        </EditablePublicMapProperty>
-        {editable && dataSourceConfig && (
-          <div className="flex flex-col gap-1">
-            <Label>Name columns</Label>
-            <ColumnsMultiSelect
-              buttonClassName="mr-auto"
-              columns={dataSourceConfig.nameColumns || []}
-              columnDefs={dataSource?.columnDefs || []}
-              onChange={(columns) =>
-                updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-                  nameColumns: columns,
-                })
-              }
-            />
-          </div>
-        )}
-        <span>{name}</span>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
+          <EditablePublicMapProperty
+            dataSourceProperty={{
+              dataSourceId: selectedDataRecord.dataSourceId,
+              property: "nameLabel",
+            }}
+            placeholder="Name label"
+          >
+            <span className="text-sm ">
+              {dataSourceConfig?.nameLabel || "Name"}
+            </span>
+          </EditablePublicMapProperty>
+          <span className="text-xl font-semibold">{name}</span>
+        </div>
+        <div className="flex flex-col gap-2">
+          {description && (
+            <div className="flex flex-col gap-2">
+              <EditablePublicMapProperty
+                dataSourceProperty={{
+                  dataSourceId: selectedDataRecord.dataSourceId,
+                  property: "descriptionLabel",
+                }}
+                placeholder="Description label"
+              >
+                <span className="text-sm">
+                  {dataSourceConfig?.descriptionLabel ||
+                    dataSourceConfig?.descriptionColumn ||
+                    "Description"}
+                </span>
+              </EditablePublicMapProperty>
+              <span className="text-lg">{description}</span>
+            </div>
+          )}
+        </div>
+        <Separator />
       </div>
 
       {/* Description */}
-      <div className="flex flex-col gap-2">
-        {editable && dataSourceConfig && (
-          <div className="flex flex-col gap-1">
-            <Label>Description/subtitle column</Label>
-            <Select
-              value={dataSourceConfig.descriptionColumn || "__none"}
-              onValueChange={(descriptionColumn) =>
-                updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-                  descriptionColumn:
-                    descriptionColumn === "__none" ? "" : descriptionColumn,
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a description column" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none">None</SelectItem>
-                {dataSource?.columnDefs.map((cd) => (
-                  <SelectItem key={cd.name} value={cd.name}>
-                    {cd.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        {description && (
-          <div className="flex flex-col gap-2">
-            <EditablePublicMapProperty
-              dataSourceProperty={{
-                dataSourceId: selectedDataRecord.dataSourceId,
-                property: "descriptionLabel",
-              }}
-              placeholder="Description label"
-            >
-              <span className="font-medium">
-                {dataSourceConfig?.descriptionLabel ||
-                  dataSourceConfig?.descriptionColumn ||
-                  "Description"}
-              </span>
-            </EditablePublicMapProperty>
-            <span>{description}</span>
-          </div>
-        )}
-      </div>
 
       {additionalColumns.map((columnConfig, i) => (
         <div key={i} className="flex flex-col gap-2">
-          {editable && dataSourceConfig && (
-            <>
-              <div className="flex flex-col gap-1">
-                <Label>Source columns</Label>
-                <ColumnsMultiSelect
-                  buttonClassName="mr-auto"
-                  columns={columnConfig.sourceColumns || []}
-                  columnDefs={dataSource?.columnDefs || []}
-                  onChange={(columns) =>
-                    updateAdditionalColumn(dataSourceConfig.dataSourceId, i, {
-                      sourceColumns: columns,
-                    })
-                  }
-                />
-              </div>
-              <Select
-                value={columnConfig.type}
-                onValueChange={(type) =>
-                  updateAdditionalColumn(dataSourceConfig.dataSourceId, i, {
-                    type: type as PublicMapColumnType,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a data type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={PublicMapColumnType.String}>
-                    Text
-                  </SelectItem>
-                  <SelectItem value={PublicMapColumnType.Boolean}>
-                    True/false
-                  </SelectItem>
-                  <SelectItem value={PublicMapColumnType.CommaSeparatedList}>
-                    Comma-separated list
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </>
-          )}
           <EditablePublicMapProperty
             additionalColumnProperty={{
               columnIndex: i,
@@ -195,7 +98,7 @@ export default function DataRecordSidebar() {
             }}
             placeholder="Label"
           >
-            <span className="font-medium">{columnConfig.label}</span>
+            <span className="text-sm">{columnConfig.label}</span>
           </EditablePublicMapProperty>
           {columnConfig.type === PublicMapColumnType.Boolean ? (
             <CheckList
@@ -208,7 +111,7 @@ export default function DataRecordSidebar() {
               json={selectedDataRecordDetails.json}
             />
           ) : (
-            <span>
+            <span className="text-lg">
               {columnConfig.sourceColumns
                 .map((c) => selectedDataRecordDetails.json[c])
                 .filter(Boolean)
@@ -282,7 +185,7 @@ function CommaSeparatedList({
   const values = sourceColumns.flatMap((c) =>
     String(json[c] || "")
       .split(",")
-      .map((s) => s.trim()),
+      .map((s) => s.trim())
   );
 
   return (

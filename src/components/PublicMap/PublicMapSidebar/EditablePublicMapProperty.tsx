@@ -35,24 +35,24 @@ export default function EditablePublicMapProperty({
   let initialValue = "";
   if (publicMap) {
     if (property) {
-      initialValue = publicMap[property];
+      initialValue = publicMap[property] || "";
     } else if (dataSourceProperty) {
       const dataSourceConfig = publicMap.dataSourceConfigs.find(
-        (dsc) => dsc.dataSourceId === dataSourceProperty.dataSourceId,
+        (dsc) => dsc.dataSourceId === dataSourceProperty.dataSourceId
       );
       initialValue = dataSourceConfig
-        ? dataSourceConfig[dataSourceProperty.property]
+        ? dataSourceConfig[dataSourceProperty.property] || ""
         : "";
     } else if (additionalColumnProperty) {
       const dataSourceConfig = publicMap.dataSourceConfigs.find(
-        (dsc) => dsc.dataSourceId === additionalColumnProperty.dataSourceId,
+        (dsc) => dsc.dataSourceId === additionalColumnProperty.dataSourceId
       );
       initialValue =
         dataSourceConfig &&
         dataSourceConfig.additionalColumns[additionalColumnProperty.columnIndex]
           ? dataSourceConfig.additionalColumns[
               additionalColumnProperty.columnIndex
-            ][additionalColumnProperty.property]
+            ][additionalColumnProperty.property] || ""
           : "";
     }
   }
@@ -78,14 +78,17 @@ export default function EditablePublicMapProperty({
         additionalColumnProperty.columnIndex,
         {
           [additionalColumnProperty.property]: value,
-        },
+        }
       );
     }
     setEditing(false);
   };
 
   return (
-    <form onSubmit={onSubmit}>
+    <form
+      onSubmit={onSubmit}
+      className="flex gap-2 items-center border border-neutral-300 rounded-md p-2 border-dashed group "
+    >
       {isEditing ? (
         <Input
           ref={inputRef}
@@ -112,7 +115,7 @@ export default function EditablePublicMapProperty({
           }}
         >
           <div>{children}</div>
-          <Pencil className="h-4 w-4" />
+          <Pencil className="absolute right-5 h-4 w-4 text-muted-foreground shrink-0 group-hover:opacity-100 opacity-0 transition-opacity duration-200" />
         </div>
       )}
     </form>

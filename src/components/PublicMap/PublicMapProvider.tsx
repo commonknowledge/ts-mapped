@@ -27,6 +27,11 @@ export default function PublicMapProvider({
   const [publicMap, setPublicMap] =
     useState<PublishedPublicMapQuery["publishedPublicMap"]>(initialPublicMap);
   const [searchLocation, setSearchLocation] = useState<Point | null>(null);
+  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [activePublishTab, setActivePublishTab] =
+    useState<string>("publish settings");
+  const [recordSidebarVisible, setRecordSidebarVisible] =
+    useState<boolean>(false);
   const [dataRecordsQueries, setDataRecordsQueries] = useState<
     Record<
       string,
@@ -40,11 +45,11 @@ export default function PublicMapProvider({
       q: QueryResult<
         PublicMapDataRecordsQuery,
         PublicMapDataRecordsQueryVariables
-      >,
+      >
     ) => {
       setDataRecordsQueries((prev) => ({ ...prev, [dataSourceId]: q }));
     },
-    [],
+    []
   );
 
   const updatePublicMap = (updates: Partial<PublicMap>) => {
@@ -55,7 +60,7 @@ export default function PublicMapProvider({
 
   const updateDataSourceConfig = (
     dataSourceId: string,
-    updates: Partial<PublicMapDataSourceConfig>,
+    updates: Partial<PublicMapDataSourceConfig>
   ) => {
     if (publicMap) {
       setPublicMap({
@@ -73,7 +78,7 @@ export default function PublicMapProvider({
   const updateAdditionalColumn = (
     dataSourceId: string,
     columnIndex: number,
-    updates: Partial<PublicMapColumn>,
+    updates: Partial<PublicMapColumn>
   ) => {
     if (publicMap) {
       setPublicMap({
@@ -107,6 +112,12 @@ export default function PublicMapProvider({
         updatePublicMap,
         updateDataSourceConfig,
         updateAdditionalColumn,
+        activeTabId,
+        setActiveTabId,
+        activePublishTab,
+        setActivePublishTab,
+        recordSidebarVisible,
+        setRecordSidebarVisible,
       }}
     >
       {publicMap?.dataSourceConfigs.map((dsc) => (
@@ -135,13 +146,13 @@ function DataRecordsQueryComponent({
     q: QueryResult<
       PublicMapDataRecordsQuery,
       PublicMapDataRecordsQueryVariables
-    >,
+    >
   ) => void;
 }) {
   const { view } = useContext(MapContext);
 
   const filter = view?.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === dataSourceId,
+    (dsv) => dsv.dataSourceId === dataSourceId
   )?.filter;
 
   const sort = location
@@ -186,7 +197,7 @@ function DataRecordsQueryComponent({
         filter,
         sort,
       },
-    },
+    }
   );
 
   useEffect(() => {
