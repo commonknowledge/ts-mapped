@@ -19,6 +19,7 @@ import DataSourcesSelect from "./DataSourcesSelect";
 import DataSourceTabs from "./DataSourceTabs";
 import EditablePublicMapProperty from "./EditablePublicMapProperty";
 import { Separator } from "@/shadcn/ui/separator";
+import { publicMapColourSchemes } from "@/components/Map/styles";
 
 export default function PublicMapSidebar() {
   const {
@@ -29,8 +30,13 @@ export default function PublicMapSidebar() {
     recordSidebarVisible,
     setRecordSidebarVisible,
     activeTabId,
+    colourScheme,
   } = useContext(PublicMapContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
+
+  // Convert string colourScheme to actual color scheme object
+  const activeColourScheme =
+    publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red;
 
   // Function to open record sidebar and select first record
   const openRecordSidebar = () => {
@@ -61,20 +67,13 @@ export default function PublicMapSidebar() {
     (q) => q.loading
   );
 
-  const selectedColour = "#FF6B6B";
-  const colourScheme = {
-    primary: selectedColour,
-    muted: selectedColour + "20",
-    extraMuted: selectedColour + "7",
-  };
-
   return (
     <div className={cn("absolute top-0 left-0 z-10 bg-white flex h-full")}>
       <div className="flex flex-col h-full w-[300px] border-r border-neutral-200">
         {/* Header */}
         <div className="flex flex-col gap-2 border-b border-neutral-200">
           <div
-            style={{ backgroundColor: colourScheme.muted }}
+            style={{ backgroundColor: activeColourScheme.muted }}
             className="p-4 flex flex-col gap-6"
           >
             <div className="flex flex-col items-center justify-between gap-2">
@@ -89,7 +88,7 @@ export default function PublicMapSidebar() {
                 <h1
                   className="text-lg font-medium px-4 p-2 bg-white rounded-full text-balance leading-tight"
                   style={{
-                    color: colourScheme.primary,
+                    color: activeColourScheme.primary,
                   }}
                 >
                   {publicMap.name}
@@ -119,7 +118,7 @@ export default function PublicMapSidebar() {
                   <a
                     className="underline text-sm "
                     style={{
-                      color: colourScheme.primary,
+                      color: activeColourScheme.primary,
                     }}
                     href={publicMap.descriptionLink}
                     target="_blank"
@@ -132,30 +131,15 @@ export default function PublicMapSidebar() {
             </div>
             <PublicMapGeocoder
               onGeocode={(p) => setSearchLocation(p)}
-              colourScheme={colourScheme}
+              colourScheme={activeColourScheme}
             />
           </div>
         </div>
-        <div className="overflow-y-auto">
+        <div className="overflow-y-auto p-4">
           {/* Listings */}
-          <div className="p-4 flex items-center justify-between">
-            <span className="text-sm font-semibold">
-              {Object.values(dataRecordsQueries).reduce((total, query) => {
-                return total + (query.data?.dataSource?.records?.length || 0);
-              }, 0)}{" "}
-              Listings
-            </span>
-            <div className="flex items-center gap-2">
-              {!recordSidebarVisible && (
-                <Button variant="outline" size="sm" onClick={openRecordSidebar}>
-                  View Details
-                </Button>
-              )}
-              {editable && <DataSourcesSelect />}
-            </div>
-          </div>
+
           <DataSourceTabs
-            colourScheme={colourScheme}
+            colourScheme={activeColourScheme}
             editable={editable}
             dataRecordsQueries={dataRecordsQueries}
           />

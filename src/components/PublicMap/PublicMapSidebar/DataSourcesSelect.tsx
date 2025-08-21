@@ -8,8 +8,10 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
+import { Database } from "lucide-react";
 
 interface DataSource {
   id: string;
@@ -31,27 +33,30 @@ export default function DataSourcesSelect() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">Select data sources</Button>
+        <Button variant="secondary">
+          <Database className="w-4 h-4" />
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <DropdownMenuLabel>Visible Data Sources</DropdownMenuLabel>
         {dataSources.map((ds) => (
           <DropdownMenuCheckboxItem
             key={ds.id}
             checked={publicMap?.dataSourceConfigs.some(
-              (dsc) => dsc.dataSourceId === ds.id,
+              (dsc) => dsc.dataSourceId === ds.id
             )}
             onSelect={(e) => e.preventDefault()}
             onCheckedChange={(checked) => {
               if (checked) {
                 updatePublicMap({
                   dataSourceConfigs: [createDataSourceConfig(ds)].concat(
-                    publicMap?.dataSourceConfigs || [],
+                    publicMap?.dataSourceConfigs || []
                   ),
                 });
               } else {
                 updatePublicMap({
                   dataSourceConfigs: publicMap?.dataSourceConfigs.filter(
-                    (dsc) => dsc.dataSourceId !== ds.id,
+                    (dsc) => dsc.dataSourceId !== ds.id
                   ),
                 });
               }
@@ -66,7 +71,7 @@ export default function DataSourcesSelect() {
 }
 
 const createDataSourceConfig = (
-  dataSource: DataSource,
+  dataSource: DataSource
 ): PublicMapDataSourceConfig => {
   return {
     dataSourceId: dataSource.id,

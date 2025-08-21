@@ -32,6 +32,7 @@ export default function PublicMapProvider({
     useState<string>("publish settings");
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);
+  const [colourScheme, setColourScheme] = useState<string>("red");
   const [dataRecordsQueries, setDataRecordsQueries] = useState<
     Record<
       string,
@@ -118,6 +119,8 @@ export default function PublicMapProvider({
         setActivePublishTab,
         recordSidebarVisible,
         setRecordSidebarVisible,
+        colourScheme,
+        setColourScheme,
       }}
     >
       {publicMap?.dataSourceConfigs.map((dsc) => (

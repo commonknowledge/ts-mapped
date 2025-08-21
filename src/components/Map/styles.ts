@@ -69,3 +69,24 @@ export const mapColors: Record<
 };
 
 export default mapStyles;
+
+export const publicMapColourSchemes: Record<
+  string,
+  {
+    primary: string;
+    muted: string;
+  }
+> = {
+  red: {
+    primary: "#FF6B6B",
+    muted: "#FF6B6B20",
+  },
+  blue: {
+    primary: "#678DE3",
+    muted: "#678DE320",
+  },
+  green: {
+    primary: "#4DAB37",
+    muted: "#4DAB3720",
+  },
+};

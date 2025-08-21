@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";
 import EditablePublicMapProperty from "./EditablePublicMapProperty";
+import DataSourcesSelect from "./DataSourcesSelect";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };
@@ -59,18 +60,23 @@ export default function DataSourceTabs({
 
   return (
     <Tabs value={defaultTabId} onValueChange={setActiveTabId}>
-      <TabsList className="m-2">
-        {publicMap.dataSourceConfigs.map((dsc) => {
-          const dataRecordsQuery = dataRecordsQueries[dsc.dataSourceId];
-          return (
-            dataRecordsQuery && (
-              <TabsTrigger value={dsc.dataSourceId} key={dsc.dataSourceId}>
-                {dsc.dataSourceLabel}
-              </TabsTrigger>
-            )
-          );
-        })}
-      </TabsList>
+      <div className="flex items-center gap-2">
+        <TabsList
+          className="grid w-full"
+          style={{
+            gridTemplateColumns: `repeat(${
+              publicMap.dataSourceConfigs.length
+            }, 1fr)`,
+          }}
+        >
+          {publicMap.dataSourceConfigs.map((dsc) => (
+            <TabsTrigger value={dsc.dataSourceId} key={dsc.dataSourceId}>
+              {dsc.dataSourceLabel}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {editable && <DataSourcesSelect />}
+      </div>
 
       {publicMap.dataSourceConfigs.map((dsc) => {
         const dataRecordsQuery = dataRecordsQueries[dsc.dataSourceId];
@@ -122,6 +128,9 @@ function SingleDataSourceContent({
           {dsc.dataSourceLabel}
         </p>
       )}
+      <span className="text-sm ">
+        {dataRecordsQuery.data?.dataSource?.records?.length || 0} Listings
+      </span>
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}
         onSelect={onSelect}

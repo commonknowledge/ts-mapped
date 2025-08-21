@@ -34,6 +34,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/shadcn/ui/select";
+import { Separator } from "@/shadcn/ui/separator";
+import { publicMapColourSchemes } from "@/components/Map/styles";
 
 export default function PublishPublicMapSidebar() {
   const {
@@ -48,6 +50,8 @@ export default function PublishPublicMapSidebar() {
     setActivePublishTab,
     recordSidebarVisible,
     setRecordSidebarVisible,
+    colourScheme,
+    setColourScheme,
   } = useContext(PublicMapContext);
   const { getDataSourceById } = useContext(DataSourcesContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
@@ -121,8 +125,7 @@ export default function PublishPublicMapSidebar() {
   const [mapDescriptionLink, setMapDescriptionLink] = useState(
     publicMap.descriptionLink
   );
-  const sectionStyles =
-    "flex flex-col gap-2 relative bg-neutral-50 p-4 rounded-md";
+  const sectionStyles = "flex flex-col gap-2 ";
 
   // Auto-select first record when data source tab changes and data panel is open
   useEffect(() => {
@@ -147,32 +150,43 @@ export default function PublishPublicMapSidebar() {
   return (
     <div
       className={cn(
-        "absolute top-0 right-0 z-10 bg-white flex",
+        "absolute top-0 right-0 z-10 bg-white flex border-l border-neutral-200",
         hideSidebar ? "h-auto" : "h-full"
       )}
     >
       <div className="flex flex-col h-full w-[360px]">
         {/* Header */}
-        <div className="flex flex-col gap-2 border-b border-neutral-200 p-4">
+        <div className="flex flex-col gap-2 p-4">
           <div className="flex items-center gap-2 justify-between">
-            <Button
-              disabled={loading}
-              type="button"
-              onClick={() =>
-                onSubmitForm({
-                  preventDefault: () => {},
-                } as FormEvent<HTMLFormElement>)
-              }
-            >
-              <Globe className="w-4 h-4" /> Publish Map
-            </Button>
-            {publishedHost && (
-              <Link href={getPublicMapUrl(publishedHost)}>
-                <Button disabled={loading} type="submit" variant="outline">
-                  <ExternalLink className="w-4 h-4" /> View
-                </Button>
-              </Link>
-            )}
+            <div className="flex items-center gap-2">
+              <Button
+                disabled={loading}
+                type="button"
+                onClick={() =>
+                  onSubmitForm({
+                    preventDefault: () => {},
+                  } as FormEvent<HTMLFormElement>)
+                }
+              >
+                <Globe className="w-4 h-4" /> Publish Map
+              </Button>
+              {publishedHost && (
+                <Link href={getPublicMapUrl(publishedHost)}>
+                  <Button disabled={loading} type="submit" variant="outline">
+                    <ExternalLink className="w-4 h-4" /> View
+                  </Button>
+                </Link>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" asChild>
+                <Link
+                  href={`/map/${publicMap.mapId}?viewId=${publicMap.viewId}`}
+                >
+                  back
+                </Link>
+              </Button>
+            </div>
           </div>
           {error && <span className="text-sm text-red-500">{error}</span>}
         </div>
@@ -208,12 +222,25 @@ export default function PublishPublicMapSidebar() {
                 }
               }}
             >
-              <TabsList>
-                <TabsTrigger value="publish settings">
+              <TabsList className="bg-transparent p-0 h-auto w-full border-b border-neutral-200 rounded-none">
+                <TabsTrigger
+                  value="publish settings"
+                  className="bg-transparent border-0 border-b-2 border-transparent rounded-none pb-2 data-[state=active]:bg-transparent data-[state=active]:border-b-current data-[state=active]:shadow-none"
+                >
                   Publish Settings
                 </TabsTrigger>
-                <TabsTrigger value="data">Data</TabsTrigger>
-                <TabsTrigger value="style">Style</TabsTrigger>
+                <TabsTrigger
+                  value="data"
+                  className="bg-transparent border-0 border-b-2 border-transparent rounded-none pb-2 data-[state=active]:bg-transparent data-[state=active]:border-b-current data-[state=active]:shadow-none"
+                >
+                  Data
+                </TabsTrigger>
+                <TabsTrigger
+                  value="style"
+                  className="bg-transparent border-0 border-b-2 border-transparent rounded-none pb-2 data-[state=active]:bg-transparent data-[state=active]:border-b-current data-[state=active]:shadow-none"
+                >
+                  Style
+                </TabsTrigger>
               </TabsList>
               <TabsContent
                 value="publish settings"
@@ -239,15 +266,17 @@ export default function PublishPublicMapSidebar() {
                       {getPublicMapUrlAfterSubDomain()}
                     </span>
                   </div>
-                  <DataListRow label="Published">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-neutral-500">Published</span>
                     <Switch
                       checked={publicMap.published}
                       onCheckedChange={(published) =>
                         updatePublicMap({ published })
                       }
                     />
-                  </DataListRow>
+                  </div>
                 </form>
+                <Separator />
                 <div className={sectionStyles}>
                   <div className="flex items-center gap-2">
                     <Info className="w-4 h-4" /> Project Information
@@ -292,7 +321,6 @@ export default function PublishPublicMapSidebar() {
               </TabsContent>
 
               <TabsContent value="data">
-                <DataSourcesSelect />
                 {publicMap.dataSourceConfigs.length > 0 && (
                   <Tabs
                     value={
@@ -302,21 +330,26 @@ export default function PublishPublicMapSidebar() {
                     onValueChange={setActiveTabId}
                     className="py-2"
                   >
-                    <TabsList
-                      className="grid w-full"
-                      style={{
-                        gridTemplateColumns: `repeat(${publicMap.dataSourceConfigs.length}, 1fr)`,
-                      }}
-                    >
-                      {publicMap.dataSourceConfigs.map((dsc) => (
-                        <TabsTrigger
-                          value={dsc.dataSourceId}
-                          key={dsc.dataSourceId}
-                        >
-                          {dsc.dataSourceLabel}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
+                    <div className="flex items-center gap-2">
+                      <TabsList
+                        className="grid w-full"
+                        style={{
+                          gridTemplateColumns: `repeat(${
+                            publicMap.dataSourceConfigs.length
+                          }, 1fr)`,
+                        }}
+                      >
+                        {publicMap.dataSourceConfigs.map((dsc) => (
+                          <TabsTrigger
+                            value={dsc.dataSourceId}
+                            key={dsc.dataSourceId}
+                          >
+                            {dsc.dataSourceLabel}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                      <DataSourcesSelect />
+                    </div>
 
                     {publicMap.dataSourceConfigs.map((dataSourceConfig) => (
                       <TabsContent
@@ -565,7 +598,7 @@ export default function PublishPublicMapSidebar() {
                     ))}
                   </Tabs>
                 )}
-                <div className="flex items-center gap-3 bg-red-50 rounded-md p-2 border border-red-400 text-red-700">
+                <div className="flex items-center gap-3 bg-red-50 rounded-mdborder border-red-400 text-red-700">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span className="text-sm">
                     Ensure no private data is used in this map, as it will
@@ -573,17 +606,35 @@ export default function PublishPublicMapSidebar() {
                   </span>
                 </div>
               </TabsContent>
-              <TabsContent value="style"></TabsContent>
+              <TabsContent value="style">
+                <div className="flex flex-col gap-2">
+                  Colour Scheme
+                  <Select
+                    value={colourScheme}
+                    onValueChange={(value) => setColourScheme(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select colour scheme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(publicMapColourSchemes).map(
+                        ([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-4 h-4 rounded-full"
+                                style={{ backgroundColor: value.primary }}
+                              />
+                              {key.charAt(0).toUpperCase() + key.slice(1)}
+                            </div>
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TabsContent>
             </Tabs>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" asChild>
-                <Link
-                  href={`/map/${publicMap.mapId}?viewId=${publicMap.viewId}`}
-                >
-                  back to view
-                </Link>
-              </Button>
-            </div>
           </div>
         )}
       </div>

@@ -51,7 +51,7 @@ export default function DataRecordsList({
 
   return (
     <div className="flex flex-col gap-2 mb-2">
-      <ul className="flex flex-col px-2">
+      <ul className="flex flex-col ">
         {records.map((r) => (
           <li
             className="cursor-pointer hover:bg-accent rounded p-2 flex flex-col gap-2"
