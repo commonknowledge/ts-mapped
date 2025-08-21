@@ -70,27 +70,28 @@ export default function PublicMapSidebar() {
 
   return (
     <div className={cn("absolute top-0 left-0 z-10 bg-white flex h-full")}>
-      <div className="flex flex-col h-full w-[310px] border-r border-neutral-200">
+      <div className="flex flex-col h-full w-[300px] border-r border-neutral-200">
         {/* Header */}
         <div className="flex flex-col gap-2 border-b border-neutral-200">
           <div
             style={{ backgroundColor: colourScheme.muted }}
             className="p-4 flex flex-col gap-6"
           >
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col items-center justify-between gap-2">
               <Image
                 src="/mapped-logo-colours.svg"
                 alt="Logo"
-                width={200}
+                width={400}
                 height={200}
-                className="w-1/2"
               />
-              <Separator
-                orientation="vertical"
-                className="h-full bg-neutral-400"
-              />
+
               <EditablePublicMapProperty property="name" placeholder="Map name">
-                <h1 className="text-lg font-semibold text-balance leading-tight">
+                <h1
+                  className="text-lg font-medium px-4 p-2 bg-white rounded-full text-balance leading-tight"
+                  style={{
+                    color: colourScheme.primary,
+                  }}
+                >
                   {publicMap.name}
                 </h1>
               </EditablePublicMapProperty>
