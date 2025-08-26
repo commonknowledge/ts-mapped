@@ -13,6 +13,7 @@ import {
   GeocodingType,
   JobStatus,
 } from "@/__generated__/types";
+import { DefinitionList } from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceFeatures } from "@/features";
 import {
@@ -123,6 +124,53 @@ export default function DataSourceDashboard({
 
   const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
 
+  const mappedInformation = Object.keys(dataSource.config).map((k) => ({
+    label:
+      k in DataSourceConfigLabels
+        ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
+        : k,
+    value:
+      typeof dataSource.config[k] === "string"
+        ? dataSource.config[k]
+        : JSON.stringify(dataSource.config[k]),
+  }));
+
+  const mappedConfig = [
+    {
+      label: "Name column",
+      value: dataSource.columnRoles.nameColumns?.length
+        ? dataSource.columnRoles.nameColumns.join(", ")
+        : "None",
+    },
+    {
+      label: "Location column",
+      value: dataSource.geocodingConfig.column
+        ? `"${dataSource.geocodingConfig.column}"`
+        : dataSource.geocodingConfig.columns?.length
+          ? dataSource.geocodingConfig.columns.join(", ")
+          : "None",
+    },
+    {
+      label: "Geocoding type",
+      value: isPostcodeData
+        ? GeocodingTypeLabels.Postcode
+        : GeocodingTypeLabels[dataSource.geocodingConfig.type as GeocodingType],
+    },
+    {
+      label: "Area type",
+      value:
+        isAreaData && !isPostcodeData
+          ? AreaSetCodeLabels[
+              dataSource.geocodingConfig.areaSetCode as AreaSetCode
+            ] || "None"
+          : "",
+    },
+    {
+      label: "Auto-import enabled",
+      value: features.autoImport ? (dataSource.autoImport ? "Yes" : "No") : "",
+    },
+  ];
+
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
       <div className="flex gap-12">
@@ -175,7 +223,7 @@ export default function DataSourceDashboard({
         <>
           <h2 className="mb-2 font-bold text-xl">Last imported</h2>
           <time className="text-sm">
-            {new Date(lastImported).toLocaleString()}
+            {new Date(lastImported).toLocaleString("en-GB")}
           </time>
           <Separator className="my-8" />
         </>
@@ -184,25 +232,9 @@ export default function DataSourceDashboard({
       <div className="grid grid-cols-2 gap-12">
         <div className="flex flex-col gap-6">
           <h2 className="h-8 font-bold text-xl">About this data source</h2>
-          <dl className="flex flex-col gap-6 text-sm">
-            {Object.keys(dataSource.config).map((k) => (
-              <div key={k}>
-                <dt className="mb-2 font-medium">
-                  {k in DataSourceConfigLabels
-                    ? DataSourceConfigLabels[
-                        k as keyof typeof DataSourceConfigLabels
-                      ]
-                    : k}
-                </dt>
-                <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
-                  {typeof dataSource.config[k] === "string"
-                    ? dataSource.config[k]
-                    : JSON.stringify(dataSource.config[k])}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <DefinitionList items={mappedInformation} />
         </div>
+
         <div className="flex flex-col gap-6">
           <div className="flex justify-between items-start">
             <h2 className="font-bold text-xl">Configuration</h2>
@@ -210,53 +242,8 @@ export default function DataSourceDashboard({
               <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
             </Button>
           </div>
-          <dl className="flex flex-col gap-6 text-sm">
-            <div>
-              <dt className="mb-2 font-medium">Name column</dt>
-              <dd className="max-w-[45ch] whitespace-nowrap overflow-hidden overflow-ellipsis">
-                {dataSource.columnRoles.nameColumns?.length
-                  ? dataSource.columnRoles.nameColumns.join(", ")
-                  : "None"}
-              </dd>
-            </div>
-            <div>
-              <dt className="mb-2 font-medium">Location column</dt>
-              <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
-                {dataSource.geocodingConfig.column
-                  ? `"${dataSource.geocodingConfig.column}"`
-                  : dataSource.geocodingConfig.columns?.length
-                    ? dataSource.geocodingConfig.columns.join(", ")
-                    : "None"}
-              </dd>
-            </div>
-            <div>
-              <dt className="mb-2 font-medium">Geocoding type</dt>
-              <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
-                {isPostcodeData
-                  ? GeocodingTypeLabels.Postcode
-                  : GeocodingTypeLabels[
-                      dataSource.geocodingConfig.type as GeocodingType
-                    ]}
-              </dd>
-            </div>
 
-            {isAreaData && !isPostcodeData && (
-              <div>
-                <dt className="mb-2 font-medium">Area type</dt>
-                <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
-                  {AreaSetCodeLabels[
-                    dataSource.geocodingConfig.areaSetCode as AreaSetCode
-                  ] || "None"}
-                </dd>
-              </div>
-            )}
-            {features.autoImport && (
-              <div>
-                <dt className="mb-2 font-medium">Auto-import enabled</dt>
-                <dl>{dataSource.autoImport ? "Yes" : "No"}</dl>
-              </div>
-            )}
-          </dl>
+          <DefinitionList items={mappedConfig} />
         </div>
       </div>
     </div>
