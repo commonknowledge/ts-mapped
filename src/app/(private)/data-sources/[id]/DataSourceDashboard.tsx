@@ -13,7 +13,6 @@ import {
   GeocodingType,
   JobStatus,
 } from "@/__generated__/types";
-import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
 import { DataSourceFeatures } from "@/features";
 import {
@@ -174,11 +173,11 @@ export default function DataSourceDashboard({
 
       {lastImported && (
         <>
-          <DataListRow
-            label="Last imported"
-            value={new Date(lastImported).toLocaleString()}
-          />
-          <Separator className="my-4" />
+          <h2 className="mb-2 font-bold text-xl">Last imported</h2>
+          <time className="text-sm">
+            {new Date(lastImported).toLocaleString()}
+          </time>
+          <Separator className="my-8" />
         </>
       )}
 
