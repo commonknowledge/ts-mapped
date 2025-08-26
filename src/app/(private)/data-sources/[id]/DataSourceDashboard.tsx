@@ -42,10 +42,10 @@ export default function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null,
+    dataSource.importInfo?.lastCompleted || null
   );
   const [recordCount, setRecordCount] = useState(
-    dataSource.recordCount?.count || 0,
+    dataSource.recordCount?.count || 0
   );
 
   const [enqueueImportDataSourceJob] = useMutation<
@@ -78,7 +78,7 @@ export default function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -127,8 +127,8 @@ export default function DataSourceDashboard({
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
-      <div className="grid grid-cols-2 gap-12 mb-8">
-        <div className="border-r border-border/50 pr-4">
+      <div className="flex gap-12 mb-8">
+        <div className="grow">
           <Breadcrumb className="mb-4">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -138,39 +138,35 @@ export default function DataSourceDashboard({
               <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <h1 className="text-4xl font-medium tracking-tight">
+          <h1 className="text-3xl font-bold tracking-[-0.0085em]">
             {dataSource.name}
           </h1>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-muted-foreground text-sm mb-4">Record count:</p>
-            <p className="text-4xl">
-              {importing ? (
-                <span className="flex items-center gap-2">
-                  <LoaderPinwheel className="animate-spin" />
-                  {recordCount}
-                </span>
-              ) : (
-                recordCount
-              )}
-            </p>
-          </div>
-          <div className="flex flex-col items-end gap-2 ">
-            <Button
-              type="button"
-              onClick={onClickImportRecords}
-              disabled={importing}
-              size="lg"
-            >
-              {importing ? "Importing" : "Import"} records
-            </Button>
-            {importError && (
-              <div>
-                <span className="text-xs text-red-500">{importError}</span>
-              </div>
+          <p className="mt-1 text-2xl text-muted-foreground">
+            {importing ? (
+              <span className="flex items-center gap-2">
+                <LoaderPinwheel className="animate-spin" />
+                {recordCount} records
+              </span>
+            ) : (
+              <>{recordCount} records</>
             )}
-          </div>
+          </p>
+        </div>
+
+        <div className="flex flex-col items-end gap-2 ">
+          <Button
+            type="button"
+            onClick={onClickImportRecords}
+            disabled={importing}
+            size="lg"
+          >
+            {importing ? "Importing" : "Import"} records
+          </Button>
+          {importError && (
+            <div>
+              <span className="text-xs text-red-500">{importError}</span>
+            </div>
+          )}
         </div>
       </div>
       <Separator className="my-4" />
@@ -210,7 +206,6 @@ export default function DataSourceDashboard({
         <div>
           <div className="mb-4 flex justify-between">
             <Label className="text-xl">Data config</Label>
-
             <Button asChild={true}>
               <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
             </Button>
@@ -282,7 +277,7 @@ const isImporting = (dataSource: DataSourceQuery["dataSource"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+        dataSource.importInfo?.status
+      )
   );
 };
