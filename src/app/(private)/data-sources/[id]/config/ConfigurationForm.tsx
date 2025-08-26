@@ -1,7 +1,6 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import {
   DataSourceConfigQuery,
@@ -38,7 +37,6 @@ export default function ConfigurationForm({
   // Form state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
 
   const [updateColumnRoles] = useMutation<
     UpdateDataSourceConfigMutation,
