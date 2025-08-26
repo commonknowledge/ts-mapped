@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
-import { LoaderPinwheel } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   AreaSetCode,
@@ -184,13 +184,13 @@ export default function DataSourceDashboard({
               <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <h1 className="text-3xl font-bold tracking-[-0.0085em]">
+          <h1 className="text-3xl font-medium tracking-tight">
             {dataSource.name}
           </h1>
           <p className="mt-1 text-2xl text-muted-foreground">
             {importing ? (
               <span className="flex items-center gap-2">
-                <LoaderPinwheel className="animate-spin" />
+                <RefreshCw className="animate-spin" />
                 {recordCount} records
               </span>
             ) : (
@@ -206,7 +206,8 @@ export default function DataSourceDashboard({
             disabled={importing}
             size="lg"
           >
-            {importing ? "Importing" : "Import"} records
+            <RefreshCw className={importing ? "animate-spin" : ""} />
+            {importing ? "Importing" : "Import"}
           </Button>
 
           {importError && (
@@ -221,7 +222,7 @@ export default function DataSourceDashboard({
 
       {lastImported && (
         <>
-          <h2 className="mb-2 font-bold text-xl">Last imported</h2>
+          <h2 className="mb-2 font-medium text-xl">Last imported</h2>
           <time className="text-sm">
             {new Date(lastImported).toLocaleString("en-GB")}
           </time>
@@ -231,13 +232,13 @@ export default function DataSourceDashboard({
 
       <div className="grid grid-cols-2 gap-12">
         <div className="flex flex-col gap-6">
-          <h2 className="h-8 font-bold text-xl">About this data source</h2>
+          <h2 className="h-8 font-medium text-xl">About this data source</h2>
           <DefinitionList items={mappedInformation} />
         </div>
 
         <div className="flex flex-col gap-6">
           <div className="flex justify-between items-start">
-            <h2 className="font-bold text-xl">Configuration</h2>
+            <h2 className="font-medium text-xl">Configuration</h2>
             <Button asChild={true} className="h-8">
               <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
             </Button>
