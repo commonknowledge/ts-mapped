@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
-import { LoaderPinwheel } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   AreaSetCode,
@@ -13,7 +13,7 @@ import {
   GeocodingType,
   JobStatus,
 } from "@/__generated__/types";
-import DataListRow from "@/components/DataListRow";
+import { DefinitionList } from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceFeatures } from "@/features";
 import {
@@ -28,7 +28,6 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
-import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { AreaGeocodingType } from "@/zod";
@@ -125,10 +124,57 @@ export default function DataSourceDashboard({
 
   const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
 
+  const mappedInformation = Object.keys(dataSource.config).map((k) => ({
+    label:
+      k in DataSourceConfigLabels
+        ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
+        : k,
+    value:
+      typeof dataSource.config[k] === "string"
+        ? dataSource.config[k]
+        : JSON.stringify(dataSource.config[k]),
+  }));
+
+  const mappedConfig = [
+    {
+      label: "Name column",
+      value: dataSource.columnRoles.nameColumns?.length
+        ? dataSource.columnRoles.nameColumns.join(", ")
+        : "None",
+    },
+    {
+      label: "Location column",
+      value: dataSource.geocodingConfig.column
+        ? `"${dataSource.geocodingConfig.column}"`
+        : dataSource.geocodingConfig.columns?.length
+          ? dataSource.geocodingConfig.columns.join(", ")
+          : "None",
+    },
+    {
+      label: "Geocoding type",
+      value: isPostcodeData
+        ? GeocodingTypeLabels.Postcode
+        : GeocodingTypeLabels[dataSource.geocodingConfig.type as GeocodingType],
+    },
+    {
+      label: "Area type",
+      value:
+        isAreaData && !isPostcodeData
+          ? AreaSetCodeLabels[
+              dataSource.geocodingConfig.areaSetCode as AreaSetCode
+            ] || "None"
+          : "",
+    },
+    {
+      label: "Auto-import enabled",
+      value: features.autoImport ? (dataSource.autoImport ? "Yes" : "No") : "",
+    },
+  ];
+
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
-      <div className="grid grid-cols-2 gap-12 mb-8">
-        <div className="border-r border-border/50 pr-4">
+      <div className="flex gap-12">
+        <div className="grow">
           <Breadcrumb className="mb-4">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -138,140 +184,67 @@ export default function DataSourceDashboard({
               <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <h1 className="text-4xl font-medium tracking-tight">
+          <h1 className="text-3xl font-medium tracking-tight">
             {dataSource.name}
           </h1>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-muted-foreground text-sm mb-4">Record count:</p>
-            <p className="text-4xl">
-              {importing ? (
-                <span className="flex items-center gap-2">
-                  <LoaderPinwheel className="animate-spin" />
-                  {recordCount}
-                </span>
-              ) : (
-                recordCount
-              )}
-            </p>
-          </div>
-          <div className="flex flex-col items-end gap-2 ">
-            <Button
-              type="button"
-              onClick={onClickImportRecords}
-              disabled={importing}
-              size="lg"
-            >
-              {importing ? "Importing" : "Import"} records
-            </Button>
-            {importError && (
-              <div>
-                <span className="text-xs text-red-500">{importError}</span>
-              </div>
+          <p className="mt-1 text-2xl text-muted-foreground">
+            {importing ? (
+              <span className="flex items-center gap-2">
+                <RefreshCw className="animate-spin" />
+                {recordCount} records
+              </span>
+            ) : (
+              <>{recordCount} records</>
             )}
-          </div>
+          </p>
+        </div>
+
+        <div className="flex flex-col items-end gap-2 ">
+          <Button
+            type="button"
+            onClick={onClickImportRecords}
+            disabled={importing}
+            size="lg"
+          >
+            <RefreshCw className={importing ? "animate-spin" : ""} />
+            {importing ? "Importing" : "Import"}
+          </Button>
+
+          {importError && (
+            <div>
+              <span className="text-xs text-red-500">{importError}</span>
+            </div>
+          )}
         </div>
       </div>
-      <Separator className="my-4" />
+
+      <Separator className="my-8" />
+
       {lastImported && (
         <>
-          <DataListRow
-            label="Last imported"
-            value={new Date(lastImported).toLocaleString()}
-          />
-          <Separator className="my-4" />
+          <h2 className="mb-2 font-medium text-xl">Last imported</h2>
+          <time className="text-sm">
+            {new Date(lastImported).toLocaleString("en-GB")}
+          </time>
+          <Separator className="my-8" />
         </>
       )}
 
-      <div className="grid grid-cols-2 gap-10 mb-10">
-        <div className="flex flex-col ">
-          <Label className="text-xl">Import config</Label>
-          {Object.keys(dataSource.config).map((k) => (
-            <DataListRow
-              key={k}
-              label={
-                k in DataSourceConfigLabels
-                  ? DataSourceConfigLabels[
-                      k as keyof typeof DataSourceConfigLabels
-                    ]
-                  : k
-              }
-              value={
-                typeof dataSource.config[k] === "string"
-                  ? dataSource.config[k]
-                  : JSON.stringify(dataSource.config[k])
-              }
-              badge={k === "type"}
-              border
-            />
-          ))}
+      <div className="grid grid-cols-2 gap-12">
+        <div className="flex flex-col gap-6">
+          <h2 className="h-8 font-medium text-xl">About this data source</h2>
+          <DefinitionList items={mappedInformation} />
         </div>
-        <div>
-          <div className="mb-4 flex justify-between">
-            <Label className="text-xl">Data config</Label>
 
-            <Button asChild={true}>
+        <div className="flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <h2 className="font-medium text-xl">Configuration</h2>
+            <Button asChild={true} className="h-8">
               <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
             </Button>
           </div>
-          <div className="mb-4">
-            <Label className="text-lg">Columns</Label>
-            <DataListRow
-              label="Name columns"
-              value={
-                dataSource.columnRoles.nameColumns?.length
-                  ? dataSource.columnRoles.nameColumns.join(", ")
-                  : "None"
-              }
-              border
-            />
-          </div>
-          <div className="mb-4">
-            <Label className="text-lg">Geocoding</Label>
-            <DataListRow
-              label="Geocoding type"
-              value={
-                isPostcodeData
-                  ? GeocodingTypeLabels.Postcode
-                  : GeocodingTypeLabels[
-                      dataSource.geocodingConfig.type as GeocodingType
-                    ]
-              }
-              border
-            />
-            <DataListRow
-              label="Location column(s)"
-              value={
-                dataSource.geocodingConfig.column
-                  ? `"${dataSource.geocodingConfig.column}"`
-                  : dataSource.geocodingConfig.columns?.length
-                    ? dataSource.geocodingConfig.columns.join(", ")
-                    : "None"
-              }
-              border
-            />
-            {isAreaData && !isPostcodeData && (
-              <DataListRow
-                label="Area type"
-                value={
-                  AreaSetCodeLabels[
-                    dataSource.geocodingConfig.areaSetCode as AreaSetCode
-                  ] || "None"
-                }
-                border
-              />
-            )}
-          </div>
-          {features.autoImport && (
-            <div className="mb-4">
-              <Label className="text-lg">Auto-import</Label>
-              <DataListRow
-                label="Enabled"
-                value={dataSource.autoImport ? "Yes" : "No"}
-              />
-            </div>
-          )}
+
+          <DefinitionList items={mappedConfig} />
         </div>
       </div>
     </div>
