@@ -22,7 +22,7 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import ConfigurationForm from "./config/ConfigurationForm";
+import ConfigurationForm from "./components/ConfigurationForm";
 
 export default function DataSourceDashboard({
   dataSource,
