@@ -4,7 +4,7 @@ import {
   GeocodingType,
   LooseGeocodingConfig,
 } from "@/__generated__/types";
-import DataListRow from "@/components/DataListRow";
+import FormFieldWrapper from "@/components/FormFieldWrapper";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -65,9 +65,9 @@ export default function GeocodingConfigFields({
 
   return (
     <>
-      <DataListRow label="Location type">
+      <FormFieldWrapper label="Location type">
         <Select value={typeSelectValue} onValueChange={onTypeChange}>
-          <SelectTrigger className="w-[360px]">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="What kind of data is this?" />
           </SelectTrigger>
           <SelectContent>
@@ -80,10 +80,10 @@ export default function GeocodingConfigFields({
               ))}
           </SelectContent>
         </Select>
-      </DataListRow>
+      </FormFieldWrapper>
 
       {typeSelectValue === GeocodingType.Address && (
-        <DataListRow label="Location columns">
+        <FormFieldWrapper label="Location columns">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -111,16 +111,16 @@ export default function GeocodingConfigFields({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        </DataListRow>
+        </FormFieldWrapper>
       )}
 
       {typeSelectValue === "Postcode" && (
-        <DataListRow label="Location column">
+        <FormFieldWrapper label="Location column">
           <Select
             value={column}
             onValueChange={(column) => onChange({ column })}
           >
-            <SelectTrigger className="w-[360px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a column to geocode on" />
             </SelectTrigger>
             <SelectContent>
@@ -131,17 +131,17 @@ export default function GeocodingConfigFields({
               ))}
             </SelectContent>
           </Select>
-        </DataListRow>
+        </FormFieldWrapper>
       )}
 
       {typeSelectValue in AreaGeocodingType && (
         <>
-          <DataListRow label="Location column">
+          <FormFieldWrapper label="Location column">
             <Select
               value={column}
               onValueChange={(column) => onChange({ column })}
             >
-              <SelectTrigger className="w-[360px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a column to geocode on" />
               </SelectTrigger>
               <SelectContent>
@@ -152,15 +152,15 @@ export default function GeocodingConfigFields({
                 ))}
               </SelectContent>
             </Select>
-          </DataListRow>
-          <DataListRow label="Area type">
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Area type">
             <Select
               value={areaSetCode}
               onValueChange={(areaSetCode) =>
                 onChange({ areaSetCode } as { areaSetCode: AreaSetCode })
               }
             >
-              <SelectTrigger className="w-[360px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="What kind of area is this?" />
               </SelectTrigger>
               <SelectContent>
@@ -173,7 +173,7 @@ export default function GeocodingConfigFields({
                   ))}
               </SelectContent>
             </Select>
-          </DataListRow>
+          </FormFieldWrapper>
         </>
       )}
     </>

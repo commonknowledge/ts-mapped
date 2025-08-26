@@ -1,5 +1,6 @@
+import { ChevronDown } from "lucide-react";
 import { DataSourceConfigQuery } from "@/__generated__/types";
-import DataListRow from "@/components/DataListRow";
+import FormFieldWrapper from "@/components/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -18,11 +19,17 @@ export default function ColumnRoleFields({
   setNameColumns: (ncs: string[]) => void;
 }) {
   return (
-    <DataListRow label="Name columns">
+    <FormFieldWrapper label="Name columns">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline">
-            {nameColumns.length ? nameColumns.join(", ") : "Select"}
+          <Button
+            variant="outline"
+            className="justify-between font-normal hover:bg-white cursor-auto"
+          >
+            <span>
+              {nameColumns.length ? nameColumns.join(", ") : "Select"}
+            </span>
+            <ChevronDown className="text-muted-foreground opacity-50" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -44,6 +51,6 @@ export default function ColumnRoleFields({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-    </DataListRow>
+    </FormFieldWrapper>
   );
 }
