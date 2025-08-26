@@ -41,10 +41,10 @@ export default function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null
+    dataSource.importInfo?.lastCompleted || null,
   );
   const [recordCount, setRecordCount] = useState(
-    dataSource.recordCount?.count || 0
+    dataSource.recordCount?.count || 0,
   );
 
   const [enqueueImportDataSourceJob] = useMutation<
@@ -77,7 +77,7 @@ export default function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } }
+    { variables: { dataSourceId: dataSource.id } },
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -268,7 +268,7 @@ const isImporting = (dataSource: DataSourceQuery["dataSource"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status
-      )
+        dataSource.importInfo?.status,
+      ),
   );
 };
