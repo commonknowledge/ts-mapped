@@ -28,7 +28,6 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
-import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { AreaGeocodingType } from "@/zod";
@@ -127,7 +126,7 @@ export default function DataSourceDashboard({
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
-      <div className="flex gap-12 mb-8">
+      <div className="flex gap-12">
         <div className="grow">
           <Breadcrumb className="mb-4">
             <BreadcrumbList>
@@ -162,6 +161,7 @@ export default function DataSourceDashboard({
           >
             {importing ? "Importing" : "Import"} records
           </Button>
+
           {importError && (
             <div>
               <span className="text-xs text-red-500">{importError}</span>
@@ -169,7 +169,9 @@ export default function DataSourceDashboard({
           )}
         </div>
       </div>
-      <Separator className="my-4" />
+
+      <Separator className="my-8" />
+
       {lastImported && (
         <>
           <DataListRow
@@ -180,93 +182,82 @@ export default function DataSourceDashboard({
         </>
       )}
 
-      <div className="grid grid-cols-2 gap-10 mb-10">
-        <div className="flex flex-col ">
-          <Label className="text-xl">Import config</Label>
-          {Object.keys(dataSource.config).map((k) => (
-            <DataListRow
-              key={k}
-              label={
-                k in DataSourceConfigLabels
-                  ? DataSourceConfigLabels[
-                      k as keyof typeof DataSourceConfigLabels
-                    ]
-                  : k
-              }
-              value={
-                typeof dataSource.config[k] === "string"
-                  ? dataSource.config[k]
-                  : JSON.stringify(dataSource.config[k])
-              }
-              badge={k === "type"}
-              border
-            />
-          ))}
+      <div className="grid grid-cols-2 gap-12">
+        <div className="flex flex-col gap-6">
+          <h2 className="h-8 font-bold text-xl">About this data source</h2>
+          <dl className="flex flex-col gap-6 text-sm">
+            {Object.keys(dataSource.config).map((k) => (
+              <div key={k}>
+                <dt className="mb-2 font-medium">
+                  {k in DataSourceConfigLabels
+                    ? DataSourceConfigLabels[
+                        k as keyof typeof DataSourceConfigLabels
+                      ]
+                    : k}
+                </dt>
+                <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
+                  {typeof dataSource.config[k] === "string"
+                    ? dataSource.config[k]
+                    : JSON.stringify(dataSource.config[k])}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <div>
-          <div className="mb-4 flex justify-between">
-            <Label className="text-xl">Data config</Label>
-            <Button asChild={true}>
+        <div className="flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <h2 className="font-bold text-xl">Configuration</h2>
+            <Button asChild={true} className="h-8">
               <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
             </Button>
           </div>
-          <div className="mb-4">
-            <Label className="text-lg">Columns</Label>
-            <DataListRow
-              label="Name columns"
-              value={
-                dataSource.columnRoles.nameColumns?.length
+          <dl className="flex flex-col gap-6 text-sm">
+            <div>
+              <dt className="mb-2 font-medium">Name column</dt>
+              <dd className="max-w-[45ch] whitespace-nowrap overflow-hidden overflow-ellipsis">
+                {dataSource.columnRoles.nameColumns?.length
                   ? dataSource.columnRoles.nameColumns.join(", ")
-                  : "None"
-              }
-              border
-            />
-          </div>
-          <div className="mb-4">
-            <Label className="text-lg">Geocoding</Label>
-            <DataListRow
-              label="Geocoding type"
-              value={
-                isPostcodeData
-                  ? GeocodingTypeLabels.Postcode
-                  : GeocodingTypeLabels[
-                      dataSource.geocodingConfig.type as GeocodingType
-                    ]
-              }
-              border
-            />
-            <DataListRow
-              label="Location column(s)"
-              value={
-                dataSource.geocodingConfig.column
+                  : "None"}
+              </dd>
+            </div>
+            <div>
+              <dt className="mb-2 font-medium">Location column</dt>
+              <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
+                {dataSource.geocodingConfig.column
                   ? `"${dataSource.geocodingConfig.column}"`
                   : dataSource.geocodingConfig.columns?.length
                     ? dataSource.geocodingConfig.columns.join(", ")
-                    : "None"
-              }
-              border
-            />
-            {isAreaData && !isPostcodeData && (
-              <DataListRow
-                label="Area type"
-                value={
-                  AreaSetCodeLabels[
-                    dataSource.geocodingConfig.areaSetCode as AreaSetCode
-                  ] || "None"
-                }
-                border
-              />
-            )}
-          </div>
-          {features.autoImport && (
-            <div className="mb-4">
-              <Label className="text-lg">Auto-import</Label>
-              <DataListRow
-                label="Enabled"
-                value={dataSource.autoImport ? "Yes" : "No"}
-              />
+                    : "None"}
+              </dd>
             </div>
-          )}
+            <div>
+              <dt className="mb-2 font-medium">Geocoding type</dt>
+              <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
+                {isPostcodeData
+                  ? GeocodingTypeLabels.Postcode
+                  : GeocodingTypeLabels[
+                      dataSource.geocodingConfig.type as GeocodingType
+                    ]}
+              </dd>
+            </div>
+
+            {isAreaData && !isPostcodeData && (
+              <div>
+                <dt className="mb-2 font-medium">Area type</dt>
+                <dd className="max-w-[45ch] overflow-hidden overflow-ellipsis">
+                  {AreaSetCodeLabels[
+                    dataSource.geocodingConfig.areaSetCode as AreaSetCode
+                  ] || "None"}
+                </dd>
+              </div>
+            )}
+            {features.autoImport && (
+              <div>
+                <dt className="mb-2 font-medium">Auto-import enabled</dt>
+                <dl>{dataSource.autoImport ? "Yes" : "No"}</dl>
+              </div>
+            )}
+          </dl>
         </div>
       </div>
     </div>
