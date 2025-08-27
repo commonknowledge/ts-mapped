@@ -1,7 +1,7 @@
 import http from "http";
 import ngrok from "@ngrok/ngrok";
 import httpProxy from "http-proxy";
-import { trimLeadingSlashes, trimTrailingSlashes } from "@/server/utils/text";
+import { trimLeadingSlashes, trimTrailingSlashes } from "@/lib/text";
 import logger from "./logger";
 import { getClient } from "./redis";
 
@@ -77,9 +77,4 @@ export const getPublicUrl = async (path = "/") => {
     publicUrl = storedPublicUrl;
   }
   return `${trimTrailingSlashes(publicUrl)}/${trimLeadingSlashes(path)}`;
-};
-
-export const getAbsoluteUrl = (path = "/") => {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000";
-  return `${trimTrailingSlashes(base)}/${trimLeadingSlashes(path)}`;
 };

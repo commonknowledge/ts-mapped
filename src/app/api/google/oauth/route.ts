@@ -1,7 +1,7 @@
 import { OAuth2Client } from "google-auth-library";
 import { NextRequest, NextResponse } from "next/server";
+import { getAbsoluteUrl } from "@/lib/app-url";
 import logger from "@/server/services/logger";
-import { getAbsoluteUrl } from "@/server/services/urls";
 
 const redirectUri = getAbsoluteUrl("/data-sources/new");
 const oauth2Client = new OAuth2Client({

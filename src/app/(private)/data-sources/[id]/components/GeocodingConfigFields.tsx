@@ -1,6 +1,6 @@
 import {
   AreaSetCode,
-  DataSourceConfigQuery,
+  DataSourceQuery,
   GeocodingType,
   LooseGeocodingConfig,
 } from "@/__generated__/types";
@@ -27,7 +27,7 @@ export default function GeocodingConfigFields({
   geocodingConfig,
   onChange,
 }: {
-  dataSource: DataSourceConfigQuery["dataSource"];
+  dataSource: DataSourceQuery["dataSource"];
   geocodingConfig: LooseGeocodingConfig;
   onChange: (config: Partial<LooseGeocodingConfig>) => void;
 }) {
