@@ -2,6 +2,7 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { SyntheticEvent, useState } from "react";
+import { toast } from "sonner";
 import {
   DataSourceConfigQuery,
   UpdateDataSourceConfigMutation,
@@ -24,12 +25,12 @@ export default function ConfigurationForm({
 }) {
   // Columns config
   const [nameColumns, setNameColumns] = useState<string[]>(
-    dataSource.columnRoles.nameColumns || [],
+    dataSource.columnRoles.nameColumns || []
   );
 
   // Geocoding config
   const [geocodingConfig, setGeocodingConfig] = useState(
-    dataSource.geocodingConfig,
+    dataSource.geocodingConfig
   );
 
   const [autoImport, setAutoImport] = useState(dataSource.autoImport);
@@ -82,6 +83,7 @@ export default function ConfigurationForm({
         throw new Error(String(result.errors || "Unknown error"));
       } else {
         setLoading(false);
+        toast.success("Your changes have been saved.");
         return;
       }
     } catch (e) {
