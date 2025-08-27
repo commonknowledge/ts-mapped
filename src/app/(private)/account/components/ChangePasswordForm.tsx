@@ -1,16 +1,25 @@
 "use client";
 
+import {
+  UpdateUserPasswordMutation,
+  UpdateUserPasswordMutationVariables,
+} from "@/__generated__/types";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardHeader, CardContent } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { gql, useMutation } from "@apollo/client";
 import * as React from "react";
+import { toast } from "sonner";
 
 export function ChangePasswordForm() {
   const [password, setPassword] = React.useState("");
 
-  const [updateUserPassword, { loading, error }] = useMutation(gql`
+  const [updateUserPassword, { loading }] = useMutation<
+    UpdateUserPasswordMutation,
+    UpdateUserPasswordMutationVariables
+  >(gql`
     mutation UpdateUserPassword($password: String!) {
       updateUserPassword(password: $password) {
         code
@@ -22,13 +31,16 @@ export function ChangePasswordForm() {
     e.preventDefault();
 
     try {
-      await updateUserPassword({ variables: { password } });
-      setPassword("");
-      alert("Password updated");
-      // todo toast
+      const { data } = await updateUserPassword({ variables: { password } });
+      if (data?.updateUserPassword?.code === 200) {
+        setPassword("");
+        toast.success("Password updated");
+      } else {
+        toast.error("Failed to update password");
+      }
     } catch (error) {
       console.error(error);
-      // todo toast
+      toast.error("Failed to update password");
     }
   };
 
@@ -38,18 +50,19 @@ export function ChangePasswordForm() {
         <CardHeader>Change your password</CardHeader>
 
         <CardContent className="space-y-2">
-          <Label htmlFor="password">New password</Label>
-          <Input
-            name="password"
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <FormFieldWrapper label="New password" id="password">
+            <Input
+              name="password"
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </FormFieldWrapper>
+
           <Button type="submit" disabled={loading}>
             {loading ? "Saving..." : "Save"}
           </Button>
-          {error && <p className="text-red-500">{error.message}</p>}
         </CardContent>
       </Card>
     </form>

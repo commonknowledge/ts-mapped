@@ -686,6 +686,13 @@ export enum VisualisationType {
   Choropleth = 'Choropleth'
 }
 
+export type UpdateUserPasswordMutationVariables = Exact<{
+  password: Scalars['String']['input'];
+}>;
+
+
+export type UpdateUserPasswordMutation = { __typename?: 'Mutation', updateUserPassword?: { __typename?: 'MutationResponse', code: number } | null };
+
 export type ListMapsQueryVariables = Exact<{
   organisationId: Scalars['String']['input'];
 }>;
@@ -737,13 +744,6 @@ export type UpdateDataSourceConfigMutationVariables = Exact<{
 
 
 export type UpdateDataSourceConfigMutation = { __typename?: 'Mutation', updateDataSourceConfig?: { __typename?: 'MutationResponse', code: number } | null };
-
-export type DataSourceConfigQueryVariables = Exact<{
-  id: Scalars['String']['input'];
-}>;
-
-
-export type DataSourceConfigQuery = { __typename?: 'Query', dataSource?: { __typename?: 'DataSource', id: string, name: string, autoImport: boolean, config: any, columnDefs: Array<{ __typename?: 'ColumnDef', name: string, type: ColumnType }>, columnRoles: { __typename?: 'ColumnRoles', nameColumns?: Array<string> | null }, geocodingConfig: { __typename?: 'LooseGeocodingConfig', type: GeocodingType, column?: string | null, columns?: Array<string> | null, areaSetCode?: AreaSetCode | null } } | null };
 
 export type UpdateDataSourceEnrichmentMutationVariables = Exact<{
   id: Scalars['String']['input'];
