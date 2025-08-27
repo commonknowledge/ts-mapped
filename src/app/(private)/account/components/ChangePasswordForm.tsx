@@ -50,11 +50,17 @@ export function ChangePasswordForm() {
         <CardHeader>Change your password</CardHeader>
 
         <CardContent className="space-y-2">
-          <FormFieldWrapper label="New password" id="password">
+          <FormFieldWrapper
+            label="New password"
+            id="password"
+            hint="At least 8 characters"
+          >
             <Input
               name="password"
               id="password"
+              minLength={8}
               type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
