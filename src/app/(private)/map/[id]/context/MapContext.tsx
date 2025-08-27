@@ -90,6 +90,9 @@ export const MapContext = createContext<{
   zoom: number;
   setZoom: (zoom: number) => void;
 
+  pinDropMode: boolean;
+  setPinDropMode: (pinDropMode: boolean) => void;
+
   /* GraphQL Queries */
   mapQuery: QueryResult<MapQuery, MapQueryVariables> | null;
 }>({
@@ -114,4 +117,6 @@ export const MapContext = createContext<{
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
   mapQuery: null,
+  pinDropMode: false,
+  setPinDropMode: () => null,
 });

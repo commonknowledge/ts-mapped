@@ -15,8 +15,14 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { mapConfig, updateMapConfig, viewConfig, updateViewConfig, mapRef } =
-    useContext(MapContext);
+  const {
+    mapConfig,
+    updateMapConfig,
+    viewConfig,
+    updateViewConfig,
+    mapRef,
+    setPinDropMode,
+  } = useContext(MapContext);
   const {
     insertPlacedMarker,
     placedMarkersLoading,
@@ -60,6 +66,7 @@ export default function MarkersControl() {
     const map = mapRef?.current;
     if (map) {
       map.getCanvas().style.cursor = "crosshair";
+      setPinDropMode(true);
 
       const clickHandler = (e: mapboxgl.MapMouseEvent) => {
         insertPlacedMarker({
@@ -73,6 +80,7 @@ export default function MarkersControl() {
         // Reset cursor
         map.getCanvas().style.cursor = "";
         map.off("click", clickHandler);
+        setPinDropMode(false);
 
         // Fly to the new marker
         map.flyTo({
