@@ -23,7 +23,7 @@ import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
-import TurfPolygons from "./TurfPolygons";
+// import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
   onSourceLoad,
@@ -128,7 +128,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
           )
           .map((layer) => layer.id);
 
@@ -139,7 +139,7 @@ export default function Map({
         });
       }
     },
-    [mapRef]
+    [mapRef],
   );
 
   useEffect(() => {
