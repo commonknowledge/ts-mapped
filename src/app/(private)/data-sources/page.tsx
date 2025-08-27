@@ -21,7 +21,6 @@ import PageHeader from "@/components/PageHeader";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
-import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import DataSourceItem from "../map/[id]/components/DataSourceItem";
 import { mapColors } from "../map/[id]/styles";
@@ -147,19 +146,18 @@ export default function DataSourcesPage() {
             </div>
           ) : (
             <div className="space-y-8">
-              <div className="flex items-center justify-between">
-                <PageHeader
-                  title="Your Data Sources"
-                  description="Here you can find all the data sources that you have uploaded."
-                />
-                <Link href="/data-sources/new">
-                  <Button variant="default" size="lg">
-                    <PlusIcon className="w-4 h-4" />
-                    Add new
-                  </Button>
-                </Link>
-              </div>
-              <Separator className="my-4" />
+              <PageHeader
+                title="Your Data Sources"
+                description="Here you can find all the data sources that you have uploaded."
+                action={
+                  <Link href="/data-sources/new">
+                    <Button variant="default" size="lg">
+                      <PlusIcon className="w-4 h-4" />
+                      Add new
+                    </Button>
+                  </Link>
+                }
+              />
               {/* Member Collections Section */}
               <div>
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -284,15 +282,16 @@ export default function DataSourcesPage() {
               <PageHeader
                 title="Mapped Data Library"
                 description="Here you can find all the data sources that Mapped manages and makes available to use in your maps."
+                action={
+                  <Link href="/data-sources/new">
+                    <Button variant="default" size="lg">
+                      <PlusIcon className="w-4 h-4" />
+                      Request a new data source
+                    </Button>
+                  </Link>
+                }
               />
-              <Link href="/data-sources/new">
-                <Button variant="default" size="lg">
-                  <PlusIcon className="w-4 h-4" />
-                  Request a new data source
-                </Button>
-              </Link>
             </div>
-            <Separator className="my-4" />
             {/* Locality Shapes Section */}
             <div>
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
