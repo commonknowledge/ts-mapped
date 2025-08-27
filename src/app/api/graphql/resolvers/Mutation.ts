@@ -383,7 +383,6 @@ const MutationResolvers: MutationResolversType = {
     { currentUser }
   ): Promise<MutationResponse> => {
     if (!currentUser) return { code: 401 };
-    throw new Error("Not implemented");
     await updateUser(currentUser.id, { password: args.password });
     return { code: 200 };
   },
