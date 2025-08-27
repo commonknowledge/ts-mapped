@@ -92,7 +92,6 @@ export default function Map({
     };
 
     const handleModeChange = (e: DrawModeChangeEvent) => {
-      console.log("Mode changed to", e.mode);
       setCurrentMode(e.mode);
     };
 

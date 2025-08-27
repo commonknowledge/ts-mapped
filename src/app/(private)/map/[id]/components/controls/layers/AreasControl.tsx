@@ -107,15 +107,22 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFlyTo = (turf: Turf) => {
-    // Calculate the center of the polygon using turf.js
-    const center = turfLib.center(turf.polygon);
     const map = mapRef?.current;
-    if (map) {
-      map.flyTo({
-        center: center.geometry.coordinates as [number, number],
-        zoom: 12,
-      });
-    }
+    if (!map) return;
+
+    // the bounding box of the polygon
+    const bbox = turfLib.bbox(turf.polygon);
+
+    map.fitBounds(
+      [
+        [bbox[0], bbox[1]], // southwest corner
+        [bbox[2], bbox[3]], // northeast corner
+      ],
+      {
+        padding: 100,
+        duration: 1000,
+      },
+    );
   };
 
   return (
