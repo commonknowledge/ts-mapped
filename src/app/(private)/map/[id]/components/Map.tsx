@@ -226,6 +226,32 @@ export default function Map({
                   "line-width": 2,
                 },
               },
+              {
+                id: "gl-draw-polygon-and-line-vertex-halo-active",
+                type: "circle",
+                filter: [
+                  "all",
+                  ["==", "meta", "vertex"],
+                  ["==", "$type", "Point"],
+                ],
+                paint: {
+                  "circle-radius": 6,
+                  "circle-color": "#FFF",
+                },
+              },
+              {
+                id: "gl-draw-polygon-and-line-vertex-active",
+                type: "circle",
+                filter: [
+                  "all",
+                  ["==", "meta", "vertex"],
+                  ["==", "$type", "Point"],
+                ],
+                paint: {
+                  "circle-radius": 5,
+                  "circle-color": mapColors.areas.color,
+                },
+              },
             ],
           });
           setDraw(newDraw);
