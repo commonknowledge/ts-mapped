@@ -2,6 +2,7 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { SyntheticEvent, useState } from "react";
+import { toast } from "sonner";
 import {
   DataSourceConfigQuery,
   UpdateDataSourceConfigMutation,
@@ -82,6 +83,7 @@ export default function ConfigurationForm({
         throw new Error(String(result.errors || "Unknown error"));
       } else {
         setLoading(false);
+        toast.success("Your changes have been saved.");
         return;
       }
     } catch (e) {
