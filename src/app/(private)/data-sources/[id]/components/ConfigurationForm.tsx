@@ -7,7 +7,7 @@ import {
   UpdateDataSourceConfigMutation,
   UpdateDataSourceConfigMutationVariables,
 } from "@/__generated__/types";
-import FormFieldWrapper from "@/components/FormFieldWrapper";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceFeatures } from "@/features";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";

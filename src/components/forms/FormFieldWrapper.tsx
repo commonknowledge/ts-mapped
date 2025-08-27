@@ -4,11 +4,14 @@ export default function FormFieldWrapper({
   label,
   children,
   hint,
+  id,
   isHorizontal = false,
 }: {
   label: string;
   children: React.ReactNode;
+
   hint?: string;
+  id?: string;
   isHorizontal?: boolean;
 }) {
   return (
@@ -16,7 +19,7 @@ export default function FormFieldWrapper({
       <div
         className={`flex gap-3 ${isHorizontal ? "flex-row-reverse justify-end" : "flex-col"}`}
       >
-        <Label>{label}</Label>
+        <Label htmlFor={id || ""}>{label}</Label>
         {children}
       </div>
 

@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { DataSourceConfigQuery } from "@/__generated__/types";
-import FormFieldWrapper from "@/components/FormFieldWrapper";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
