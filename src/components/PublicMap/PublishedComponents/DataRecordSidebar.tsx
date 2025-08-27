@@ -3,15 +3,14 @@ import { Fragment, useContext, useMemo } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
-import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import EditablePublicMapProperty from "./EditablePublicMapProperty";
+import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 import { buildName } from "./utils";
 
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
-  const { dataRecordsQueries, publicMap, editable, updateDataSourceConfig } =
+  const { dataRecordsQueries, publicMap, editable } =
     useContext(PublicMapContext);
   const selectedDataRecordDetails = useMemo(() => {
     if (!selectedDataRecord) {
@@ -120,26 +119,6 @@ export default function DataRecordSidebar() {
           )}
         </div>
       ))}
-      {editable && dataSourceConfig && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-              additionalColumns: [
-                ...dataSourceConfig.additionalColumns,
-                {
-                  label: "New row",
-                  sourceColumns: [],
-                  type: PublicMapColumnType.String,
-                },
-              ],
-            });
-          }}
-        >
-          Add additional information
-        </Button>
-      )}
     </div>
   );
 }

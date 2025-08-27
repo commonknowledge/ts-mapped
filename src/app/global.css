@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
+@theme {
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(34.07% 0 0);

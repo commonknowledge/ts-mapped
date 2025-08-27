@@ -1,25 +1,14 @@
 "use client";
 
-import { QueryResult } from "@apollo/client";
-import { LoaderPinwheel, PanelLeft } from "lucide-react";
-import Image from "next/image";
-import { useContext, useState } from "react";
-import {
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
-} from "@/__generated__/types";
-import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
-import { MapContext } from "@/components/Map/context/MapContext";
+import { LoaderPinwheel, MapIcon } from "lucide-react";
+import { useContext } from "react";
+import { publicMapColourSchemes } from "@/components/Map/styles";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import PublicMapGeocoder from "@/components/PublicMap/PublicMapGeocoder";
-import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
+import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 import DataRecordSidebar from "./DataRecordSidebar";
-import DataSourcesSelect from "./DataSourcesSelect";
 import DataSourceTabs from "./DataSourceTabs";
-import EditablePublicMapProperty from "./EditablePublicMapProperty";
-import { Separator } from "@/shadcn/ui/separator";
-import { publicMapColourSchemes } from "@/components/Map/styles";
 
 export default function PublicMapSidebar() {
   const {
@@ -28,35 +17,12 @@ export default function PublicMapSidebar() {
     dataRecordsQueries,
     setSearchLocation,
     recordSidebarVisible,
-    setRecordSidebarVisible,
-    activeTabId,
     colourScheme,
   } = useContext(PublicMapContext);
-  const { setSelectedDataRecord } = useContext(DataRecordContext);
 
   // Convert string colourScheme to actual color scheme object
   const activeColourScheme =
     publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red;
-
-  // Function to open record sidebar and select first record
-  const openRecordSidebar = () => {
-    setRecordSidebarVisible(true);
-
-    // Select the first record from the active data source
-    const currentDataSourceId =
-      activeTabId || publicMap?.dataSourceConfigs[0]?.dataSourceId;
-
-    if (currentDataSourceId && dataRecordsQueries[currentDataSourceId]) {
-      const firstRecord =
-        dataRecordsQueries[currentDataSourceId]?.data?.dataSource?.records?.[0];
-      if (firstRecord) {
-        setSelectedDataRecord({
-          id: firstRecord.id,
-          dataSourceId: currentDataSourceId,
-        });
-      }
-    }
-  };
 
   // Should never happen
   if (!publicMap) {
@@ -77,23 +43,23 @@ export default function PublicMapSidebar() {
             className="p-4 flex flex-col gap-6"
           >
             <div className="flex flex-col items-center justify-between gap-2">
-              <Image
-                src="/mapped-logo-colours.svg"
-                alt="Logo"
-                width={400}
-                height={200}
-              />
-
-              <EditablePublicMapProperty property="name" placeholder="Map name">
-                <h1
-                  className="text-lg font-medium px-4 p-2 bg-white rounded-full text-balance leading-tight"
+              <div className="flex items-center gap-2">
+                <MapIcon
+                  className="w-10 h-10 shrink-0"
                   style={{
-                    color: activeColourScheme.primary,
+                    fill: "white",
+                    stroke: activeColourScheme.primary,
                   }}
+                />
+                <EditablePublicMapProperty
+                  property="name"
+                  placeholder="Map name"
                 >
-                  {publicMap.name}
-                </h1>
-              </EditablePublicMapProperty>
+                  <h1 className="text-2xl font-medium leading-tight text-balance tracking-tight">
+                    {publicMap.name}
+                  </h1>
+                </EditablePublicMapProperty>
+              </div>
               {/* <Button
               variant="ghost"
               size="icon"

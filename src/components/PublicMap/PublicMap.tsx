@@ -6,9 +6,11 @@ import Map from "@/components/Map/components/Map";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import PublishPublicMapSidebar from "./EditorComponents/PublishPublicMapSidebar";
 import { PublicMapContext } from "./PublicMapContext";
-import PublicMapSidebar from "./PublicMapSidebar/PublicMapSidebar";
-import PublishPublicMapSidebar from "./PublicMapSidebar/PublishPublicMapSidebar";
+import PublicMapSidebar from "./PublishedComponents/PublicMapSidebar";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function PublicMap() {
   const { mapQuery } = useContext(MapContext);
@@ -33,6 +35,18 @@ export default function PublicMap() {
           hideDrawControls={true}
         />
         {loading && <Loading />}
+        <Link
+          href="https://v3.mapped.tools"
+          className="absolute bottom-6 right-4 flex flex-col items-center"
+        >
+          <p className="text-sm text-neutral-500">Made using Mapped</p>
+          <Image
+            src="/mapped-logo-colours.svg"
+            alt="Logo"
+            width={200}
+            height={200}
+          />
+        </Link>
       </div>
       {editable && <PublishPublicMapSidebar />}
     </div>

@@ -11,7 +11,6 @@ import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";
-import EditablePublicMapProperty from "./EditablePublicMapProperty";
 import DataSourcesSelect from "./DataSourcesSelect";
 
 interface DataSourceTabsProps {
@@ -43,13 +42,17 @@ export default function DataSourceTabs({
 
     return (
       dataRecordsQuery && (
-        <SingleDataSourceContent
-          dsc={dsc}
-          dataRecordsQuery={dataRecordsQuery}
-          editable={editable}
-          colourScheme={colourScheme}
-          onSelect={setSelectedDataRecord}
-        />
+        <>
+          {editable && <DataSourcesSelect />}
+
+          <SingleDataSourceContent
+            dsc={dsc}
+            dataRecordsQuery={dataRecordsQuery}
+            editable={editable}
+            colourScheme={colourScheme}
+            onSelect={setSelectedDataRecord}
+          />
+        </>
       )
     );
   }

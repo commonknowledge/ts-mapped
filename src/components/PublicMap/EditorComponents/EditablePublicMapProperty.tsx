@@ -105,7 +105,7 @@ export default function EditablePublicMapProperty({
         />
       ) : (
         <div
-          className="cursor-pointer flex gap-2 items-center"
+          className="cursor-pointer flex gap-2 items-center w-full"
           role="button"
           onClick={() => {
             setEditing(true);
@@ -115,7 +115,7 @@ export default function EditablePublicMapProperty({
           }}
         >
           <div>{children}</div>
-          <Pencil className="absolute right-5 h-4 w-4 text-muted-foreground shrink-0 group-hover:opacity-100 opacity-0 transition-opacity duration-200" />
+          <Pencil className=" h-4 w-4 text-muted-foreground shrink-0 group-hover:opacity-100 opacity-0 transition-opacity duration-200" />
         </div>
       )}
     </form>

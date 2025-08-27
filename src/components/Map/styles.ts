@@ -79,14 +79,14 @@ export const publicMapColourSchemes: Record<
 > = {
   red: {
     primary: "#FF6B6B",
-    muted: "#FF6B6B20",
+    muted: "#FF6B6B10",
   },
   blue: {
     primary: "#678DE3",
-    muted: "#678DE320",
+    muted: "#678DE310",
   },
   green: {
     primary: "#4DAB37",
-    muted: "#4DAB3720",
+    muted: "#4DAB3710",
   },
 };
