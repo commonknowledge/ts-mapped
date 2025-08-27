@@ -101,7 +101,7 @@ export default function PublicMapSidebar() {
             />
           </div>
         </div>
-        <div className="overflow-y-auto p-4">
+        <div className="overflow-y-auto py-4">
           {/* Listings */}
 
           <DataSourceTabs

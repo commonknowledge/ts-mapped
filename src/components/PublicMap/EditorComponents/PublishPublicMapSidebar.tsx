@@ -1,7 +1,14 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { Database, ExternalLink, Globe, Info, Palette } from "lucide-react";
+import {
+  Database,
+  ExternalLink,
+  Globe,
+  Info,
+  Palette,
+  Settings,
+} from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useContext, useEffect, useState } from "react";
 import {
@@ -167,7 +174,7 @@ export default function PublishPublicMapSidebar() {
               }}
             >
               <VerticalTabsList>
-                <VerticalTabsTrigger value="publish settings" icon={Globe} />
+                <VerticalTabsTrigger value="publish settings" icon={Settings} />
                 <VerticalTabsTrigger value="info" icon={Info} />
                 <VerticalTabsTrigger value="data" icon={Database} />
                 <VerticalTabsTrigger value="style" icon={Palette} />

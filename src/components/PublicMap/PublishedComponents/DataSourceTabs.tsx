@@ -63,7 +63,7 @@ export default function DataSourceTabs({
 
   return (
     <Tabs value={defaultTabId} onValueChange={setActiveTabId}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 px-4">
         <TabsList
           className="grid w-full"
           style={{
@@ -131,7 +131,7 @@ function SingleDataSourceContent({
           {dsc.dataSourceLabel}
         </p>
       )}
-      <span className="text-sm ">
+      <span className="text-sm px-4">
         {dataRecordsQuery.data?.dataSource?.records?.length || 0} Listings
       </span>
       <DataRecordsList

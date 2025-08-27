@@ -37,7 +37,16 @@ export default function DataRecordSidebar() {
   );
   const description =
     selectedDataRecordDetails.json[dataSourceConfig?.descriptionColumn || ""];
-  const additionalColumns = dataSourceConfig?.additionalColumns || [];
+
+  // Filter out primary and secondary columns from additional columns
+  const primaryColumns = dataSourceConfig?.nameColumns || [];
+  const secondaryColumn = dataSourceConfig?.descriptionColumn;
+  const additionalColumns = (dataSourceConfig?.additionalColumns || []).filter(
+    (columnConfig) =>
+      !columnConfig.sourceColumns.some(
+        (col) => primaryColumns.includes(col) || col === secondaryColumn
+      )
+  );
 
   return (
     <div

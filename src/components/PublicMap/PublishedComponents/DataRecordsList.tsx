@@ -6,8 +6,10 @@ import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
 } from "@/__generated__/types";
+import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
+import { cn } from "@/shadcn/utils";
 import { buildName } from "./utils";
 
 interface DataRecordsListProps {
@@ -26,6 +28,7 @@ export default function DataRecordsList({
 }: DataRecordsListProps) {
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
+  const { selectedDataRecord } = useContext(DataRecordContext);
 
   const records = dataRecordsQuery?.data?.dataSource?.records || [];
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
@@ -54,7 +57,15 @@ export default function DataRecordsList({
       <ul className="flex flex-col ">
         {records.map((r) => (
           <li
-            className="cursor-pointer hover:bg-accent rounded p-2 flex flex-col gap-2"
+            className={cn(
+              "cursor-pointer py-2 px-4 flex flex-col gap-2 rounded transition-colors",
+              selectedDataRecord?.id === r.id ? "" : "hover:bg-accent"
+            )}
+            style={
+              selectedDataRecord?.id === r.id
+                ? { backgroundColor: colourScheme.muted }
+                : undefined
+            }
             key={r.id}
             role="button"
             onClick={() => {
