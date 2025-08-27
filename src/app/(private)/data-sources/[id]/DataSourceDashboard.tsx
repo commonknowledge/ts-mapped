@@ -4,23 +4,16 @@ import { gql, useMutation, useSubscription } from "@apollo/client";
 import { RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-  AreaSetCode,
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
   DataSourceQuery,
   EnqueueImportDataSourceJobMutation,
   EnqueueImportDataSourceJobMutationVariables,
-  GeocodingType,
   JobStatus,
 } from "@/__generated__/types";
 import { DefinitionList } from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
-import { DataSourceFeatures } from "@/features";
-import {
-  AreaSetCodeLabels,
-  DataSourceConfigLabels,
-  GeocodingTypeLabels,
-} from "@/labels";
+import { DataSourceConfigLabels } from "@/labels";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,8 +22,7 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceType } from "@/types";
-import { AreaGeocodingType } from "@/zod";
+import ConfigurationForm from "./components/ConfigurationForm";
 
 export default function DataSourceDashboard({
   dataSource,
@@ -118,12 +110,6 @@ export default function DataSourceDashboard({
     }
   };
 
-  const isPostcodeData =
-    dataSource.geocodingConfig.areaSetCode === AreaSetCode.PC;
-  const isAreaData = dataSource.geocodingConfig.type in AreaGeocodingType;
-
-  const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
-
   const mappedInformation = Object.keys(dataSource.config).map((k) => ({
     label:
       k in DataSourceConfigLabels
@@ -134,42 +120,6 @@ export default function DataSourceDashboard({
         ? dataSource.config[k]
         : JSON.stringify(dataSource.config[k]),
   }));
-
-  const mappedConfig = [
-    {
-      label: "Name column",
-      value: dataSource.columnRoles.nameColumns?.length
-        ? dataSource.columnRoles.nameColumns.join(", ")
-        : "None",
-    },
-    {
-      label: "Location column",
-      value: dataSource.geocodingConfig.column
-        ? `"${dataSource.geocodingConfig.column}"`
-        : dataSource.geocodingConfig.columns?.length
-          ? dataSource.geocodingConfig.columns.join(", ")
-          : "None",
-    },
-    {
-      label: "Geocoding type",
-      value: isPostcodeData
-        ? GeocodingTypeLabels.Postcode
-        : GeocodingTypeLabels[dataSource.geocodingConfig.type as GeocodingType],
-    },
-    {
-      label: "Area type",
-      value:
-        isAreaData && !isPostcodeData
-          ? AreaSetCodeLabels[
-              dataSource.geocodingConfig.areaSetCode as AreaSetCode
-            ] || "None"
-          : "",
-    },
-    {
-      label: "Auto-import enabled",
-      value: features.autoImport ? (dataSource.autoImport ? "Yes" : "No") : "",
-    },
-  ];
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -230,21 +180,15 @@ export default function DataSourceDashboard({
         </>
       )}
 
-      <div className="grid grid-cols-2 gap-12">
+      <div className="grid grid-cols-2 gap-20">
         <div className="flex flex-col gap-6">
-          <h2 className="h-8 font-medium text-xl">About this data source</h2>
+          <h2 className="font-medium text-xl">About this data source</h2>
           <DefinitionList items={mappedInformation} />
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="flex justify-between items-start">
-            <h2 className="font-medium text-xl">Configuration</h2>
-            <Button asChild={true} className="h-8">
-              <Link href={`/data-sources/${dataSource.id}/config`}>Edit</Link>
-            </Button>
-          </div>
-
-          <DefinitionList items={mappedConfig} />
+          <h2 className="font-medium text-xl">Configuration</h2>
+          <ConfigurationForm dataSource={dataSource} />
         </div>
       </div>
     </div>
