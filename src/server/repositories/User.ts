@@ -1,6 +1,9 @@
-import { NewUser, User, UserUpdate } from "@/server/models/User";
+import { verify } from "jsonwebtoken";
+import { NewUser, UserUpdate } from "@/server/models/User";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
+
+type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 export async function upsertUser(
   user: Omit<NewUser, "passwordHash"> & { password: string }
@@ -42,14 +45,35 @@ export async function findUserByEmailAndPassword({
   return passwordValid ? user : null;
 }
 
+export async function findUserById(id: string) {
+  return db
+    .selectFrom("user")
+    .where("id", "=", id)
+    .selectAll()
+    .executeTakeFirst();
+}
+
+export async function findUserByEmail(email: string) {
+  return db
+    .selectFrom("user")
+    .where("email", "=", email)
+    .selectAll()
+    .executeTakeFirst();
+}
+
+export async function findUserByToken(token: string) {
+  const decoded = verify(token, process.env.JWT_SECRET || "") as { id: string };
+  return findUserById(decoded.id);
+}
+
 export async function updateUser(
   id: string,
   {
     password,
     ...data
-  }: Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }
+  }: Nullable<Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }>
 ) {
-  const update = { ...data } as UserUpdate;
+  const update = { email: data?.email || undefined } as UserUpdate;
 
   if (password) {
     update.passwordHash = await hashPassword(password);
@@ -62,5 +86,6 @@ export async function updateUser(
     .updateTable("user")
     .where("id", "=", id)
     .set(update)
+    .returningAll()
     .executeTakeFirstOrThrow();
 }

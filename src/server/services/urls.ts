@@ -1,7 +1,7 @@
 import http from "http";
 import ngrok from "@ngrok/ngrok";
 import httpProxy from "http-proxy";
-import { trimLeadingSlashes, trimTrailingSlashes } from "@/server/utils/text";
+import { trimLeadingSlashes, trimTrailingSlashes } from "@/lib/text";
 import logger from "./logger";
 import { getClient } from "./redis";
 
@@ -12,7 +12,7 @@ let publicUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
 // (global variables do not persist between NextJS startup and execution)
 // Also called from tests/setup.ts, with protocol = "http"
 export const startPublicTunnel = async (
-  backendProtocol: "http" | "https" = "https",
+  backendProtocol: "http" | "https" = "https"
 ) => {
   const listener =
     backendProtocol === "http"
@@ -71,15 +71,10 @@ export const getPublicUrl = async (path = "/") => {
     const storedPublicUrl = await redis.get("mapped:publicUrl");
     if (!storedPublicUrl) {
       throw new Error(
-        "Public URL not found. Set the NEXT_PUBLIC_BASE_URL environment variable, or start the server with NODE_ENV=development",
+        "Public URL not found. Set the NEXT_PUBLIC_BASE_URL environment variable, or start the server with NODE_ENV=development"
       );
     }
     publicUrl = storedPublicUrl;
   }
   return `${trimTrailingSlashes(publicUrl)}/${trimLeadingSlashes(path)}`;
-};
-
-export const getAbsoluteUrl = (path = "/") => {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000";
-  return `${trimTrailingSlashes(base)}/${trimLeadingSlashes(path)}`;
 };

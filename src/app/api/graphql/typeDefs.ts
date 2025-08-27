@@ -181,6 +181,17 @@ const typeDefs = `
     type: FilterType!
   }
 
+  type User {
+    id: String!
+    email: String!
+    createdAt: Date!
+  }
+
+  input UpdateUserInput {
+    password: String
+    email: String
+  }
+
   input SortInput {
     name: String!
     desc: Boolean!
@@ -395,6 +406,11 @@ const typeDefs = `
     organisations: [Organisation!] @auth
   }
 
+  type UpdateUserResponse {
+    code: Int!
+    result: User
+  }
+
   type CreateDataSourceResponse {
     code: Int!
     result: DataSource
@@ -494,7 +510,11 @@ const typeDefs = `
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
-    updateUserPassword(password: String!): MutationResponse @auth
+
+    updateUser(data: UpdateUserInput!): UpdateUserResponse @auth
+
+    forgotPassword(email: String!): MutationResponse
+    resetPassword(token: String!, password: String!): MutationResponse
   }
 
   type DataSourceEvent {

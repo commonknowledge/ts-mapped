@@ -1,6 +1,6 @@
 import PageHeader from "@/components/PageHeader";
-import { ChangePasswordForm } from "./components/ChangePasswordForm";
 import { Separator } from "@/shadcn/ui/separator";
+import { ChangePasswordForm } from "./components/ChangePasswordForm";
 
 export default function Page() {
   return (

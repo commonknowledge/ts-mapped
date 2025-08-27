@@ -1,17 +1,16 @@
 "use client";
 
+import { gql, useMutation } from "@apollo/client";
+import * as React from "react";
+import { toast } from "sonner";
 import {
   UpdateUserPasswordMutation,
   UpdateUserPasswordMutationVariables,
 } from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
-import { Card, CardHeader, CardContent } from "@/shadcn/ui/card";
+import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
-import { Label } from "@/shadcn/ui/label";
-import { gql, useMutation } from "@apollo/client";
-import * as React from "react";
-import { toast } from "sonner";
 
 export function ChangePasswordForm() {
   const [password, setPassword] = React.useState("");
@@ -20,9 +19,12 @@ export function ChangePasswordForm() {
     UpdateUserPasswordMutation,
     UpdateUserPasswordMutationVariables
   >(gql`
-    mutation UpdateUserPassword($password: String!) {
-      updateUserPassword(password: $password) {
+    mutation UpdateUserPassword($data: UpdateUserInput!) {
+      updateUser(data: $data) {
         code
+        result {
+          id
+        }
       }
     }
   `);
@@ -31,8 +33,10 @@ export function ChangePasswordForm() {
     e.preventDefault();
 
     try {
-      const { data } = await updateUserPassword({ variables: { password } });
-      if (data?.updateUserPassword?.code === 200) {
+      const { data } = await updateUserPassword({
+        variables: { data: { password } },
+      });
+      if (data?.updateUser?.code === 200) {
         setPassword("");
         toast.success("Password updated");
       } else {

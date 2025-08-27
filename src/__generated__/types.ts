@@ -371,11 +371,13 @@ export type Mutation = {
   deleteTurf?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
   enqueueImportDataSourceJob?: Maybe<MutationResponse>;
+  forgotPassword?: Maybe<MutationResponse>;
+  resetPassword?: Maybe<MutationResponse>;
   saveMapViewsToCRM?: Maybe<MutationResponse>;
   updateDataSourceConfig?: Maybe<MutationResponse>;
   updateMap?: Maybe<UpdateMapResponse>;
   updateMapConfig?: Maybe<UpdateMapConfigResponse>;
-  updateUserPassword?: Maybe<MutationResponse>;
+  updateUser?: Maybe<UpdateUserResponse>;
   upsertFolder?: Maybe<UpsertFolderResponse>;
   upsertPlacedMarker?: Maybe<UpsertPlacedMarkerResponse>;
   upsertTurf?: Maybe<UpsertTurfResponse>;
@@ -427,6 +429,17 @@ export type MutationEnqueueImportDataSourceJobArgs = {
 };
 
 
+export type MutationForgotPasswordArgs = {
+  email: Scalars['String']['input'];
+};
+
+
+export type MutationResetPasswordArgs = {
+  password: Scalars['String']['input'];
+  token: Scalars['String']['input'];
+};
+
+
 export type MutationSaveMapViewsToCrmArgs = {
   id: Scalars['String']['input'];
 };
@@ -455,8 +468,8 @@ export type MutationUpdateMapConfigArgs = {
 };
 
 
-export type MutationUpdateUserPasswordArgs = {
-  password: Scalars['String']['input'];
+export type MutationUpdateUserArgs = {
+  data: UpdateUserInput;
 };
 
 
@@ -657,6 +670,17 @@ export type UpdateMapResponse = {
   result?: Maybe<Map>;
 };
 
+export type UpdateUserInput = {
+  email?: InputMaybe<Scalars['String']['input']>;
+  password?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateUserResponse = {
+  __typename?: 'UpdateUserResponse';
+  code: Scalars['Int']['output'];
+  result?: Maybe<User>;
+};
+
 export type UpsertFolderResponse = {
   __typename?: 'UpsertFolderResponse';
   code: Scalars['Int']['output'];
@@ -681,17 +705,24 @@ export type UpsertTurfResponse = {
   result?: Maybe<Turf>;
 };
 
+export type User = {
+  __typename?: 'User';
+  createdAt: Scalars['Date']['output'];
+  email: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+};
+
 export enum VisualisationType {
   BoundaryOnly = 'BoundaryOnly',
   Choropleth = 'Choropleth'
 }
 
 export type UpdateUserPasswordMutationVariables = Exact<{
-  password: Scalars['String']['input'];
+  data: UpdateUserInput;
 }>;
 
 
-export type UpdateUserPasswordMutation = { __typename?: 'Mutation', updateUserPassword?: { __typename?: 'MutationResponse', code: number } | null };
+export type UpdateUserPasswordMutation = { __typename?: 'Mutation', updateUser?: { __typename?: 'UpdateUserResponse', code: number, result?: { __typename?: 'User', id: string } | null } | null };
 
 export type ListMapsQueryVariables = Exact<{
   organisationId: Scalars['String']['input'];
@@ -924,12 +955,27 @@ export type ListOrganisationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ListOrganisationsQuery = { __typename?: 'Query', organisations?: Array<{ __typename?: 'Organisation', id: string, name: string }> | null };
 
+export type ResetPasswordMutationVariables = Exact<{
+  token: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+}>;
+
+
+export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword?: { __typename?: 'MutationResponse', code: number } | null };
+
 export type DeleteMapMutationVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
 export type DeleteMapMutation = { __typename?: 'Mutation', deleteMap?: { __typename?: 'MutationResponse', code: number } | null };
+
+export type ForgotPasswordMutationVariables = Exact<{
+  email: Scalars['String']['input'];
+}>;
+
+
+export type ForgotPasswordMutation = { __typename?: 'Mutation', forgotPassword?: { __typename?: 'MutationResponse', code: number } | null };
 
 
 
@@ -1068,10 +1114,13 @@ export type ResolversTypes = {
   Turf: ResolverTypeWrapper<Turf>;
   UpdateMapConfigResponse: ResolverTypeWrapper<UpdateMapConfigResponse>;
   UpdateMapResponse: ResolverTypeWrapper<UpdateMapResponse>;
+  UpdateUserInput: UpdateUserInput;
+  UpdateUserResponse: ResolverTypeWrapper<UpdateUserResponse>;
   UpsertFolderResponse: ResolverTypeWrapper<UpsertFolderResponse>;
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
   UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
   UpsertTurfResponse: ResolverTypeWrapper<UpsertTurfResponse>;
+  User: ResolverTypeWrapper<User>;
   VisualisationType: VisualisationType;
 };
 
@@ -1132,10 +1181,13 @@ export type ResolversParentTypes = {
   Turf: Turf;
   UpdateMapConfigResponse: UpdateMapConfigResponse;
   UpdateMapResponse: UpdateMapResponse;
+  UpdateUserInput: UpdateUserInput;
+  UpdateUserResponse: UpdateUserResponse;
   UpsertFolderResponse: UpsertFolderResponse;
   UpsertMapViewResponse: UpsertMapViewResponse;
   UpsertPlacedMarkerResponse: UpsertPlacedMarkerResponse;
   UpsertTurfResponse: UpsertTurfResponse;
+  User: User;
 };
 
 export type AuthDirectiveArgs = {
@@ -1338,11 +1390,13 @@ export type MutationResolvers<ContextType = GraphQLContext, ParentType extends R
   deleteTurf?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationDeleteTurfArgs, 'id' | 'mapId'>>;
   enqueueEnrichDataSourceJob?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationEnqueueEnrichDataSourceJobArgs, 'dataSourceId'>>;
   enqueueImportDataSourceJob?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationEnqueueImportDataSourceJobArgs, 'dataSourceId'>>;
+  forgotPassword?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationForgotPasswordArgs, 'email'>>;
+  resetPassword?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token'>>;
   saveMapViewsToCRM?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationSaveMapViewsToCrmArgs, 'id'>>;
   updateDataSourceConfig?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationUpdateDataSourceConfigArgs, 'id'>>;
   updateMap?: Resolver<Maybe<ResolversTypes['UpdateMapResponse']>, ParentType, ContextType, RequireFields<MutationUpdateMapArgs, 'id' | 'map'>>;
   updateMapConfig?: Resolver<Maybe<ResolversTypes['UpdateMapConfigResponse']>, ParentType, ContextType, RequireFields<MutationUpdateMapConfigArgs, 'mapConfig' | 'mapId' | 'views'>>;
-  updateUserPassword?: Resolver<Maybe<ResolversTypes['MutationResponse']>, ParentType, ContextType, RequireFields<MutationUpdateUserPasswordArgs, 'password'>>;
+  updateUser?: Resolver<Maybe<ResolversTypes['UpdateUserResponse']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'data'>>;
   upsertFolder?: Resolver<Maybe<ResolversTypes['UpsertFolderResponse']>, ParentType, ContextType, RequireFields<MutationUpsertFolderArgs, 'id' | 'mapId' | 'name' | 'notes' | 'position'>>;
   upsertPlacedMarker?: Resolver<Maybe<ResolversTypes['UpsertPlacedMarkerResponse']>, ParentType, ContextType, RequireFields<MutationUpsertPlacedMarkerArgs, 'id' | 'label' | 'mapId' | 'notes' | 'point' | 'position'>>;
   upsertTurf?: Resolver<Maybe<ResolversTypes['UpsertTurfResponse']>, ParentType, ContextType, RequireFields<MutationUpsertTurfArgs, 'area' | 'createdAt' | 'label' | 'mapId' | 'notes' | 'polygon'>>;
@@ -1442,6 +1496,12 @@ export type UpdateMapResponseResolvers<ContextType = GraphQLContext, ParentType 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UpdateUserResponseResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UpdateUserResponse'] = ResolversParentTypes['UpdateUserResponse']> = {
+  code?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  result?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UpsertFolderResponseResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UpsertFolderResponse'] = ResolversParentTypes['UpsertFolderResponse']> = {
   code?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   result?: Resolver<Maybe<ResolversTypes['Folder']>, ParentType, ContextType>;
@@ -1463,6 +1523,13 @@ export type UpsertPlacedMarkerResponseResolvers<ContextType = GraphQLContext, Pa
 export type UpsertTurfResponseResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UpsertTurfResponse'] = ResolversParentTypes['UpsertTurfResponse']> = {
   code?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   result?: Resolver<Maybe<ResolversTypes['Turf']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1504,10 +1571,12 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Turf?: TurfResolvers<ContextType>;
   UpdateMapConfigResponse?: UpdateMapConfigResponseResolvers<ContextType>;
   UpdateMapResponse?: UpdateMapResponseResolvers<ContextType>;
+  UpdateUserResponse?: UpdateUserResponseResolvers<ContextType>;
   UpsertFolderResponse?: UpsertFolderResponseResolvers<ContextType>;
   UpsertMapViewResponse?: UpsertMapViewResponseResolvers<ContextType>;
   UpsertPlacedMarkerResponse?: UpsertPlacedMarkerResponseResolvers<ContextType>;
   UpsertTurfResponse?: UpsertTurfResponseResolvers<ContextType>;
+  User?: UserResolvers<ContextType>;
 };
 
 export type DirectiveResolvers<ContextType = GraphQLContext> = {
