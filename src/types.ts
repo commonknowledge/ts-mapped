@@ -13,15 +13,6 @@ export enum DataSourceType {
   mailchimp = "mailchimp",
 }
 
-// export enum DrawModes {
-//   DrawPolygon = "draw_polygon",
-//   DrawPoint = "draw_point",
-//   DrawLineString = "draw_line_string",
-//   SimpleSelect = "simple_select",
-//   DirectSelect = "direct_select",
-//   Static = "static",
-// }
-
 export interface DrawModeChangeEvent {
   mode: string;
 }

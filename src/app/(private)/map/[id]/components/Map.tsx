@@ -30,8 +30,14 @@ export default function Map({
 }: {
   onSourceLoad: (sourceId: string) => void;
 }) {
-  const { mapRef, mapConfig, viewConfig, setBoundingBox, setZoom } =
-    useContext(MapContext);
+  const {
+    mapRef,
+    mapConfig,
+    viewConfig,
+    setBoundingBox,
+    setZoom,
+    pinDropMode,
+  } = useContext(MapContext);
   const { insertPlacedMarker, setSelectedMarker, deleteTurf, insertTurf } =
     useContext(MarkerAndTurfContext);
 
@@ -142,7 +148,7 @@ export default function Map({
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
   return (
-    <MapWrapper currentMode={currentMode}>
+    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
       <MapGL
         initialViewState={{
           longitude: -4.5481,
