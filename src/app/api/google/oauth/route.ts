@@ -28,7 +28,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     logger.error("Error generating OAuth URL", { error });
     return NextResponse.json(
       { error: "Failed to generate OAuth URL" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!redirectSuccessUrl) {
       return NextResponse.json(
         { error: "Missing redirectUrl" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!code) {
       return NextResponse.json(
         { error: "Authorization code not found" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     logger.error("Error exchanging code for tokens", { error });
     return NextResponse.json(
       { error: "Failed to retrieve tokens" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

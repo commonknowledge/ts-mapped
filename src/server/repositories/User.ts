@@ -6,7 +6,7 @@ import { hashPassword, verifyPassword } from "@/server/utils/auth";
 type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 export async function upsertUser(
-  user: Omit<NewUser, "passwordHash"> & { password: string }
+  user: Omit<NewUser, "passwordHash"> & { password: string },
 ) {
   const passwordHash = await hashPassword(user.password);
   const newUser = { ...user, passwordHash, password: undefined };
@@ -16,7 +16,7 @@ export async function upsertUser(
     .onConflict((oc) =>
       oc.columns(["email"]).doUpdateSet({
         passwordHash: newUser.passwordHash,
-      })
+      }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -71,7 +71,7 @@ export async function updateUser(
   {
     password,
     ...data
-  }: Nullable<Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }>
+  }: Nullable<Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }>,
 ) {
   const update = { email: data?.email || undefined } as UserUpdate;
 

@@ -19,13 +19,13 @@ const transporter = nodemailer.createTransport(
         secure: false,
         debug: true,
         ignoreTLS: true,
-      }
+      },
 );
 
 export async function sendEmail(
   to: string,
   subject: string,
-  template: React.ReactNode
+  template: React.ReactNode,
 ) {
   try {
     const html = await render(template);

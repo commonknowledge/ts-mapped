@@ -1,4 +1,4 @@
-import { DataSourceConfigQuery } from "@/__generated__/types";
+import { DataSourceQuery } from "@/__generated__/types";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 
 import {
@@ -11,7 +11,7 @@ export default function ColumnRoleFields({
   nameColumns,
   setNameColumns,
 }: {
-  dataSource: DataSourceConfigQuery["dataSource"];
+  dataSource: DataSourceQuery["dataSource"];
   nameColumns: string[];
   setNameColumns: (ncs: string[]) => void;
 }) {

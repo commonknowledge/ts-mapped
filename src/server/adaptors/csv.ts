@@ -18,7 +18,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
 
   extractExternalRecordIdsFromWebhookBody(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    body: unknown
+    body: unknown,
   ): AsyncGenerator<string> {
     throw new Error("Method not implemented.");
   }
@@ -98,7 +98,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
 
   async toggleWebhook(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    enable: boolean
+    enable: boolean,
   ): Promise<void> {
     throw new Error("Unimplemented");
   }

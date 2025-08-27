@@ -32,7 +32,7 @@ const QueryResolvers: QueryResolversType = {
       column: string;
       excludeColumns: string[];
       boundingBox?: BoundingBoxInput | null;
-    }
+    },
   ) =>
     getAreaStats(
       areaSetCode,
@@ -40,7 +40,7 @@ const QueryResolvers: QueryResolversType = {
       calculationType,
       column,
       excludeColumns,
-      boundingBox
+      boundingBox,
     ),
 
   dataSource: async (_: unknown, { id }: { id: string }) => {
@@ -54,7 +54,7 @@ const QueryResolvers: QueryResolversType = {
   dataSources: async (
     _: unknown,
     { organisationId, includePublic },
-    context: GraphQLContext
+    context: GraphQLContext,
   ) => {
     if (!context.currentUser) {
       return [];
@@ -84,7 +84,7 @@ const QueryResolvers: QueryResolversType = {
 
   maps: async (
     _: unknown,
-    { organisationId }: { organisationId?: string | null }
+    { organisationId }: { organisationId?: string | null },
   ) => {
     if (!organisationId) {
       return [];
