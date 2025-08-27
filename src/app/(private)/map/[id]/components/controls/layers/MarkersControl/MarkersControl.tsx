@@ -46,7 +46,7 @@ export default function MarkersControl() {
   const handleManualSearch = () => {
     setTimeout(() => {
       const geocoderInput = document.querySelector(
-        ".mapboxgl-ctrl-geocoder--input"
+        ".mapboxgl-ctrl-geocoder--input",
       ) as HTMLInputElement;
       if (geocoderInput) {
         geocoderInput.focus();
@@ -56,7 +56,7 @@ export default function MarkersControl() {
             e.preventDefault();
             geocoderInput.focus();
           },
-          { once: true }
+          { once: true },
         );
       }
     }, 200);
@@ -105,7 +105,7 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id
+                  (id) => id !== dataSource.id,
                 )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
