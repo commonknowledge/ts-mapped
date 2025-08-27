@@ -1,24 +1,23 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
+import { toast } from "sonner";
 import {
   DataSourceConfigQuery,
   UpdateDataSourceConfigMutation,
   UpdateDataSourceConfigMutationVariables,
 } from "@/__generated__/types";
-import DataListRow from "@/components/DataListRow";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceFeatures } from "@/features";
 import { Button } from "@/shadcn/ui/button";
-import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { DataSourceType } from "@/types";
 import { GeocodingConfigSchema } from "@/zod";
 import ColumnRoleFields from "./ColumnRoleFields";
 import GeocodingConfigFields from "./GeocodingConfigFields";
 
-export default function DataSourceConfigForm({
+export default function ConfigurationForm({
   dataSource,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
@@ -39,7 +38,6 @@ export default function DataSourceConfigForm({
   // Form state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
 
   const [updateColumnRoles] = useMutation<
     UpdateDataSourceConfigMutation,
@@ -84,7 +82,8 @@ export default function DataSourceConfigForm({
       if (result.data?.updateDataSourceConfig?.code !== 200) {
         throw new Error(String(result.errors || "Unknown error"));
       } else {
-        router.push(`/data-sources/${dataSource.id}`);
+        setLoading(false);
+        toast.success("Your changes have been saved.");
         return;
       }
     } catch (e) {
@@ -98,15 +97,13 @@ export default function DataSourceConfigForm({
   const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
 
   return (
-    <form onSubmit={onSubmit} className="max-w-2xl">
-      <h2 className="text-xl tracking-tight font-light">Data setup</h2>
+    <form onSubmit={onSubmit} className="flex flex-col items-start gap-6">
       <ColumnRoleFields
         dataSource={dataSource}
         nameColumns={nameColumns}
         setNameColumns={setNameColumns}
       />
-      <Separator className="mb-4" />
-      <h2 className="text-xl tracking-tight font-light">Geocoding setup</h2>
+
       <GeocodingConfigFields
         dataSource={dataSource}
         geocodingConfig={geocodingConfig}
@@ -114,23 +111,26 @@ export default function DataSourceConfigForm({
           setGeocodingConfig({ ...geocodingConfig, ...nextGeocodingConfig })
         }
       />
+
       {features.autoImport && (
         <>
-          <Separator className="mb-4" />
-          <h2 className="text-xl tracking-tight font-light">Auto-import</h2>
-          <DataListRow label="Import new records automatically">
+          <FormFieldWrapper
+            label="Automatically sync fields to Mapped"
+            isHorizontal
+          >
             <Switch
               checked={autoImport}
               onCheckedChange={(v) => setAutoImport(v)}
             />
-          </DataListRow>
+          </FormFieldWrapper>
+
           {dataSource.config.type === DataSourceType.actionnetwork && (
-            <div className="text-sm mb-4">
+            <div className="w-full text-sm mb-4">
               <p className="mb-2">
                 Add this URL as a webhook in your Action Network settings, with
                 all triggers enabled:
               </p>
-              <pre className="rounded border p-2">
+              <pre className="rounded border p-2 overflow-auto">
                 {process.env.NEXT_PUBLIC_BASE_URL}/api/data-sources/
                 {dataSource.id}/webhook
               </pre>
@@ -138,12 +138,16 @@ export default function DataSourceConfigForm({
           )}
         </>
       )}
-      <Button disabled={!validGeocodingConfig || loading}>Submit</Button>
-      {error && (
-        <div>
-          <span className="text-xs text-red-500">{error}</span>
-        </div>
-      )}
+
+      <Button
+        disabled={!validGeocodingConfig || loading}
+        variant="secondary"
+        type="submit"
+      >
+        Save changes
+      </Button>
+
+      {error && <p className="text-xs text-red-500">{error}</p>}
     </form>
   );
 }
