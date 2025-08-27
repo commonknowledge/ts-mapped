@@ -4,15 +4,12 @@ import {
   GeocodingType,
   LooseGeocodingConfig,
 } from "@/__generated__/types";
+import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
-import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
-import { Button } from "@/shadcn/ui/button";
 import {
-  DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { AreaGeocodingType } from "@/zod";
 
@@ -91,35 +88,32 @@ export default function GeocodingConfigFields({
       />
 
       {typeSelectValue === GeocodingType.Address && (
-        <FormFieldWrapper label="Location columns">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                {columns.length ? columns.join(", ") : "Select"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {dataSource?.columnDefs.map((cd) => (
-                <DropdownMenuCheckboxItem
-                  key={cd.name}
-                  checked={columns.includes(cd.name)}
-                  onSelect={(e) => e.preventDefault()}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      onChange({ columns: columns.concat([cd.name]) });
-                    } else {
-                      onChange({
-                        columns: columns.filter((c) => c !== cd.name),
-                      });
-                    }
-                  }}
-                >
-                  {cd.name}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </FormFieldWrapper>
+        <CustomMultiSelect
+          id="config-location-columns-multi"
+          label="Location columns"
+          selectedOptions={columns}
+        >
+          <DropdownMenuContent>
+            {dataSource?.columnDefs.map((cd) => (
+              <DropdownMenuCheckboxItem
+                key={cd.name}
+                checked={columns.includes(cd.name)}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    onChange({ columns: columns.concat([cd.name]) });
+                  } else {
+                    onChange({
+                      columns: columns.filter((c) => c !== cd.name),
+                    });
+                  }
+                }}
+              >
+                {cd.name}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </CustomMultiSelect>
       )}
 
       {typeSelectValue === "Postcode" && (
