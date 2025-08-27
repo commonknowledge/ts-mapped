@@ -1,9 +1,9 @@
-import { NewUser } from "@/server/models/User";
+import { NewUser, User, UserUpdate } from "@/server/models/User";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
 
 export async function upsertUser(
-  user: Omit<NewUser, "passwordHash"> & { password: string },
+  user: Omit<NewUser, "passwordHash"> & { password: string }
 ) {
   const passwordHash = await hashPassword(user.password);
   const newUser = { ...user, passwordHash, password: undefined };
@@ -13,7 +13,7 @@ export async function upsertUser(
     .onConflict((oc) =>
       oc.columns(["email"]).doUpdateSet({
         passwordHash: newUser.passwordHash,
-      }),
+      })
     )
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -40,4 +40,27 @@ export async function findUserByEmailAndPassword({
   }
   const passwordValid = await verifyPassword(password, user.passwordHash);
   return passwordValid ? user : null;
+}
+
+export async function updateUser(
+  id: string,
+  {
+    password,
+    ...data
+  }: Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }
+) {
+  const update = { ...data } as UserUpdate;
+
+  if (password) {
+    update.passwordHash = await hashPassword(password);
+  }
+  if (data.email) {
+    update.email = data.email.toLowerCase().trim();
+  }
+
+  return db
+    .updateTable("user")
+    .where("id", "=", id)
+    .set(update)
+    .executeTakeFirstOrThrow();
 }

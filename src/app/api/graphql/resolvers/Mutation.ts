@@ -48,6 +48,8 @@ import {
   GeocodingConfig,
   GeocodingConfigSchema,
 } from "@/zod";
+import { updateUser, upsertUser } from "@/server/repositories/User";
+import { getServerSession } from "@/auth";
 
 const MutationResolvers: MutationResolversType = {
   createDataSource: async (
@@ -56,7 +58,7 @@ const MutationResolvers: MutationResolversType = {
       name,
       organisationId,
       rawConfig,
-    }: { name: string; organisationId: string; rawConfig: unknown },
+    }: { name: string; organisationId: string; rawConfig: unknown }
   ): Promise<CreateDataSourceResponse> => {
     try {
       const id = uuidv4();
@@ -73,7 +75,7 @@ const MutationResolvers: MutationResolversType = {
         (key) => ({
           name: key,
           type: ColumnType.Unknown,
-        }),
+        })
       );
 
       const geocodingConfig: GeocodingConfig = {
@@ -102,7 +104,7 @@ const MutationResolvers: MutationResolversType = {
   },
   createMap: async (
     _: unknown,
-    { organisationId },
+    { organisationId }
   ): Promise<CreateMapResponse> => {
     try {
       const map = await createMap(organisationId);
@@ -151,21 +153,21 @@ const MutationResolvers: MutationResolversType = {
   },
   enqueueEnrichDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string },
+    { dataSourceId }: { dataSourceId: string }
   ): Promise<MutationResponse> => {
     await enqueue("enrichDataSource", { dataSourceId });
     return { code: 200 };
   },
   enqueueImportDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string },
+    { dataSourceId }: { dataSourceId: string }
   ): Promise<MutationResponse> => {
     await enqueue("importDataSource", { dataSourceId });
     return { code: 200 };
   },
   saveMapViewsToCRM: async (
     _: unknown,
-    { id }: { id: string },
+    { id }: { id: string }
   ): Promise<MutationResponse> => {
     const views = await findMapViewsByMapId(id);
     for (const view of views) {
@@ -187,7 +189,7 @@ const MutationResolvers: MutationResolversType = {
       looseGeocodingConfig,
       autoEnrich,
       autoImport,
-    }: MutationUpdateDataSourceConfigArgs,
+    }: MutationUpdateDataSourceConfigArgs
   ): Promise<MutationResponse> => {
     try {
       const dataSource = await findDataSourceById(id);
@@ -249,7 +251,7 @@ const MutationResolvers: MutationResolversType = {
 
       await updateDataSource(id, update);
       logger.info(
-        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
+        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`
       );
       return { code: 200 };
     } catch (error) {
@@ -348,7 +350,7 @@ const MutationResolvers: MutationResolversType = {
       polygon: PolygonInput;
       createdAt: string;
       mapId: string;
-    },
+    }
   ): Promise<UpsertTurfResponse> => {
     try {
       const map = await findMapById(mapId);
@@ -374,6 +376,15 @@ const MutationResolvers: MutationResolversType = {
       logger.error(`Could not create placed marker`, { error });
     }
     return { code: 500 };
+  },
+  updateUserPassword: async (
+    _,
+    args,
+    { currentUser }
+  ): Promise<MutationResponse> => {
+    if (!currentUser) return { code: 401 };
+    await updateUser(currentUser.id, { password: args.password });
+    return { code: 200 };
   },
 };
 

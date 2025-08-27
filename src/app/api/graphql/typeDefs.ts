@@ -494,6 +494,7 @@ const typeDefs = `
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
+    updateUserPassword(password: String!): MutationResponse @auth
   }
 
   type DataSourceEvent {
