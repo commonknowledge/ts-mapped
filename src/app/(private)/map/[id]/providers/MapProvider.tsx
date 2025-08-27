@@ -37,6 +37,7 @@ export default function MapProvider({
   const [views, setViews] = useState<View[]>([]);
   const [viewId, setViewId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [pinDropMode, setPinDropMode] = useState(false);
 
   /* GraphQL Data */
   const mapQuery = useMapQuery(mapId);
@@ -47,7 +48,7 @@ export default function MapProvider({
 
   const view = useMemo(
     () => views.find((v) => v.id === viewId) || null,
-    [viewId, views],
+    [viewId, views]
   );
 
   const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
@@ -139,6 +140,8 @@ export default function MapProvider({
         zoom,
         setZoom,
         mapQuery,
+        pinDropMode,
+        setPinDropMode,
       }}
     >
       {children}

@@ -15,8 +15,14 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { mapConfig, updateMapConfig, viewConfig, updateViewConfig, mapRef } =
-    useContext(MapContext);
+  const {
+    mapConfig,
+    updateMapConfig,
+    viewConfig,
+    updateViewConfig,
+    mapRef,
+    setPinDropMode,
+  } = useContext(MapContext);
   const {
     insertPlacedMarker,
     placedMarkersLoading,
@@ -40,7 +46,7 @@ export default function MarkersControl() {
   const handleManualSearch = () => {
     setTimeout(() => {
       const geocoderInput = document.querySelector(
-        ".mapboxgl-ctrl-geocoder--input",
+        ".mapboxgl-ctrl-geocoder--input"
       ) as HTMLInputElement;
       if (geocoderInput) {
         geocoderInput.focus();
@@ -50,7 +56,7 @@ export default function MarkersControl() {
             e.preventDefault();
             geocoderInput.focus();
           },
-          { once: true },
+          { once: true }
         );
       }
     }, 200);
@@ -60,6 +66,7 @@ export default function MarkersControl() {
     const map = mapRef?.current;
     if (map) {
       map.getCanvas().style.cursor = "crosshair";
+      setPinDropMode(true);
 
       const clickHandler = (e: mapboxgl.MapMouseEvent) => {
         insertPlacedMarker({
@@ -73,6 +80,7 @@ export default function MarkersControl() {
         // Reset cursor
         map.getCanvas().style.cursor = "";
         map.off("click", clickHandler);
+        setPinDropMode(false);
 
         // Fly to the new marker
         map.flyTo({
@@ -97,7 +105,7 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id,
+                  (id) => id !== dataSource.id
                 )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });

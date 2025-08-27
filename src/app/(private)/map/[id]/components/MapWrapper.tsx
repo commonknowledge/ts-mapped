@@ -1,3 +1,6 @@
+import { useContext } from "react";
+import { MapContext } from "../context/MapContext";
+
 export default function MapWrapper({
   currentMode,
   children,
@@ -5,6 +8,7 @@ export default function MapWrapper({
   currentMode: string | null;
   children: React.ReactNode;
 }) {
+  const { pinDropMode } = useContext(MapContext);
   return (
     <div className={"absolute top-0 left-0 w-full h-full"}>
       {children}
@@ -17,6 +21,18 @@ export default function MapWrapper({
           </div>
 
           <div className="absolute top-0 left-0 w-full h-1 bg-[#91e17e]"></div>
+        </>
+      )}
+
+      {pinDropMode && (
+        <>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded shadow-md bg-white text-xs">
+            Click on the map to drop a pin.
+          </div>
+
+          <div
+            className={`absolute top-0 left-0 w-full h-1 bg-[#ff6b6b]`}
+          ></div>
         </>
       )}
     </div>
