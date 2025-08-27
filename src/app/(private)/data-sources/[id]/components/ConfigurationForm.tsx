@@ -25,12 +25,12 @@ export default function ConfigurationForm({
 }) {
   // Columns config
   const [nameColumns, setNameColumns] = useState<string[]>(
-    dataSource.columnRoles.nameColumns || []
+    dataSource.columnRoles.nameColumns || [],
   );
 
   // Geocoding config
   const [geocodingConfig, setGeocodingConfig] = useState(
-    dataSource.geocodingConfig
+    dataSource.geocodingConfig,
   );
 
   const [autoImport, setAutoImport] = useState(dataSource.autoImport);
