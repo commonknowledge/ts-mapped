@@ -6,7 +6,7 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { useAreaStatsQuery } from "@/app/(private)/map/[id]/data";
 import { getChoroplethLayerConfig } from "@/app/(private)/map/[id]/sources";
 import { ChoroplethContext } from "../context/ChoroplethContext";
-import { DataSourcesContext } from "../context/DataSourcesContext";
+import { useAreaDataSource } from "../hooks";
 
 export default function ChoroplethProvider({
   children,
@@ -14,8 +14,8 @@ export default function ChoroplethProvider({
   children: ReactNode;
 }) {
   const { boundingBox, viewConfig, zoom } = useContext(MapContext);
-  const { getChoroplethDataSource } = useContext(DataSourcesContext);
 
+  const choroplethDataSource = useAreaDataSource();
   /* State */
 
   // Manually keep track of fetchMore loading state as the first fetchMore
@@ -30,13 +30,15 @@ export default function ChoroplethProvider({
   /* Derived State */
 
   const choroplethLayerConfig = useMemo(() => {
-    const dataSource = getChoroplethDataSource();
     return getChoroplethLayerConfig(
-      dataSource?.geocodingConfig?.areaSetCode,
+      choroplethDataSource?.geocodingConfig?.type === "Name" ||
+        choroplethDataSource?.geocodingConfig?.type === "Code"
+        ? choroplethDataSource.geocodingConfig.areaSetCode
+        : null,
       viewConfig.areaSetGroupCode,
       zoom,
     );
-  }, [getChoroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
+  }, [choroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
   /* GraphQL Data */
   const areaStatsQuery = useAreaStatsQuery({
     areaSetGroupCode: viewConfig.areaSetGroupCode,

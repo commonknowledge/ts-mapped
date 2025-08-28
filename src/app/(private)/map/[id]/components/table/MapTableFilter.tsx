@@ -1,4 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
+
 import { ListFilter, XIcon } from "lucide-react";
 import {
   useCallback,
@@ -19,15 +20,14 @@ import {
   RecordFilterInput,
   Turf,
 } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import MultiDropdownMenu, {
   DropdownMenuItemType,
   DropdownSubComponent,
   DropdownSubMenu,
 } from "@/components/MultiDropdownMenu";
+import { RouterOutputs } from "@/lib/trpc";
 import { Button } from "@/shadcn/ui/button";
 import {
   Command,
@@ -40,6 +40,7 @@ import {
 import { DropdownMenuItem } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
+import { useDataSources, useTableDataSource } from "../../hooks";
 import { mapColors } from "../../styles";
 
 interface TableFilterProps {
@@ -61,10 +62,10 @@ export default function MapTableFilter({
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const { mapConfig } = useContext(MapContext);
   const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
-  const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
 
-  const tableDataSource = getDataSourceById(tableDataSourceId);
+  const dataSources = useDataSources();
+  const tableDataSource = useTableDataSource();
+
   const columns = useMemo(
     () => tableDataSource?.columnDefs || [],
     [tableDataSource?.columnDefs],
@@ -165,13 +166,13 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
     () =>
       buildDropdownItems({
         mapConfig,
-        getDataSourceById,
+        dataSources,
         placedMarkers,
         turfs,
         columns,
         addFilter,
       }),
-    [mapConfig, getDataSourceById, placedMarkers, turfs, columns, addFilter],
+    [mapConfig, dataSources, placedMarkers, turfs, columns, addFilter],
   );
 
   return (
@@ -476,14 +477,14 @@ function getFilterColor(
 
 function buildDropdownItems({
   mapConfig,
-  getDataSourceById,
+  dataSources,
   placedMarkers,
   turfs,
   columns,
   addFilter,
 }: {
   mapConfig: MapConfig;
-  getDataSourceById: (id: string) => { id: string; name: string } | null;
+  dataSources: RouterOutputs["dataSource"]["all"];
   placedMarkers: PlacedMarker[];
   turfs: Turf[];
   columns: ColumnDef[];
@@ -507,7 +508,7 @@ function buildDropdownItems({
 
   const markerCommands = mapConfig.markerDataSourceIds.map(
     (dataSourceId: string) => {
-      const markerDataSource = getDataSourceById(dataSourceId);
+      const markerDataSource = dataSources.find((ds) => ds.id === dataSourceId);
       return {
         label: markerDataSource?.name || "Unknown data source",
         component: (

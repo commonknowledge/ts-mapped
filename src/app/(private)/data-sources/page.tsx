@@ -1,6 +1,6 @@
 "use client";
 
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
   Database,
@@ -10,15 +10,12 @@ import {
   Users,
 } from "lucide-react";
 import { useContext, useState } from "react";
-import {
-  AreaSetGroupCode,
-  ListDataSourcesQuery,
-  ListDataSourcesQueryVariables,
-} from "@/__generated__/types";
+import { AreaSetGroupCode } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { AreaSetGroupCodeLabels } from "@/labels";
+import { useTRPC } from "@/lib/trpc";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
@@ -31,53 +28,13 @@ export default function DataSourcesPage() {
     "your-data",
   );
 
-  const { data, loading } = useQuery<
-    ListDataSourcesQuery,
-    ListDataSourcesQueryVariables
-  >(
-    gql`
-      query ListDataSources($organisationId: String) {
-        dataSources(organisationId: $organisationId) {
-          id
-          name
-          config
-          createdAt
-          public
-          autoEnrich
-          autoImport
-          columnDefs {
-            name
-            type
-          }
-          columnRoles {
-            nameColumns
-          }
-          recordCount {
-            count
-          }
-          geocodingConfig {
-            type
-            column
-            columns
-            areaSetCode
-          }
-          enrichments {
-            sourceType
-            areaSetCode
-            areaProperty
-            dataSourceId
-            dataSourceColumn
-          }
-        }
-      }
-    `,
-    {
-      variables: { organisationId },
-      skip: !organisationId,
-      fetchPolicy: "network-only",
-    },
+  const trpc = useTRPC();
+  const { data: dataSources, isLoading } = useQuery(
+    trpc.dataSource.byOrganisation.queryOptions(
+      { organisationId: organisationId ?? "" },
+      { enabled: !!organisationId },
+    ),
   );
-  const dataSources = data?.dataSources || [];
 
   // Define mapped data library items grouped by category
   const mappedDataLibrary = {
@@ -140,7 +97,7 @@ export default function DataSourcesPage() {
         </TabsList>
 
         <TabsContent value="your-data" className="mt-6">
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center py-8">
               <LoaderPinwheel className="animate-spin" />
             </div>
@@ -166,7 +123,7 @@ export default function DataSourcesPage() {
                 </h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {dataSources
-                    .filter((dataSource) => {
+                    ?.filter((dataSource) => {
                       // Filter for member/activist related data sources
                       const config = dataSource.config;
                       return (
@@ -188,7 +145,7 @@ export default function DataSourcesPage() {
                         }}
                       />
                     ))}
-                  {dataSources.filter((dataSource) => {
+                  {dataSources?.filter((dataSource) => {
                     const config = dataSource.config;
                     return (
                       config?.type === "actionnetwork" ||
@@ -214,7 +171,7 @@ export default function DataSourcesPage() {
                 </h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {dataSources
-                    .filter((dataSource) => {
+                    ?.filter((dataSource) => {
                       // Filter for reference/utility data sources
                       const config = dataSource.config;
                       return (
@@ -237,7 +194,7 @@ export default function DataSourcesPage() {
                         }}
                       />
                     ))}
-                  {dataSources.filter((dataSource) => {
+                  {dataSources?.filter((dataSource) => {
                     const config = dataSource.config;
                     return (
                       config?.type === "csv" ||
@@ -257,7 +214,7 @@ export default function DataSourcesPage() {
               </div>
 
               {/* Show message if no data sources at all */}
-              {dataSources.length === 0 && (
+              {dataSources && dataSources.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
                   <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <p className="text-lg font-medium">No data sources yet</p>

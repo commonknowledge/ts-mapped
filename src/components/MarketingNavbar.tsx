@@ -26,7 +26,7 @@ export default function MarketingNavbar() {
         onError: () => {
           setError("Failed to send instructions, please try again.");
         },
-      })
+      }),
     );
 
   const [email, setEmail] = useState("");
@@ -47,7 +47,7 @@ export default function MarketingNavbar() {
       onError: () => {
         setError("Login failed, please check your credentials.");
       },
-    })
+    }),
   );
 
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {

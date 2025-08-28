@@ -1,7 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useTRPC } from "@/lib/trpc";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -16,7 +18,6 @@ import MapNavbar from "./components/MapNavbar";
 import MapStyleSelector from "./components/MapStyleSelector";
 import MapTable from "./components/table/MapTable";
 import { ChoroplethContext } from "./context/ChoroplethContext";
-import { DataSourcesContext } from "./context/DataSourcesContext";
 import { MapContext } from "./context/MapContext";
 import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
 import { TableContext } from "./context/TableContext";
@@ -29,7 +30,12 @@ export default function MapPage() {
     setBoundariesPanelOpen,
     setLastLoadedSourceId,
   } = useContext(ChoroplethContext);
-  const { dataSourcesLoading } = useContext(DataSourcesContext);
+
+  const trpc = useTRPC();
+  const { isLoading: dataSourcesLoading } = useQuery(
+    trpc.dataSource.all.queryOptions(),
+  );
+
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
   const [showControls, setShowControls] = useState(true);
