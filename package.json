@@ -9,6 +9,7 @@
     "emails": "email dev --port 3001 --dir src/server/emails",
     "gql": "NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen",
     "kysely": "kysely",
+    "migrate": "kysely migrate:latest",
     "lint": "eslint --fix && tsc --noEmit && prettier --log-level warn --write . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
     "lint:ci": "eslint && tsc --noEmit && prettier --log-level warn --check . && madge --circular --extensions ts,tsx --ts-config tsconfig.json bin src",
     "start": "next start",
