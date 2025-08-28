@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useContext } from "react";
 import Loading from "@/components/Map/components/Loading";
 import Map from "@/components/Map/components/Map";
@@ -9,8 +11,6 @@ import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfCont
 import PublishPublicMapSidebar from "./EditorComponents/PublishPublicMapSidebar";
 import { PublicMapContext } from "./PublicMapContext";
 import PublicMapSidebar from "./PublishedComponents/PublicMapSidebar";
-import Image from "next/image";
-import Link from "next/link";
 
 export default function PublicMap() {
   const { mapQuery } = useContext(MapContext);

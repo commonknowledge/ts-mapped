@@ -1,5 +1,5 @@
 import { Check, X } from "lucide-react";
-import { Fragment, useContext, useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
@@ -73,7 +73,7 @@ export default function DataRecordSidebar() {
         </div>
         <div className="flex flex-col gap-2">
           {description && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col ">
               <EditablePublicMapProperty
                 dataSourceProperty={{
                   dataSourceId: selectedDataRecord.dataSourceId,
@@ -97,17 +97,19 @@ export default function DataRecordSidebar() {
       {/* Description */}
 
       {additionalColumns.map((columnConfig, i) => (
-        <div key={i} className="flex flex-col gap-2">
-          <EditablePublicMapProperty
-            additionalColumnProperty={{
-              columnIndex: i,
-              dataSourceId: selectedDataRecord.dataSourceId,
-              property: "label",
-            }}
-            placeholder="Label"
-          >
-            <span className="text-sm">{columnConfig.label}</span>
-          </EditablePublicMapProperty>
+        <div key={i} className="flex flex-col ">
+          {columnConfig.type !== PublicMapColumnType.Boolean && (
+            <EditablePublicMapProperty
+              additionalColumnProperty={{
+                columnIndex: i,
+                dataSourceId: selectedDataRecord.dataSourceId,
+                property: "label",
+              }}
+              placeholder="Label"
+            >
+              <span className="text-sm">{columnConfig.label}</span>
+            </EditablePublicMapProperty>
+          )}
           {columnConfig.type === PublicMapColumnType.Boolean ? (
             <CheckList
               sourceColumns={columnConfig.sourceColumns}
@@ -152,12 +154,16 @@ function CheckList({
   return (
     <div className="grid grid-cols-6 gap-2">
       {sourceColumns.map((column) => (
-        <Fragment key={column}>
+        <div key={column} className="flex items-center gap-2">
           <div className="col-span-1">
-            {toBoolean(json[column]) ? <Check /> : <X />}
+            {toBoolean(json[column]) ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <X className="w-4 h-4" />
+            )}
           </div>
           <div className="col-span-5">{column}</div>
-        </Fragment>
+        </div>
       ))}
     </div>
   );

@@ -134,14 +134,9 @@ export default function PublishPublicMapSidebar() {
         hideSidebar ? "h-auto" : "h-full"
       )}
     >
-      <div className="flex flex-col h-full w-[420px]">
+      <div className="flex flex-col h-full w-[380px]">
         {!hideSidebar && (
           <div className="flex flex-col  h-full">
-            <PublishActionsSection
-              publishedHost={publishedHost}
-              loading={loading}
-              onSubmitForm={onSubmitForm}
-            />
             <VerticalTabs
               className="overflow-y-auto flex-1"
               value={activePublishTab}
@@ -193,6 +188,11 @@ export default function PublishPublicMapSidebar() {
                 <EditorStyleSettings />
               </VerticalTabsContent>
             </VerticalTabs>
+            <PublishActionsSection
+              publishedHost={publishedHost}
+              loading={loading}
+              onSubmitForm={onSubmitForm}
+            />
           </div>
         )}
       </div>
@@ -218,7 +218,7 @@ export function PublishActionsSection({
   onSubmitForm: (e: FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <div className="flex items-center border-b border-neutral-200 h-16">
+    <div className="flex items-center border-t border-neutral-200 h-16">
       <Button
         disabled={loading}
         size="lg"

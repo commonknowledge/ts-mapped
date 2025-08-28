@@ -281,6 +281,7 @@ export default function EditorDataSettings() {
                                     <Label className="text-xs font-medium w-20">
                                       Label:
                                     </Label>
+
                                     <Input
                                       value={columnConfig.label}
                                       onChange={(e) => {
@@ -309,6 +310,10 @@ export default function EditorDataSettings() {
                                       }}
                                       className="text-xs flex-1"
                                       placeholder="Column label"
+                                      disabled={
+                                        columnConfig.type ===
+                                        PublicMapColumnType.Boolean
+                                      }
                                     />
                                   </div>
 

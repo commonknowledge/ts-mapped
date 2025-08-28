@@ -104,7 +104,7 @@ export function VerticalTabsTrigger({
       value={value}
       className={cn(
         "w-full justify-between p-4 text-left border-b border-x-0 border-t-0 border-neutral-200",
-        "data-[state=active]:bg-blue-200 data-[state=active]:text-primary",
+        "data-[state=active]:bg-neutral-200 data-[state=active]:text-primary",
         "data-[state=inactive]:bg-white data-[state=inactive]:text-muted-foreground",
         "hover:bg-muted/80 hover:text-foreground",
         "transition-colors duration-200",
