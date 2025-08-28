@@ -500,12 +500,12 @@ export default function VisualisationPanel({
 
       {/* Modal for data source selection */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>Select Data Source for Visualization</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col">
             {/* Search and Filter Bar */}
             <div className="flex gap-2 mb-4">
               <Input
@@ -532,7 +532,7 @@ export default function VisualisationPanel({
             </div>
 
             {/* Data Source Grid */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1">
               <div className="grid grid-cols-1 gap-3">
                 {filteredAndSearchedDataSources.map((ds) => (
                   <DataSourceItem
