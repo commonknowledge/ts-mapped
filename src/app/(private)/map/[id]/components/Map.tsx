@@ -38,8 +38,14 @@ export default function Map({
     setZoom,
     pinDropMode,
   } = useContext(MapContext);
-  const { insertPlacedMarker, setSelectedMarker, deleteTurf, insertTurf } =
-    useContext(MarkerAndTurfContext);
+  const {
+    insertPlacedMarker,
+    setSelectedMarker,
+    deleteTurf,
+    insertTurf,
+    updateTurf,
+    turfs,
+  } = useContext(MarkerAndTurfContext);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [ready, setReady] = useState(false);
@@ -54,6 +60,25 @@ export default function Map({
     .filter(Boolean)
     .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
     .concat(["search-history-pins", "search-history-labels"]);
+
+  useEffect(() => {
+    if (!draw) {
+      return;
+    }
+
+    if (turfs?.length) {
+      draw.deleteAll();
+
+      // Add existing polygons from your array
+      turfs.forEach((turf) => {
+        draw.add({
+          type: "Feature",
+          properties: { ...turf },
+          geometry: turf.polygon,
+        });
+      });
+    }
+  }, [turfs, draw]);
 
   // Hover behavior
   useEffect(() => {
@@ -128,7 +153,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
           )
           .map((layer) => layer.id);
 
@@ -139,7 +164,7 @@ export default function Map({
         });
       }
     },
-    [mapRef],
+    [mapRef]
   );
 
   useEffect(() => {
@@ -292,7 +317,28 @@ export default function Map({
                   polygon: feature.geometry,
                   createdAt: new Date().toISOString(),
                 });
-                // newDraw.deleteAll();
+              }
+            });
+
+            // When user updates polygon on the map
+            mapInstance.on("draw.update", (e: MapboxDraw.DrawUpdateEvent) => {
+              if (e.features.length > 0) {
+                e?.features?.forEach((feature) => {
+                  const area = turf.area(feature);
+                  const roundedArea = Math.round(area * 100) / 100;
+
+                  // Update your turf using the feature.id
+                  updateTurf({
+                    id: feature?.properties?.id,
+                    notes: feature?.properties?.notes,
+                    label:
+                      feature.properties?.label ||
+                      `Area: ${roundedArea.toFixed(2)}m²`,
+                    area: roundedArea,
+                    polygon: feature.geometry,
+                    createdAt: feature?.properties?.createdAt,
+                  });
+                });
               }
             });
 
