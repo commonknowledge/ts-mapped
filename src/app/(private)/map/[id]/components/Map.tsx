@@ -23,7 +23,7 @@ import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
-import TurfPolygons from "./TurfPolygons";
+// import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
   onSourceLoad,
@@ -38,8 +38,14 @@ export default function Map({
     setZoom,
     pinDropMode,
   } = useContext(MapContext);
-  const { insertPlacedMarker, setSelectedMarker, deleteTurf, insertTurf } =
-    useContext(MarkerAndTurfContext);
+  const {
+    insertPlacedMarker,
+    setSelectedMarker,
+    deleteTurf,
+    insertTurf,
+    updateTurf,
+    turfs,
+  } = useContext(MarkerAndTurfContext);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [ready, setReady] = useState(false);
@@ -54,6 +60,25 @@ export default function Map({
     .filter(Boolean)
     .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
     .concat(["search-history-pins", "search-history-labels"]);
+
+  useEffect(() => {
+    if (!draw) {
+      return;
+    }
+
+    if (turfs?.length) {
+      draw.deleteAll();
+
+      // Add existing polygons from your array
+      turfs.forEach((turf) => {
+        draw.add({
+          type: "Feature",
+          properties: { ...turf },
+          geometry: turf.polygon,
+        });
+      });
+    }
+  }, [turfs, draw]);
 
   // Hover behavior
   useEffect(() => {
@@ -294,7 +319,26 @@ export default function Map({
                   polygon: feature.geometry,
                   createdAt: new Date().toISOString(),
                 });
-                newDraw.deleteAll();
+              }
+            });
+
+            // When user updates polygon on the map
+            mapInstance.on("draw.update", (e: MapboxDraw.DrawUpdateEvent) => {
+              if (e.features.length > 0) {
+                e?.features?.forEach((feature) => {
+                  const area = turf.area(feature);
+                  const roundedArea = Math.round(area * 100) / 100;
+
+                  // Update your turf using the feature.id
+                  updateTurf({
+                    id: feature?.properties?.id,
+                    notes: feature?.properties?.notes,
+                    label: feature?.properties?.label,
+                    area: roundedArea,
+                    polygon: feature.geometry,
+                    createdAt: feature?.properties?.createdAt,
+                  });
+                });
               }
             });
 
@@ -336,7 +380,7 @@ export default function Map({
           <>
             <NavigationControl showZoom={true} showCompass={false} />
             <Choropleth />
-            <TurfPolygons />
+            {/* <TurfPolygons /> */}
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
