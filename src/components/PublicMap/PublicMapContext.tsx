@@ -50,7 +50,7 @@ export const PublicMapContext = createContext<{
   updateAdditionalColumn: () => null,
   activeTabId: null,
   setActiveTabId: () => null,
-  activePublishTab: "publish settings",
+  activePublishTab: "settings",
   setActivePublishTab: () => null,
   recordSidebarVisible: false,
   setRecordSidebarVisible: () => null,

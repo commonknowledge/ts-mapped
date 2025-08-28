@@ -10,6 +10,7 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import PublishPublicMapSidebar from "./EditorComponents/PublishPublicMapSidebar";
 import { PublicMapContext } from "./PublicMapContext";
+import { PublicMapListings } from "./PublishedComponents/PublicMapListings";
 import PublicMapSidebar from "./PublishedComponents/PublicMapSidebar";
 
 export default function PublicMap() {
@@ -27,8 +28,9 @@ export default function PublicMap() {
     areaStatsLoading || areaStatsQuery?.loading || markerQueries?.loading;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col md:flex-row h-screen">
       <PublicMapSidebar />
+
       <div className="grow relative">
         <Map
           onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
@@ -37,7 +39,7 @@ export default function PublicMap() {
         {loading && <Loading />}
         <Link
           href="https://v3.mapped.tools"
-          className="absolute bottom-6 right-4 flex flex-col items-center"
+          className="absolute bottom-6 right-4 flex flex-col items-center w-24 md:w-auto"
         >
           <p className="text-sm text-neutral-500">Made using Mapped</p>
           <Image
@@ -47,6 +49,9 @@ export default function PublicMap() {
             height={200}
           />
         </Link>
+      </div>
+      <div className="md:hidden block h-1/2">
+        <PublicMapListings />
       </div>
       {editable && <PublishPublicMapSidebar />}
     </div>

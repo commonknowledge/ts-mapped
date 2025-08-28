@@ -1,37 +1,65 @@
 import { useContext } from "react";
-import DataListRow from "@/components/DataListRow";
+import { Input } from "@/shadcn/ui/input";
+import { Label } from "@/shadcn/ui/label";
+import { Textarea } from "@/shadcn/ui/textarea";
 import { PublicMapContext } from "../PublicMapContext";
-import EditablePublicMapProperty from "./EditablePublicMapProperty";
 
 export default function EditorInfoSettings() {
-  const { publicMap } = useContext(PublicMapContext);
-  const sectionStyles = "flex flex-col gap-2 ";
+  const { publicMap, updatePublicMap } = useContext(PublicMapContext);
   const mapTitle = publicMap?.name;
   const mapDescription = publicMap?.description;
   const mapDescriptionLink = publicMap?.descriptionLink;
+
+  const infoSettings = [
+    {
+      label: "Public Map Title",
+      value: mapTitle,
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => updatePublicMap({ name: e.target.value }),
+    },
+    {
+      label: "Public Map Description",
+      value: mapDescription,
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => updatePublicMap({ description: e.target.value }),
+      multiline: true,
+    },
+    {
+      label: "Contact Email",
+      value: mapDescriptionLink,
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => updatePublicMap({ descriptionLink: e.target.value }),
+      type: "email",
+    },
+  ];
+
   return (
-    <div className={sectionStyles}>
-      <DataListRow label="Public Map Title" orientation="vertical">
-        <EditablePublicMapProperty property="name" placeholder="Map Title">
-          {mapTitle}
-        </EditablePublicMapProperty>
-      </DataListRow>
-      <DataListRow label="Public Map Description" orientation="vertical">
-        <EditablePublicMapProperty
-          property="description"
-          placeholder="Map Description"
-        >
-          {mapDescription}
-        </EditablePublicMapProperty>
-      </DataListRow>
-      <DataListRow label="Map Description Link" orientation="vertical">
-        <EditablePublicMapProperty
-          property="descriptionLink"
-          placeholder="Map Description Link"
-        >
-          {mapDescriptionLink}
-        </EditablePublicMapProperty>
-      </DataListRow>
+    <div className="flex flex-col gap-6">
+      {infoSettings.map((setting) => (
+        <div className="flex flex-col gap-2" key={setting.label}>
+          <Label>{setting.label}</Label>
+          {setting.multiline ? (
+            <Textarea
+              placeholder={setting.label}
+              value={setting.value || ""}
+              onChange={setting.onChange}
+              className="w-full shadow-none"
+              rows={3}
+            />
+          ) : (
+            <Input
+              placeholder={setting.label}
+              value={setting.value || ""}
+              onChange={setting.onChange}
+              className="w-full shadow-none"
+              type={setting.type || "text"}
+            />
+          )}
+        </div>
+      ))}
     </div>
   );
 }

@@ -44,18 +44,20 @@ export default function EditorDataSettings() {
     const dataSource = getDataSourceById(currentDataSourceConfig.dataSourceId);
     if (!dataSource?.columnDefs) return;
 
-    const primaryColumn = currentDataSourceConfig.nameColumns?.[0];
+    const primaryColumns = currentDataSourceConfig.nameColumns || [];
     const secondaryColumn = currentDataSourceConfig.descriptionColumn;
 
     // Find all visible additional columns (excluding primary/secondary)
     const visibleAdditionalColumns = currentDataSourceConfig.additionalColumns
       .filter((ac) =>
         ac.sourceColumns.some(
-          (col) => col !== primaryColumn && col !== secondaryColumn
+          (col) => !primaryColumns.includes(col) && col !== secondaryColumn
         )
       )
       .flatMap((ac) => ac.sourceColumns)
-      .filter((col) => col !== primaryColumn && col !== secondaryColumn);
+      .filter(
+        (col) => !primaryColumns.includes(col) && col !== secondaryColumn
+      );
 
     // Update expanded state for visible additional columns
     setExpandedColumns((prev) => {
@@ -125,15 +127,15 @@ export default function EditorDataSettings() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {/* Primary Column */}
+                  {/* Listing Title */}
                   <ColumnCard
                     dataSourceId={dataSourceConfig.dataSourceId}
                     badge="1"
-                    title="Primary Column"
-                    value={dataSourceConfig.nameColumns?.[0]}
+                    title="Listing Title"
+                    value={dataSourceConfig.nameColumns || []}
                     onValueChange={(value) =>
                       updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-                        nameColumns: value ? [value] : [],
+                        nameColumns: value,
                       })
                     }
                     additionalColumns={dataSourceConfig.additionalColumns}
@@ -144,15 +146,20 @@ export default function EditorDataSettings() {
                     }
                   />
 
-                  {/* Secondary Column */}
+                  {/* Listing Subtitle */}
                   <ColumnCard
                     dataSourceId={dataSourceConfig.dataSourceId}
                     badge="2"
-                    title="Secondary Column"
-                    value={dataSourceConfig.descriptionColumn || undefined}
+                    title="Listing Subtitle "
+                    value={
+                      dataSourceConfig.descriptionColumn
+                        ? [dataSourceConfig.descriptionColumn]
+                        : []
+                    }
                     onValueChange={(value) =>
                       updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-                        descriptionColumn: value,
+                        descriptionColumn:
+                          value.length > 0 ? value[0] : undefined,
                       })
                     }
                     additionalColumns={dataSourceConfig.additionalColumns}
@@ -178,18 +185,7 @@ export default function EditorDataSettings() {
                       );
                       if (!dataSource?.columnDefs) return null;
 
-                      const primaryColumn = dataSourceConfig.nameColumns?.[0];
-                      const secondaryColumn =
-                        dataSourceConfig.descriptionColumn;
-
-                      // Filter out primary and secondary columns from additional columns list
-                      const additionalColumns = dataSource.columnDefs.filter(
-                        (column) =>
-                          column.name !== primaryColumn &&
-                          column.name !== secondaryColumn
-                      );
-
-                      return additionalColumns.map((column) => {
+                      return dataSource.columnDefs.map((column) => {
                         const isVisible =
                           dataSourceConfig.additionalColumns.some((ac) =>
                             ac.sourceColumns.includes(column.name)

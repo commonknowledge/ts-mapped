@@ -1,15 +1,7 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import {
-  Database,
-  ExternalLink,
-  Globe,
-  Info,
-  Palette,
-  Settings,
-} from "lucide-react";
-import Link from "next/link";
+import { Database, Globe, Settings } from "lucide-react";
 import { FormEvent, useContext, useEffect, useState } from "react";
 import {
   UpsertPublicMapMutation,
@@ -24,11 +16,11 @@ import {
   VerticalTabsTrigger,
 } from "@/components/VerticalTabs";
 import { Button } from "@/shadcn/ui/button";
+import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
-import EditorStyleSettings from "./EditorStyleSettings";
 
 export default function PublishPublicMapSidebar() {
   const {
@@ -138,7 +130,7 @@ export default function PublishPublicMapSidebar() {
         {!hideSidebar && (
           <div className="flex flex-col  h-full">
             <VerticalTabs
-              className="overflow-y-auto flex-1"
+              className="overflow-y-auto flex-1 flex flex-col"
               value={activePublishTab}
               onValueChange={(value) => {
                 setActivePublishTab(value);
@@ -168,24 +160,27 @@ export default function PublishPublicMapSidebar() {
                 }
               }}
             >
-              <VerticalTabsList>
-                <VerticalTabsTrigger value="publish settings" icon={Settings} />
-                <VerticalTabsTrigger value="info" icon={Info} />
-                <VerticalTabsTrigger value="data" icon={Database} />
-                <VerticalTabsTrigger value="style" icon={Palette} />
+              <VerticalTabsList className="flex flex-row border-b border-neutral-200 w-full">
+                <VerticalTabsTrigger
+                  value="settings"
+                  icon={Settings}
+                  label="Settings"
+                />
+                <VerticalTabsTrigger
+                  value="data"
+                  icon={Database}
+                  label="Data"
+                />
               </VerticalTabsList>
 
-              <VerticalTabsContent value="publish settings">
+              <VerticalTabsContent value="settings">
                 <EditorPublishSettings />
-              </VerticalTabsContent>
-              <VerticalTabsContent value="info">
+                <Separator className="my-4" />
                 <EditorInfoSettings />
               </VerticalTabsContent>
+
               <VerticalTabsContent value="data">
                 <EditorDataSettings />
-              </VerticalTabsContent>
-              <VerticalTabsContent value="style">
-                <EditorStyleSettings />
               </VerticalTabsContent>
             </VerticalTabs>
             <PublishActionsSection
@@ -200,16 +195,7 @@ export default function PublishPublicMapSidebar() {
   );
 }
 
-const getBaseUrl = () =>
-  new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001");
-
-const getPublicMapUrl = (host: string) => {
-  const proto = getBaseUrl().protocol;
-  return `${proto}//${host}`;
-};
-
 export function PublishActionsSection({
-  publishedHost,
   loading,
   onSubmitForm,
 }: {
@@ -231,23 +217,6 @@ export function PublishActionsSection({
       >
         <Globe className="w-4 h-4" /> Publish Map
       </Button>
-      {publishedHost && (
-        <Link
-          href={getPublicMapUrl(publishedHost)}
-          target="_blank"
-          className="shrink"
-        >
-          <Button
-            disabled={loading}
-            size="lg"
-            type="submit"
-            variant="secondary"
-            className="rounded-none h-16"
-          >
-            <ExternalLink className="w-4 h-4" /> View
-          </Button>
-        </Link>
-      )}
     </div>
   );
 }

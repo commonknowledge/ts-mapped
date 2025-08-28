@@ -20,6 +20,7 @@ interface VerticalTabsTriggerProps {
   value: string;
   icon?: LucideIcon;
   className?: string;
+  label?: string;
 }
 
 interface VerticalTabsContentProps {
@@ -27,6 +28,7 @@ interface VerticalTabsContentProps {
   icon?: LucideIcon;
   children: React.ReactNode;
   className?: string;
+  header?: string;
 }
 
 /**
@@ -97,13 +99,14 @@ export function VerticalTabsList({
 export function VerticalTabsTrigger({
   value,
   icon: Icon,
+  label,
   className,
 }: VerticalTabsTriggerProps) {
   return (
     <TabsTrigger
       value={value}
       className={cn(
-        "w-full justify-between p-4 text-left border-b border-x-0 border-t-0 border-neutral-200",
+        "w-full  p-4 text-left border-none border-neutral-200",
         "data-[state=active]:bg-neutral-200 data-[state=active]:text-primary",
         "data-[state=inactive]:bg-white data-[state=inactive]:text-muted-foreground",
         "hover:bg-muted/80 hover:text-foreground",
@@ -114,6 +117,7 @@ export function VerticalTabsTrigger({
       )}
     >
       {Icon && <Icon className="size-6 flex-shrink-0" />}
+      <p className="font-medium">{label}</p>
     </TabsTrigger>
   );
 }
@@ -123,6 +127,7 @@ export function VerticalTabsContent({
   icon: Icon,
   children,
   className,
+  header,
 }: VerticalTabsContentProps) {
   return (
     <TabsContent
@@ -132,16 +137,13 @@ export function VerticalTabsContent({
         className
       )}
     >
-      <div className="flex items-center gap-2 pb-3 border-b border-neutral-200">
-        {Icon && <Icon className="size-4 flex-shrink-0" />}
-        <h3 className="text-lg font-medium">
-          {value
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")}
-        </h3>
-      </div>
-      <div className="flex flex-col gap-2 py-4">{children}</div>
+      {header && (
+        <div className="flex items-center gap-2 pb-3 border-b border-neutral-200">
+          {Icon && <Icon className="size-4 flex-shrink-0" />}
+          <h3 className="text-lg font-medium">{header}</h3>
+        </div>
+      )}
+      <div className="flex flex-col gap-2 py-2">{children}</div>
     </TabsContent>
   );
 }

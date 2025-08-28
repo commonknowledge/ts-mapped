@@ -28,8 +28,7 @@ export default function PublicMapProvider({
     useState<PublishedPublicMapQuery["publishedPublicMap"]>(initialPublicMap);
   const [searchLocation, setSearchLocation] = useState<Point | null>(null);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
-  const [activePublishTab, setActivePublishTab] =
-    useState<string>("publish settings");
+  const [activePublishTab, setActivePublishTab] = useState<string>("settings");
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);
   const [colourScheme, setColourScheme] = useState<string>("red");
@@ -121,6 +120,8 @@ export default function PublicMapProvider({
         setRecordSidebarVisible,
         colourScheme,
         setColourScheme,
+        selectedRecordId: null,
+        setSelectedRecordId: () => null,
       }}
     >
       {publicMap?.dataSourceConfigs.map((dsc) => (

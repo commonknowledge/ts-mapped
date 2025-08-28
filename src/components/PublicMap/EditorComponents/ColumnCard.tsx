@@ -1,6 +1,8 @@
+import { Plus, X } from "lucide-react";
 import { useContext } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -8,15 +10,14 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/shadcn/ui/select";
 
 interface ColumnCardProps {
   dataSourceId: string;
   badge: string;
   title: string;
-  value: string | undefined;
-  onValueChange: (value: string) => void;
+  value: string[] | undefined; // Changed to array to support multiple columns
+  onValueChange: (value: string[]) => void; // Changed to array
   additionalColumns: {
     label: string;
     sourceColumns: string[];
@@ -43,14 +44,18 @@ export default function ColumnCard({
   const { getDataSourceById } = useContext(DataSourcesContext);
 
   const dataSource = getDataSourceById(dataSourceId);
-  const selectedColumn = value;
-  const columnConfig = additionalColumns.find((ac) =>
-    ac.sourceColumns.includes(selectedColumn || "")
-  );
+  const selectedColumns = value || [];
+  const hasColumns = selectedColumns.length > 0;
 
-  const handleColumnSelect = (selectedColumn: string) => {
-    const newValue = selectedColumn === "__none" ? "" : selectedColumn;
-    onValueChange(newValue);
+  const addColumn = (columnName: string) => {
+    if (columnName && !selectedColumns.includes(columnName)) {
+      onValueChange([...selectedColumns, columnName]);
+    }
+  };
+
+  const removeColumn = (index: number) => {
+    const newColumns = selectedColumns.filter((_, i) => i !== index);
+    onValueChange(newColumns);
   };
 
   const updateColumnConfig = (
@@ -59,10 +64,13 @@ export default function ColumnCard({
       type: PublicMapColumnType;
     }>
   ) => {
-    if (!selectedColumn) return;
+    if (!hasColumns) return;
 
-    const columnIndex = additionalColumns.findIndex((ac) =>
-      ac.sourceColumns.includes(selectedColumn)
+    // Find or create config for these columns
+    const columnIndex = additionalColumns.findIndex(
+      (ac) =>
+        selectedColumns.every((col) => ac.sourceColumns.includes(col)) &&
+        ac.sourceColumns.length === selectedColumns.length
     );
 
     if (columnIndex >= 0) {
@@ -77,8 +85,8 @@ export default function ColumnCard({
       const newColumns = [
         ...additionalColumns,
         {
-          label: updates.label || selectedColumn,
-          sourceColumns: [selectedColumn],
+          label: updates.label || selectedColumns.join(" + "),
+          sourceColumns: selectedColumns,
           type: updates.type || PublicMapColumnType.String,
         },
       ];
@@ -86,63 +94,93 @@ export default function ColumnCard({
     }
   };
 
+  const columnConfig = additionalColumns.find(
+    (ac) =>
+      selectedColumns.every((col) => ac.sourceColumns.includes(col)) &&
+      ac.sourceColumns.length === selectedColumns.length
+  );
+
   return (
     <div className="border border-neutral-200 rounded-md overflow-hidden">
-      {/* Column Header with Select */}
-      <div className="flex items-center justify-between p-2 pr-0">
+      {/* Column Header */}
+      <div className="flex items-center justify-between p-2">
         <div className="flex items-center gap-2">
           <span className="flex items-center justify-center w-5 h-5 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">
             {badge}
           </span>
           <span className="font-medium text-sm whitespace-nowrap">{title}</span>
         </div>
-        <Select value={value || "__none"} onValueChange={handleColumnSelect}>
-          <SelectTrigger className="shadow-none border-none text-right">
-            <SelectValue placeholder="Select column" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none">None</SelectItem>
-            {dataSource?.columnDefs.map((cd) => (
-              <SelectItem key={cd.name} value={cd.name}>
-                {cd.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
-      {/* Column Settings - Always expanded if column is selected */}
-      {selectedColumn && (
-        <div className="border-t border-neutral-200 p-3 bg-neutral-50">
-          <div className="flex flex-col gap-3">
-            {/* Label Input */}
+      {/* Column Settings - Always expanded */}
+      <div className="border-t border-neutral-200 p-3 bg-neutral-50">
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2 items-center">
+            {/* Add Column Select */}
+            <Label className="text-xs font-medium w-20">Columns:</Label>
+            <div className="flex flex-wrap gap-1 flex-1">
+              {/* Selected Columns */}
+              {hasColumns && (
+                <div className="flex flex-wrap gap-1 items-center">
+                  {selectedColumns.map((column, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs"
+                    >
+                      <span>{column}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeColumn(index)}
+                        className="h-3 w-3 p-0 hover:bg-blue-200"
+                      >
+                        <X className="w-2 h-2" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Column Select - Always show */}
+              <Select value="" onValueChange={addColumn}>
+                <SelectTrigger className=" text-xs w-auto">
+                  <div className="flex items-center gap-1">
+                    <Plus className="w-3 h-3" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {dataSource?.columnDefs
+                    .filter((cd) => !selectedColumns.includes(cd.name))
+                    .map((cd) => (
+                      <SelectItem key={cd.name} value={cd.name}>
+                        {cd.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+
+              {!hasColumns && (
+                <span className="text-xs text-neutral-500 ml-2 self-center">
+                  No columns selected
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Label Input - Only show when columns are selected */}
+          {hasColumns && (
             <div className="flex gap-2 items-center">
               <Label className="text-xs font-medium w-20">Label:</Label>
               <Input
-                value={columnConfig?.label || selectedColumn}
+                value={columnConfig?.label || selectedColumns.join(" + ")}
                 onChange={(e) => updateColumnConfig({ label: e.target.value })}
                 className="flex-1"
                 placeholder="Column label"
               />
             </div>
-
-            {/* Display Type Select - Disabled and set to Text */}
-            <div className="flex gap-2 items-center">
-              <Label className="text-xs font-medium w-20">Show as:</Label>
-              <Select value={PublicMapColumnType.String} disabled>
-                <SelectTrigger className="flex-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={PublicMapColumnType.String}>
-                    Text
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

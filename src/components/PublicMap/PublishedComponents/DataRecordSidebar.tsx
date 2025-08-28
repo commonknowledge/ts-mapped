@@ -38,15 +38,7 @@ export default function DataRecordSidebar() {
   const description =
     selectedDataRecordDetails.json[dataSourceConfig?.descriptionColumn || ""];
 
-  // Filter out primary and secondary columns from additional columns
-  const primaryColumns = dataSourceConfig?.nameColumns || [];
-  const secondaryColumn = dataSourceConfig?.descriptionColumn;
-  const additionalColumns = (dataSourceConfig?.additionalColumns || []).filter(
-    (columnConfig) =>
-      !columnConfig.sourceColumns.some(
-        (col) => primaryColumns.includes(col) || col === secondaryColumn
-      )
-  );
+  const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
     <div
@@ -93,8 +85,6 @@ export default function DataRecordSidebar() {
         </div>
         <Separator />
       </div>
-
-      {/* Description */}
 
       {additionalColumns.map((columnConfig, i) => (
         <div key={i} className="flex flex-col ">

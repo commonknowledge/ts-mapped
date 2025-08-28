@@ -1,4 +1,5 @@
 import { gql, useMutation } from "@apollo/client";
+import Link from "next/link";
 import { FormEvent, useContext, useState } from "react";
 import {
   UpsertPublicMapMutation,
@@ -7,6 +8,7 @@ import {
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
+import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 
 export default function EditorPublishSettings() {
@@ -91,6 +93,25 @@ export default function EditorPublishSettings() {
   return (
     <>
       <form onSubmit={onSubmitForm} className="flex flex-col gap-2">
+        <Label>Published Status</Label>
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={publicMap.published}
+            onCheckedChange={(published) => updatePublicMap({ published })}
+          />{" "}
+          {publicMap.published ? "Public" : "Unpublished"}
+        </div>
+        <div className="flex items-center gap-2 text-xs ">
+          View at:
+          <Link
+            href={`https://${publicMap.host}`}
+            target="_blank"
+            className="underline "
+          >
+            {publicMap.host}
+          </Link>
+        </div>
+        <Separator className="my-4" />
         <Label>URL</Label>
         <div className="flex items-center gap-2">
           <span className="text-sm text-neutral-500">https://</span>
@@ -107,13 +128,6 @@ export default function EditorPublishSettings() {
           <span className="text-sm text-neutral-500">
             {getPublicMapUrlAfterSubDomain()}
           </span>
-        </div>
-        <div className="flex items-center gap-2 py-8">
-          <span className="text-sm text-neutral-500">Published</span>
-          <Switch
-            checked={publicMap.published}
-            onCheckedChange={(published) => updatePublicMap({ published })}
-          />
         </div>
       </form>
     </>

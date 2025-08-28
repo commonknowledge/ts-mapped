@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderPinwheel, MapIcon } from "lucide-react";
+import { MapIcon } from "lucide-react";
 import { useContext } from "react";
 import { publicMapColourSchemes } from "@/components/Map/styles";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
@@ -8,13 +8,13 @@ import PublicMapGeocoder from "@/components/PublicMap/PublicMapGeocoder";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 import DataRecordSidebar from "./DataRecordSidebar";
-import DataSourceTabs from "./DataSourceTabs";
+import { PublicMapListings } from "./PublicMapListings";
 
 export default function PublicMapSidebar() {
   const {
     publicMap,
     editable,
-    dataRecordsQueries,
+
     setSearchLocation,
     recordSidebarVisible,
     colourScheme,
@@ -29,13 +29,9 @@ export default function PublicMapSidebar() {
     return;
   }
 
-  const loadingSources = Object.values(dataRecordsQueries).some(
-    (q) => q.loading
-  );
-
   return (
-    <div className={cn("absolute top-0 left-0 z-10 bg-white flex h-full")}>
-      <div className="flex flex-col h-full w-[300px] border-r border-neutral-200">
+    <div className={cn("absolute top-0 left-0 z-10 bg-white flex md:h-full")}>
+      <div className="flex flex-col md:h-full md:w-[300px] border-r border-neutral-200">
         {/* Header */}
         <div className="flex flex-col gap-2 border-b border-neutral-200">
           <div
@@ -101,27 +97,8 @@ export default function PublicMapSidebar() {
             />
           </div>
         </div>
-        <div className="overflow-y-auto py-4">
-          {/* Listings */}
-
-          <DataSourceTabs
-            colourScheme={activeColourScheme}
-            editable={editable}
-            dataRecordsQueries={dataRecordsQueries}
-          />
-          {loadingSources && (
-            <div className="p-4 pt-0">
-              <LoaderPinwheel className="animate-spin" />
-            </div>
-          )}
-          {/* No listings */}
-          {editable && publicMap.dataSourceConfigs.length === 0 && (
-            <div className="flex flex-col gap-2 p-2 border border-neutral-200 rounded-md border-dashed">
-              <p className="text-sm text-neutral-500">
-                No data sources added yet. Add a data source to get started.
-              </p>
-            </div>
-          )}
+        <div className="hidden md:block">
+          <PublicMapListings />
         </div>
       </div>
 
