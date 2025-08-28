@@ -35,6 +35,8 @@ export const PublicMapContext = createContext<{
   setActivePublishTab: (tab: string) => void;
   recordSidebarVisible: boolean;
   setRecordSidebarVisible: (visible: boolean) => void;
+  aboutPanelVisible: boolean;
+  setAboutPanelVisible: (visible: boolean) => void;
   colourScheme: string;
   setColourScheme: (scheme: string) => void;
   selectedRecordId: string | null;
@@ -54,6 +56,8 @@ export const PublicMapContext = createContext<{
   setActivePublishTab: () => null,
   recordSidebarVisible: false,
   setRecordSidebarVisible: () => null,
+  aboutPanelVisible: false,
+  setAboutPanelVisible: () => null,
   colourScheme: "red",
   setColourScheme: () => null,
   selectedRecordId: null,

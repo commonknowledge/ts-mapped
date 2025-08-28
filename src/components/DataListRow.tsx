@@ -28,7 +28,7 @@ export default function DataListRow({
     >
       <div
         className={cn(
-          "flex gap-2 items-center",
+          "flex gap-1 items-center",
           orientation === "vertical" && "flex-col items-start"
         )}
       >

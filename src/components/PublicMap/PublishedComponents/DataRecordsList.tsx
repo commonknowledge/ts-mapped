@@ -26,7 +26,8 @@ export default function DataRecordsList({
   onSelect,
   colourScheme,
 }: DataRecordsListProps) {
-  const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
+  const { publicMap, setRecordSidebarVisible, setAboutPanelVisible } =
+    useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedDataRecord } = useContext(DataRecordContext);
 
@@ -74,7 +75,8 @@ export default function DataRecordsList({
                   id: r.id,
                   dataSourceId: dataRecordsQuery.data?.dataSource?.id,
                 });
-                // Also open the sidebar when a record is selected
+                // Close about panel and open the sidebar when a record is selected
+                setAboutPanelVisible(false);
                 setRecordSidebarVisible(true);
               }
               if (r.geocodePoint) {

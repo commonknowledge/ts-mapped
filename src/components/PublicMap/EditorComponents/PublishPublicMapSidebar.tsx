@@ -39,6 +39,7 @@ export default function PublishPublicMapSidebar() {
     setActivePublishTab,
     recordSidebarVisible,
     setRecordSidebarVisible,
+    setAboutPanelVisible,
   } = useContext(PublicMapContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
   const [hideSidebar] = useState(false);
@@ -144,6 +145,7 @@ export default function PublishPublicMapSidebar() {
                 setActivePublishTab(value);
                 if (value === "data") {
                   if (!recordSidebarVisible) {
+                    setAboutPanelVisible(false);
                     setRecordSidebarVisible(true);
                   }
 

@@ -32,6 +32,8 @@ export default function PublicMapProvider({
     useState<string>("publish settings");
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);
+  const [aboutPanelVisible, setAboutPanelVisible] = useState<boolean>(false);
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const [colourScheme, setColourScheme] = useState<string>("red");
   const [dataRecordsQueries, setDataRecordsQueries] = useState<
     Record<
@@ -119,6 +121,10 @@ export default function PublicMapProvider({
         setActivePublishTab,
         recordSidebarVisible,
         setRecordSidebarVisible,
+        aboutPanelVisible,
+        setAboutPanelVisible,
+        selectedRecordId,
+        setSelectedRecordId,
         colourScheme,
         setColourScheme,
       }}

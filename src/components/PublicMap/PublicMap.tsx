@@ -10,6 +10,7 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import PublishPublicMapSidebar from "./EditorComponents/PublishPublicMapSidebar";
 import { PublicMapContext } from "./PublicMapContext";
+import PublicMapAboutPanel from "./PublishedComponents/PublicMapAboutPanel";
 import PublicMapSidebar from "./PublishedComponents/PublicMapSidebar";
 
 export default function PublicMap() {
@@ -48,6 +49,7 @@ export default function PublicMap() {
           />
         </Link>
       </div>
+      <PublicMapAboutPanel />
       {editable && <PublishPublicMapSidebar />}
     </div>
   );

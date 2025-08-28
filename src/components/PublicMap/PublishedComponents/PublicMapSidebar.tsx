@@ -1,10 +1,11 @@
 "use client";
 
-import { LoaderPinwheel, MapIcon } from "lucide-react";
+import { Info, LoaderPinwheel, MapIcon } from "lucide-react";
 import { useContext } from "react";
 import { publicMapColourSchemes } from "@/components/Map/styles";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import PublicMapGeocoder from "@/components/PublicMap/PublicMapGeocoder";
+import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 import DataRecordSidebar from "./DataRecordSidebar";
@@ -17,6 +18,9 @@ export default function PublicMapSidebar() {
     dataRecordsQueries,
     setSearchLocation,
     recordSidebarVisible,
+    setRecordSidebarVisible,
+    aboutPanelVisible,
+    setAboutPanelVisible,
     colourScheme,
   } = useContext(PublicMapContext);
 
@@ -42,7 +46,7 @@ export default function PublicMapSidebar() {
             style={{ backgroundColor: activeColourScheme.muted }}
             className="p-4 flex flex-col gap-6"
           >
-            <div className="flex flex-col items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <MapIcon
                   className="w-10 h-10 shrink-0"
@@ -60,15 +64,8 @@ export default function PublicMapSidebar() {
                   </h1>
                 </EditablePublicMapProperty>
               </div>
-              {/* <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setHideSidebar(!hideSidebar)}
-              >
-              <PanelLeft className="w-4 h-4" />
-              <span className="sr-only">Toggle sidebar</span>
-              </Button> */}
             </div>
+
             <div className="flex flex-col gap-1">
               <EditablePublicMapProperty
                 property="description"
@@ -94,6 +91,20 @@ export default function PublicMapSidebar() {
                   </a>
                 )}
               </EditablePublicMapProperty>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  // Close data record sidebar if open
+                  if (recordSidebarVisible) {
+                    setRecordSidebarVisible(false);
+                  }
+                  // Toggle about panel
+                  setAboutPanelVisible(!aboutPanelVisible);
+                }}
+              >
+                <Info className="w-4 h-4" /> About this map
+                <span className="sr-only">About this map</span>
+              </Button>
             </div>
             <PublicMapGeocoder
               onGeocode={(p) => setSearchLocation(p)}
