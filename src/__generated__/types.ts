@@ -390,10 +390,13 @@ export type Mutation = {
   deleteTurf?: Maybe<MutationResponse>;
   enqueueEnrichDataSourceJob?: Maybe<MutationResponse>;
   enqueueImportDataSourceJob?: Maybe<MutationResponse>;
+  forgotPassword?: Maybe<MutationResponse>;
+  resetPassword?: Maybe<MutationResponse>;
   saveMapViewsToCRM?: Maybe<MutationResponse>;
   updateDataSourceConfig?: Maybe<MutationResponse>;
   updateMap?: Maybe<UpdateMapResponse>;
   updateMapConfig?: Maybe<UpdateMapConfigResponse>;
+  updateUser?: Maybe<UpdateUserResponse>;
   upsertFolder?: Maybe<UpsertFolderResponse>;
   upsertPlacedMarker?: Maybe<UpsertPlacedMarkerResponse>;
   upsertTurf?: Maybe<UpsertTurfResponse>;
@@ -436,6 +439,15 @@ export type MutationEnqueueImportDataSourceJobArgs = {
   dataSourceId: Scalars["String"]["input"];
 };
 
+export type MutationForgotPasswordArgs = {
+  email: Scalars["String"]["input"];
+};
+
+export type MutationResetPasswordArgs = {
+  password: Scalars["String"]["input"];
+  token: Scalars["String"]["input"];
+};
+
 export type MutationSaveMapViewsToCrmArgs = {
   id: Scalars["String"]["input"];
 };
@@ -458,6 +470,10 @@ export type MutationUpdateMapConfigArgs = {
   mapConfig: MapConfigInput;
   mapId: Scalars["String"]["input"];
   views: Array<MapViewInput>;
+};
+
+export type MutationUpdateUserArgs = {
+  data: UpdateUserInput;
 };
 
 export type MutationUpsertFolderArgs = {
@@ -649,6 +665,17 @@ export type UpdateMapResponse = {
   result?: Maybe<Map>;
 };
 
+export type UpdateUserInput = {
+  email?: InputMaybe<Scalars["String"]["input"]>;
+  password?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type UpdateUserResponse = {
+  __typename?: "UpdateUserResponse";
+  code: Scalars["Int"]["output"];
+  result?: Maybe<User>;
+};
+
 export type UpsertFolderResponse = {
   __typename?: "UpsertFolderResponse";
   code: Scalars["Int"]["output"];
@@ -673,10 +700,30 @@ export type UpsertTurfResponse = {
   result?: Maybe<Turf>;
 };
 
+export type User = {
+  __typename?: "User";
+  createdAt: Scalars["Date"]["output"];
+  email: Scalars["String"]["output"];
+  id: Scalars["String"]["output"];
+};
+
 export enum VisualisationType {
   BoundaryOnly = "BoundaryOnly",
   Choropleth = "Choropleth",
 }
+
+export type UpdateUserPasswordMutationVariables = Exact<{
+  data: UpdateUserInput;
+}>;
+
+export type UpdateUserPasswordMutation = {
+  __typename?: "Mutation";
+  updateUser?: {
+    __typename?: "UpdateUserResponse";
+    code: number;
+    result?: { __typename?: "User"; id: string } | null;
+  } | null;
+};
 
 export type ListMapsQueryVariables = Exact<{
   organisationId: Scalars["String"]["input"];
@@ -776,37 +823,6 @@ export type UpdateDataSourceConfigMutation = {
   updateDataSourceConfig?: {
     __typename?: "MutationResponse";
     code: number;
-  } | null;
-};
-
-export type DataSourceConfigQueryVariables = Exact<{
-  id: Scalars["String"]["input"];
-}>;
-
-export type DataSourceConfigQuery = {
-  __typename?: "Query";
-  dataSource?: {
-    __typename?: "DataSource";
-    id: string;
-    name: string;
-    autoImport: boolean;
-    config: any;
-    columnDefs: Array<{
-      __typename?: "ColumnDef";
-      name: string;
-      type: ColumnType;
-    }>;
-    columnRoles: {
-      __typename?: "ColumnRoles";
-      nameColumns?: Array<string> | null;
-    };
-    geocodingConfig: {
-      __typename?: "LooseGeocodingConfig";
-      type: GeocodingType;
-      column?: string | null;
-      columns?: Array<string> | null;
-      areaSetCode?: AreaSetCode | null;
-    };
   } | null;
 };
 
@@ -1305,6 +1321,16 @@ export type ListOrganisationsQuery = {
   }> | null;
 };
 
+export type ResetPasswordMutationVariables = Exact<{
+  token: Scalars["String"]["input"];
+  password: Scalars["String"]["input"];
+}>;
+
+export type ResetPasswordMutation = {
+  __typename?: "Mutation";
+  resetPassword?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
 export type DeleteMapMutationVariables = Exact<{
   id: Scalars["String"]["input"];
 }>;
@@ -1312,6 +1338,15 @@ export type DeleteMapMutationVariables = Exact<{
 export type DeleteMapMutation = {
   __typename?: "Mutation";
   deleteMap?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
+export type ForgotPasswordMutationVariables = Exact<{
+  email: Scalars["String"]["input"];
+}>;
+
+export type ForgotPasswordMutation = {
+  __typename?: "Mutation";
+  forgotPassword?: { __typename?: "MutationResponse"; code: number } | null;
 };
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -1487,10 +1522,13 @@ export type ResolversTypes = {
   Turf: ResolverTypeWrapper<Turf>;
   UpdateMapConfigResponse: ResolverTypeWrapper<UpdateMapConfigResponse>;
   UpdateMapResponse: ResolverTypeWrapper<UpdateMapResponse>;
+  UpdateUserInput: UpdateUserInput;
+  UpdateUserResponse: ResolverTypeWrapper<UpdateUserResponse>;
   UpsertFolderResponse: ResolverTypeWrapper<UpsertFolderResponse>;
   UpsertMapViewResponse: ResolverTypeWrapper<UpsertMapViewResponse>;
   UpsertPlacedMarkerResponse: ResolverTypeWrapper<UpsertPlacedMarkerResponse>;
   UpsertTurfResponse: ResolverTypeWrapper<UpsertTurfResponse>;
+  User: ResolverTypeWrapper<User>;
   VisualisationType: VisualisationType;
 };
 
@@ -1551,10 +1589,13 @@ export type ResolversParentTypes = {
   Turf: Turf;
   UpdateMapConfigResponse: UpdateMapConfigResponse;
   UpdateMapResponse: UpdateMapResponse;
+  UpdateUserInput: UpdateUserInput;
+  UpdateUserResponse: UpdateUserResponse;
   UpsertFolderResponse: UpsertFolderResponse;
   UpsertMapViewResponse: UpsertMapViewResponse;
   UpsertPlacedMarkerResponse: UpsertPlacedMarkerResponse;
   UpsertTurfResponse: UpsertTurfResponse;
+  User: User;
 };
 
 export type AuthDirectiveArgs = {
@@ -2064,6 +2105,18 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationEnqueueImportDataSourceJobArgs, "dataSourceId">
   >;
+  forgotPassword?: Resolver<
+    Maybe<ResolversTypes["MutationResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationForgotPasswordArgs, "email">
+  >;
+  resetPassword?: Resolver<
+    Maybe<ResolversTypes["MutationResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationResetPasswordArgs, "password" | "token">
+  >;
   saveMapViewsToCRM?: Resolver<
     Maybe<ResolversTypes["MutationResponse"]>,
     ParentType,
@@ -2087,6 +2140,12 @@ export type MutationResolvers<
     ParentType,
     ContextType,
     RequireFields<MutationUpdateMapConfigArgs, "mapConfig" | "mapId" | "views">
+  >;
+  updateUser?: Resolver<
+    Maybe<ResolversTypes["UpdateUserResponse"]>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationUpdateUserArgs, "data">
   >;
   upsertFolder?: Resolver<
     Maybe<ResolversTypes["UpsertFolderResponse"]>,
@@ -2325,6 +2384,16 @@ export type UpdateMapResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UpdateUserResponseResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["UpdateUserResponse"] = ResolversParentTypes["UpdateUserResponse"],
+> = {
+  code?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
+  result?: Resolver<Maybe<ResolversTypes["User"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type UpsertFolderResponseResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -2369,6 +2438,17 @@ export type UpsertTurfResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type UserResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["User"] = ResolversParentTypes["User"],
+> = {
+  createdAt?: Resolver<ResolversTypes["Date"], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = GraphQLContext> = {
   AreaStat?: AreaStatResolvers<ContextType>;
   AreaStats?: AreaStatsResolvers<ContextType>;
@@ -2407,10 +2487,12 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Turf?: TurfResolvers<ContextType>;
   UpdateMapConfigResponse?: UpdateMapConfigResponseResolvers<ContextType>;
   UpdateMapResponse?: UpdateMapResponseResolvers<ContextType>;
+  UpdateUserResponse?: UpdateUserResponseResolvers<ContextType>;
   UpsertFolderResponse?: UpsertFolderResponseResolvers<ContextType>;
   UpsertMapViewResponse?: UpsertMapViewResponseResolvers<ContextType>;
   UpsertPlacedMarkerResponse?: UpsertPlacedMarkerResponseResolvers<ContextType>;
   UpsertTurfResponse?: UpsertTurfResponseResolvers<ContextType>;
+  User?: UserResolvers<ContextType>;
 };
 
 export type DirectiveResolvers<ContextType = GraphQLContext> = {

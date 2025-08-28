@@ -4,7 +4,7 @@ import { gql, useMutation } from "@apollo/client";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
 import {
-  DataSourceConfigQuery,
+  DataSourceQuery,
   UpdateDataSourceConfigMutation,
   UpdateDataSourceConfigMutationVariables,
 } from "@/__generated__/types";
@@ -21,7 +21,7 @@ export default function ConfigurationForm({
   dataSource,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
-  dataSource: Exclude<DataSourceConfigQuery["dataSource"], null | undefined>;
+  dataSource: Exclude<DataSourceQuery["dataSource"], null | undefined>;
 }) {
   // Columns config
   const [nameColumns, setNameColumns] = useState<string[]>(

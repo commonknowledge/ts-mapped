@@ -15,14 +15,13 @@ export default function FormFieldWrapper({
   isHorizontal?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex flex-col gap-1 w-full">
       <div
-        className={`flex gap-3 ${isHorizontal ? "flex-row-reverse justify-end" : "flex-col"}`}
+        className={`flex ${isHorizontal ? "flex-row-reverse justify-end gap-3" : "flex-col gap-1"}`}
       >
         <Label htmlFor={id || ""}>{label}</Label>
         {children}
       </div>
-
       {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
     </div>
   );

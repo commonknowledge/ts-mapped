@@ -23,5 +23,15 @@ services:
     ports:
       - "6380:6379"
 
+  mailpit:
+    image: axllent/mailpit
+    container_name: ts-mapped-mailpit
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    volumes:
+      - mailpit_data:/data
+
 volumes:
   pgdata:
+  mailpit_data:
