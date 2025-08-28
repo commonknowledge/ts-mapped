@@ -13,7 +13,6 @@ import {
 import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
-import { Separator } from "@/shadcn/ui/separator";
 import { MapCard } from "./components/MapCard";
 
 export default function DashboardPage() {
@@ -67,18 +66,20 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="">
-      <div className="flex items-center justify-between">
-        <PageHeader title="Recent Maps" />
-        <Button
-          type="button"
-          onClick={() => onClickNew()}
-          disabled={createMapLoading}
-        >
-          + New
-        </Button>
-      </div>
-      <Separator className="my-4" />
+    <div>
+      <PageHeader
+        title="Recent Maps"
+        action={
+          <Button
+            type="button"
+            onClick={() => onClickNew()}
+            disabled={createMapLoading}
+          >
+            + New
+          </Button>
+        }
+      />
+
       {loading ? (
         <LoaderPinwheel className="animate-spin" />
       ) : (
