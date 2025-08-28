@@ -49,7 +49,7 @@ export default function MapProvider({
 
   const view = useMemo(
     () => views.find((v) => v.id === viewId) || null,
-    [viewId, views]
+    [viewId, views],
   );
 
   const updateViewConfig = (nextViewConfig: Partial<ViewConfig>) => {
