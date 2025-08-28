@@ -21,7 +21,7 @@ export default function MapWrapper({
     if (currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
-        "You are in draw mode. Click to add points. Double click to finish drawing.",
+        "You are in draw mode. Click to add points. Double click to finish drawing."
       );
     } else if (currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
@@ -53,7 +53,14 @@ export default function MapWrapper({
       )}
 
       {message && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded shadow-md bg-white text-xs">
+        <div
+          className="absolute top-4 left-1/2 z-10 px-3 py-2 rounded shadow-md bg-white text-xs transition-transform duration-300"
+          style={{
+            transform: controlsOpen
+              ? "translate(calc(-50% + 140px))"
+              : "translate(-50%)",
+          }}
+        >
           {message}
         </div>
       )}
