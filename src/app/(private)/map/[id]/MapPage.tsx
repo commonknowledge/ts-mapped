@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
   ResizableHandle,
@@ -13,26 +13,25 @@ import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapNavbar from "./components/MapNavbar";
-import MapStyleSelector from "./components/MapStyleSelector";
 import MapTable from "./components/table/MapTable";
 import { ChoroplethContext } from "./context/ChoroplethContext";
 import { DataSourcesContext } from "./context/DataSourcesContext";
 import { MapContext } from "./context/MapContext";
 import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
 import { TableContext } from "./context/TableContext";
+import { CONTROL_PANEL_WIDTH } from "./styles";
 
 export default function MapPage() {
-  const { mapQuery, mapRef } = useContext(MapContext);
+  const { mapQuery, mapRef, showControls } = useContext(MapContext);
   const {
     areaStatsLoading,
     areaStatsQuery,
-    setBoundariesPanelOpen,
+
     setLastLoadedSourceId,
   } = useContext(ChoroplethContext);
   const { dataSourcesLoading } = useContext(DataSourcesContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
-  const [showControls, setShowControls] = useState(true);
 
   // Resize map when UI changes
   useEffect(() => {
@@ -57,27 +56,17 @@ export default function MapPage() {
     areaStatsQuery?.loading ||
     markerQueries?.loading;
 
-  const controlPanelWidth = 280;
   const paddedStyle = showControls
-    ? { paddingLeft: `${controlPanelWidth}px` }
+    ? { paddingLeft: `${CONTROL_PANEL_WIDTH}px` }
     : {};
 
   return (
     <div className="flex flex-col h-screen">
       <MapNavbar />
       <div className="flex w-full grow min-h-0 relative">
-        <Controls
-          showControls={showControls}
-          setShowControls={(show) => {
-            setShowControls(show);
-            if (!show) {
-              setBoundariesPanelOpen(false);
-            }
-          }}
-          controlPanelWidth={controlPanelWidth}
-        />
+        <Controls />
         <VisualisationPanel
-          positionLeft={showControls ? controlPanelWidth : 0}
+          positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
         />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
@@ -85,7 +74,6 @@ export default function MapPage() {
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
-              <MapStyleSelector />
               <Legend />
             </ResizablePanel>
             {selectedDataSourceId && (

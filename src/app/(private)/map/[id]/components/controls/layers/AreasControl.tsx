@@ -14,6 +14,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { CONTROL_PANEL_WIDTH } from "../../../styles";
 import Loading from "../../Loading";
 import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
@@ -102,7 +103,7 @@ export default function AreasControl() {
 const TurfItem = ({ turf }: { turf: Turf }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
-  const { mapRef } = useContext(MapContext);
+  const { mapRef, showControls } = useContext(MapContext);
   const { updateTurf, deleteTurf } = useContext(MarkerAndTurfContext);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -112,6 +113,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
 
     // the bounding box of the polygon
     const bbox = turfLib.bbox(turf.polygon);
+    const padding = 20;
 
     map.fitBounds(
       [
@@ -119,7 +121,12 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
         [bbox[2], bbox[3]], // northeast corner
       ],
       {
-        padding: 100,
+        padding: {
+          left: showControls ? CONTROL_PANEL_WIDTH + padding : padding,
+          top: padding,
+          right: padding,
+          bottom: padding,
+        },
         duration: 1000,
       },
     );
