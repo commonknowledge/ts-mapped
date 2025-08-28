@@ -19,7 +19,7 @@ export const dataSourceRouter = router({
         ]),
       )
       .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
+      .select(db.fn.countAll().as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
 
@@ -34,7 +34,7 @@ export const dataSourceRouter = router({
       .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
       .where("organisationId", "=", input.organisationId)
       .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
+      .select(db.fn.countAll().as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
 
