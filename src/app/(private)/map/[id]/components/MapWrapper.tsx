@@ -36,7 +36,6 @@ export default function MapWrapper({
     if (map) {
       map.easeTo({
         padding: { left: showControls ? CONTROL_PANEL_WIDTH : 0 },
-        zoom: map.getZoom() + (showControls ? 0.3 : -0.3),
         duration: 300,
         easing: (t) => t * (2 - t),
       });
