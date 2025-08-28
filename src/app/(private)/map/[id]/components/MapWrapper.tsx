@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import MapStyleSelector from "./MapStyleSelector";
@@ -14,10 +14,6 @@ export default function MapWrapper({
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const map = mapRef?.current;
-  const controlsOpen = showControls;
 
   useEffect(() => {
     if (currentMode === "draw_polygon") {
@@ -35,25 +31,31 @@ export default function MapWrapper({
   }, [currentMode]);
 
   useEffect(() => {
-    map?.easeTo({
-      padding: { left: controlsOpen ? CONTROL_PANEL_WIDTH : 0 },
-      zoom: map.getZoom() + (controlsOpen ? 0.3 : -0.3),
-      duration: 300,
-      easing: (t) => t * (2 - t),
-    });
-  }, [controlsOpen, map]);
+    const map = mapRef?.current;
+
+    if (map) {
+      map.easeTo({
+        padding: { left: showControls ? CONTROL_PANEL_WIDTH : 0 },
+        zoom: map.getZoom() + (showControls ? 0.3 : -0.3),
+        duration: 300,
+        easing: (t) => t * (2 - t),
+      });
+    }
+  }, [showControls, mapRef]);
+
+  const absolutelyCenter = {
+    transform: showControls
+      ? `translate(calc(-50% + ${CONTROL_PANEL_WIDTH / 2}px))`
+      : "translate(-50%)",
+  };
 
   return (
-    <div ref={containerRef} className="absolute top-0 right-0 h-full w-full">
+    <div className="absolute top-0 right-0 h-full w-full">
       {children}
 
       <div
         className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
-        style={{
-          transform: controlsOpen
-            ? "translate(calc(-50% + 140px))"
-            : "translate(-50%)",
-        }}
+        style={absolutelyCenter}
       >
         <MapStyleSelector />
       </div>
@@ -67,14 +69,12 @@ export default function MapWrapper({
 
       {message && (
         <div
-          className="absolute top-4 left-1/2 z-10 px-3 py-2 rounded shadow-md bg-white text-xs transition-transform duration-300"
-          style={{
-            transform: controlsOpen
-              ? "translate(calc(-50% + 140px))"
-              : "translate(-50%)",
-          }}
+          className="absolute top-4 left-1/2 z-10 transition-transform duration-300"
+          style={absolutelyCenter}
         >
-          {message}
+          <p className="px-3 py-2 rounded shadow-md bg-white text-xs">
+            {message}
+          </p>
         </div>
       )}
     </div>
