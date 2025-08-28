@@ -27,8 +27,10 @@ import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
   onSourceLoad,
+  controlsOpen,
 }: {
   onSourceLoad: (sourceId: string) => void;
+  controlsOpen?: boolean;
 }) {
   const {
     mapRef,
@@ -147,7 +149,11 @@ export default function Map({
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
   return (
-    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
+    <MapWrapper
+      currentMode={pinDropMode ? "pin_drop" : currentMode}
+      controlsOpen={controlsOpen || false}
+      map={mapRef?.current}
+    >
       <MapGL
         initialViewState={{
           longitude: -4.5481,

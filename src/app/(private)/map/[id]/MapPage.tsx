@@ -58,9 +58,9 @@ export default function MapPage() {
     markerQueries?.loading;
 
   const controlPanelWidth = 280;
-  // const paddedStyle = showControls
-  //   ? { paddingLeft: `${controlPanelWidth}px` }
-  //   : {};
+  const paddedStyle = showControls
+    ? { paddingLeft: `${controlPanelWidth}px` }
+    : {};
 
   return (
     <div className="flex flex-col h-screen">
@@ -70,10 +70,10 @@ export default function MapPage() {
           showControls={showControls}
           setShowControls={(show) => {
             setShowControls(show);
-            setTimeout(() => {
-              mapRef?.current?.resize();
-            });
 
+            // setTimeout(() => {
+            //   mapRef?.current?.resize();
+            // });
             if (!show) {
               setBoundariesPanelOpen(false);
             }
@@ -87,6 +87,7 @@ export default function MapPage() {
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>
               <Map
+                controlsOpen={showControls}
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
               <MapStyleSelector />
@@ -94,13 +95,13 @@ export default function MapPage() {
             </ResizablePanel>
             {selectedDataSourceId && (
               <>
-                <ResizableHandle withHandle />
+                <ResizableHandle withHandle style={paddedStyle} />
                 <ResizablePanel
                   onResize={() => mapRef?.current?.resize()}
                   id="table"
                   order={1}
                 >
-                  <div className="transition-all h-full">
+                  <div className="transition-all h-full" style={paddedStyle}>
                     <MapTable />
                   </div>
                 </ResizablePanel>
