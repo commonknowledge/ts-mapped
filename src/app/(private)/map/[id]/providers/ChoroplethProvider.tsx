@@ -2,6 +2,7 @@
 
 import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { VisualisationType } from "@/__generated__/types";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { useAreaStatsQuery } from "@/app/(private)/map/[id]/data";
 import { getChoroplethLayerConfig } from "@/app/(private)/map/[id]/sources";
@@ -32,20 +33,24 @@ export default function ChoroplethProvider({
   const choroplethLayerConfig = useMemo(() => {
     const dataSource = getChoroplethDataSource();
     return getChoroplethLayerConfig(
-      dataSource?.geocodingConfig?.areaSetCode,
+      viewConfig.visualisationType === VisualisationType.Choropleth
+        ? dataSource?.geocodingConfig?.areaSetCode
+        : undefined,
       viewConfig.areaSetGroupCode,
       zoom,
     );
-  }, [getChoroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
+  }, [
+    getChoroplethDataSource,
+    viewConfig.areaSetGroupCode,
+    viewConfig.visualisationType,
+    zoom,
+  ]);
+
   /* GraphQL Data */
   const areaStatsQuery = useAreaStatsQuery({
-    areaSetGroupCode: viewConfig.areaSetGroupCode,
+    viewConfig,
     areaSetCode: choroplethLayerConfig.areaSetCode,
-    dataSourceId: viewConfig.areaDataSourceId,
-    column: viewConfig.areaDataColumn,
-    excludeColumns: viewConfig.getExcludeColumns(),
     useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
-    calculationType: viewConfig.calculationType,
   });
 
   const { fetchMore: areaStatsFetchMore } = areaStatsQuery;

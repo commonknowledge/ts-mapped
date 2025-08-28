@@ -2,7 +2,6 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AreaSetCode,
-  AreaSetGroupCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
   CalculationType,
@@ -28,7 +27,9 @@ import {
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
+  VisualisationType,
 } from "@/__generated__/types";
+import { ViewConfig } from "./context/MapContext";
 import { DataSourceMarkers } from "./types";
 
 export const useDataSourcesQuery = () =>
@@ -254,29 +255,35 @@ export const useMarkerQueries = ({
 };
 
 export const useAreaStatsQuery = ({
-  areaSetGroupCode,
+  viewConfig,
   areaSetCode,
-  dataSourceId,
-  column,
-  excludeColumns,
   useDummyBoundingBox,
-  calculationType,
 }: {
-  areaSetGroupCode: AreaSetGroupCode | null;
+  viewConfig: ViewConfig;
   areaSetCode: AreaSetCode;
-  dataSourceId: string;
-  column: string;
-  excludeColumns: string[];
   useDummyBoundingBox: boolean;
-  calculationType?: CalculationType | null;
 }) => {
+  const {
+    calculationType,
+    areaDataColumn: column,
+    areaDataSourceId: dataSourceId,
+    areaSetGroupCode,
+    visualisationType,
+  } = viewConfig;
+
   // Use a dummy column for counts to avoid un-necessary refetching
   const columnOrCount =
     calculationType === CalculationType.Count ? "__count" : column;
+
+  const viewIsChoropleth = visualisationType === VisualisationType.Choropleth;
+  const isMissingDataColumn =
+    !column && calculationType !== CalculationType.Count;
+
   const skipCondition =
-    !dataSourceId ||
-    (!column && calculationType !== CalculationType.Count) ||
-    !areaSetGroupCode;
+    !dataSourceId || // Skip if user has not selected a data source
+    !areaSetGroupCode || // Skip if user has not selected an area set group
+    !viewIsChoropleth ||
+    isMissingDataColumn;
 
   return useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
     gql`
@@ -310,7 +317,7 @@ export const useAreaStatsQuery = ({
         areaSetCode,
         dataSourceId,
         column: columnOrCount,
-        excludeColumns,
+        excludeColumns: viewConfig.getExcludeColumns(),
         // Using a dummy boundingBox is required for fetchMore() to update this query's data.
         // Note: this makes the first query return no data. Only fetchMore() returns data.
         boundingBox: useDummyBoundingBox
