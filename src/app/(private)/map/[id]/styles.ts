@@ -68,4 +68,6 @@ export const mapColors: Record<
   },
 };
 
+export const CONTROL_PANEL_WIDTH = 280;
+
 export default mapStyles;

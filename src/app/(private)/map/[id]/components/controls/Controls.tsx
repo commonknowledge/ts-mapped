@@ -5,16 +5,13 @@ import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { CONTROL_PANEL_WIDTH } from "../../styles";
 import AreasControl from "./layers/AreasControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
 import VisualiseControl from "./layers/VisualiseControl";
 
-export default function Controls({
-  controlPanelWidth,
-}: {
-  controlPanelWidth: number;
-}) {
+export default function Controls() {
   const { showControls, setShowControls } = useContext(MapContext);
   const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
 
@@ -43,8 +40,8 @@ export default function Controls({
             : "-translate-x-full opacity-0"
         }`}
         style={{
-          width: `${controlPanelWidth}px`,
-          minWidth: `${controlPanelWidth}px`,
+          width: `${CONTROL_PANEL_WIDTH}px`,
+          minWidth: `${CONTROL_PANEL_WIDTH}px`,
         }}
       >
         <div className="flex flex-col bg-white z-10 h-full border-r border-neutral-200">
@@ -64,7 +61,7 @@ export default function Controls({
           {/* Content */}
           <div
             className="flex flex-col overflow-y-auto flex-1"
-            style={{ width: `${controlPanelWidth}px` }}
+            style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
             <MembersControl />
             <Separator />

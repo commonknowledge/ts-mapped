@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { mapColors } from "../styles";
+import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import MapStyleSelector from "./MapStyleSelector";
 
 export default function MapWrapper({
@@ -36,15 +36,11 @@ export default function MapWrapper({
 
   useEffect(() => {
     map?.easeTo({
-      padding: { left: controlsOpen ? 280 : 0 },
+      padding: { left: controlsOpen ? CONTROL_PANEL_WIDTH : 0 },
       zoom: map.getZoom() + (controlsOpen ? 0.3 : -0.3),
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-
-    setTimeout(() => {
-      map?.resize();
-    }, 310);
   }, [controlsOpen, map]);
 
   return (

@@ -19,6 +19,7 @@ import { DataSourcesContext } from "./context/DataSourcesContext";
 import { MapContext } from "./context/MapContext";
 import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
 import { TableContext } from "./context/TableContext";
+import { CONTROL_PANEL_WIDTH } from "./styles";
 
 export default function MapPage() {
   const { mapQuery, mapRef, showControls } = useContext(MapContext);
@@ -55,18 +56,17 @@ export default function MapPage() {
     areaStatsQuery?.loading ||
     markerQueries?.loading;
 
-  const controlPanelWidth = 280;
   const paddedStyle = showControls
-    ? { paddingLeft: `${controlPanelWidth}px` }
+    ? { paddingLeft: `${CONTROL_PANEL_WIDTH}px` }
     : {};
 
   return (
     <div className="flex flex-col h-screen">
       <MapNavbar />
       <div className="flex w-full grow min-h-0 relative">
-        <Controls controlPanelWidth={controlPanelWidth} />
+        <Controls />
         <VisualisationPanel
-          positionLeft={showControls ? controlPanelWidth : 0}
+          positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
         />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">

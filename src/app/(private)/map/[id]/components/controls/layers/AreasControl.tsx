@@ -14,6 +14,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { CONTROL_PANEL_WIDTH } from "../../../styles";
 import Loading from "../../Loading";
 import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
@@ -121,7 +122,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
       ],
       {
         padding: {
-          left: showControls ? 280 + padding : padding,
+          left: showControls ? CONTROL_PANEL_WIDTH + padding : padding,
           top: padding,
           right: padding,
           bottom: padding,
