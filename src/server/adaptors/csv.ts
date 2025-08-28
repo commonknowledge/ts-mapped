@@ -31,7 +31,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
     });
 
     let lineCount = 0;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     for await (const _ of rl) {
       lineCount++;
     }

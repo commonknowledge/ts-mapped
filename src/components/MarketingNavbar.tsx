@@ -1,62 +1,58 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
-import {
-  MutationForgotPasswordArgs,
-  MutationResponse,
-} from "@/__generated__/types";
+import { useTRPC } from "@/lib/trpc";
 import { Button } from "@/shadcn/ui/button";
 import { Link } from "./Link";
 
 export default function MarketingNavbar() {
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
-  const [forgotPassword, { loading: forgotPasswordLoading }] = useMutation<
-    MutationResponse,
-    MutationForgotPasswordArgs
-  >(gql`
-    mutation ForgotPassword($email: String!) {
-      forgotPassword(email: $email) {
-        code
-      }
-    }
-  `);
+  const trpc = useTRPC();
+
+  const { mutate: forgotPassword, isPending: forgotPasswordLoading } =
+    useMutation(
+      trpc.auth.forgotPassword.mutationOptions({
+        onSuccess: () => {
+          toast.success("Instructions sent!", {
+            description: "Please check your email to reset your password",
+          });
+          setPassword("");
+          setEmail("");
+          setIsForgotPasswordOpen(false);
+        },
+        onError: () => {
+          setError("Failed to send instructions, please try again.");
+        },
+      })
+    );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
   const onSubmitForgotPassword = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await forgotPassword({ variables: { email } });
-    setPassword("");
-    setEmail("");
-    toast.success("Instructions sent!", {
-      description: "Please check your email to reset your password",
-    });
-    setIsForgotPasswordOpen(false);
+    forgotPassword({ email });
   };
+
+  const { mutate: login, isPending: loginLoading } = useMutation(
+    trpc.auth.login.mutationOptions({
+      onSuccess: () => {
+        location.reload();
+      },
+      onError: () => {
+        setError("Login failed, please check your credentials.");
+      },
+    })
+  );
 
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch("/api/auth/login", {
-        body: JSON.stringify({ email, password }),
-        method: "POST",
-      });
-      if (!response.ok) {
-        throw new Error(`Response code ${response.status}`);
-      }
-      location.reload();
-    } catch {
-      setError("Login failed, please check your credentials.");
-      setLoading(false);
-    }
+    login({ email, password });
   };
 
   return (
@@ -124,7 +120,7 @@ export default function MarketingNavbar() {
             onChange={(e) => setPassword(e.target.value)}
             className="px-3 py-1 border border-neutral-300 rounded text-sm"
           />
-          <Button disabled={loading} size="sm">
+          <Button disabled={loginLoading} size="sm">
             Login
           </Button>
         </form>

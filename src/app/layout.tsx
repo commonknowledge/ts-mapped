@@ -7,6 +7,7 @@ import {
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
+import { TRPCReactProvider } from "@/lib/trpc";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
@@ -47,10 +48,12 @@ export default async function RootLayout({
         <ServerSessionProvider serverSession={serverSession}>
           <OrganisationsProvider organisations={organisations}>
             <ApolloProvider>
-              <NProgressProvider>
-                <main>{children}</main>
-                <Toaster position="top-right" />
-              </NProgressProvider>
+              <TRPCReactProvider>
+                <NProgressProvider>
+                  <main>{children}</main>
+                  <Toaster position="top-right" />
+                </NProgressProvider>
+              </TRPCReactProvider>
             </ApolloProvider>
           </OrganisationsProvider>
         </ServerSessionProvider>
