@@ -31,10 +31,10 @@ export default function Controls({
 
       {/* Control panel with transition */}
       <div
-        className={`absolute top-0 left-0 h-full transition-all duration-300 ease-in-out overflow-hidden z-20 ${
+        className={`h-full transition-all duration-300 ease-in-out overflow-hidden z-20 ${
           showControls
-            ? "translate-x-0 opacity-100"
-            : "-translate-x-full opacity-0"
+            ? "block"
+            : "hidden"
         }`}
         style={{
           width: `${controlPanelWidth}px`,
