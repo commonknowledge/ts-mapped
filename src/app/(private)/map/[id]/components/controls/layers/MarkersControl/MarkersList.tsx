@@ -19,7 +19,6 @@ import {
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { PlacedMarker } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
@@ -31,6 +30,7 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/(private)/map/[id]/utils";
+import { useMarkerDataSources } from "../../../../hooks";
 import CollectionLayer from "../../CollectionLayer";
 import EmptyLayer from "../../Emptylayer";
 import MarkerDragOverlay from "./MarkerDragOverlay";
@@ -48,8 +48,8 @@ export default function MarkersList() {
   } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
-  const { getMarkerDataSources } = useContext(DataSourcesContext);
-  const markerDataSources = getMarkerDataSources();
+
+  const markerDataSources = useMarkerDataSources();
 
   const [activeId, setActiveId] = useState<string | null>(null);
 

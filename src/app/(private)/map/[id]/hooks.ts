@@ -1,6 +1,10 @@
-import { useCallback, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
 import { getNewLastPosition } from "@/app/(private)/map/[id]/utils";
+import { useTRPC } from "@/lib/trpc";
+import { MapContext } from "./context/MapContext";
+import { TableContext } from "./context/TableContext";
 import {
   useDeleteFolderMutation,
   useDeletePlacedMarkerMutation,
@@ -303,3 +307,57 @@ export const useTurfs = (mapId: string | null) => {
     loading,
   };
 };
+
+export function useDataSources() {
+  const trpc = useTRPC();
+  const { data: dataSources = [] } = useQuery(
+    trpc.dataSource.all.queryOptions(),
+  );
+
+  return dataSources;
+}
+
+export function useSelectedDataSource(id: string) {
+  const dataSources = useDataSources();
+  return useMemo(
+    () => dataSources.find((ds) => ds.id === id),
+    [dataSources, id],
+  );
+}
+
+export function useTableDataSource() {
+  const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
+  const dataSources = useDataSources();
+  return useMemo(
+    () => dataSources.find((ds) => ds.id === tableDataSourceId),
+    [dataSources, tableDataSourceId],
+  );
+}
+
+export function useAreaDataSource() {
+  const { viewConfig } = useContext(MapContext);
+  const dataSources = useDataSources();
+  return useMemo(
+    () => dataSources.find((ds) => ds.id === viewConfig.areaDataSourceId),
+    [dataSources, viewConfig.areaDataSourceId],
+  );
+}
+
+export function useMembersDataSource() {
+  const { mapConfig } = useContext(MapContext);
+  const dataSources = useDataSources();
+  return useMemo(
+    () => dataSources.find((ds) => ds.id === mapConfig.membersDataSourceId),
+    [dataSources, mapConfig.membersDataSourceId],
+  );
+}
+
+export function useMarkerDataSources() {
+  const { mapConfig } = useContext(MapContext);
+  const dataSources = useDataSources();
+  return useMemo(
+    () =>
+      dataSources.filter((ds) => mapConfig.markerDataSourceIds.includes(ds.id)),
+    [dataSources, mapConfig.markerDataSourceIds],
+  );
+}

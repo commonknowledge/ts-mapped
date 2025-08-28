@@ -1,6 +1,8 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
+import { z } from "zod";
 import { getServerSession } from "@/auth";
+import { findOrganisationUser } from "../repositories/OrganisationUser";
 import { findUserById } from "../repositories/User";
 
 export async function createContext() {
@@ -39,3 +41,22 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 });
 
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+const schema = z.object({
+  organisationId: z.string(),
+});
+
+export const organisationProcedure = protectedProcedure
+  .input(schema)
+  .use(async ({ ctx, input, next }) => {
+    const organisationUser = await findOrganisationUser(
+      input.organisationId,
+      ctx.user.id,
+    );
+    if (!organisationUser)
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You are not authorized to access this organisation",
+      });
+    return next({ ctx: { organisationUser, user: ctx.user } });
+  });

@@ -7,8 +7,13 @@ import superjson from "superjson";
 import { makeQueryClient } from "./query-client";
 import type { AppRouter } from "@/server/trpc/router";
 import type { QueryClient } from "@tanstack/react-query";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
+
+export type RouterInputs = inferRouterInputs<AppRouter>;
+
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 let browserQueryClient: QueryClient;
 function getQueryClient() {

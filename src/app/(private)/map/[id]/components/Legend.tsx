@@ -8,17 +8,17 @@ import {
 import { MAX_COLUMN_KEY } from "@/constants";
 import { useColorScheme } from "../colors";
 import { ChoroplethContext } from "../context/ChoroplethContext";
-import { DataSourcesContext } from "../context/DataSourcesContext";
 import { MapContext } from "../context/MapContext";
+import { useAreaDataSource } from "../hooks";
 
 export default function Legend() {
   const { viewConfig } = useContext(MapContext);
-  const { getChoroplethDataSource } = useContext(DataSourcesContext);
+
   const { areaStatsQuery } = useContext(ChoroplethContext);
 
   const areaStats = areaStatsQuery?.data?.areaStats;
 
-  const dataSource = getChoroplethDataSource();
+  const dataSource = useAreaDataSource();
 
   const colorScheme = useColorScheme(
     areaStats,

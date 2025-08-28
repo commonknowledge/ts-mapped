@@ -31,7 +31,7 @@ export default function Page({
         });
         router.push("/");
       },
-    })
+    }),
   );
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

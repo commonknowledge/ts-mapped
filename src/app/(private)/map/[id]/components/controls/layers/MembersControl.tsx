@@ -2,11 +2,11 @@ import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { useDataSources, useMembersDataSource } from "../../../hooks";
 import CollectionLayer from "../CollectionLayer";
 import ControlItemWrapper from "../ControlItemWrapper";
 import EmptyLayer from "../Emptylayer";
@@ -16,17 +16,16 @@ export default function MembersControl() {
   const router = useRouter();
   const { updateMapConfig, viewConfig, updateViewConfig } =
     useContext(MapContext);
-  const { getMembersDataSource } = useContext(DataSourcesContext);
+
+  const dataSources = useDataSources();
+  const dataSource = useMembersDataSource();
+
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
-  const { getDataSources } = useContext(DataSourcesContext);
 
-  const dataSource = getMembersDataSource();
   const isSelected = dataSource
     ? selectedDataSourceId === dataSource.id
     : false;
-
-  const dataSources = getDataSources();
 
   const getDropdownItems = () => {
     const items = dataSources.map((ds) => ({

@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { DataSourceView, FilterType } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+import { useSelectedDataSource } from "../../hooks";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 
@@ -13,7 +13,6 @@ interface DataRecord {
 
 export default function MapTable() {
   const { mapRef, view, updateView } = useContext(MapContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
 
   const {
     selectedDataSourceId,
@@ -25,11 +24,11 @@ export default function MapTable() {
     dataRecordsQuery,
   } = useContext(TableContext);
 
+  const dataSource = useSelectedDataSource(selectedDataSourceId);
+
   if (!selectedDataSourceId) {
     return null;
   }
-
-  const dataSource = getDataSourceById(selectedDataSourceId);
 
   if (!dataSource) {
     return null;

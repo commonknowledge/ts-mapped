@@ -2,6 +2,7 @@ import { Check, Database } from "lucide-react";
 import { ColumnDef, LooseGeocodingConfig } from "@/__generated__/types";
 import { DataSourceType } from "@/types";
 import DataSourceIcon from "./DataSourceIcon";
+import type { RouterOutputs } from "@/lib/trpc";
 
 interface DataSource {
   id: string;
@@ -92,7 +93,7 @@ export default function DataSourceItem({
   isSelected,
   onClick,
 }: {
-  dataSource: DataSource;
+  dataSource: RouterOutputs["dataSource"]["all"][0];
   isSelected: boolean;
   onClick: () => void;
 }) {
