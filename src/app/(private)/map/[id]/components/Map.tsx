@@ -147,7 +147,10 @@ export default function Map({
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
   return (
-    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
+    <MapWrapper
+      currentMode={pinDropMode ? "pin_drop" : currentMode}
+      ready={ready}
+    >
       <MapGL
         initialViewState={{
           longitude: -4.5481,
