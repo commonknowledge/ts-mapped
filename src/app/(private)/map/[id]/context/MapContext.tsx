@@ -93,6 +93,9 @@ export const MapContext = createContext<{
   pinDropMode: boolean;
   setPinDropMode: (pinDropMode: boolean) => void;
 
+  showControls: boolean;
+  setShowControls: (showControls: boolean) => void;
+
   /* GraphQL Queries */
   mapQuery: QueryResult<MapQuery, MapQueryVariables> | null;
 }>({
@@ -119,4 +122,6 @@ export const MapContext = createContext<{
   mapQuery: null,
   pinDropMode: false,
   setPinDropMode: () => null,
+  showControls: false,
+  setShowControls: () => null,
 });

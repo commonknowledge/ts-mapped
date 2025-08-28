@@ -27,10 +27,8 @@ import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
   onSourceLoad,
-  controlsOpen,
 }: {
   onSourceLoad: (sourceId: string) => void;
-  controlsOpen?: boolean;
 }) {
   const {
     mapRef,
@@ -130,7 +128,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
           )
           .map((layer) => layer.id);
 
@@ -141,7 +139,7 @@ export default function Map({
         });
       }
     },
-    [mapRef],
+    [mapRef]
   );
 
   useEffect(() => {
@@ -149,11 +147,7 @@ export default function Map({
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
   return (
-    <MapWrapper
-      currentMode={pinDropMode ? "pin_drop" : currentMode}
-      controlsOpen={controlsOpen || false}
-      map={mapRef?.current}
-    >
+    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
       <MapGL
         initialViewState={{
           longitude: -4.5481,

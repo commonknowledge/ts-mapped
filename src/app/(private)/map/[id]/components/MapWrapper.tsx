@@ -1,22 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { mapColors } from "../styles";
 import MapStyleSelector from "./MapStyleSelector";
-import type { MapRef } from "react-map-gl/mapbox";
 
 export default function MapWrapper({
   currentMode,
   children,
-  controlsOpen,
-  map, // 👈 pass your map instance here
 }: {
   currentMode: string | null;
   children: React.ReactNode;
-  controlsOpen: boolean;
-  map?: MapRef | null; // or MapLibre GL type if you’re using that
 }) {
+  const { mapRef, showControls } = useContext(MapContext);
+
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const map = mapRef?.current;
+  const controlsOpen = showControls;
 
   useEffect(() => {
     if (currentMode === "draw_polygon") {
@@ -40,6 +41,10 @@ export default function MapWrapper({
       duration: 300,
       easing: (t) => t * (2 - t),
     });
+
+    setTimeout(() => {
+      map?.resize();
+    }, 310);
   }, [controlsOpen, map]);
 
   return (

@@ -1,4 +1,8 @@
 import { PanelLeft } from "lucide-react";
+import { useContext } from "react";
+import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
+import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
@@ -8,22 +12,24 @@ import VisualiseControl from "./layers/VisualiseControl";
 
 export default function Controls({
   controlPanelWidth,
-  showControls,
-  setShowControls,
 }: {
   controlPanelWidth: number;
-  showControls: boolean;
-  setShowControls: (show: boolean) => void;
 }) {
+  const { showControls, setShowControls } = useContext(MapContext);
+  const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
+
+  const onToggleControls = () => {
+    setShowControls(!showControls);
+    if (showControls === true) {
+      setBoundariesPanelOpen(false);
+    }
+  };
+
   return (
     <>
       {/* Toggle button - always visible */}
       <div className="flex absolute top-3 left-3 z-10 bg-white rounded-lg shadow-lg">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowControls(!showControls)}
-        >
+        <Button variant="ghost" size="icon" onClick={() => onToggleControls()}>
           <PanelLeft className="w-4 h-4" />
           <span className="sr-only">Toggle controls</span>
         </Button>
@@ -48,7 +54,7 @@ export default function Controls({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setShowControls(!showControls)}
+              onClick={() => onToggleControls()}
             >
               <PanelLeft className="w-4 h-4" />
               <span className="sr-only">Toggle controls</span>

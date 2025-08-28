@@ -35,7 +35,7 @@ export default function AreasControl() {
           .replace("T", " ");
         return acc;
       },
-      {} as Record<string, string>,
+      {} as Record<string, string>
     );
 
     setFormattedDates(dates);
@@ -46,7 +46,7 @@ export default function AreasControl() {
     if (map) {
       // Find the polygon draw button and click it
       const drawButton = document.querySelector(
-        ".mapbox-gl-draw_polygon",
+        ".mapbox-gl-draw_polygon"
       ) as HTMLButtonElement;
       if (drawButton) {
         drawButton.click();
@@ -102,7 +102,7 @@ export default function AreasControl() {
 const TurfItem = ({ turf }: { turf: Turf }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
-  const { mapRef } = useContext(MapContext);
+  const { mapRef, showControls } = useContext(MapContext);
   const { updateTurf, deleteTurf } = useContext(MarkerAndTurfContext);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -112,6 +112,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
 
     // the bounding box of the polygon
     const bbox = turfLib.bbox(turf.polygon);
+    const padding = 20;
 
     map.fitBounds(
       [
@@ -119,9 +120,14 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
         [bbox[2], bbox[3]], // northeast corner
       ],
       {
-        padding: 100,
+        padding: {
+          left: showControls ? 280 + padding : padding,
+          top: padding,
+          right: padding,
+          bottom: padding,
+        },
         duration: 1000,
-      },
+      }
     );
   };
 

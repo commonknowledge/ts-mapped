@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
   ResizableHandle,
@@ -21,17 +21,16 @@ import { MarkerAndTurfContext } from "./context/MarkerAndTurfContext";
 import { TableContext } from "./context/TableContext";
 
 export default function MapPage() {
-  const { mapQuery, mapRef } = useContext(MapContext);
+  const { mapQuery, mapRef, showControls } = useContext(MapContext);
   const {
     areaStatsLoading,
     areaStatsQuery,
-    setBoundariesPanelOpen,
+
     setLastLoadedSourceId,
   } = useContext(ChoroplethContext);
   const { dataSourcesLoading } = useContext(DataSourcesContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
-  const [showControls, setShowControls] = useState(true);
 
   // Resize map when UI changes
   useEffect(() => {
@@ -65,20 +64,7 @@ export default function MapPage() {
     <div className="flex flex-col h-screen">
       <MapNavbar />
       <div className="flex w-full grow min-h-0 relative">
-        <Controls
-          showControls={showControls}
-          setShowControls={(show) => {
-            setShowControls(show);
-
-            // setTimeout(() => {
-            //   mapRef?.current?.resize();
-            // });
-            if (!show) {
-              setBoundariesPanelOpen(false);
-            }
-          }}
-          controlPanelWidth={controlPanelWidth}
-        />
+        <Controls controlPanelWidth={controlPanelWidth} />
         <VisualisationPanel
           positionLeft={showControls ? controlPanelWidth : 0}
         />
@@ -86,7 +72,6 @@ export default function MapPage() {
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>
               <Map
-                controlsOpen={showControls}
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
               <Legend />
