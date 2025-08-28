@@ -153,7 +153,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
           )
           .map((layer) => layer.id);
 
@@ -164,7 +164,7 @@ export default function Map({
         });
       }
     },
-    [mapRef]
+    [mapRef],
   );
 
   useEffect(() => {
@@ -264,7 +264,6 @@ export default function Map({
                   paint: {
                     "line-color": mapColors.areas.color,
                     "line-width": 2,
-                    "line-dasharray": [2, 2],
                   },
                 },
                 {
@@ -331,9 +330,7 @@ export default function Map({
                   updateTurf({
                     id: feature?.properties?.id,
                     notes: feature?.properties?.notes,
-                    label:
-                      feature.properties?.label ||
-                      `Area: ${roundedArea.toFixed(2)}m²`,
+                    label: feature?.properties?.label,
                     area: roundedArea,
                     polygon: feature.geometry,
                     createdAt: feature?.properties?.createdAt,
