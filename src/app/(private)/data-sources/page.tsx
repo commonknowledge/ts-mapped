@@ -22,8 +22,10 @@ import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import DataSourceItem from "../map/[id]/components/DataSourceItem";
+
+import DataSourceCard from "../map/[id]/components/DataSourceItem";
 import { mapColors } from "../map/[id]/styles";
+// import DataSourceCard from "./components/DataSourceCard";
 
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
@@ -160,10 +162,10 @@ export default function DataSourcesPage() {
               />
               {/* Member Collections Section */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <CollectionIcon color={mapColors.member.color} />
                   Member Collections
-                </h3>
+                </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {dataSources
                     .filter((dataSource) => {
@@ -178,7 +180,7 @@ export default function DataSourcesPage() {
                       );
                     })
                     .map((dataSource) => (
-                      <DataSourceItem
+                      <DataSourceCard
                         key={dataSource.id}
                         dataSource={dataSource}
                         isSelected={false}
@@ -208,10 +210,10 @@ export default function DataSourcesPage() {
 
               {/* Reference Data Section */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Database className="w-5 h-5 text-green-600" />
                   Reference Data
-                </h3>
+                </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {dataSources
                     .filter((dataSource) => {
@@ -227,7 +229,7 @@ export default function DataSourcesPage() {
                       );
                     })
                     .map((dataSource) => (
-                      <DataSourceItem
+                      <DataSourceCard
                         key={dataSource.id}
                         dataSource={dataSource}
                         isSelected={false}
@@ -294,10 +296,10 @@ export default function DataSourcesPage() {
             </div>
             {/* Locality Shapes Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Pentagon className="w-5 h-5 text-blue-600" />
                 Locality Shapes
-              </h3>
+              </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {mappedDataLibrary.localityShapes.map((item) => (
                   <div
@@ -332,10 +334,10 @@ export default function DataSourcesPage() {
 
             {/* Reference Data Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Database className="w-5 h-5 text-green-600" />
                 Reference Data
-              </h3>
+              </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {mappedDataLibrary.referenceData.map((item) => (
                   <div
