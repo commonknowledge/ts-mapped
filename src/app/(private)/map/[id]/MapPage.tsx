@@ -13,7 +13,6 @@ import Legend from "./components/Legend";
 import Loading from "./components/Loading";
 import Map from "./components/Map";
 import MapNavbar from "./components/MapNavbar";
-import MapStyleSelector from "./components/MapStyleSelector";
 import MapTable from "./components/table/MapTable";
 import { ChoroplethContext } from "./context/ChoroplethContext";
 import { DataSourcesContext } from "./context/DataSourcesContext";
@@ -90,7 +89,6 @@ export default function MapPage() {
                 controlsOpen={showControls}
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
-              <MapStyleSelector />
               <Legend />
             </ResizablePanel>
             {selectedDataSourceId && (

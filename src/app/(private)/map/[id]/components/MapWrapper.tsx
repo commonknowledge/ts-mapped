@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { mapColors } from "../styles";
+import MapStyleSelector from "./MapStyleSelector";
 import type { MapRef } from "react-map-gl/mapbox";
 
 export default function MapWrapper({
@@ -44,6 +45,17 @@ export default function MapWrapper({
   return (
     <div ref={containerRef} className="absolute top-0 right-0 h-full w-full">
       {children}
+
+      <div
+        className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
+        style={{
+          transform: controlsOpen
+            ? "translate(calc(-50% + 140px))"
+            : "translate(-50%)",
+        }}
+      >
+        <MapStyleSelector />
+      </div>
 
       {indicatorColor && (
         <div
