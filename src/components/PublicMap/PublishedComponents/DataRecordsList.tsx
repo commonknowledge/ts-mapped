@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryResult } from "@apollo/client";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
@@ -11,6 +11,10 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { cn } from "@/shadcn/utils";
 import { buildName } from "./utils";
+import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
+import { PublicMapColumnType } from "@/__generated__/types";
+import { Separator } from "@/shadcn/ui/separator";
+import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 
 interface DataRecordsListProps {
   dataRecordsQuery: QueryResult<
@@ -29,6 +33,7 @@ export default function DataRecordsList({
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedDataRecord } = useContext(DataRecordContext);
+  const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
 
   const records = dataRecordsQuery?.data?.dataSource?.records || [];
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
@@ -52,54 +57,222 @@ export default function DataRecordsList({
     return descriptionColumn ? String(record.json[descriptionColumn]) : null;
   };
 
+  const handleRecordClick = (record: any) => {
+    if (dataRecordsQuery.data?.dataSource?.id) {
+      onSelect({
+        id: record.id,
+        dataSourceId: dataRecordsQuery.data?.dataSource?.id,
+      });
+
+      // On mobile: toggle accordion expansion
+      // On desktop: open sidebar
+      if (window.innerWidth < 768) {
+        setExpandedRecordId(expandedRecordId === record.id ? null : record.id);
+      } else {
+        setRecordSidebarVisible(true);
+      }
+    }
+
+    if (record.geocodePoint) {
+      mapRef?.current?.flyTo({
+        center: record.geocodePoint,
+        zoom: 14,
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 mb-2">
-      <ul className="flex flex-col ">
-        {records.map((r) => (
-          <li
-            className={cn(
-              "cursor-pointer py-2 px-4 flex flex-col gap-2 rounded transition-colors",
-              selectedDataRecord?.id === r.id ? "" : "hover:bg-accent"
-            )}
-            style={
-              selectedDataRecord?.id === r.id
-                ? { backgroundColor: colourScheme.muted }
-                : undefined
-            }
-            key={r.id}
-            role="button"
-            onClick={() => {
-              if (dataRecordsQuery.data?.dataSource?.id) {
-                onSelect({
-                  id: r.id,
-                  dataSourceId: dataRecordsQuery.data?.dataSource?.id,
-                });
-                // Also open the sidebar when a record is selected
-                setRecordSidebarVisible(true);
-              }
-              if (r.geocodePoint) {
-                mapRef?.current?.flyTo({
-                  center: r.geocodePoint,
-                  zoom: 14,
-                });
-              }
-            }}
-          >
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: colourScheme.primary }}
-                />
-                <span className="font-medium">{getName(r)}</span>
-              </div>
-              {getDescription(r) && (
-                <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
+      <ul className="flex flex-col">
+        {records.map((r) => {
+          const isExpanded = expandedRecordId === r.id;
+          const isSelected = selectedDataRecord?.id === r.id;
+
+          return (
+            <li
+              key={r.id}
+              className={cn(
+                "cursor-pointer rounded transition-all duration-200",
+                isSelected ? "" : "hover:bg-accent"
               )}
-            </div>
-          </li>
-        ))}
+              style={
+                isSelected
+                  ? { backgroundColor: colourScheme.muted }
+                  : undefined
+              }
+            >
+              {/* Main record item */}
+              <div
+                role="button"
+                onClick={() => handleRecordClick(r)}
+                className="py-3 px-4 flex flex-col gap-2"
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: colourScheme.primary }}
+                  />
+                  <span className="font-medium flex-1">{getName(r)}</span>
+                  {/* Only show arrow on mobile */}
+                  <div className="text-xs text-neutral-500 md:hidden">
+                    {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                  </div>
+                </div>
+                {getDescription(r) && (
+                  <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
+                )}
+              </div>
+
+              {/* Expanded content - only on mobile */}
+              {isExpanded && (
+                <div className="px-4 pb-4 border-t border-neutral-200 md:hidden">
+                  <MobileRecordDetails
+                    record={r}
+                    dataSourceConfig={dataSourceConfig}
+                    colourScheme={colourScheme}
+                  />
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
+    </div>
+  );
+}
+
+// Mobile-optimized record details component for accordion
+function MobileRecordDetails({
+  record,
+  dataSourceConfig,
+  colourScheme
+}: {
+  record: any;
+  dataSourceConfig: any;
+  colourScheme: { primary: string; muted: string };
+}) {
+  const name = buildName(
+    dataSourceConfig?.nameColumns || [],
+    record.json
+  );
+  const description = record.json[dataSourceConfig?.descriptionColumn || ""];
+  const additionalColumns = dataSourceConfig?.additionalColumns || [];
+
+  return (
+    <div className="flex flex-col gap-3 pt-3">
+      {/* Name and Description */}
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-neutral-600 font-medium">
+            {dataSourceConfig?.nameLabel || "Name"}
+          </span>
+          <span className="text-base font-semibold">{name}</span>
+        </div>
+
+        {description && (
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-neutral-600 font-medium">
+              {dataSourceConfig?.descriptionLabel ||
+                dataSourceConfig?.descriptionColumn ||
+                "Description"}
+            </span>
+            <span className="text-sm">{description}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Additional Columns */}
+      {additionalColumns.length > 0 && (
+        <>
+          <Separator />
+          <div className="flex flex-col gap-3">
+            {additionalColumns.map((columnConfig: any, i: number) => (
+              <div key={i} className="flex flex-col gap-1">
+                {columnConfig.type !== PublicMapColumnType.Boolean && (
+                  <span className="text-xs text-neutral-600 font-medium">
+                    {columnConfig.label}
+                  </span>
+                )}
+                {columnConfig.type === PublicMapColumnType.Boolean ? (
+                  <MobileCheckList
+                    sourceColumns={columnConfig.sourceColumns}
+                    json={record.json}
+                  />
+                ) : columnConfig.type === PublicMapColumnType.CommaSeparatedList ? (
+                  <MobileCommaSeparatedList
+                    sourceColumns={columnConfig.sourceColumns}
+                    json={record.json}
+                  />
+                ) : (
+                  <span className="text-sm">
+                    {columnConfig.sourceColumns
+                      .map((c: string) => record.json[c])
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MobileCheckList({
+  sourceColumns,
+  json,
+}: {
+  sourceColumns: string[];
+  json: Record<string, unknown>;
+}) {
+  const toBoolean = (val: unknown): boolean => {
+    if (!val) return false;
+    if (["false", "0", "no"].includes(String(val).toLowerCase())) return false;
+    return Boolean(val);
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      {sourceColumns.map((column) => (
+        <div key={column} className="flex items-center gap-2">
+          {toBoolean(json[column]) ? (
+            <Check className="w-3 h-3 text-green-600" />
+          ) : (
+            <X className="w-3 h-3 text-red-600" />
+          )}
+          <span className="text-xs">{column}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MobileCommaSeparatedList({
+  sourceColumns,
+  json,
+}: {
+  sourceColumns: string[];
+  json: Record<string, unknown>;
+}) {
+  const values = sourceColumns.flatMap((c) =>
+    String(json[c] || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  );
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {values.map((v) => (
+        <span
+          className="inline-block rounded-full bg-neutral-100 px-2 py-1 text-xs"
+          key={v}
+        >
+          {v}
+        </span>
+      ))}
     </div>
   );
 }
