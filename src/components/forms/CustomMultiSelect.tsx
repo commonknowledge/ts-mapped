@@ -27,7 +27,7 @@ export default function CustomMultiSelect({
             variant="outline"
             className="justify-between font-normal hover:bg-white cursor-auto"
           >
-            <span>
+            <span className="overflow-hidden overflow-ellipsis">
               {selectedOptions?.length
                 ? selectedOptions.join(", ")
                 : placeholder}

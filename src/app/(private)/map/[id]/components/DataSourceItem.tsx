@@ -1,7 +1,7 @@
 import { Check, Database } from "lucide-react";
 import { ColumnDef, LooseGeocodingConfig } from "@/__generated__/types";
+import DataSourceIcon from "@/components/DataSourceIcon";
 import { DataSourceType } from "@/types";
-import DataSourceIcon from "./DataSourceIcon";
 
 interface DataSource {
   id: string;

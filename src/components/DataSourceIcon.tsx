@@ -1,3 +1,4 @@
+import { File } from "lucide-react";
 import { DataSourceType } from "@/types";
 
 const AirtableIconSVG = () => {
@@ -274,7 +275,7 @@ const icons: Record<DataSourceType, React.ReactNode> = {
     <div className=" p-1 rounded-sm py-0">AN</div>
   ),
   [DataSourceType.airtable]: <AirtableIconSVG />,
-  [DataSourceType.csv]: <div className=" p-1 rounded-sm py-0">CSV</div>,
+  [DataSourceType.csv]: <File />,
   [DataSourceType.googlesheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.mailchimp]: <MailchimpIconSVG />,
 };
