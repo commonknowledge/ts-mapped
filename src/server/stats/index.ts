@@ -2,8 +2,8 @@ import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
 import {
   AreaStat,
   BoundingBoxInput,
+  CalculationType,
   ColumnType,
-  Operation,
 } from "@/__generated__/types";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -14,8 +14,8 @@ import logger from "@/server/services/logger";
 export const getAreaStats = async (
   areaSetCode: string,
   dataSourceId: string,
+  calculationType: CalculationType,
   column: string,
-  operation: Operation,
   excludeColumns: string[],
   boundingBox: BoundingBoxInput | null = null,
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
@@ -29,6 +29,15 @@ export const getAreaStats = async (
     return { column, columnType: ColumnType.String, stats };
   }
 
+  if (calculationType === CalculationType.Count) {
+    const stats = await getRecordCountByArea(
+      areaSetCode,
+      dataSourceId,
+      boundingBox,
+    );
+    return { column, columnType: ColumnType.Number, stats };
+  }
+
   try {
     const dataSource = await findDataSourceById(dataSourceId);
     if (!dataSource) {
@@ -40,15 +49,17 @@ export const getAreaStats = async (
       throw new Error(`Data source column not found: ${column}`);
     }
 
-    let safeOperation = operation;
+    let safeCalculationType = calculationType;
     if (columnDef.type !== ColumnType.Number) {
-      safeOperation = Operation.MODE;
+      safeCalculationType = CalculationType.Value;
     }
 
     const valueSelect =
-      safeOperation === Operation.MODE
+      safeCalculationType === CalculationType.Value
         ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-        : db.fn(safeOperation, [sql`(json->>${column})::float`]).as("value");
+        : db
+            .fn(safeCalculationType, [sql`(json->>${column})::float`])
+            .as("value");
 
     const query = db
       .selectFrom("dataRecord")
@@ -61,7 +72,7 @@ export const getAreaStats = async (
       .groupBy("areaCode");
 
     const result = await query.execute();
-    const stats = filterResult(result);
+    const stats = filterResult(result, columnDef.type);
     return { column, columnType: columnDef.type, stats };
   } catch (error) {
     logger.error(`Failed to get area stats`, { error });
@@ -150,7 +161,35 @@ export const getMaxColumnByArea = async (
   `;
   try {
     const result = await q.execute(db);
-    return filterResult(result.rows);
+    return filterResult(result.rows, ColumnType.String);
+  } catch (error) {
+    logger.error(`Failed to get area max column by area`, { error });
+  }
+  return [];
+};
+
+export const getRecordCountByArea = async (
+  areaSetCode: string,
+  dataSourceId: string,
+  boundingBox: BoundingBoxInput | null = null,
+) => {
+  try {
+    const query = db
+      .selectFrom("dataRecord")
+      .select([
+        sql`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
+        ({ fn }) => fn.countAll().as("value"),
+      ])
+      .where("dataRecord.dataSourceId", "=", dataSourceId)
+      .where(getBoundingBoxSQL(boundingBox))
+      .groupBy("areaCode");
+
+    const result = await query.execute();
+
+    // Ensure the counts are numbers, not strings (returned by Postgres)
+    const stats = filterResult(result, ColumnType.Number);
+
+    return stats;
   } catch (error) {
     logger.error(`Failed to get area max column by area`, { error });
   }
@@ -177,13 +216,23 @@ const getBoundingBoxSQL = (boundingBox: BoundingBoxInput | null) => {
     `;
 };
 
-const filterResult = (result: unknown[]) =>
-  result.filter(
-    (r) =>
+const filterResult = (result: unknown[], columnType: ColumnType) => {
+  const filtered: AreaStat[] = [];
+  for (const r of result) {
+    if (
       r &&
       typeof r === "object" &&
       "areaCode" in r &&
+      typeof r.areaCode === "string" &&
       "value" in r &&
-      r.areaCode !== null &&
-      r.value !== null,
-  ) as AreaStat[];
+      r.value !== null
+    ) {
+      if (columnType === ColumnType.Number) {
+        filtered.push({ ...r, value: Number(r.value) } as AreaStat);
+      } else {
+        filtered.push(r as AreaStat);
+      }
+    }
+  }
+  return filtered;
+};

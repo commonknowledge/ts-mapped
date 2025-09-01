@@ -28,7 +28,7 @@ interface ColumnCardProps {
       label: string;
       sourceColumns: string[];
       type: PublicMapColumnType;
-    }[]
+    }[],
   ) => void;
 }
 
@@ -62,7 +62,7 @@ export default function ColumnCard({
     updates: Partial<{
       label: string;
       type: PublicMapColumnType;
-    }>
+    }>,
   ) => {
     if (!hasColumns) return;
 
@@ -70,7 +70,7 @@ export default function ColumnCard({
     const columnIndex = additionalColumns.findIndex(
       (ac) =>
         selectedColumns.every((col) => ac.sourceColumns.includes(col)) &&
-        ac.sourceColumns.length === selectedColumns.length
+        ac.sourceColumns.length === selectedColumns.length,
     );
 
     if (columnIndex >= 0) {
@@ -97,7 +97,7 @@ export default function ColumnCard({
   const columnConfig = additionalColumns.find(
     (ac) =>
       selectedColumns.every((col) => ac.sourceColumns.includes(col)) &&
-      ac.sourceColumns.length === selectedColumns.length
+      ac.sourceColumns.length === selectedColumns.length,
   );
 
   return (

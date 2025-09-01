@@ -70,7 +70,13 @@ export default function PublicMapSidebar() {
                 property="description"
                 placeholder="Map description"
               >
-                <p>{publicMap.description || <span className="text-sm text-neutral-500 italic">Add a description to your map</span>}</p>
+                <p>
+                  {publicMap.description || (
+                    <span className="text-sm text-neutral-500 italic">
+                      Add a description to your map
+                    </span>
+                  )}
+                </p>
               </EditablePublicMapProperty>
               <EditablePublicMapProperty
                 property="descriptionLink"
@@ -86,7 +92,11 @@ export default function PublicMapSidebar() {
                     target="_blank"
                     onClick={(e) => editable && e.preventDefault()}
                   >
-                    {publicMap.descriptionLink || <span className="text-sm text-neutral-500 italic">Add a link to your map</span>}
+                    {publicMap.descriptionLink || (
+                      <span className="text-sm text-neutral-500 italic">
+                        Add a link to your map
+                      </span>
+                    )}
                   </a>
                 )}
               </EditablePublicMapProperty>

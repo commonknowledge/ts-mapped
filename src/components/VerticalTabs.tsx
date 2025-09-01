@@ -88,7 +88,7 @@ export function VerticalTabsList({
     <TabsList
       className={cn(
         "flex flex-col h-fit w-fit bg-transparent  rounded-none p-0",
-        className
+        className,
       )}
     >
       {children}
@@ -113,7 +113,7 @@ export function VerticalTabsTrigger({
         "transition-colors duration-200",
         "rounded-none ",
 
-        className
+        className,
       )}
     >
       {Icon && <Icon className="size-6 flex-shrink-0" />}
@@ -134,7 +134,7 @@ export function VerticalTabsContent({
       value={value}
       className={cn(
         "flex-1 mt-0 p-4 bg-card text-card-foreground w-full border-r border-neutral-200 overflow-y-auto",
-        className
+        className,
       )}
     >
       {header && (

@@ -36,6 +36,8 @@ export default function MapProvider({
   const [views, setViews] = useState<View[]>([]);
   const [viewId, setViewId] = useState<string | null>(initialViewId || null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [pinDropMode, setPinDropMode] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   /* GraphQL Data */
   const mapQuery = useMapQuery(mapId);
@@ -140,6 +142,10 @@ export default function MapProvider({
         zoom,
         setZoom,
         mapQuery,
+        pinDropMode,
+        setPinDropMode,
+        showControls,
+        setShowControls,
       }}
     >
       {children}

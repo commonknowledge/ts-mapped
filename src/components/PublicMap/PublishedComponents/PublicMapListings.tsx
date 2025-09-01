@@ -13,7 +13,7 @@ export function PublicMapListings() {
     publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red;
 
   const loadingSources = Object.values(dataRecordsQueries).some(
-    (q) => q.loading
+    (q) => q.loading,
   );
   return (
     <div className="overflow-y-auto py-4">

@@ -1,4 +1,5 @@
 import { Polygon } from "geojson";
+import { sign } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import {
   ColumnDef,
@@ -12,12 +13,14 @@ import {
   MutationUpdateMapArgs,
   MutationUpdateMapConfigArgs,
   PolygonInput,
+  UpdateUserResponse,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
   UpsertPublicMapResponse,
   UpsertTurfResponse,
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
+import ForgotPassword from "@/server/emails/forgot-password";
 import {
   createDataSource,
   findDataSourceById,
@@ -45,7 +48,13 @@ import {
   upsertPublicMap,
 } from "@/server/repositories/PublicMap";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
+import {
+  findUserByEmail,
+  findUserByToken,
+  updateUser,
+} from "@/server/repositories/User";
 import logger from "@/server/services/logger";
+import { sendEmail } from "@/server/services/mailer";
 import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
 import {
@@ -421,6 +430,29 @@ const MutationResolvers: MutationResolversType = {
       logger.error(`Could not create placed marker`, { error });
     }
     return { code: 500 };
+  },
+  updateUser: async (_, args, { currentUser }): Promise<UpdateUserResponse> => {
+    if (!currentUser) return { code: 401, result: null };
+    const user = await updateUser(currentUser.id, args.data);
+    return { code: 200, result: user };
+  },
+  forgotPassword: async (_, { email }): Promise<MutationResponse> => {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      // always return success, otherwise they can find out if a user exists
+      return { code: 200 };
+    }
+    const token = sign({ id: user.id }, process.env.JWT_SECRET || "", {
+      expiresIn: "15minutes",
+    });
+    await sendEmail(email, "Reset your password", ForgotPassword({ token }));
+    return { code: 200 };
+  },
+  resetPassword: async (_, { token, password }): Promise<MutationResponse> => {
+    const user = await findUserByToken(token);
+    if (!user) return { code: 401 };
+    await updateUser(user.id, { password });
+    return { code: 200 };
   },
 };
 

@@ -1,36 +1,34 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Legend from "@/components/Map/components/Legend";
 import Loading from "@/components/Map/components/Loading";
 import Map from "@/components/Map/components/Map";
-import MapStyleSelector from "@/components/Map/components/MapStyleSelector";
 import MapTable from "@/components/Map/components/table/MapTable";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { TableContext } from "@/components/Map/context/TableContext";
+import { CONTROL_PANEL_WIDTH } from "@/components/Map/styles";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
-import ChoroplethControl from "./components/controls/ChoroplethControl";
-import PrivateMapControls, {
-  CONTROL_PANEL_WIDTH,
-} from "./components/controls/PrivateMapControls";
+import PrivateMapControls from "./components/controls/PrivateMapControls";
+import VisualisationPanel from "./components/controls/visualisation/VisualisationPanel";
 import PrivateMapNavbar from "./components/PrivateMapNavbar";
 
 export default function PrivateMap() {
-  const { mapQuery, mapRef } = useContext(MapContext);
+  const { mapQuery, mapRef, showControls } = useContext(MapContext);
   const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
+
   const { dataSourcesLoading } = useContext(DataSourcesContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
-  const [showControls, setShowControls] = useState(true);
 
   // Resize map when UI changes
   useEffect(() => {
@@ -63,9 +61,9 @@ export default function PrivateMap() {
     <div className="flex flex-col h-screen">
       <PrivateMapNavbar />
       <div className="flex w-full grow min-h-0 relative">
-        <PrivateMapControls
-          showControls={showControls}
-          setShowControls={setShowControls}
+        <PrivateMapControls />
+        <VisualisationPanel
+          positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
         />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
@@ -73,9 +71,7 @@ export default function PrivateMap() {
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
-              <MapStyleSelector />
-              <ChoroplethControl />
-              <Legend areaStats={areaStatsQuery?.data?.areaStats} />
+              <Legend />
             </ResizablePanel>
             {selectedDataSourceId && (
               <>

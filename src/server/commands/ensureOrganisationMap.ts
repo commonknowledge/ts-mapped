@@ -29,7 +29,7 @@ const MAP_AND_DATA_SOURCE_NAME = "2024 GE Results";
 
 /**
  * Ensures that a map called `MAP_AND_DATA_SOURCE_NAME` exists for
- * the provided organisation, with the choropleth visualization set
+ * the provided organisation, with the choropleth visualisation set
  * to display the 2024 GE results.
  *
  * This file also includes the logic to ensure the data source exists,

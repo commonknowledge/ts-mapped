@@ -19,7 +19,7 @@ export default function DataRecordSidebar() {
     const dataRecordsQuery =
       dataRecordsQueries[selectedDataRecord.dataSourceId];
     return dataRecordsQuery.data?.dataSource?.records?.find(
-      (r) => r.id === selectedDataRecord.id
+      (r) => r.id === selectedDataRecord.id,
     );
   }, [dataRecordsQueries, selectedDataRecord]);
 
@@ -28,12 +28,12 @@ export default function DataRecordSidebar() {
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === selectedDataRecord?.dataSourceId
+    (dsc) => dsc.dataSourceId === selectedDataRecord?.dataSourceId,
   );
 
   const name = buildName(
     dataSourceConfig?.nameColumns || [],
-    selectedDataRecordDetails.json
+    selectedDataRecordDetails.json,
   );
   const description =
     selectedDataRecordDetails.json[dataSourceConfig?.descriptionColumn || ""];
@@ -44,7 +44,7 @@ export default function DataRecordSidebar() {
     <div
       className={cn(
         "flex flex-col gap-4 p-4 w-[280px] ",
-        editable ? "gap-8" : ""
+        editable ? "gap-8" : "",
       )}
     >
       {/* Name */}
@@ -169,7 +169,7 @@ function CommaSeparatedList({
   const values = sourceColumns.flatMap((c) =>
     String(json[c] || "")
       .split(",")
-      .map((s) => s.trim())
+      .map((s) => s.trim()),
   );
 
   return (

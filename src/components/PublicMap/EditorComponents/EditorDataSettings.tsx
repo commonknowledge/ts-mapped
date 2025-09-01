@@ -36,7 +36,7 @@ export default function EditorDataSettings() {
     if (!currentTabId) return;
 
     const currentDataSourceConfig = publicMap.dataSourceConfigs.find(
-      (config) => config.dataSourceId === currentTabId
+      (config) => config.dataSourceId === currentTabId,
     );
 
     if (!currentDataSourceConfig) return;
@@ -51,12 +51,12 @@ export default function EditorDataSettings() {
     const visibleAdditionalColumns = currentDataSourceConfig.additionalColumns
       .filter((ac) =>
         ac.sourceColumns.some(
-          (col) => !primaryColumns.includes(col) && col !== secondaryColumn
-        )
+          (col) => !primaryColumns.includes(col) && col !== secondaryColumn,
+        ),
       )
       .flatMap((ac) => ac.sourceColumns)
       .filter(
-        (col) => !primaryColumns.includes(col) && col !== secondaryColumn
+        (col) => !primaryColumns.includes(col) && col !== secondaryColumn,
       );
 
     // Update expanded state for visible additional columns
@@ -87,8 +87,9 @@ export default function EditorDataSettings() {
             <TabsList
               className="grid w-full"
               style={{
-                gridTemplateColumns: `repeat(${publicMap.dataSourceConfigs.length
-                  }, 1fr)`,
+                gridTemplateColumns: `repeat(${
+                  publicMap.dataSourceConfigs.length
+                }, 1fr)`,
               }}
             >
               {publicMap.dataSourceConfigs.map((dsc) => (
@@ -180,14 +181,14 @@ export default function EditorDataSettings() {
                   <div className="flex flex-col gap-2">
                     {(() => {
                       const dataSource = getDataSourceById(
-                        dataSourceConfig.dataSourceId
+                        dataSourceConfig.dataSourceId,
                       );
                       if (!dataSource?.columnDefs) return null;
 
                       return dataSource.columnDefs.map((column) => {
                         const isVisible =
                           dataSourceConfig.additionalColumns.some((ac) =>
-                            ac.sourceColumns.includes(column.name)
+                            ac.sourceColumns.includes(column.name),
                           );
 
                         // Check expanded state
@@ -195,7 +196,7 @@ export default function EditorDataSettings() {
 
                         const columnConfig =
                           dataSourceConfig.additionalColumns.find((ac) =>
-                            ac.sourceColumns.includes(column.name)
+                            ac.sourceColumns.includes(column.name),
                           );
 
                         return (
@@ -225,10 +226,10 @@ export default function EditorDataSettings() {
                                           dataSourceConfig.additionalColumns.filter(
                                             (ac) =>
                                               !ac.sourceColumns.includes(
-                                                column.name
-                                              )
+                                                column.name,
+                                              ),
                                           ),
-                                      }
+                                      },
                                     );
                                     // Also collapse the accordion
                                     setExpandedColumns((prev) => ({
@@ -248,7 +249,7 @@ export default function EditorDataSettings() {
                                             type: PublicMapColumnType.String,
                                           },
                                         ],
-                                      }
+                                      },
                                     );
                                     // Expand accordion when making visible
                                     setExpandedColumns((prev) => ({
@@ -284,8 +285,8 @@ export default function EditorDataSettings() {
                                           dataSourceConfig.additionalColumns.findIndex(
                                             (ac) =>
                                               ac.sourceColumns.includes(
-                                                column.name
-                                              )
+                                                column.name,
+                                              ),
                                           );
                                         if (columnIndex >= 0) {
                                           const updatedColumns = [
@@ -299,7 +300,7 @@ export default function EditorDataSettings() {
                                             dataSourceConfig.dataSourceId,
                                             {
                                               additionalColumns: updatedColumns,
-                                            }
+                                            },
                                           );
                                         }
                                       }}
@@ -324,8 +325,8 @@ export default function EditorDataSettings() {
                                           dataSourceConfig.additionalColumns.findIndex(
                                             (ac) =>
                                               ac.sourceColumns.includes(
-                                                column.name
-                                              )
+                                                column.name,
+                                              ),
                                           );
                                         if (columnIndex >= 0) {
                                           const updatedColumns = [
@@ -339,7 +340,7 @@ export default function EditorDataSettings() {
                                             dataSourceConfig.dataSourceId,
                                             {
                                               additionalColumns: updatedColumns,
-                                            }
+                                            },
                                           );
                                         }
                                       }}
@@ -390,7 +391,6 @@ export default function EditorDataSettings() {
             No data sources added yet. Add a data source to get started.
           </p>
           <DataSourcesSelect />
-
         </div>
       )}
 

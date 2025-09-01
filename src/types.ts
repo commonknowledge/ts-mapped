@@ -13,6 +13,10 @@ export enum DataSourceType {
   mailchimp = "mailchimp",
 }
 
+export interface DrawModeChangeEvent {
+  mode: string;
+}
+
 export interface DrawDeleteEvent {
   features: {
     id: string;

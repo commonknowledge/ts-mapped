@@ -16,7 +16,6 @@ import { SyntheticEvent, useContext, useMemo, useRef, useState } from "react";
 import { Folder, PlacedMarker } from "@/__generated__/types";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
-import { mapColors } from "@/components/Map/styles";
 import { sortByPositionAndId } from "@/components/Map/utils";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -107,20 +106,26 @@ export default function SortableFolderItem({
   };
 
   return (
-    <li ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <li
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="border border-neutral-200 rounded-sm mb-2"
+    >
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div
             ref={isDraggingMarker ? setHeaderNodeRef : null}
-            className={`flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-neutral-100 rounded transition-colors ${
+            className={`flex items-center gap-2 hover:bg-neutral-100  transition-colors px-2 py-1 ${
               isHeaderOver ? "bg-blue-50" : ""
             }`}
             onClick={onClickFolder}
           >
             {isExpanded ? (
-              <FolderOpen className="w-4 h-4 text-muted-foreground" />
+              <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
             ) : (
-              <FolderClosed className="w-4 h-4 text-muted-foreground" />
+              <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
             )}
             {isEditing ? (
               <form
@@ -136,27 +141,32 @@ export default function SortableFolderItem({
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
                   ref={inputRef}
-                  className="flex-1"
+                  className="flex-1 h-7 px-1"
                 />
-                <Button type="submit" size="sm" variant="ghost">
-                  <Check className="h-3 w-3" />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="ghost"
+                  className="p-0 h-7"
+                >
+                  <Check className="h-4 w-4" />
                 </Button>
               </form>
             ) : (
-              <span className="text-sm font-medium flex-1 break-all">
+              <span className="text-sm font-medium flex-1 break-all py-1">
                 {folder.name}
               </span>
             )}
             <span
               className={cn(
-                "text-xs text-muted-foreground bg-transparent transition-transform duration-300",
+                "text-xs text-muted-foreground  transition-transform duration-30 rounded-full bg-neutral-50 px-1",
                 isPulsing ? "animate-pulse  transform scale-110" : "",
               )}
               style={{
-                color: isPulsing ? mapColors.markers.color : "",
+                color: isPulsing ? "green" : "",
               }}
             >
-              ({sortedMarkers.length})
+              {sortedMarkers.length}
             </span>
           </div>
         </ContextMenuTrigger>
@@ -182,22 +192,27 @@ export default function SortableFolderItem({
       </ContextMenu>
       {isExpanded && (
         <>
-          <ol className="ml-3 mt-1 space-y-0.5">
-            <SortableContext
-              items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
-              strategy={verticalListSortingStrategy}
-            >
-              {sortedMarkers.map((marker, index) => (
-                <SortableMarkerItem
-                  key={`${marker.id}-${index}`}
-                  marker={marker}
-                  activeId={activeId}
-                  setKeyboardCapture={setKeyboardCapture}
-                />
-              ))}
-            </SortableContext>
-          </ol>
-
+          {sortedMarkers.length > 0 ? (
+            <ol className="ml-3 mt-1 space-y-0.5">
+              <SortableContext
+                items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                {sortedMarkers.map((marker, index) => (
+                  <SortableMarkerItem
+                    key={`${marker.id}-${index}`}
+                    marker={marker}
+                    activeId={activeId}
+                    setKeyboardCapture={setKeyboardCapture}
+                  />
+                ))}
+              </SortableContext>
+            </ol>
+          ) : (
+            <div className="ml-3 mt-1 text-sm text-muted-foreground">
+              No markers in this folder
+            </div>
+          )}
           {/* Invisible footer drop zone */}
           <div
             ref={isDraggingMarker ? setFooterNodeRef : null}

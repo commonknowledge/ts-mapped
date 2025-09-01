@@ -38,14 +38,14 @@ export default function EditablePublicMapProperty({
       initialValue = publicMap[property] || "";
     } else if (dataSourceProperty) {
       const dataSourceConfig = publicMap.dataSourceConfigs.find(
-        (dsc) => dsc.dataSourceId === dataSourceProperty.dataSourceId
+        (dsc) => dsc.dataSourceId === dataSourceProperty.dataSourceId,
       );
       initialValue = dataSourceConfig
         ? dataSourceConfig[dataSourceProperty.property] || ""
         : "";
     } else if (additionalColumnProperty) {
       const dataSourceConfig = publicMap.dataSourceConfigs.find(
-        (dsc) => dsc.dataSourceId === additionalColumnProperty.dataSourceId
+        (dsc) => dsc.dataSourceId === additionalColumnProperty.dataSourceId,
       );
       initialValue =
         dataSourceConfig &&
@@ -78,7 +78,7 @@ export default function EditablePublicMapProperty({
         additionalColumnProperty.columnIndex,
         {
           [additionalColumnProperty.property]: value,
-        }
+        },
       );
     }
     setEditing(false);

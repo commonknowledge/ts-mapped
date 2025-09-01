@@ -4,11 +4,14 @@ import { MapRef } from "react-map-gl/mapbox";
 import {
   AreaSetGroupCode,
   BoundingBoxInput,
+  CalculationType,
+  ColorScheme,
   MapConfigInput,
   MapQuery,
   MapQueryVariables,
   MapStyleName,
   MapViewConfigInput,
+  VisualisationType,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
 import mapStyles from "../styles";
@@ -41,6 +44,9 @@ export class ViewConfig implements MapViewConfigInput {
   public showMembers = true;
   public showLocations = true;
   public showTurf = true;
+  public calculationType?: CalculationType | null = CalculationType.Value;
+  public colorScheme?: ColorScheme | null = ColorScheme.RedBlue;
+  public visualisationType?: VisualisationType | null;
 
   constructor(params: Partial<ViewConfig> = {}) {
     Object.assign(this, params);
@@ -91,6 +97,12 @@ export const MapContext = createContext<{
   zoom: number;
   setZoom: (zoom: number) => void;
 
+  pinDropMode: boolean;
+  setPinDropMode: (pinDropMode: boolean) => void;
+
+  showControls: boolean;
+  setShowControls: (showControls: boolean) => void;
+
   /* GraphQL Queries */
   mapQuery: QueryResult<MapQuery, MapQueryVariables> | null;
 }>({
@@ -115,4 +127,8 @@ export const MapContext = createContext<{
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
   mapQuery: null,
+  pinDropMode: false,
+  setPinDropMode: () => null,
+  showControls: false,
+  setShowControls: () => null,
 });

@@ -19,6 +19,9 @@ export default function MarkerAndTurfProvider({
   /* State */
 
   const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
+  const [selectedPlacedMarkerId, setSelectedPlacedMarkerId] = useState<
+    string | null
+  >(null);
 
   /* GraphQL Data */
   const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {
@@ -109,6 +112,8 @@ export default function MarkerAndTurfProvider({
         updatePlacedMarker,
         turfs,
         turfsLoading,
+        selectedPlacedMarkerId,
+        setSelectedPlacedMarkerId,
         deleteTurf,
         insertTurf,
         updateTurf,

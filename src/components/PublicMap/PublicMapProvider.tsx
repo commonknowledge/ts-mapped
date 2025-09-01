@@ -45,11 +45,11 @@ export default function PublicMapProvider({
       q: QueryResult<
         PublicMapDataRecordsQuery,
         PublicMapDataRecordsQueryVariables
-      >
+      >,
     ) => {
       setDataRecordsQueries((prev) => ({ ...prev, [dataSourceId]: q }));
     },
-    []
+    [],
   );
 
   const updatePublicMap = (updates: Partial<PublicMap>) => {
@@ -60,7 +60,7 @@ export default function PublicMapProvider({
 
   const updateDataSourceConfig = (
     dataSourceId: string,
-    updates: Partial<PublicMapDataSourceConfig>
+    updates: Partial<PublicMapDataSourceConfig>,
   ) => {
     if (publicMap) {
       setPublicMap({
@@ -78,7 +78,7 @@ export default function PublicMapProvider({
   const updateAdditionalColumn = (
     dataSourceId: string,
     columnIndex: number,
-    updates: Partial<PublicMapColumn>
+    updates: Partial<PublicMapColumn>,
   ) => {
     if (publicMap) {
       setPublicMap({
@@ -150,13 +150,13 @@ function DataRecordsQueryComponent({
     q: QueryResult<
       PublicMapDataRecordsQuery,
       PublicMapDataRecordsQueryVariables
-    >
+    >,
   ) => void;
 }) {
   const { view } = useContext(MapContext);
 
   const filter = view?.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === dataSourceId
+    (dsv) => dsv.dataSourceId === dataSourceId,
   )?.filter;
 
   const sort = location
@@ -201,7 +201,7 @@ function DataRecordsQueryComponent({
         filter,
         sort,
       },
-    }
+    },
   );
 
   useEffect(() => {

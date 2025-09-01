@@ -271,7 +271,7 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
       if (!filter.search) {
         inputRef.current?.focus();
       }
-    }, 10);
+    }, 100);
   }, [filter.search]);
 
   const updateFilter = useCallback(

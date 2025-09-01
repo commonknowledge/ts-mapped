@@ -1,20 +1,21 @@
 "use client";
 
 import { QueryResult } from "@apollo/client";
+import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
 import { useContext, useState } from "react";
 import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
+  PublicMapDataSourceConfig,
 } from "@/__generated__/types";
+import { PublicMapColumnType } from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
-import { cn } from "@/shadcn/utils";
-import { buildName } from "./utils";
-import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
-import { PublicMapColumnType } from "@/__generated__/types";
 import { Separator } from "@/shadcn/ui/separator";
-import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
+import { cn } from "@/shadcn/utils";
+import { Point } from "@/types";
+import { buildName } from "./utils";
 
 interface DataRecordsListProps {
   dataRecordsQuery: QueryResult<
@@ -37,7 +38,7 @@ export default function DataRecordsList({
 
   const records = dataRecordsQuery?.data?.dataSource?.records || [];
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id
+    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
   );
 
   const getName = (record: {
@@ -57,7 +58,10 @@ export default function DataRecordsList({
     return descriptionColumn ? String(record.json[descriptionColumn]) : null;
   };
 
-  const handleRecordClick = (record: any) => {
+  const handleRecordClick = (record: {
+    id: string;
+    geocodePoint?: Point | null;
+  }) => {
     if (dataRecordsQuery.data?.dataSource?.id) {
       onSelect({
         id: record.id,
@@ -93,12 +97,10 @@ export default function DataRecordsList({
               key={r.id}
               className={cn(
                 "cursor-pointer rounded transition-all duration-200",
-                isSelected ? "" : "hover:bg-accent"
+                isSelected ? "" : "hover:bg-accent",
               )}
               style={
-                isSelected
-                  ? { backgroundColor: colourScheme.muted }
-                  : undefined
+                isSelected ? { backgroundColor: colourScheme.muted } : undefined
               }
             >
               {/* Main record item */}
@@ -119,7 +121,9 @@ export default function DataRecordsList({
                   </div>
                 </div>
                 {getDescription(r) && (
-                  <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
+                  <span className="text-sm ml-[1.1rem]">
+                    {getDescription(r)}
+                  </span>
                 )}
               </div>
 
@@ -129,7 +133,6 @@ export default function DataRecordsList({
                   <MobileRecordDetails
                     record={r}
                     dataSourceConfig={dataSourceConfig}
-                    colourScheme={colourScheme}
                   />
                 </div>
               )}
@@ -145,17 +148,14 @@ export default function DataRecordsList({
 function MobileRecordDetails({
   record,
   dataSourceConfig,
-  colourScheme
 }: {
-  record: any;
-  dataSourceConfig: any;
-  colourScheme: { primary: string; muted: string };
+  record: { json: Record<string, unknown> };
+  dataSourceConfig?: PublicMapDataSourceConfig;
 }) {
-  const name = buildName(
-    dataSourceConfig?.nameColumns || [],
-    record.json
+  const name = buildName(dataSourceConfig?.nameColumns || [], record.json);
+  const description = String(
+    record.json[dataSourceConfig?.descriptionColumn || ""] || "",
   );
-  const description = record.json[dataSourceConfig?.descriptionColumn || ""];
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
@@ -186,7 +186,7 @@ function MobileRecordDetails({
         <>
           <Separator />
           <div className="flex flex-col gap-3">
-            {additionalColumns.map((columnConfig: any, i: number) => (
+            {additionalColumns.map((columnConfig, i: number) => (
               <div key={i} className="flex flex-col gap-1">
                 {columnConfig.type !== PublicMapColumnType.Boolean && (
                   <span className="text-xs text-neutral-600 font-medium">
@@ -198,7 +198,8 @@ function MobileRecordDetails({
                     sourceColumns={columnConfig.sourceColumns}
                     json={record.json}
                   />
-                ) : columnConfig.type === PublicMapColumnType.CommaSeparatedList ? (
+                ) : columnConfig.type ===
+                  PublicMapColumnType.CommaSeparatedList ? (
                   <MobileCommaSeparatedList
                     sourceColumns={columnConfig.sourceColumns}
                     json={record.json}
@@ -260,7 +261,7 @@ function MobileCommaSeparatedList({
     String(json[c] || "")
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   return (

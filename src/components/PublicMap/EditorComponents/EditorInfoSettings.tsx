@@ -15,14 +15,14 @@ export default function EditorInfoSettings() {
       label: "Public Map Title",
       value: mapTitle,
       onChange: (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
       ) => updatePublicMap({ name: e.target.value }),
     },
     {
       label: "Public Map Description",
       value: mapDescription,
       onChange: (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
       ) => updatePublicMap({ description: e.target.value }),
       multiline: true,
     },
@@ -30,7 +30,7 @@ export default function EditorInfoSettings() {
       label: "Contact Email",
       value: mapDescriptionLink,
       onChange: (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
       ) => updatePublicMap({ descriptionLink: e.target.value }),
       type: "email",
     },

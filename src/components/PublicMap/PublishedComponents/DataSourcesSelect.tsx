@@ -1,3 +1,4 @@
+import { Database } from "lucide-react";
 import { useContext } from "react";
 import { ColumnDef, PublicMapDataSourceConfig } from "@/__generated__/types";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
@@ -11,7 +12,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { Database } from "lucide-react";
 
 interface DataSource {
   id: string;
@@ -43,20 +43,20 @@ export default function DataSourcesSelect() {
           <DropdownMenuCheckboxItem
             key={ds.id}
             checked={publicMap?.dataSourceConfigs.some(
-              (dsc) => dsc.dataSourceId === ds.id
+              (dsc) => dsc.dataSourceId === ds.id,
             )}
             onSelect={(e) => e.preventDefault()}
             onCheckedChange={(checked) => {
               if (checked) {
                 updatePublicMap({
                   dataSourceConfigs: [createDataSourceConfig(ds)].concat(
-                    publicMap?.dataSourceConfigs || []
+                    publicMap?.dataSourceConfigs || [],
                   ),
                 });
               } else {
                 updatePublicMap({
                   dataSourceConfigs: publicMap?.dataSourceConfigs.filter(
-                    (dsc) => dsc.dataSourceId !== ds.id
+                    (dsc) => dsc.dataSourceId !== ds.id,
                   ),
                 });
               }
@@ -71,7 +71,7 @@ export default function DataSourcesSelect() {
 }
 
 const createDataSourceConfig = (
-  dataSource: DataSource
+  dataSource: DataSource,
 ): PublicMapDataSourceConfig => {
   return {
     dataSourceId: dataSource.id,

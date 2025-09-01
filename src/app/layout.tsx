@@ -15,6 +15,7 @@ import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
+import { Toaster } from "@/shadcn/ui/sonner";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -76,6 +77,7 @@ export default async function RootLayout({
             <ApolloProvider>
               <NProgressProvider>
                 <main>{children}</main>
+                <Toaster position="top-right" />
               </NProgressProvider>
             </ApolloProvider>
           </OrganisationsProvider>

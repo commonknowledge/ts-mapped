@@ -36,7 +36,7 @@ export default function PublishPublicMapSidebar() {
   const [hideSidebar] = useState(false);
   const [, setError] = useState("");
   const [publishedHost, setPublishedHost] = useState(
-    publicMap?.published ? publicMap.host : ""
+    publicMap?.published ? publicMap.host : "",
   );
 
   const [upsertPublicMap, { loading }] = useMutation<
@@ -107,7 +107,7 @@ export default function PublishPublicMapSidebar() {
         setPublishedHost(
           result.data.upsertPublicMap.result.published
             ? result.data.upsertPublicMap.result.host
-            : ""
+            : "",
         );
       }
       if (result.data?.upsertPublicMap?.code === 409) {
@@ -123,7 +123,7 @@ export default function PublishPublicMapSidebar() {
     <div
       className={cn(
         "absolute top-0 right-0 z-10 bg-white flex border-l border-neutral-200",
-        hideSidebar ? "h-auto" : "h-full"
+        hideSidebar ? "h-auto" : "h-full",
       )}
     >
       <div className="flex flex-col h-full w-[380px]">

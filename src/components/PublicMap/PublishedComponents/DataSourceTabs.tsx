@@ -123,7 +123,7 @@ function SingleDataSourceContent({
     <div
       className={cn(
         "",
-        editable && "border border-neutral-200 border-dashed m-1 rounded-md"
+        editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
       {editable && (

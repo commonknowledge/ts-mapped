@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import Loading from "@/components/Map/components/Loading";
 import Map from "@/components/Map/components/Map";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
@@ -13,15 +13,13 @@ import { PublicMapContext } from "./PublicMapContext";
 import { PublicMapListings } from "./PublishedComponents/PublicMapListings";
 import PublicMapSidebar from "./PublishedComponents/PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublishedComponents/PublicMapTopBarMobile";
-import { publicMapColourSchemes } from "@/components/Map/styles";
 
 export default function PublicMap() {
   const { mapQuery } = useContext(MapContext);
-  const { editable, colourScheme, dataRecordsQueries } = useContext(PublicMapContext);
+  const { editable } = useContext(PublicMapContext);
   const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
-
 
   if (!mapQuery || mapQuery.loading) {
     return <Loading />;
@@ -29,11 +27,6 @@ export default function PublicMap() {
 
   const loading =
     areaStatsLoading || areaStatsQuery?.loading || markerQueries?.loading;
-
-  // Convert string colourScheme to actual color scheme object
-  const activeColourScheme = colourScheme ?
-    (publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red) :
-    { primary: "#ef4444", muted: "#fef2f2" };
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -71,7 +64,10 @@ export default function PublicMap() {
         </div>
 
         {/* Mobile Listings - Overlay on bottom half */}
-        <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-2xl shadow-2xl" style={{ height: '50vh' }}>
+        <div
+          className="md:hidden absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-2xl shadow-2xl"
+          style={{ height: "50vh" }}
+        >
           <div className="overflow-y-auto h-full">
             <PublicMapListings />
           </div>

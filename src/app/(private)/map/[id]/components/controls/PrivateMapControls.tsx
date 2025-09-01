@@ -1,28 +1,32 @@
 import { PanelLeft } from "lucide-react";
+import { useContext } from "react";
+
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { CONTROL_PANEL_WIDTH } from "@/components/Map/styles";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import AreasControl from "./layers/AreasControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
+import VisualiseControl from "./layers/VisualiseControl";
 
-export const CONTROL_PANEL_WIDTH = 280;
+export default function PrivateMapControls() {
+  const { showControls, setShowControls } = useContext(MapContext);
+  const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
 
-export default function PrivateMapControls({
-  showControls,
-  setShowControls,
-}: {
-  showControls: boolean;
-  setShowControls: (show: boolean) => void;
-}) {
+  const onToggleControls = () => {
+    setShowControls(!showControls);
+    if (showControls === true) {
+      setBoundariesPanelOpen(false);
+    }
+  };
+
   return (
     <>
       {/* Toggle button - always visible */}
       <div className="flex absolute top-3 left-3 z-10 bg-white rounded-lg shadow-lg">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowControls(!showControls)}
-        >
+        <Button variant="ghost" size="icon" onClick={() => onToggleControls()}>
           <PanelLeft className="w-4 h-4" />
           <span className="sr-only">Toggle controls</span>
         </Button>
@@ -30,11 +34,15 @@ export default function PrivateMapControls({
 
       {/* Control panel with transition */}
       <div
-        className={`absolute top-0 left-0 h-full transition-all duration-300 ease-in-out overflow-hidden z-20 ${
+        className={`absolute top-0 left-0 z-20 h-full overflow-hidden transition-all duration-300 ease-in-out ${
           showControls
             ? "translate-x-0 opacity-100"
             : "-translate-x-full opacity-0"
         }`}
+        style={{
+          width: `${CONTROL_PANEL_WIDTH}px`,
+          minWidth: `${CONTROL_PANEL_WIDTH}px`,
+        }}
       >
         <div className="flex flex-col bg-white z-10 h-full border-r border-neutral-200">
           {/* Header */}
@@ -43,7 +51,7 @@ export default function PrivateMapControls({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setShowControls(!showControls)}
+              onClick={() => onToggleControls()}
             >
               <PanelLeft className="w-4 h-4" />
               <span className="sr-only">Toggle controls</span>
@@ -52,7 +60,7 @@ export default function PrivateMapControls({
 
           {/* Content */}
           <div
-            className="flex flex-col overflow-y-auto"
+            className="flex flex-col overflow-y-auto flex-1"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
             <MembersControl />
@@ -60,6 +68,10 @@ export default function PrivateMapControls({
             <MarkersControl />
             <Separator />
             <AreasControl />
+            <div className="flex flex-col  mt-auto">
+              <Separator />
+              <VisualiseControl />
+            </div>
           </div>
         </div>
       </div>
