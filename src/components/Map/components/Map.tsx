@@ -162,6 +162,21 @@ export default function Map({
     toggleLabelVisibility(viewConfig.showLabels);
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
+  // Mobile padding to account for top bar and listings overlay
+  const mobilePadding = useMemo(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    // Only apply padding on mobile screens
+    if (window.innerWidth >= 768) return undefined;
+
+    return {
+      top: 96, // 6rem (24 * 4) for top bar
+      bottom: window.innerHeight * 0.5, // 50vh for listings
+      left: 0,
+      right: 0
+    };
+  }, []);
+
   return (
     <MapGL
       initialViewState={{
@@ -174,6 +189,7 @@ export default function Map({
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
       mapStyle={`mapbox://styles/mapbox/${viewConfig.getMapStyle().slug}`}
       interactiveLayerIds={markerLayers}
+      padding={mobilePadding}
       onClick={(e) => {
         const map = e.target;
         const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
@@ -317,11 +333,11 @@ export default function Map({
         const bounds = e.target.getBounds();
         const boundingBox = bounds
           ? {
-              north: bounds.getNorth(),
-              east: bounds.getEast(),
-              south: bounds.getSouth(),
-              west: bounds.getWest(),
-            }
+            north: bounds.getNorth(),
+            east: bounds.getEast(),
+            south: bounds.getSouth(),
+            west: bounds.getWest(),
+          }
           : null;
         setBoundingBox(boundingBox);
         setZoom(e.viewState.zoom);

@@ -125,7 +125,7 @@ export default function DataRecordsList({
 
               {/* Expanded content - only on mobile */}
               {isExpanded && (
-                <div className="px-4 pb-4 border-t border-neutral-200 md:hidden">
+                <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
                   <MobileRecordDetails
                     record={r}
                     dataSourceConfig={dataSourceConfig}

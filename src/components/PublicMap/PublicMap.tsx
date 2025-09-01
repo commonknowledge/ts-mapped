@@ -12,7 +12,7 @@ import PublishPublicMapSidebar from "./EditorComponents/PublishPublicMapSidebar"
 import { PublicMapContext } from "./PublicMapContext";
 import { PublicMapListings } from "./PublishedComponents/PublicMapListings";
 import PublicMapSidebar from "./PublishedComponents/PublicMapSidebar";
-import PublicMapTopBar from "./PublishedComponents/PublicMapTopBar";
+import PublicMapTopBarMobile from "./PublishedComponents/PublicMapTopBarMobile";
 import { publicMapColourSchemes } from "@/components/Map/styles";
 
 export default function PublicMap() {
@@ -42,15 +42,15 @@ export default function PublicMap() {
         <PublicMapSidebar />
       </div>
 
-      {/* Mobile Layout */}
-      <div className="md:hidden relative flex-1 overflow-hidden">
-        {/* Fixed Top Bar */}
-        <div className="absolute top-0 left-0 right-0 z-20">
-          <PublicMapTopBar />
+      {/* Main Content Area */}
+      <div className="flex-1 relative">
+        {/* Mobile Top Bar - Hidden on desktop */}
+        <div className="md:hidden absolute top-0 left-0 right-0 z-20">
+          <PublicMapTopBarMobile />
         </div>
 
-        {/* Fixed Map - Behind everything */}
-        <div className="absolute top-24 left-0 right-0 z-10" style={{ height: 'calc(100vh - 50vh - 6rem)' }}>
+        {/* Map - Full area */}
+        <div className="w-full h-full">
           <Map
             onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
             hideDrawControls={true}
@@ -58,7 +58,7 @@ export default function PublicMap() {
           {loading && <Loading />}
           <Link
             href="https://v3.mapped.tools"
-            className="absolute bottom-6 right-4 flex flex-col items-center w-24"
+            className="absolute bottom-6 right-4 flex flex-col items-center w-24 md:w-auto"
           >
             <p className="text-sm text-neutral-500">Made using Mapped</p>
             <Image
@@ -70,33 +70,12 @@ export default function PublicMap() {
           </Link>
         </div>
 
-        {/* Mobile - Scrollable Listings - Slides over map */}
-        <div className="absolute bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl transition-all duration-300 ease-out" style={{ height: '50vh' }}>
+        {/* Mobile Listings - Overlay on bottom half */}
+        <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-2xl shadow-2xl" style={{ height: '50vh' }}>
           <div className="overflow-y-auto h-full">
             <PublicMapListings />
           </div>
         </div>
-      </div>
-
-      {/* Desktop Map Section */}
-      <div className="hidden md:block flex-1 relative min-h-0">
-        <Map
-          onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
-          hideDrawControls={true}
-        />
-        {loading && <Loading />}
-        <Link
-          href="https://v3.mapped.tools"
-          className="absolute bottom-6 right-4 flex flex-col items-center w-24 md:w-auto"
-        >
-          <p className="text-sm text-neutral-500">Made using Mapped</p>
-          <Image
-            src="/mapped-logo-colours.svg"
-            alt="Logo"
-            width={200}
-            height={200}
-          />
-        </Link>
       </div>
 
       {/* Editor Sidebar */}

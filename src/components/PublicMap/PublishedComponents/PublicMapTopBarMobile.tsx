@@ -8,7 +8,7 @@ import PublicMapGeocoder from "@/components/PublicMap/PublicMapGeocoder";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 
-export default function PublicMapTopBar() {
+export default function PublicMapTopBarMobile() {
     const {
         publicMap,
         editable,
@@ -31,8 +31,9 @@ export default function PublicMapTopBar() {
             {/* Top Bar */}
             <div
                 className="w-full bg-white border-b border-neutral-200 px-3 py-2 h-24"
-                style={{ backgroundColor: activeColourScheme.muted }}
+
             >
+                <div className="absolute top-0 left-0 right-0  h-full" style={{ backgroundColor: activeColourScheme.muted }}></div>
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between gap-4">
                         {/* Left side - Map icon and title */}
