@@ -18,7 +18,7 @@ import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { MAPBOX_SOURCE_IDS } from "@/components/Map/sources";
-import { mapColors } from "@/components/Map/styles";
+import { CONTROL_PANEL_WIDTH, mapColors } from "@/components/Map/styles";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
@@ -49,6 +49,9 @@ export default function Map({
     setBoundingBox,
     setZoom,
     pinDropMode,
+    showControls,
+    ready,
+    setReady,
   } = useContext(MapContext);
   const { insertPlacedMarker, deleteTurf, insertTurf } =
     useContext(MarkerAndTurfContext);
@@ -56,7 +59,6 @@ export default function Map({
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
-  const [ready, setReady] = useState(false);
   const [hoverMarker, setHoverMarker] = useState<{
     coordinates: [number, number];
     properties: Record<string, unknown>;
@@ -168,33 +170,41 @@ export default function Map({
     toggleLabelVisibility(viewConfig.showLabels);
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
-  // Mobile padding to account for top bar and listings overlay
-  const mobilePadding = useMemo(() => {
-    if (typeof window === "undefined") return undefined;
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
 
-    // Only apply padding on mobile screens
-    if (window.innerWidth >= 768) return undefined;
+    const map = mapRef?.current;
+    if (!map || !ready) {
+      return;
+    }
 
-    return {
-      top: 96, // 6rem (24 * 4) for top bar
-      bottom: window.innerHeight * 0.5, // 50vh for listings
-      left: 0,
-      right: 0,
+    const padding = {
+      left: showControls ? CONTROL_PANEL_WIDTH : 0,
+      top: 0,
+      bottom: 0,
     };
-  }, []);
+    // Public map mobile padding
+    if (window.innerWidth < 768) {
+      padding.top = 96;
+      padding.bottom = window.innerHeight * 0.5;
+    }
+    map.easeTo({
+      padding,
+      duration: 300,
+      easing: (t) => t * (2 - t),
+    });
+  }, [mapRef, ready, showControls]);
 
   return (
-    <MapWrapper
-      currentMode={pinDropMode ? "pin_drop" : currentMode}
-      ready={ready}
-    >
+    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
       <MapGL
         initialViewState={{
           longitude: -4.5481,
           latitude: 54.2361,
           zoom: DEFAULT_ZOOM,
         }}
-        padding={mobilePadding}
         ref={mapRef}
         style={{ flexGrow: 1 }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}

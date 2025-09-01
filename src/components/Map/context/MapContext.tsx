@@ -100,6 +100,9 @@ export const MapContext = createContext<{
   pinDropMode: boolean;
   setPinDropMode: (pinDropMode: boolean) => void;
 
+  ready: boolean;
+  setReady: (ready: boolean) => void;
+
   showControls: boolean;
   setShowControls: (showControls: boolean) => void;
 
@@ -129,6 +132,8 @@ export const MapContext = createContext<{
   mapQuery: null,
   pinDropMode: false,
   setPinDropMode: () => null,
+  ready: false,
+  setReady: () => null,
   showControls: false,
   setShowControls: () => null,
 });

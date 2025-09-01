@@ -129,7 +129,7 @@ export default function PublicMapTopBarMobile() {
               <div className="flex flex-col gap-1">
                 <EditablePublicMapProperty
                   property="descriptionLink"
-                  placeholder="https://example.com"
+                  placeholder="submissions@example.com"
                 >
                   {publicMap.descriptionLink && (
                     <a

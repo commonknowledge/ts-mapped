@@ -86,61 +86,57 @@ export default function DataRecordsList({
   };
 
   return (
-    <div className="flex flex-col gap-2 mb-2">
-      <ul className="flex flex-col">
-        {records.map((r) => {
-          const isExpanded = expandedRecordId === r.id;
-          const isSelected = selectedDataRecord?.id === r.id;
+    <ul className="flex flex-col">
+      {records.map((r) => {
+        const isExpanded = expandedRecordId === r.id;
+        const isSelected = selectedDataRecord?.id === r.id;
 
-          return (
-            <li
-              key={r.id}
-              className={cn(
-                "cursor-pointer rounded transition-all duration-200",
-                isSelected ? "" : "hover:bg-accent",
-              )}
-              style={
-                isSelected ? { backgroundColor: colourScheme.muted } : undefined
-              }
+        return (
+          <li
+            key={r.id}
+            className={cn(
+              "cursor-pointer rounded transition-all duration-200",
+              isSelected ? "" : "hover:bg-accent",
+            )}
+            style={
+              isSelected ? { backgroundColor: colourScheme.muted } : undefined
+            }
+          >
+            {/* Main record item */}
+            <div
+              role="button"
+              onClick={() => handleRecordClick(r)}
+              className="py-3 px-4 flex flex-col gap-2"
             >
-              {/* Main record item */}
-              <div
-                role="button"
-                onClick={() => handleRecordClick(r)}
-                className="py-3 px-4 flex flex-col gap-2"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: colourScheme.primary }}
-                  />
-                  <span className="font-medium flex-1">{getName(r)}</span>
-                  {/* Only show arrow on mobile */}
-                  <div className="text-xs text-neutral-500 md:hidden">
-                    {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                  </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: colourScheme.primary }}
+                />
+                <span className="font-medium flex-1">{getName(r)}</span>
+                {/* Only show arrow on mobile */}
+                <div className="text-xs text-neutral-500 md:hidden">
+                  {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
                 </div>
-                {getDescription(r) && (
-                  <span className="text-sm ml-[1.1rem]">
-                    {getDescription(r)}
-                  </span>
-                )}
               </div>
-
-              {/* Expanded content - only on mobile */}
-              {isExpanded && (
-                <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
-                  <MobileRecordDetails
-                    record={r}
-                    dataSourceConfig={dataSourceConfig}
-                  />
-                </div>
+              {getDescription(r) && (
+                <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
               )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+            </div>
+
+            {/* Expanded content - only on mobile */}
+            {isExpanded && (
+              <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
+                <MobileRecordDetails
+                  record={r}
+                  dataSourceConfig={dataSourceConfig}
+                />
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

@@ -1,5 +1,5 @@
 import { PanelLeft } from "lucide-react";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -12,7 +12,7 @@ import MembersControl from "./layers/MembersControl";
 import VisualiseControl from "./layers/VisualiseControl";
 
 export default function PrivateMapControls() {
-  const { showControls, setShowControls } = useContext(MapContext);
+  const { ready, showControls, setShowControls } = useContext(MapContext);
   const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
 
   const onToggleControls = () => {
@@ -21,6 +21,13 @@ export default function PrivateMapControls() {
       setBoundariesPanelOpen(false);
     }
   };
+
+  // Animate show controls on component mount
+  useEffect(() => {
+    if (ready) {
+      setShowControls(true);
+    }
+  }, [ready, setShowControls]);
 
   return (
     <>

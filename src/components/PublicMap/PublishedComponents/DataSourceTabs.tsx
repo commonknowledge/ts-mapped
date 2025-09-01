@@ -46,7 +46,6 @@ export default function DataSourceTabs({
           {editable && <DataSourcesSelect />}
 
           <SingleDataSourceContent
-            dsc={dsc}
             dataRecordsQuery={dataRecordsQuery}
             editable={editable}
             colourScheme={colourScheme}
@@ -62,7 +61,11 @@ export default function DataSourceTabs({
     activeTabId || publicMap.dataSourceConfigs[0]?.dataSourceId;
 
   return (
-    <Tabs value={defaultTabId} onValueChange={setActiveTabId}>
+    <Tabs
+      value={defaultTabId}
+      onValueChange={setActiveTabId}
+      className="min-h-0"
+    >
       <div className="flex items-center gap-2 px-4">
         <TabsList
           className="grid w-full"
@@ -85,9 +88,12 @@ export default function DataSourceTabs({
         const dataRecordsQuery = dataRecordsQueries[dsc.dataSourceId];
         return (
           dataRecordsQuery && (
-            <TabsContent value={dsc.dataSourceId} key={dsc.dataSourceId}>
+            <TabsContent
+              value={dsc.dataSourceId}
+              key={dsc.dataSourceId}
+              className="flex flex-col min-h-0"
+            >
               <SingleDataSourceContent
-                dsc={dsc}
                 dataRecordsQuery={dataRecordsQuery}
                 editable={editable}
                 colourScheme={colourScheme}
@@ -102,7 +108,6 @@ export default function DataSourceTabs({
 }
 
 interface SingleDataSourceContentProps {
-  dsc: { dataSourceId: string; dataSourceLabel: string };
   dataRecordsQuery: QueryResult<
     PublicMapDataRecordsQuery,
     PublicMapDataRecordsQueryVariables
@@ -113,7 +118,6 @@ interface SingleDataSourceContentProps {
 }
 
 function SingleDataSourceContent({
-  dsc,
   dataRecordsQuery,
   editable,
   colourScheme,
@@ -122,15 +126,10 @@ function SingleDataSourceContent({
   return (
     <div
       className={cn(
-        "",
+        "overflow-y-auto",
         editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
-      {editable && (
-        <p className="text-sm font-semibold text-muted-foreground p-2">
-          {dsc.dataSourceLabel}
-        </p>
-      )}
       <span className="text-sm px-4">
         {dataRecordsQuery.data?.dataSource?.records?.length || 0} Listings
       </span>

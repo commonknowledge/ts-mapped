@@ -80,7 +80,7 @@ export default function PublicMapSidebar() {
               </EditablePublicMapProperty>
               <EditablePublicMapProperty
                 property="descriptionLink"
-                placeholder="https://example.com"
+                placeholder="submissions@example.com"
               >
                 {publicMap.descriptionLink && (
                   <a
@@ -107,9 +107,7 @@ export default function PublicMapSidebar() {
             />
           </div>
         </div>
-        <div className="hidden md:block">
-          <PublicMapListings />
-        </div>
+        <PublicMapListings />
       </div>
 
       {recordSidebarVisible && <DataRecordSidebar />}

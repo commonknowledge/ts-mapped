@@ -6,13 +6,11 @@ import MapStyleSelector from "./MapStyleSelector";
 export default function MapWrapper({
   currentMode,
   children,
-  ready,
 }: {
   currentMode: string | null;
   children: React.ReactNode;
-  ready: boolean;
 }) {
-  const { mapRef, showControls } = useContext(MapContext);
+  const { showControls } = useContext(MapContext);
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
@@ -31,21 +29,6 @@ export default function MapWrapper({
       setMessage("");
     }
   }, [currentMode]);
-
-  useEffect(() => {
-    const map = mapRef?.current;
-
-    console.log('show controls', showControls, Boolean(map), ready)
-    if (map && ready) {
-      const padding = { left: showControls ? CONTROL_PANEL_WIDTH : 0 }
-      console.log('ease to', padding)
-      map.easeTo({
-        padding,
-        duration: 300,
-        easing: (t) => t * (2 - t),
-      });
-    }
-  }, [showControls, mapRef, ready]);
 
   const absolutelyCenter = {
     transform: showControls

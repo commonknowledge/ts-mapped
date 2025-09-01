@@ -128,7 +128,7 @@ export default function PublishPublicMapSidebar() {
     >
       <div className="flex flex-col h-full w-[380px]">
         {!hideSidebar && (
-          <div className="flex flex-col  h-full">
+          <form onSubmit={onSubmitForm} className="flex flex-col h-full">
             <VerticalTabs
               className="overflow-y-auto flex-1 flex flex-col"
               value={activePublishTab}
@@ -174,7 +174,7 @@ export default function PublishPublicMapSidebar() {
               </VerticalTabsList>
 
               <VerticalTabsContent value="settings">
-                <EditorPublishSettings />
+                <EditorPublishSettings publishedHost={publishedHost} />
                 <Separator className="my-4" />
                 <EditorInfoSettings />
               </VerticalTabsContent>
@@ -183,36 +183,20 @@ export default function PublishPublicMapSidebar() {
                 <EditorDataSettings />
               </VerticalTabsContent>
             </VerticalTabs>
-            <PublishActionsSection
-              publishedHost={publishedHost}
-              loading={loading}
-              onSubmitForm={onSubmitForm}
-            />
-          </div>
+            <PublishActionsSection loading={loading} />
+          </form>
         )}
       </div>
     </div>
   );
 }
 
-export function PublishActionsSection({
-  loading,
-  onSubmitForm,
-}: {
-  publishedHost: string;
-  loading: boolean;
-  onSubmitForm: (e: FormEvent<HTMLFormElement>) => void;
-}) {
+export function PublishActionsSection({ loading }: { loading: boolean }) {
   return (
     <div className="flex items-center border-t border-neutral-200 h-16">
       <Button
         disabled={loading}
         size="lg"
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          onSubmitForm(e as unknown as FormEvent<HTMLFormElement>);
-        }}
         className="flex-1 rounded-none h-full"
       >
         <Globe className="w-4 h-4" /> Publish Map

@@ -16,7 +16,7 @@ export function PublicMapListings() {
     (q) => q.loading,
   );
   return (
-    <div className="overflow-y-auto py-4">
+    <div className="py-4 flex flex-col min-h-0">
       {/* Listings */}
 
       <DataSourceTabs
