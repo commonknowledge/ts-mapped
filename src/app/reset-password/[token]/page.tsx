@@ -37,7 +37,6 @@ export default function Page({
   `);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(password, confirmPassword);
     await resetPassword({ variables: { token, password } });
     toast.success("Password reset successfully", {
       description: "You can now login with your new password",

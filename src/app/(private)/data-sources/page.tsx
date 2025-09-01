@@ -17,6 +17,7 @@ import {
 } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import { Link } from "@/components/Link";
+import { mapColors } from "@/components/Map/styles";
 import PageHeader from "@/components/PageHeader";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
@@ -24,8 +25,6 @@ import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
 import DataSourceCard from "../map/[id]/components/DataSourceItem";
-import { mapColors } from "../map/[id]/styles";
-// import DataSourceCard from "./components/DataSourceCard";
 
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
