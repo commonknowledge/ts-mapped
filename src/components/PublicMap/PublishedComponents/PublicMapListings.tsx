@@ -24,6 +24,16 @@ export function PublicMapListings() {
         editable={editable}
         dataRecordsQueries={dataRecordsQueries}
       />
+      <DataSourceTabs
+        colourScheme={activeColourScheme}
+        editable={editable}
+        dataRecordsQueries={dataRecordsQueries}
+      />
+      <DataSourceTabs
+        colourScheme={activeColourScheme}
+        editable={editable}
+        dataRecordsQueries={dataRecordsQueries}
+      />
       {loadingSources && (
         <div className="p-4 pt-0">
           <LoaderPinwheel className="animate-spin" />

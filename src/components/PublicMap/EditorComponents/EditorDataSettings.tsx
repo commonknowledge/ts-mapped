@@ -87,9 +87,8 @@ export default function EditorDataSettings() {
             <TabsList
               className="grid w-full"
               style={{
-                gridTemplateColumns: `repeat(${
-                  publicMap.dataSourceConfigs.length
-                }, 1fr)`,
+                gridTemplateColumns: `repeat(${publicMap.dataSourceConfigs.length
+                  }, 1fr)`,
               }}
             >
               {publicMap.dataSourceConfigs.map((dsc) => (
@@ -390,6 +389,8 @@ export default function EditorDataSettings() {
           <p className="text-sm text-neutral-500 text-center">
             No data sources added yet. Add a data source to get started.
           </p>
+          <DataSourcesSelect />
+
         </div>
       )}
 

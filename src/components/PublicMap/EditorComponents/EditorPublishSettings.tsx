@@ -103,13 +103,17 @@ export default function EditorPublishSettings() {
         </div>
         <div className="flex items-center gap-2 text-xs ">
           View at:
-          <Link
-            href={`https://${publicMap.host}`}
-            target="_blank"
-            className="underline "
-          >
-            {publicMap.host}
-          </Link>
+          {publicMap.host ? (
+            <Link
+              href={`https://${publicMap.host}`}
+              target="_blank"
+              className="underline "
+            >
+              {publicMap.host}
+            </Link>
+          ) : (
+            <span className="text-neutral-500">Enter a subdomain above</span>
+          )}
         </div>
         <Separator className="my-4" />
         <Label>URL</Label>

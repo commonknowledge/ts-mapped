@@ -9,9 +9,11 @@ import { Search } from "lucide-react";
 export default function PublicMapGeocoder({
   onGeocode,
   colourScheme,
+  className,
 }: {
   onGeocode: (point: Point) => void;
   colourScheme?: { primary: string; muted: string };
+  className?: string;
 }) {
   const { mapRef } = useContext(MapContext);
   const [search, setSearch] = useState("");
@@ -44,7 +46,7 @@ export default function PublicMapGeocoder({
           onChange={(e) => setSearch(e.target.value)}
           disabled={loading}
           placeholder="Search by address or postcode"
-          className="bg-white borderrounded-md shadow-none pl-8"
+          className={className || "bg-white borderrounded-md shadow-none pl-8"}
           style={{
             borderColor: colourScheme?.primary || "#d1d5db",
           }}
