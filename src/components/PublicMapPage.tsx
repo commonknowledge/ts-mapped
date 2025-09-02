@@ -8,6 +8,7 @@ import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
 import DataSourcesProvider from "@/components/Map/providers/DataSourcesProvider";
 import MapProvider from "@/components/Map/providers/MapProvider";
 import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvider";
+import PublicFiltersProvider from "@/components/PublicMap/providers/PublicFiltersProvider";
 import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import { getClient } from "@/services/apollo";
@@ -65,16 +66,19 @@ export default async function PublicMapPage({ host }: { host: string }) {
     );
   }
   const publicMap = publicMapQuery.data.publishedPublicMap;
+
   return (
     <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
       <DataSourcesProvider>
         <DataRecordProvider>
           <PublicMapProvider publicMap={publicMap}>
-            <ChoroplethProvider>
-              <MarkerAndTurfProvider>
-                <PublicMap />
-              </MarkerAndTurfProvider>
-            </ChoroplethProvider>
+            <PublicFiltersProvider>
+              <ChoroplethProvider>
+                <MarkerAndTurfProvider>
+                  <PublicMap />
+                </MarkerAndTurfProvider>
+              </ChoroplethProvider>
+            </PublicFiltersProvider>
           </PublicMapProvider>
         </DataRecordProvider>
       </DataSourcesProvider>

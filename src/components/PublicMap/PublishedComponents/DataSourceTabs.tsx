@@ -8,10 +8,12 @@ import {
 } from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
+import Filters from "./Filters";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };
@@ -130,9 +132,13 @@ function SingleDataSourceContent({
         editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
-      <span className="text-sm px-4">
-        {dataRecordsQuery.data?.dataSource?.records?.length || 0} Listings
-      </span>
+      <div className="flex justify-between items-center">
+        <span className="text-sm px-4">
+          {dataRecordsQuery.data?.dataSource?.records?.length || 0} Listings
+        </span>
+        <Filters />
+      </div>
+
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}
         onSelect={onSelect}
