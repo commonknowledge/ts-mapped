@@ -361,9 +361,7 @@ export default function Map({
                   const roundedArea = Math.round(area * 100) / 100;
                   insertTurf({
                     id: `turf-temp-${new Date().getTime()}`,
-                    label:
-                      feature.properties?.name ||
-                      `Area: ${roundedArea.toFixed(2)}m²`,
+                    label: feature.properties?.name || "",
                     notes: "",
                     area: roundedArea,
                     polygon: feature.geometry,
@@ -378,6 +376,7 @@ export default function Map({
                 if (e.features.length > 0) {
                   e?.features?.forEach((feature) => {
                     const area = turf.area(feature);
+                    console.log(area);
                     const roundedArea = Math.round(area * 100) / 100;
 
                     // Update your turf using the feature.id

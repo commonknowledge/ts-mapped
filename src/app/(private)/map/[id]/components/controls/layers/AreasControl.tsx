@@ -164,7 +164,9 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
                   className="w-2 h-2 rounded-full"
                 />
 
-                <div className="text-sm">{turf.label}</div>
+                <div className="text-sm">
+                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                </div>
               </div>
             </>
           )}
