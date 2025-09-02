@@ -2,7 +2,7 @@ import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { EnrichedRecord } from "@/server/mapping/enrich";
 import logger from "@/server/services/logger";
-import { ExternalRecord } from "@/types";
+import { ExternalRecord, TaggedRecord } from "@/types";
 import { DataSourceAdaptor } from "./abstract";
 
 const ActionNetworkWebhookPayload = z.array(
@@ -320,6 +320,48 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       } catch (error) {
         logger.error(
           `Error updating Action Network record ${record.externalRecord.externalId}`,
+          { error },
+        );
+      }
+    }
+  }
+
+  async tagRecords(records: TaggedRecord[]): Promise<void> {
+    for (const record of records) {
+      try {
+        const url = new URL(this.baseUrl);
+
+        const updatePayload = {
+          person: {
+            email_addresses: [
+              {
+                address: record.json.primary_email,
+              },
+            ],
+            custom_fields: {
+              [record.tag.name]: record.tag.present ? "true" : "false",
+            },
+          },
+        };
+
+        const response = await fetch(url.toString(), {
+          method: "POST",
+          headers: {
+            "OSDI-API-Token": this.apiKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatePayload),
+        });
+
+        if (!response.ok) {
+          const responseText = await response.text();
+          logger.error(
+            `Failed to update Action Network record ${record.externalId}: ${response.status}, ${responseText}`,
+          );
+        }
+      } catch (error) {
+        logger.error(
+          `Error updating Action Network record ${record.externalId}`,
           { error },
         );
       }

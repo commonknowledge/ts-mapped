@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { Separator } from "@/shadcn/ui/separator";
 import { DataSourceType } from "@/types";
 import { DataSourceConfig } from "@/zod";
 import ActionNetworkFields from "./fields/ActionNetworkFields";
@@ -139,7 +138,6 @@ export default function NewDataSourcePage() {
         title="New Data Source"
         description="Create a new data source to import into your maps."
       />
-      <Separator className="my-4" />
       <form onSubmit={onSubmit} className="max-w-2xl ">
         <DataListRow label="Name">
           <Input

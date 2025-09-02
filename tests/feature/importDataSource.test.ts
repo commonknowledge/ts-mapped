@@ -1,4 +1,5 @@
 import { expect, inject, test } from "vitest";
+import { FilterType } from "@/__generated__/types";
 import importDataSource from "@/server/jobs/importDataSource";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
@@ -12,11 +13,11 @@ const credentials = inject("credentials");
 
 test("importDataSource imports John Lennon record from Airtable", async () => {
   // 1. Create test organisation
-  const org = await upsertOrganisation({ name: "Test Org" });
+  const org = await upsertOrganisation({ name: "Test Import Org" });
 
   // 2. Create test data source with Airtable credentials
   const dataSource = await createDataSource({
-    name: "Test Airtable Source",
+    name: "Test Import Airtable Source",
     autoEnrich: false,
     autoImport: false,
     config: JSON.stringify({
@@ -34,13 +35,18 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
       areaSetCode: "PC",
     }),
     organisationId: org.id,
+    public: false,
   });
 
   // 3. Call importDataSource
   await importDataSource({ dataSourceId: dataSource.id });
 
   // 4. Verify data record exists
-  const stream = streamDataRecordsByDataSource(dataSource.id);
+  const stream = streamDataRecordsByDataSource(
+    dataSource.id,
+    { type: FilterType.MULTI },
+    "",
+  );
   const records = [];
   for await (const record of stream) {
     records.push({

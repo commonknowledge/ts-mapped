@@ -1,3 +1,4 @@
+import { Polygon } from "geojson";
 import {
   KyselyPlugin,
   OperationNodeTransformer,
@@ -32,7 +33,7 @@ class PointTransformer extends OperationNodeTransformer {
   protected transformValue(node: ValueNode): ValueNode {
     return {
       ...node,
-      value: isPoint(node.value) ? mapPoint(node.value) : node.value,
+      value: this.maybeTransformGeometry(node.value),
     };
   }
 
@@ -41,13 +42,35 @@ class PointTransformer extends OperationNodeTransformer {
   ): PrimitiveValueListNode {
     return {
       ...node,
-      values: node.values.map((it) => (isPoint(it) ? mapPoint(it) : it)),
+      values: node.values.map((v) => this.maybeTransformGeometry(v)),
     };
+  }
+
+  private maybeTransformGeometry(value: unknown) {
+    if (isPoint(value)) {
+      return mapPoint(value);
+    }
+    if (isPolygon(value)) {
+      return mapPolygon(value);
+    }
+    return value;
   }
 }
 
 function mapPoint(point: Point): string {
   return `SRID=4326;POINT(${point.lng} ${point.lat})`;
+}
+
+function mapPolygon(polygon: Polygon): string {
+  // Convert coordinates array to WKT format
+  const rings = polygon.coordinates
+    .map((ring) => {
+      const coords = ring.map((coord) => `${coord[0]} ${coord[1]}`).join(", ");
+      return `(${coords})`;
+    })
+    .join(", ");
+
+  return `SRID=4326;POLYGON(${rings})`;
 }
 
 function isPoint(point: unknown): point is Point {
@@ -59,11 +82,36 @@ function isPoint(point: unknown): point is Point {
   );
 }
 
+function isPolygon(polygon: unknown): polygon is Polygon {
+  const isP =
+    typeof polygon === "object" &&
+    polygon !== null &&
+    "type" in polygon &&
+    polygon.type === "Polygon" &&
+    "coordinates" in polygon &&
+    Array.isArray(polygon.coordinates) &&
+    polygon.coordinates.length > 0 &&
+    polygon.coordinates.every(
+      (ring) =>
+        Array.isArray(ring) &&
+        ring.every(
+          (coord) =>
+            Array.isArray(coord) &&
+            coord.length === 2 &&
+            typeof coord[0] === "number" &&
+            typeof coord[1] === "number",
+        ),
+    );
+  return isP;
+}
+
 // --- New: handle reading from DB ---
 function mapDbRowPoints(row: Record<string, unknown>): Record<string, unknown> {
   const mapped: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(row)) {
-    if (typeof value === "string" && isWkbHex(value)) {
+    if (typeof value === "string" && key === "polygon") {
+      mapped[key] = parseDbPolygon(value) ?? value;
+    } else if (typeof value === "string" && isWkbHex(value)) {
       mapped[key] = parseDbPoint(value) ?? value;
     } else {
       mapped[key] = value;
@@ -106,6 +154,80 @@ function parseDbPoint(val: string): Point | null {
       return { lng: x, lat: y };
     } catch (e) {
       logger.error("Error parsing PostGIS point", e);
+      return null;
+    }
+  }
+  return null;
+}
+
+function parseDbPolygon(val: string): Polygon | null {
+  if (isWkbHex(val)) {
+    try {
+      const buf = Buffer.from(val, "hex");
+      // WKB: [byte order][type][SRID][num_rings][ring1][ring2]...
+      // For each ring: [num_points][point1][point2]...
+      // Each point: [x][y] (8 bytes each)
+
+      const littleEndian = buf[0] === 1;
+      let offset = 1;
+
+      // Skip type (4 bytes)
+      offset += 4;
+
+      // Check SRID
+      const srid = littleEndian
+        ? buf.readUInt32LE(offset)
+        : buf.readUInt32BE(offset);
+      offset += 4;
+
+      if (srid !== 4326) {
+        return null;
+      }
+
+      // Read number of rings
+      const numRings = littleEndian
+        ? buf.readUInt32LE(offset)
+        : buf.readUInt32BE(offset);
+      offset += 4;
+
+      if (numRings === 0) {
+        return null;
+      }
+
+      const coordinates: [number, number][][] = [];
+
+      // Parse all rings (exterior + holes)
+      for (let ringIndex = 0; ringIndex < numRings; ringIndex++) {
+        const numPoints = littleEndian
+          ? buf.readUInt32LE(offset)
+          : buf.readUInt32BE(offset);
+        offset += 4;
+
+        const ring: [number, number][] = [];
+
+        for (let i = 0; i < numPoints; i++) {
+          const x = littleEndian
+            ? buf.readDoubleLE(offset)
+            : buf.readDoubleBE(offset);
+          offset += 8;
+          const y = littleEndian
+            ? buf.readDoubleLE(offset)
+            : buf.readDoubleBE(offset);
+          offset += 8;
+
+          if (isNaN(x) || isNaN(y)) {
+            return null;
+          }
+
+          ring.push([x, y]);
+        }
+
+        coordinates.push(ring);
+      }
+
+      return { type: "Polygon", coordinates };
+    } catch (e) {
+      logger.error("Error parsing PostGIS polygon", e);
       return null;
     }
   }

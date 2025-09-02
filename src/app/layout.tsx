@@ -2,6 +2,7 @@ import "nprogress/nprogress.css";
 import "./global.css";
 import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { headers } from "next/headers";
 import {
   ListOrganisationsQuery,
   ListOrganisationsQueryVariables,
@@ -9,12 +10,14 @@ import {
 import { getServerSession } from "@/auth";
 import ConditionalMarketingFooter from "@/components/ConditionalMarketingFooter";
 import ConditionalMarketingNavbar from "@/components/ConditionalMarketingNavbar";
-
+import PublicMapPage from "@/components/PublicMapPage";
+import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
+import { Toaster } from "@/shadcn/ui/sonner";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -42,6 +45,31 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const host = headersList.get("host");
+
+  const mainHost = new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
+  );
+  if (host && host !== mainHost.host) {
+    return (
+      <html
+        lang="en"
+        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
+      >
+        <body className={ibmPlexSans.className}>
+          <ApolloProvider ignoreAuthErrors>
+            <NProgressProvider>
+              <main>
+                <PublicMapPage host={host} />
+              </main>
+            </NProgressProvider>
+          </ApolloProvider>
+        </body>
+      </html>
+    );
+  }
+
   const serverSession = await getServerSession();
   const organisations = await getOrganisations();
 
@@ -56,8 +84,9 @@ export default async function RootLayout({
             <ApolloProvider>
               <NProgressProvider>
                 <ConditionalMarketingNavbar />
-                <main className=" min-h-screen">{children}</main>
+                <main className="min-h-screen">{children}</main>
                 <ConditionalMarketingFooter />
+                <Toaster position="top-right" />
               </NProgressProvider>
             </ApolloProvider>
           </OrganisationsProvider>

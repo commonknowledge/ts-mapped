@@ -12,7 +12,7 @@ export default function ControlItemWrapper({
   className = "",
 }: ControlItemWrapperProps) {
   return (
-    <div className={`flex flex-col gap-1 p-2 ${className}`}>
+    <div className={`flex flex-col gap-1 p-3 ${className}`}>
       <div className="flex flex-col gap-1">{children}</div>
     </div>
   );

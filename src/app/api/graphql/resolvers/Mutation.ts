@@ -1,3 +1,5 @@
+import { Polygon } from "geojson";
+import { sign } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import {
   ColumnDef,
@@ -10,11 +12,15 @@ import {
   MutationUpdateDataSourceConfigArgs,
   MutationUpdateMapArgs,
   MutationUpdateMapConfigArgs,
+  PolygonInput,
+  UpdateUserResponse,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
+  UpsertPublicMapResponse,
   UpsertTurfResponse,
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
+import ForgotPassword from "@/server/emails/forgot-password";
 import {
   createDataSource,
   findDataSourceById,
@@ -27,14 +33,28 @@ import {
   findMapById,
   updateMap,
 } from "@/server/repositories/Map";
-import { upsertMapView } from "@/server/repositories/MapView";
+import {
+  findMapViewById,
+  findMapViewsByMapId,
+  upsertMapView,
+} from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
   deletePlacedMarkersByFolderId,
   upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
+import {
+  findPublicMapByHost,
+  upsertPublicMap,
+} from "@/server/repositories/PublicMap";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
+import {
+  findUserByEmail,
+  findUserByToken,
+  updateUser,
+} from "@/server/repositories/User";
 import logger from "@/server/services/logger";
+import { sendEmail } from "@/server/services/mailer";
 import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
 import {
@@ -85,6 +105,7 @@ const MutationResolvers: MutationResolversType = {
         enrichments: JSON.stringify([]),
         geocodingConfig: JSON.stringify(geocodingConfig),
         columnDefs: JSON.stringify(columnDefs),
+        public: false,
       });
 
       logger.info(`Created ${config.type} data source: ${dataSource.id}`);
@@ -155,6 +176,21 @@ const MutationResolvers: MutationResolversType = {
     { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
     await enqueue("importDataSource", { dataSourceId });
+    return { code: 200 };
+  },
+  saveMapViewsToCRM: async (
+    _: unknown,
+    { id }: { id: string },
+  ): Promise<MutationResponse> => {
+    const views = await findMapViewsByMapId(id);
+    for (const view of views) {
+      for (const dsv of view.dataSourceViews) {
+        await enqueue("tagDataSource", {
+          dataSourceId: dsv.dataSourceId,
+          viewId: view.id,
+        });
+      }
+    }
     return { code: 200 };
   },
   updateDataSourceConfig: async (
@@ -284,6 +320,7 @@ const MutationResolvers: MutationResolversType = {
         await upsertMapView({
           ...view,
           config: JSON.stringify(view.config),
+          dataSourceViews: JSON.stringify(view.dataSourceViews),
           mapId,
         });
       }
@@ -308,6 +345,47 @@ const MutationResolvers: MutationResolversType = {
     }
     return { code: 500 };
   },
+  upsertPublicMap: async (
+    _,
+    {
+      viewId,
+      host,
+      name,
+      dataSourceConfigs,
+      description,
+      descriptionLink,
+      published,
+    },
+  ): Promise<UpsertPublicMapResponse> => {
+    try {
+      const existingPublicMap = await findPublicMapByHost(host);
+      if (existingPublicMap && existingPublicMap.viewId !== viewId) {
+        return { code: 409 };
+      }
+      const view = await findMapViewById(viewId);
+      if (!view) {
+        return { code: 404 };
+      }
+      const map = await findMapById(view.mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+      const result = await upsertPublicMap({
+        mapId: view.mapId,
+        viewId,
+        host,
+        name,
+        dataSourceConfigs: JSON.stringify(dataSourceConfigs),
+        description,
+        descriptionLink,
+        published,
+      });
+      return { code: 200, result };
+    } catch (error) {
+      logger.error(`Could not upsert public map`, { error });
+    }
+    return { code: 500 };
+  },
   upsertTurf: async (
     _: unknown,
     {
@@ -315,7 +393,7 @@ const MutationResolvers: MutationResolversType = {
       label,
       notes,
       area,
-      geometry,
+      polygon,
       createdAt,
       mapId,
     }: {
@@ -323,7 +401,7 @@ const MutationResolvers: MutationResolversType = {
       label: string;
       notes: string;
       area: number;
-      geometry: unknown;
+      polygon: PolygonInput;
       createdAt: string;
       mapId: string;
     },
@@ -337,7 +415,7 @@ const MutationResolvers: MutationResolversType = {
         label,
         notes,
         area,
-        geometry: JSON.stringify(geometry),
+        polygon: polygon as Polygon,
         createdAt: new Date(createdAt),
         mapId,
       };
@@ -352,6 +430,29 @@ const MutationResolvers: MutationResolversType = {
       logger.error(`Could not create placed marker`, { error });
     }
     return { code: 500 };
+  },
+  updateUser: async (_, args, { currentUser }): Promise<UpdateUserResponse> => {
+    if (!currentUser) return { code: 401, result: null };
+    const user = await updateUser(currentUser.id, args.data);
+    return { code: 200, result: user };
+  },
+  forgotPassword: async (_, { email }): Promise<MutationResponse> => {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      // always return success, otherwise they can find out if a user exists
+      return { code: 200 };
+    }
+    const token = sign({ id: user.id }, process.env.JWT_SECRET || "", {
+      expiresIn: "15minutes",
+    });
+    await sendEmail(email, "Reset your password", ForgotPassword({ token }));
+    return { code: 200 };
+  },
+  resetPassword: async (_, { token, password }): Promise<MutationResponse> => {
+    const user = await findUserByToken(token);
+    if (!user) return { code: 401 };
+    await updateUser(user.id, { password });
+    return { code: 200 };
   },
 };
 

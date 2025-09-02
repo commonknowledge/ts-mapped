@@ -13,6 +13,10 @@ export enum DataSourceType {
   mailchimp = "mailchimp",
 }
 
+export interface DrawModeChangeEvent {
+  mode: string;
+}
+
 export interface DrawDeleteEvent {
   features: {
     id: string;
@@ -33,11 +37,6 @@ export interface GeocodeResult {
   samplePoint: Point | null;
 }
 
-export interface MarkerData {
-  properties: Record<string, unknown>;
-  coordinates: number[];
-}
-
 // Property names taken from Mapbox standard
 export interface Point {
   lng: number;
@@ -46,13 +45,22 @@ export interface Point {
 
 export interface PointFeature {
   type: "Feature";
-  properties: Record<string, string>;
+  properties: Record<string, string | number>;
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 
 export interface ServerSession {
   jwt: string | null;
   currentUser: CurrentUser | null;
+}
+
+export interface TaggedRecord {
+  externalId: string;
+  json: Record<string, unknown>;
+  tag: {
+    name: string;
+    present: boolean;
+  };
 }
 
 export interface UploadResponseBody {
