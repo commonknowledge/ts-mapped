@@ -367,7 +367,6 @@ export default function Map({
                     polygon: feature.geometry,
                     createdAt: new Date().toISOString(),
                   });
-                  // newDraw.deleteAll();
                 }
               });
 
@@ -431,6 +430,7 @@ export default function Map({
           <>
             <NavigationControl showZoom={true} showCompass={false} />
             <Choropleth />
+            {/* KEEPING IT FOR TESTS */}
             {/* <TurfPolygons /> */}
             <FilterMarkers />
             <PlacedMarkers />
