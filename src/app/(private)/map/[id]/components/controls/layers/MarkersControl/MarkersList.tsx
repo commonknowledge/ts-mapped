@@ -19,10 +19,10 @@ import {
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { PlacedMarker } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { TableContext } from "@/components/Map/context/TableContext";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -30,7 +30,7 @@ import {
   getNewPositionAfter,
   getNewPositionBefore,
   sortByPositionAndId,
-} from "@/app/(private)/map/[id]/utils";
+} from "@/components/Map/utils";
 import CollectionLayer from "../../CollectionLayer";
 import EmptyLayer from "../../Emptylayer";
 import MarkerDragOverlay from "./MarkerDragOverlay";

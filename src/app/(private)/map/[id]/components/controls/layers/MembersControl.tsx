@@ -1,12 +1,12 @@
 import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
-import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { TableContext } from "@/app/(private)/map/[id]/context/TableContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { TableContext } from "@/components/Map/context/TableContext";
+import { mapColors } from "@/components/Map/styles";
+import { CollectionIcon } from "../../Icons";
 import CollectionLayer from "../CollectionLayer";
 import ControlItemWrapper from "../ControlItemWrapper";
 import EmptyLayer from "../Emptylayer";

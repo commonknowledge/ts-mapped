@@ -16,10 +16,10 @@ import {
   DataSource,
   VisualisationType,
 } from "@/__generated__/types";
-import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { getValidAreaSetGroupCodes } from "@/app/(private)/map/[id]/sources";
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { getValidAreaSetGroupCodes } from "@/components/Map/sources";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";

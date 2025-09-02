@@ -5,6 +5,7 @@ const typeDefs = `
     dataSourceIdArg: String
     mapIdArg: String
     organisationIdArg: String
+    viewIdArg: String
   }
 
   scalar Date
@@ -90,6 +91,12 @@ const typeDefs = `
     Choropleth
   }
 
+  enum PublicMapColumnType {
+    CommaSeparatedList
+    Boolean
+    String
+  }
+
   input BoundingBoxInput {
     north: Float!
     east: Float!
@@ -167,6 +174,22 @@ const typeDefs = `
     coordinates: [[[Float!]!]!]!
   }
 
+  input PublicMapDataSourceConfigInput {
+    dataSourceId: String!
+    dataSourceLabel: String!
+    nameColumns: [String!]!
+    nameLabel: String!
+    descriptionColumn: String!
+    descriptionLabel: String!
+    additionalColumns: [PublicMapColumnInput!]!
+  }
+
+  input PublicMapColumnInput {
+    label: String!
+    sourceColumns: [String!]!
+    type: PublicMapColumnType!
+  }
+
   input RecordFilterInput {
     children: [RecordFilterInput!]
     column: String
@@ -195,6 +218,7 @@ const typeDefs = `
   input SortInput {
     name: String!
     desc: Boolean!
+    location: PointInput
   }
 
   type AreaStat {
@@ -241,7 +265,7 @@ const typeDefs = `
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!]): [DataRecord!]
+    records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!], all: Boolean): [DataRecord!]
 
     recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): RecordCount
   }
@@ -355,6 +379,34 @@ const typeDefs = `
     lng: Float!
   }
 
+  type PublicMap {
+    id: String!
+    viewId: String!
+    mapId: String!
+    host: String!
+    name: String!
+    description: String!
+    descriptionLink: String!
+    published: Boolean!
+    dataSourceConfigs: [PublicMapDataSourceConfig!]!
+  }
+
+  type PublicMapDataSourceConfig {
+    dataSourceId: String!
+    dataSourceLabel: String!
+    nameColumns: [String!]!
+    nameLabel: String!
+    descriptionColumn: String!
+    descriptionLabel: String!
+    additionalColumns: [PublicMapColumn!]!
+  }
+
+  type PublicMapColumn {
+    label: String!
+    sourceColumns: [String!]!
+    type: PublicMapColumnType!
+  }
+
   type RecordCount {
     count: Int!
     matched: Int!
@@ -404,6 +456,8 @@ const typeDefs = `
     map(id: String!): Map @auth(read: { mapIdArg: "id" })
     maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })
     organisations: [Organisation!] @auth
+    publicMap(viewId: String!): PublicMap @auth(write: { viewIdArg: "viewId" })
+    publishedPublicMap(host: String!): PublicMap
   }
 
   type UpdateUserResponse {
@@ -447,6 +501,11 @@ const typeDefs = `
   type UpsertPlacedMarkerResponse {
     code: Int!
     result: PlacedMarker
+  }
+
+  type UpsertPublicMapResponse {
+    code: Int!
+    result: PublicMap
   }
 
   type UpsertTurfResponse {
@@ -501,6 +560,15 @@ const typeDefs = `
       folderId: String
       position: Float!
     ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
+    upsertPublicMap(
+      viewId: String!
+      host: String!
+      name: String!
+      description: String!
+      descriptionLink: String!
+      dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
+      published: Boolean!
+    ): UpsertPublicMapResponse @auth(write: { viewIdArg: "viewId" })
     upsertTurf(
       id: String
       label: String!

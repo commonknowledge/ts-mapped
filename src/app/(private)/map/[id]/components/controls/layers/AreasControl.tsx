@@ -2,11 +2,12 @@ import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Turf } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import Loading from "@/components/Map/components/Loading";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { CONTROL_PANEL_WIDTH, mapColors } from "@/components/Map/styles";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -14,7 +15,6 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
-import Loading from "../../Loading";
 import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
 
@@ -102,7 +102,7 @@ export default function AreasControl() {
 const TurfItem = ({ turf }: { turf: Turf }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
-  const { mapRef } = useContext(MapContext);
+  const { mapRef, showControls } = useContext(MapContext);
   const { updateTurf, deleteTurf } = useContext(MarkerAndTurfContext);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -112,6 +112,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
 
     // the bounding box of the polygon
     const bbox = turfLib.bbox(turf.polygon);
+    const padding = 20;
 
     map.fitBounds(
       [
@@ -119,7 +120,12 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
         [bbox[2], bbox[3]], // northeast corner
       ],
       {
-        padding: 100,
+        padding: {
+          left: showControls ? CONTROL_PANEL_WIDTH + padding : padding,
+          top: padding,
+          right: padding,
+          bottom: padding,
+        },
         duration: 1000,
       },
     );
