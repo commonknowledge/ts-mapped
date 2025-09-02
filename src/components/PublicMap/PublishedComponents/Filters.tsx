@@ -4,6 +4,15 @@ import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Button } from "@/shadcn/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shadcn/ui/dialog";
+import { Separator } from "@/shadcn/ui/separator";
+import { Switch } from "@/shadcn/ui/switch";
 
 interface FilterField {
   name: string;
@@ -82,9 +91,46 @@ export default function Filters() {
 
   return (
     <div className="my-4 px-4">
-      <Button variant="outline" onClick={() => console.log(filterFields)}>
-        Log filters
-      </Button>
+      <Dialog>
+        <DialogTrigger>
+          <Button variant="outline" asChild={true}>
+            <span>Open filters</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Filter</DialogTitle>
+            <Separator className="my-4" />
+            <form
+              className="flex flex-col gap-6"
+              onSubmit={(e) => e.preventDefault()}
+            >
+              {filterFields.map((field) => (
+                <div key={field.name}>
+                  <label className="block mb-2">{field.name}</label>
+                  {field.type === PublicMapColumnType.String ? (
+                    <input className="border" type="text" />
+                  ) : field.type === PublicMapColumnType.Boolean ? (
+                    <Switch />
+                  ) : field?.options?.length ? (
+                    <select>
+                      <option value="">--Please choose an option--</option>
+                      {field.options.map((o) => (
+                        <option value={o} key={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+              ))}
+              <Button type="submit">Filter</Button>
+            </form>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
