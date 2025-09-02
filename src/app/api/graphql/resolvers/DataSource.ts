@@ -1,4 +1,3 @@
-import { GraphQLError } from "graphql";
 import {
   DataSource,
   DataSourceResolvers as DataSourceResolversType,
@@ -38,13 +37,10 @@ const DataSourceResolvers: DataSourceResolversType = {
   },
   records: async ({ id }: DataSource, { filter, search, page, sort, all }) => {
     // Only allow all records for data sources on public maps
+    let safeAll = false;
     if (all) {
       const publicMap = await findPublishedPublicMapByDataSourceId(id);
-      if (!publicMap) {
-        throw new GraphQLError(
-          "`all` argument not allowed for this data source",
-        );
-      }
+      safeAll = Boolean(publicMap);
     }
     return findDataRecordsByDataSource(
       id,
@@ -52,7 +48,7 @@ const DataSourceResolvers: DataSourceResolversType = {
       search,
       page || 0,
       sort || [],
-      all,
+      safeAll,
     );
   },
   recordCount: ({ id }: DataSource, { filter, search }) =>
