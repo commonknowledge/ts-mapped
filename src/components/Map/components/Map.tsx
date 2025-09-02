@@ -33,7 +33,6 @@ import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
-// import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
   onSourceLoad,
@@ -328,7 +327,7 @@ export default function Map({
                       ["==", "$type", "Point"],
                     ],
                     paint: {
-                      "circle-radius": 6,
+                      "circle-radius": 11,
                       "circle-color": "#FFF",
                     },
                   },
@@ -341,7 +340,7 @@ export default function Map({
                       ["==", "$type", "Point"],
                     ],
                     paint: {
-                      "circle-radius": 5,
+                      "circle-radius": 10,
                       "circle-color": mapColors.areas.color,
                     },
                   },
@@ -375,7 +374,6 @@ export default function Map({
                 if (e.features.length > 0) {
                   e?.features?.forEach((feature) => {
                     const area = turf.area(feature);
-                    console.log(area);
                     const roundedArea = Math.round(area * 100) / 100;
 
                     // Update your turf using the feature.id
@@ -430,8 +428,6 @@ export default function Map({
           <>
             <NavigationControl showZoom={true} showCompass={false} />
             <Choropleth />
-            {/* KEEPING IT FOR TESTS */}
-            {/* <TurfPolygons /> */}
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />

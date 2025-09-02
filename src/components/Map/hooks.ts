@@ -287,6 +287,7 @@ export const useTurfs = (mapId: string | null) => {
         area: updatedTurf.area,
         mapId,
       },
+      refetchQueries: ["DataRecords"],
     });
 
     setTurfs(
