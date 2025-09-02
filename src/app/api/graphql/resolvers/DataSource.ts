@@ -11,7 +11,6 @@ import {
   findDataSourcesByIds,
   getJobInfo,
 } from "@/server/repositories/DataSource";
-import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/PublicMap";
 
 const DataSourceResolvers: DataSourceResolversType = {
   // Remove sensitive credentials (leave only the `type` property)
@@ -36,19 +35,13 @@ const DataSourceResolvers: DataSourceResolversType = {
     return dataSources.map((ds) => ({ name: ds.name, id: ds.id }));
   },
   records: async ({ id }: DataSource, { filter, search, page, sort, all }) => {
-    // Only allow all records for data sources on public maps
-    let safeAll = false;
-    if (all) {
-      const publicMap = await findPublishedPublicMapByDataSourceId(id);
-      safeAll = Boolean(publicMap);
-    }
     return findDataRecordsByDataSource(
       id,
       filter,
       search,
       page || 0,
       sort || [],
-      safeAll,
+      all,
     );
   },
   recordCount: ({ id }: DataSource, { filter, search }) =>

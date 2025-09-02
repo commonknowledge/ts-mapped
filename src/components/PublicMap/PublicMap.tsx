@@ -2,14 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 import Loading from "@/components/Map/components/Loading";
 import Map from "@/components/Map/components/Map";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import PublishPublicMapSidebar from "./EditorComponents/PublishPublicMapSidebar";
 import { PublicMapContext } from "./PublicMapContext";
+import { createDataSourceConfig } from "./PublishedComponents/DataSourcesSelect";
 import { PublicMapListings } from "./PublishedComponents/PublicMapListings";
 import PublicMapSidebar from "./PublishedComponents/PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublishedComponents/PublicMapTopBarMobile";
@@ -20,6 +22,8 @@ export default function PublicMap() {
   const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
+
+  usePopulateInitialPublicMap();
 
   if (!mapQuery || mapQuery.loading) {
     return <Loading />;
@@ -79,3 +83,33 @@ export default function PublicMap() {
     </div>
   );
 }
+
+// When loading an editable, unpublished public map with no data sources,
+// update the public map to show all available data sources
+const usePopulateInitialPublicMap = () => {
+  const pristine = useRef(true);
+  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { mapConfig } = useContext(MapContext);
+  const { editable, publicMap, updatePublicMap } = useContext(PublicMapContext);
+
+  const dataSources = mapConfig
+    .getDataSourceIds()
+    .map((id) => getDataSourceById(id))
+    .filter((ds) => ds !== undefined && ds !== null);
+
+  useEffect(() => {
+    const ready =
+      editable && publicMap && dataSources.length > 0 && pristine.current;
+    if (ready) {
+      pristine.current = false;
+
+      if (!publicMap.published && publicMap.dataSourceConfigs.length === 0) {
+        const dataSourceConfigs = dataSources.map((ds) =>
+          createDataSourceConfig(ds),
+        );
+
+        updatePublicMap({ dataSourceConfigs });
+      }
+    }
+  }, [dataSources, editable, publicMap, updatePublicMap]);
+};

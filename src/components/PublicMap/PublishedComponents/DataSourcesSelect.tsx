@@ -70,7 +70,7 @@ export default function DataSourcesSelect() {
   );
 }
 
-const createDataSourceConfig = (
+export const createDataSourceConfig = (
   dataSource: DataSource,
 ): PublicMapDataSourceConfig => {
   return {
