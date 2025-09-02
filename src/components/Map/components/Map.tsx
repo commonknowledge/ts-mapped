@@ -33,7 +33,6 @@ import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
-import TurfPolygons from "./TurfPolygons";
 
 export default function Map({
   onSourceLoad,
@@ -53,7 +52,7 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
-  const { insertPlacedMarker, deleteTurf, insertTurf } =
+  const { insertPlacedMarker, deleteTurf, insertTurf, updateTurf, turfs } =
     useContext(MarkerAndTurfContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
@@ -74,6 +73,26 @@ export default function Map({
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );
+
+  // draw existing turfs
+  useEffect(() => {
+    if (!draw) {
+      return;
+    }
+
+    if (turfs?.length) {
+      draw.deleteAll();
+
+      // Add existing polygons from your array
+      turfs.forEach((turf) => {
+        draw.add({
+          type: "Feature",
+          properties: { ...turf },
+          geometry: turf.polygon,
+        });
+      });
+    }
+  }, [turfs, draw]);
 
   // Hover behavior
   useEffect(() => {
@@ -308,7 +327,7 @@ export default function Map({
                       ["==", "$type", "Point"],
                     ],
                     paint: {
-                      "circle-radius": 6,
+                      "circle-radius": 11,
                       "circle-color": "#FFF",
                     },
                   },
@@ -321,7 +340,7 @@ export default function Map({
                       ["==", "$type", "Point"],
                     ],
                     paint: {
-                      "circle-radius": 5,
+                      "circle-radius": 10,
                       "circle-color": mapColors.areas.color,
                     },
                   },
@@ -341,15 +360,32 @@ export default function Map({
                   const roundedArea = Math.round(area * 100) / 100;
                   insertTurf({
                     id: `turf-temp-${new Date().getTime()}`,
-                    label:
-                      feature.properties?.name ||
-                      `Area: ${roundedArea.toFixed(2)}m²`,
+                    label: feature.properties?.name || "",
                     notes: "",
                     area: roundedArea,
                     polygon: feature.geometry,
                     createdAt: new Date().toISOString(),
                   });
-                  newDraw.deleteAll();
+                }
+              });
+
+              // When user updates polygon on the map
+              mapInstance.on("draw.update", (e: MapboxDraw.DrawUpdateEvent) => {
+                if (e.features.length > 0) {
+                  e?.features?.forEach((feature) => {
+                    const area = turf.area(feature);
+                    const roundedArea = Math.round(area * 100) / 100;
+
+                    // Update your turf using the feature.id
+                    updateTurf({
+                      id: feature?.properties?.id,
+                      notes: feature?.properties?.notes,
+                      label: feature?.properties?.label,
+                      area: roundedArea,
+                      polygon: feature.geometry,
+                      createdAt: feature?.properties?.createdAt,
+                    });
+                  });
                 }
               });
 
@@ -392,7 +428,6 @@ export default function Map({
           <>
             <NavigationControl showZoom={true} showCompass={false} />
             <Choropleth />
-            <TurfPolygons />
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
