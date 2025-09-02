@@ -12,7 +12,8 @@ interface FilterField {
 }
 
 export default function Filters() {
-  const { publicMap, activeTabId } = useContext(PublicMapContext);
+  const { publicMap, activeTabId, dataRecordsQueries } =
+    useContext(PublicMapContext);
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
 
   useEffect(() => {
@@ -47,10 +48,28 @@ export default function Filters() {
 
       const fields = typedColumns.map((col) => {
         if (col.type === PublicMapColumnType.CommaSeparatedList) {
-          // TODO: find options
+          const records =
+            dataRecordsQueries?.[dataSourceConfig?.dataSourceId]?.data
+              ?.dataSource?.records;
+
+          if (!records?.length) {
+            return col;
+          }
+
+          const allValues = records
+            .map((record) => record.json[col.name])
+            .filter(Boolean) // remove null
+            .flatMap((item: string) =>
+              item.split(",").map((s: string) => s.trim())
+            ); // split and trim;
+
+          const uniqueValues = [...new Set(allValues)].sort((a, b) =>
+            a.localeCompare(b)
+          );
+
           return {
             ...col,
-            options: [], // TODO
+            options: uniqueValues,
           };
         }
 
@@ -59,7 +78,7 @@ export default function Filters() {
 
       setFilterFields(fields);
     }
-  }, [publicMap, activeTabId]);
+  }, [publicMap, activeTabId, dataRecordsQueries]);
 
   return (
     <div className="my-4 px-4">
