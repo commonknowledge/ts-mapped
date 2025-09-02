@@ -66,3 +66,20 @@ export interface TaggedRecord {
 export interface UploadResponseBody {
   url: string;
 }
+
+export interface PublicFiltersFormValue {
+  name: string;
+  value: string;
+}
+
+enum PublicMapColumnType {
+  Boolean = "Boolean",
+  CommaSeparatedList = "CommaSeparatedList",
+  String = "String",
+}
+
+export interface FilterField {
+  name: string;
+  type: PublicMapColumnType;
+  options?: string[];
+}
