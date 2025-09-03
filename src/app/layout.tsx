@@ -47,10 +47,13 @@ export default async function RootLayout({
 }>) {
   const headersList = await headers();
   const host = headersList.get("host");
+  console.log("headers host", host)
 
   const mainHost = new URL(
     process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
   );
+
+  console.log("main host", mainHost, mainHost.host)
   if (host && host !== mainHost.host) {
     return (
       <html
