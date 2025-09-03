@@ -2,11 +2,11 @@
 
 import { GithubIcon, HeartHandshakeIcon, MailIcon } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import CTA from "@/components/CTA";
 import { isPrivateRoute } from "@/config/routes";
+import { Link } from "./Link";
 
 export default function ConditionalMarketingFooter() {
   const pathname = usePathname();

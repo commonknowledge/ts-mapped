@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 import { Button } from "@/shadcn/ui/button";
+import { Link } from "./Link";
 
 export default function CTA() {
   return (

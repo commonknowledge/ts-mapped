@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import HomepageFeatureSection from "@/components/HomepageFeatureSection";
+import { Link } from "@/components/Link";
 import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
 

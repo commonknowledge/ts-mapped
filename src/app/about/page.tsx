@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
+import { Link } from "@/components/Link";
 
 export default function AboutPage() {
   return (

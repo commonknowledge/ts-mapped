@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
+import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Label } from "@/shadcn/ui/label";
@@ -13,7 +12,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -26,7 +24,7 @@ export default function LoginPage() {
       if (!response.ok) {
         throw new Error(`Response code ${response.status}`);
       }
-      router.push("/dashboard");
+      window.location.href = "/dashboard"
     } catch {
       setError("Login failed, please check your credentials.");
       setLoading(false);
@@ -41,7 +39,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <form onSubmit={onSubmitLogin} className="flex flex-col gap-2 ">
-            <span className="text-sm">{error}</span>
+            <span className="text-sm text-red-500">{error}</span>
             <Label>Username</Label>
             <input
               name="email"

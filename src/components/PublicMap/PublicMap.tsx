@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useContext, useEffect, useRef } from "react";
 import Loading from "@/components/Map/components/Loading";
 import Map from "@/components/Map/components/Map";
@@ -9,6 +8,7 @@ import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { Link } from "../Link";
 import PublishPublicMapSidebar from "./EditorComponents/PublishPublicMapSidebar";
 import { PublicMapContext } from "./PublicMapContext";
 import { createDataSourceConfig } from "./PublishedComponents/DataSourcesSelect";

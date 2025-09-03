@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { useContext } from "react";
+import { Link } from "@/components/Link";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";

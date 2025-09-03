@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { isPrivateRoute } from "@/config/routes";
 import { Button } from "@/shadcn/ui/button";
+import { Link } from "./Link";
 
 export default function ConditionalMarketingNavbar() {
   const pathname = usePathname();
