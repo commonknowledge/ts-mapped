@@ -16,6 +16,7 @@ import {
   DataSource,
   VisualisationType,
 } from "@/__generated__/types";
+import { DataSourceItem } from "@/components/DataSourceItem";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -46,7 +47,6 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import DataSourceItem from "../../DataSourceItem";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
 
 export default function VisualisationPanel({
@@ -77,8 +77,8 @@ export default function VisualisationPanel({
         (ds) =>
           ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ds.columnDefs.some((col) =>
-            col.name.toLowerCase().includes(searchQuery.toLowerCase()),
-          ),
+            col.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     }
 
@@ -91,7 +91,7 @@ export default function VisualisationPanel({
     <div
       className={cn(
         "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-10",
+        "absolute top-0 h-full z-10"
       )}
       style={{
         left: positionLeft,
@@ -160,18 +160,23 @@ export default function VisualisationPanel({
             {viewConfig.areaDataSourceId ? (
               // Show selected data source as a card
               <div className="space-y-2">
-                <DataSourceItem
-                  dataSource={
-                    dataSources.find(
-                      (ds) => ds.id === viewConfig.areaDataSourceId,
-                    ) as DataSource
-                  }
-                  isSelected={true}
+                <button
+                  type="button"
+                  className="text-left"
                   onClick={() => {
-                    // Open modal to change selection
                     setIsModalOpen(true);
                   }}
-                />
+                >
+                  <DataSourceItem
+                    className="border-blue-500 bg-blue-50"
+                    dataSource={
+                      dataSources.find(
+                        (ds) => ds.id === viewConfig.areaDataSourceId
+                      ) as DataSource
+                    }
+                  />
+                </button>
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -220,7 +225,7 @@ export default function VisualisationPanel({
               <SelectContent>
                 <SelectItem value={NULL_UUID}>No Locality</SelectItem>
                 {getValidAreaSetGroupCodes(
-                  (dataSource as DataSource)?.geocodingConfig,
+                  (dataSource as DataSource)?.geocodingConfig
                 ).map((code) => (
                   <SelectItem key={code} value={code}>
                     {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
@@ -535,15 +540,24 @@ export default function VisualisationPanel({
             <div className="flex-1">
               <div className="grid grid-cols-1 gap-3">
                 {filteredAndSearchedDataSources.map((ds) => (
-                  <DataSourceItem
+                  <button
+                    type="button"
+                    className="text-left"
                     key={ds.id}
-                    dataSource={ds as DataSource}
-                    isSelected={viewConfig.areaDataSourceId === ds.id}
                     onClick={() => {
                       updateViewConfig({ areaDataSourceId: ds.id });
                       setIsModalOpen(false);
                     }}
-                  />
+                  >
+                    <DataSourceItem
+                      className={
+                        viewConfig.areaDataSourceId === ds.id
+                          ? "border-blue-500 bg-blue-50"
+                          : ""
+                      }
+                      dataSource={ds as DataSource}
+                    />
+                  </button>
                 ))}
               </div>
             </div>

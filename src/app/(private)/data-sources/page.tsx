@@ -3,8 +3,11 @@
 import { gql, useQuery } from "@apollo/client";
 import {
   BookOpen,
+  Boxes,
+  CalendarDays,
   Database,
   LoaderPinwheel,
+  MapPin,
   Pentagon,
   PlusIcon,
   Users,
@@ -17,6 +20,7 @@ import {
   ListDataSourcesQueryVariables,
 } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
+import { DataSourceItem } from "@/components/DataSourceItem";
 import { Link } from "@/components/Link";
 import { mapColors } from "@/components/Map/styles";
 import PageHeader from "@/components/PageHeader";
@@ -25,12 +29,10 @@ import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 
-import DataSourceCard from "../map/[id]/components/DataSourceItem";
-
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
   const [activeTab, setActiveTab] = useState<"your-data" | "mapped-library">(
-    "your-data",
+    "your-data"
   );
 
   const { data, loading } = useQuery<
@@ -78,7 +80,7 @@ export default function DataSourcesPage() {
       variables: { organisationId },
       skip: !organisationId,
       fetchPolicy: "network-only",
-    },
+    }
   );
   const dataSources = data?.dataSources || [];
 
@@ -124,7 +126,23 @@ export default function DataSourcesPage() {
   });
 
   const referenceDataSources = dataSources.filter((dataSource) => {
-    return dataSource.recordType !== DataSourceRecordType.Members;
+    return dataSource.recordType === DataSourceRecordType.Data;
+  });
+
+  const eventDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Events;
+  });
+
+  const locationDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Locations;
+  });
+
+  const peopleDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.People;
+  });
+
+  const otherDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Other;
   });
 
   return (
@@ -169,6 +187,23 @@ export default function DataSourcesPage() {
                   </Link>
                 }
               />
+              {/* Show message if no data sources at all */}
+              {dataSources.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg font-medium">No data sources yet</p>
+                  <p className="text-sm mb-4">
+                    Create your first data source to get started
+                  </p>
+                  <Link href="/data-sources/new">
+                    <Button variant="outline" size="sm">
+                      <PlusIcon className="w-4 h-4 mr-2" />
+                      Create Your First Data Source
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
               {/* Member Collections Section */}
               <div>
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -177,15 +212,12 @@ export default function DataSourcesPage() {
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {memberDataSources.map((dataSource) => (
-                    <DataSourceCard
+                    <Link
                       key={dataSource.id}
-                      dataSource={dataSource}
-                      isSelected={false}
-                      onClick={() => {
-                        // Navigate to data source detail page
-                        window.location.href = `/data-sources/${dataSource.id}`;
-                      }}
-                    />
+                      href={`/data-sources/${dataSource.id}`}
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
                   ))}
                   {memberDataSources.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
@@ -204,15 +236,12 @@ export default function DataSourcesPage() {
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {referenceDataSources.map((dataSource) => (
-                    <DataSourceCard
+                    <Link
                       key={dataSource.id}
-                      dataSource={dataSource}
-                      isSelected={false}
-                      onClick={() => {
-                        // Navigate to data source detail page
-                        window.location.href = `/data-sources/${dataSource.id}`;
-                      }}
-                    />
+                      href={`/data-sources/${dataSource.id}`}
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
                   ))}
                   {referenceDataSources.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
@@ -223,22 +252,101 @@ export default function DataSourcesPage() {
                 </div>
               </div>
 
-              {/* Show message if no data sources at all */}
-              {dataSources.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">No data sources yet</p>
-                  <p className="text-sm mb-4">
-                    Create your first data source to get started
-                  </p>
-                  <Link href="/data-sources/new">
-                    <Button variant="outline" size="sm">
-                      <PlusIcon className="w-4 h-4 mr-2" />
-                      Create Your First Data Source
-                    </Button>
-                  </Link>
+              {/* Events Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5 text-purple-600" />
+                  Events
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {eventDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {eventDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <CalendarDays className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No events data yet</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Locations Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-red-600" />
+                  Locations
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {locationDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {locationDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <MapPin className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No locations data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* People Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-sky-600" />
+                  People
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {peopleDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {peopleDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Users className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No people data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Other Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Boxes className="w-5 h-5 text-gray-600" />
+                  Other
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {otherDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {otherDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Boxes className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No other data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </TabsContent>
