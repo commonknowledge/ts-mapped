@@ -598,21 +598,19 @@ const typeDefs = `
   type DataSourceEvent {
     dataSourceId: String!
 
-    enrichmentComplete: JobCompleteEvent
-    enrichmentFailed: JobFailedEvent
+    enrichmentStarted: JobStatusEvent
+    enrichmentComplete: JobStatusEvent
+    enrichmentFailed: JobStatusEvent
 
-    importComplete: JobCompleteEvent
-    importFailed: JobFailedEvent
+    importStarted: JobStatusEvent
+    importComplete: JobStatusEvent
+    importFailed: JobStatusEvent
 
     recordsEnriched: RecordsProcessedEvent
     recordsImported: RecordsProcessedEvent
   }
 
-  type JobCompleteEvent {
-    at: String!
-  }
-
-  type JobFailedEvent {
+  type JobStatusEvent {
     at: String!
   }
 

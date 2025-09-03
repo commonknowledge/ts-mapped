@@ -168,10 +168,12 @@ export type DataSourceRecordsArgs = {
 export type DataSourceEvent = {
   __typename?: "DataSourceEvent";
   dataSourceId: Scalars["String"]["output"];
-  enrichmentComplete?: Maybe<JobCompleteEvent>;
-  enrichmentFailed?: Maybe<JobFailedEvent>;
-  importComplete?: Maybe<JobCompleteEvent>;
-  importFailed?: Maybe<JobFailedEvent>;
+  enrichmentComplete?: Maybe<JobStatusEvent>;
+  enrichmentFailed?: Maybe<JobStatusEvent>;
+  enrichmentStarted?: Maybe<JobStatusEvent>;
+  importComplete?: Maybe<JobStatusEvent>;
+  importFailed?: Maybe<JobStatusEvent>;
+  importStarted?: Maybe<JobStatusEvent>;
   recordsEnriched?: Maybe<RecordsProcessedEvent>;
   recordsImported?: Maybe<RecordsProcessedEvent>;
 };
@@ -241,16 +243,6 @@ export enum GeocodingType {
   None = "None",
 }
 
-export type JobCompleteEvent = {
-  __typename?: "JobCompleteEvent";
-  at: Scalars["String"]["output"];
-};
-
-export type JobFailedEvent = {
-  __typename?: "JobFailedEvent";
-  at: Scalars["String"]["output"];
-};
-
 export type JobInfo = {
   __typename?: "JobInfo";
   lastCompleted?: Maybe<Scalars["String"]["output"]>;
@@ -264,6 +256,11 @@ export enum JobStatus {
   Pending = "Pending",
   Running = "Running",
 }
+
+export type JobStatusEvent = {
+  __typename?: "JobStatusEvent";
+  at: Scalars["String"]["output"];
+};
 
 export type LooseEnrichment = {
   __typename?: "LooseEnrichment";
@@ -867,8 +864,9 @@ export type DataSourceEventSubscription = {
   __typename?: "Subscription";
   dataSourceEvent?: {
     __typename?: "DataSourceEvent";
-    importComplete?: { __typename?: "JobCompleteEvent"; at: string } | null;
-    importFailed?: { __typename?: "JobFailedEvent"; at: string } | null;
+    importStarted?: { __typename?: "JobStatusEvent"; at: string } | null;
+    importComplete?: { __typename?: "JobStatusEvent"; at: string } | null;
+    importFailed?: { __typename?: "JobStatusEvent"; at: string } | null;
     recordsImported?: {
       __typename?: "RecordsProcessedEvent";
       count: number;
@@ -896,8 +894,8 @@ export type DataSourceEnrichmentEventSubscription = {
   __typename?: "Subscription";
   dataSourceEvent?: {
     __typename?: "DataSourceEvent";
-    enrichmentComplete?: { __typename?: "JobCompleteEvent"; at: string } | null;
-    enrichmentFailed?: { __typename?: "JobFailedEvent"; at: string } | null;
+    enrichmentComplete?: { __typename?: "JobStatusEvent"; at: string } | null;
+    enrichmentFailed?: { __typename?: "JobStatusEvent"; at: string } | null;
     recordsEnriched?: {
       __typename?: "RecordsProcessedEvent";
       count: number;
@@ -1735,10 +1733,9 @@ export type ResolversTypes = {
   GeocodingType: GeocodingType;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
-  JobCompleteEvent: ResolverTypeWrapper<JobCompleteEvent>;
-  JobFailedEvent: ResolverTypeWrapper<JobFailedEvent>;
   JobInfo: ResolverTypeWrapper<JobInfo>;
   JobStatus: JobStatus;
+  JobStatusEvent: ResolverTypeWrapper<JobStatusEvent>;
   LooseEnrichment: ResolverTypeWrapper<LooseEnrichment>;
   LooseEnrichmentInput: LooseEnrichmentInput;
   LooseGeocodingConfig: ResolverTypeWrapper<LooseGeocodingConfig>;
@@ -1811,9 +1808,8 @@ export type ResolversParentTypes = {
   Folder: Folder;
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
-  JobCompleteEvent: JobCompleteEvent;
-  JobFailedEvent: JobFailedEvent;
   JobInfo: JobInfo;
+  JobStatusEvent: JobStatusEvent;
   LooseEnrichment: LooseEnrichment;
   LooseEnrichmentInput: LooseEnrichmentInput;
   LooseGeocodingConfig: LooseGeocodingConfig;
@@ -2031,22 +2027,32 @@ export type DataSourceEventResolvers<
 > = {
   dataSourceId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   enrichmentComplete?: Resolver<
-    Maybe<ResolversTypes["JobCompleteEvent"]>,
+    Maybe<ResolversTypes["JobStatusEvent"]>,
     ParentType,
     ContextType
   >;
   enrichmentFailed?: Resolver<
-    Maybe<ResolversTypes["JobFailedEvent"]>,
+    Maybe<ResolversTypes["JobStatusEvent"]>,
+    ParentType,
+    ContextType
+  >;
+  enrichmentStarted?: Resolver<
+    Maybe<ResolversTypes["JobStatusEvent"]>,
     ParentType,
     ContextType
   >;
   importComplete?: Resolver<
-    Maybe<ResolversTypes["JobCompleteEvent"]>,
+    Maybe<ResolversTypes["JobStatusEvent"]>,
     ParentType,
     ContextType
   >;
   importFailed?: Resolver<
-    Maybe<ResolversTypes["JobFailedEvent"]>,
+    Maybe<ResolversTypes["JobStatusEvent"]>,
+    ParentType,
+    ContextType
+  >;
+  importStarted?: Resolver<
+    Maybe<ResolversTypes["JobStatusEvent"]>,
     ParentType,
     ContextType
   >;
@@ -2107,24 +2113,6 @@ export interface JsonScalarConfig
   name: "JSON";
 }
 
-export type JobCompleteEventResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["JobCompleteEvent"] = ResolversParentTypes["JobCompleteEvent"],
-> = {
-  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type JobFailedEventResolvers<
-  ContextType = GraphQLContext,
-  ParentType extends
-    ResolversParentTypes["JobFailedEvent"] = ResolversParentTypes["JobFailedEvent"],
-> = {
-  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type JobInfoResolvers<
   ContextType = GraphQLContext,
   ParentType extends
@@ -2140,6 +2128,15 @@ export type JobInfoResolvers<
     ParentType,
     ContextType
   >;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type JobStatusEventResolvers<
+  ContextType = GraphQLContext,
+  ParentType extends
+    ResolversParentTypes["JobStatusEvent"] = ResolversParentTypes["JobStatusEvent"],
+> = {
+  at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2844,9 +2841,8 @@ export type Resolvers<ContextType = GraphQLContext> = {
   EnrichmentDataSource?: EnrichmentDataSourceResolvers<ContextType>;
   Folder?: FolderResolvers<ContextType>;
   JSON?: GraphQLScalarType;
-  JobCompleteEvent?: JobCompleteEventResolvers<ContextType>;
-  JobFailedEvent?: JobFailedEventResolvers<ContextType>;
   JobInfo?: JobInfoResolvers<ContextType>;
+  JobStatusEvent?: JobStatusEventResolvers<ContextType>;
   LooseEnrichment?: LooseEnrichmentResolvers<ContextType>;
   LooseGeocodingConfig?: LooseGeocodingConfigResolvers<ContextType>;
   Map?: MapResolvers<ContextType>;

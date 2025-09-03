@@ -20,8 +20,9 @@ export const DataSourceFeatures: Record<
     enrichment: false,
   },
   [DataSourceType.googlesheets]: {
-    autoEnrich: true,
-    autoImport: true,
+    // TODO: update this when there is webhook batching
+    autoEnrich: false,
+    autoImport: false,
     enrichment: false,
   },
   [DataSourceType.mailchimp]: {
