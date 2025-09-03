@@ -37,11 +37,9 @@ export default function DataRecordsList({
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedDataRecord } = useContext(DataRecordContext);
-  const { publicFilters } = useContext(PublicFiltersContext);
+  const { publicFilters, records, setRecords } =
+    useContext(PublicFiltersContext);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
-  const [records, setRecords] = useState<
-    NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
-  >([]);
 
   useEffect(() => {
     const allRecords = dataRecordsQuery?.data?.dataSource?.records || [];
@@ -106,71 +104,71 @@ export default function DataRecordsList({
     }
   };
 
-  if (!records?.length) {
-    return (
-      <span className="px-4 my-2 text-sm font-medium">No records found.</span>
-    );
-  }
-
   return (
     <>
       <div className="flex justify-between items-center gap-4 px-4 my-2">
         <span className="text-sm">{records?.length || 0} Listings</span>
         <Filters />
       </div>
-      <ul className="flex flex-col">
-        {records.map((r) => {
-          const isExpanded = expandedRecordId === r.id;
-          const isSelected = selectedDataRecord?.id === r.id;
+      {!records?.length ? (
+        <></>
+      ) : (
+        <ul className="flex flex-col">
+          {records.map((r) => {
+            const isExpanded = expandedRecordId === r.id;
+            const isSelected = selectedDataRecord?.id === r.id;
 
-          return (
-            <li
-              key={r.id}
-              className={cn(
-                "cursor-pointer rounded transition-all duration-200",
-                isSelected ? "" : "hover:bg-accent",
-              )}
-              style={
-                isSelected ? { backgroundColor: colourScheme.muted } : undefined
-              }
-            >
-              {/* Main record item */}
-              <div
-                role="button"
-                onClick={() => handleRecordClick(r)}
-                className="py-3 px-4 flex flex-col gap-2"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: colourScheme.primary }}
-                  />
-                  <span className="font-medium flex-1">{getName(r)}</span>
-                  {/* Only show arrow on mobile */}
-                  <div className="text-xs text-neutral-500 md:hidden">
-                    {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                  </div>
-                </div>
-                {getDescription(r) && (
-                  <span className="text-sm ml-[1.1rem]">
-                    {getDescription(r)}
-                  </span>
+            return (
+              <li
+                key={r.id}
+                className={cn(
+                  "cursor-pointer rounded transition-all duration-200",
+                  isSelected ? "" : "hover:bg-accent",
                 )}
-              </div>
-
-              {/* Expanded content - only on mobile */}
-              {isExpanded && (
-                <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
-                  <MobileRecordDetails
-                    record={r}
-                    dataSourceConfig={dataSourceConfig}
-                  />
+                style={
+                  isSelected
+                    ? { backgroundColor: colourScheme.muted }
+                    : undefined
+                }
+              >
+                {/* Main record item */}
+                <div
+                  role="button"
+                  onClick={() => handleRecordClick(r)}
+                  className="py-3 px-4 flex flex-col gap-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: colourScheme.primary }}
+                    />
+                    <span className="font-medium flex-1">{getName(r)}</span>
+                    {/* Only show arrow on mobile */}
+                    <div className="text-xs text-neutral-500 md:hidden">
+                      {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                    </div>
+                  </div>
+                  {getDescription(r) && (
+                    <span className="text-sm ml-[1.1rem]">
+                      {getDescription(r)}
+                    </span>
+                  )}
                 </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+
+                {/* Expanded content - only on mobile */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
+                    <MobileRecordDetails
+                      record={r}
+                      dataSourceConfig={dataSourceConfig}
+                    />
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }

@@ -114,6 +114,7 @@ export default function FiltersForm({
             <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
               <Input
                 type="text"
+                autoComplete="off"
                 id={`filters-${field.name}`}
                 name={field.name}
                 value={values.find((v) => v.name === field.name)?.value || ""}
