@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import { DropdownMenu, DropdownMenuTrigger } from "@/shadcn/ui/dropdown-menu";
 
@@ -25,13 +26,24 @@ export default function CustomMultiSelect({
         <DropdownMenuTrigger asChild id={id}>
           <Button
             variant="outline"
-            className="justify-between font-normal hover:bg-white cursor-auto"
+            className="max-w-full h-auto justify-between text-start font-normal hover:bg-white cursor-auto"
           >
-            <span className="overflow-hidden overflow-ellipsis">
+            {selectedOptions?.length ? (
+              <div className="flex flex-wrap gap-1">
+                {selectedOptions.map((option) => (
+                  <Badge key={option} variant="outline">
+                    {option}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              placeholder
+            )}
+            {/* <span className="block truncate">
               {selectedOptions?.length
                 ? selectedOptions.join(", ")
                 : placeholder}
-            </span>
+            </span> */}
             <ChevronDown className="text-muted-foreground opacity-50" />
           </Button>
         </DropdownMenuTrigger>

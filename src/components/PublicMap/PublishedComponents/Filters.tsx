@@ -97,13 +97,15 @@ export default function Filters() {
           <span>Open filters</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="!max-w-[420px] gap-2">
         <DialogHeader>
           <DialogTitle>Filter</DialogTitle>
-          <DialogDescription>Filter map records</DialogDescription>
+          <DialogDescription className="sr-only">
+            Filter map records
+          </DialogDescription>
           <Separator className="my-4" />
-          <FiltersForm fields={filterFields} onSubmit={closeDialog} />
         </DialogHeader>
+        <FiltersForm fields={filterFields} onSubmit={closeDialog} />
       </DialogContent>
     </Dialog>
   );

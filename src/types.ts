@@ -69,7 +69,8 @@ export interface UploadResponseBody {
 
 export interface PublicFiltersFormValue {
   name: string;
-  value: string;
+  value?: string;
+  selectedOptions?: string[];
 }
 
 enum PublicMapColumnType {

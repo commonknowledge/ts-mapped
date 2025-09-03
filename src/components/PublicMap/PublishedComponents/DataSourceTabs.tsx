@@ -132,7 +132,7 @@ function SingleDataSourceContent({
         editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
-      <div className="flex justify-between items-center gap-4 px-4">
+      <div className="flex justify-between items-center gap-4 px-4 my-2">
         <span className="text-sm">
           {dataRecordsQuery.data?.dataSource?.records?.length || 0} Listings
         </span>

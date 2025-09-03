@@ -17,7 +17,7 @@ export default function FormFieldWrapper({
   return (
     <div className="flex flex-col gap-1 w-full">
       <div
-        className={`flex ${isHorizontal ? "flex-row-reverse justify-end gap-3" : "flex-col gap-1"}`}
+        className={`flex ${isHorizontal ? "flex-row-reverse justify-end gap-3" : "flex-col gap-2"}`}
       >
         <Label htmlFor={id || ""}>{label}</Label>
         {children}
