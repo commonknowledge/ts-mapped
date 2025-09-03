@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -21,6 +22,7 @@ export default function FiltersForm({
 }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
+  const { setSelectedDataRecord } = useContext(DataRecordContext);
 
   // setting default values
   useEffect(() => {
@@ -81,6 +83,9 @@ export default function FiltersForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPublicFilters(values);
+    // closing the data record sidebar when applying filters - to avoid showing details of a record that is filtered out
+    setSelectedDataRecord(null);
+    // closing filters dialog
     closeDialog();
   };
 

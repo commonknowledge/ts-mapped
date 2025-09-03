@@ -88,7 +88,9 @@ export default function Filters() {
     }
   }, [publicMap, activeTabId, dataRecordsQueries, filtersOpen]);
 
-  const closeDialog = () => setFiltersOpen(false);
+  const closeDialog = () => {
+    setFiltersOpen(false);
+  };
 
   return (
     <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
