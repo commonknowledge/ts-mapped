@@ -8,8 +8,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
-import { DataSourcesContext } from "../../context/DataSourcesContext";
 import { MapContext } from "../../context/MapContext";
+import { useDataSources } from "../../hooks";
 
 export default function AddMembersDataModal({
   open,
@@ -18,10 +18,8 @@ export default function AddMembersDataModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { getDataSources } = useContext(DataSourcesContext);
+  const dataSources = useDataSources();
   const { updateMapConfig, mapConfig } = useContext(MapContext);
-
-  const dataSources = getDataSources();
 
   const updateMarkerDataSources = (dataSourceIds: string[]) => {
     updateMapConfig({ markerDataSourceIds: dataSourceIds });

@@ -6,11 +6,11 @@ import AddMembersDataModal from "@/app/(private)/map/[id]/components/controls/Ad
 import ControlItemWrapper from "@/app/(private)/map/[id]/components/controls/ControlItemWrapper";
 import LayerHeader from "@/app/(private)/map/[id]/components/controls/LayerHeader";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
 import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { useDataSources } from "../../../../hooks";
 import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
@@ -32,7 +32,8 @@ export default function MarkersControl() {
   } = useContext(MarkerAndTurfContext);
   const [dataSourcesModalOpen, setDataSourcesModalOpen] =
     useState<boolean>(false);
-  const { getDataSources } = useContext(DataSourcesContext);
+
+  const dataSources = useDataSources();
 
   const createFolder = () => {
     const newFolder = {
@@ -94,8 +95,7 @@ export default function MarkersControl() {
   };
 
   const getDataSourceDropdownItems = () => {
-    const markerDataSources = getDataSources();
-    return markerDataSources.map((dataSource) => {
+    return dataSources.map((dataSource) => {
       const selected = mapConfig.markerDataSourceIds.includes(dataSource.id);
       return {
         type: "item" as const,

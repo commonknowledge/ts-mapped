@@ -13,11 +13,9 @@ import {
   AreaSetGroupCode,
   CalculationType,
   ColorScheme,
-  DataSource,
   VisualisationType,
 } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
 import { getValidAreaSetGroupCodes } from "@/app/(private)/map/[id]/sources";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
@@ -46,6 +44,7 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
+import { useAreaDataSource, useDataSources } from "../../../hooks";
 import DataSourceItem from "../../DataSourceItem";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
 
@@ -56,17 +55,16 @@ export default function VisualisationPanel({
 }) {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { boundariesPanelOpen } = useContext(ChoroplethContext);
-  const { getDataSources, getChoroplethDataSource } =
-    useContext(DataSourcesContext);
+
+  const dataSources = useDataSources();
+
+  const dataSource = useAreaDataSource();
 
   // Add this state
   const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
   // Add these states
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const dataSources = getDataSources();
-  const dataSource = getChoroplethDataSource();
 
   // Update the filtering logic to include search
   const filteredAndSearchedDataSources = useMemo(() => {
@@ -157,15 +155,11 @@ export default function VisualisationPanel({
               <Database className="w-4 h-4 text-muted-foreground" /> Data Source
             </Label>
 
-            {viewConfig.areaDataSourceId ? (
+            {viewConfig.areaDataSourceId && dataSource ? (
               // Show selected data source as a card
               <div className="space-y-2">
                 <DataSourceItem
-                  dataSource={
-                    dataSources.find(
-                      (ds) => ds.id === viewConfig.areaDataSourceId,
-                    ) as DataSource
-                  }
+                  dataSource={dataSource}
                   isSelected={true}
                   onClick={() => {
                     // Open modal to change selection
@@ -219,13 +213,13 @@ export default function VisualisationPanel({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NULL_UUID}>No Locality</SelectItem>
-                {getValidAreaSetGroupCodes(
-                  (dataSource as DataSource)?.geocodingConfig,
-                ).map((code) => (
-                  <SelectItem key={code} value={code}>
-                    {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
-                  </SelectItem>
-                ))}
+                {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
+                  (code) => (
+                    <SelectItem key={code} value={code}>
+                      {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
             {viewConfig.visualisationType === VisualisationType.Choropleth &&
@@ -537,7 +531,7 @@ export default function VisualisationPanel({
                 {filteredAndSearchedDataSources.map((ds) => (
                   <DataSourceItem
                     key={ds.id}
-                    dataSource={ds as DataSource}
+                    dataSource={ds}
                     isSelected={viewConfig.areaDataSourceId === ds.id}
                     onClick={() => {
                       updateViewConfig({ areaDataSourceId: ds.id });

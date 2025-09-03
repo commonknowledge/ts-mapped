@@ -7,7 +7,7 @@ export default function PageHeader({
   action,
 }: {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   action?: React.ReactNode;
 }) {
   return (
@@ -15,8 +15,10 @@ export default function PageHeader({
       <div className="flex w-full items-start gap-4 justify-between mb-4">
         <div>
           <h1 className="text-3xl font-medium tracking-tight">{title}</h1>
-          {description && (
+          {!description ? null : typeof description === "string" ? (
             <p className="text-muted-foreground mt-1">{description}</p>
+          ) : (
+            description
           )}
         </div>
         {action}

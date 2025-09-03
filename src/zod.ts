@@ -4,11 +4,8 @@
 // update src/app/api/graphql/typeDefs/checks.ts with compile-time equivalence checks.
 
 import z from "zod";
-import {
-  AreaSetCode,
-  EnrichmentSourceType,
-  GeocodingType,
-} from "./__generated__/types";
+import { AreaSetCode, EnrichmentSourceType } from "./__generated__/types";
+
 import { DataSourceType } from "./types";
 
 export const ActionNetworkConfigSchema = z.object({
@@ -94,6 +91,13 @@ export const EnrichmentSchema = z.discriminatedUnion("sourceType", [
 ]);
 
 export type Enrichment = z.infer<typeof EnrichmentSchema>;
+
+export enum GeocodingType {
+  Address = "Address",
+  Code = "Code",
+  Name = "Name",
+  None = "None",
+}
 
 const AddressGeocodingConfigSchema = z.object({
   type: z.literal(GeocodingType.Address),
