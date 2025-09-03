@@ -12,6 +12,7 @@ import {
 import { useContext, useState } from "react";
 import {
   AreaSetGroupCode,
+  DataSourceRecordType,
   ListDataSourcesQuery,
   ListDataSourcesQueryVariables,
 } from "@/__generated__/types";
@@ -46,6 +47,7 @@ export default function DataSourcesPage() {
           public
           autoEnrich
           autoImport
+          recordType
           columnDefs {
             name
             type
@@ -117,6 +119,14 @@ export default function DataSourcesPage() {
     ],
   };
 
+  const memberDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Members;
+  });
+
+  const referenceDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType !== DataSourceRecordType.Members;
+  });
+
   return (
     <div className="">
       <Tabs
@@ -166,39 +176,18 @@ export default function DataSourcesPage() {
                   Member Collections
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {dataSources
-                    .filter((dataSource) => {
-                      // Filter for member/activist related data sources
-                      const config = dataSource.config;
-                      return (
-                        config?.type === "actionnetwork" ||
-                        config?.type === "mailchimp" ||
-                        dataSource.name.toLowerCase().includes("member") ||
-                        dataSource.name.toLowerCase().includes("activist") ||
-                        dataSource.name.toLowerCase().includes("supporter")
-                      );
-                    })
-                    .map((dataSource) => (
-                      <DataSourceCard
-                        key={dataSource.id}
-                        dataSource={dataSource}
-                        isSelected={false}
-                        onClick={() => {
-                          // Navigate to data source detail page
-                          window.location.href = `/data-sources/${dataSource.id}`;
-                        }}
-                      />
-                    ))}
-                  {dataSources.filter((dataSource) => {
-                    const config = dataSource.config;
-                    return (
-                      config?.type === "actionnetwork" ||
-                      config?.type === "mailchimp" ||
-                      dataSource.name.toLowerCase().includes("member") ||
-                      dataSource.name.toLowerCase().includes("activist") ||
-                      dataSource.name.toLowerCase().includes("supporter")
-                    );
-                  }).length === 0 && (
+                  {memberDataSources.map((dataSource) => (
+                    <DataSourceCard
+                      key={dataSource.id}
+                      dataSource={dataSource}
+                      isSelected={false}
+                      onClick={() => {
+                        // Navigate to data source detail page
+                        window.location.href = `/data-sources/${dataSource.id}`;
+                      }}
+                    />
+                  ))}
+                  {memberDataSources.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <Users className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No member collections yet</p>
@@ -214,41 +203,18 @@ export default function DataSourcesPage() {
                   Reference Data
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {dataSources
-                    .filter((dataSource) => {
-                      // Filter for reference/utility data sources
-                      const config = dataSource.config;
-                      return (
-                        config?.type === "csv" ||
-                        config?.type === "googlesheets" ||
-                        config?.type === "airtable" ||
-                        dataSource.name.toLowerCase().includes("reference") ||
-                        dataSource.name.toLowerCase().includes("utility") ||
-                        dataSource.name.toLowerCase().includes("data")
-                      );
-                    })
-                    .map((dataSource) => (
-                      <DataSourceCard
-                        key={dataSource.id}
-                        dataSource={dataSource}
-                        isSelected={false}
-                        onClick={() => {
-                          // Navigate to data source detail page
-                          window.location.href = `/data-sources/${dataSource.id}`;
-                        }}
-                      />
-                    ))}
-                  {dataSources.filter((dataSource) => {
-                    const config = dataSource.config;
-                    return (
-                      config?.type === "csv" ||
-                      config?.type === "googlesheets" ||
-                      config?.type === "airtable" ||
-                      dataSource.name.toLowerCase().includes("reference") ||
-                      dataSource.name.toLowerCase().includes("utility") ||
-                      dataSource.name.toLowerCase().includes("data")
-                    );
-                  }).length === 0 && (
+                  {referenceDataSources.map((dataSource) => (
+                    <DataSourceCard
+                      key={dataSource.id}
+                      dataSource={dataSource}
+                      isSelected={false}
+                      onClick={() => {
+                        // Navigate to data source detail page
+                        window.location.href = `/data-sources/${dataSource.id}`;
+                      }}
+                    />
+                  ))}
+                  {referenceDataSources.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <Database className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No reference data yet</p>

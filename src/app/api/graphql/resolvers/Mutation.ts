@@ -6,6 +6,7 @@ import {
   ColumnType,
   CreateDataSourceResponse,
   CreateMapResponse,
+  DataSourceRecordType,
   GeocodingType,
   MutationResolvers as MutationResolversType,
   MutationResponse,
@@ -70,8 +71,14 @@ const MutationResolvers: MutationResolversType = {
     {
       name,
       organisationId,
+      recordType,
       rawConfig,
-    }: { name: string; organisationId: string; rawConfig: unknown },
+    }: {
+      name: string;
+      organisationId: string;
+      recordType: DataSourceRecordType;
+      rawConfig: unknown;
+    },
   ): Promise<CreateDataSourceResponse> => {
     try {
       const id = uuidv4();
@@ -100,6 +107,7 @@ const MutationResolvers: MutationResolversType = {
         organisationId,
         autoEnrich: false,
         autoImport: false,
+        recordType,
         config: JSON.stringify(config),
         columnRoles: JSON.stringify({}),
         enrichments: JSON.stringify([]),

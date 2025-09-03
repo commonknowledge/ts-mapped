@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
+import {
+  AuthDirectiveArgs,
+  DataSourceRecordType,
+  ProtectedArgs,
+} from "@/__generated__/types";
 import {
   _checkArg as checkArg,
   _checkArgs as checkArgs,
@@ -63,6 +67,7 @@ describe("Auth Functions", () => {
     // Create test data sources
     testDataSource = await createDataSource({
       name: "Test Data Source",
+      recordType: DataSourceRecordType.Data,
       autoEnrich: false,
       autoImport: false,
       config: '{"type":"csv", "url":"file://dummy.csv"}',
@@ -77,6 +82,7 @@ describe("Auth Functions", () => {
     publicDataSource = await createDataSource({
       name: "Public Data Source",
       autoEnrich: false,
+      recordType: DataSourceRecordType.Data,
       autoImport: false,
       config: '{"type":"csv", "url":"file://public.csv"}',
       columnDefs: "[]",
