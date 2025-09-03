@@ -17,6 +17,7 @@ import { cn } from "@/shadcn/utils";
 import { Point } from "@/types";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import Filters from "./Filters";
+import { filterRecords, getActiveFilters } from "./filtersHelpers";
 import { buildName } from "./utils";
 
 interface DataRecordsListProps {
@@ -44,50 +45,15 @@ export default function DataRecordsList({
 
   useEffect(() => {
     const allRecords = dataRecordsQuery?.data?.dataSource?.records || [];
+    const activeFilters = getActiveFilters(publicFilters);
 
-    if (!publicFilters?.length) {
+    // if no filters are selected - show all records
+    if (!publicFilters?.length || !activeFilters?.length) {
       setRecords(allRecords);
       return;
     }
 
-    const activeFilters = publicFilters.filter(
-      (f) => f?.value || f?.selectedOptions?.length,
-    );
-
-    if (!activeFilters?.length || !allRecords?.length) {
-      return;
-    }
-
-    const filteredRecords = allRecords.filter((record) => {
-      return activeFilters.every((filter) => {
-        if (
-          filter.type === PublicMapColumnType.Boolean &&
-          filter.value === "Yes"
-        ) {
-          return record.json[filter.name] === "Yes";
-        }
-
-        if (filter.type === PublicMapColumnType.String && filter.value) {
-          const fieldValue = String(record.json[filter.name] || "");
-          return fieldValue.toLowerCase().includes(filter.value.toLowerCase());
-        }
-
-        if (
-          filter.type === PublicMapColumnType.CommaSeparatedList &&
-          filter?.selectedOptions?.length
-        ) {
-          const recordArr = record.json[filter.name]
-            ? record.json[filter.name].split(", ")
-            : [];
-
-          return recordArr.some((val: string) =>
-            filter?.selectedOptions?.includes(val),
-          );
-        }
-
-        return true;
-      });
-    });
+    const filteredRecords = filterRecords(activeFilters, allRecords);
 
     setRecords(filteredRecords);
   }, [publicFilters, setRecords, dataRecordsQuery?.data?.dataSource?.records]);
@@ -141,7 +107,9 @@ export default function DataRecordsList({
   };
 
   if (!records?.length) {
-    return <span className="text-sm">No records found</span>;
+    return (
+      <span className="px-4 my-2 text-sm font-medium">No records found.</span>
+    );
   }
 
   return (

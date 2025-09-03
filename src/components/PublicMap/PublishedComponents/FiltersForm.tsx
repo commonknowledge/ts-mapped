@@ -11,6 +11,7 @@ import {
 } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Switch } from "@/shadcn/ui/switch";
+import { toBoolean } from "./utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 export default function FiltersForm({
@@ -94,6 +95,16 @@ export default function FiltersForm({
     closeDialog();
   };
 
+  const isChecked = (field: FilterField) => {
+    const value = values.find((v) => v.name === field.name)?.value;
+
+    if (value) {
+      return toBoolean(value);
+    } else {
+      return false;
+    }
+  };
+
   return (
     <form className="flex flex-col gap-6 w-full" onSubmit={handleSubmit}>
       {fields.map((field) => (
@@ -114,17 +125,13 @@ export default function FiltersForm({
             <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={
-                    values.find((v) => v.name === field.name)?.value === "Yes"
-                  }
+                  checked={isChecked(field)}
                   onCheckedChange={(checked) =>
                     handleChange(field.name, checked ? "Yes" : "No")
                   }
                 />
                 <span className="text-sm">
-                  {values.find((v) => v.name === field.name)?.value === "Yes"
-                    ? "Yes"
-                    : "No"}
+                  {isChecked(field) ? "Yes" : "No"}
                 </span>
               </div>
             </FormFieldWrapper>
