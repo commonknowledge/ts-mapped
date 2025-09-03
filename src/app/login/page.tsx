@@ -24,7 +24,7 @@ export default function LoginPage() {
       if (!response.ok) {
         throw new Error(`Response code ${response.status}`);
       }
-      window.location.href = "/dashboard"
+      window.location.href = "/dashboard";
     } catch {
       setError("Login failed, please check your credentials.");
       setLoading(false);
