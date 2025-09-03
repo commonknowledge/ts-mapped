@@ -13,6 +13,7 @@ import {
 } from "@/__generated__/types";
 import { DefinitionList } from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
+import PageHeader from "@/components/PageHeader";
 import { DataSourceConfigLabels } from "@/labels";
 import {
   Breadcrumb,
@@ -123,52 +124,50 @@ export default function DataSourceDashboard({
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
-      <div className="flex gap-12">
-        <div className="grow">
-          <Breadcrumb className="mb-4">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <Link href="/data-sources">Data sources</Link>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <h1 className="text-3xl font-medium tracking-tight">
-            {dataSource.name}
-          </h1>
-          <p className="mt-1 text-2xl text-muted-foreground">
-            {importing ? (
+      <div className="space-y-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <Link href="/data-sources">Data sources</Link>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <PageHeader
+          title={dataSource.name}
+          description={
+            importing ? (
               <span className="flex items-center gap-2">
                 <RefreshCw className="animate-spin" />
                 {recordCount} records
               </span>
             ) : (
-              <>{recordCount} records</>
-            )}
-          </p>
-        </div>
+              `${recordCount} records`
+            )
+          }
+          action={
+            <div className="flex flex-col items-end gap-2">
+              <Button
+                type="button"
+                onClick={onClickImportRecords}
+                disabled={importing}
+                size="lg"
+              >
+                <RefreshCw className={importing ? "animate-spin" : ""} />
+                {importing ? "Importing" : "Import"}
+              </Button>
 
-        <div className="flex flex-col items-end gap-2 ">
-          <Button
-            type="button"
-            onClick={onClickImportRecords}
-            disabled={importing}
-            size="lg"
-          >
-            <RefreshCw className={importing ? "animate-spin" : ""} />
-            {importing ? "Importing" : "Import"}
-          </Button>
-
-          {importError && (
-            <div>
-              <span className="text-xs text-red-500">{importError}</span>
+              {importError && (
+                <div>
+                  <span className="text-xs text-red-500">{importError}</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          }
+        />
       </div>
-
-      <Separator className="my-8" />
 
       {lastImported && (
         <>

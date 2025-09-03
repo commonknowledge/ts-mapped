@@ -1,12 +1,10 @@
 import { verify } from "jsonwebtoken";
-import { NewUser, UserUpdate } from "@/server/models/User";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
-
-type Nullable<T> = { [K in keyof T]: T[K] | null };
+import { User } from "../models/User";
 
 export async function upsertUser(
-  user: Omit<NewUser, "passwordHash"> & { password: string },
+  user: Pick<User, "email"> & { password: string }
 ) {
   const passwordHash = await hashPassword(user.password);
   const newUser = { ...user, passwordHash, password: undefined };
@@ -16,7 +14,7 @@ export async function upsertUser(
     .onConflict((oc) =>
       oc.columns(["email"]).doUpdateSet({
         passwordHash: newUser.passwordHash,
-      }),
+      })
     )
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -29,18 +27,13 @@ export async function deleteUser(id: string) {
 export async function findUserByEmailAndPassword({
   email,
   password,
-}: {
-  email: string;
-  password: string;
-}) {
+}: Pick<User, "email"> & { password: string }) {
   const user = await db
     .selectFrom("user")
     .where("email", "=", email)
     .selectAll()
     .executeTakeFirst();
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
   const passwordValid = await verifyPassword(password, user.passwordHash);
   return passwordValid ? user : null;
 }
@@ -64,28 +57,4 @@ export async function findUserByEmail(email: string) {
 export async function findUserByToken(token: string) {
   const decoded = verify(token, process.env.JWT_SECRET || "") as { id: string };
   return findUserById(decoded.id);
-}
-
-export async function updateUser(
-  id: string,
-  {
-    password,
-    ...data
-  }: Nullable<Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }>,
-) {
-  const update = { email: data?.email || undefined } as UserUpdate;
-
-  if (password) {
-    update.passwordHash = await hashPassword(password);
-  }
-  if (data.email) {
-    update.email = data.email.toLowerCase().trim();
-  }
-
-  return db
-    .updateTable("user")
-    .where("id", "=", id)
-    .set(update)
-    .returningAll()
-    .executeTakeFirstOrThrow();
 }

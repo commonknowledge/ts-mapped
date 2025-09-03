@@ -32,7 +32,7 @@ export default function DataSourcesPage() {
   const { data: dataSources, isLoading } = useQuery(
     trpc.dataSource.byOrganisation.queryOptions(
       { organisationId: organisationId ?? "" },
-      { enabled: !!organisationId },
+      { enabled: Boolean(organisationId) },
     ),
   );
 
@@ -74,7 +74,7 @@ export default function DataSourcesPage() {
   };
 
   return (
-    <div className="">
+    <div>
       <Tabs
         value={activeTab}
         onValueChange={(value) =>

@@ -1,26 +1,11 @@
-import {
-  Generated,
-  Insertable,
-  ColumnType as KyselyColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
 import z from "zod";
+import { BaseTable, baseTableSchema } from "./BaseTable";
 
-export interface UserTable {
-  id: Generated<string>;
-  email: string;
-  passwordHash: string;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
-}
-
-export type User = Selectable<UserTable>;
-export type NewUser = Insertable<UserTable>;
-export type UserUpdate = Updateable<UserTable>;
-
-export const userSchema = z.object({
-  id: z.string(),
-  email: z.string(),
+export const userSchema = baseTableSchema.extend({
+  email: z.string().email(),
   passwordHash: z.string(),
-  createdAt: z.date(),
 });
+
+export type User = z.infer<typeof userSchema>;
+
+export interface UserTable extends BaseTable, Omit<User, "id" | "createdAt"> {}

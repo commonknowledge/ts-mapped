@@ -12,7 +12,7 @@ import { Database, db } from "@/server/services/database";
 export async function countDataRecordsForDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,
-  search: string | null | undefined,
+  search: string | null | undefined
 ): Promise<{ count: number; matched: number }> {
   const result = await db
     .selectFrom("dataRecord")
@@ -26,7 +26,7 @@ export async function countDataRecordsForDataSource(
             .when(applyFilterAndSearch(eb, filter, search))
             .then(1)
             .else(null)
-            .end(),
+            .end()
         )
         .as("matched"),
     ])
@@ -49,10 +49,10 @@ export function getFirstDataRecord(dataSourceId: string) {
 function applyFilterAndSearch(
   eb: ExpressionBuilder<Database, "dataRecord">,
   filter: RecordFilterInput | null | undefined,
-  search: string | null | undefined,
+  search: string | null | undefined
 ) {
   const applyFilter = (
-    filter: RecordFilterInput | null | undefined,
+    filter: RecordFilterInput | null | undefined
   ): AliasableExpression<SqlBool> => {
     if (filter?.type === FilterType.MULTI && filter.children?.length) {
       if (filter.operator === FilterOperator.AND) {
@@ -84,7 +84,7 @@ function applyFilterAndSearch(
       return eb(
         eb.fn("lower", [eb.ref("json", "->>").key(filter?.column || "")]),
         "=",
-        filter?.search?.toLowerCase() || "",
+        filter?.search?.toLowerCase() || ""
       );
     }
 
@@ -113,7 +113,7 @@ export function findDataRecordsByDataSource(
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
   page: number,
-  sort: SortInput[],
+  sort: SortInput[]
 ) {
   let q = db
     .selectFrom("dataRecord")
@@ -129,7 +129,7 @@ export function findDataRecordsByDataSource(
         ({ ref }) => {
           return ref("json", "->>").key(s.name);
         },
-        s.desc ? "desc" : "asc",
+        s.desc ? "desc" : "asc"
       );
     }
   } else {
@@ -142,7 +142,7 @@ export function findDataRecordsByDataSource(
 export function streamDataRecordsByDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null,
-  search: string,
+  search: string
 ) {
   return db
     .selectFrom("dataRecord")
@@ -158,7 +158,7 @@ export function streamDataRecordsByDataSource(
 export async function findDataRecordByDataSourceAndAreaCode(
   dataSourceId: string,
   areaSetCode: string,
-  areaCode: string,
+  areaCode: string
 ) {
   return db
     .selectFrom("dataRecord")
@@ -167,7 +167,7 @@ export async function findDataRecordByDataSourceAndAreaCode(
       return eb(
         ref("geocodeResult", "->>").key("areas").key(areaSetCode),
         "=",
-        areaCode,
+        areaCode
       );
     })
     .selectAll()
@@ -183,7 +183,7 @@ export function upsertDataRecord(dataRecord: NewDataRecord) {
         json: dataRecord.json,
         geocodeResult: dataRecord.geocodeResult,
         geocodePoint: dataRecord.geocodePoint,
-      }),
+      })
     )
     .returningAll()
     .executeTakeFirstOrThrow();

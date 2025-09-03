@@ -36,7 +36,7 @@ export default function ChoroplethProvider({
         ? choroplethDataSource.geocodingConfig.areaSetCode
         : null,
       viewConfig.areaSetGroupCode,
-      zoom,
+      zoom
     );
   }, [choroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
   /* GraphQL Data */
