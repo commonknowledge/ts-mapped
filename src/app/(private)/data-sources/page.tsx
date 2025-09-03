@@ -3,8 +3,11 @@
 import { gql, useQuery } from "@apollo/client";
 import {
   BookOpen,
+  Boxes,
+  CalendarDays,
   Database,
   LoaderPinwheel,
+  MapPin,
   Pentagon,
   PlusIcon,
   Users,
@@ -12,10 +15,12 @@ import {
 import { useContext, useState } from "react";
 import {
   AreaSetGroupCode,
+  DataSourceRecordType,
   ListDataSourcesQuery,
   ListDataSourcesQueryVariables,
 } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
+import { DataSourceItem } from "@/components/DataSourceItem";
 import { Link } from "@/components/Link";
 import { mapColors } from "@/components/Map/styles";
 import PageHeader from "@/components/PageHeader";
@@ -23,8 +28,6 @@ import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-
-import DataSourceCard from "../map/[id]/components/DataSourceItem";
 
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
@@ -46,6 +49,7 @@ export default function DataSourcesPage() {
           public
           autoEnrich
           autoImport
+          recordType
           columnDefs {
             name
             type
@@ -117,6 +121,30 @@ export default function DataSourcesPage() {
     ],
   };
 
+  const memberDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Members;
+  });
+
+  const referenceDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Data;
+  });
+
+  const eventDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Events;
+  });
+
+  const locationDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Locations;
+  });
+
+  const peopleDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.People;
+  });
+
+  const otherDataSources = dataSources.filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Other;
+  });
+
   return (
     <div className="">
       <Tabs
@@ -159,104 +187,6 @@ export default function DataSourcesPage() {
                   </Link>
                 }
               />
-              {/* Member Collections Section */}
-              <div>
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <CollectionIcon color={mapColors.member.color} />
-                  Member Collections
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {dataSources
-                    .filter((dataSource) => {
-                      // Filter for member/activist related data sources
-                      const config = dataSource.config;
-                      return (
-                        config?.type === "actionnetwork" ||
-                        config?.type === "mailchimp" ||
-                        dataSource.name.toLowerCase().includes("member") ||
-                        dataSource.name.toLowerCase().includes("activist") ||
-                        dataSource.name.toLowerCase().includes("supporter")
-                      );
-                    })
-                    .map((dataSource) => (
-                      <DataSourceCard
-                        key={dataSource.id}
-                        dataSource={dataSource}
-                        isSelected={false}
-                        onClick={() => {
-                          // Navigate to data source detail page
-                          window.location.href = `/data-sources/${dataSource.id}`;
-                        }}
-                      />
-                    ))}
-                  {dataSources.filter((dataSource) => {
-                    const config = dataSource.config;
-                    return (
-                      config?.type === "actionnetwork" ||
-                      config?.type === "mailchimp" ||
-                      dataSource.name.toLowerCase().includes("member") ||
-                      dataSource.name.toLowerCase().includes("activist") ||
-                      dataSource.name.toLowerCase().includes("supporter")
-                    );
-                  }).length === 0 && (
-                    <div className="col-span-full text-center py-8 text-gray-400">
-                      <Users className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">No member collections yet</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Reference Data Section */}
-              <div>
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Database className="w-5 h-5 text-green-600" />
-                  Reference Data
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {dataSources
-                    .filter((dataSource) => {
-                      // Filter for reference/utility data sources
-                      const config = dataSource.config;
-                      return (
-                        config?.type === "csv" ||
-                        config?.type === "googlesheets" ||
-                        config?.type === "airtable" ||
-                        dataSource.name.toLowerCase().includes("reference") ||
-                        dataSource.name.toLowerCase().includes("utility") ||
-                        dataSource.name.toLowerCase().includes("data")
-                      );
-                    })
-                    .map((dataSource) => (
-                      <DataSourceCard
-                        key={dataSource.id}
-                        dataSource={dataSource}
-                        isSelected={false}
-                        onClick={() => {
-                          // Navigate to data source detail page
-                          window.location.href = `/data-sources/${dataSource.id}`;
-                        }}
-                      />
-                    ))}
-                  {dataSources.filter((dataSource) => {
-                    const config = dataSource.config;
-                    return (
-                      config?.type === "csv" ||
-                      config?.type === "googlesheets" ||
-                      config?.type === "airtable" ||
-                      dataSource.name.toLowerCase().includes("reference") ||
-                      dataSource.name.toLowerCase().includes("utility") ||
-                      dataSource.name.toLowerCase().includes("data")
-                    );
-                  }).length === 0 && (
-                    <div className="col-span-full text-center py-8 text-gray-400">
-                      <Database className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">No reference data yet</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Show message if no data sources at all */}
               {dataSources.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
@@ -273,6 +203,156 @@ export default function DataSourcesPage() {
                   </Link>
                 </div>
               )}
+
+              {/* Member Collections Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <CollectionIcon color={mapColors.member.color} />
+                  Member Collections
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {memberDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {memberDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Users className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No member collections yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Reference Data Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Database className="w-5 h-5 text-green-600" />
+                  Reference Data
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {referenceDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {referenceDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Database className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No reference data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Events Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5 text-purple-600" />
+                  Events
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {eventDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {eventDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <CalendarDays className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No events data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Locations Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-red-600" />
+                  Locations
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {locationDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {locationDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <MapPin className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No locations data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* People Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-sky-600" />
+                  People
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {peopleDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {peopleDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Users className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No people data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Other Section */}
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Boxes className="w-5 h-5 text-gray-600" />
+                  Other
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {otherDataSources.map((dataSource) => (
+                    <Link
+                      key={dataSource.id}
+                      href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
+                    >
+                      <DataSourceItem dataSource={dataSource} />
+                    </Link>
+                  ))}
+                  {otherDataSources.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-gray-400">
+                      <Boxes className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-sm">No other data yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </TabsContent>

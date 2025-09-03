@@ -108,6 +108,15 @@ const typeDefs = `
     nameColumns: [String!]!
   }
 
+  enum DataSourceRecordType {
+    Members
+    People
+    Locations
+    Events
+    Data
+    Other
+  }
+
   input DataSourceViewInput {
     dataSourceId: String!
     filter: RecordFilterInput!
@@ -260,7 +269,7 @@ const typeDefs = `
     enrichments: [LooseEnrichment!]!
     geocodingConfig: LooseGeocodingConfig!
     public: Boolean!
-
+    recordType: DataSourceRecordType!
     enrichmentDataSources: [EnrichmentDataSource!]
     enrichmentInfo: JobInfo
     importInfo: JobInfo
@@ -517,6 +526,7 @@ const typeDefs = `
     createDataSource(
       name: String!
       organisationId: String!
+      recordType: DataSourceRecordType!
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
     createMap(organisationId: String!): CreateMapResponse @auth(read: { organisationIdArg: "organisationId" })
