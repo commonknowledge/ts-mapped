@@ -36,6 +36,15 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   }
 
   try {
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        importStarted: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     let count = 0;
     const columnDefsAccumulator: ColumnDef[] = [];
     const total = await adaptor.getRecordCount();
