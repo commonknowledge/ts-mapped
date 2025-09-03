@@ -7,6 +7,7 @@ import {
   PublicMapDataRecordsQueryVariables,
 } from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
+import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
@@ -31,6 +32,7 @@ export default function DataSourceTabs({
   const { publicMap, activeTabId, setActiveTabId } =
     useContext(PublicMapContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
+  const { setPublicFilters } = useContext(PublicFiltersContext);
 
   if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
     return null;
@@ -61,12 +63,13 @@ export default function DataSourceTabs({
   const defaultTabId =
     activeTabId || publicMap.dataSourceConfigs[0]?.dataSourceId;
 
+  const onTabChange = (id: string) => {
+    setActiveTabId(id);
+    setPublicFilters([]); // resetting filters on tab change
+  };
+
   return (
-    <Tabs
-      value={defaultTabId}
-      onValueChange={setActiveTabId}
-      className="min-h-0"
-    >
+    <Tabs value={defaultTabId} onValueChange={onTabChange} className="min-h-0">
       <div className="flex items-center gap-2 px-4">
         <TabsList
           className="grid w-full"

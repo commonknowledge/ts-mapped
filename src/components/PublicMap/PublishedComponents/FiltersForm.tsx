@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenuCheckboxItem,
@@ -9,7 +10,6 @@ import {
 } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Switch } from "@/shadcn/ui/switch";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 export default function FiltersForm({
