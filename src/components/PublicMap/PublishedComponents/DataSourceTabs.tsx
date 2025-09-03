@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
-import Filters from "./Filters";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };
@@ -134,13 +133,6 @@ function SingleDataSourceContent({
         editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
-      <div className="flex justify-between items-center gap-4 px-4 my-2">
-        <span className="text-sm">
-          {dataRecordsQuery.data?.dataSource?.records?.length || 0} Listings
-        </span>
-        <Filters />
-      </div>
-
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}
         onSelect={onSelect}

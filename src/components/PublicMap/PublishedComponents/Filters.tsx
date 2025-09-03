@@ -97,7 +97,7 @@ export default function Filters() {
           <span>Open filters</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="!max-w-[420px] gap-2">
+      <DialogContent className="!max-w-[420px] !w-[90%] gap-2">
         <DialogHeader>
           <DialogTitle>Filter</DialogTitle>
           <DialogDescription className="sr-only">

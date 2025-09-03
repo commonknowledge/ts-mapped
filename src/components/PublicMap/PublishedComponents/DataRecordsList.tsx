@@ -16,6 +16,7 @@ import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { Point } from "@/types";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
+import Filters from "./Filters";
 import { buildName } from "./utils";
 
 interface DataRecordsListProps {
@@ -140,61 +141,69 @@ export default function DataRecordsList({
   };
 
   if (!records?.length) {
-    return <></>;
+    return <span className="text-sm">No records found</span>;
   }
 
   return (
-    <ul className="flex flex-col">
-      {records.map((r) => {
-        const isExpanded = expandedRecordId === r.id;
-        const isSelected = selectedDataRecord?.id === r.id;
+    <>
+      <div className="flex justify-between items-center gap-4 px-4 my-2">
+        <span className="text-sm">{records?.length || 0} Listings</span>
+        <Filters />
+      </div>
+      <ul className="flex flex-col">
+        {records.map((r) => {
+          const isExpanded = expandedRecordId === r.id;
+          const isSelected = selectedDataRecord?.id === r.id;
 
-        return (
-          <li
-            key={r.id}
-            className={cn(
-              "cursor-pointer rounded transition-all duration-200",
-              isSelected ? "" : "hover:bg-accent",
-            )}
-            style={
-              isSelected ? { backgroundColor: colourScheme.muted } : undefined
-            }
-          >
-            {/* Main record item */}
-            <div
-              role="button"
-              onClick={() => handleRecordClick(r)}
-              className="py-3 px-4 flex flex-col gap-2"
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: colourScheme.primary }}
-                />
-                <span className="font-medium flex-1">{getName(r)}</span>
-                {/* Only show arrow on mobile */}
-                <div className="text-xs text-neutral-500 md:hidden">
-                  {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                </div>
-              </div>
-              {getDescription(r) && (
-                <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
+          return (
+            <li
+              key={r.id}
+              className={cn(
+                "cursor-pointer rounded transition-all duration-200",
+                isSelected ? "" : "hover:bg-accent",
               )}
-            </div>
-
-            {/* Expanded content - only on mobile */}
-            {isExpanded && (
-              <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
-                <MobileRecordDetails
-                  record={r}
-                  dataSourceConfig={dataSourceConfig}
-                />
+              style={
+                isSelected ? { backgroundColor: colourScheme.muted } : undefined
+              }
+            >
+              {/* Main record item */}
+              <div
+                role="button"
+                onClick={() => handleRecordClick(r)}
+                className="py-3 px-4 flex flex-col gap-2"
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: colourScheme.primary }}
+                  />
+                  <span className="font-medium flex-1">{getName(r)}</span>
+                  {/* Only show arrow on mobile */}
+                  <div className="text-xs text-neutral-500 md:hidden">
+                    {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                  </div>
+                </div>
+                {getDescription(r) && (
+                  <span className="text-sm ml-[1.1rem]">
+                    {getDescription(r)}
+                  </span>
+                )}
               </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+
+              {/* Expanded content - only on mobile */}
+              {isExpanded && (
+                <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
+                  <MobileRecordDetails
+                    record={r}
+                    dataSourceConfig={dataSourceConfig}
+                  />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 
