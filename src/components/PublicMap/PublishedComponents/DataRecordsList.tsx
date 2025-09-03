@@ -2,7 +2,7 @@
 
 import { QueryResult } from "@apollo/client";
 import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
@@ -15,6 +15,7 @@ import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { Point } from "@/types";
+import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { buildName } from "./utils";
 
 interface DataRecordsListProps {
@@ -34,11 +35,34 @@ export default function DataRecordsList({
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedDataRecord } = useContext(DataRecordContext);
+  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
+  const [records, setRecords] = useState<
+    NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
+  >([]);
 
-  const records = dataRecordsQuery?.data?.dataSource?.records || [];
+  useEffect(() => {
+    setPublicFilters([]); // resetting filters when records query changes
+
+    const allRecords = dataRecordsQuery?.data?.dataSource?.records || [];
+    setRecords(allRecords);
+  }, [dataRecordsQuery, setPublicFilters]);
+
+  useEffect(() => {
+    if (!publicFilters?.length) {
+      return;
+    }
+    
+    const activeFilters = publicFilters.filter(f => f?.value || f?.selectedOptions?.length)
+    console.log(activeFilters, records);
+
+    if (!activeFilters?.length) {
+      return;
+    }
+  }, [publicFilters, records]);
+
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
+    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id
   );
 
   const getName = (record: {
@@ -96,7 +120,7 @@ export default function DataRecordsList({
             key={r.id}
             className={cn(
               "cursor-pointer rounded transition-all duration-200",
-              isSelected ? "" : "hover:bg-accent",
+              isSelected ? "" : "hover:bg-accent"
             )}
             style={
               isSelected ? { backgroundColor: colourScheme.muted } : undefined
@@ -150,7 +174,7 @@ function MobileRecordDetails({
 }) {
   const name = buildName(dataSourceConfig?.nameColumns || [], record.json);
   const description = String(
-    record.json[dataSourceConfig?.descriptionColumn || ""] || "",
+    record.json[dataSourceConfig?.descriptionColumn || ""] || ""
   );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
@@ -257,7 +281,7 @@ function MobileCommaSeparatedList({
     String(json[c] || "")
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean),
+      .filter(Boolean)
   );
 
   return (
