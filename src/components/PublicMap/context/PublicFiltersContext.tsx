@@ -2,7 +2,7 @@ import { createContext } from "react";
 import type { PublicFiltersFormValue } from "@/types";
 
 export const PublicFiltersContext = createContext<{
-  publicFilters: object[];
+  publicFilters: PublicFiltersFormValue[];
   setPublicFilters: React.Dispatch<
     React.SetStateAction<PublicFiltersFormValue[]>
   >;
