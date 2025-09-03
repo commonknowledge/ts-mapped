@@ -1,11 +1,11 @@
 import z from "zod";
-import { BaseTable, baseTableSchema } from "./BaseTable";
+import { type TableOf, baseTableSchema } from "./base";
 
-export const userSchema = baseTableSchema.extend({
+export const userSchema = baseTableSchema({
   email: z.string().email(),
   passwordHash: z.string(),
 });
 
 export type User = z.infer<typeof userSchema>;
 
-export interface UserTable extends BaseTable, Omit<User, "id" | "createdAt"> {}
+export type UserTable = TableOf<typeof userSchema>;
