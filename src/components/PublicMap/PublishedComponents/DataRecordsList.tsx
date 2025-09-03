@@ -52,8 +52,10 @@ export default function DataRecordsList({
     if (!publicFilters?.length) {
       return;
     }
-    
-    const activeFilters = publicFilters.filter(f => f?.value || f?.selectedOptions?.length)
+
+    const activeFilters = publicFilters.filter(
+      (f) => f?.value || f?.selectedOptions?.length,
+    );
     console.log(activeFilters, records);
 
     if (!activeFilters?.length) {
@@ -62,7 +64,7 @@ export default function DataRecordsList({
   }, [publicFilters, records]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id
+    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
   );
 
   const getName = (record: {
@@ -109,6 +111,10 @@ export default function DataRecordsList({
     }
   };
 
+  if (!records?.length) {
+    return <></>;
+  }
+
   return (
     <ul className="flex flex-col">
       {records.map((r) => {
@@ -120,7 +126,7 @@ export default function DataRecordsList({
             key={r.id}
             className={cn(
               "cursor-pointer rounded transition-all duration-200",
-              isSelected ? "" : "hover:bg-accent"
+              isSelected ? "" : "hover:bg-accent",
             )}
             style={
               isSelected ? { backgroundColor: colourScheme.muted } : undefined
@@ -174,7 +180,7 @@ function MobileRecordDetails({
 }) {
   const name = buildName(dataSourceConfig?.nameColumns || [], record.json);
   const description = String(
-    record.json[dataSourceConfig?.descriptionColumn || ""] || ""
+    record.json[dataSourceConfig?.descriptionColumn || ""] || "",
   );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
@@ -281,7 +287,7 @@ function MobileCommaSeparatedList({
     String(json[c] || "")
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   return (
