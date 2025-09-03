@@ -54,7 +54,7 @@ export default async function DataSourceConfigPage({
         title={`Configure ${result.data.dataSource.name}`}
         description="Tell us about your data to take full advantage of Mapped."
       />
-      <ConfigurationForm dataSource={result.data.dataSource} />
+      <ConfigurationForm dataSource={result.data.dataSource} redirectToParent />
     </div>
   );
 }

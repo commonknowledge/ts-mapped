@@ -1,6 +1,7 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
+import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -19,10 +20,14 @@ import GeocodingConfigFields from "./GeocodingConfigFields";
 
 export default function ConfigurationForm({
   dataSource,
+  redirectToParent = false,
 }: {
   // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
   dataSource: Exclude<DataSourceQuery["dataSource"], null | undefined>;
+  redirectToParent?: boolean;
 }) {
+  const router = useRouter();
+
   // Columns config
   const [nameColumns, setNameColumns] = useState<string[]>(
     dataSource.columnRoles.nameColumns || [],
@@ -83,7 +88,11 @@ export default function ConfigurationForm({
         throw new Error(String(result.errors || "Unknown error"));
       } else {
         setLoading(false);
-        toast.success("Your changes have been saved.");
+        if (redirectToParent) {
+          router.push(`/data-sources/${dataSource.id}`);
+        } else {
+          toast.success("Your changes have been saved.");
+        }
         return;
       }
     } catch (e) {

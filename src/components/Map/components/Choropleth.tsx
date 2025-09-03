@@ -65,82 +65,99 @@ export default function Choropleth() {
     viewConfig.calculationType === CalculationType.Count,
   );
 
-  if (!viewConfig.areaSetGroupCode || !viewConfig.visualisationType) {
-    return null;
-  }
-
+  const choroplethTopLayerId = "choropleth-top";
   return (
-    <Source
-      id={sourceId}
-      key={layerId}
-      promoteId={featureCodeProperty}
-      type="vector"
-      url={`mapbox://${sourceId}`}
-    >
-      {/* Fill Layer - only show for choropleth */}
-      {viewConfig.visualisationType === VisualisationType.Choropleth && (
+    <>
+      {/* Position layer */}
+      <Source
+        id={choroplethTopLayerId}
+        key={choroplethTopLayerId}
+        type="geojson"
+        data={{ type: "FeatureCollection", features: [] }}
+      >
         <Layer
-          id={`${sourceId}-fill`}
-          source={sourceId}
-          source-layer={layerId}
-          type="fill"
-          paint={{
-            "fill-color": fillColor,
-            "fill-opacity": 0.8, // Higher opacity to ensure colors are visible
-          }}
+          id={choroplethTopLayerId}
+          source={choroplethTopLayerId}
+          type="circle"
         />
-      )}
+      </Source>
+      {viewConfig.areaSetGroupCode && viewConfig.visualisationType && (
+        <Source
+          id={sourceId}
+          key={layerId}
+          promoteId={featureCodeProperty}
+          type="vector"
+          url={`mapbox://${sourceId}`}
+        >
+          {/* Fill Layer - only show for choropleth */}
+          {viewConfig.visualisationType === VisualisationType.Choropleth && (
+            <Layer
+              id={`${sourceId}-fill`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="fill"
+              paint={{
+                "fill-color": fillColor,
+                "fill-opacity": 0.8, // Higher opacity to ensure colors are visible
+              }}
+            />
+          )}
 
-      {/* Line Layer - show for both boundary-only and choropleth */}
-      {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
-        viewConfig.visualisationType === VisualisationType.Choropleth) && (
-        <Layer
-          id={`${sourceId}-line`}
-          source={sourceId}
-          source-layer={layerId}
-          type="line"
-          paint={{
-            "line-color": "#999",
-            "line-width": 1,
-          }}
-        />
-      )}
+          {/* Line Layer - show for both boundary-only and choropleth */}
+          {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
+            viewConfig.visualisationType === VisualisationType.Choropleth) && (
+            <Layer
+              id={`${sourceId}-line`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="line"
+              paint={{
+                "line-color": "#999",
+                "line-width": 1,
+              }}
+            />
+          )}
 
-      {/* Symbol Layer (Labels) */}
-      {viewConfig.showLabels && (
-        <Layer
-          id={`${sourceId}-labels`}
-          source={sourceId}
-          source-layer={layerId}
-          type="symbol"
-          layout={{
-            "symbol-placement": "point",
-            "text-field": ["get", featureNameProperty],
-            "text-size": 14,
-            "text-anchor": "center",
-            "text-allow-overlap": false,
-            "symbol-spacing": 100,
-            "text-max-width": 8,
-            "text-padding": 30,
-            "text-transform": "uppercase",
-            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
-          }}
-          paint={{
-            "text-color": viewConfig.getMapStyle().textColor,
-            "text-opacity": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              8,
-              0.8,
-              10,
-              0.8,
-            ],
-            "text-halo-color": viewConfig.getMapStyle().textHaloColor,
-            "text-halo-width": 1.5,
-          }}
-        />
+          {/* Symbol Layer (Labels) */}
+          {viewConfig.showLabels && (
+            <Layer
+              id={`${sourceId}-labels`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="symbol"
+              layout={{
+                "symbol-placement": "point",
+                "text-field": ["get", featureNameProperty],
+                "text-size": 14,
+                "text-anchor": "center",
+                "text-allow-overlap": false,
+                "symbol-spacing": 100,
+                "text-max-width": 8,
+                "text-padding": 30,
+                "text-transform": "uppercase",
+                "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              }}
+              paint={{
+                "text-color": viewConfig.getMapStyle().textColor,
+                "text-opacity": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  8,
+                  0.8,
+                  10,
+                  0.8,
+                ],
+                "text-halo-color": viewConfig.getMapStyle().textHaloColor,
+                "text-halo-width": 1.5,
+              }}
+            />
+          )}
+        </Source>
       )}
-    </Source>
+    </>
   );
 }

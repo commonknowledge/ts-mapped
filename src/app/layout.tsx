@@ -8,6 +8,8 @@ import {
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
+import ConditionalMarketingFooter from "@/components/ConditionalMarketingFooter";
+import ConditionalMarketingNavbar from "@/components/ConditionalMarketingNavbar";
 import PublicMapPage from "@/components/PublicMapPage";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
@@ -22,12 +24,16 @@ const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-ibm-plex-sans",
+  display: "swap",
+  preload: true,
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-ibm-plex-mono",
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -66,6 +72,7 @@ export default async function RootLayout({
 
   const serverSession = await getServerSession();
   const organisations = await getOrganisations();
+
   return (
     <html
       lang="en"
@@ -76,7 +83,9 @@ export default async function RootLayout({
           <OrganisationsProvider organisations={organisations}>
             <ApolloProvider>
               <NProgressProvider>
-                <main>{children}</main>
+                <ConditionalMarketingNavbar />
+                <main className="min-h-screen">{children}</main>
+                <ConditionalMarketingFooter />
                 <Toaster position="top-right" />
               </NProgressProvider>
             </ApolloProvider>

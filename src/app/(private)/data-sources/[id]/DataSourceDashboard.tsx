@@ -2,7 +2,7 @@
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
@@ -58,6 +58,9 @@ export default function DataSourceDashboard({
     gql`
       subscription DataSourceEvent($dataSourceId: String!) {
         dataSourceEvent(dataSourceId: $dataSourceId) {
+          importStarted {
+            at
+          }
           importComplete {
             at
           }
@@ -79,6 +82,9 @@ export default function DataSourceDashboard({
     if (!dataSourceEvent) {
       return;
     }
+    if (dataSourceEvent.importStarted) {
+      setImporting(true);
+    }
     if (dataSourceEvent.recordsImported?.count) {
       setRecordCount(dataSourceEvent.recordsImported?.count);
     }
@@ -92,7 +98,7 @@ export default function DataSourceDashboard({
     }
   }, [dataSourceEvent]);
 
-  const onClickImportRecords = async () => {
+  const onClickImportRecords = useCallback(async () => {
     setImporting(true);
     setImportError("");
     setRecordCount(0);
@@ -109,7 +115,7 @@ export default function DataSourceDashboard({
       setImportError("Could not schedule import job.");
       setImporting(false);
     }
-  };
+  }, [dataSource.id, enqueueImportDataSourceJob]);
 
   const mappedInformation = Object.keys(dataSource.config).map((k) => ({
     label:

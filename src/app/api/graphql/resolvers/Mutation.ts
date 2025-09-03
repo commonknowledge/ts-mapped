@@ -21,6 +21,7 @@ import {
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import ForgotPassword from "@/server/emails/forgot-password";
+import { countDataRecordsForDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   findDataSourceById,
@@ -266,6 +267,16 @@ const MutationResolvers: MutationResolversType = {
       logger.info(
         `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
       );
+
+      const recordCount = await countDataRecordsForDataSource(
+        dataSource.id,
+        null,
+        null,
+      );
+      if (recordCount.count === 0) {
+        await enqueue("importDataSource", { dataSourceId: id });
+      }
+
       return { code: 200 };
     } catch (error) {
       logger.error(`Could not update data source`, { error });
