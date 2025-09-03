@@ -28,7 +28,7 @@ export async function login(formData: FormData) {
       "JWT",
       sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "", {
         expiresIn: 24 * 60 * 60,
-      })
+      }),
     );
 
     redirect("/dashboard");
