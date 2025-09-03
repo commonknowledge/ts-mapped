@@ -35,33 +35,61 @@ export default function DataRecordsList({
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedDataRecord } = useContext(DataRecordContext);
-  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
+  const { publicFilters } = useContext(PublicFiltersContext);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
   const [records, setRecords] = useState<
     NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
   >([]);
 
   useEffect(() => {
-    setPublicFilters([]); // resetting filters when records query changes
-
     const allRecords = dataRecordsQuery?.data?.dataSource?.records || [];
-    setRecords(allRecords);
-  }, [dataRecordsQuery, setPublicFilters]);
 
-  useEffect(() => {
     if (!publicFilters?.length) {
+      setRecords(allRecords);
       return;
     }
 
     const activeFilters = publicFilters.filter(
       (f) => f?.value || f?.selectedOptions?.length,
     );
-    console.log(activeFilters, records);
 
-    if (!activeFilters?.length) {
+    if (!activeFilters?.length || !allRecords?.length) {
       return;
     }
-  }, [publicFilters, records]);
+
+    const filteredRecords = allRecords.filter((record) => {
+      return activeFilters.every((filter) => {
+        if (
+          filter.type === PublicMapColumnType.Boolean &&
+          filter.value === "Yes"
+        ) {
+          return record.json[filter.name] === "Yes";
+        }
+
+        if (filter.type === PublicMapColumnType.String && filter.value) {
+          const fieldValue = String(record.json[filter.name] || "");
+          return fieldValue.toLowerCase().includes(filter.value.toLowerCase());
+        }
+
+        if (
+          filter.type === PublicMapColumnType.CommaSeparatedList &&
+          filter?.selectedOptions?.length
+        ) {
+          const recordArr = record.json[filter.name]
+            ? record.json[filter.name].split(", ")
+            : [];
+
+          return recordArr.some((val: string) =>
+            filter?.selectedOptions?.includes(val),
+          );
+        }
+
+        return true;
+      });
+    });
+
+    setRecords(filteredRecords);
+  }, [publicFilters, setRecords, dataRecordsQuery?.data?.dataSource?.records]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,

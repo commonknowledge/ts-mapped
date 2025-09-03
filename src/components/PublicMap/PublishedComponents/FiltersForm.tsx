@@ -28,12 +28,14 @@ export default function FiltersForm({
       if (field.type === PublicMapColumnType.CommaSeparatedList) {
         return {
           name: field.name,
+          type: field.type,
           selectedOptions: [],
         };
       }
 
       return {
         name: field.name,
+        type: field.type,
         value: "",
       };
     });
@@ -97,14 +99,14 @@ export default function FiltersForm({
               <div className="flex items-center gap-2">
                 <Switch
                   checked={
-                    values.find((v) => v.name === field.name)?.value === "true"
+                    values.find((v) => v.name === field.name)?.value === "Yes"
                   }
                   onCheckedChange={(checked) =>
-                    handleChange(field.name, checked ? "true" : "false")
+                    handleChange(field.name, checked ? "Yes" : "No")
                   }
                 />
                 <span className="text-sm">
-                  {values.find((v) => v.name === field.name)?.value === "true"
+                  {values.find((v) => v.name === field.name)?.value === "Yes"
                     ? "Yes"
                     : "No"}
                 </span>

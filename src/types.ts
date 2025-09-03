@@ -67,16 +67,17 @@ export interface UploadResponseBody {
   url: string;
 }
 
-export interface PublicFiltersFormValue {
-  name: string;
-  value?: string;
-  selectedOptions?: string[];
-}
-
 enum PublicMapColumnType {
   Boolean = "Boolean",
   CommaSeparatedList = "CommaSeparatedList",
   String = "String",
+}
+
+export interface PublicFiltersFormValue {
+  name: string;
+  type: PublicMapColumnType;
+  value?: string;
+  selectedOptions?: string[];
 }
 
 export interface FilterField {
