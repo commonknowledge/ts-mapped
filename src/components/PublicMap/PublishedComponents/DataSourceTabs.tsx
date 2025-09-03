@@ -8,7 +8,6 @@ import {
 } from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";

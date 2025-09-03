@@ -39,11 +39,6 @@ export default function CustomMultiSelect({
             ) : (
               placeholder
             )}
-            {/* <span className="block truncate">
-              {selectedOptions?.length
-                ? selectedOptions.join(", ")
-                : placeholder}
-            </span> */}
             <ChevronDown className="text-muted-foreground opacity-50" />
           </Button>
         </DropdownMenuTrigger>

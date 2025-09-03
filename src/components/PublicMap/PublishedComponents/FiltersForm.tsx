@@ -22,14 +22,21 @@ export default function FiltersForm({
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { setPublicFilters } = useContext(PublicFiltersContext);
 
-  console.log(values);
-
+  // setting default values (empty)
   useEffect(() => {
-    const defaultValues = fields.map((field) => ({
-      name: field.name,
-      value: "",
-      selectedOptions: [],
-    }));
+    const defaultValues = fields.map((field) => {
+      if (field.type === PublicMapColumnType.CommaSeparatedList) {
+        return {
+          name: field.name,
+          selectedOptions: [],
+        };
+      }
+
+      return {
+        name: field.name,
+        value: "",
+      };
+    });
     setValues(defaultValues);
   }, [fields]);
 
@@ -49,13 +56,12 @@ export default function FiltersForm({
         if (v.name !== fieldName) return v;
 
         let updatedOptions = [...(v.selectedOptions || [])];
+
         if (checked) {
-          // add option if not already there
           if (!updatedOptions.includes(option)) {
             updatedOptions.push(option);
           }
         } else {
-          // remove option
           updatedOptions = updatedOptions.filter((o) => o !== option);
         }
 
@@ -66,7 +72,6 @@ export default function FiltersForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(values);
     setPublicFilters(values);
     onSubmit();
   };
@@ -76,6 +81,7 @@ export default function FiltersForm({
       {fields.map((field) => (
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
+            // text input
             <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
               <Input
                 type="text"
@@ -86,6 +92,7 @@ export default function FiltersForm({
               />
             </FormFieldWrapper>
           ) : field.type === PublicMapColumnType.Boolean ? (
+            // boolean swicth
             <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
               <div className="flex items-center gap-2">
                 <Switch
@@ -104,6 +111,7 @@ export default function FiltersForm({
               </div>
             </FormFieldWrapper>
           ) : field?.options?.length ? (
+            // multiselect
             <CustomMultiSelect
               label={field.name}
               id={`filters-${field.name}`}
