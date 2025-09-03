@@ -215,6 +215,7 @@ export default function DataSourcesPage() {
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
                     >
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
@@ -239,6 +240,7 @@ export default function DataSourcesPage() {
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
                     >
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
@@ -263,6 +265,7 @@ export default function DataSourcesPage() {
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
                     >
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
@@ -287,6 +290,7 @@ export default function DataSourcesPage() {
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
                     >
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
@@ -311,6 +315,7 @@ export default function DataSourcesPage() {
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
                     >
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
@@ -335,6 +340,7 @@ export default function DataSourcesPage() {
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
+                      className="hover:border-blue-300"
                     >
                       <DataSourceItem dataSource={dataSource} />
                     </Link>

@@ -168,7 +168,7 @@ export default function VisualisationPanel({
                   }}
                 >
                   <DataSourceItem
-                    className="border-blue-500 bg-blue-50"
+                    className="border-blue-500 bg-blue-50 hover:bg-blue-100"
                     dataSource={
                       dataSources.find(
                         (ds) => ds.id === viewConfig.areaDataSourceId
@@ -553,7 +553,7 @@ export default function VisualisationPanel({
                       className={
                         viewConfig.areaDataSourceId === ds.id
                           ? "border-blue-500 bg-blue-50"
-                          : ""
+                          : "hover:border-blue-300"
                       }
                       dataSource={ds as DataSource}
                     />
