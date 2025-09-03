@@ -14,17 +14,23 @@ import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 export default function FiltersForm({
   fields,
-  onSubmit,
+  closeDialog,
 }: {
   fields: FilterField[];
-  onSubmit: () => void;
+  closeDialog: () => void;
 }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
-  const { setPublicFilters } = useContext(PublicFiltersContext);
+  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
 
-  // setting default values (empty)
+  // setting default values
   useEffect(() => {
-    const defaultValues = fields.map((field) => {
+    if (publicFilters && publicFilters?.length) {
+      setValues(publicFilters);
+
+      return;
+    }
+
+    const defaultEmptyValues = fields.map((field) => {
       if (field.type === PublicMapColumnType.CommaSeparatedList) {
         return {
           name: field.name,
@@ -39,8 +45,8 @@ export default function FiltersForm({
         value: "",
       };
     });
-    setValues(defaultValues);
-  }, [fields]);
+    setValues(defaultEmptyValues);
+  }, [fields, publicFilters]);
 
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>
@@ -75,7 +81,12 @@ export default function FiltersForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPublicFilters(values);
-    onSubmit();
+    closeDialog();
+  };
+
+  const resetFilters = () => {
+    setPublicFilters([]);
+    closeDialog();
   };
 
   return (
@@ -144,8 +155,18 @@ export default function FiltersForm({
           )}
         </div>
       ))}
-      <div>
+      <div className="flex gap-4">
         <Button type="submit">Filter</Button>
+
+        {!!publicFilters?.length && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => resetFilters()}
+          >
+            Reset filters
+          </Button>
+        )}
       </div>
     </form>
   );

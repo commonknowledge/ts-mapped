@@ -105,7 +105,7 @@ export default function Filters() {
           </DialogDescription>
           <Separator className="my-4" />
         </DialogHeader>
-        <FiltersForm fields={filterFields} onSubmit={closeDialog} />
+        <FiltersForm fields={filterFields} closeDialog={closeDialog} />
       </DialogContent>
     </Dialog>
   );
