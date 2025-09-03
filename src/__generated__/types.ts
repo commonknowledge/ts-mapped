@@ -792,6 +792,15 @@ export enum VisualisationType {
   Choropleth = "Choropleth",
 }
 
+export type ForgotPasswordMutationVariables = Exact<{
+  email: Scalars["String"]["input"];
+}>;
+
+export type ForgotPasswordMutation = {
+  __typename?: "Mutation";
+  forgotPassword?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
 export type UpdateUserPasswordMutationVariables = Exact<{
   data: UpdateUserInput;
 }>;

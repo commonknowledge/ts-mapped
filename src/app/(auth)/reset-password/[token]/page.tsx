@@ -1,7 +1,6 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { toast } from "sonner";
@@ -41,44 +40,33 @@ export default function Page({
     toast.success("Password reset successfully", {
       description: "You can now login with your new password",
     });
-    router.push("/");
+    router.push("/login");
   };
 
   return (
-    <div className="p-4 pt-20 flex flex-col gap-4">
-      <div>
-        <Image
-          src="/logo.svg"
-          alt="Mapped"
-          width={40}
-          height={40}
-          className="mx-auto"
-        />
-      </div>
-      <Card className="mx-auto max-w-lg w-full">
-        <CardContent>
-          <form onSubmit={handleSubmit} className="w-full space-y-4">
-            <h1 className="text-2xl font-bold">Reset your password</h1>
-            <FormFieldWrapper label="New Password">
-              <Input
-                type="password"
-                placeholder="Enter your new password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </FormFieldWrapper>
-            <FormFieldWrapper label="Confirm Password">
-              <Input
-                type="password"
-                placeholder="Enter your new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </FormFieldWrapper>
-            <Button type="submit">Confirm</Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="w-[350px] border-none">
+      <CardContent>
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
+          <h1 className="text-2xl font-bold">Reset your password</h1>
+          <FormFieldWrapper label="New Password">
+            <Input
+              type="password"
+              placeholder="Enter your new password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </FormFieldWrapper>
+          <FormFieldWrapper label="Confirm Password">
+            <Input
+              type="password"
+              placeholder="Enter your new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </FormFieldWrapper>
+          <Button type="submit">Confirm</Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

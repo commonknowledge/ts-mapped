@@ -1,23 +1,27 @@
+"use server";
+
 import { sign } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { redirect, unstable_rethrow as rethrow } from "next/navigation";
-import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const body = await request.json();
-  if (!body.email || !body.password) {
-    return new NextResponse("Unauthorized", { status: 403 });
-  }
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+
+export async function login(formData: FormData) {
   try {
-    const user = await findUserByEmailAndPassword({
-      email: body.email,
-      password: body.password,
+    const result = loginSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
     });
-    if (!user) {
-      return new NextResponse("Unauthorized", { status: 403 });
-    }
+
+    if (result.error) return "Invalid credentials";
+    const user = await findUserByEmailAndPassword(result.data);
+    if (!user) return "Invalid credentials";
 
     const cookieStore = await cookies();
     cookieStore.set(
@@ -31,6 +35,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     rethrow(error);
     logger.warn(`Failed to log in user`, { error });
-    return new NextResponse("Error", { status: 500 });
+    return "Failed to log in";
   }
 }
