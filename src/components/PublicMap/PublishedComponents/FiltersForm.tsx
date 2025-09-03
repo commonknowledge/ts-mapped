@@ -90,11 +90,6 @@ export default function FiltersForm({
     closeDialog();
   };
 
-  const resetFilters = () => {
-    setPublicFilters([]);
-    closeDialog();
-  };
-
   const isChecked = (field: FilterField) => {
     const value = values.find((v) => v.name === field.name)?.value;
 
@@ -168,18 +163,8 @@ export default function FiltersForm({
           )}
         </div>
       ))}
-      <div className="flex gap-4">
+      <div>
         <Button type="submit">Filter</Button>
-
-        {!!publicFilters?.length && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => resetFilters()}
-          >
-            Reset filters
-          </Button>
-        )}
       </div>
     </form>
   );

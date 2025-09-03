@@ -14,6 +14,7 @@ import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
+import FiltersList from "./FiltersList";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };
@@ -132,14 +133,17 @@ function SingleDataSourceContent({
   return (
     <div
       className={cn(
-        "overflow-y-auto",
+        "flex flex-col gap-2 overflow-y-auto",
         editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
-      <div className="flex justify-between items-center gap-4 px-4 my-2">
+      <div className="flex justify-between items-center gap-4 px-4">
         <span className="text-sm">{records?.length || 0} Listings</span>
         <Filters />
       </div>
+
+      <FiltersList />
+
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}
         onSelect={onSelect}
