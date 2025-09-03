@@ -46,16 +46,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const headersList = await headers();
-  const host = headersList.get("host");
-  for (const h of headersList.entries()) {
-    console.log("headers host", h[0], h[1]);
-  }
+  const host = headersList.get("x-forwarded-host") || headersList.get("host");
 
   const mainHost = new URL(
     process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL
   );
 
-  console.log("main host", mainHost, mainHost.host);
   if (host && host !== mainHost.host) {
     return (
       <html
