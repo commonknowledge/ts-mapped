@@ -77,8 +77,8 @@ export default function VisualisationPanel({
         (ds) =>
           ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ds.columnDefs.some((col) =>
-            col.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+            col.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
 
@@ -91,7 +91,7 @@ export default function VisualisationPanel({
     <div
       className={cn(
         "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-10"
+        "absolute top-0 h-full z-10",
       )}
       style={{
         left: positionLeft,
@@ -171,7 +171,7 @@ export default function VisualisationPanel({
                     className="border-blue-500 bg-blue-50 hover:bg-blue-100"
                     dataSource={
                       dataSources.find(
-                        (ds) => ds.id === viewConfig.areaDataSourceId
+                        (ds) => ds.id === viewConfig.areaDataSourceId,
                       ) as DataSource
                     }
                   />
@@ -225,7 +225,7 @@ export default function VisualisationPanel({
               <SelectContent>
                 <SelectItem value={NULL_UUID}>No Locality</SelectItem>
                 {getValidAreaSetGroupCodes(
-                  (dataSource as DataSource)?.geocodingConfig
+                  (dataSource as DataSource)?.geocodingConfig,
                 ).map((code) => (
                   <SelectItem key={code} value={code}>
                     {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}

@@ -21,7 +21,7 @@ interface DataSource {
 
 // Helper function to get data source type from config
 const getDataSourceType = (
-  dataSource: DataSource
+  dataSource: DataSource,
 ): DataSourceType | "unknown" => {
   try {
     const config = dataSource.config;
@@ -103,7 +103,7 @@ export function DataSourceItem({
     <div
       className={cn(
         "p-3 border rounded-lg cursor-pointer transition-all border-gray-200",
-        className
+        className,
       )}
     >
       <div className="flex items-start gap-3">

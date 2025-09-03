@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
   const [activeTab, setActiveTab] = useState<"your-data" | "mapped-library">(
-    "your-data"
+    "your-data",
   );
 
   const { data, loading } = useQuery<
@@ -80,7 +80,7 @@ export default function DataSourcesPage() {
       variables: { organisationId },
       skip: !organisationId,
       fetchPolicy: "network-only",
-    }
+    },
   );
   const dataSources = data?.dataSources || [];
 
