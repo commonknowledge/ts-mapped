@@ -35,14 +35,14 @@ export default function FiltersForm({
 
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>
-      prev.map((v) => (v.name === name ? { ...v, value } : v))
+      prev.map((v) => (v.name === name ? { ...v, value } : v)),
     );
   };
 
   const handleOptionCheck = (
     fieldName: string,
     option: string,
-    checked: boolean
+    checked: boolean,
   ) => {
     setValues((prev) =>
       prev.map((v) => {
@@ -60,7 +60,7 @@ export default function FiltersForm({
         }
 
         return { ...v, selectedOptions: updatedOptions };
-      })
+      }),
     );
   };
 
