@@ -138,7 +138,7 @@ function SingleDataSourceContent({
     }
 
     if (activeFilters?.length) {
-      return `Showing ${records.length} ${records.length === 1 ? "listing" : "listings"} that match:`;
+      return `Showing ${records.length} ${records.length === 1 ? "listing" : "listings"} that ${records.length === 1 ? "matches" : "match"}:`;
     }
 
     return `${records.length} ${records.length === 1 ? "listing" : "listings"}`;

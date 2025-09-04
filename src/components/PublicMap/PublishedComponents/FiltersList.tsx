@@ -1,7 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { useContext } from "react";
+import { Fragment, useContext } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Badge } from "@/shadcn/ui/badge";
@@ -26,7 +26,7 @@ export default function FiltersList() {
       <ul className="flex flex-wrap gap-2">
         {activeFilters.map((filter) =>
           filter.selectedOptions ? (
-            <>
+            <Fragment key={filter.name}>
               {filter.selectedOptions.map((val) => (
                 <li key={val}>
                   <Badge variant="outline" className="bg-white text-sm">
@@ -35,7 +35,7 @@ export default function FiltersList() {
                   </Badge>
                 </li>
               ))}
-            </>
+            </Fragment>
           ) : filter.type === PublicMapColumnType.Boolean &&
             toBoolean(filter.value) ? (
             <li key={filter.name}>
