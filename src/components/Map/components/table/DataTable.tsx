@@ -78,7 +78,7 @@ export function DataTable({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.floor(
-    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE,
+    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE
   );
 
   const getSortIcon = (columnName: string) => {
@@ -103,8 +103,8 @@ export function DataTable({
     } else {
       setSort(
         sort.map((c) =>
-          c.name === columnName ? { name: columnName, desc: true } : c,
-        ),
+          c.name === columnName ? { name: columnName, desc: true } : c
+        )
       );
     }
   };
@@ -145,7 +145,7 @@ export function DataTable({
                     onCheckedChange={(visible) => {
                       if (visible) {
                         setHiddenColumns(
-                          hiddenColumns.filter((c) => c !== column.name),
+                          hiddenColumns.filter((c) => c !== column.name)
                         );
                       } else {
                         setHiddenColumns([...hiddenColumns, column.name]);
@@ -247,9 +247,7 @@ export function DataTable({
                 data.map((row) => (
                   <TableRow
                     key={row.id}
-                    data-state={
-                      row.id.toString() === selectedRecordId && "selected"
-                    }
+                    data-state={row.id === selectedRecordId && "selected"}
                     onClick={() => onRowClick?.(row)}
                     //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
                     className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id.toString() ? "bg-blue-50" : ""}`}
