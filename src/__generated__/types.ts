@@ -803,15 +803,6 @@ export enum VisualisationType {
   Choropleth = "Choropleth",
 }
 
-export type ForgotPasswordMutationVariables = Exact<{
-  email: Scalars["String"]["input"];
-}>;
-
-export type ForgotPasswordMutation = {
-  __typename?: "Mutation";
-  forgotPassword?: { __typename?: "MutationResponse"; code: number } | null;
-};
-
 export type UpdateUserPasswordMutationVariables = Exact<{
   data: UpdateUserInput;
 }>;
@@ -1179,16 +1170,6 @@ export type ListOrganisationsQuery = {
     id: string;
     name: string;
   }> | null;
-};
-
-export type ResetPasswordMutationVariables = Exact<{
-  token: Scalars["String"]["input"];
-  password: Scalars["String"]["input"];
-}>;
-
-export type ResetPasswordMutation = {
-  __typename?: "Mutation";
-  resetPassword?: { __typename?: "MutationResponse"; code: number } | null;
 };
 
 export type PublicMapModalQueryVariables = Exact<{

@@ -248,7 +248,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         publicDataSource.id,
         otherUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(true);
     });
@@ -257,7 +257,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         publicDataSource.id,
         otherUser.id,
-        "write"
+        "write",
       );
       expect(result).toBe(false);
     });
@@ -266,7 +266,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         testDataSource.id,
         testUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(true);
     });
@@ -275,7 +275,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         testDataSource.id,
         otherUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(false);
     });
@@ -308,7 +308,7 @@ describe("Auth Functions", () => {
       const result = await organisationGuard(
         testOrganisation.id,
         testUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(true);
     });
@@ -317,7 +317,7 @@ describe("Auth Functions", () => {
       const result = await organisationGuard(
         testOrganisation.id,
         otherUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(false);
     });
@@ -334,7 +334,7 @@ describe("Auth Functions", () => {
         "dataSourceIdArg",
         testDataSource.id,
         testUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(true);
     });
@@ -344,7 +344,7 @@ describe("Auth Functions", () => {
         "dataSourceIdArg",
         testDataSource.id,
         otherUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(false);
     });
@@ -365,7 +365,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(true);
     });
@@ -384,7 +384,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         otherUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(false);
     });
@@ -404,7 +404,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(false);
     });
@@ -417,7 +417,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(true);
     });
@@ -434,7 +434,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read"
+        "read",
       );
       expect(result).toBe(false);
     });
@@ -443,7 +443,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         testDataSource.id,
         undefined,
-        "read"
+        "read",
       );
       expect(result).toBe(false);
     });

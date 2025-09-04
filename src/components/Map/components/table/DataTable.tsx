@@ -247,10 +247,12 @@ export function DataTable({
                 data.map((row) => (
                   <TableRow
                     key={row.id}
-                    data-state={row.id === selectedRecordId && "selected"}
+                    data-state={
+                      row.id.toString() === selectedRecordId && "selected"
+                    }
                     onClick={() => onRowClick?.(row)}
                     //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
-                    className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id ? "bg-blue-50" : ""}`}
+                    className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id.toString() ? "bg-blue-50" : ""}`}
                   >
                     {columns
                       .filter((c) => !hiddenColumns.includes(c.name))

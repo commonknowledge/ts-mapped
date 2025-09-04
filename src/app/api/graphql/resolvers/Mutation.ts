@@ -26,6 +26,7 @@ import {
   enrichmentSchema,
 } from "@/server/models/DataSource";
 import { mapConfigSchema } from "@/server/models/Map";
+import { mapViewConfigSchema } from "@/server/models/MapView";
 import { Polygon } from "@/server/models/Turf";
 import { countDataRecordsForDataSource } from "@/server/repositories/DataRecord";
 import {
@@ -74,7 +75,7 @@ const MutationResolvers: MutationResolversType = {
       organisationId: string;
       recordType: DataSourceRecordType;
       rawConfig: unknown;
-    }
+    },
   ): Promise<CreateDataSourceResponse> => {
     try {
       const id = uuidv4();
@@ -91,7 +92,7 @@ const MutationResolvers: MutationResolversType = {
         (key) => ({
           name: key,
           type: ColumnType.Unknown,
-        })
+        }),
       );
 
       const dataSource = await createDataSource({
@@ -118,7 +119,7 @@ const MutationResolvers: MutationResolversType = {
   },
   createMap: async (
     _: unknown,
-    { organisationId }
+    { organisationId },
   ): Promise<CreateMapResponse> => {
     try {
       const map = await createMap(organisationId);
@@ -167,21 +168,21 @@ const MutationResolvers: MutationResolversType = {
   },
   enqueueEnrichDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string }
+    { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
     await enqueue("enrichDataSource", { dataSourceId });
     return { code: 200 };
   },
   enqueueImportDataSourceJob: async (
     _: unknown,
-    { dataSourceId }: { dataSourceId: string }
+    { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
     await enqueue("importDataSource", { dataSourceId });
     return { code: 200 };
   },
   saveMapViewsToCRM: async (
     _: unknown,
-    { id }: { id: string }
+    { id }: { id: string },
   ): Promise<MutationResponse> => {
     const views = await findMapViewsByMapId(id);
     for (const view of views) {
@@ -203,7 +204,7 @@ const MutationResolvers: MutationResolversType = {
       looseGeocodingConfig,
       autoEnrich,
       autoImport,
-    }: MutationUpdateDataSourceConfigArgs
+    }: MutationUpdateDataSourceConfigArgs,
   ): Promise<MutationResponse> => {
     try {
       const dataSource = await findDataSourceById(id);
@@ -259,13 +260,13 @@ const MutationResolvers: MutationResolversType = {
 
       await updateDataSource(id, update);
       logger.info(
-        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`
+        `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
       );
 
       const recordCount = await countDataRecordsForDataSource(
         dataSource.id,
         null,
-        null
+        null,
       );
       if (recordCount.count === 0) {
         await enqueue("importDataSource", { dataSourceId: id });
@@ -325,7 +326,7 @@ const MutationResolvers: MutationResolversType = {
 
       if (mapConfig.markerDataSourceIds) {
         config.markerDataSourceIds = mapConfig.markerDataSourceIds.filter(
-          Boolean
+          Boolean,
         ) as string[];
       }
       if (mapConfig.membersDataSourceId) {
@@ -334,9 +335,11 @@ const MutationResolvers: MutationResolversType = {
       await updateMap(mapId, { config });
 
       for (const view of views) {
+        const config = mapViewConfigSchema.parse(view.config); // TODO: why are the args missing certain required view config properties
         await upsertMapView({
           ...view,
-          config: view.config,
+          config,
+          // @ts-expect-error TODO: why are the args missing certain required view config properties
           dataSourceViews: view.dataSourceViews,
           mapId,
         });
@@ -372,7 +375,7 @@ const MutationResolvers: MutationResolversType = {
       description,
       descriptionLink,
       published,
-    }
+    },
   ): Promise<UpsertPublicMapResponse> => {
     try {
       const existingPublicMap = await findPublicMapByHost(host);
@@ -421,7 +424,7 @@ const MutationResolvers: MutationResolversType = {
       polygon: PolygonInput;
       createdAt: string;
       mapId: string;
-    }
+    },
   ): Promise<UpsertTurfResponse> => {
     try {
       const map = await findMapById(mapId);

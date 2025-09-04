@@ -120,8 +120,14 @@ const addressGeocodingSchema = z.object({
   columns: z.array(z.string().nonempty()),
 });
 
-const areaGeocodingSchema = z.object({
-  type: z.union([z.literal(GeocodingType.Name), z.literal(GeocodingType.Code)]),
+const nameGeocodingSchema = z.object({
+  type: z.literal(GeocodingType.Name),
+  column: z.string().nonempty(),
+  areaSetCode: areaSetCode,
+});
+
+const codeGeocodingSchema = z.object({
+  type: z.literal(GeocodingType.Code),
   column: z.string().nonempty(),
   areaSetCode: areaSetCode,
 });
@@ -132,7 +138,8 @@ const disabledGeocodingSchema = z.object({
 
 export const geocodingConfigSchema = z.discriminatedUnion("type", [
   addressGeocodingSchema,
-  areaGeocodingSchema,
+  nameGeocodingSchema,
+  codeGeocodingSchema,
   disabledGeocodingSchema,
 ]);
 

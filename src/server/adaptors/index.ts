@@ -21,7 +21,7 @@ export const getDataSourceAdaptor = (dataSource: {
         id,
         config.apiKey,
         config.baseId,
-        config.tableId
+        config.tableId,
       );
     case DataSourceType.CSV:
       return new CSVAdaptor(config.url);
@@ -30,7 +30,7 @@ export const getDataSourceAdaptor = (dataSource: {
         id,
         config.spreadsheetId,
         config.sheetName,
-        config.oAuthCredentials
+        config.oAuthCredentials,
       );
     case DataSourceType.Mailchimp:
     default:

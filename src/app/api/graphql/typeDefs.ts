@@ -251,7 +251,7 @@ const typeDefs = `
   }
 
   type DataRecord {
-    id: Int!
+    id: String!
     externalId: String!
     json: JSON!
     geocodePoint: Point

@@ -25,7 +25,7 @@ export async function deleteDataSource(id: string) {
 
 export async function getJobInfo(
   dataSourceId: string,
-  task: string
+  task: string,
 ): Promise<JobInfo> {
   const latestJob = await db
     .selectFrom("pgboss.job")
@@ -81,7 +81,7 @@ export function findDataSourceByIdAndOwnerId(id: string, userId: string) {
     .innerJoin(
       "organisationUser",
       "organisation.id",
-      "organisationUser.organisationId"
+      "organisationUser.organisationId",
     )
     .where("dataSource.id", "=", id)
     .where("organisationUser.userId", "=", userId)
@@ -117,7 +117,7 @@ export function findReadableDataSources(userId: string | null | undefined) {
     .innerJoin(
       "organisationUser",
       "organisation.id",
-      "organisationUser.organisationId"
+      "organisationUser.organisationId",
     )
     .where((eb) => {
       const filter = [eb("public", "=", true)];
@@ -145,7 +145,7 @@ export async function findCSVDataSourceByUrl(url: string) {
 
 export async function updateDataSource(
   id: string,
-  updateWith: DataSourceUpdate
+  updateWith: DataSourceUpdate,
 ) {
   await db
     .updateTable("dataSource")

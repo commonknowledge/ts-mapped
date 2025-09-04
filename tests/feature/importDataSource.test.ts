@@ -1,13 +1,18 @@
 import { expect, inject, test } from "vitest";
-import { DataSourceRecordType, FilterType } from "@/__generated__/types";
 import importDataSource from "@/server/jobs/importDataSource";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import {
+  DataSourceRecordType,
+  DataSourceType,
+  GeocodingType,
+} from "@/server/models/DataSource";
+import { FilterType } from "@/server/models/MapView";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   deleteDataSource,
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { DataSourceType } from "@/types";
 
 const credentials = inject("credentials");
 
@@ -22,7 +27,7 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
     autoImport: false,
     recordType: DataSourceRecordType.Data,
     config: {
-      type: DataSourceType.airtable,
+      type: DataSourceType.Airtable,
       apiKey: credentials.airtable.apiKey,
       baseId: credentials.airtable.baseId,
       tableId: credentials.airtable.tableId,
@@ -31,9 +36,9 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
     columnRoles: { nameColumns: [] },
     enrichments: [],
     geocodingConfig: {
-      type: "Code",
+      type: GeocodingType.Code,
       column: "Postcode",
-      areaSetCode: "PC",
+      areaSetCode: AreaSetCode.PC,
     },
     organisationId: org.id,
     public: false,
@@ -46,7 +51,7 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
   const stream = streamDataRecordsByDataSource(
     dataSource.id,
     { type: FilterType.MULTI },
-    ""
+    "",
   );
   const records = [];
   for await (const record of stream) {
@@ -66,7 +71,7 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
     records.map((r) => ({
       ...r,
       json: { Name: r.json.Name, Postcode: r.json.Postcode },
-    }))
+    })),
   ).toEqual([
     {
       externalId: "recHSNLI2dfwSoo8U",
