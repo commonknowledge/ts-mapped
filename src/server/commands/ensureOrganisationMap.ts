@@ -7,6 +7,7 @@ import {
   MapStyleName,
   MapView,
   MapViewConfig,
+  VisualisationType,
 } from "@/__generated__/types";
 import { ADMIN_ORGANISATION_NAME } from "@/constants";
 import importDataSource from "@/server/jobs/importDataSource";
@@ -68,13 +69,16 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
     areaDataColumn: "First party",
     areaDataSourceId: electionResultsDataSource.id,
     areaSetGroupCode: AreaSetGroupCode.WMC24,
+    calculationType: null,
+    colorScheme: null,
+    excludeColumnsString: "",
+    mapStyleName: MapStyleName.Light,
     showBoundaryOutline: true,
     showLabels: true,
     showLocations: true,
     showMembers: true,
     showTurf: true,
-    excludeColumnsString: "",
-    mapStyleName: MapStyleName.Light,
+    visualisationType: VisualisationType.Choropleth,
   };
 
   const dataSourceViews: DataSourceView[] = [];
