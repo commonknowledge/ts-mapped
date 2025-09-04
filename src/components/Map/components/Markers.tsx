@@ -80,7 +80,6 @@ function DataSourceMarkers({
     if (records?.length) {
       const recordsIds = records.map((r) => `${r.id}`).filter(Boolean);
 
-      console.log(records, dataSourceMarkers?.markers);
       return {
         ...dataSourceMarkers?.markers,
         features: [
