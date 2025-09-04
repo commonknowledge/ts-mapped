@@ -1,10 +1,13 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
+import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
+import type { FeatureCollection } from "geojson";
 
 function hexToRgb(hex: string) {
   const normalized = hex.replace("#", "");
@@ -64,10 +67,32 @@ function DataSourceMarkers({
   dataSourceMarkers: DataSourceMarkersType;
   isMembers: boolean;
 }) {
-  const safeMarkers = dataSourceMarkers?.markers || {
-    type: "FeatureCollection",
-    features: [],
-  };
+  const { records } = useContext(PublicFiltersContext);
+
+  const safeMarkers = useMemo<FeatureCollection>(() => {
+    if (!dataSourceMarkers?.markers) {
+      return {
+        type: "FeatureCollection",
+        features: [],
+      };
+    }
+
+    if (records?.length) {
+      const recordsIds = records.map((r) => `${r.id}`).filter(Boolean);
+
+      return {
+        ...dataSourceMarkers.markers,
+        features: dataSourceMarkers.markers.features.filter((f) =>
+          recordsIds.includes(
+            (f.properties as Record<string, unknown>)[MARKER_ID_KEY] as string,
+          ),
+        ),
+      };
+    }
+
+    return dataSourceMarkers.markers;
+  }, [dataSourceMarkers, records]);
+
   const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
   const colors = isMembers ? mapColors.member : mapColors.dataSource;
   return (

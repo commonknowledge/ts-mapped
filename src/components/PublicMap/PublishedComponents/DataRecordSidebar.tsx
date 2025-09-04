@@ -6,7 +6,7 @@ import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
-import { buildName } from "./utils";
+import { buildName, toBoolean } from "./utils";
 
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
@@ -131,16 +131,6 @@ function CheckList({
   sourceColumns: string[];
   json: Record<string, unknown>;
 }) {
-  const toBoolean = (val: unknown): boolean => {
-    if (!val) {
-      return false;
-    }
-    if (["false", "0", "no"].includes(String(val).toLowerCase())) {
-      return false;
-    }
-    return Boolean(val);
-  };
-
   return (
     <div className="grid grid-cols-6 gap-2">
       {sourceColumns.map((column) => (

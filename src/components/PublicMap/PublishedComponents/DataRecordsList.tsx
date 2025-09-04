@@ -2,7 +2,7 @@
 
 import { QueryResult } from "@apollo/client";
 import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
@@ -15,6 +15,8 @@ import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { Point } from "@/types";
+import { PublicFiltersContext } from "../context/PublicFiltersContext";
+import { filterRecords, getActiveFilters } from "./filtersHelpers";
 import { buildName } from "./utils";
 
 interface DataRecordsListProps {
@@ -34,9 +36,25 @@ export default function DataRecordsList({
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedDataRecord } = useContext(DataRecordContext);
+  const { publicFilters, records, setRecords } =
+    useContext(PublicFiltersContext);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
 
-  const records = dataRecordsQuery?.data?.dataSource?.records || [];
+  useEffect(() => {
+    const allRecords = dataRecordsQuery?.data?.dataSource?.records || [];
+    const activeFilters = getActiveFilters(publicFilters);
+
+    // if no filters are selected - show all records
+    if (!publicFilters?.length || !activeFilters?.length) {
+      setRecords(allRecords);
+      return;
+    }
+
+    const filteredRecords = filterRecords(activeFilters, allRecords);
+
+    setRecords(filteredRecords);
+  }, [publicFilters, setRecords, dataRecordsQuery?.data?.dataSource?.records]);
+
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
   );
@@ -84,6 +102,10 @@ export default function DataRecordsList({
       });
     }
   };
+
+  if (!records?.length) {
+    return <></>;
+  }
 
   return (
     <ul className="flex flex-col">

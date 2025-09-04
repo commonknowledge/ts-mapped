@@ -7,3 +7,13 @@ export const buildName = (
     .filter(Boolean)
     .join(" ");
 };
+
+export const toBoolean = (val: unknown): boolean => {
+  if (!val) {
+    return false;
+  }
+  if (["false", "0", "no"].includes(String(val).toLowerCase())) {
+    return false;
+  }
+  return Boolean(val);
+};
