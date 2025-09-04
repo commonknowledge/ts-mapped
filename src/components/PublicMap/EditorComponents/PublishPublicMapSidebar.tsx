@@ -122,7 +122,7 @@ export default function PublishPublicMapSidebar() {
   return (
     <div
       className={cn(
-        "absolute top-[var(--navbar-height)] right-0 z-10 bg-white flex border-l border-neutral-200",
+        "absolute top-0 pt-[var(--navbar-height)] right-0 z-10 bg-white flex border-l border-neutral-200",
         hideSidebar ? "h-auto" : "h-full",
       )}
     >
