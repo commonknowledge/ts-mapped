@@ -1,7 +1,9 @@
 import DataListRow from "@/components/DataListRow";
+import {
+  DataSourceType,
+  NewDataSourceConfig,
+} from "@/server/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
-import { DataSourceType } from "@/types";
-import { NewDataSourceConfig } from "../types";
 
 export default function CSVFields({
   config,
@@ -10,7 +12,7 @@ export default function CSVFields({
   config: Partial<NewDataSourceConfig>;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
-  if (config.type !== DataSourceType.csv) {
+  if (config.type !== DataSourceType.CSV) {
     return;
   }
 

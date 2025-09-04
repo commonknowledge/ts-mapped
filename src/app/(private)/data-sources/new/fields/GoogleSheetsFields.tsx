@@ -1,6 +1,11 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DataListRow from "@/components/DataListRow";
+import {
+  DataSourceType,
+  GoogleSheetsConfig,
+  NewDataSourceConfig,
+} from "@/server/models/DataSource";
 import { getOAuthCredentials, getOAuthURL, getSheets } from "@/services/google";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -11,9 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { DataSourceType } from "@/types";
-import { GoogleSheetsConfig } from "@/zod";
-import { NewDataSourceConfig } from "../types";
 
 export default function GoogleSheetsFields({
   dataSourceName,
@@ -24,7 +26,7 @@ export default function GoogleSheetsFields({
   config: Partial<NewDataSourceConfig>;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
-  if (config.type !== DataSourceType.googlesheets) {
+  if (config.type !== DataSourceType.GoogleSheets) {
     return;
   }
 
@@ -116,7 +118,7 @@ function GoogleSheetsFieldsWithOAuth({
     try {
       const url = await getOAuthURL({
         dataSourceName,
-        dataSourceType: DataSourceType.googlesheets,
+        dataSourceType: DataSourceType.GoogleSheets,
       });
       window.location.href = url;
     } catch {

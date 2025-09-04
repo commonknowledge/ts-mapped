@@ -11,10 +11,9 @@ import {
 } from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceFeatures } from "@/features";
+import { DataSourceType } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
-import { DataSourceType } from "@/types";
-import { GeocodingConfigSchema } from "@/zod";
 import ColumnRoleFields from "./ColumnRoleFields";
 import GeocodingConfigFields from "./GeocodingConfigFields";
 
@@ -67,9 +66,6 @@ export default function ConfigurationForm({
 
   const columnRoles = { nameColumns };
 
-  const { data: validGeocodingConfig } =
-    GeocodingConfigSchema.safeParse(geocodingConfig);
-
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -80,7 +76,7 @@ export default function ConfigurationForm({
         variables: {
           id: dataSource.id,
           columnRoles,
-          looseGeocodingConfig: validGeocodingConfig,
+          looseGeocodingConfig: geocodingConfig,
           autoImport,
         },
       });
@@ -133,7 +129,7 @@ export default function ConfigurationForm({
             />
           </FormFieldWrapper>
 
-          {dataSource.config.type === DataSourceType.actionnetwork && (
+          {dataSource.config.type === DataSourceType.ActionNetwork && (
             <div className="w-full text-sm mb-4">
               <p className="mb-2">
                 Add this URL as a webhook in your Action Network settings, with
@@ -149,7 +145,7 @@ export default function ConfigurationForm({
       )}
 
       <Button
-        disabled={!validGeocodingConfig || loading}
+        disabled={!geocodingConfig || loading}
         variant="secondary"
         type="submit"
       >

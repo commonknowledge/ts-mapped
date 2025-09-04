@@ -10,8 +10,8 @@ import {
   UnknownRow,
   ValueNode,
 } from "kysely";
-import { Point } from "@/types";
 import logger from "../../services/logger"; // Relative import required for Kysely CLI
+import type { Point } from "@/server/models/shared";
 
 export class PointPlugin implements KyselyPlugin {
   readonly #transformer = new PointTransformer();

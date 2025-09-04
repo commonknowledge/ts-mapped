@@ -19,7 +19,7 @@ import {
 } from "@/constants";
 import { NewDataRecord } from "@/server/models/DataRecord";
 import { Database, db } from "@/server/services/database";
-import { Point } from "@/types";
+import { Point } from "../models/shared";
 
 export async function countDataRecordsForDataSource(
   dataSourceId: string,

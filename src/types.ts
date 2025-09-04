@@ -5,14 +5,6 @@ export interface CurrentUser {
   id: string;
 }
 
-export enum DataSourceType {
-  actionnetwork = "actionnetwork",
-  airtable = "airtable",
-  csv = "csv",
-  googlesheets = "googlesheets",
-  mailchimp = "mailchimp",
-}
-
 export interface DrawModeChangeEvent {
   mode: string;
 }
@@ -29,18 +21,6 @@ export interface DrawDeleteEvent {
 export interface ExternalRecord {
   externalId: string;
   json: Record<string, unknown>;
-}
-
-export interface GeocodeResult {
-  areas: Record<string, string>;
-  centralPoint: Point | null;
-  samplePoint: Point | null;
-}
-
-// Property names taken from Mapbox standard
-export interface Point {
-  lng: number;
-  lat: number;
 }
 
 export interface PointFeature {

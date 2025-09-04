@@ -13,6 +13,12 @@ import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import {
+  DataSourceConfig,
+  DataSourceType,
+  NewDataSourceConfig,
+  newDataSourceConfigSchema,
+} from "@/server/models/DataSource";
 import { uploadFile } from "@/services/uploads";
 import {
   Breadcrumb,
@@ -29,14 +35,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { DataSourceType } from "@/types";
-import { DataSourceConfig } from "@/zod";
+
 import ActionNetworkFields from "./fields/ActionNetworkFields";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
-import { NewDataSourceConfig, NewDataSourceConfigSchema } from "./types";
 
 // Loose type for incomplete config
 type ConfigState = Partial<NewDataSourceConfig> | { type: "" };
@@ -92,7 +96,7 @@ export default function NewDataSourcePage() {
     }
   `);
 
-  const { data: validConfig } = NewDataSourceConfigSchema.safeParse(config);
+  const { data: validConfig } = newDataSourceConfigSchema.safeParse(config);
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -234,7 +238,7 @@ export default function NewDataSourcePage() {
 const prepareDataSource = async (
   config: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
-  if (config.type === DataSourceType.csv) {
+  if (config.type === DataSourceType.CSV) {
     const url = await uploadFile(config.file);
     return { ...config, url };
   }

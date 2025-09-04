@@ -5,12 +5,12 @@ import {
   findAreasByPoint,
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
-import { GeocodeResult, Point } from "@/types";
 import {
   AddressGeocodingConfig,
   AreaGeocodingConfig,
   GeocodingConfig,
-} from "@/zod";
+} from "../models/DataSource";
+import { GeocodeResult, Point } from "../models/shared";
 
 interface MappingDataRecord {
   externalId: string;

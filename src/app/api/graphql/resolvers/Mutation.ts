@@ -25,6 +25,7 @@ import {
   dataSourceConfigSchema,
   enrichmentSchema,
 } from "@/server/models/DataSource";
+import { geocodingConfigSchema } from "@/server/models/DataSource";
 import { mapConfigSchema } from "@/server/models/Map";
 import { mapViewConfigSchema } from "@/server/models/MapView";
 import { Polygon } from "@/server/models/Turf";
@@ -60,7 +61,6 @@ import { updateUser } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
 import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
-import { GeocodingConfigSchema } from "@/zod";
 
 const MutationResolvers: MutationResolversType = {
   createDataSource: async (
@@ -254,7 +254,7 @@ const MutationResolvers: MutationResolversType = {
 
       if (looseGeocodingConfig) {
         const geocodingConfig =
-          GeocodingConfigSchema.parse(looseGeocodingConfig);
+          geocodingConfigSchema.parse(looseGeocodingConfig);
         update.geocodingConfig = geocodingConfig;
       }
 

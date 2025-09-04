@@ -49,6 +49,10 @@ export const googleOAuthCredentialsSchema = z.object({
   expiry_date: z.number().optional(),
 });
 
+export type GoogleOAuthCredentials = z.infer<
+  typeof googleOAuthCredentialsSchema
+>;
+
 export const googleSheetsConfigSchema = z.object({
   type: z.literal(DataSourceType.GoogleSheets),
   spreadsheetId: z.string().nonempty(),
@@ -56,10 +60,14 @@ export const googleSheetsConfigSchema = z.object({
   oAuthCredentials: googleOAuthCredentialsSchema,
 });
 
+export type GoogleSheetsConfig = z.infer<typeof googleSheetsConfigSchema>;
+
 export const CSVConfigSchema = z.object({
   type: z.literal(DataSourceType.CSV),
   url: z.string().nonempty(),
 });
+
+export type CSVConfig = z.infer<typeof CSVConfigSchema>;
 
 export const dataSourceConfigSchema = z.discriminatedUnion("type", [
   actionNetworkConfigSchema,
@@ -68,6 +76,27 @@ export const dataSourceConfigSchema = z.discriminatedUnion("type", [
   mailchimpConfigSchema,
   CSVConfigSchema,
 ]);
+
+export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
+
+// Unsaved CSV config is quite different to saved config
+export const newCSVConfigSchema = z.object({
+  type: z.literal(DataSourceType.CSV),
+  file: z.instanceof(File),
+  filename: z.string().nonempty(),
+});
+
+export type NewCSVConfig = z.infer<typeof newCSVConfigSchema>;
+
+export const newDataSourceConfigSchema = z.discriminatedUnion("type", [
+  actionNetworkConfigSchema,
+  airtableConfigSchema,
+  mailchimpConfigSchema,
+  googleSheetsConfigSchema,
+  newCSVConfigSchema,
+]);
+
+export type NewDataSourceConfig = z.infer<typeof newDataSourceConfigSchema>;
 
 export const enrichmentSourceTypes = ["Area", "DataSource"] as const;
 
@@ -93,16 +122,22 @@ const areaEnrichmentSchema = z.object({
   areaProperty: areaPropertyEnum,
 });
 
+export type AreaEnrichment = z.infer<typeof areaEnrichmentSchema>;
+
 const dataSourceEnrichmentSchema = z.object({
   sourceType: z.literal(EnrichmentSourceType.DataSource),
   dataSourceId: z.string().nonempty(),
   dataSourceColumn: z.string().nonempty(),
 });
 
+export type DataSourceEnrichment = z.infer<typeof dataSourceEnrichmentSchema>;
+
 export const enrichmentSchema = z.discriminatedUnion("sourceType", [
   areaEnrichmentSchema,
   dataSourceEnrichmentSchema,
 ]);
+
+export type Enrichment = z.infer<typeof enrichmentSchema>;
 
 export const geocodingTypes = ["Address", "Code", "Name", "None"] as const;
 
@@ -120,6 +155,8 @@ const addressGeocodingSchema = z.object({
   columns: z.array(z.string().nonempty()),
 });
 
+export type AddressGeocodingConfig = z.infer<typeof addressGeocodingSchema>;
+
 const nameGeocodingSchema = z.object({
   type: z.literal(GeocodingType.Name),
   column: z.string().nonempty(),
@@ -136,12 +173,26 @@ const disabledGeocodingSchema = z.object({
   type: z.literal(GeocodingType.None),
 });
 
+export const AreaGeocodingType = z.enum([
+  GeocodingType.Code,
+  GeocodingType.Name,
+]);
+
+export const areaConfigSchema = z.discriminatedUnion("type", [
+  nameGeocodingSchema,
+  codeGeocodingSchema,
+]);
+
+export type AreaGeocodingConfig = z.infer<typeof areaConfigSchema>;
+
 export const geocodingConfigSchema = z.discriminatedUnion("type", [
   addressGeocodingSchema,
   nameGeocodingSchema,
   codeGeocodingSchema,
   disabledGeocodingSchema,
 ]);
+
+export type GeocodingConfig = z.infer<typeof geocodingConfigSchema>;
 
 export const columnTypes = [
   "Boolean",
