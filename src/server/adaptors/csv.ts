@@ -3,9 +3,9 @@ import { join } from "path";
 import readline from "readline";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
-import { getAbsoluteUrl } from "@/lib/app-url";
 import logger from "@/server/services/logger";
 import { ExternalRecord } from "@/types";
+import { getAbsoluteUrl } from "@/utils/appUrl";
 import { getBaseDir } from "../utils";
 import { DataSourceAdaptor } from "./abstract";
 

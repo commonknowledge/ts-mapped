@@ -2,7 +2,7 @@ import { Pentagon } from "lucide-react";
 import React, { useMemo } from "react";
 import { useContext, useState } from "react";
 import { AreaSetGroupCode } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
+import { MapContext } from "@/components/Map/context/MapContext";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { Label } from "@/shadcn/ui/label";
 

@@ -2,7 +2,7 @@
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
@@ -11,7 +11,8 @@ import {
   EnqueueImportDataSourceJobMutationVariables,
   JobStatus,
 } from "@/__generated__/types";
-import { DefinitionList } from "@/components/DefinitionList";
+import DataSourceBadge from "@/components/DataSourceBadge";
+import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
 import {
@@ -57,6 +58,9 @@ export default function DataSourceDashboard({
     gql`
       subscription DataSourceEvent($dataSourceId: String!) {
         dataSourceEvent(dataSourceId: $dataSourceId) {
+          importStarted {
+            at
+          }
           importComplete {
             at
           }
@@ -78,6 +82,9 @@ export default function DataSourceDashboard({
     if (!dataSourceEvent) {
       return;
     }
+    if (dataSourceEvent.importStarted) {
+      setImporting(true);
+    }
     if (dataSourceEvent.recordsImported?.count) {
       setRecordCount(dataSourceEvent.recordsImported?.count);
     }
@@ -91,7 +98,7 @@ export default function DataSourceDashboard({
     }
   }, [dataSourceEvent]);
 
-  const onClickImportRecords = async () => {
+  const onClickImportRecords = useCallback(async () => {
     setImporting(true);
     setImportError("");
     setRecordCount(0);
@@ -108,7 +115,7 @@ export default function DataSourceDashboard({
       setImportError("Could not schedule import job.");
       setImporting(false);
     }
-  };
+  }, [dataSource.id, enqueueImportDataSourceJob]);
 
   const mappedInformation = Object.keys(dataSource.config).map((k) => ({
     label:
@@ -116,9 +123,13 @@ export default function DataSourceDashboard({
         ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
         : k,
     value:
-      typeof dataSource.config[k] === "string"
-        ? dataSource.config[k]
-        : JSON.stringify(dataSource.config[k]),
+      k === "type" ? (
+        <DataSourceBadge type={dataSource.config[k]} />
+      ) : typeof dataSource.config[k] === "string" ? (
+        dataSource.config[k]
+      ) : (
+        JSON.stringify(dataSource.config[k])
+      ),
   }));
 
   return (

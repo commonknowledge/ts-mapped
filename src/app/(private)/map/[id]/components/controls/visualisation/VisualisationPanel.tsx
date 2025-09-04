@@ -16,10 +16,11 @@ import {
   DataSource,
   VisualisationType,
 } from "@/__generated__/types";
-import { ChoroplethContext } from "@/app/(private)/map/[id]/context/ChoroplethContext";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { getValidAreaSetGroupCodes } from "@/app/(private)/map/[id]/sources";
+import { DataSourceItem } from "@/components/DataSourceItem";
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { getValidAreaSetGroupCodes } from "@/components/Map/sources";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
@@ -46,7 +47,6 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import DataSourceItem from "../../DataSourceItem";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
 
 export default function VisualisationPanel({
@@ -160,18 +160,23 @@ export default function VisualisationPanel({
             {viewConfig.areaDataSourceId ? (
               // Show selected data source as a card
               <div className="space-y-2">
-                <DataSourceItem
-                  dataSource={
-                    dataSources.find(
-                      (ds) => ds.id === viewConfig.areaDataSourceId,
-                    ) as DataSource
-                  }
-                  isSelected={true}
+                <button
+                  type="button"
+                  className="text-left"
                   onClick={() => {
-                    // Open modal to change selection
                     setIsModalOpen(true);
                   }}
-                />
+                >
+                  <DataSourceItem
+                    className="border-blue-500 bg-blue-50 hover:bg-blue-100"
+                    dataSource={
+                      dataSources.find(
+                        (ds) => ds.id === viewConfig.areaDataSourceId,
+                      ) as DataSource
+                    }
+                  />
+                </button>
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -500,12 +505,12 @@ export default function VisualisationPanel({
 
       {/* Modal for data source selection */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>Select Data Source for Visualization</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col">
             {/* Search and Filter Bar */}
             <div className="flex gap-2 mb-4">
               <Input
@@ -532,18 +537,27 @@ export default function VisualisationPanel({
             </div>
 
             {/* Data Source Grid */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1">
               <div className="grid grid-cols-1 gap-3">
                 {filteredAndSearchedDataSources.map((ds) => (
-                  <DataSourceItem
+                  <button
+                    type="button"
+                    className="text-left"
                     key={ds.id}
-                    dataSource={ds as DataSource}
-                    isSelected={viewConfig.areaDataSourceId === ds.id}
                     onClick={() => {
                       updateViewConfig({ areaDataSourceId: ds.id });
                       setIsModalOpen(false);
                     }}
-                  />
+                  >
+                    <DataSourceItem
+                      className={
+                        viewConfig.areaDataSourceId === ds.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "hover:border-blue-300"
+                      }
+                      dataSource={ds as DataSource}
+                    />
+                  </button>
                 ))}
               </div>
             </div>

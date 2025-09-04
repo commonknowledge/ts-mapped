@@ -34,13 +34,14 @@ const DataSourceResolvers: DataSourceResolversType = {
     const dataSources = await findDataSourcesByIds(dataSourceIds);
     return dataSources.map((ds) => ({ name: ds.name, id: ds.id }));
   },
-  records: ({ id }: DataSource, { filter, search, page, sort }) => {
+  records: async ({ id }: DataSource, { filter, search, page, sort, all }) => {
     return findDataRecordsByDataSource(
       id,
       filter,
       search,
       page || 0,
       sort || [],
+      all,
     );
   },
   recordCount: ({ id }: DataSource, { filter, search }) =>

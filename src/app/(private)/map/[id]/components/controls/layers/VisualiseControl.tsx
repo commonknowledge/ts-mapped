@@ -1,6 +1,9 @@
 import { LandPlot, Pentagon } from "lucide-react";
 import { useContext } from "react";
 import { AreaSetGroupCode, VisualisationType } from "@/__generated__/types";
+import Legend from "@/components/Map/components/Legend";
+import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { MapContext } from "@/components/Map/context/MapContext";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import {
   Tooltip,
@@ -8,10 +11,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
-
-import { ChoroplethContext } from "../../../context/ChoroplethContext";
-import { MapContext } from "../../../context/MapContext";
-import Legend from "../../Legend";
 
 export default function VisualiseControl() {
   const { boundariesPanelOpen, setBoundariesPanelOpen } =

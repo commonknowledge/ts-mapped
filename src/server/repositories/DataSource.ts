@@ -107,7 +107,7 @@ export async function findDataSourcesByType(type: DataSourceType) {
     .execute();
 }
 
-export function findReadableDataSources(userId: string) {
+export function findReadableDataSources(userId: string | null | undefined) {
   return db
     .selectFrom("dataSource")
     .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
@@ -117,10 +117,11 @@ export function findReadableDataSources(userId: string) {
       "organisationUser.organisationId",
     )
     .where((eb) => {
-      return eb.or([
-        eb("organisationUser.userId", "=", userId),
-        eb("public", "=", true),
-      ]);
+      const filter = [eb("public", "=", true)];
+      if (userId) {
+        filter.push(eb("organisationUser.userId", "=", userId));
+      }
+      return eb.or(filter);
     })
     .selectAll("dataSource")
     .execute();

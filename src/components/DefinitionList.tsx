@@ -1,9 +1,15 @@
+import React from "react";
+
 interface DefinitionListItem {
   label: string;
-  value: string;
+  value: string | React.ReactNode;
 }
 
-export function DefinitionList({ items }: { items: DefinitionListItem[] }) {
+export default function DefinitionList({
+  items,
+}: {
+  items: DefinitionListItem[];
+}) {
   return (
     <dl className="flex flex-col gap-6 text-sm">
       {items.map(

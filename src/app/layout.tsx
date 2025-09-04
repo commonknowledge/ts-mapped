@@ -2,12 +2,20 @@ import "nprogress/nprogress.css";
 import "./global.css";
 import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { headers } from "next/headers";
 import {
   ListOrganisationsQuery,
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
+<<<<<<< HEAD
 import { TRPCReactProvider } from "@/lib/trpc";
+=======
+import ConditionalMarketingFooter from "@/components/ConditionalMarketingFooter";
+import ConditionalMarketingNavbar from "@/components/ConditionalMarketingNavbar";
+import PublicMapPage from "@/components/PublicMapPage";
+import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
+>>>>>>> main
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
@@ -15,17 +23,22 @@ import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
 import { Toaster } from "@/shadcn/ui/sonner";
 import type { Metadata } from "next";
+import { TRPCProvider } from "@/utils/trpc";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-ibm-plex-sans",
+  display: "swap",
+  preload: true,
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-ibm-plex-mono",
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -37,8 +50,38 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const host = headersList.get("x-forwarded-host") || headersList.get("host");
+
+  const mainHost = new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL
+  );
+
+  if (host && host !== mainHost.host) {
+    return (
+      <html
+        lang="en"
+        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
+      >
+        <body className={ibmPlexSans.className}>
+          <ApolloProvider ignoreAuthErrors>
+          <TRPCProvider>
+
+            <NProgressProvider>
+              <main>
+                <PublicMapPage host={host} />
+              </main>
+            </NProgressProvider>
+          </TRPCProvider>
+          </ApolloProvider>
+        </body>
+      </html>
+    );
+  }
+
   const serverSession = await getServerSession();
   const organisations = await getOrganisations();
+
   return (
     <html
       lang="en"
@@ -47,13 +90,16 @@ export default async function RootLayout({
       <body className={ibmPlexSans.className}>
         <ServerSessionProvider serverSession={serverSession}>
           <OrganisationsProvider organisations={organisations}>
+          <TRPCProvider>
             <ApolloProvider>
-              <TRPCReactProvider>
-                <NProgressProvider>
-                  <main>{children}</main>
+              <NProgressProvider>
+                <ConditionalMarketingNavbar />
+                <main className="min-h-screen">{children}</main>
+                <ConditionalMarketingFooter />
                   <Toaster position="top-right" />
                 </NProgressProvider>
-              </TRPCReactProvider>
+              </ApolloProvider>
+            </TRPCProvider>
             </ApolloProvider>
           </OrganisationsProvider>
         </ServerSessionProvider>

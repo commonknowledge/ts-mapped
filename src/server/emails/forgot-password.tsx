@@ -8,7 +8,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
-import { getAbsoluteUrl } from "@/lib/app-url";
+import { getAbsoluteUrl } from "@/utils/appUrl";
 import { EmailLayout } from "./layout";
 
 export default function ForgotPassword({ token = "123" }: { token: string }) {

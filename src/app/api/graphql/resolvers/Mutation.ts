@@ -6,6 +6,7 @@ import {
   ColumnType,
   CreateDataSourceResponse,
   CreateMapResponse,
+  DataSourceRecordType,
   GeocodingType,
   MutationResolvers as MutationResolversType,
   MutationResponse,
@@ -16,10 +17,12 @@ import {
   UpdateUserResponse,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
+  UpsertPublicMapResponse,
   UpsertTurfResponse,
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import ForgotPassword from "@/server/emails/forgot-password";
+import { countDataRecordsForDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   findDataSourceById,
@@ -33,6 +36,7 @@ import {
   updateMap,
 } from "@/server/repositories/Map";
 import {
+  findMapViewById,
   findMapViewsByMapId,
   upsertMapView,
 } from "@/server/repositories/MapView";
@@ -41,6 +45,10 @@ import {
   deletePlacedMarkersByFolderId,
   upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
+import {
+  findPublicMapByHost,
+  upsertPublicMap,
+} from "@/server/repositories/PublicMap";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import {
   findUserByEmail,
@@ -64,8 +72,14 @@ const MutationResolvers: MutationResolversType = {
     {
       name,
       organisationId,
+      recordType,
       rawConfig,
-    }: { name: string; organisationId: string; rawConfig: unknown },
+    }: {
+      name: string;
+      organisationId: string;
+      recordType: DataSourceRecordType;
+      rawConfig: unknown;
+    },
   ): Promise<CreateDataSourceResponse> => {
     try {
       const id = uuidv4();
@@ -94,6 +108,7 @@ const MutationResolvers: MutationResolversType = {
         organisationId,
         autoEnrich: false,
         autoImport: false,
+        recordType,
         config: JSON.stringify(config),
         columnRoles: JSON.stringify({}),
         enrichments: JSON.stringify([]),
@@ -260,6 +275,16 @@ const MutationResolvers: MutationResolversType = {
       logger.info(
         `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
       );
+
+      const recordCount = await countDataRecordsForDataSource(
+        dataSource.id,
+        null,
+        null,
+      );
+      if (recordCount.count === 0) {
+        await enqueue("importDataSource", { dataSourceId: id });
+      }
+
       return { code: 200 };
     } catch (error) {
       logger.error(`Could not update data source`, { error });
@@ -336,6 +361,47 @@ const MutationResolvers: MutationResolversType = {
       return { code: 200, result: placedMarker };
     } catch (error) {
       logger.error(`Could not create placed marker`, { error });
+    }
+    return { code: 500 };
+  },
+  upsertPublicMap: async (
+    _,
+    {
+      viewId,
+      host,
+      name,
+      dataSourceConfigs,
+      description,
+      descriptionLink,
+      published,
+    },
+  ): Promise<UpsertPublicMapResponse> => {
+    try {
+      const existingPublicMap = await findPublicMapByHost(host);
+      if (existingPublicMap && existingPublicMap.viewId !== viewId) {
+        return { code: 409 };
+      }
+      const view = await findMapViewById(viewId);
+      if (!view) {
+        return { code: 404 };
+      }
+      const map = await findMapById(view.mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+      const result = await upsertPublicMap({
+        mapId: view.mapId,
+        viewId,
+        host,
+        name,
+        dataSourceConfigs: JSON.stringify(dataSourceConfigs),
+        description,
+        descriptionLink,
+        published,
+      });
+      return { code: 200, result };
+    } catch (error) {
+      logger.error(`Could not upsert public map`, { error });
     }
     return { code: 500 };
   },

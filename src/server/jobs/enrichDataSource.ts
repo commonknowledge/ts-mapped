@@ -31,6 +31,15 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
   }
 
   try {
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        enrichmentStarted: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     let count = 0;
     const total = await adaptor.getRecordCount();
     const records = adaptor.fetchAll();

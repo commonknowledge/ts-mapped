@@ -1,4 +1,3 @@
-import { gql } from "@apollo/client";
 import {
   DataSourceQuery,
   DataSourceQueryVariables,
@@ -8,6 +7,7 @@ import { query } from "@/services/apollo";
 import { DataSourceType } from "@/types";
 import DataSourceDashboard from "./DataSourceDashboard";
 import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";
+import { DATA_SOURCE_QUERY } from "./queries";
 
 export default async function DataSourcePage({
   params,
@@ -16,52 +16,7 @@ export default async function DataSourcePage({
 }) {
   const { id } = await params;
   const result = await query<DataSourceQuery, DataSourceQueryVariables>({
-    query: gql`
-      query DataSource($id: String!) {
-        dataSource(id: $id) {
-          id
-          name
-          autoEnrich
-          autoImport
-          columnDefs {
-            name
-            type
-          }
-          config
-          columnRoles {
-            nameColumns
-          }
-          enrichments {
-            sourceType
-            areaSetCode
-            areaProperty
-            dataSourceId
-            dataSourceColumn
-          }
-          enrichmentDataSources {
-            id
-            name
-          }
-          geocodingConfig {
-            type
-            column
-            columns
-            areaSetCode
-          }
-          enrichmentInfo {
-            lastCompleted
-            status
-          }
-          importInfo {
-            lastCompleted
-            status
-          }
-          recordCount {
-            count
-          }
-        }
-      }
-    `,
+    query: DATA_SOURCE_QUERY,
     variables: { id },
   });
 
