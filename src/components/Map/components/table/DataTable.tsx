@@ -78,7 +78,7 @@ export function DataTable({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.floor(
-    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE
+    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE,
   );
 
   const getSortIcon = (columnName: string) => {
@@ -103,8 +103,8 @@ export function DataTable({
     } else {
       setSort(
         sort.map((c) =>
-          c.name === columnName ? { name: columnName, desc: true } : c
-        )
+          c.name === columnName ? { name: columnName, desc: true } : c,
+        ),
       );
     }
   };
@@ -145,7 +145,7 @@ export function DataTable({
                     onCheckedChange={(visible) => {
                       if (visible) {
                         setHiddenColumns(
-                          hiddenColumns.filter((c) => c !== column.name)
+                          hiddenColumns.filter((c) => c !== column.name),
                         );
                       } else {
                         setHiddenColumns([...hiddenColumns, column.name]);
