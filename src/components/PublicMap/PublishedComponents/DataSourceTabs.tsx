@@ -9,6 +9,7 @@ import {
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
+import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";
@@ -129,7 +130,8 @@ function SingleDataSourceContent({
   colourScheme,
   onSelect,
 }: SingleDataSourceContentProps) {
-  const { publicFilters, records } = useContext(PublicFiltersContext);
+  const { publicFilters, setPublicFilters, records } =
+    useContext(PublicFiltersContext);
   const activeFilters = getActiveFilters(publicFilters);
 
   const getListingsLabel = () => {
@@ -137,11 +139,11 @@ function SingleDataSourceContent({
       return "No matching listings";
     }
 
-    if (activeFilters?.length) {
-      return `Showing ${records.length} ${records.length === 1 ? "listing" : "listings"} that ${records.length === 1 ? "matches" : "match"}:`;
-    }
-
     return `${records.length} ${records.length === 1 ? "listing" : "listings"}`;
+  };
+
+  const resetFilters = () => {
+    setPublicFilters([]);
   };
 
   return (
@@ -151,12 +153,19 @@ function SingleDataSourceContent({
         editable && "border border-neutral-200 border-dashed m-1 rounded-md"
       )}
     >
-      <div className="flex justify-between items-center gap-4 px-4">
-        <span className="text-xs">{getListingsLabel()}</span>
+      <div className="flex justify-between items-center gap-4 px-2">
         <Filters />
+
+        {activeFilters?.length > 0 && (
+          <Button type="button" variant="ghost" onClick={() => resetFilters()}>
+            Reset
+          </Button>
+        )}
       </div>
 
       <FiltersList />
+
+      <h2 className="px-4 mt-2 text-xs">{getListingsLabel()}</h2>
 
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}

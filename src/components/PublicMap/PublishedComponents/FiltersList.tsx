@@ -1,20 +1,62 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { CircleX } from "lucide-react";
 import { Fragment, useContext } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Badge } from "@/shadcn/ui/badge";
+import { PublicFiltersFormValue } from "@/types";
 import { getActiveFilters } from "./filtersHelpers";
 import { toBoolean } from "./utils";
 
+function FiltersListBadge({
+  name,
+  onClick,
+}: {
+  name: string;
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+}) {
+  return (
+    <Badge
+      variant="outline"
+      className="flex items-center gap-[0.4em] bg-white text-sm"
+    >
+      {name}
+      <button
+        className="text-muted-foreground hover:text-primary cursor-pointer"
+        onClick={onClick}
+      >
+        <CircleX size={16} />
+      </button>
+    </Badge>
+  );
+}
+
 export default function FiltersList() {
-  const { publicFilters, setPublicFilters, setFiltersDialogOpen } =
-    useContext(PublicFiltersContext);
+  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const activeFilters = getActiveFilters(publicFilters);
 
-  const resetFilters = () => {
-    setPublicFilters([]);
+  const removeFilter = (filter: PublicFiltersFormValue, optionName = "") => {
+    if (optionName) {
+      setPublicFilters([
+        ...publicFilters.map((f) =>
+          f.name === filter.name
+            ? {
+                ...f,
+                selectedOptions: f.selectedOptions?.length
+                  ? [...f.selectedOptions.filter((o) => o !== optionName)]
+                  : [],
+              }
+            : { ...f }
+        ),
+      ]);
+    } else {
+      setPublicFilters([
+        ...publicFilters.map((f) =>
+          f.name === filter.name ? { ...f, value: "" } : { ...f }
+        ),
+      ]);
+    }
   };
 
   if (!activeFilters?.length) {
@@ -29,46 +71,33 @@ export default function FiltersList() {
             <Fragment key={filter.name}>
               {filter.selectedOptions.map((val) => (
                 <li key={val}>
-                  <Badge variant="outline" className="bg-white text-sm">
-                    <Check />
-                    {val}
-                  </Badge>
+                  <FiltersListBadge
+                    name={val}
+                    onClick={() => removeFilter(filter, val)}
+                  />
                 </li>
               ))}
             </Fragment>
           ) : filter.type === PublicMapColumnType.Boolean &&
             toBoolean(filter.value) ? (
             <li key={filter.name}>
-              <Badge variant="outline" className="bg-white text-sm">
-                <Check />
-                {filter.name}
-              </Badge>
+              <FiltersListBadge
+                name={filter.name}
+                onClick={() => removeFilter(filter)}
+              />
             </li>
           ) : filter.type === PublicMapColumnType.String ? (
             <li key={filter.value}>
-              <Badge variant="outline" className="bg-white text-sm">{filter.value}</Badge>
+              <FiltersListBadge
+                name={filter.name}
+                onClick={() => removeFilter(filter)}
+              />
             </li>
           ) : (
             <></>
           )
         )}
       </ul>
-      <div className="flex gap-4 text-muted-foreground text-sm font-medium">
-        <button
-          type="button"
-          className="hover:text-primary cursor-pointer"
-          onClick={() => setFiltersDialogOpen(true)}
-        >
-          Edit filters
-        </button>
-        <button
-          type="button"
-          className="hover:text-primary cursor-pointer"
-          onClick={() => resetFilters()}
-        >
-          Reset filters
-        </button>
-      </div>
     </div>
   );
 }

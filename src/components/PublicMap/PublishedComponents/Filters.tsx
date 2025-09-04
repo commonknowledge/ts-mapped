@@ -27,7 +27,7 @@ export default function Filters() {
         <Button variant="ghost" asChild={true}>
           <span>
             <ListFilter />
-            Open filters
+            Filters
           </span>
         </Button>
       </DialogTrigger>
