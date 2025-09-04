@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
@@ -69,7 +69,7 @@ function DataSourceMarkers({
 }) {
   const { records } = useContext(PublicFiltersContext);
 
-  const getSafeMarkers = (): FeatureCollection => {
+  const safeMarkers = useMemo<FeatureCollection>(() => {
     if (!dataSourceMarkers?.markers) {
       return {
         type: "FeatureCollection",
@@ -81,23 +81,18 @@ function DataSourceMarkers({
       const recordsIds = records.map((r) => `${r.id}`).filter(Boolean);
 
       return {
-        ...dataSourceMarkers?.markers,
-        features: [
-          ...dataSourceMarkers.markers.features.filter((f) =>
-            recordsIds.includes(
-              (f.properties as Record<string, unknown>)[
-                MARKER_ID_KEY
-              ] as string,
-            ),
+        ...dataSourceMarkers.markers,
+        features: dataSourceMarkers.markers.features.filter((f) =>
+          recordsIds.includes(
+            (f.properties as Record<string, unknown>)[MARKER_ID_KEY] as string,
           ),
-        ],
+        ),
       };
     }
 
-    return dataSourceMarkers?.markers;
-  };
+    return dataSourceMarkers.markers;
+  }, [dataSourceMarkers, records]);
 
-  const safeMarkers = getSafeMarkers();
   const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
   const colors = isMembers ? mapColors.member : mapColors.dataSource;
   return (
