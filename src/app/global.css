@@ -44,6 +44,9 @@
   --sidebar-ring: oklch(0.708 0 0);
   --brandBlue: oklch(65.39% 0.1357 264.88);
   --brandBackground: oklch(0.9583 0.0154 269.98);
+
+  /* layout */
+  --navbar-height: 3.5rem;
 }
 
 .dark {
