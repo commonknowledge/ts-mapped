@@ -17,7 +17,7 @@ export default function ConditionalMarketingNavbar() {
 
   return (
     <>
-      <nav className="flex justify-between items-center px-4 md:px-6 h-16 md:h-20 fixed top-0 left-0 right-0 bg-transparent z-50">
+      <nav className="flex justify-between items-center px-4 md:px-6 h-16 md:h-20 sticky top-0 left-0 right-0 z-50 bg-white border-b border-neutral-200">
         <div className="flex items-center">
           <Link href="/" className="pr-2 shrink-0">
             <Image
@@ -31,7 +31,7 @@ export default function ConditionalMarketingNavbar() {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 bg-brand-background rounded-lg">
+        <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 ">
           <Link href="/features" className="text-sm">
             Features
           </Link>
