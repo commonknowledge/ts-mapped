@@ -8,14 +8,10 @@ import {
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-<<<<<<< HEAD
-import { TRPCReactProvider } from "@/lib/trpc";
-=======
 import ConditionalMarketingFooter from "@/components/ConditionalMarketingFooter";
 import ConditionalMarketingNavbar from "@/components/ConditionalMarketingNavbar";
 import PublicMapPage from "@/components/PublicMapPage";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
->>>>>>> main
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
@@ -23,7 +19,7 @@ import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
 import { Toaster } from "@/shadcn/ui/sonner";
 import type { Metadata } from "next";
-import { TRPCProvider } from "@/utils/trpc";
+import { TRPCReactProvider } from "@/utils/trpc";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -64,16 +60,15 @@ export default async function RootLayout({
         className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
       >
         <body className={ibmPlexSans.className}>
+          <TRPCReactProvider>
           <ApolloProvider ignoreAuthErrors>
-          <TRPCProvider>
-
             <NProgressProvider>
               <main>
                 <PublicMapPage host={host} />
               </main>
             </NProgressProvider>
-          </TRPCProvider>
           </ApolloProvider>
+          </TRPCReactProvider>
         </body>
       </html>
     );
@@ -90,7 +85,7 @@ export default async function RootLayout({
       <body className={ibmPlexSans.className}>
         <ServerSessionProvider serverSession={serverSession}>
           <OrganisationsProvider organisations={organisations}>
-          <TRPCProvider>
+          <TRPCReactProvider>
             <ApolloProvider>
               <NProgressProvider>
                 <ConditionalMarketingNavbar />
@@ -99,8 +94,7 @@ export default async function RootLayout({
                   <Toaster position="top-right" />
                 </NProgressProvider>
               </ApolloProvider>
-            </TRPCProvider>
-            </ApolloProvider>
+            </TRPCReactProvider>
           </OrganisationsProvider>
         </ServerSessionProvider>
       </body>

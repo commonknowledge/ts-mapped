@@ -455,24 +455,6 @@ const MutationResolvers: MutationResolversType = {
     const user = await updateUser(currentUser.id, args.data);
     return { code: 200, result: user };
   },
-  forgotPassword: async (_, { email }): Promise<MutationResponse> => {
-    const user = await findUserByEmail(email);
-    if (!user) {
-      // always return success, otherwise they can find out if a user exists
-      return { code: 200 };
-    }
-    const token = sign({ id: user.id }, process.env.JWT_SECRET || "", {
-      expiresIn: "15minutes",
-    });
-    await sendEmail(email, "Reset your password", ForgotPassword({ token }));
-    return { code: 200 };
-  },
-  resetPassword: async (_, { token, password }): Promise<MutationResponse> => {
-    const user = await findUserByToken(token);
-    if (!user) return { code: 401 };
-    await updateUser(user.id, { password });
-    return { code: 200 };
-  },
 };
 
 export default MutationResolvers;
