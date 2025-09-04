@@ -1,17 +1,14 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { toast } from "sonner";
-import {
-  MutationResetPasswordArgs,
-  MutationResponse,
-} from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
+import { useTRPC } from "@/utils/trpc";
 
 export default function Page({
   params,
@@ -24,19 +21,20 @@ export default function Page({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [resetPassword] = useMutation<
-    MutationResponse,
-    MutationResetPasswordArgs
-  >(gql`
-    mutation ResetPassword($token: String!, $password: String!) {
-      resetPassword(token: $token, password: $password) {
-        code
-      }
-    }
-  `);
+  const trpc = useTRPC();
+  const { mutate: resetPassword, isPending } = useMutation(
+    trpc.auth.resetPassword.mutationOptions({
+      onSuccess: () => {
+        toast.success("Password reset successfully", {
+          description: "You can now login with your new password",
+        });
+        router.push("/");
+      },
+    }),
+  );
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await resetPassword({ variables: { token, password } });
+    resetPassword({ token, password });
     toast.success("Password reset successfully", {
       description: "You can now login with your new password",
     });
@@ -64,7 +62,9 @@ export default function Page({
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </FormFieldWrapper>
-          <Button type="submit">Confirm</Button>
+          <Button type="submit" disabled={isPending}>
+            Confirm
+          </Button>
         </form>
       </CardContent>
     </Card>

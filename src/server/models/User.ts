@@ -5,6 +5,7 @@ import {
   Selectable,
   Updateable,
 } from "kysely";
+import z from "zod";
 
 export interface UserTable {
   id: Generated<string>;
@@ -16,3 +17,10 @@ export interface UserTable {
 export type User = Selectable<UserTable>;
 export type NewUser = Insertable<UserTable>;
 export type UserUpdate = Updateable<UserTable>;
+
+export const userSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  passwordHash: z.string(),
+  createdAt: z.date(),
+});

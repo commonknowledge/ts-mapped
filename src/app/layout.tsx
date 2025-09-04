@@ -18,6 +18,7 @@ import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
 import { Toaster } from "@/shadcn/ui/sonner";
+import { TRPCReactProvider } from "@/utils/trpc";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -59,13 +60,15 @@ export default async function RootLayout({
         className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
       >
         <body className={ibmPlexSans.className}>
-          <ApolloProvider ignoreAuthErrors>
-            <NProgressProvider>
-              <main>
-                <PublicMapPage host={host} />
-              </main>
-            </NProgressProvider>
-          </ApolloProvider>
+          <TRPCReactProvider>
+            <ApolloProvider ignoreAuthErrors>
+              <NProgressProvider>
+                <main>
+                  <PublicMapPage host={host} />
+                </main>
+              </NProgressProvider>
+            </ApolloProvider>
+          </TRPCReactProvider>
         </body>
       </html>
     );
@@ -82,14 +85,16 @@ export default async function RootLayout({
       <body className={ibmPlexSans.className}>
         <ServerSessionProvider serverSession={serverSession}>
           <OrganisationsProvider organisations={organisations}>
-            <ApolloProvider>
-              <NProgressProvider>
-                <ConditionalMarketingNavbar />
-                <main className="min-h-screen">{children}</main>
-                <ConditionalMarketingFooter />
-                <Toaster position="top-right" />
-              </NProgressProvider>
-            </ApolloProvider>
+            <TRPCReactProvider>
+              <ApolloProvider>
+                <NProgressProvider>
+                  <ConditionalMarketingNavbar />
+                  <main className="min-h-screen">{children}</main>
+                  <ConditionalMarketingFooter />
+                  <Toaster position="top-right" />
+                </NProgressProvider>
+              </ApolloProvider>
+            </TRPCReactProvider>
           </OrganisationsProvider>
         </ServerSessionProvider>
       </body>

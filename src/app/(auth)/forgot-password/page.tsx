@@ -1,49 +1,37 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
-import {
-  ForgotPasswordMutation,
-  ForgotPasswordMutationVariables,
-} from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
+import { useTRPC } from "@/utils/trpc";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [forgotPassword] = useMutation<
-    ForgotPasswordMutation,
-    ForgotPasswordMutationVariables
-  >(gql`
-    mutation ForgotPassword($email: String!) {
-      forgotPassword(email: $email) {
-        code
-      }
-    }
-  `);
+
+  const trpc = useTRPC();
+  const { mutate: forgotPassword, isPending } = useMutation(
+    trpc.auth.forgotPassword.mutationOptions({
+      onSuccess: () => {
+        toast.success("Email sent to reset password");
+        router.push("/login");
+      },
+      onError: () => {
+        setError("Email failed to send, please check your credentials.");
+      },
+    }),
+  );
+
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const response = await forgotPassword({ variables: { email } });
-      if (response.data?.forgotPassword?.code !== 200) {
-        throw new Error(`Response code ${response.data?.forgotPassword?.code}`);
-      }
-      toast.success("Email sent to reset password");
-      router.push("/login");
-    } catch {
-      setError("Email failed to send, please check your credentials.");
-      setLoading(false);
-    }
+    forgotPassword({ email });
   };
 
   return (
@@ -63,7 +51,7 @@ export default function ForgotPasswordPage() {
             />
           </FormFieldWrapper>
 
-          <Button disabled={loading} size="sm">
+          <Button disabled={isPending} size="sm">
             Send instructions
           </Button>
           <span className="text-sm text-red-500">{error}</span>
