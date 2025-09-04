@@ -2,7 +2,6 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { ChevronRight } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import {
@@ -11,6 +10,7 @@ import {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
 } from "@/__generated__/types";
+import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
 import MapViews from "@/components/Map/components/MapViews";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -169,84 +169,86 @@ export default function PrivateMapNavbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center p-4 z-10 h-14 border-b border-neutral-200 bg-white">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="Mapped" width={24} height={24} />
-        </Link>
-        <div className="flex items-center gap-2 text-sm text-neutral-600">
-          <Link
-            href="/dashboard"
-            className="text-neutral-500 hover:text-neutral-800"
-          >
-            Maps
-          </Link>
-          <ChevronRight className="w-4 h-4 text-neutral-400" />
-          <div className="flex items-center gap-1">
-            {isEditingName ? (
-              <>
-                <input
-                  type="text"
-                  value={mapName || ""}
-                  className="px-3 py-1 border border-neutral-300 rounded text-sm"
-                  onChange={(e) => setMapName(e.target.value)}
-                />
-                <Button variant="outline" size="sm" onClick={onSubmitSaveName}>
-                  Save
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditingName(false)}
-                >
-                  Cancel
-                </Button>
-              </>
-            ) : (
-              <p className="truncate max-w-[300px]">
-                {mapName || "Loading..."}
-              </p>
-            )}
+    <Navbar>
+      <div className="flex justify-between items-center gap-4 w-full">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-neutral-600">
+            <Link
+              href="/dashboard"
+              className="text-neutral-500 hover:text-neutral-800"
+            >
+              Maps
+            </Link>
+            <ChevronRight className="w-4 h-4 text-neutral-400" />
+            <div className="flex items-center gap-1">
+              {isEditingName ? (
+                <>
+                  <input
+                    type="text"
+                    value={mapName || ""}
+                    className="px-3 py-1 border border-neutral-300 rounded text-sm"
+                    onChange={(e) => setMapName(e.target.value)}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onSubmitSaveName}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingName(false)}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <p className="truncate max-w-[300px]">
+                  {mapName || "Loading..."}
+                </p>
+              )}
+            </div>
             <PrivateMapNavbarControls setIsEditingName={setIsEditingName} />
           </div>
+          <MapViews />
         </div>
-        <MapViews />
-      </div>
-
-      <div className="flex items-center gap-4">
-        {mapId && (
-          <div className="flex items-center gap-4">
-            {saveError && (
-              <span className="text-xs text-red-500">{saveError}</span>
-            )}
-            <Button
-              type="button"
-              onClick={() => onClickSave()}
-              disabled={loading}
-            >
-              Save
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onClickCRMSave()}
-              disabled={crmSaveLoading}
-            >
-              Save to CRM
-            </Button>
-            {view && (
+        <div className="flex items-center gap-4">
+          {mapId && (
+            <div className="flex items-center gap-4">
+              {saveError && (
+                <span className="text-xs text-red-500">{saveError}</span>
+              )}
+              <Button
+                type="button"
+                onClick={() => onClickSave()}
+                disabled={loading}
+              >
+                Save
+              </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onClickPublish()}
-                disabled={loading}
+                onClick={() => onClickCRMSave()}
+                disabled={crmSaveLoading}
               >
-                Publish
+                Save to CRM
               </Button>
-            )}
-          </div>
-        )}
+              {view && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onClickPublish()}
+                  disabled={loading}
+                >
+                  Publish
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </nav>
+    </Navbar>
   );
 }
