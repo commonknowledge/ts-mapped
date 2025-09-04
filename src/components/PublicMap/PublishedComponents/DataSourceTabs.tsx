@@ -35,7 +35,7 @@ export default function DataSourceTabs({
   const { publicMap, activeTabId, setActiveTabId } =
     useContext(PublicMapContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
-  const { setPublicFilters } = useContext(PublicFiltersContext);
+  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
 
   if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
     return null;
@@ -68,7 +68,9 @@ export default function DataSourceTabs({
 
   const onTabChange = (id: string) => {
     setActiveTabId(id);
-    setPublicFilters([]); // resetting filters on tab change
+    if (!publicFilters[id]) {
+      setPublicFilters({ ...publicFilters, [id]: [] });
+    }
   };
 
   return (
@@ -132,7 +134,10 @@ function SingleDataSourceContent({
 }: SingleDataSourceContentProps) {
   const { publicFilters, setPublicFilters, records } =
     useContext(PublicFiltersContext);
-  const activeFilters = getActiveFilters(publicFilters);
+  const dataSourceId = dataRecordsQuery.data?.dataSource?.id;
+  const activeFilters = getActiveFilters(
+    dataSourceId ? publicFilters[dataSourceId] : [],
+  );
 
   const getListingsLabel = () => {
     if (!records?.length) {
@@ -143,7 +148,12 @@ function SingleDataSourceContent({
   };
 
   const resetFilters = () => {
-    setPublicFilters([]);
+    if (dataSourceId) {
+      setPublicFilters({
+        ...publicFilters,
+        [dataSourceId]: [],
+      });
+    }
   };
 
   return (

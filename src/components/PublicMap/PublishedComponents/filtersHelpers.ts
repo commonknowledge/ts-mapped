@@ -5,7 +5,9 @@ import {
 import { toBoolean } from "./utils";
 import type { PublicFiltersFormValue } from "@/types";
 
-export const getActiveFilters = (filters: PublicFiltersFormValue[]) => {
+export const getActiveFilters = (
+  filters: PublicFiltersFormValue[] | undefined,
+) => {
   if (!filters?.length) {
     return [];
   }

@@ -1,9 +1,6 @@
-// Only import library types into this file
+// Only import library types and generated types into this file
 import { Geometry } from "geojson";
-
-export interface CurrentUser {
-  id: string;
-}
+import { PublicMapColumnType } from "./__generated__/types";
 
 export enum DataSourceType {
   actionnetwork = "actionnetwork",
@@ -49,11 +46,6 @@ export interface PointFeature {
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 
-export interface ServerSession {
-  jwt: string | null;
-  currentUser: CurrentUser | null;
-}
-
 export interface TaggedRecord {
   externalId: string;
   json: Record<string, unknown>;
@@ -65,12 +57,6 @@ export interface TaggedRecord {
 
 export interface UploadResponseBody {
   url: string;
-}
-
-enum PublicMapColumnType {
-  Boolean = "Boolean",
-  CommaSeparatedList = "CommaSeparatedList",
-  String = "String",
 }
 
 export interface PublicFiltersFormValue {

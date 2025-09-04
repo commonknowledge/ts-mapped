@@ -11,6 +11,7 @@ import {
 } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Switch } from "@/shadcn/ui/switch";
+import { PublicMapContext } from "../PublicMapContext";
 import { toBoolean } from "./utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
@@ -23,13 +24,18 @@ export default function FiltersForm({
 }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
+  const { activeTabId } = useContext(PublicMapContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
 
   // setting default values
   useEffect(() => {
-    if (publicFilters && publicFilters?.length) {
-      setValues(publicFilters);
-
+    if (
+      publicFilters &&
+      activeTabId &&
+      publicFilters[activeTabId] &&
+      publicFilters[activeTabId].length
+    ) {
+      setValues(publicFilters[activeTabId]);
       return;
     }
 
@@ -49,7 +55,7 @@ export default function FiltersForm({
       };
     });
     setValues(defaultEmptyValues);
-  }, [fields, publicFilters]);
+  }, [activeTabId, fields, publicFilters]);
 
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>
@@ -83,7 +89,9 @@ export default function FiltersForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setPublicFilters(values);
+    if (activeTabId) {
+      setPublicFilters({ ...publicFilters, [activeTabId]: values });
+    }
     // closing the data record sidebar when applying filters - to avoid showing details of a record that is filtered out
     setSelectedDataRecord(null);
     // closing filters dialog

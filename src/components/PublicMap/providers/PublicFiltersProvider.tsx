@@ -16,9 +16,9 @@ export default function PublicFiltersProvider({
     useContext(PublicMapContext);
   const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
-  const [publicFilters, setPublicFilters] = useState<PublicFiltersFormValue[]>(
-    [],
-  );
+  const [publicFilters, setPublicFilters] = useState<
+    Record<string, PublicFiltersFormValue[]>
+  >({});
   const [records, setRecords] = useState<
     NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
   >([]);

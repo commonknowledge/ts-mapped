@@ -6,6 +6,7 @@ import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
 import DataSourcesProvider from "@/components/Map/providers/DataSourcesProvider";
 import MapProvider from "@/components/Map/providers/MapProvider";
 import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvider";
+import PublicFiltersProvider from "@/components/PublicMap/providers/PublicFiltersProvider";
 import PublicMap from "@/components/PublicMap/PublicMap";
 import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
 import { getClient } from "@/services/apollo";
@@ -71,11 +72,13 @@ export default async function PublicMapAdminPage({
       <DataSourcesProvider>
         <DataRecordProvider>
           <PublicMapProvider publicMap={publicMap} editable>
-            <ChoroplethProvider>
-              <MarkerAndTurfProvider>
-                <PublicMap />
-              </MarkerAndTurfProvider>
-            </ChoroplethProvider>
+            <PublicFiltersProvider>
+              <ChoroplethProvider>
+                <MarkerAndTurfProvider>
+                  <PublicMap />
+                </MarkerAndTurfProvider>
+              </ChoroplethProvider>
+            </PublicFiltersProvider>
           </PublicMapProvider>
         </DataRecordProvider>
       </DataSourcesProvider>
