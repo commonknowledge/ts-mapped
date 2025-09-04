@@ -1,23 +1,26 @@
-import {
-  Generated,
-  Insertable,
-  JSONColumnType,
-  ColumnType as KyselyColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
-import { MapConfig } from "@/__generated__/types";
+import { ColumnType, Generated, Insertable, Updateable } from "kysely";
+import z from "zod";
 
-export interface MapTable {
+export const mapConfigSchema = z.object({
+  markerDataSourceIds: z.array(z.string()),
+  membersDataSourceId: z.string(),
+});
+
+export const mapSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  organisationId: z.string(),
+  imageUrl: z.string().nullable(),
+  config: mapConfigSchema,
+  createdAt: z.date(),
+  // dataSources: z.array(z.string()), // is this a thing??
+});
+
+export type Map = z.infer<typeof mapSchema>;
+
+export type MapTable = Map & {
   id: Generated<string>;
-  name: string;
-  organisationId: string;
-  imageUrl: string | null;
-  config: JSONColumnType<MapConfig>;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
-  dataSources: Generated<string[]>;
-}
-
-export type Map = Selectable<MapTable>;
+  createdAt: ColumnType<Date, string | undefined, never>;
+};
 export type NewMap = Insertable<MapTable>;
 export type MapUpdate = Updateable<MapTable>;

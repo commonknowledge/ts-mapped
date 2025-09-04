@@ -85,10 +85,10 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
 
   const newView: NewMapView = {
     name: "Example View",
-    config: JSON.stringify(config),
+    config: config,
     mapId: map.id,
     position: 0,
-    dataSourceViews: JSON.stringify(dataSourceViews),
+    dataSourceViews: dataSourceViews,
   };
   await upsertMapView(newView);
 

@@ -21,20 +21,20 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
     autoEnrich: false,
     autoImport: false,
     recordType: DataSourceRecordType.Data,
-    config: JSON.stringify({
+    config: {
       type: DataSourceType.airtable,
       apiKey: credentials.airtable.apiKey,
       baseId: credentials.airtable.baseId,
       tableId: credentials.airtable.tableId,
-    }),
-    columnDefs: JSON.stringify([]),
-    columnRoles: JSON.stringify({}),
-    enrichments: JSON.stringify([]),
-    geocodingConfig: JSON.stringify({
+    },
+    columnDefs: [],
+    columnRoles: { nameColumns: [] },
+    enrichments: [],
+    geocodingConfig: {
       type: "Code",
       column: "Postcode",
       areaSetCode: "PC",
-    }),
+    },
     organisationId: org.id,
     public: false,
   });
@@ -46,7 +46,7 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
   const stream = streamDataRecordsByDataSource(
     dataSource.id,
     { type: FilterType.MULTI },
-    "",
+    ""
   );
   const records = [];
   for await (const record of stream) {
@@ -66,7 +66,7 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
     records.map((r) => ({
       ...r,
       json: { Name: r.json.Name, Postcode: r.json.Postcode },
-    })),
+    }))
   ).toEqual([
     {
       externalId: "recHSNLI2dfwSoo8U",

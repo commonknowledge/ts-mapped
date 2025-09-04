@@ -19,7 +19,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     dataSourceId: string,
     spreadsheetId: string,
     sheetName: string,
-    credentials: GoogleOAuthCredentials,
+    credentials: GoogleOAuthCredentials
   ) {
     this.dataSourceId = dataSourceId;
     this.spreadsheetId = spreadsheetId;
@@ -28,7 +28,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   }
 
   async *extractExternalRecordIdsFromWebhookBody(
-    body: Record<string, unknown>,
+    body: Record<string, unknown>
   ): AsyncGenerator<string> {
     if (!body) {
       throw new Error("Empty Google Sheets webhook body");
@@ -74,7 +74,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const body = await response.text();
       throw new Error(
-        `Failed to refresh Google Sheets token: ${response.status}, ${body}`,
+        `Failed to refresh Google Sheets token: ${response.status}, ${body}`
       );
     }
 
@@ -92,7 +92,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
         oAuthCredentials: this.credentials,
       };
       await updateDataSource(this.dataSourceId, {
-        config: JSON.stringify(newConfig),
+        config: newConfig,
       });
     } catch (error) {
       logger.error("Could not update Google Sheets data source", { error });
@@ -103,7 +103,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   private async makeGoogleSheetsRequest(
     url: string,
-    options: RequestInit = {},
+    options: RequestInit = {}
   ): Promise<Response> {
     const start = Date.now();
     logger.debug(`Making Google Sheets request: ${url}`);
@@ -122,7 +122,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     const end = Date.now();
 
     logger.debug(
-      `Completed Google Sheets request in ${(end - start) / 1000}s: ${url}`,
+      `Completed Google Sheets request in ${(end - start) / 1000}s: ${url}`
     );
 
     return response;
@@ -145,7 +145,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
         `Could not get record count for Google Sheets ${this.dataSourceId}`,
         {
           error,
-        },
+        }
       );
       return null;
     }
@@ -176,7 +176,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const body = await response.text();
       throw new Error(
-        `Failed to fetch all records: ${response.status}, ${body}`,
+        `Failed to fetch all records: ${response.status}, ${body}`
       );
     }
 
@@ -249,7 +249,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
         `Could not get first record for Google Sheets ${this.dataSourceId}`,
         {
           error,
-        },
+        }
       );
       return null;
     }
@@ -272,7 +272,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const body = await response.text();
       throw new Error(
-        `Failed to fetch records by ID: ${response.status}, ${body}`,
+        `Failed to fetch records by ID: ${response.status}, ${body}`
       );
     }
 
@@ -311,7 +311,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
     const sheets = await this.listSheets();
     const webhookSheets = sheets.filter((s) =>
-      s.properties.title.includes("ngrok"),
+      s.properties.title.includes("ngrok")
     );
     for (const sheet of webhookSheets) {
       await this.deleteSheet(sheet.properties.title);
@@ -322,7 +322,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   async toggleWebhook(enable: boolean): Promise<void> {
     const notificationUrl = await getPublicUrl(
-      `/api/data-sources/${this.dataSourceId}/webhook`,
+      `/api/data-sources/${this.dataSourceId}/webhook`
     );
 
     // Shorten identifying URL as sheet names must be <= 100 characters
@@ -349,7 +349,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     if (!res.ok) {
       const body = await res.text();
       throw new Error(
-        `Failed to fetch spreadsheet metadata: ${res.status}, ${body}`,
+        `Failed to fetch spreadsheet metadata: ${res.status}, ${body}`
       );
     }
 
@@ -360,7 +360,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   private async ensureSheet(title: string): Promise<void> {
     const sheets = await this.listSheets();
     const sheetExists = sheets.some(
-      (sheet) => sheet.properties.title === title,
+      (sheet) => sheet.properties.title === title
     );
 
     if (sheetExists) {
@@ -419,7 +419,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   private async prepareWebhookSheet(
     webhookSheetTitle: string,
-    notificationUrl: string,
+    notificationUrl: string
   ): Promise<void> {
     // Step 1: Get total number of rows in the main sheet
     const sheetRange = `${this.sheetName}!A:A`;
@@ -431,7 +431,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     if (!readResponse.ok) {
       const body = await readResponse.text();
       throw new Error(
-        `Failed to read row count from main sheet: ${readResponse.status}, ${body}`,
+        `Failed to read row count from main sheet: ${readResponse.status}, ${body}`
       );
     }
 
@@ -485,7 +485,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     if (!updateResponse.ok) {
       const body = await updateResponse.text();
       throw new Error(
-        `Failed to write webhook formulas: ${updateResponse.status}, ${body}`,
+        `Failed to write webhook formulas: ${updateResponse.status}, ${body}`
       );
     }
   }
@@ -520,7 +520,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       if (!headerResponse.ok) {
         const body = await headerResponse.text();
         throw new Error(
-          `Failed to update headers: ${headerResponse.status}, ${body}`,
+          `Failed to update headers: ${headerResponse.status}, ${body}`
         );
       }
 
@@ -558,7 +558,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const body = await response.text();
         throw new Error(
-          `Failed to update records: ${response.status}, ${body}`,
+          `Failed to update records: ${response.status}, ${body}`
         );
       }
     }
@@ -585,7 +585,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       if (!headerResponse.ok) {
         const body = await headerResponse.text();
         throw new Error(
-          `Failed to update headers: ${headerResponse.status}, ${body}`,
+          `Failed to update headers: ${headerResponse.status}, ${body}`
         );
       }
 
@@ -621,7 +621,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const body = await response.text();
         throw new Error(
-          `Failed to update records: ${response.status}, ${body}`,
+          `Failed to update records: ${response.status}, ${body}`
         );
       }
     }
@@ -650,7 +650,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     if (!headerResponse.ok) {
       const body = await headerResponse.text();
       throw new Error(
-        `Failed to update headers: ${headerResponse.status}, ${body}`,
+        `Failed to update headers: ${headerResponse.status}, ${body}`
       );
     }
 

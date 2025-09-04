@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   AuthDirectiveArgs,
   DataSourceRecordType,
+  GeocodingType,
   ProtectedArgs,
 } from "@/__generated__/types";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/app/api/graphql/auth";
 import { GraphQLContext } from "@/app/api/graphql/context";
 import { NULL_UUID } from "@/constants";
-import { DataSource } from "@/server/models/DataSource";
+import { DataSource, DataSourceType } from "@/server/models/DataSource";
 import { Map } from "@/server/models/Map";
 import { Organisation } from "@/server/models/Organisation";
 import { User } from "@/server/models/User";
@@ -70,11 +71,11 @@ describe("Auth Functions", () => {
       recordType: DataSourceRecordType.Data,
       autoEnrich: false,
       autoImport: false,
-      config: '{"type":"csv", "url":"file://dummy.csv"}',
-      columnDefs: "[]",
-      columnRoles: "{}",
-      enrichments: "[]",
-      geocodingConfig: "{}",
+      config: { type: DataSourceType.CSV, url: "file://dummy.csv" },
+      columnDefs: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: { type: GeocodingType.None },
       organisationId: testOrganisation.id,
       public: false,
     });
@@ -84,11 +85,11 @@ describe("Auth Functions", () => {
       autoEnrich: false,
       recordType: DataSourceRecordType.Data,
       autoImport: false,
-      config: '{"type":"csv", "url":"file://public.csv"}',
-      columnDefs: "[]",
-      columnRoles: "{}",
-      enrichments: "[]",
-      geocodingConfig: "{}",
+      config: { type: DataSourceType.CSV, url: "file://public.csv" },
+      columnDefs: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: { type: GeocodingType.None },
       organisationId: testOrganisation.id,
       public: true,
     });
@@ -247,7 +248,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         publicDataSource.id,
         otherUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(true);
     });
@@ -256,7 +257,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         publicDataSource.id,
         otherUser.id,
-        "write",
+        "write"
       );
       expect(result).toBe(false);
     });
@@ -265,7 +266,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         testDataSource.id,
         testUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(true);
     });
@@ -274,7 +275,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         testDataSource.id,
         otherUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(false);
     });
@@ -307,7 +308,7 @@ describe("Auth Functions", () => {
       const result = await organisationGuard(
         testOrganisation.id,
         testUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(true);
     });
@@ -316,7 +317,7 @@ describe("Auth Functions", () => {
       const result = await organisationGuard(
         testOrganisation.id,
         otherUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(false);
     });
@@ -333,7 +334,7 @@ describe("Auth Functions", () => {
         "dataSourceIdArg",
         testDataSource.id,
         testUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(true);
     });
@@ -343,7 +344,7 @@ describe("Auth Functions", () => {
         "dataSourceIdArg",
         testDataSource.id,
         otherUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(false);
     });
@@ -364,7 +365,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(true);
     });
@@ -383,7 +384,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         otherUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(false);
     });
@@ -403,7 +404,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(false);
     });
@@ -416,7 +417,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(true);
     });
@@ -433,7 +434,7 @@ describe("Auth Functions", () => {
         protectedArgs,
         fieldArgs,
         testUser.id,
-        "read",
+        "read"
       );
       expect(result).toBe(false);
     });
@@ -442,7 +443,7 @@ describe("Auth Functions", () => {
       const result = await dataSourceGuard(
         testDataSource.id,
         undefined,
-        "read",
+        "read"
       );
       expect(result).toBe(false);
     });

@@ -1,34 +1,212 @@
 import {
   Generated,
   Insertable,
-  JSONColumnType,
   ColumnType as KyselyColumnType,
-  Selectable,
   Updateable,
 } from "kysely";
-import {
-  ColumnDef,
-  ColumnRoles,
-  DataSourceRecordType,
-} from "@/__generated__/types";
-import { DataSourceConfig, Enrichment, GeocodingConfig } from "@/zod";
+import z from "zod";
+import { areaSetCode } from "./AreaSet";
 
-export interface DataSourceTable {
-  id: Generated<string>;
-  name: string;
-  autoEnrich: boolean;
-  autoImport: boolean;
-  config: JSONColumnType<DataSourceConfig>;
-  columnDefs: JSONColumnType<ColumnDef[]>;
-  columnRoles: JSONColumnType<ColumnRoles>;
-  enrichments: JSONColumnType<Enrichment[]>;
-  geocodingConfig: JSONColumnType<GeocodingConfig>;
-  organisationId: string;
-  public: boolean;
-  recordType: DataSourceRecordType;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
+export const dataSourceTypes = [
+  "actionnetwork",
+  "airtable",
+  "csv",
+  "googlesheets",
+  "mailchimp",
+] as const;
+
+export enum DataSourceType {
+  ActionNetwork = "actionnetwork",
+  Airtable = "airtable",
+  CSV = "csv",
+  GoogleSheets = "googlesheets",
+  Mailchimp = "mailchimp",
+}
+export const dataSourceType = z.nativeEnum(DataSourceType);
+
+export const actionNetworkConfigSchema = z.object({
+  apiKey: z.string().nonempty(),
+  type: z.literal(DataSourceType.ActionNetwork),
+});
+
+export const airtableConfigSchema = z.object({
+  type: z.literal(DataSourceType.Airtable),
+  apiKey: z.string().nonempty(),
+  baseId: z.string().nonempty(),
+  tableId: z.string().nonempty(),
+});
+
+export const mailchimpConfigSchema = z.object({
+  type: z.literal(DataSourceType.Mailchimp),
+  apiKey: z.string().nonempty(),
+  listId: z.string().nonempty(),
+  serverPrefix: z.string().nonempty(),
+});
+
+export const googleOAuthCredentialsSchema = z.object({
+  access_token: z.string().nonempty(),
+  refresh_token: z.string().nonempty(),
+  expiry_date: z.number().optional(),
+});
+
+export const googleSheetsConfigSchema = z.object({
+  type: z.literal(DataSourceType.GoogleSheets),
+  spreadsheetId: z.string().nonempty(),
+  sheetName: z.string().nonempty(),
+  oAuthCredentials: googleOAuthCredentialsSchema,
+});
+
+export const CSVConfigSchema = z.object({
+  type: z.literal(DataSourceType.CSV),
+  url: z.string().nonempty(),
+});
+
+export const dataSourceConfigSchema = z.discriminatedUnion("type", [
+  actionNetworkConfigSchema,
+  airtableConfigSchema,
+  googleSheetsConfigSchema,
+  mailchimpConfigSchema,
+  CSVConfigSchema,
+]);
+
+export const enrichmentSourceTypes = ["Area", "DataSource"] as const;
+
+export enum EnrichmentSourceType {
+  Area = "Area",
+  DataSource = "DataSource",
 }
 
-export type DataSource = Selectable<DataSourceTable>;
+export const enrichmentSourceType = z.nativeEnum(EnrichmentSourceType);
+
+export const areaPropertyTypes = ["code", "name"] as const;
+
+export enum AreaPropertyType {
+  Code = "code",
+  Name = "name",
+}
+
+const areaPropertyEnum = z.nativeEnum(AreaPropertyType);
+
+const areaEnrichmentSchema = z.object({
+  sourceType: z.literal(EnrichmentSourceType.Area),
+  areaSetCode: areaSetCode,
+  areaProperty: areaPropertyEnum,
+});
+
+const dataSourceEnrichmentSchema = z.object({
+  sourceType: z.literal(EnrichmentSourceType.DataSource),
+  dataSourceId: z.string().nonempty(),
+  dataSourceColumn: z.string().nonempty(),
+});
+
+export const enrichmentSchema = z.discriminatedUnion("sourceType", [
+  areaEnrichmentSchema,
+  dataSourceEnrichmentSchema,
+]);
+
+export const geocodingTypes = ["Address", "Code", "Name", "None"] as const;
+
+export enum GeocodingType {
+  Address = "Address",
+  Code = "Code",
+  Name = "Name",
+  None = "None",
+}
+
+export const geocodingType = z.nativeEnum(GeocodingType);
+
+const addressGeocodingSchema = z.object({
+  type: z.literal(GeocodingType.Address),
+  columns: z.array(z.string().nonempty()),
+});
+
+const areaGeocodingSchema = z.object({
+  type: z.union([z.literal(GeocodingType.Name), z.literal(GeocodingType.Code)]),
+  column: z.string().nonempty(),
+  areaSetCode: areaSetCode,
+});
+
+const disabledGeocodingSchema = z.object({
+  type: z.literal(GeocodingType.None),
+});
+
+export const geocodingConfigSchema = z.discriminatedUnion("type", [
+  addressGeocodingSchema,
+  areaGeocodingSchema,
+  disabledGeocodingSchema,
+]);
+
+export const columnTypes = [
+  "Boolean",
+  "Empty",
+  "Number",
+  "Object",
+  "String",
+  "Unknown",
+] as const;
+
+export enum ColumnType {
+  Boolean = "Boolean",
+  Empty = "Empty",
+  Number = "Number",
+  Object = "Object",
+  String = "String",
+  Unknown = "Unknown",
+}
+
+export const columnType = z.nativeEnum(ColumnType);
+
+export const columnDefSchema = z.object({
+  name: z.string(),
+  type: columnType,
+});
+
+export const columnRolesSchema = z.object({
+  nameColumns: z.array(z.string()),
+});
+
+export const dataSourceRecordTypes = [
+  "Members",
+  "People",
+  "Locations",
+  "Events",
+  "Data",
+  "Other",
+] as const;
+
+export enum DataSourceRecordType {
+  Members = "Members",
+  People = "People",
+  Locations = "Locations",
+  Events = "Events",
+  Data = "Data",
+  Other = "Other",
+}
+
+export const dataSourceRecordType = z.nativeEnum(DataSourceRecordType);
+
+export const dataSourceSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  autoEnrich: z.boolean(),
+  autoImport: z.boolean(),
+  recordType: dataSourceRecordType,
+  config: dataSourceConfigSchema,
+  columnDefs: z.array(columnDefSchema),
+  columnRoles: columnRolesSchema,
+  enrichments: z.array(enrichmentSchema),
+  geocodingConfig: geocodingConfigSchema,
+  organisationId: z.string(),
+  public: z.boolean(),
+  createdAt: z.date(),
+});
+
+export type DataSource = z.infer<typeof dataSourceSchema>;
+
+export type DataSourceTable = DataSource & {
+  id: Generated<string>;
+  createdAt: KyselyColumnType<Date, string | undefined, never>;
+};
+
 export type NewDataSource = Insertable<DataSourceTable>;
 export type DataSourceUpdate = Updateable<DataSourceTable>;

@@ -1,8 +1,11 @@
 import { sql } from "kysely";
 import { JobInfo, JobStatus } from "@/__generated__/types";
-import { DataSourceUpdate, NewDataSource } from "@/server/models/DataSource";
+import {
+  DataSourceType,
+  DataSourceUpdate,
+  NewDataSource,
+} from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
-import { DataSourceType } from "@/types";
 
 export async function createDataSource(dataSource: NewDataSource) {
   return await db
@@ -22,7 +25,7 @@ export async function deleteDataSource(id: string) {
 
 export async function getJobInfo(
   dataSourceId: string,
-  task: string,
+  task: string
 ): Promise<JobInfo> {
   const latestJob = await db
     .selectFrom("pgboss.job")
@@ -78,7 +81,7 @@ export function findDataSourceByIdAndOwnerId(id: string, userId: string) {
     .innerJoin(
       "organisationUser",
       "organisation.id",
-      "organisationUser.organisationId",
+      "organisationUser.organisationId"
     )
     .where("dataSource.id", "=", id)
     .where("organisationUser.userId", "=", userId)
@@ -114,7 +117,7 @@ export function findReadableDataSources(userId: string | null | undefined) {
     .innerJoin(
       "organisationUser",
       "organisation.id",
-      "organisationUser.organisationId",
+      "organisationUser.organisationId"
     )
     .where((eb) => {
       const filter = [eb("public", "=", true)];
@@ -131,7 +134,7 @@ export async function findCSVDataSourceByUrl(url: string) {
   return await db
     .selectFrom("dataSource")
     .where(({ eb, ref }) => {
-      return eb(ref("config", "->>").key("type"), "=", DataSourceType.csv);
+      return eb(ref("config", "->>").key("type"), "=", DataSourceType.CSV);
     })
     .where(({ eb, ref }) => {
       return eb(ref("config", "->>").key("url"), "=", url);
@@ -142,7 +145,7 @@ export async function findCSVDataSourceByUrl(url: string) {
 
 export async function updateDataSource(
   id: string,
-  updateWith: DataSourceUpdate,
+  updateWith: DataSourceUpdate
 ) {
   await db
     .updateTable("dataSource")

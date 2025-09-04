@@ -19,7 +19,7 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
   const dataSourceId = String(args.dataSourceId);
 
   logger.info(
-    `Importing ${args.externalRecordIds.length} records for data source ${dataSourceId}`,
+    `Importing ${args.externalRecordIds.length} records for data source ${dataSourceId}`
   );
 
   const dataSource = await findDataSourceById(dataSourceId);
@@ -31,7 +31,7 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
   const adaptor = getDataSourceAdaptor(dataSource);
   if (!adaptor) {
     logger.error(
-      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`,
+      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`
     );
     return false;
   }
@@ -43,17 +43,17 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
     await importBatch(records, dataSource, columnDefsAccumulator);
 
     await updateDataSource(dataSource.id, {
-      columnDefs: JSON.stringify(columnDefsAccumulator),
+      columnDefs: columnDefsAccumulator,
     });
 
     logger.info(
-      `Imported ${records.length} data source records for ${dataSource.id}: ${dataSource.name}`,
+      `Imported ${records.length} data source records for ${dataSource.id}: ${dataSource.name}`
     );
     return true;
   } catch (error) {
     logger.error(
       `Failed to import records for ${dataSource.config.type} ${dataSourceId}`,
-      { error },
+      { error }
     );
   }
 

@@ -1,21 +1,23 @@
-import {
-  Generated,
-  Insertable,
-  JSONColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
-import { GeocodeResult, Point } from "@/types";
+import { Generated, Insertable, Updateable } from "kysely";
+import { ColumnType } from "kysely";
+import z from "zod";
+import { geocodeResultSchema, jsonSchema, pointSchema } from "./shared";
 
-export interface DataRecordTable {
-  id: Generated<string>;
-  externalId: string;
-  json: JSONColumnType<Record<string, unknown>>;
-  geocodeResult: JSONColumnType<GeocodeResult | null>;
-  geocodePoint: Point | null;
-  dataSourceId: string;
-}
+export const dataRecordSchema = z.object({
+  id: z.number(),
+  externalId: z.string(),
+  dataSourceId: z.string(),
+  json: jsonSchema,
+  geocodeResult: geocodeResultSchema.nullable(),
+  geocodePoint: pointSchema.nullable(),
+  createdAt: z.date(),
+});
 
-export type DataRecord = Selectable<DataRecordTable>;
+export type DataRecord = z.infer<typeof dataRecordSchema>;
+
+export type DataRecordTable = DataRecord & {
+  id: Generated<number>;
+  createdAt: ColumnType<Date, string | undefined, never>;
+};
 export type NewDataRecord = Insertable<DataRecordTable>;
 export type DataRecordUpdate = Updateable<DataRecordTable>;
