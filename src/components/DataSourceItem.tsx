@@ -1,6 +1,7 @@
-import { Check, Database } from "lucide-react";
+import { Database } from "lucide-react";
 import { ColumnDef, LooseGeocodingConfig } from "@/__generated__/types";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { cn } from "@/shadcn/utils";
 import { DataSourceType } from "@/types";
 
 interface DataSource {
@@ -87,14 +88,12 @@ const getGeocodingStatus = (dataSource: DataSource) => {
   return { status: "Geocoding configured", color: "text-blue-600" };
 };
 
-export default function DataSourceItem({
+export function DataSourceItem({
   dataSource,
-  isSelected,
-  onClick,
+  className,
 }: {
   dataSource: DataSource;
-  isSelected: boolean;
-  onClick: () => void;
+  className?: string;
 }) {
   const dataSourceType = getDataSourceType(dataSource);
   const style = getDataSourceStyle(dataSourceType);
@@ -102,10 +101,10 @@ export default function DataSourceItem({
 
   return (
     <div
-      className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${
-        isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200"
-      }`}
-      onClick={onClick}
+      className={cn(
+        "p-3 border rounded-lg cursor-pointer transition-all border-gray-200",
+        className,
+      )}
     >
       <div className="flex items-start gap-3">
         {/* Data Source Icon/Preview */}
@@ -171,13 +170,6 @@ export default function DataSourceItem({
             </div>
           )}
         </div>
-
-        {/* Selection indicator */}
-        {isSelected && (
-          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-            <Check className="w-3 h-3 text-white" />
-          </div>
-        )}
       </div>
     </div>
   );

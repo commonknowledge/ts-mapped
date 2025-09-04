@@ -1,6 +1,7 @@
 import {
   AreaSetCode,
   AreaSetGroupCode,
+  DataSourceRecordType,
   DataSourceView,
   GeocodingType,
   MapStyleName,
@@ -118,6 +119,7 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
       geocodingConfig: JSON.stringify(geocodingConfig),
       columnDefs: JSON.stringify([]),
       public: true,
+      recordType: DataSourceRecordType.Data,
     };
     dataSource = await createDataSource(newDataSource);
   }

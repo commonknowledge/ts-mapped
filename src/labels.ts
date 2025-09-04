@@ -4,6 +4,7 @@ import { DataSourceType } from "@/types";
 import {
   AreaSetCode,
   AreaSetGroupCode,
+  DataSourceRecordType,
   EnrichmentSourceType,
   GeocodingType,
 } from "./__generated__/types";
@@ -66,3 +67,13 @@ export const GeocodingTypeLabels: Record<GeocodingType | "Postcode", string> = {
   Postcode: "UK Postcode", // Front-end only
   None: "Disabled",
 };
+
+export const DataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =
+  {
+    Members: "Members",
+    People: "People",
+    Locations: "Locations",
+    Events: "Events",
+    Data: "Data",
+    Other: "Other",
+  };

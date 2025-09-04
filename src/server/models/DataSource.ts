@@ -6,7 +6,11 @@ import {
   Selectable,
   Updateable,
 } from "kysely";
-import { ColumnDef, ColumnRoles } from "@/__generated__/types";
+import {
+  ColumnDef,
+  ColumnRoles,
+  DataSourceRecordType,
+} from "@/__generated__/types";
 import { DataSourceConfig, Enrichment, GeocodingConfig } from "@/zod";
 
 export interface DataSourceTable {
@@ -21,6 +25,7 @@ export interface DataSourceTable {
   geocodingConfig: JSONColumnType<GeocodingConfig>;
   organisationId: string;
   public: boolean;
+  recordType: DataSourceRecordType;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
 }
 

@@ -5,6 +5,7 @@ export const DATA_SOURCE_QUERY = gql`
     dataSource(id: $id) {
       id
       name
+      recordType
       autoEnrich
       autoImport
       columnDefs {

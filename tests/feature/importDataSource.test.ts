@@ -1,5 +1,5 @@
 import { expect, inject, test } from "vitest";
-import { FilterType } from "@/__generated__/types";
+import { DataSourceRecordType, FilterType } from "@/__generated__/types";
 import importDataSource from "@/server/jobs/importDataSource";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
@@ -20,6 +20,7 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
     name: "Test Import Airtable Source",
     autoEnrich: false,
     autoImport: false,
+    recordType: DataSourceRecordType.Data,
     config: JSON.stringify({
       type: DataSourceType.airtable,
       apiKey: credentials.airtable.apiKey,

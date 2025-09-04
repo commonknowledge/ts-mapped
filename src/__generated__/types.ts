@@ -147,6 +147,7 @@ export type DataSource = {
   name: Scalars["String"]["output"];
   public: Scalars["Boolean"]["output"];
   recordCount?: Maybe<RecordCount>;
+  recordType: DataSourceRecordType;
   records?: Maybe<Array<DataRecord>>;
 };
 
@@ -176,6 +177,15 @@ export type DataSourceEvent = {
   recordsEnriched?: Maybe<RecordsProcessedEvent>;
   recordsImported?: Maybe<RecordsProcessedEvent>;
 };
+
+export enum DataSourceRecordType {
+  Data = "Data",
+  Events = "Events",
+  Locations = "Locations",
+  Members = "Members",
+  Other = "Other",
+  People = "People",
+}
 
 export type DataSourceView = {
   __typename?: "DataSourceView";
@@ -405,6 +415,7 @@ export type MutationCreateDataSourceArgs = {
   name: Scalars["String"]["input"];
   organisationId: Scalars["String"]["input"];
   rawConfig: Scalars["JSON"]["input"];
+  recordType: DataSourceRecordType;
 };
 
 export type MutationCreateMapArgs = {
@@ -792,6 +803,15 @@ export enum VisualisationType {
   Choropleth = "Choropleth",
 }
 
+export type ForgotPasswordMutationVariables = Exact<{
+  email: Scalars["String"]["input"];
+}>;
+
+export type ForgotPasswordMutation = {
+  __typename?: "Mutation";
+  forgotPassword?: { __typename?: "MutationResponse"; code: number } | null;
+};
+
 export type UpdateUserPasswordMutationVariables = Exact<{
   data: UpdateUserInput;
 }>;
@@ -959,6 +979,7 @@ export type DataSourceQuery = {
     __typename?: "DataSource";
     id: string;
     name: string;
+    recordType: DataSourceRecordType;
     autoEnrich: boolean;
     autoImport: boolean;
     config: any;
@@ -1008,6 +1029,7 @@ export type DataSourceQuery = {
 export type CreateDataSourceMutationVariables = Exact<{
   name: Scalars["String"]["input"];
   organisationId: Scalars["String"]["input"];
+  recordType: DataSourceRecordType;
   rawConfig: Scalars["JSON"]["input"];
 }>;
 
@@ -1035,6 +1057,7 @@ export type ListDataSourcesQuery = {
     public: boolean;
     autoEnrich: boolean;
     autoImport: boolean;
+    recordType: DataSourceRecordType;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;
@@ -1706,6 +1729,7 @@ export type ResolversTypes = {
   DataRecord: ResolverTypeWrapper<DataRecord>;
   DataSource: ResolverTypeWrapper<DataSource>;
   DataSourceEvent: ResolverTypeWrapper<DataSourceEvent>;
+  DataSourceRecordType: DataSourceRecordType;
   DataSourceView: ResolverTypeWrapper<DataSourceView>;
   DataSourceViewInput: DataSourceViewInput;
   Date: ResolverTypeWrapper<Scalars["Date"]["output"]>;
@@ -1990,6 +2014,11 @@ export type DataSourceResolvers<
     ParentType,
     ContextType,
     Partial<DataSourceRecordCountArgs>
+  >;
+  recordType?: Resolver<
+    ResolversTypes["DataSourceRecordType"],
+    ParentType,
+    ContextType
   >;
   records?: Resolver<
     Maybe<Array<ResolversTypes["DataRecord"]>>,
@@ -2305,7 +2334,7 @@ export type MutationResolvers<
     ContextType,
     RequireFields<
       MutationCreateDataSourceArgs,
-      "name" | "organisationId" | "rawConfig"
+      "name" | "organisationId" | "rawConfig" | "recordType"
     >
   >;
   createMap?: Resolver<
