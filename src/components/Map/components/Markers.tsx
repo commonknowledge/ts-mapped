@@ -9,6 +9,8 @@ import { mapColors } from "../styles";
 import { DataSourceMarkers as DataSourceMarkersType } from "../types";
 import type { FeatureCollection } from "geojson";
 
+const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";
+
 function hexToRgb(hex: string) {
   const normalized = hex.replace("#", "");
   const bigint = parseInt(normalized, 16);
@@ -67,7 +69,7 @@ function DataSourceMarkers({
   dataSourceMarkers: DataSourceMarkersType;
   isMembers: boolean;
 }) {
-  const { records } = useContext(PublicFiltersContext);
+  const { records, publicFilters } = useContext(PublicFiltersContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     if (!dataSourceMarkers?.markers) {
@@ -77,21 +79,26 @@ function DataSourceMarkers({
       };
     }
 
-    if (records?.length) {
-      const recordsIds = records.map((r) => `${r.id}`).filter(Boolean);
-
-      return {
-        ...dataSourceMarkers.markers,
-        features: dataSourceMarkers.markers.features.filter((f) =>
-          recordsIds.includes(
-            (f.properties as Record<string, unknown>)[MARKER_ID_KEY] as string,
-          ),
-        ),
-      };
+    // Don't add MARKER_CLIENT_EXCLUDED_KEY property if no public filters exist
+    if (Object.keys(publicFilters).length === 0) {
+      return dataSourceMarkers.markers;
     }
 
-    return dataSourceMarkers.markers;
-  }, [dataSourceMarkers, records]);
+    // Add MARKER_CLIENT_EXCLUDED_KEY if public filters are set and marker is not matched
+    const recordIds = (records || []).map((r) => r.id).filter(Boolean);
+    return {
+      ...dataSourceMarkers.markers,
+      features: dataSourceMarkers.markers.features.map((f) => ({
+        ...f,
+        properties: {
+          ...f.properties,
+          [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(
+            String(f.properties[MARKER_ID_KEY]),
+          ),
+        },
+      })),
+    };
+  }, [dataSourceMarkers.markers, publicFilters, records]);
 
   const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
   const colors = isMembers ? mapColors.member : mapColors.dataSource;
@@ -113,9 +120,13 @@ function DataSourceMarkers({
           // Uniform weight (adjust if you have a numeric property to weight by)
           "heatmap-weight": [
             "case",
-            ["get", MARKER_MATCHED_KEY],
-            1, // Full weight for matched points
+            [
+              "any",
+              ["!", ["get", MARKER_MATCHED_KEY]],
+              ["get", MARKER_CLIENT_EXCLUDED_KEY],
+            ],
             0.2, // Reduced weight for unmatched points (adjust as needed)
+            1, // Full weight for matched points
           ],
           // Increase intensity as zoom level increases
           "heatmap-intensity": [
@@ -168,7 +179,16 @@ function DataSourceMarkers({
             7,
             0,
             8,
-            ["case", ["get", MARKER_MATCHED_KEY], 1, 0.5],
+            [
+              "case",
+              [
+                "any",
+                ["!", ["get", MARKER_MATCHED_KEY]],
+                ["get", MARKER_CLIENT_EXCLUDED_KEY],
+              ],
+              0.5,
+              1,
+            ],
           ],
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",
