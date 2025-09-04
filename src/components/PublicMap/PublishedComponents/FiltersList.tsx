@@ -1,15 +1,16 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useContext } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Badge } from "@/shadcn/ui/badge";
-import { Button } from "@/shadcn/ui/button";
 import { getActiveFilters } from "./filtersHelpers";
 import { toBoolean } from "./utils";
 
 export default function FiltersList() {
-  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
+  const { publicFilters, setPublicFilters, setFiltersDialogOpen } =
+    useContext(PublicFiltersContext);
   const activeFilters = getActiveFilters(publicFilters);
 
   const resetFilters = () => {
@@ -28,27 +29,46 @@ export default function FiltersList() {
             <>
               {filter.selectedOptions.map((val) => (
                 <li key={val}>
-                  <Badge>{val}</Badge>
+                  <Badge variant="outline" className="bg-white text-sm">
+                    <Check />
+                    {val}
+                  </Badge>
                 </li>
               ))}
             </>
           ) : filter.type === PublicMapColumnType.Boolean &&
             toBoolean(filter.value) ? (
             <li key={filter.name}>
-              <Badge>{filter.name}</Badge>
+              <Badge variant="outline" className="bg-white text-sm">
+                <Check />
+                {filter.name}
+              </Badge>
             </li>
           ) : filter.type === PublicMapColumnType.String ? (
             <li key={filter.value}>
-              <Badge>{filter.value}</Badge>
+              <Badge variant="outline" className="bg-white text-sm">{filter.value}</Badge>
             </li>
           ) : (
             <></>
-          ),
+          )
         )}
       </ul>
-      <Button type="button" variant="outline" onClick={() => resetFilters()}>
-        Reset filters
-      </Button>
+      <div className="flex gap-4 text-muted-foreground text-sm font-medium">
+        <button
+          type="button"
+          className="hover:text-primary cursor-pointer"
+          onClick={() => setFiltersDialogOpen(true)}
+        >
+          Edit filters
+        </button>
+        <button
+          type="button"
+          className="hover:text-primary cursor-pointer"
+          onClick={() => resetFilters()}
+        >
+          Reset filters
+        </button>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,10 @@ import type { PublicMapDataRecordsQuery } from "@/__generated__/types";
 import type { PublicFiltersFormValue } from "@/types";
 
 export const PublicFiltersContext = createContext<{
+  filtersDialogOpen: boolean;
+  setFiltersDialogOpen: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
   publicFilters: PublicFiltersFormValue[];
   setPublicFilters: React.Dispatch<
     React.SetStateAction<PublicFiltersFormValue[]>
@@ -14,6 +18,8 @@ export const PublicFiltersContext = createContext<{
     >
   >;
 }>({
+  filtersDialogOpen: false,
+  setFiltersDialogOpen: () => null,
   publicFilters: [],
   setPublicFilters: () => [],
   records: [],

@@ -1,7 +1,9 @@
 "use client";
 
+import { ListFilter } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
+import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -20,12 +22,13 @@ export default function Filters() {
   const { publicMap, activeTabId, dataRecordsQueries } =
     useContext(PublicMapContext);
 
-  const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
+  const { filtersDialogOpen, setFiltersDialogOpen } =
+    useContext(PublicFiltersContext);
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
 
   useEffect(() => {
     // don't run it until user opens the filters
-    if (!publicMap || !filtersOpen) {
+    if (!publicMap || !filtersDialogOpen) {
       return;
     }
 
@@ -68,11 +71,11 @@ export default function Filters() {
             .map((record) => record.json[col.name])
             .filter(Boolean) // remove null
             .flatMap((item: string) =>
-              item.split(",").map((s: string) => s.trim()),
+              item.split(",").map((s: string) => s.trim())
             ); // split and trim;
 
           const uniqueValues = [...new Set(allValues)].sort((a, b) =>
-            a.localeCompare(b),
+            a.localeCompare(b)
           );
 
           return {
@@ -86,15 +89,18 @@ export default function Filters() {
 
       setFilterFields(fields);
     }
-  }, [publicMap, activeTabId, dataRecordsQueries, filtersOpen]);
+  }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen]);
 
-  const closeDialog = () => setFiltersOpen(false);
+  const closeDialog = () => setFiltersDialogOpen(false);
 
   return (
-    <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+    <Dialog open={filtersDialogOpen} onOpenChange={setFiltersDialogOpen}>
       <DialogTrigger>
-        <Button variant="outline" asChild={true}>
-          <span>Open filters</span>
+        <Button variant="ghost" asChild={true}>
+          <span>
+            <ListFilter />
+            Open filters
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="!max-w-[420px] !w-[90%] gap-2">

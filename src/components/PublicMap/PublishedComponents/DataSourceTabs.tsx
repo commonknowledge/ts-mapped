@@ -14,6 +14,7 @@ import { cn } from "@/shadcn/utils";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
+import { getActiveFilters } from "./filtersHelpers";
 import FiltersList from "./FiltersList";
 
 interface DataSourceTabsProps {
@@ -128,17 +129,30 @@ function SingleDataSourceContent({
   colourScheme,
   onSelect,
 }: SingleDataSourceContentProps) {
-  const { records } = useContext(PublicFiltersContext);
+  const { publicFilters, records } = useContext(PublicFiltersContext);
+  const activeFilters = getActiveFilters(publicFilters);
+
+  const getListingsLabel = () => {
+    if (!records?.length) {
+      return "No matching listings";
+    }
+
+    if (activeFilters?.length) {
+      return `Showing ${records.length} ${records.length === 1 ? "match" : "matches"}`;
+    }
+
+    return `${records.length} ${records.length === 1 ? "listing" : "listings"}`;
+  };
 
   return (
     <div
       className={cn(
         "flex flex-col gap-2 overflow-y-auto",
-        editable && "border border-neutral-200 border-dashed m-1 rounded-md",
+        editable && "border border-neutral-200 border-dashed m-1 rounded-md"
       )}
     >
       <div className="flex justify-between items-center gap-4 px-4">
-        <span className="text-sm">{records?.length || 0} Listings</span>
+        <span className="text-xs">{getListingsLabel()}</span>
         <Filters />
       </div>
 

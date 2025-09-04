@@ -10,8 +10,9 @@ export default function PublicFiltersProvider({
 }: {
   children: ReactNode;
 }) {
+  const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
   const [publicFilters, setPublicFilters] = useState<PublicFiltersFormValue[]>(
-    [],
+    []
   );
   const [records, setRecords] = useState<
     NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
@@ -20,6 +21,8 @@ export default function PublicFiltersProvider({
   return (
     <PublicFiltersContext
       value={{
+        filtersDialogOpen,
+        setFiltersDialogOpen,
         publicFilters,
         setPublicFilters,
         records,
