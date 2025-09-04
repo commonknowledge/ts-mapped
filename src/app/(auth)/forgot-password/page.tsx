@@ -1,6 +1,6 @@
 "use client";
 
-
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
@@ -10,13 +10,12 @@ import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
 import { useTRPC } from "@/utils/trpc";
-import { useMutation } from "@tanstack/react-query";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  
+
   const trpc = useTRPC();
   const { mutate: forgotPassword, isPending } = useMutation(
     trpc.auth.forgotPassword.mutationOptions({
@@ -27,14 +26,12 @@ export default function ForgotPasswordPage() {
       onError: () => {
         setError("Email failed to send, please check your credentials.");
       },
-    })
+    }),
   );
-
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     forgotPassword({ email });
-
   };
 
   return (

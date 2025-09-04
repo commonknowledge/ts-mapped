@@ -9,7 +9,7 @@ export const userRouter = router({
       userSchema
         .pick({ email: true })
         .partial()
-        .and(z.object({ password: z.string().optional() }))
+        .and(z.object({ password: z.string().optional() })),
     )
     .mutation(async ({ input, ctx }) => {
       const user = await updateUser(ctx.user.id, input);

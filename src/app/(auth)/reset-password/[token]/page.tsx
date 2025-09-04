@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-import { useTRPC } from "@/utils/trpc";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
+import { useTRPC } from "@/utils/trpc";
 
 export default function Page({
   params,
@@ -30,7 +30,7 @@ export default function Page({
         });
         router.push("/");
       },
-    })
+    }),
   );
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +62,9 @@ export default function Page({
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </FormFieldWrapper>
-          <Button type="submit" disabled={isPending}>Confirm</Button>
+          <Button type="submit" disabled={isPending}>
+            Confirm
+          </Button>
         </form>
       </CardContent>
     </Card>

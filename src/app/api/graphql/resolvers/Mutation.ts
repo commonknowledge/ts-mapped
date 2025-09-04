@@ -1,5 +1,4 @@
 import { Polygon } from "geojson";
-import { sign } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import {
   ColumnDef,
@@ -21,7 +20,6 @@ import {
   UpsertTurfResponse,
 } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import ForgotPassword from "@/server/emails/forgot-password";
 import { countDataRecordsForDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
@@ -50,13 +48,8 @@ import {
   upsertPublicMap,
 } from "@/server/repositories/PublicMap";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
-import {
-  findUserByEmail,
-  findUserByToken,
-  updateUser,
-} from "@/server/repositories/User";
+import { updateUser } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
-import { sendEmail } from "@/server/services/mailer";
 import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
 import {
