@@ -47,13 +47,13 @@ export default function FiltersList() {
                   ? [...f.selectedOptions.filter((o) => o !== optionName)]
                   : [],
               }
-            : { ...f }
+            : { ...f },
         ),
       ]);
     } else {
       setPublicFilters([
         ...publicFilters.map((f) =>
-          f.name === filter.name ? { ...f, value: "" } : { ...f }
+          f.name === filter.name ? { ...f, value: "" } : { ...f },
         ),
       ]);
     }
@@ -95,7 +95,7 @@ export default function FiltersList() {
             </li>
           ) : (
             <></>
-          )
+          ),
         )}
       </ul>
     </div>

@@ -49,7 +49,7 @@ export default async function RootLayout({
   const host = headersList.get("x-forwarded-host") || headersList.get("host");
 
   const mainHost = new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL
+    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
   );
 
   if (host && host !== mainHost.host) {

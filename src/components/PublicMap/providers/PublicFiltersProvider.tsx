@@ -12,12 +12,12 @@ export default function PublicFiltersProvider({
 }: {
   children: ReactNode;
 }) {
-    const { publicMap, activeTabId, dataRecordsQueries } =
-      useContext(PublicMapContext);
+  const { publicMap, activeTabId, dataRecordsQueries } =
+    useContext(PublicMapContext);
   const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
   const [publicFilters, setPublicFilters] = useState<PublicFiltersFormValue[]>(
-    []
+    [],
   );
   const [records, setRecords] = useState<
     NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
@@ -38,12 +38,10 @@ export default function PublicFiltersProvider({
         dataSourceConfig.descriptionColumn,
       ]);
 
-      const typedColumns = columns
-        .filter(Boolean)
-        .map((name) => ({
-          name,
-          type: PublicMapColumnType.String,
-        }));
+      const typedColumns = columns.filter(Boolean).map((name) => ({
+        name,
+        type: PublicMapColumnType.String,
+      }));
 
       for (const additionalColumn of dataSourceConfig.additionalColumns) {
         for (const sourceColumn of additionalColumn.sourceColumns) {
@@ -68,11 +66,11 @@ export default function PublicFiltersProvider({
             .map((record) => record.json[col.name])
             .filter(Boolean) // remove null
             .flatMap((item: string) =>
-              item.split(",").map((s: string) => s.trim())
+              item.split(",").map((s: string) => s.trim()),
             ); // split and trim;
 
           const uniqueValues = [...new Set(allValues)].sort((a, b) =>
-            a.localeCompare(b)
+            a.localeCompare(b),
           );
 
           return {
@@ -87,7 +85,6 @@ export default function PublicFiltersProvider({
       setFilterFields(fields);
     }
   }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen]);
-
 
   return (
     <PublicFiltersContext

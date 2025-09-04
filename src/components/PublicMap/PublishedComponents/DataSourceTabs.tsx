@@ -150,7 +150,7 @@ function SingleDataSourceContent({
     <div
       className={cn(
         "flex flex-col gap-2 overflow-y-auto",
-        editable && "border border-neutral-200 border-dashed m-1 rounded-md"
+        editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
       <div className="flex justify-between items-center gap-4 px-2">
