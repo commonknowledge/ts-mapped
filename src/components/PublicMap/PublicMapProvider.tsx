@@ -27,7 +27,9 @@ export default function PublicMapProvider({
   const [publicMap, setPublicMap] =
     useState<PublishedPublicMapQuery["publishedPublicMap"]>(initialPublicMap);
   const [searchLocation, setSearchLocation] = useState<Point | null>(null);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [activeTabId, setActiveTabId] = useState<string | null>(
+    publicMap?.dataSourceConfigs[0].dataSourceId || null,
+  );
   const [activePublishTab, setActivePublishTab] = useState<string>("settings");
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);

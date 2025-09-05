@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext } from "react";
-import { ServerSession } from "@/types";
+import { ServerSession } from "@/authTypes";
 
 export const ServerSessionContext = createContext<ServerSession>({
   jwt: null,

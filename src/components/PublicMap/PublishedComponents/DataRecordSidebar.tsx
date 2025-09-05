@@ -6,12 +6,11 @@ import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
-import { buildName } from "./utils";
+import { buildName, toBoolean } from "./utils";
 
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
-  const { dataRecordsQueries, publicMap, editable } =
-    useContext(PublicMapContext);
+  const { dataRecordsQueries, publicMap } = useContext(PublicMapContext);
   const selectedDataRecordDetails = useMemo(() => {
     if (!selectedDataRecord) {
       return null;
@@ -41,12 +40,7 @@ export default function DataRecordSidebar() {
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-4 p-4 w-[280px] ",
-        editable ? "gap-8" : "",
-      )}
-    >
+    <div className={cn("flex flex-col gap-4 p-4 w-[280px] ")}>
       {/* Name */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
@@ -131,16 +125,6 @@ function CheckList({
   sourceColumns: string[];
   json: Record<string, unknown>;
 }) {
-  const toBoolean = (val: unknown): boolean => {
-    if (!val) {
-      return false;
-    }
-    if (["false", "0", "no"].includes(String(val).toLowerCase())) {
-      return false;
-    }
-    return Boolean(val);
-  };
-
   return (
     <div className="grid grid-cols-6 gap-2">
       {sourceColumns.map((column) => (
