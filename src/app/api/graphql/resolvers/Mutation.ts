@@ -27,9 +27,7 @@ import {
 } from "@/server/models/DataSource";
 import { geocodingConfigSchema } from "@/server/models/DataSource";
 import { mapConfigSchema } from "@/server/models/Map";
-import { mapViewConfigSchema } from "@/server/models/MapView";
 import { Polygon } from "@/server/models/Turf";
-import { countDataRecordsForDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   findDataSourceById,
@@ -263,14 +261,7 @@ const MutationResolvers: MutationResolversType = {
         `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
       );
 
-      const recordCount = await countDataRecordsForDataSource(
-        dataSource.id,
-        null,
-        null,
-      );
-      if (recordCount.count === 0) {
-        await enqueue("importDataSource", { dataSourceId: id });
-      }
+      await enqueue("importDataSource", { dataSourceId: id });
 
       return { code: 200 };
     } catch (error) {
@@ -335,11 +326,9 @@ const MutationResolvers: MutationResolversType = {
       await updateMap(mapId, { config });
 
       for (const view of views) {
-        const config = mapViewConfigSchema.parse(view.config); // TODO: why are the args missing certain required view config properties
         await upsertMapView({
           ...view,
-          config,
-          // @ts-expect-error TODO: why are the args missing certain required view config properties
+          config: view.config,
           dataSourceViews: view.dataSourceViews,
           mapId,
         });

@@ -169,26 +169,7 @@ export default function NewDataSourcePage() {
           />
         </DataListRow>
 
-        <DataListRow label="Type">
-          <Select
-            value={config.type}
-            onValueChange={(value) =>
-              onChangeConfig({ type: value as DataSourceType })
-            }
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Choose a type" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(DataSourceType).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {DataSourceTypeLabels[type as DataSourceType]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </DataListRow>
-        <DataListRow label="Record type" border>
+        <DataListRow label="Data type" border>
           <Select
             value={recordType || ""}
             onValueChange={(value) =>
@@ -202,6 +183,25 @@ export default function NewDataSourcePage() {
               {Object.keys(DataSourceRecordTypeLabels).map((type) => (
                 <SelectItem key={type} value={type}>
                   {DataSourceRecordTypeLabels[type as DataSourceRecordType]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </DataListRow>
+        <DataListRow label="Source type">
+          <Select
+            value={config.type}
+            onValueChange={(value) =>
+              onChangeConfig({ type: value as DataSourceType })
+            }
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Choose a type" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(DataSourceType).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {DataSourceTypeLabels[type as DataSourceType]}
                 </SelectItem>
               ))}
             </SelectContent>

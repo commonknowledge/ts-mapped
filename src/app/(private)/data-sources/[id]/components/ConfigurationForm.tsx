@@ -11,7 +11,10 @@ import {
 } from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceFeatures } from "@/features";
-import { DataSourceType } from "@/server/models/DataSource";
+import {
+  DataSourceType,
+  geocodingConfigSchema,
+} from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
 import ColumnRoleFields from "./ColumnRoleFields";
@@ -66,6 +69,9 @@ export default function ConfigurationForm({
 
   const columnRoles = { nameColumns };
 
+  const { data: validGeocodingConfig } =
+    geocodingConfigSchema.safeParse(geocodingConfig);
+
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -76,7 +82,7 @@ export default function ConfigurationForm({
         variables: {
           id: dataSource.id,
           columnRoles,
-          looseGeocodingConfig: geocodingConfig,
+          looseGeocodingConfig: validGeocodingConfig,
           autoImport,
         },
       });
@@ -145,7 +151,7 @@ export default function ConfigurationForm({
       )}
 
       <Button
-        disabled={!geocodingConfig || loading}
+        disabled={!validGeocodingConfig || loading}
         variant="secondary"
         type="submit"
       >

@@ -365,18 +365,18 @@ export type MapViewConfig = {
 };
 
 export type MapViewConfigInput = {
-  areaDataColumn?: InputMaybe<Scalars["String"]["input"]>;
-  areaDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  areaDataColumn: Scalars["String"]["input"];
+  areaDataSourceId: Scalars["String"]["input"];
   areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
   calculationType?: InputMaybe<CalculationType>;
   colorScheme?: InputMaybe<ColorScheme>;
-  excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
-  mapStyleName?: InputMaybe<MapStyleName>;
-  showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
+  excludeColumnsString: Scalars["String"]["input"];
+  mapStyleName: MapStyleName;
+  showBoundaryOutline: Scalars["Boolean"]["input"];
+  showLabels: Scalars["Boolean"]["input"];
+  showLocations: Scalars["Boolean"]["input"];
+  showMembers: Scalars["Boolean"]["input"];
+  showTurf: Scalars["Boolean"]["input"];
   visualisationType?: InputMaybe<VisualisationType>;
 };
 

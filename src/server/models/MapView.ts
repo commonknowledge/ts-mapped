@@ -23,25 +23,28 @@ export enum FilterType {
 export const filterType = z.nativeEnum(FilterType);
 
 const baseRecordFilterSchema = z.object({
-  column: z.string().nullable(),
-  dataRecordId: z.string().nullable(),
-  dataSourceId: z.string().nullable(),
-  distance: z.number().nullable(),
-  label: z.string().nullable(),
-  operator: filterOperator.nullable(),
-  placedMarker: z.string().nullable(),
-  search: z.string().nullable(),
-  turf: z.string().nullable(),
+  column: z.string().optional().nullable(),
+  dataRecordId: z.string().optional().nullable(),
+  dataSourceId: z.string().optional().nullable(),
+  distance: z.number().optional().nullable(),
+  label: z.string().optional().nullable(),
+  operator: filterOperator.optional().nullable(),
+  placedMarker: z.string().optional().nullable(),
+  search: z.string().optional().nullable(),
+  turf: z.string().optional().nullable(),
   type: filterType,
 });
 
 type RecordFilterWithChildren = z.infer<typeof baseRecordFilterSchema> & {
-  children?: RecordFilterWithChildren[] | undefined;
+  children?: RecordFilterWithChildren[] | null;
 };
 
 const recordFilterSchema: z.ZodType<RecordFilterWithChildren> =
   baseRecordFilterSchema.extend({
-    children: z.lazy(() => recordFilterSchema.array()).optional(),
+    children: z
+      .lazy(() => recordFilterSchema.array())
+      .optional()
+      .nullable(),
   });
 
 export const sortSchema = z.object({
@@ -103,7 +106,7 @@ export const mapStyleName = z.nativeEnum(MapStyleName);
 export const mapViewConfigSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
-  areaSetGroupCode: areaSetGroupCode,
+  areaSetGroupCode: areaSetGroupCode.optional().nullable(),
   excludeColumnsString: z.string(),
   mapStyleName: mapStyleName,
   showBoundaryOutline: z.boolean(),
@@ -111,9 +114,9 @@ export const mapViewConfigSchema = z.object({
   showLocations: z.boolean(),
   showMembers: z.boolean(),
   showTurf: z.boolean(),
-  visualisationType: visualisationType,
-  calculationType: calculationType.nullable(),
-  colorScheme: colorScheme.nullable(),
+  visualisationType: visualisationType.optional().nullable(),
+  calculationType: calculationType.optional().nullable(),
+  colorScheme: colorScheme.optional().nullable(),
 });
 export const mapViewSchema = z.object({
   id: z.string(),

@@ -10,7 +10,7 @@ import {
   UnknownRow,
   ValueNode,
 } from "kysely";
-import logger from "../../services/logger"; // Relative import required for Kysely CLI
+import logger from "../../../services/logger"; // Relative import required for Kysely CLI
 import type { Point } from "@/server/models/shared";
 
 export class PointPlugin implements KyselyPlugin {
