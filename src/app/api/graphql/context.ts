@@ -1,4 +1,4 @@
-import { CurrentUser } from "@/types";
+import { CurrentUser } from "@/authTypes";
 
 export interface GraphQLContext {
   currentUser: CurrentUser | null;

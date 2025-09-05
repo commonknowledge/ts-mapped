@@ -10,8 +10,7 @@ import { buildName, toBoolean } from "./utils";
 
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
-  const { dataRecordsQueries, publicMap, editable } =
-    useContext(PublicMapContext);
+  const { dataRecordsQueries, publicMap } = useContext(PublicMapContext);
   const selectedDataRecordDetails = useMemo(() => {
     if (!selectedDataRecord) {
       return null;
@@ -41,12 +40,7 @@ export default function DataRecordSidebar() {
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-4 p-4 w-[280px] ",
-        editable ? "gap-8" : "",
-      )}
-    >
+    <div className={cn("flex flex-col gap-4 p-4 w-[280px] ")}>
       {/* Name */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">

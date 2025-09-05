@@ -7,10 +7,8 @@ export const PublicFiltersContext = createContext<{
   setFiltersDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   filterFields: FilterField[];
   setFilterFields: React.Dispatch<React.SetStateAction<FilterField[]>>;
-  publicFilters: PublicFiltersFormValue[];
-  setPublicFilters: React.Dispatch<
-    React.SetStateAction<PublicFiltersFormValue[]>
-  >;
+  publicFilters: Record<string, PublicFiltersFormValue[]>;
+  setPublicFilters: (r: Record<string, PublicFiltersFormValue[]>) => void;
   records: NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"];
   setRecords: React.Dispatch<
     React.SetStateAction<
@@ -22,8 +20,8 @@ export const PublicFiltersContext = createContext<{
   setFiltersDialogOpen: () => null,
   filterFields: [],
   setFilterFields: () => [],
-  publicFilters: [],
-  setPublicFilters: () => [],
+  publicFilters: {},
+  setPublicFilters: () => null,
   records: [],
   setRecords: () => [],
 });

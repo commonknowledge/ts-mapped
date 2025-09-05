@@ -6,6 +6,7 @@ import { PublicMapColumnType } from "@/__generated__/types";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Badge } from "@/shadcn/ui/badge";
 import { PublicFiltersFormValue } from "@/types";
+import { PublicMapContext } from "../PublicMapContext";
 import { getActiveFilters } from "./filtersHelpers";
 import { toBoolean } from "./utils";
 
@@ -34,28 +35,40 @@ function FiltersListBadge({
 
 export default function FiltersList() {
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
-  const activeFilters = getActiveFilters(publicFilters);
+  const { activeTabId } = useContext(PublicMapContext);
+  const activeFilters = getActiveFilters(
+    activeTabId ? publicFilters[activeTabId] : undefined,
+  );
 
   const removeFilter = (filter: PublicFiltersFormValue, optionName = "") => {
+    if (!activeTabId) {
+      return;
+    }
+    const activePublicFilters = publicFilters[activeTabId] || [];
     if (optionName) {
-      setPublicFilters([
-        ...publicFilters.map((f) =>
-          f.name === filter.name
-            ? {
-                ...f,
-                selectedOptions: f.selectedOptions?.length
-                  ? [...f.selectedOptions.filter((o) => o !== optionName)]
-                  : [],
-              }
-            : { ...f },
-        ),
-      ]);
+      setPublicFilters({
+        ...publicFilters,
+        [activeTabId]: [
+          ...activePublicFilters.map((f) =>
+            f.name === filter.name
+              ? {
+                  ...f,
+                  selectedOptions: f.selectedOptions?.length
+                    ? [...f.selectedOptions.filter((o) => o !== optionName)]
+                    : [],
+                }
+              : { ...f },
+          ),
+        ],
+      });
     } else {
-      setPublicFilters([
-        ...publicFilters.map((f) =>
-          f.name === filter.name ? { ...f, value: "" } : { ...f },
-        ),
-      ]);
+      setPublicFilters({
+        [activeTabId]: [
+          ...activePublicFilters.map((f) =>
+            f.name === filter.name ? { ...f, value: "" } : { ...f },
+          ),
+        ],
+      });
     }
   };
 

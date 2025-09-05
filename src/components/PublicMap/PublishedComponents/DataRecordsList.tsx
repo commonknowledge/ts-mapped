@@ -42,10 +42,13 @@ export default function DataRecordsList({
 
   useEffect(() => {
     const allRecords = dataRecordsQuery?.data?.dataSource?.records || [];
-    const activeFilters = getActiveFilters(publicFilters);
+    const dataSourceId = dataRecordsQuery.data?.dataSource?.id;
+    const activeFilters = getActiveFilters(
+      dataSourceId ? publicFilters[dataSourceId] : undefined,
+    );
 
     // if no filters are selected - show all records
-    if (!publicFilters?.length || !activeFilters?.length) {
+    if (!activeFilters?.length) {
       setRecords(allRecords);
       return;
     }
@@ -53,7 +56,12 @@ export default function DataRecordsList({
     const filteredRecords = filterRecords(activeFilters, allRecords);
 
     setRecords(filteredRecords);
-  }, [publicFilters, setRecords, dataRecordsQuery?.data?.dataSource?.records]);
+  }, [
+    publicFilters,
+    setRecords,
+    dataRecordsQuery.data?.dataSource?.records,
+    dataRecordsQuery.data?.dataSource?.id,
+  ]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
