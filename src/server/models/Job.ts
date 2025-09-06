@@ -14,13 +14,12 @@ const jobStates = [
   "cancelled",
   "failed",
 ] as const;
-const jobState = z.enum(jobStates);
 
 export const jobSchema = z.object({
   data: jobDataSchema,
   completedOn: z.date().nullable(),
   startedOn: z.date().nullable(),
-  state: jobState,
+  state: z.enum(jobStates),
 });
 
 export interface JobTable {

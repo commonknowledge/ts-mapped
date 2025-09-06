@@ -13,7 +13,6 @@ export const mapSchema = z.object({
   imageUrl: z.string().nullable(),
   config: mapConfigSchema,
   createdAt: z.date(),
-  // dataSources: z.array(z.string()), // is this a thing??
 });
 
 export type Map = z.infer<typeof mapSchema>;

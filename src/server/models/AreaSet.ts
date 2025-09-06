@@ -1,7 +1,5 @@
-import { Generated, Insertable, Updateable } from "kysely";
 import z from "zod";
-
-export const areaSetCodes = ["MSOA21", "OA21", "PC", "WMC24"] as const;
+import type { Generated, Insertable, Updateable } from "kysely";
 
 export enum AreaSetCode {
   MSOA21 = "MSOA21",
@@ -9,21 +7,19 @@ export enum AreaSetCode {
   PC = "PC",
   WMC24 = "WMC24",
 }
-
-export const areaSetCode = z.nativeEnum(AreaSetCode);
-
-export const areaSetGroupCodes = ["OA21", "WMC24"] as const;
+export const areaSetCodes = Object.values(AreaSetCode);
 
 export enum AreaSetGroupCode {
   OA21 = "OA21",
   WMC24 = "WMC24",
 }
+export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
 
 export const areaSetGroupCode = z.nativeEnum(AreaSetGroupCode);
 
 export const areaSetSchema = z.object({
   id: z.number(),
-  code: areaSetCode,
+  code: z.nativeEnum(AreaSetCode),
   name: z.string(),
 });
 

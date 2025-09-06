@@ -7,24 +7,18 @@ import {
 
 import z from "zod";
 
-export const publicMapColumnTypes = [
-  "Boolean",
-  "CommaSeparatedList",
-  "String",
-] as const;
-
 export enum PublicMapColumnType {
   Boolean = "Boolean",
   CommaSeparatedList = "CommaSeparatedList",
   String = "String",
 }
 
-export const publicMapColumnType = z.nativeEnum(PublicMapColumnType);
+export const publicMapColumnTypes = Object.values(PublicMapColumnType);
 
 export const publicMapColumnSchema = z.object({
   label: z.string(),
   sourceColumns: z.array(z.string()),
-  type: publicMapColumnType,
+  type: z.nativeEnum(PublicMapColumnType),
 });
 
 export const publicMapDataSourceConfigSchema = z.object({

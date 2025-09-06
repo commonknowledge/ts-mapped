@@ -29,7 +29,6 @@ export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
   WMC24: "Westminster Constituency (2024)",
 };
 
-// This is the key change!
 type DataSourceConfigKey =
   | keyof z.infer<typeof actionNetworkConfigSchema>
   | keyof z.infer<typeof airtableConfigSchema>

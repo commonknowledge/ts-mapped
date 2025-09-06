@@ -1,7 +1,7 @@
-import { Generated, Insertable, Updateable } from "kysely";
-import { ColumnType } from "kysely";
 import z from "zod";
 import { geocodeResultSchema, pointSchema } from "./shared";
+import type { Generated, Insertable, Updateable } from "kysely";
+import type { ColumnType } from "kysely";
 
 export const dataRecordSchema = z.object({
   id: z.string(),

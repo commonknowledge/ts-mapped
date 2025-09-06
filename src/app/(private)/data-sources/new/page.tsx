@@ -13,12 +13,7 @@ import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
-import {
-  DataSourceConfig,
-  DataSourceType,
-  NewDataSourceConfig,
-  newDataSourceConfigSchema,
-} from "@/server/models/DataSource";
+import { DataSourceConfig, DataSourceType } from "@/server/models/DataSource";
 import { uploadFile } from "@/services/uploads";
 import {
   Breadcrumb,
@@ -35,12 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-
 import ActionNetworkFields from "./fields/ActionNetworkFields";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
+import { NewDataSourceConfig, newDataSourceConfigSchema } from "./schema";
 
 // Loose type for incomplete config
 type ConfigState = Partial<NewDataSourceConfig> | { type: "" };

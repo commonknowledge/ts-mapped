@@ -11,28 +11,27 @@ enum FilterOperator {
   AND = "AND",
   OR = "OR",
 }
-export const filterOperator = z.nativeEnum(FilterOperator);
 
-export const filterTypes = ["GEO", "MULTI", "TEXT"] as const;
+export const filterOperators = Object.values(FilterOperator);
 
 export enum FilterType {
   GEO = "GEO",
   MULTI = "MULTI",
   TEXT = "TEXT",
 }
-export const filterType = z.nativeEnum(FilterType);
+export const filterTypes = Object.values(FilterType);
 
 const baseRecordFilterSchema = z.object({
-  column: z.string().optional().nullable(),
-  dataRecordId: z.string().optional().nullable(),
-  dataSourceId: z.string().optional().nullable(),
-  distance: z.number().optional().nullable(),
-  label: z.string().optional().nullable(),
-  operator: filterOperator.optional().nullable(),
-  placedMarker: z.string().optional().nullable(),
-  search: z.string().optional().nullable(),
-  turf: z.string().optional().nullable(),
-  type: filterType,
+  column: z.string().nullish(),
+  dataRecordId: z.string().nullish(),
+  dataSourceId: z.string().nullish(),
+  distance: z.number().nullish(),
+  label: z.string().nullish(),
+  operator: z.nativeEnum(FilterOperator).nullish(),
+  placedMarker: z.string().nullish(),
+  search: z.string().nullish(),
+  turf: z.string().nullish(),
+  type: z.nativeEnum(FilterType),
 });
 
 type RecordFilterWithChildren = z.infer<typeof baseRecordFilterSchema> & {
@@ -59,14 +58,11 @@ const dataSourceViewSchema = z.object({
   sort: z.array(sortSchema),
 });
 
-export const visualisationTypes = ["BoundaryOnly", "Choropleth"];
 export enum VisualisationType {
   BoundaryOnly = "BoundaryOnly",
   Choropleth = "Choropleth",
 }
-export const visualisationType = z.nativeEnum(VisualisationType);
-
-export const calculationTypes = ["Value", "Count", "Sum", "Average"];
+export const visualisationTypes = Object.values(VisualisationType);
 
 export enum CalculationType {
   Value = "Value",
@@ -74,16 +70,8 @@ export enum CalculationType {
   Sum = "Sum",
   Average = "Average",
 }
-export const calculationType = z.nativeEnum(CalculationType);
+export const calculationTypes = Object.values(CalculationType);
 
-export const colorSchemes = [
-  "RedBlue",
-  "GreenYellowRed",
-  "Viridis",
-  "Plasma",
-  "Diverging",
-  "Sequential",
-];
 export enum ColorScheme {
   RedBlue = "RedBlue",
   GreenYellowRed = "GreenYellowRed",
@@ -92,31 +80,30 @@ export enum ColorScheme {
   Diverging = "Diverging",
   Sequential = "Sequential",
 }
-export const colorScheme = z.nativeEnum(ColorScheme);
+export const colorSchemes = Object.values(ColorScheme);
 
-export const mapStyleNames = ["Light", "Dark", "Streets", "Satellite"];
 export enum MapStyleName {
   Light = "Light",
   Dark = "Dark",
   Streets = "Streets",
   Satellite = "Satellite",
 }
-export const mapStyleName = z.nativeEnum(MapStyleName);
+export const mapStyleNames = Object.values(MapStyleName);
 
 export const mapViewConfigSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
-  areaSetGroupCode: areaSetGroupCode.optional().nullable(),
+  areaSetGroupCode: areaSetGroupCode.nullish(),
   excludeColumnsString: z.string(),
-  mapStyleName: mapStyleName,
+  mapStyleName: z.nativeEnum(MapStyleName),
   showBoundaryOutline: z.boolean(),
   showLabels: z.boolean(),
   showLocations: z.boolean(),
   showMembers: z.boolean(),
   showTurf: z.boolean(),
-  visualisationType: visualisationType.optional().nullable(),
-  calculationType: calculationType.optional().nullable(),
-  colorScheme: colorScheme.optional().nullable(),
+  visualisationType: z.nativeEnum(VisualisationType).nullish(),
+  calculationType: z.nativeEnum(CalculationType).nullish(),
+  colorScheme: z.nativeEnum(ColorScheme).nullish(),
 });
 export const mapViewSchema = z.object({
   id: z.string(),

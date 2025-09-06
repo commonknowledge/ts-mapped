@@ -1,9 +1,7 @@
 import DataListRow from "@/components/DataListRow";
-import {
-  DataSourceType,
-  NewDataSourceConfig,
-} from "@/server/models/DataSource";
+import { DataSourceType } from "@/server/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
+import type { NewDataSourceConfig } from "../schema";
 
 export default function CSVFields({
   config,

@@ -1,19 +1,11 @@
-import {
+import z from "zod";
+import { AreaSetCode } from "./AreaSet";
+import type {
   Generated,
   Insertable,
   ColumnType as KyselyColumnType,
   Updateable,
 } from "kysely";
-import z from "zod";
-import { areaSetCode } from "./AreaSet";
-
-export const dataSourceTypes = [
-  "actionnetwork",
-  "airtable",
-  "csv",
-  "googlesheets",
-  "mailchimp",
-] as const;
 
 export enum DataSourceType {
   ActionNetwork = "actionnetwork",
@@ -22,7 +14,8 @@ export enum DataSourceType {
   GoogleSheets = "googlesheets",
   Mailchimp = "mailchimp",
 }
-export const dataSourceType = z.nativeEnum(DataSourceType);
+
+export const dataSourceTypes = Object.values(DataSourceType);
 
 export const actionNetworkConfigSchema = z.object({
   apiKey: z.string().nonempty(),
@@ -79,47 +72,24 @@ export const dataSourceConfigSchema = z.discriminatedUnion("type", [
 
 export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
 
-// Unsaved CSV config is quite different to saved config
-export const newCSVConfigSchema = z.object({
-  type: z.literal(DataSourceType.CSV),
-  file: z.instanceof(File),
-  filename: z.string().nonempty(),
-});
-
-export type NewCSVConfig = z.infer<typeof newCSVConfigSchema>;
-
-export const newDataSourceConfigSchema = z.discriminatedUnion("type", [
-  actionNetworkConfigSchema,
-  airtableConfigSchema,
-  mailchimpConfigSchema,
-  googleSheetsConfigSchema,
-  newCSVConfigSchema,
-]);
-
-export type NewDataSourceConfig = z.infer<typeof newDataSourceConfigSchema>;
-
-export const enrichmentSourceTypes = ["Area", "DataSource"] as const;
-
 export enum EnrichmentSourceType {
   Area = "Area",
   DataSource = "DataSource",
 }
 
-export const enrichmentSourceType = z.nativeEnum(EnrichmentSourceType);
-
-export const areaPropertyTypes = ["code", "name"] as const;
+export const enrichmentSourceTypes = Object.values(EnrichmentSourceType);
 
 export enum AreaPropertyType {
   Code = "code",
   Name = "name",
 }
 
-const areaPropertyEnum = z.nativeEnum(AreaPropertyType);
+export const areaPropertyTypes = Object.values(AreaPropertyType);
 
 const areaEnrichmentSchema = z.object({
   sourceType: z.literal(EnrichmentSourceType.Area),
-  areaSetCode: areaSetCode,
-  areaProperty: areaPropertyEnum,
+  areaSetCode: z.nativeEnum(AreaSetCode),
+  areaProperty: z.nativeEnum(AreaPropertyType),
 });
 
 export type AreaEnrichment = z.infer<typeof areaEnrichmentSchema>;
@@ -139,8 +109,6 @@ export const enrichmentSchema = z.discriminatedUnion("sourceType", [
 
 export type Enrichment = z.infer<typeof enrichmentSchema>;
 
-export const geocodingTypes = ["Address", "Code", "Name", "None"] as const;
-
 export enum GeocodingType {
   Address = "Address",
   Code = "Code",
@@ -148,7 +116,7 @@ export enum GeocodingType {
   None = "None",
 }
 
-export const geocodingType = z.nativeEnum(GeocodingType);
+export const geocodingTypes = Object.values(GeocodingType);
 
 const addressGeocodingSchema = z.object({
   type: z.literal(GeocodingType.Address),
@@ -160,13 +128,13 @@ export type AddressGeocodingConfig = z.infer<typeof addressGeocodingSchema>;
 const nameGeocodingSchema = z.object({
   type: z.literal(GeocodingType.Name),
   column: z.string().nonempty(),
-  areaSetCode: areaSetCode,
+  areaSetCode: z.nativeEnum(AreaSetCode),
 });
 
 const codeGeocodingSchema = z.object({
   type: z.literal(GeocodingType.Code),
   column: z.string().nonempty(),
-  areaSetCode: areaSetCode,
+  areaSetCode: z.nativeEnum(AreaSetCode),
 });
 
 const disabledGeocodingSchema = z.object({
@@ -194,15 +162,6 @@ export const geocodingConfigSchema = z.discriminatedUnion("type", [
 
 export type GeocodingConfig = z.infer<typeof geocodingConfigSchema>;
 
-export const columnTypes = [
-  "Boolean",
-  "Empty",
-  "Number",
-  "Object",
-  "String",
-  "Unknown",
-] as const;
-
 export enum ColumnType {
   Boolean = "Boolean",
   Empty = "Empty",
@@ -211,26 +170,16 @@ export enum ColumnType {
   String = "String",
   Unknown = "Unknown",
 }
-
-export const columnType = z.nativeEnum(ColumnType);
+export const columnTypes = Object.values(ColumnType);
 
 export const columnDefSchema = z.object({
   name: z.string(),
-  type: columnType,
+  type: z.nativeEnum(ColumnType),
 });
 
 export const columnRolesSchema = z.object({
   nameColumns: z.array(z.string()),
 });
-
-export const dataSourceRecordTypes = [
-  "Members",
-  "People",
-  "Locations",
-  "Events",
-  "Data",
-  "Other",
-] as const;
 
 export enum DataSourceRecordType {
   Members = "Members",
@@ -241,14 +190,14 @@ export enum DataSourceRecordType {
   Other = "Other",
 }
 
-export const dataSourceRecordType = z.nativeEnum(DataSourceRecordType);
+export const dataSourceRecordTypes = Object.values(DataSourceRecordType);
 
 export const dataSourceSchema = z.object({
   id: z.string(),
   name: z.string(),
   autoEnrich: z.boolean(),
   autoImport: z.boolean(),
-  recordType: dataSourceRecordType,
+  recordType: z.nativeEnum(DataSourceRecordType),
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
   columnRoles: columnRolesSchema,
