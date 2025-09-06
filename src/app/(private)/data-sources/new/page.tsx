@@ -13,6 +13,7 @@ import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { DataSourceConfig, DataSourceType } from "@/server/models/DataSource";
 import { uploadFile } from "@/services/uploads";
 import {
   Breadcrumb,
@@ -29,14 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { DataSourceType } from "@/types";
-import { DataSourceConfig } from "@/zod";
 import ActionNetworkFields from "./fields/ActionNetworkFields";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
-import { NewDataSourceConfig, NewDataSourceConfigSchema } from "./types";
+import { NewDataSourceConfig, newDataSourceConfigSchema } from "./schema";
 
 // Loose type for incomplete config
 type ConfigState = Partial<NewDataSourceConfig> | { type: "" };
@@ -92,7 +91,7 @@ export default function NewDataSourcePage() {
     }
   `);
 
-  const { data: validConfig } = NewDataSourceConfigSchema.safeParse(config);
+  const { data: validConfig } = newDataSourceConfigSchema.safeParse(config);
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -165,26 +164,7 @@ export default function NewDataSourcePage() {
           />
         </DataListRow>
 
-        <DataListRow label="Type">
-          <Select
-            value={config.type}
-            onValueChange={(value) =>
-              onChangeConfig({ type: value as DataSourceType })
-            }
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Choose a type" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(DataSourceType).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {DataSourceTypeLabels[type as DataSourceType]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </DataListRow>
-        <DataListRow label="Record type" border>
+        <DataListRow label="Data type" border>
           <Select
             value={recordType || ""}
             onValueChange={(value) =>
@@ -198,6 +178,25 @@ export default function NewDataSourcePage() {
               {Object.keys(DataSourceRecordTypeLabels).map((type) => (
                 <SelectItem key={type} value={type}>
                   {DataSourceRecordTypeLabels[type as DataSourceRecordType]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </DataListRow>
+        <DataListRow label="Source type">
+          <Select
+            value={config.type}
+            onValueChange={(value) =>
+              onChangeConfig({ type: value as DataSourceType })
+            }
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Choose a type" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(DataSourceType).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {DataSourceTypeLabels[type as DataSourceType]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -234,7 +233,7 @@ export default function NewDataSourcePage() {
 const prepareDataSource = async (
   config: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
-  if (config.type === DataSourceType.csv) {
+  if (config.type === DataSourceType.CSV) {
     const url = await uploadFile(config.file);
     return { ...config, url };
   }

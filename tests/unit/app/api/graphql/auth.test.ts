@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   AuthDirectiveArgs,
   DataSourceRecordType,
+  GeocodingType,
   ProtectedArgs,
 } from "@/__generated__/types";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/app/api/graphql/auth";
 import { GraphQLContext } from "@/app/api/graphql/context";
 import { NULL_UUID } from "@/constants";
-import { DataSource } from "@/server/models/DataSource";
+import { DataSource, DataSourceType } from "@/server/models/DataSource";
 import { Map } from "@/server/models/Map";
 import { Organisation } from "@/server/models/Organisation";
 import { User } from "@/server/models/User";
@@ -70,11 +71,11 @@ describe("Auth Functions", () => {
       recordType: DataSourceRecordType.Data,
       autoEnrich: false,
       autoImport: false,
-      config: '{"type":"csv", "url":"file://dummy.csv"}',
-      columnDefs: "[]",
-      columnRoles: "{}",
-      enrichments: "[]",
-      geocodingConfig: "{}",
+      config: { type: DataSourceType.CSV, url: "file://dummy.csv" },
+      columnDefs: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: { type: GeocodingType.None },
       organisationId: testOrganisation.id,
       public: false,
     });
@@ -84,11 +85,11 @@ describe("Auth Functions", () => {
       autoEnrich: false,
       recordType: DataSourceRecordType.Data,
       autoImport: false,
-      config: '{"type":"csv", "url":"file://public.csv"}',
-      columnDefs: "[]",
-      columnRoles: "{}",
-      enrichments: "[]",
-      geocodingConfig: "{}",
+      config: { type: DataSourceType.CSV, url: "file://public.csv" },
+      columnDefs: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: { type: GeocodingType.None },
       organisationId: testOrganisation.id,
       public: true,
     });

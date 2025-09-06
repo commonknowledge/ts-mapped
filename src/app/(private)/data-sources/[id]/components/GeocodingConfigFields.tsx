@@ -7,11 +7,11 @@ import {
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
+import { AreaGeocodingType } from "@/server/models/DataSource";
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@/shadcn/ui/dropdown-menu";
-import { AreaGeocodingType } from "@/zod";
 
 /**
  * This is a little complicated as it includes a front-end only
@@ -41,7 +41,11 @@ export default function GeocodingConfigFields({
       onChange({ type: GeocodingType.Code, areaSetCode: AreaSetCode.PC });
     } else if (areaSetCode === AreaSetCode.PC) {
       // Reset the areaSetCode if changing from postcode to other type
-      onChange({ type, areaSetCode: dataSource?.geocodingConfig.areaSetCode });
+      const prevType = dataSource?.geocodingConfig.areaSetCode;
+      onChange({
+        type,
+        areaSetCode: prevType === AreaSetCode.PC ? null : prevType,
+      });
     } else {
       onChange({ type });
     }
@@ -127,7 +131,7 @@ export default function GeocodingConfigFields({
         />
       )}
 
-      {typeSelectValue in AreaGeocodingType && (
+      {typeSelectValue in AreaGeocodingType.Values && (
         <>
           <CustomSelect
             id="config-location-column-area-code"

@@ -15,7 +15,7 @@ export async function createMap(organisationId: string, name = "Untitled Map") {
     .values({
       organisationId,
       name,
-      config: JSON.stringify(createBlankConfig()),
+      config: createBlankConfig(),
     })
     .returningAll()
     .executeTakeFirstOrThrow();

@@ -1,14 +1,22 @@
 import { AirtableAdaptor } from "@/server/adaptors/airtable";
 import { findDataSourcesByType } from "@/server/repositories/DataSource";
-import { DataSourceType } from "@/types";
-import { AirtableConfig } from "@/zod";
+import { DataSourceType, airtableConfigSchema } from "../models/DataSource";
+import logger from "../services/logger";
 
 const refreshWebhooks = async (): Promise<boolean> => {
   const airtableDataSources = await findDataSourcesByType(
-    DataSourceType.airtable,
+    DataSourceType.Airtable,
   );
   for (const source of airtableDataSources) {
-    const config = source.config as AirtableConfig;
+    const result = airtableConfigSchema.safeParse(source.config);
+    if (!result.success) {
+      logger.warn(
+        `Failed to parse airtable config for data source ${source.id}`,
+        { error: result.error },
+      );
+      continue;
+    }
+    const config = result.data;
     const adaptor = new AirtableAdaptor(
       source.id,
       config.apiKey,

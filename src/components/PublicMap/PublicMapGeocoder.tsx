@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import { FormEvent, useContext, useState } from "react";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { Input } from "@/shadcn/ui/input";
-import { Point } from "@/types";
+import type { Point } from "@/server/models/shared";
 
 export default function PublicMapGeocoder({
   onGeocode,

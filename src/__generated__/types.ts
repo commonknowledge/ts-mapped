@@ -365,18 +365,18 @@ export type MapViewConfig = {
 };
 
 export type MapViewConfigInput = {
-  areaDataColumn?: InputMaybe<Scalars["String"]["input"]>;
-  areaDataSourceId?: InputMaybe<Scalars["String"]["input"]>;
+  areaDataColumn: Scalars["String"]["input"];
+  areaDataSourceId: Scalars["String"]["input"];
   areaSetGroupCode?: InputMaybe<AreaSetGroupCode>;
   calculationType?: InputMaybe<CalculationType>;
   colorScheme?: InputMaybe<ColorScheme>;
-  excludeColumnsString?: InputMaybe<Scalars["String"]["input"]>;
-  mapStyleName?: InputMaybe<MapStyleName>;
-  showBoundaryOutline?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLabels?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showLocations?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showMembers?: InputMaybe<Scalars["Boolean"]["input"]>;
-  showTurf?: InputMaybe<Scalars["Boolean"]["input"]>;
+  excludeColumnsString: Scalars["String"]["input"];
+  mapStyleName: MapStyleName;
+  showBoundaryOutline: Scalars["Boolean"]["input"];
+  showLabels: Scalars["Boolean"]["input"];
+  showLocations: Scalars["Boolean"]["input"];
+  showMembers: Scalars["Boolean"]["input"];
+  showTurf: Scalars["Boolean"]["input"];
   visualisationType?: InputMaybe<VisualisationType>;
 };
 
@@ -803,15 +803,6 @@ export enum VisualisationType {
   Choropleth = "Choropleth",
 }
 
-export type ForgotPasswordMutationVariables = Exact<{
-  email: Scalars["String"]["input"];
-}>;
-
-export type ForgotPasswordMutation = {
-  __typename?: "Mutation";
-  forgotPassword?: { __typename?: "MutationResponse"; code: number } | null;
-};
-
 export type UpdateUserPasswordMutationVariables = Exact<{
   data: UpdateUserInput;
 }>;
@@ -1179,16 +1170,6 @@ export type ListOrganisationsQuery = {
     id: string;
     name: string;
   }> | null;
-};
-
-export type ResetPasswordMutationVariables = Exact<{
-  token: Scalars["String"]["input"];
-  password: Scalars["String"]["input"];
-}>;
-
-export type ResetPasswordMutation = {
-  __typename?: "Mutation";
-  resetPassword?: { __typename?: "MutationResponse"; code: number } | null;
 };
 
 export type PublicMapModalQueryVariables = Exact<{

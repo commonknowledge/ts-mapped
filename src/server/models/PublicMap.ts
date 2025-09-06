@@ -1,26 +1,54 @@
 import {
   Generated,
   Insertable,
-  JSONColumnType,
   ColumnType as KyselyColumnType,
-  Selectable,
   Updateable,
 } from "kysely";
-import { PublicMapDataSourceConfig } from "@/__generated__/types";
 
-export interface PublicMapTable {
-  id: Generated<string>;
-  host: string;
-  name: string;
-  description: string;
-  descriptionLink: string;
-  mapId: string;
-  viewId: string;
-  published: boolean;
-  dataSourceConfigs: JSONColumnType<PublicMapDataSourceConfig[]>;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
+import z from "zod";
+
+export enum PublicMapColumnType {
+  Boolean = "Boolean",
+  CommaSeparatedList = "CommaSeparatedList",
+  String = "String",
 }
 
-export type PublicMap = Selectable<PublicMapTable>;
+export const publicMapColumnTypes = Object.values(PublicMapColumnType);
+
+export const publicMapColumnSchema = z.object({
+  label: z.string(),
+  sourceColumns: z.array(z.string()),
+  type: z.nativeEnum(PublicMapColumnType),
+});
+
+export const publicMapDataSourceConfigSchema = z.object({
+  dataSourceId: z.string(),
+  dataSourceLabel: z.string(),
+  nameColumns: z.array(z.string()),
+  nameLabel: z.string(),
+  descriptionColumn: z.string(),
+  descriptionLabel: z.string(),
+  additionalColumns: z.array(publicMapColumnSchema),
+});
+
+export const publicMapSchema = z.object({
+  id: z.string(),
+  host: z.string(),
+  name: z.string(),
+  description: z.string(),
+  descriptionLink: z.string(),
+  mapId: z.string(),
+  viewId: z.string(),
+  published: z.boolean(),
+  dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
+  createdAt: z.date(),
+});
+
+export type PublicMap = z.infer<typeof publicMapSchema>;
+
+export type PublicMapTable = PublicMap & {
+  id: Generated<string>;
+  createdAt: KyselyColumnType<Date, string | undefined, never>;
+};
 export type NewPublicMap = Insertable<PublicMapTable>;
 export type PublicMapUpdate = Updateable<PublicMapTable>;

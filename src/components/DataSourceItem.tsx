@@ -1,8 +1,8 @@
 import { Database } from "lucide-react";
 import { ColumnDef, LooseGeocodingConfig } from "@/__generated__/types";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { DataSourceType } from "@/server/models/DataSource";
 import { cn } from "@/shadcn/utils";
-import { DataSourceType } from "@/types";
 
 interface DataSource {
   id: string;
@@ -34,31 +34,31 @@ const getDataSourceType = (
 // Helper function to get appropriate color and label for data source type
 const getDataSourceStyle = (type: DataSourceType | "unknown") => {
   switch (type) {
-    case DataSourceType.actionnetwork:
+    case DataSourceType.ActionNetwork:
       return {
         bgColor: "from-green-400 to-blue-500",
         label: "Action Network",
         description: "Activist and supporter data",
       };
-    case DataSourceType.airtable:
+    case DataSourceType.Airtable:
       return {
         bgColor: "from-orange-400 to-red-500",
         label: "Airtable",
         description: "Database and spreadsheet data",
       };
-    case DataSourceType.csv:
+    case DataSourceType.CSV:
       return {
         bgColor: "from-gray-400 to-gray-600",
         label: "CSV",
         description: "Comma-separated values data",
       };
-    case DataSourceType.googlesheets:
+    case DataSourceType.GoogleSheets:
       return {
         bgColor: "from-green-500 to-green-700",
         label: "Google Sheets",
         description: "Spreadsheet data from Google",
       };
-    case DataSourceType.mailchimp:
+    case DataSourceType.Mailchimp:
       return {
         bgColor: "from-yellow-400 to-orange-500",
         label: "Mailchimp",
@@ -145,7 +145,7 @@ export function DataSourceItem({
           </div>
 
           {/* Additional metadata based on type */}
-          {dataSourceType === DataSourceType.actionnetwork && (
+          {dataSourceType === DataSourceType.ActionNetwork && (
             <div className="mt-2 flex items-center gap-2">
               <span className="text-xs text-gray-500">
                 Activist engagement data
@@ -153,7 +153,7 @@ export function DataSourceItem({
             </div>
           )}
 
-          {dataSourceType === DataSourceType.mailchimp && (
+          {dataSourceType === DataSourceType.Mailchimp && (
             <div className="mt-2 flex items-center gap-2">
               <span className="text-xs text-gray-500">
                 Email subscriber data

@@ -1,7 +1,7 @@
 import DataListRow from "@/components/DataListRow";
+import { DataSourceType } from "@/server/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
-import { DataSourceType } from "@/types";
-import { NewDataSourceConfig } from "../types";
+import type { NewDataSourceConfig } from "../schema";
 
 export default function AirtableFields({
   config,
@@ -10,7 +10,7 @@ export default function AirtableFields({
   config: Partial<NewDataSourceConfig>;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
-  if (config.type !== DataSourceType.airtable) {
+  if (config.type !== DataSourceType.Airtable) {
     return;
   }
 

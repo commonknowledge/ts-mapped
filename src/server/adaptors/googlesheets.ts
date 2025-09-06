@@ -1,12 +1,18 @@
+import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { EnrichedRecord } from "@/server/mapping/enrich";
 import { updateDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { DataSourceType, ExternalRecord, TaggedRecord } from "@/types";
-import { GoogleOAuthCredentials, GoogleSheetsConfig } from "@/zod";
+import { ExternalRecord, TaggedRecord } from "@/types";
+import {
+  DataSourceType,
+  googleOAuthCredentialsSchema,
+} from "../models/DataSource";
 import { DataSourceAdaptor } from "./abstract";
+
+type GoogleOAuthCredentials = z.infer<typeof googleOAuthCredentialsSchema>;
 
 export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   private dataSourceId: string;
@@ -85,14 +91,13 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     logger.debug("Refreshed Google Sheets access token");
 
     try {
-      const newConfig: GoogleSheetsConfig = {
-        type: DataSourceType.googlesheets,
-        spreadsheetId: this.spreadsheetId,
-        sheetName: this.sheetName,
-        oAuthCredentials: this.credentials,
-      };
       await updateDataSource(this.dataSourceId, {
-        config: JSON.stringify(newConfig),
+        config: {
+          type: DataSourceType.GoogleSheets,
+          spreadsheetId: this.spreadsheetId,
+          sheetName: this.sheetName,
+          oAuthCredentials: this.credentials,
+        },
       });
     } catch (error) {
       logger.error("Could not update Google Sheets data source", { error });

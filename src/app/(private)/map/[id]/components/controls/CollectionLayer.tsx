@@ -3,7 +3,7 @@ import React from "react";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { mapColors } from "@/components/Map/styles";
-import { DataSourceType } from "@/types";
+import { DataSourceType } from "@/server/models/DataSource";
 
 export default function CollectionLayer({
   dataSource,

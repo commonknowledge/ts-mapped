@@ -1,12 +1,32 @@
-import { Generated, Insertable, Selectable, Updateable } from "kysely";
-import { AreaSetCode } from "@/__generated__/types";
+import z from "zod";
+import type { Generated, Insertable, Updateable } from "kysely";
 
-export interface AreaSetTable {
-  id: Generated<number>;
-  code: AreaSetCode;
-  name: string;
+export enum AreaSetCode {
+  MSOA21 = "MSOA21",
+  OA21 = "OA21",
+  PC = "PC",
+  WMC24 = "WMC24",
 }
+export const areaSetCodes = Object.values(AreaSetCode);
 
-export type AreaSet = Selectable<AreaSetTable>;
+export enum AreaSetGroupCode {
+  OA21 = "OA21",
+  WMC24 = "WMC24",
+}
+export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
+
+export const areaSetGroupCode = z.nativeEnum(AreaSetGroupCode);
+
+export const areaSetSchema = z.object({
+  id: z.number(),
+  code: z.nativeEnum(AreaSetCode),
+  name: z.string(),
+});
+
+export type AreaSet = z.infer<typeof areaSetSchema>;
+
+export type AreaSetTable = AreaSet & {
+  id: Generated<number>;
+};
 export type NewAreaSet = Insertable<AreaSetTable>;
 export type AreaSetUpdate = Updateable<AreaSetTable>;

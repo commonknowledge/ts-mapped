@@ -1,6 +1,6 @@
 import { DataSourceTypeLabels } from "@/labels";
+import { DataSourceType } from "@/server/models/DataSource";
 import { Badge } from "@/shadcn/ui/badge";
-import { DataSourceType } from "@/types";
 import DataSourceIcon from "./DataSourceIcon";
 
 export default function DataSourceBadge({ type }: { type: DataSourceType }) {

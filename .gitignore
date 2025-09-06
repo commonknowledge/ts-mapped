@@ -54,3 +54,5 @@ next-env.d.ts
 # database backup
 ts-mapped.psql
 certificates
+
+.vscode/

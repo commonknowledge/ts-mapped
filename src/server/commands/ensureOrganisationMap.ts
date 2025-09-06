@@ -1,19 +1,12 @@
-import {
-  AreaSetCode,
-  AreaSetGroupCode,
-  DataSourceRecordType,
-  DataSourceView,
-  GeocodingType,
-  MapStyleName,
-  MapView,
-  MapViewConfig,
-  VisualisationType,
-} from "@/__generated__/types";
 import { ADMIN_ORGANISATION_NAME } from "@/constants";
 import importDataSource from "@/server/jobs/importDataSource";
-import { DataSource } from "@/server/models/DataSource";
+import {
+  DataSource,
+  DataSourceRecordType,
+  DataSourceType,
+  GeocodingType,
+} from "@/server/models/DataSource";
 import { Map } from "@/server/models/Map";
-import { NewMapView } from "@/server/models/MapView";
 import {
   createDataSource,
   findCSVDataSourceByUrl,
@@ -24,8 +17,8 @@ import {
   upsertMapView,
 } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { DataSourceType } from "@/types";
-import { DataSourceConfig, GeocodingConfig } from "@/zod";
+import { AreaSetCode, AreaSetGroupCode } from "../models/AreaSet";
+import { MapStyleName, MapView, VisualisationType } from "../models/MapView";
 
 const MAP_AND_DATA_SOURCE_NAME = "2024 GE Results";
 
@@ -65,32 +58,27 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
     return map;
   }
 
-  const config: MapViewConfig = {
-    areaDataColumn: "First party",
-    areaDataSourceId: electionResultsDataSource.id,
-    areaSetGroupCode: AreaSetGroupCode.WMC24,
-    calculationType: null,
-    colorScheme: null,
-    excludeColumnsString: "",
-    mapStyleName: MapStyleName.Light,
-    showBoundaryOutline: true,
-    showLabels: true,
-    showLocations: true,
-    showMembers: true,
-    showTurf: true,
-    visualisationType: VisualisationType.Choropleth,
-  };
-
-  const dataSourceViews: DataSourceView[] = [];
-
-  const newView: NewMapView = {
+  await upsertMapView({
     name: "Example View",
-    config: JSON.stringify(config),
+    config: {
+      areaDataColumn: "First party",
+      areaDataSourceId: electionResultsDataSource.id,
+      areaSetGroupCode: AreaSetGroupCode.WMC24,
+      calculationType: null,
+      colorScheme: null,
+      excludeColumnsString: "",
+      mapStyleName: MapStyleName.Light,
+      showBoundaryOutline: true,
+      showLabels: true,
+      showLocations: true,
+      showMembers: true,
+      showTurf: true,
+      visualisationType: VisualisationType.Choropleth,
+    },
     mapId: map.id,
     position: 0,
-    dataSourceViews: JSON.stringify(dataSourceViews),
-  };
-  await upsertMapView(newView);
+    dataSourceViews: [],
+  });
 
   return map;
 };
@@ -103,29 +91,23 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
   const url = "file://resources/dataSets/ge2024.csv";
   let dataSource = await findCSVDataSourceByUrl(url);
   if (!dataSource) {
-    const config: DataSourceConfig = {
-      type: DataSourceType.csv,
-      url,
-    };
-    const geocodingConfig: GeocodingConfig = {
-      type: GeocodingType.Code,
-      areaSetCode: AreaSetCode.WMC24,
-      column: "ONS ID",
-    };
-    const newDataSource = {
+    dataSource = await createDataSource({
       name: MAP_AND_DATA_SOURCE_NAME,
       organisationId: commonKnowledgeOrg.id,
       autoEnrich: false,
       autoImport: false,
-      config: JSON.stringify(config),
-      columnRoles: JSON.stringify({}),
-      enrichments: JSON.stringify([]),
-      geocodingConfig: JSON.stringify(geocodingConfig),
-      columnDefs: JSON.stringify([]),
+      config: { type: DataSourceType.CSV, url },
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: {
+        type: GeocodingType.Code,
+        areaSetCode: AreaSetCode.WMC24,
+        column: "ONS ID",
+      },
+      columnDefs: [],
       public: true,
       recordType: DataSourceRecordType.Data,
-    };
-    dataSource = await createDataSource(newDataSource);
+    });
   }
   return dataSource;
 };

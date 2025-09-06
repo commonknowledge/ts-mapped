@@ -1,6 +1,6 @@
+import z from "zod";
 import logger from "@/server/services/logger";
-import { DataSourceType } from "@/types";
-import { DataSourceConfig } from "@/zod";
+import { DataSourceType, dataSourceConfigSchema } from "../models/DataSource";
 import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
@@ -8,31 +8,31 @@ import { GoogleSheetsAdaptor } from "./googlesheets";
 
 export const getDataSourceAdaptor = (dataSource: {
   id: string;
-  config: DataSourceConfig;
+  config: z.infer<typeof dataSourceConfigSchema>;
 }) => {
   const { id, config } = dataSource;
 
   const dataSourceType = config.type;
   switch (dataSourceType) {
-    case DataSourceType.actionnetwork:
+    case DataSourceType.ActionNetwork:
       return new ActionNetworkAdaptor(config.apiKey);
-    case DataSourceType.airtable:
+    case DataSourceType.Airtable:
       return new AirtableAdaptor(
         id,
         config.apiKey,
         config.baseId,
         config.tableId,
       );
-    case DataSourceType.csv:
+    case DataSourceType.CSV:
       return new CSVAdaptor(config.url);
-    case DataSourceType.googlesheets:
+    case DataSourceType.GoogleSheets:
       return new GoogleSheetsAdaptor(
         id,
         config.spreadsheetId,
         config.sheetName,
         config.oAuthCredentials,
       );
-    case DataSourceType.mailchimp:
+    case DataSourceType.Mailchimp:
     default:
       logger.error(`Unimplemented data source type: ${dataSourceType}`);
       return null;
