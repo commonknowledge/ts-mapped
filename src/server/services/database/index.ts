@@ -16,7 +16,8 @@ import { PlacedMarkerTable } from "@/server/models/PlacedMarker";
 import { PublicMapTable } from "@/server/models/PublicMap";
 import { TurfTable } from "@/server/models/Turf";
 import { UserTable } from "@/server/models/User";
-import { PointPlugin } from "./plugins";
+import { JSONPlugin } from "./plugins/JSONPlugin";
+import { PointPlugin } from "./plugins/PointPlugin";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -52,6 +53,7 @@ export const db = new Kysely<Database>({
     // `maintainNestedObjectKeys` prevents `data_record.json` being mangled
     new CamelCasePlugin({ maintainNestedObjectKeys: true }),
     new PointPlugin(),
+    new JSONPlugin(),
   ],
   log: ["error"],
 });

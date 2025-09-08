@@ -1,4 +1,4 @@
-import { DataSourceType } from "@/types";
+import { DataSourceType } from "@/server/models/DataSource";
 
 const AirtableIconSVG = () => {
   return (
@@ -34,11 +34,11 @@ const AirtableIconSVG = () => {
 };
 
 const icons: Record<DataSourceType, React.ReactNode> = {
-  [DataSourceType.actionnetwork]: <div>AN</div>,
-  [DataSourceType.airtable]: <AirtableIconSVG />,
-  [DataSourceType.csv]: <div>CSV</div>,
-  [DataSourceType.googlesheets]: <div>GS</div>,
-  [DataSourceType.mailchimp]: <div>MC</div>,
+  [DataSourceType.ActionNetwork]: <div>AN</div>,
+  [DataSourceType.Airtable]: <AirtableIconSVG />,
+  [DataSourceType.CSV]: <div>CSV</div>,
+  [DataSourceType.GoogleSheets]: <div>GS</div>,
+  [DataSourceType.Mailchimp]: <div>MC</div>,
 };
 
 const DataSourceIcon = ({ type }: { type: string }) => {

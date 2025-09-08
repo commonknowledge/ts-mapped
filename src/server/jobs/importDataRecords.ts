@@ -43,7 +43,7 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
     await importBatch(records, dataSource, columnDefsAccumulator);
 
     await updateDataSource(dataSource.id, {
-      columnDefs: JSON.stringify(columnDefsAccumulator),
+      columnDefs: columnDefsAccumulator,
     });
 
     logger.info(

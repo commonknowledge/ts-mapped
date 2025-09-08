@@ -1,13 +1,18 @@
 import { expect, inject, test } from "vitest";
-import { DataSourceRecordType, FilterType } from "@/__generated__/types";
 import importDataSource from "@/server/jobs/importDataSource";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import {
+  DataSourceRecordType,
+  DataSourceType,
+  GeocodingType,
+} from "@/server/models/DataSource";
+import { FilterType } from "@/server/models/MapView";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   deleteDataSource,
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { DataSourceType } from "@/types";
 
 const credentials = inject("credentials");
 
@@ -21,20 +26,20 @@ test("importDataSource imports John Lennon record from Airtable", async () => {
     autoEnrich: false,
     autoImport: false,
     recordType: DataSourceRecordType.Data,
-    config: JSON.stringify({
-      type: DataSourceType.airtable,
+    config: {
+      type: DataSourceType.Airtable,
       apiKey: credentials.airtable.apiKey,
       baseId: credentials.airtable.baseId,
       tableId: credentials.airtable.tableId,
-    }),
-    columnDefs: JSON.stringify([]),
-    columnRoles: JSON.stringify({}),
-    enrichments: JSON.stringify([]),
-    geocodingConfig: JSON.stringify({
-      type: "Code",
+    },
+    columnDefs: [],
+    columnRoles: { nameColumns: [] },
+    enrichments: [],
+    geocodingConfig: {
+      type: GeocodingType.Code,
       column: "Postcode",
-      areaSetCode: "PC",
-    }),
+      areaSetCode: AreaSetCode.PC,
+    },
     organisationId: org.id,
     public: false,
   });

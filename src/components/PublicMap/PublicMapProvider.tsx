@@ -12,8 +12,8 @@ import {
 } from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
-import { Point } from "@/types";
 import { PublicMapContext } from "./PublicMapContext";
+import type { Point } from "@/server/models/shared";
 
 export default function PublicMapProvider({
   publicMap: initialPublicMap,

@@ -158,16 +158,16 @@ const typeDefs = `
   }
 
   input MapViewConfigInput {
-    areaDataSourceId: String
-    areaDataColumn: String
+    areaDataSourceId: String!
+    areaDataColumn: String!
     areaSetGroupCode: AreaSetGroupCode
-    excludeColumnsString: String
-    mapStyleName: MapStyleName
-    showBoundaryOutline: Boolean
-    showLabels: Boolean
-    showLocations: Boolean
-    showMembers: Boolean
-    showTurf: Boolean
+    excludeColumnsString: String!
+    mapStyleName: MapStyleName!
+    showBoundaryOutline: Boolean!
+    showLabels: Boolean!
+    showLocations: Boolean!
+    showMembers: Boolean!
+    showTurf: Boolean!
     visualisationType: VisualisationType
     calculationType: CalculationType
     colorScheme: ColorScheme

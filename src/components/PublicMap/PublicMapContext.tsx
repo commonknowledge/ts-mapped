@@ -8,7 +8,7 @@ import {
   PublicMapDataSourceConfig,
   PublishedPublicMapQuery,
 } from "@/__generated__/types";
-import { Point } from "@/types";
+import type { Point } from "@/server/models/shared";
 
 export const PublicMapContext = createContext<{
   publicMap: PublishedPublicMapQuery["publishedPublicMap"];

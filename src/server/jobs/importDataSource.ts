@@ -74,7 +74,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     }
 
     await updateDataSource(dataSource.id, {
-      columnDefs: JSON.stringify(columnDefsAccumulator),
+      columnDefs: columnDefsAccumulator,
     });
 
     pubSub.publish("dataSourceEvent", {
@@ -122,8 +122,8 @@ export const importBatch = (
       );
       await upsertDataRecord({
         externalId: record.externalId,
-        json: JSON.stringify(typedJson),
-        geocodeResult: JSON.stringify(geocodeResult),
+        json: typedJson,
+        geocodeResult: geocodeResult,
         geocodePoint: geocodeResult?.centralPoint,
         dataSourceId: dataSource.id,
       });

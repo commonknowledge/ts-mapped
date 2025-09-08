@@ -14,10 +14,10 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import { Point } from "@/types";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { filterRecords, getActiveFilters } from "./filtersHelpers";
 import { buildName } from "./utils";
+import type { Point } from "@/server/models/shared";
 
 interface DataRecordsListProps {
   dataRecordsQuery: QueryResult<

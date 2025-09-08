@@ -1,16 +1,21 @@
-import { Generated, Insertable, Selectable, Updateable } from "kysely";
-import { Point } from "@/types";
+import { ColumnType, Generated, Insertable, Updateable } from "kysely";
+import z from "zod";
+import { pointSchema } from "./shared";
 
-export interface PlacedMarkerTable {
+export const placedMarkerSchema = z.object({
+  id: z.string(),
+  mapId: z.string(),
+  label: z.string(),
+  notes: z.string(),
+  point: pointSchema,
+  folderId: z.string().nullable(),
+  position: z.number(),
+});
+
+export type PlacedMarker = z.infer<typeof placedMarkerSchema>;
+export type PlacedMarkerTable = PlacedMarker & {
   id: Generated<string>;
-  label: string;
-  mapId: string;
-  notes: string;
-  point: Point;
-  folderId: string | null;
-  position: number;
-}
-
-export type PlacedMarker = Selectable<PlacedMarkerTable>;
+  createdAt: ColumnType<Date, string | undefined, never>;
+};
 export type NewPlacedMarker = Insertable<PlacedMarkerTable>;
 export type PlacedMarkerUpdate = Updateable<PlacedMarkerTable>;
