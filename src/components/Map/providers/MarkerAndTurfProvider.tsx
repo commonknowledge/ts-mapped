@@ -25,7 +25,7 @@ export default function MarkerAndTurfProvider({
 
   /* GraphQL Data */
   const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {
-    let membersDataSourceId = mapConfig.membersDataSourceId;
+    let membersDataSourceId = mapConfig.membersDataSourceId || "";
     let markerDataSourceIds = mapConfig.markerDataSourceIds;
 
     // If a public map is being displayed, don't fetch markers that aren't included

@@ -19,7 +19,10 @@ export default function DataSourcesProvider({
   }, [dataSourcesQuery.data?.dataSources]);
 
   const getDataSourceById = useCallback(
-    (id: string) => {
+    (id: string | null | undefined) => {
+      if (!id) {
+        return null;
+      }
       const dataSources = getDataSources();
       return dataSources.find((ds) => ds.id === id) || null;
     },

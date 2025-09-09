@@ -19,7 +19,7 @@ import { View } from "../types";
 
 export class MapConfig implements MapConfigInput {
   public markerDataSourceIds: string[] = [];
-  public membersDataSourceId = "";
+  public membersDataSourceId: string | null = null;
 
   constructor(params: Partial<MapConfig> = {}) {
     Object.assign(this, params);

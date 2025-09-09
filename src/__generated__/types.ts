@@ -315,7 +315,7 @@ export type Map = {
 export type MapConfig = {
   __typename?: "MapConfig";
   markerDataSourceIds: Array<Scalars["String"]["output"]>;
-  membersDataSourceId: Scalars["String"]["output"];
+  membersDataSourceId?: Maybe<Scalars["String"]["output"]>;
 };
 
 export type MapConfigInput = {
@@ -1326,7 +1326,7 @@ export type MapQuery = {
     config: {
       __typename?: "MapConfig";
       markerDataSourceIds: Array<string>;
-      membersDataSourceId: string;
+      membersDataSourceId?: string | null;
     };
     folders?: Array<{
       __typename?: "Folder";
@@ -2226,7 +2226,7 @@ export type MapConfigResolvers<
     ContextType
   >;
   membersDataSourceId?: Resolver<
-    ResolversTypes["String"],
+    Maybe<ResolversTypes["String"]>,
     ParentType,
     ContextType
   >;
