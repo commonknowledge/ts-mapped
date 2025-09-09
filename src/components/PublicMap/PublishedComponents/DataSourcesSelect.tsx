@@ -74,8 +74,11 @@ export const createDataSourceConfig = (
   dataSource: DataSource,
 ): PublicMapDataSourceConfig => {
   return {
+    allowUserEdit: false,
+    allowUserSubmit: false,
     dataSourceId: dataSource.id,
     dataSourceLabel: dataSource.name,
+    formUrl: "",
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
     descriptionLabel: "",

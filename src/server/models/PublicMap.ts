@@ -22,8 +22,11 @@ export const publicMapColumnSchema = z.object({
 });
 
 export const publicMapDataSourceConfigSchema = z.object({
+  allowUserEdit: z.boolean(),
+  allowUserSubmit: z.boolean(),
   dataSourceId: z.string(),
   dataSourceLabel: z.string(),
+  formUrl: z.string(),
   nameColumns: z.array(z.string()),
   nameLabel: z.string(),
   descriptionColumn: z.string(),

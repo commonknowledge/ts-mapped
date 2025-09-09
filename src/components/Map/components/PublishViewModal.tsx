@@ -111,7 +111,7 @@ export default function PublishViewModal({
         }
       }
     `,
-    { variables: { viewId }, fetchPolicy: "network-only" },
+    { variables: { viewId }, fetchPolicy: "network-only" }
   );
 
   useEffect(() => {
@@ -174,7 +174,7 @@ export default function PublishViewModal({
         setPublishedHost(
           result.data.upsertPublicMap.result.published
             ? result.data.upsertPublicMap.result.host
-            : "",
+            : ""
         );
       }
       if (result.data?.upsertPublicMap?.code === 409) {
@@ -375,7 +375,7 @@ function DataSourceFields({
   updatePublicMap: (publicMap: Partial<PublicMapConfig>) => void;
 }) {
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataSource.id,
+    (dsc) => dsc.dataSourceId === dataSource.id
   );
   const nameLabel = dataSourceConfig?.nameLabel || "";
   const nameColumns = dataSourceConfig?.nameColumns || [];
@@ -406,7 +406,7 @@ function DataSourceFields({
 
   const onChangeAdditionalColumn = (
     index: number,
-    changes: Partial<PublicMapColumn>,
+    changes: Partial<PublicMapColumn>
   ) => {
     onChange({
       additionalColumns: additionalColumns.map((ac, i) => {
@@ -520,7 +520,7 @@ function DataSourceFields({
                 onClick={() =>
                   onChange({
                     additionalColumns: additionalColumns.filter(
-                      (_, index) => index !== i,
+                      (_, index) => index !== i
                     ),
                   })
                 }
@@ -554,14 +554,17 @@ function DataSourceFields({
 }
 
 const createDataSourceConfig = (
-  dataSource: DataSource,
+  dataSource: DataSource
 ): PublicMapDataSourceConfig => {
   return {
+    allowUserEdit: false,
+    allowUserSubmit: false,
     dataSourceId: dataSource.id,
     dataSourceLabel: dataSource.name,
+    formUrl: "",
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
-    descriptionLabel: "Description",
+    descriptionLabel: "",
     descriptionColumn: "",
     additionalColumns: [],
   };
