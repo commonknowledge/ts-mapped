@@ -32,7 +32,7 @@ export default function PublicMapSidebar() {
   return (
     <div
       className={cn(
-        "absolute top-0 left-0 z-10 bg-white flex md:h-full md:pt-[var(--navbar-height)]",
+        "absolute top-0 left-0 z-10 bg-white flex md:h-full md:pt-[var(--navbar-height)]"
       )}
     >
       <div className="flex flex-col md:h-full md:w-[300px] border-r border-neutral-200">
@@ -69,42 +69,65 @@ export default function PublicMapSidebar() {
               <span className="sr-only">Toggle sidebar</span>
               </Button> */}
             </div>
-            <div className="flex flex-col gap-1">
-              <EditablePublicMapProperty
-                property="description"
-                placeholder="Map description"
-              >
-                <p>
-                  {publicMap.description || (
-                    <span className="text-sm text-neutral-500 italic">
-                      Add a description to your map
-                    </span>
+            {editable ? (
+              <div className="flex flex-col gap-1">
+                <EditablePublicMapProperty
+                  property="description"
+                  placeholder="Map description"
+                >
+                  <p>
+                    {publicMap.description || (
+                      <span className="text-sm text-neutral-500 italic">
+                        Add a description to your map
+                      </span>
+                    )}
+                  </p>
+                </EditablePublicMapProperty>
+                <EditablePublicMapProperty
+                  property="descriptionLink"
+                  placeholder="submissions@example.com"
+                >
+                  {publicMap.descriptionLink && (
+                    <a
+                      className="underline text-sm "
+                      style={{
+                        color: activeColourScheme.primary,
+                      }}
+                      href={`mailto:${publicMap.descriptionLink}`}
+                      target="_blank"
+                      onClick={(e) => editable && e.preventDefault()}
+                    >
+                      {publicMap.descriptionLink || (
+                        <span className="text-sm text-neutral-500 italic">
+                          Add a contact email
+                        </span>
+                      )}
+                    </a>
                   )}
-                </p>
-              </EditablePublicMapProperty>
-              <EditablePublicMapProperty
-                property="descriptionLink"
-                placeholder="submissions@example.com"
-              >
-                {publicMap.descriptionLink && (
+                </EditablePublicMapProperty>
+              </div>
+            ) : publicMap.description || publicMap.descriptionLink ? (
+              <div className="flex flex-col gap-4">
+                {publicMap.description ? <p>{publicMap.description}</p> : <></>}
+                {publicMap.descriptionLink ? (
                   <a
-                    className="underline text-sm "
+                    href={`mailto:${publicMap.descriptionLink}`}
+                    className="underline text-sm"
+                    target="_blank"
                     style={{
                       color: activeColourScheme.primary,
                     }}
-                    href={publicMap.descriptionLink}
-                    target="_blank"
-                    onClick={(e) => editable && e.preventDefault()}
                   >
-                    {publicMap.descriptionLink || (
-                      <span className="text-sm text-neutral-500 italic">
-                        Add a link to your map
-                      </span>
-                    )}
+                    {publicMap.descriptionLink}
                   </a>
+                ) : (
+                  <></>
                 )}
-              </EditablePublicMapProperty>
-            </div>
+              </div>
+            ) : (
+              <></>
+            )}
+
             <PublicMapGeocoder
               onGeocode={(p) => setSearchLocation(p)}
               colourScheme={activeColourScheme}
