@@ -389,18 +389,30 @@ export default function EditorDataSettings() {
 
                   <FormFieldWrapper label="Submit listing" isHorizontal>
                     <Switch
-                      checked={false}
+                      // checked={dataSourceConfig.allowUserSubmit}
                       onCheckedChange={(v) => console.log(v)}
                     />
                   </FormFieldWrapper>
                   <FormFieldWrapper label="Suggest edits" isHorizontal>
                     <Switch
-                      checked={false}
+                      // checked={dataSourceConfig.allowUserEdits}
                       onCheckedChange={(v) => console.log(v)}
                     />
                   </FormFieldWrapper>
-                  <FormFieldWrapper label="Submission form URL">
-                    <Input type="text" />
+                  <FormFieldWrapper
+                    label="Submission form URL"
+                    id={`${dataSourceConfig.dataSourceId}-form-url`}
+                  >
+                    <Input
+                      type="url"
+                      id={`${dataSourceConfig.dataSourceId}-form-url`}
+                      // value={dataSourceConfig.formUrl}
+                      // onChange={(e) =>
+                      //   updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                      //     formUrl: e.target.value,
+                      //   })
+                      // }
+                    />
                   </FormFieldWrapper>
                 </fieldset>
               </div>
