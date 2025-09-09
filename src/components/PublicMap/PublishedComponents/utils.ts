@@ -17,3 +17,13 @@ export const toBoolean = (val: unknown): boolean => {
   }
   return Boolean(val);
 };
+
+export function jsonToAirtablePrefill(data: Record<string, string>): string {
+  const queryParams = Object.entries(data)
+    .map(
+      ([key, value]) =>
+        `prefill_${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+    )
+    .join("&");
+  return `?${queryParams}`;
+}

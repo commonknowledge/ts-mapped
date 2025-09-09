@@ -7,7 +7,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
-import { buildName, toBoolean } from "./utils";
+import { buildName, jsonToAirtablePrefill, toBoolean } from "./utils";
 
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
@@ -27,8 +27,6 @@ export default function DataRecordSidebar() {
     return null;
   }
 
-  console.log(selectedDataRecordDetails.json);
-
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === selectedDataRecord?.dataSourceId,
   );
@@ -42,18 +40,8 @@ export default function DataRecordSidebar() {
 
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
-  function createAirtablePrefill(data: Record<string, string>): string {
-    const queryParams = Object.entries(data)
-      .map(
-        ([key, value]) =>
-          `prefill_${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
-      )
-      .join("&");
-    return `?${queryParams}`;
-  }
-
   return (
-    <div className="relative z-1000 / flex flex-col justify-between h-full w-[280px] p-4">
+    <div className="flex flex-col justify-between h-full w-[280px] p-4">
       <div className={cn("flex flex-col gap-4")}>
         {/* Name */}
         <div className="flex flex-col gap-4">
@@ -134,10 +122,10 @@ export default function DataRecordSidebar() {
         dataSourceConfig.allowUserEdit && (
           <Button asChild={true}>
             <a
-              href={`${dataSourceConfig.formUrl}${createAirtablePrefill(
+              target="_blank"
+              href={`${dataSourceConfig.formUrl}${jsonToAirtablePrefill(
                 selectedDataRecordDetails.json,
               )}`}
-              target="_blank"
             >
               Submit an edit
             </a>
