@@ -184,8 +184,11 @@ const typeDefs = `
   }
 
   input PublicMapDataSourceConfigInput {
+    allowUserEdit: Boolean!
+    allowUserSubmit: Boolean!
     dataSourceId: String!
     dataSourceLabel: String!
+    formUrl: String!
     nameColumns: [String!]!
     nameLabel: String!
     descriptionColumn: String!
@@ -401,8 +404,11 @@ const typeDefs = `
   }
 
   type PublicMapDataSourceConfig {
+    allowUserEdit: Boolean!
+    allowUserSubmit: Boolean!
     dataSourceId: String!
     dataSourceLabel: String!
+    formUrl: String!
     nameColumns: [String!]!
     nameLabel: String!
     descriptionColumn: String!

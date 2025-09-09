@@ -96,8 +96,11 @@ export default function PublishViewModal({
           descriptionLink
           published
           dataSourceConfigs {
+            allowUserEdit
+            allowUserSubmit
             dataSourceId
             dataSourceLabel
+            formUrl
             nameLabel
             nameColumns
             descriptionLabel
@@ -557,11 +560,14 @@ const createDataSourceConfig = (
   dataSource: DataSource,
 ): PublicMapDataSourceConfig => {
   return {
+    allowUserEdit: false,
+    allowUserSubmit: false,
     dataSourceId: dataSource.id,
     dataSourceLabel: dataSource.name,
+    formUrl: "",
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
-    descriptionLabel: "Description",
+    descriptionLabel: "",
     descriptionColumn: "",
     additionalColumns: [],
   };

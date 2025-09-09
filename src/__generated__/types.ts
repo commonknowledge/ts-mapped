@@ -603,20 +603,26 @@ export enum PublicMapColumnType {
 export type PublicMapDataSourceConfig = {
   __typename?: "PublicMapDataSourceConfig";
   additionalColumns: Array<PublicMapColumn>;
+  allowUserEdit: Scalars["Boolean"]["output"];
+  allowUserSubmit: Scalars["Boolean"]["output"];
   dataSourceId: Scalars["String"]["output"];
   dataSourceLabel: Scalars["String"]["output"];
   descriptionColumn: Scalars["String"]["output"];
   descriptionLabel: Scalars["String"]["output"];
+  formUrl: Scalars["String"]["output"];
   nameColumns: Array<Scalars["String"]["output"]>;
   nameLabel: Scalars["String"]["output"];
 };
 
 export type PublicMapDataSourceConfigInput = {
   additionalColumns: Array<PublicMapColumnInput>;
+  allowUserEdit: Scalars["Boolean"]["input"];
+  allowUserSubmit: Scalars["Boolean"]["input"];
   dataSourceId: Scalars["String"]["input"];
   dataSourceLabel: Scalars["String"]["input"];
   descriptionColumn: Scalars["String"]["input"];
   descriptionLabel: Scalars["String"]["input"];
+  formUrl: Scalars["String"]["input"];
   nameColumns: Array<Scalars["String"]["input"]>;
   nameLabel: Scalars["String"]["input"];
 };
@@ -1145,8 +1151,11 @@ export type PublicMapQuery = {
     published: boolean;
     dataSourceConfigs: Array<{
       __typename?: "PublicMapDataSourceConfig";
+      allowUserEdit: boolean;
+      allowUserSubmit: boolean;
       dataSourceId: string;
       dataSourceLabel: string;
+      formUrl: string;
       nameLabel: string;
       nameColumns: Array<string>;
       descriptionLabel: string;
@@ -1188,8 +1197,11 @@ export type PublicMapModalQuery = {
     published: boolean;
     dataSourceConfigs: Array<{
       __typename?: "PublicMapDataSourceConfig";
+      allowUserEdit: boolean;
+      allowUserSubmit: boolean;
       dataSourceId: string;
       dataSourceLabel: string;
+      formUrl: string;
       nameLabel: string;
       nameColumns: Array<string>;
       descriptionLabel: string;
@@ -1570,8 +1582,11 @@ export type PublishedPublicMapQuery = {
     published: boolean;
     dataSourceConfigs: Array<{
       __typename?: "PublicMapDataSourceConfig";
+      allowUserEdit: boolean;
+      allowUserSubmit: boolean;
       dataSourceId: string;
       dataSourceLabel: string;
+      formUrl: string;
       nameLabel: string;
       nameColumns: Array<string>;
       descriptionLabel: string;
@@ -2539,6 +2554,12 @@ export type PublicMapDataSourceConfigResolvers<
     ParentType,
     ContextType
   >;
+  allowUserEdit?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  allowUserSubmit?: Resolver<
+    ResolversTypes["Boolean"],
+    ParentType,
+    ContextType
+  >;
   dataSourceId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   dataSourceLabel?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   descriptionColumn?: Resolver<
@@ -2551,6 +2572,7 @@ export type PublicMapDataSourceConfigResolvers<
     ParentType,
     ContextType
   >;
+  formUrl?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   nameColumns?: Resolver<
     Array<ResolversTypes["String"]>,
     ParentType,
