@@ -9,11 +9,6 @@ import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 import { buildName, toBoolean } from "./utils";
 
-interface AirtablePrefillRecord {
-  name: string;
-  value: string;
-}
-
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
   const { dataRecordsQueries, publicMap } = useContext(PublicMapContext);
@@ -32,6 +27,8 @@ export default function DataRecordSidebar() {
     return null;
   }
 
+  console.log(selectedDataRecordDetails.json);
+
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === selectedDataRecord?.dataSourceId,
   );
@@ -45,17 +42,14 @@ export default function DataRecordSidebar() {
 
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
-  function createAirtablePrefill(records: AirtablePrefillRecord[]): string {
-    if (!records || records.length === 0) return "";
-
-    const params = records
+  function createAirtablePrefill(data: Record<string, string>): string {
+    const queryParams = Object.entries(data)
       .map(
-        (record) =>
-          `prefill_${encodeURIComponent(record.name)}=${encodeURIComponent(record.value)}`,
+        ([key, value]) =>
+          `prefill_${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
       )
       .join("&");
-
-    return `?${params}`;
+    return `?${queryParams}`;
   }
 
   return (
@@ -140,7 +134,9 @@ export default function DataRecordSidebar() {
         dataSourceConfig.allowUserEdit && (
           <Button asChild={true}>
             <a
-              href={`${dataSourceConfig.formUrl}${createAirtablePrefill([{ name: "Name", value: name }])}`}
+              href={`${dataSourceConfig.formUrl}${createAirtablePrefill(
+                selectedDataRecordDetails.json,
+              )}`}
               target="_blank"
             >
               Submit an edit
