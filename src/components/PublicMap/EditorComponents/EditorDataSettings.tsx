@@ -389,14 +389,22 @@ export default function EditorDataSettings() {
 
                   <FormFieldWrapper label="Submit listing" isHorizontal>
                     <Switch
-                      // checked={dataSourceConfig.allowUserSubmit}
-                      onCheckedChange={(v) => console.log(v)}
+                      checked={dataSourceConfig.allowUserSubmit}
+                      onCheckedChange={(v) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          allowUserSubmit: v,
+                        })
+                      }
                     />
                   </FormFieldWrapper>
                   <FormFieldWrapper label="Suggest edits" isHorizontal>
                     <Switch
-                      // checked={dataSourceConfig.allowUserEdits}
-                      onCheckedChange={(v) => console.log(v)}
+                      checked={dataSourceConfig.allowUserEdit}
+                      onCheckedChange={(v) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          allowUserEdit: v,
+                        })
+                      }
                     />
                   </FormFieldWrapper>
                   <FormFieldWrapper
@@ -406,12 +414,12 @@ export default function EditorDataSettings() {
                     <Input
                       type="url"
                       id={`${dataSourceConfig.dataSourceId}-form-url`}
-                      // value={dataSourceConfig.formUrl}
-                      // onChange={(e) =>
-                      //   updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-                      //     formUrl: e.target.value,
-                      //   })
-                      // }
+                      value={dataSourceConfig.formUrl}
+                      onChange={(e) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          formUrl: e.target.value,
+                        })
+                      }
                     />
                   </FormFieldWrapper>
                 </fieldset>
