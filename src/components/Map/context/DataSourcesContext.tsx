@@ -10,7 +10,7 @@ export const DataSourcesContext = createContext<{
 
   /* Derived functions */
   getDataSources: () => DataSource[];
-  getDataSourceById: (id: string) => DataSource | null;
+  getDataSourceById: (id: string | null | undefined) => DataSource | null;
 
   getChoroplethDataSource: () => DataSource | null;
   getMarkerDataSources: () => DataSource[];

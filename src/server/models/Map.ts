@@ -3,14 +3,14 @@ import z from "zod";
 
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
-  membersDataSourceId: z.string(),
+  membersDataSourceId: z.string().nullish(),
 });
 
 export const mapSchema = z.object({
   id: z.string(),
   name: z.string(),
   organisationId: z.string(),
-  imageUrl: z.string().nullable(),
+  imageUrl: z.string().nullish(),
   config: mapConfigSchema,
   createdAt: z.date(),
 });

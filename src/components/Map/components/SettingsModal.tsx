@@ -47,7 +47,7 @@ export default function SettingsModal() {
           <Label htmlFor="membersDataSourceId">Members Data Source</Label>
 
           <Select
-            value={mapConfig.membersDataSourceId}
+            value={mapConfig.membersDataSourceId || ""}
             onValueChange={(value) =>
               updateMapConfig({ membersDataSourceId: value })
             }

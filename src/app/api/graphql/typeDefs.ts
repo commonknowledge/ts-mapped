@@ -341,7 +341,7 @@ const typeDefs = `
 
   type MapConfig {
     markerDataSourceIds: [String!]!
-    membersDataSourceId: String!
+    membersDataSourceId: String
   }
 
   type MapView {
