@@ -200,7 +200,7 @@ export function PublishActionsSection({ loading }: { loading: boolean }) {
         size="lg"
         className="flex-1 rounded-none h-full"
       >
-        <Globe className="w-4 h-4" /> Publish Map
+        Save changes
       </Button>
     </div>
   );
