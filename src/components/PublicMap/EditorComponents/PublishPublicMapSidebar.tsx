@@ -96,16 +96,6 @@ export default function PublishPublicMapSidebar() {
     return null;
   }
 
-  console.log("mutation variables", {
-    viewId: publicMap.id,
-    host: publicMap.host || "",
-    name: publicMap.name || "",
-    description: publicMap.description || "",
-    descriptionLink: publicMap.descriptionLink || "",
-    published: publicMap.published || false,
-    dataSourceConfigs: publicMap.dataSourceConfigs || [],
-  });
-
   const onSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");

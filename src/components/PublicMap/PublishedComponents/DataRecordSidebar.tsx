@@ -3,10 +3,16 @@ import { useContext, useMemo } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
+import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import EditablePublicMapProperty from "../EditorComponents/EditablePublicMapProperty";
 import { buildName, toBoolean } from "./utils";
+
+interface AirtablePrefillRecord {
+  name: string;
+  value: string;
+}
 
 export default function DataRecordSidebar() {
   const { selectedDataRecord } = useContext(DataRecordContext);
@@ -39,81 +45,108 @@ export default function DataRecordSidebar() {
 
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
-  return (
-    <div className={cn("flex flex-col gap-4 p-4 w-[280px] ")}>
-      {/* Name */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col">
-          <EditablePublicMapProperty
-            dataSourceProperty={{
-              dataSourceId: selectedDataRecord.dataSourceId,
-              property: "nameLabel",
-            }}
-            placeholder="Name label"
-          >
-            <span className="text-sm ">
-              {dataSourceConfig?.nameLabel || "Name"}
-            </span>
-          </EditablePublicMapProperty>
-          <span className="text-xl font-semibold">{name}</span>
-        </div>
-        <div className="flex flex-col gap-2">
-          {description && (
-            <div className="flex flex-col ">
-              <EditablePublicMapProperty
-                dataSourceProperty={{
-                  dataSourceId: selectedDataRecord.dataSourceId,
-                  property: "descriptionLabel",
-                }}
-                placeholder="Description label"
-              >
-                <span className="text-sm">
-                  {dataSourceConfig?.descriptionLabel ||
-                    dataSourceConfig?.descriptionColumn ||
-                    "Description"}
-                </span>
-              </EditablePublicMapProperty>
-              <span className="text-lg">{description}</span>
-            </div>
-          )}
-        </div>
-        <Separator />
-      </div>
+  function createAirtablePrefill(records: AirtablePrefillRecord[]): string {
+    if (!records || records.length === 0) return "";
 
-      {additionalColumns.map((columnConfig, i) => (
-        <div key={i} className="flex flex-col ">
-          {columnConfig.type !== PublicMapColumnType.Boolean && (
+    const params = records
+      .map(
+        (record) =>
+          `prefill_${encodeURIComponent(record.name)}=${encodeURIComponent(record.value)}`,
+      )
+      .join("&");
+
+    return `?${params}`;
+  }
+
+  return (
+    <div className="relative z-1000 / flex flex-col justify-between h-full w-[280px] p-4">
+      <div className={cn("flex flex-col gap-4")}>
+        {/* Name */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
             <EditablePublicMapProperty
-              additionalColumnProperty={{
-                columnIndex: i,
+              dataSourceProperty={{
                 dataSourceId: selectedDataRecord.dataSourceId,
-                property: "label",
+                property: "nameLabel",
               }}
-              placeholder="Label"
+              placeholder="Name label"
             >
-              <span className="text-sm">{columnConfig.label}</span>
+              <span className="text-sm ">
+                {dataSourceConfig?.nameLabel || "Name"}
+              </span>
             </EditablePublicMapProperty>
-          )}
-          {columnConfig.type === PublicMapColumnType.Boolean ? (
-            <CheckList
-              sourceColumns={columnConfig.sourceColumns}
-              json={selectedDataRecordDetails.json}
-            />
-          ) : columnConfig.type === PublicMapColumnType.CommaSeparatedList ? (
-            <CommaSeparatedList
-              sourceColumns={columnConfig.sourceColumns}
-              json={selectedDataRecordDetails.json}
-            />
-          ) : (
-            <span className="text-lg">
-              {columnConfig.sourceColumns
-                .map((c) => selectedDataRecordDetails.json[c])
-                .filter(Boolean)
-                .join(", ")}
-            </span>
-          )}
+            <span className="text-xl font-semibold">{name}</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {description && (
+              <div className="flex flex-col ">
+                <EditablePublicMapProperty
+                  dataSourceProperty={{
+                    dataSourceId: selectedDataRecord.dataSourceId,
+                    property: "descriptionLabel",
+                  }}
+                  placeholder="Description label"
+                >
+                  <span className="text-sm">
+                    {dataSourceConfig?.descriptionLabel ||
+                      dataSourceConfig?.descriptionColumn ||
+                      "Description"}
+                  </span>
+                </EditablePublicMapProperty>
+                <span className="text-lg">{description}</span>
+              </div>
+            )}
+          </div>
+          <Separator />
         </div>
-      ))}
+
+        {additionalColumns.map((columnConfig, i) => (
+          <div key={i} className="flex flex-col ">
+            {columnConfig.type !== PublicMapColumnType.Boolean && (
+              <EditablePublicMapProperty
+                additionalColumnProperty={{
+                  columnIndex: i,
+                  dataSourceId: selectedDataRecord.dataSourceId,
+                  property: "label",
+                }}
+                placeholder="Label"
+              >
+                <span className="text-sm">{columnConfig.label}</span>
+              </EditablePublicMapProperty>
+            )}
+            {columnConfig.type === PublicMapColumnType.Boolean ? (
+              <CheckList
+                sourceColumns={columnConfig.sourceColumns}
+                json={selectedDataRecordDetails.json}
+              />
+            ) : columnConfig.type === PublicMapColumnType.CommaSeparatedList ? (
+              <CommaSeparatedList
+                sourceColumns={columnConfig.sourceColumns}
+                json={selectedDataRecordDetails.json}
+              />
+            ) : (
+              <span className="text-lg">
+                {columnConfig.sourceColumns
+                  .map((c) => selectedDataRecordDetails.json[c])
+                  .filter(Boolean)
+                  .join(", ")}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      {dataSourceConfig &&
+        dataSourceConfig.formUrl &&
+        dataSourceConfig.allowUserEdit && (
+          <Button asChild={true}>
+            <a
+              href={`${dataSourceConfig.formUrl}${createAirtablePrefill([{ name: "Name", value: name }])}`}
+              target="_blank"
+            >
+              Submit an edit
+            </a>
+          </Button>
+        )}
     </div>
   );
 }
