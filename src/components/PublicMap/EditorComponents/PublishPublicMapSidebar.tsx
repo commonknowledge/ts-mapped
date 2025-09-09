@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { Database, Globe, Settings } from "lucide-react";
+import { Database, Settings } from "lucide-react";
 import { FormEvent, useContext, useEffect, useState } from "react";
 import {
   UpsertPublicMapMutation,
