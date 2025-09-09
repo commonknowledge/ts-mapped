@@ -396,6 +396,7 @@ const typeDefs = `
     name: String!
     description: String!
     descriptionLink: String!
+    formUrl: String!
     published: Boolean!
     dataSourceConfigs: [PublicMapDataSourceConfig!]!
   }
@@ -576,6 +577,7 @@ const typeDefs = `
       name: String!
       description: String!
       descriptionLink: String!
+      formUrl: String!
       dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
       published: Boolean!
     ): UpsertPublicMapResponse @auth(write: { viewIdArg: "viewId" })

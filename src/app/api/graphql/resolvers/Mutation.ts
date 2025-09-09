@@ -363,6 +363,7 @@ const MutationResolvers: MutationResolversType = {
       dataSourceConfigs,
       description,
       descriptionLink,
+      formUrl,
       published,
     },
   ): Promise<UpsertPublicMapResponse> => {
@@ -387,6 +388,7 @@ const MutationResolvers: MutationResolversType = {
         dataSourceConfigs,
         description,
         descriptionLink,
+        formUrl,
         published,
       });
       return { code: 200, result };

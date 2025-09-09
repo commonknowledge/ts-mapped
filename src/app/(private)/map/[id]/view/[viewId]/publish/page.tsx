@@ -32,6 +32,7 @@ export default async function PublicMapAdminPage({
           name
           description
           descriptionLink
+          formUrl
           published
           dataSourceConfigs {
             dataSourceId
@@ -59,6 +60,7 @@ export default async function PublicMapAdminPage({
       viewId,
       host: "",
       name: "My Public Map",
+      formUrl: "",
       description: "",
       descriptionLink: "",
       published: false,

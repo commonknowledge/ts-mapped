@@ -43,6 +43,7 @@ export const publicMapSchema = z.object({
   name: z.string(),
   description: z.string(),
   descriptionLink: z.string(),
+  formUrl: z.string(),
   mapId: z.string(),
   viewId: z.string(),
   published: z.boolean(),

@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { Database, Globe, Settings } from "lucide-react";
+import { Database, Settings } from "lucide-react";
 import { FormEvent, useContext, useEffect, useState } from "react";
 import {
   UpsertPublicMapMutation,
@@ -49,6 +49,7 @@ export default function PublishPublicMapSidebar() {
       $name: String!
       $description: String!
       $descriptionLink: String!
+      $formUrl: String!
       $published: Boolean!
       $dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
     ) {
@@ -58,6 +59,7 @@ export default function PublishPublicMapSidebar() {
         name: $name
         description: $description
         descriptionLink: $descriptionLink
+        formUrl: $formUrl
         published: $published
         dataSourceConfigs: $dataSourceConfigs
       ) {
@@ -199,7 +201,7 @@ export function PublishActionsSection({ loading }: { loading: boolean }) {
         size="lg"
         className="flex-1 rounded-none h-full"
       >
-        <Globe className="w-4 h-4" /> Publish Map
+        Save
       </Button>
     </div>
   );

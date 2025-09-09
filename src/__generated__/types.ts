@@ -508,6 +508,7 @@ export type MutationUpsertPublicMapArgs = {
   dataSourceConfigs: Array<PublicMapDataSourceConfigInput>;
   description: Scalars["String"]["input"];
   descriptionLink: Scalars["String"]["input"];
+  formUrl: Scalars["String"]["input"];
   host: Scalars["String"]["input"];
   name: Scalars["String"]["input"];
   published: Scalars["Boolean"]["input"];
@@ -573,6 +574,7 @@ export type PublicMap = {
   dataSourceConfigs: Array<PublicMapDataSourceConfig>;
   description: Scalars["String"]["output"];
   descriptionLink: Scalars["String"]["output"];
+  formUrl: Scalars["String"]["output"];
   host: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   mapId: Scalars["String"]["output"];
@@ -1142,6 +1144,7 @@ export type PublicMapQuery = {
     name: string;
     description: string;
     descriptionLink: string;
+    formUrl: string;
     published: boolean;
     dataSourceConfigs: Array<{
       __typename?: "PublicMapDataSourceConfig";
@@ -1170,63 +1173,6 @@ export type ListOrganisationsQuery = {
     id: string;
     name: string;
   }> | null;
-};
-
-export type PublicMapModalQueryVariables = Exact<{
-  viewId: Scalars["String"]["input"];
-}>;
-
-export type PublicMapModalQuery = {
-  __typename?: "Query";
-  publicMap?: {
-    __typename?: "PublicMap";
-    id: string;
-    host: string;
-    name: string;
-    description: string;
-    descriptionLink: string;
-    published: boolean;
-    dataSourceConfigs: Array<{
-      __typename?: "PublicMapDataSourceConfig";
-      dataSourceId: string;
-      dataSourceLabel: string;
-      nameLabel: string;
-      nameColumns: Array<string>;
-      descriptionLabel: string;
-      descriptionColumn: string;
-      additionalColumns: Array<{
-        __typename?: "PublicMapColumn";
-        label: string;
-        sourceColumns: Array<string>;
-        type: PublicMapColumnType;
-      }>;
-    }>;
-  } | null;
-};
-
-export type UpsertPublicMapMutationVariables = Exact<{
-  viewId: Scalars["String"]["input"];
-  host: Scalars["String"]["input"];
-  name: Scalars["String"]["input"];
-  description: Scalars["String"]["input"];
-  descriptionLink: Scalars["String"]["input"];
-  published: Scalars["Boolean"]["input"];
-  dataSourceConfigs:
-    | Array<PublicMapDataSourceConfigInput>
-    | PublicMapDataSourceConfigInput;
-}>;
-
-export type UpsertPublicMapMutation = {
-  __typename?: "Mutation";
-  upsertPublicMap?: {
-    __typename?: "UpsertPublicMapResponse";
-    code: number;
-    result?: {
-      __typename?: "PublicMap";
-      host: string;
-      published: boolean;
-    } | null;
-  } | null;
 };
 
 export type FilterDataRecordsQueryVariables = Exact<{
@@ -1521,6 +1467,32 @@ export type UpsertTurfMutation = {
   } | null;
 };
 
+export type UpsertPublicMapMutationVariables = Exact<{
+  viewId: Scalars["String"]["input"];
+  host: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
+  description: Scalars["String"]["input"];
+  descriptionLink: Scalars["String"]["input"];
+  formUrl: Scalars["String"]["input"];
+  published: Scalars["Boolean"]["input"];
+  dataSourceConfigs:
+    | Array<PublicMapDataSourceConfigInput>
+    | PublicMapDataSourceConfigInput;
+}>;
+
+export type UpsertPublicMapMutation = {
+  __typename?: "Mutation";
+  upsertPublicMap?: {
+    __typename?: "UpsertPublicMapResponse";
+    code: number;
+    result?: {
+      __typename?: "PublicMap";
+      host: string;
+      published: boolean;
+    } | null;
+  } | null;
+};
+
 export type PublicMapDataRecordsQueryVariables = Exact<{
   dataSourceId: Scalars["String"]["input"];
   filter?: InputMaybe<RecordFilterInput>;
@@ -1567,6 +1539,7 @@ export type PublishedPublicMapQuery = {
     name: string;
     description: string;
     descriptionLink: string;
+    formUrl: string;
     published: boolean;
     dataSourceConfigs: Array<{
       __typename?: "PublicMapDataSourceConfig";
@@ -2429,6 +2402,7 @@ export type MutationResolvers<
       | "dataSourceConfigs"
       | "description"
       | "descriptionLink"
+      | "formUrl"
       | "host"
       | "name"
       | "published"
@@ -2501,6 +2475,7 @@ export type PublicMapResolvers<
   >;
   description?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   descriptionLink?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  formUrl?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   host?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   mapId?: Resolver<ResolversTypes["String"], ParentType, ContextType>;

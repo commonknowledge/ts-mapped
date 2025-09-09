@@ -30,6 +30,7 @@ export default async function PublicMapPage({ host }: { host: string }) {
           name
           description
           descriptionLink
+          formUrl
           published
           dataSourceConfigs {
             dataSourceId
