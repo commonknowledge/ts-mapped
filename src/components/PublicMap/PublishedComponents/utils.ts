@@ -25,5 +25,6 @@ export function jsonToAirtablePrefill(data: Record<string, string>): string {
         `prefill_${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
     )
     .join("&");
+
   return `?${queryParams}`;
 }
