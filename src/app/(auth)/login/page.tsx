@@ -31,8 +31,8 @@ export default function LoginPage() {
         <CardTitle className="text-2xl">Login</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        <form onSubmit={onSubmitLogin} className="flex flex-col gap-2 ">
-          <FormFieldWrapper id="email" label="Username">
+        <form onSubmit={onSubmitLogin} className="flex flex-col gap-6">
+          <FormFieldWrapper id="email" label="Email">
             <Input
               id="email"
               name="email"
@@ -55,7 +55,13 @@ export default function LoginPage() {
           <Button disabled={isPending} size="sm">
             Login
           </Button>
-          <span className="text-sm text-red-500">{error}</span>
+
+          {error ? (
+            <span className="text-sm text-red-500">{error}</span>
+          ) : (
+            <></>
+          )}
+
           <Link href="/forgot-password" className="text-sm text-center">
             Forgot password?
           </Link>
@@ -65,7 +71,13 @@ export default function LoginPage() {
           Don&apos;t have an account?
         </Label>
         <Button variant="outline" asChild className="text-sm w-full">
-          <Link href="/apply">Sign up to the waitlist</Link>
+          <Link
+            href="https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Sign up to the waitlist
+          </Link>
         </Button>
       </CardContent>
     </Card>

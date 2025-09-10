@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
@@ -55,8 +56,12 @@ export default function ForgotPasswordPage() {
             Send instructions
           </Button>
           <span className="text-sm text-red-500">{error}</span>
-          <Link href="/login" className="text-sm text-center">
-            Login
+          <Link
+            href="/login"
+            className="mt-4 / flex gap-2 items-center justify-center text-sm text-center"
+          >
+            <ArrowLeft size={16} />
+            Back to login
           </Link>
         </form>
       </CardContent>
