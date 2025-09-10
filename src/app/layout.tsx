@@ -87,7 +87,7 @@ export default async function RootLayout({
               <ApolloProvider>
                 <NProgressProvider>
                   <main className="min-h-screen">{children}</main>
-                  <Toaster position="top-right" />
+                  <Toaster position="top-center" />
                 </NProgressProvider>
               </ApolloProvider>
             </TRPCReactProvider>
