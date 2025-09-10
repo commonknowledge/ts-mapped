@@ -6,7 +6,7 @@ import { Separator } from "@/shadcn/ui/separator";
 export default function HomepageFeatureSection() {
   return (
     <Container>
-      <div className="flex flex-col gap-10 / py-20">
+      <div className="flex flex-col gap-10 md:gap-20 / py-10 md:py-[160px]">
         <FeatureCard
           title="Map your movement"
           description="Transform static, siloed databases into live, interactive maps."
@@ -60,31 +60,35 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={` px-2 md:px-6 py-6  flex flex-col md:flex-row gap-4 ${
+      className={`flex flex-col md:flex-row gap-8 xl:gap-20 ${
         alternate ? "md:flex-row-reverse" : ""
       }`}
     >
       <div className="w-full md:w-1/2">
-        <h3 className="text-3xl font-bold tracking-tight mb-3">{title}</h3>
-        <p className="text-3xl mb-5 text-balance">{description}</p>
-        {bulletPoints && (
-          <ul className="list-disc list-inside text-xl">
-            {bulletPoints.map((point) => (
-              <li key={point} className="mb-2 text-xl">
-                {point}
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="max-w-[50ch] flex flex-col gap-4 md:gap-6 / text-base md:text-lg text-balance">
+          <h3 className="text-2xl md:text-4xl font-medium tracking-tight">
+            {title}
+          </h3>
+          <p className="text-xl font-medium">{description}</p>
+          {bulletPoints && (
+            <ul className="flex flex-col gap-2 / list-disc list-inside">
+              {bulletPoints.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       {image && (
-        <Image
-          src={image}
-          alt={title}
-          width={1400}
-          height={1000}
-          className="rounded-lg cursor-pointer hover:opacity-90 transition-opacity w-full md:w-1/2 object-contain"
-        />
+        <div className="w-full md:w-1/2">
+          <Image
+            src={image}
+            alt={title}
+            width={1400}
+            height={1000}
+            className="rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+          />
+        </div>
       )}
     </div>
   );

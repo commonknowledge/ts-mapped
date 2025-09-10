@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import HomepageFeatureSection from "@/components/HomepageFeatureSection";
 import MarketingLayout from "@/components/layout/MarketingLayout";
 import { Link } from "@/components/Link";
+import HomepageFeatureSection from "@/components/marketing/HomepageFeatureSection";
 import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
 export default function HomePage() {
