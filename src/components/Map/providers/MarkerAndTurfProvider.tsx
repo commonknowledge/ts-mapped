@@ -8,6 +8,7 @@ import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfCont
 import { useMarkerQueries } from "@/components/Map/data";
 import { useFolders, usePlacedMarkers, useTurfs } from "@/components/Map/hooks";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
+import type { Result } from "@mapbox/mapbox-gl-geocoder";
 
 export default function MarkerAndTurfProvider({
   children,
@@ -22,6 +23,8 @@ export default function MarkerAndTurfProvider({
   const [selectedPlacedMarkerId, setSelectedPlacedMarkerId] = useState<
     string | null
   >(null);
+
+  const [searchMarker, setSearchMarker] = useState<Result | null>(null);
 
   /* GraphQL Data */
   const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {
@@ -118,6 +121,8 @@ export default function MarkerAndTurfProvider({
         insertTurf,
         updateTurf,
         markerQueries,
+        searchMarker,
+        setSearchMarker,
       }}
     >
       {children}

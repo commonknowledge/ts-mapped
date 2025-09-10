@@ -91,7 +91,7 @@ export default async function RootLayout({
                   <ConditionalMarketingNavbar />
                   <main className="min-h-screen">{children}</main>
                   <ConditionalMarketingFooter />
-                  <Toaster position="top-right" />
+                  <Toaster position="top-center" />
                 </NProgressProvider>
               </ApolloProvider>
             </TRPCReactProvider>

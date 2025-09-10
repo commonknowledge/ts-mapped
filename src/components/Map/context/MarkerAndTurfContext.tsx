@@ -1,6 +1,7 @@
 import { createContext } from "react";
 import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
 import { MarkerQueriesResult } from "../types";
+import type { Result } from "@mapbox/mapbox-gl-geocoder";
 
 export const MarkerAndTurfContext = createContext<{
   /* State */
@@ -23,6 +24,9 @@ export const MarkerAndTurfContext = createContext<{
 
   selectedPlacedMarkerId: string | null;
   setSelectedPlacedMarkerId: (id: string | null) => void;
+
+  searchMarker: Result | null;
+  setSearchMarker: (marker: Result | null) => void;
 
   turfs: Turf[];
   turfsLoading: boolean;
@@ -49,6 +53,8 @@ export const MarkerAndTurfContext = createContext<{
   updatePlacedMarker: () => null,
   selectedPlacedMarkerId: null,
   setSelectedPlacedMarkerId: () => null,
+  searchMarker: null,
+  setSearchMarker: () => null,
   turfs: [],
   turfsLoading: false,
   deleteTurf: () => null,
