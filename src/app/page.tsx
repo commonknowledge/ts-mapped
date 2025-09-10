@@ -15,7 +15,7 @@ export default function HomePage() {
 
   return (
     <MarketingLayout>
-      <div className="flex flex-col items-center justify-center relative bg-brand-background md:pt-32 pt-16 py-16 p-4 overflow-hidden">
+      <div className="flex flex-col items-center justify-center relative bg-brand-background py-16 md:py-[120px] p-4 overflow-hidden">
         <Image
           src="/pattern.svg"
           alt="Mapped"
@@ -30,25 +30,28 @@ export default function HomePage() {
           height={533}
           width={512}
         />
-        <div className="flex flex-col items-center justify-center">
+        <div className="relative z-10 flex flex-col w-full items-center justify-center">
           <Image
             src="/hero-new.svg"
             alt="Mapped"
             height={456}
             width={1024}
             priority={true}
-            className="w-full h-[40vh] object-contain z-30"
+            className="w-full max-w-[880px]"
           />
-          <p className="md:text-5xl text-3xl font-light tracking-tight max-w-2xl text-center -mt-16 mb-8 z-30">
+          <p className="text-3xl md:text-5xl font-normal tracking-tight max-w-[25ch] text-center md:-mt-14 mb-8 md:mb-12">
             Enhance your organising strategy with visual mapping tools.
           </p>
-          <Link
-            href="https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button>Sign up to waitlist</Button>
-          </Link>
+
+          <Button asChild={true}>
+            <Link
+              href="https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Sign up to waitlist
+            </Link>
+          </Button>
         </div>
       </div>
 

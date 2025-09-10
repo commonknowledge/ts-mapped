@@ -5,7 +5,7 @@ import { Link } from "./Link";
 
 export default function CTA() {
   return (
-    <div className=" bg-brand-background h-[50vh] flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="bg-brand-background py-20 md:py-[160px] flex flex-col items-center justify-center relative overflow-hidden">
       <Image
         src="/pattern.svg"
         alt="Mapped"
@@ -20,8 +20,8 @@ export default function CTA() {
         height={533}
         width={512}
       />
-      <div className="flex flex-col items-center justify-center gap-8 ">
-        <h2 className="text-5xl font-light tracking-tight text-balance max-w-2xl text-center z-30">
+      <div className="flex flex-col items-center justify-center gap-12 relative z-10">
+        <h2 className="text-3xl md:text-5xl font-normal tracking-tight max-w-[25ch] text-center text-balance">
           Transform your membership list into interactive maps.
         </h2>
         <Link
