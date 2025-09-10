@@ -12,7 +12,6 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
-import { Separator } from "@/shadcn/ui/separator";
 import DataSourceEnrichmentForm from "./DataSourceEnrichmentForm";
 
 export default async function DataSourceEnrichmentPage({
@@ -79,7 +78,6 @@ export default async function DataSourceEnrichmentPage({
         title={`Enrich ${result.data.dataSource.name}`}
         description="Add data to your CRM"
       />
-      <Separator className="my-4" />
       <DataSourceEnrichmentForm
         dataSource={result.data.dataSource}
         dataSources={result.data.dataSources || []}

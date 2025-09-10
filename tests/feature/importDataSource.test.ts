@@ -1,46 +1,58 @@
 import { expect, inject, test } from "vitest";
 import importDataSource from "@/server/jobs/importDataSource";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import {
+  DataSourceRecordType,
+  DataSourceType,
+  GeocodingType,
+} from "@/server/models/DataSource";
+import { FilterType } from "@/server/models/MapView";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   deleteDataSource,
 } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { DataSourceType } from "@/types";
 
 const credentials = inject("credentials");
 
 test("importDataSource imports John Lennon record from Airtable", async () => {
   // 1. Create test organisation
-  const org = await upsertOrganisation({ name: "Test Org" });
+  const org = await upsertOrganisation({ name: "Test Import Org" });
 
   // 2. Create test data source with Airtable credentials
   const dataSource = await createDataSource({
-    name: "Test Airtable Source",
+    name: "Test Import Airtable Source",
     autoEnrich: false,
     autoImport: false,
-    config: JSON.stringify({
-      type: DataSourceType.airtable,
+    recordType: DataSourceRecordType.Data,
+    config: {
+      type: DataSourceType.Airtable,
       apiKey: credentials.airtable.apiKey,
       baseId: credentials.airtable.baseId,
       tableId: credentials.airtable.tableId,
-    }),
-    columnDefs: JSON.stringify([]),
-    columnRoles: JSON.stringify({}),
-    enrichments: JSON.stringify([]),
-    geocodingConfig: JSON.stringify({
-      type: "Code",
+    },
+    columnDefs: [],
+    columnRoles: { nameColumns: [] },
+    enrichments: [],
+    geocodingConfig: {
+      type: GeocodingType.Code,
       column: "Postcode",
-      areaSetCode: "PC",
-    }),
+      areaSetCode: AreaSetCode.PC,
+    },
     organisationId: org.id,
+    public: false,
   });
 
   // 3. Call importDataSource
   await importDataSource({ dataSourceId: dataSource.id });
 
   // 4. Verify data record exists
-  const stream = streamDataRecordsByDataSource(dataSource.id);
+  const stream = streamDataRecordsByDataSource(
+    dataSource.id,
+    { type: FilterType.MULTI },
+    "",
+  );
   const records = [];
   for await (const record of stream) {
     records.push({

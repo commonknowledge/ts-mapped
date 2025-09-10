@@ -25,6 +25,7 @@ import {
 } from "graphql-sse";
 import { useContext } from "react";
 import { AreaStat, AreaStats } from "@/__generated__/types";
+import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import { ServerSessionContext } from "./ServerSessionProvider";
 
 /**
@@ -55,8 +56,8 @@ class SSELink extends ApolloLink {
   }
 }
 
-function makeClient(jwt: string | null) {
-  const uri = `${process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000"}/api/graphql`;
+function makeClient(jwt: string | null, ignoreAuthErrors = false) {
+  const uri = `${process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL}/api/graphql`;
 
   const httpLink = new HttpLink({
     uri,
@@ -103,7 +104,7 @@ function makeClient(jwt: string | null) {
       }
     }
 
-    if (unauthorized) {
+    if (!ignoreAuthErrors && unauthorized) {
       window.location.href = "/";
     }
   });
@@ -185,13 +186,15 @@ function makeClient(jwt: string | null) {
 }
 
 export default function ApolloProvider({
+  ignoreAuthErrors,
   children,
 }: {
+  ignoreAuthErrors?: boolean;
   children: React.ReactNode;
 }) {
   const { jwt } = useContext(ServerSessionContext);
   return (
-    <ApolloNextAppProvider makeClient={() => makeClient(jwt)}>
+    <ApolloNextAppProvider makeClient={() => makeClient(jwt, ignoreAuthErrors)}>
       {children}
     </ApolloNextAppProvider>
   );

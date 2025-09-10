@@ -1,6 +1,14 @@
 import { NewOrganisation } from "@/server/models/Organisation";
 import { db } from "@/server/services/database";
 
+export function findOrganisationByName(name: string) {
+  return db
+    .selectFrom("organisation")
+    .where("name", "=", name)
+    .selectAll("organisation")
+    .executeTakeFirstOrThrow();
+}
+
 export function findOrganisationsByUserId(userId: string) {
   return db
     .selectFrom("organisation")
@@ -12,6 +20,13 @@ export function findOrganisationsByUserId(userId: string) {
     .where("organisationUser.userId", "=", userId)
     .selectAll("organisation")
     .execute();
+}
+
+export async function deleteOrganisation(id: string) {
+  return db
+    .deleteFrom("organisation")
+    .where("id", "=", id)
+    .executeTakeFirstOrThrow();
 }
 
 export function upsertOrganisation(organisation: NewOrganisation) {

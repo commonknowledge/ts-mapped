@@ -1,8 +1,11 @@
 import { sql } from "kysely";
 import { JobInfo, JobStatus } from "@/__generated__/types";
-import { DataSourceUpdate, NewDataSource } from "@/server/models/DataSource";
+import {
+  DataSourceType,
+  DataSourceUpdate,
+  NewDataSource,
+} from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
-import { DataSourceType } from "@/types";
 
 export async function createDataSource(dataSource: NewDataSource) {
   return await db
@@ -107,7 +110,7 @@ export async function findDataSourcesByType(type: DataSourceType) {
     .execute();
 }
 
-export function findDataSourcesByUserId(userId: string) {
+export function findReadableDataSources(userId: string | null | undefined) {
   return db
     .selectFrom("dataSource")
     .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
@@ -116,9 +119,28 @@ export function findDataSourcesByUserId(userId: string) {
       "organisation.id",
       "organisationUser.organisationId",
     )
-    .where("organisationUser.userId", "=", userId)
+    .where((eb) => {
+      const filter = [eb("public", "=", true)];
+      if (userId) {
+        filter.push(eb("organisationUser.userId", "=", userId));
+      }
+      return eb.or(filter);
+    })
     .selectAll("dataSource")
     .execute();
+}
+
+export async function findCSVDataSourceByUrl(url: string) {
+  return await db
+    .selectFrom("dataSource")
+    .where(({ eb, ref }) => {
+      return eb(ref("config", "->>").key("type"), "=", DataSourceType.CSV);
+    })
+    .where(({ eb, ref }) => {
+      return eb(ref("config", "->>").key("url"), "=", url);
+    })
+    .selectAll()
+    .executeTakeFirst();
 }
 
 export async function updateDataSource(

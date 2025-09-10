@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
@@ -6,8 +7,10 @@ import importPostcodes from "@/server/commands/importPostcodes";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
-import { ensureOrganisationMap } from "@/server/repositories/Map";
-import { upsertOrganisation } from "@/server/repositories/Organisation";
+import {
+  findOrganisationByName,
+  upsertOrganisation,
+} from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
@@ -20,26 +23,22 @@ import { stopPublicTunnel } from "@/server/services/urls";
 const program = new Command();
 
 program
-  .command("upsertUser")
-  .option("--email <email>")
-  .option("--password <password>")
+  .command("ensureOrganisationMap")
   .option(
     "--org <organisation>",
-    "The name of an organisation this user belongs to",
+    "The name of an organisation this map belongs to",
   )
-  .description("Create a new user")
+  .description("Create a new map")
   .action(async (options) => {
     try {
-      const org = await upsertOrganisation({ name: options.org });
-      const user = await upsertUser({
-        email: options.email,
-        password: options.password,
-      });
-      await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
-      await ensureOrganisationMap(org.id);
-      logger.info(`Created user ${options.email}, ID ${user.id}`);
+      const org = await findOrganisationByName(options.org);
+      if (!org) {
+        throw new Error(`Organisation not found: ${options.org}`);
+      }
+      const map = await ensureOrganisationMap(org.id);
+      logger.info(`Created map ${map.id}`);
     } catch (error) {
-      logger.error("Could not create user", { error });
+      logger.error("Could not create map", { error });
     }
   });
 
@@ -83,6 +82,71 @@ program
   .description("Import Postcodes")
   .action(async () => {
     await importPostcodes();
+  });
+
+program
+  .command("upsertUser")
+  .option("--email <email>")
+  .option("--password <password>")
+  .option(
+    "--org <organisation>",
+    "The name of an organisation this user belongs to",
+  )
+  .description("Create a new user")
+  .action(async (options) => {
+    try {
+      const org = await upsertOrganisation({ name: options.org });
+      const user = await upsertUser({
+        email: options.email,
+        password: options.password,
+      });
+      await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
+      await ensureOrganisationMap(org.id);
+      logger.info(`Created user ${options.email}, ID ${user.id}`);
+    } catch (error) {
+      logger.error("Could not create user", { error });
+    }
+  });
+
+program
+  .command("createsuperuser")
+  .description(
+    "Create a superuser with hello@commonknowledge.coop and password 1234",
+  )
+  .action(async () => {
+    try {
+      const email = "hello@commonknowledge.coop";
+      const password = "1234";
+      const orgName = "Common Knowledge";
+
+      logger.info("Creating superuser...");
+
+      // Create or find the organisation
+      const org = await upsertOrganisation({ name: orgName });
+      logger.info(`Organisation: ${org.name} (ID: ${org.id})`);
+
+      // Create the user
+      const user = await upsertUser({
+        email,
+        password,
+      });
+      logger.info(`User created: ${user.email} (ID: ${user.id})`);
+
+      // Link user to organisation
+      await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
+      logger.info(`User linked to organisation: ${org.name}`);
+
+      // Ensure the organisation has a map
+      const map = await ensureOrganisationMap(org.id);
+      logger.info(`Organisation map ensured: ${map.id}`);
+
+      logger.info("✅ Superuser created successfully!");
+      logger.info(`Email: ${email}`);
+      logger.info(`Password: ${password}`);
+      logger.info(`Organisation: ${orgName}`);
+    } catch (error) {
+      logger.error("❌ Failed to create superuser", { error });
+    }
   });
 
 program

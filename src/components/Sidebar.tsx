@@ -63,8 +63,28 @@ export default function Sidebar({ slug }: { slug: string }) {
         </Button> */}
       </div>
 
+      {/* Navigation */}
+      <nav className="flex-1 p-4">
+        <ul className="space-y-2">
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={cn(
+                  "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+                  isActive(item.href) && "bg-neutral-100 text-primary",
+                )}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       {/* Organisation Selector */}
-      <div className="p-4 border-b border-neutral-200">
+      <div className="p-4 border-t border-neutral-200">
         <label className="text-sm font-medium text-neutral-700 mb-2 block">
           Organisation
         </label>
@@ -84,32 +104,17 @@ export default function Sidebar({ slug }: { slug: string }) {
           </SelectContent>
         </Select>
       </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {navItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary",
-                )}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
       {/* User Section */}
-      <div className="p-4 border-t border-neutral-200">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 bg-neutral-200 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium">
+      <div className="p-4 space-y-2 border-t border-neutral-200">
+        <Link
+          href={"/account"}
+          className={cn(
+            "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+            isActive("/account") && "bg-neutral-100 text-primary",
+          )}
+        >
+          <div className="w-6 h-6 bg-neutral-200 rounded-full flex items-center justify-center">
+            <span className="text-xs font-medium">
               {user?.id?.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -118,7 +123,8 @@ export default function Sidebar({ slug }: { slug: string }) {
               User
             </p>
           </div>
-        </div>
+        </Link>
+
         <form onSubmit={onSubmitLogout}>
           <Button variant="outline" size="sm" className="w-full">
             Logout

@@ -1,7 +1,7 @@
 import { verify } from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { ServerSession } from "@/authTypes";
 import logger from "@/server/services/logger";
-import { ServerSession } from "@/types";
 
 export const getServerSession = async (): Promise<ServerSession> => {
   const defaultSession = { jwt: null, currentUser: null };

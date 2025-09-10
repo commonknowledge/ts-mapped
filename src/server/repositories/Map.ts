@@ -1,12 +1,21 @@
+import { MapConfig } from "@/__generated__/types";
 import { MapUpdate } from "@/server/models/Map";
 import { db } from "@/server/services/database";
 
-export async function createMap(organisationId: string) {
+const createBlankConfig = (): MapConfig => {
+  return {
+    markerDataSourceIds: [],
+    membersDataSourceId: "",
+  };
+};
+
+export async function createMap(organisationId: string, name = "Untitled Map") {
   return db
     .insertInto("map")
     .values({
       organisationId,
-      name: `New Map (${new Date().toLocaleDateString()})`,
+      name,
+      config: createBlankConfig(),
     })
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -14,24 +23,6 @@ export async function createMap(organisationId: string) {
 
 export async function deleteMap(id: string) {
   return db.deleteFrom("map").where("id", "=", id).executeTakeFirstOrThrow();
-}
-
-export async function ensureOrganisationMap(organisationId: string) {
-  const existingMap = await db
-    .selectFrom("map")
-    .where("organisationId", "=", organisationId)
-    .selectAll()
-    .executeTakeFirst();
-
-  if (existingMap) {
-    return existingMap;
-  }
-
-  return db
-    .insertInto("map")
-    .values({ organisationId, name: "Example Map" })
-    .returningAll()
-    .executeTakeFirstOrThrow();
 }
 
 export function findMapById(id: string) {

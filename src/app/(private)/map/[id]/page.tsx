@@ -1,26 +1,32 @@
-import MapPage from "./MapPage";
-import ChoroplethProvider from "./providers/ChoroplethProvider";
-import DataSourcesProvider from "./providers/DataSourcesProvider";
-import MapProvider from "./providers/MapProvider";
-import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
-import TableProvider from "./providers/TableProvider";
+import ChoroplethProvider from "@/components/Map/providers/ChoroplethProvider";
+import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
+import DataSourcesProvider from "@/components/Map/providers/DataSourcesProvider";
+import MapProvider from "@/components/Map/providers/MapProvider";
+import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvider";
+import TableProvider from "@/components/Map/providers/TableProvider";
+import PrivateMap from "./PrivateMap";
 
-export default async function MapPageWrapper({
+export default async function MapPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ viewId: string | undefined }>;
 }) {
   const { id } = await params;
+  const { viewId } = await searchParams;
   return (
-    <MapProvider mapId={id}>
+    <MapProvider mapId={id} viewId={viewId}>
       <DataSourcesProvider>
-        <ChoroplethProvider>
-          <MarkerAndTurfProvider>
-            <TableProvider>
-              <MapPage />
-            </TableProvider>
-          </MarkerAndTurfProvider>
-        </ChoroplethProvider>
+        <DataRecordProvider>
+          <ChoroplethProvider>
+            <MarkerAndTurfProvider>
+              <TableProvider>
+                <PrivateMap />
+              </TableProvider>
+            </MarkerAndTurfProvider>
+          </ChoroplethProvider>
+        </DataRecordProvider>
       </DataSourcesProvider>
     </MapProvider>
   );

@@ -1,3 +1,4 @@
+import z from "zod";
 import {
   AreaSetCode,
   EnrichmentSourceType,
@@ -5,7 +6,11 @@ import {
   LooseEnrichment,
   LooseGeocodingConfig,
 } from "@/__generated__/types";
-import { Enrichment, GeocodingConfig } from "@/zod";
+import {
+  AreaPropertyType,
+  enrichmentSchema,
+  geocodingConfigSchema,
+} from "@/server/models/DataSource";
 
 /**
  * This file is used for compile-type checking that GraphQL
@@ -22,31 +27,31 @@ const enrichmentTypeChecks: Record<EnrichmentSourceType, LooseEnrichment> = {
   [EnrichmentSourceType.Area]: {
     sourceType: EnrichmentSourceType.Area,
     areaSetCode: AreaSetCode.MSOA21,
-    areaProperty: "code",
-  } satisfies Enrichment,
+    areaProperty: AreaPropertyType.Code,
+  } satisfies z.infer<typeof enrichmentSchema>,
   [EnrichmentSourceType.DataSource]: {
     sourceType: EnrichmentSourceType.DataSource,
     dataSourceId: "sampleId",
     dataSourceColumn: "sampleColumn",
-  } satisfies Enrichment,
+  } satisfies z.infer<typeof enrichmentSchema>,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const geocodingTypeChecks: Record<GeocodingType, LooseGeocodingConfig> = {
   [GeocodingType.Address]: {
     type: GeocodingType.Address,
-    column: "test",
-  } satisfies GeocodingConfig,
+    columns: ["test"],
+  } satisfies z.infer<typeof geocodingConfigSchema>,
   [GeocodingType.Code]: {
     type: GeocodingType.Code,
     column: "test",
     areaSetCode: AreaSetCode.MSOA21,
-  } satisfies GeocodingConfig,
+  } satisfies z.infer<typeof geocodingConfigSchema>,
   [GeocodingType.Name]: {
     type: GeocodingType.Code,
     column: "test",
     areaSetCode: AreaSetCode.MSOA21,
-  } satisfies GeocodingConfig,
+  } satisfies z.infer<typeof geocodingConfigSchema>,
   [GeocodingType.None]: {
     type: GeocodingType.None,
   },

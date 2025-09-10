@@ -351,6 +351,10 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     );
   }
 
+  tagRecords(): Promise<void> {
+    throw new Error("Unimplemented.");
+  }
+
   async removeDevWebhooks(): Promise<void> {
     const webhooks = await this.listWebhooks("ngrok");
     await this.removeWebhooks(webhooks);

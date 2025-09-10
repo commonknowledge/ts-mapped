@@ -4,7 +4,7 @@ import "./privacy.css";
 
 export default function PrivacyPage() {
   return (
-    <div className="max-w-6xl mx-auto py-6">
+    <div className="max-w-4xl mx-auto py-6 mt-20 px-4">
       <h1>Privacy Policy</h1>
       <p>Effective date: 07/01/2025</p>
       <h2>1. Introduction</h2>
@@ -82,8 +82,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         <strong>THE USER</strong> is the individual using our Service. The User
-        corresponds to the Data Subject, who is the subject of Personal
-        Data.{" "}
+        corresponds to the Data Subject, who is the subject of Personal Data.
       </p>
       <h2>3. Your data protection rights</h2>
       <p>Under data protection law, you have rights including:</p>

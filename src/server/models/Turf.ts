@@ -1,22 +1,28 @@
-import { Geometry } from "geojson";
-import {
-  Generated,
-  Insertable,
-  JSONColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
+import { Generated, Insertable, Updateable } from "kysely";
+import z from "zod";
 
-export interface TurfTable {
+export const polygonSchema = z.object({
+  bbox: z.array(z.number()).optional(),
+  type: z.literal("Polygon"),
+  coordinates: z.array(z.array(z.array(z.number()))),
+});
+
+export type Polygon = z.infer<typeof polygonSchema>;
+
+export const turfSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  notes: z.string(),
+  area: z.number(),
+  polygon: polygonSchema,
+  mapId: z.string(),
+  createdAt: z.date(),
+});
+
+export type Turf = z.infer<typeof turfSchema>;
+export type TurfTable = Turf & {
   id: Generated<string>;
-  label: string;
-  notes: string;
-  area: number;
-  geometry: JSONColumnType<Geometry>;
-  createdAt: Date;
-  mapId: string;
-}
+};
 
-export type Turf = Selectable<TurfTable>;
 export type NewTurf = Insertable<TurfTable>;
 export type TurfUpdate = Updateable<TurfTable>;

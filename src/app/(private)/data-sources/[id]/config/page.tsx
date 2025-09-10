@@ -1,7 +1,6 @@
-import { gql } from "@apollo/client";
 import {
-  DataSourceConfigQuery,
-  DataSourceConfigQueryVariables,
+  DataSourceQuery,
+  DataSourceQueryVariables,
 } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
@@ -12,8 +11,8 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
-import { Separator } from "@/shadcn/ui/separator";
-import DataSourceConfigForm from "./DataSourceConfigForm";
+import ConfigurationForm from "../components/ConfigurationForm";
+import { DATA_SOURCE_QUERY } from "../queries";
 
 export default async function DataSourceConfigPage({
   params,
@@ -21,32 +20,8 @@ export default async function DataSourceConfigPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await query<
-    DataSourceConfigQuery,
-    DataSourceConfigQueryVariables
-  >({
-    query: gql`
-      query DataSourceConfig($id: String!) {
-        dataSource(id: $id) {
-          id
-          name
-          autoImport
-          config
-          columnDefs {
-            name
-            type
-          }
-          columnRoles {
-            nameColumn
-          }
-          geocodingConfig {
-            type
-            column
-            areaSetCode
-          }
-        }
-      }
-    `,
+  const result = await query<DataSourceQuery, DataSourceQueryVariables>({
+    query: DATA_SOURCE_QUERY,
     variables: { id },
   });
 
@@ -79,8 +54,7 @@ export default async function DataSourceConfigPage({
         title={`Configure ${result.data.dataSource.name}`}
         description="Tell us about your data to take full advantage of Mapped."
       />
-      <Separator className="my-4" />
-      <DataSourceConfigForm dataSource={result.data.dataSource} />
+      <ConfigurationForm dataSource={result.data.dataSource} redirectToParent />
     </div>
   );
 }

@@ -6,12 +6,14 @@ import { SyntheticEvent, useCallback, useContext, useState } from "react";
 import {
   CreateDataSourceMutation,
   CreateDataSourceMutationVariables,
+  DataSourceRecordType,
 } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import { DataSourceTypeLabels } from "@/labels";
+import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { DataSourceConfig, DataSourceType } from "@/server/models/DataSource";
 import { uploadFile } from "@/services/uploads";
 import {
   Breadcrumb,
@@ -28,15 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { Separator } from "@/shadcn/ui/separator";
-import { DataSourceType } from "@/types";
-import { DataSourceConfig } from "@/zod";
 import ActionNetworkFields from "./fields/ActionNetworkFields";
 import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
-import { NewDataSourceConfig, NewDataSourceConfigSchema } from "./types";
+import { NewDataSourceConfig, newDataSourceConfigSchema } from "./schema";
 
 // Loose type for incomplete config
 type ConfigState = Partial<NewDataSourceConfig> | { type: "" };
@@ -51,6 +50,9 @@ export default function NewDataSourcePage() {
     searchParams.get("state") || "{}",
   );
 
+  const [recordType, setRecordType] = useState<DataSourceRecordType | null>(
+    null,
+  );
   const [name, setName] = useState(state.dataSourceName || "");
   const [config, setConfig] = useState<ConfigState>({
     type: (state.dataSourceType as DataSourceType) || "",
@@ -72,10 +74,12 @@ export default function NewDataSourcePage() {
     mutation CreateDataSource(
       $name: String!
       $organisationId: String!
+      $recordType: DataSourceRecordType!
       $rawConfig: JSON!
     ) {
       createDataSource(
         name: $name
+        recordType: $recordType
         organisationId: $organisationId
         rawConfig: $rawConfig
       ) {
@@ -87,7 +91,7 @@ export default function NewDataSourcePage() {
     }
   `);
 
-  const { data: validConfig } = NewDataSourceConfigSchema.safeParse(config);
+  const { data: validConfig } = newDataSourceConfigSchema.safeParse(config);
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,10 +107,19 @@ export default function NewDataSourcePage() {
         throw new Error("Invalid config");
       }
 
+      if (!recordType) {
+        throw new Error("No record type selected");
+      }
+
       const preparedConfig = await prepareDataSource(validConfig);
 
       const result = await createDataSource({
-        variables: { name, organisationId, rawConfig: preparedConfig },
+        variables: {
+          name,
+          organisationId,
+          recordType,
+          rawConfig: preparedConfig,
+        },
       });
 
       const dataSourceId = result.data?.createDataSource?.result?.id;
@@ -139,30 +152,49 @@ export default function NewDataSourcePage() {
         title="New Data Source"
         description="Create a new data source to import into your maps."
       />
-      <Separator className="my-4" />
       <form onSubmit={onSubmit} className="max-w-2xl ">
         <DataListRow label="Name">
           <Input
             type="text"
             placeholder="Name"
             value={name}
+            className="w-[200px]"
             onChange={(e) => setName(e.target.value)}
             required
           />
         </DataListRow>
 
-        <DataListRow label="Type" border>
+        <DataListRow label="Data type" border>
+          <Select
+            value={recordType || ""}
+            onValueChange={(value) =>
+              setRecordType(value as DataSourceRecordType)
+            }
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Choose a record type" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(DataSourceRecordTypeLabels).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {DataSourceRecordTypeLabels[type as DataSourceRecordType]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </DataListRow>
+        <DataListRow label="Source type">
           <Select
             value={config.type}
             onValueChange={(value) =>
               onChangeConfig({ type: value as DataSourceType })
             }
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Choose a type" />
             </SelectTrigger>
             <SelectContent>
-              {Object.keys(DataSourceType).map((type) => (
+              {Object.values(DataSourceType).map((type) => (
                 <SelectItem key={type} value={type}>
                   {DataSourceTypeLabels[type as DataSourceType]}
                 </SelectItem>
@@ -201,7 +233,7 @@ export default function NewDataSourcePage() {
 const prepareDataSource = async (
   config: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
-  if (config.type === DataSourceType.csv) {
+  if (config.type === DataSourceType.CSV) {
     const url = await uploadFile(config.file);
     return { ...config, url };
   }

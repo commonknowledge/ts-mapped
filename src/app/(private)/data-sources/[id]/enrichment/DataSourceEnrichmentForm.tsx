@@ -8,9 +8,9 @@ import {
   UpdateDataSourceEnrichmentMutation,
   UpdateDataSourceEnrichmentMutationVariables,
 } from "@/__generated__/types";
+import { Enrichment, enrichmentSchema } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { Enrichment, EnrichmentSchema } from "@/zod";
 import EnrichmentFields, { NewEnrichment } from "./EnrichmentFields";
 
 export default function DataSourceEnrichmentForm({
@@ -57,7 +57,7 @@ export default function DataSourceEnrichmentForm({
   let formValid = true;
   const validEnrichments: Enrichment[] = [];
   for (const enrichment of enrichments) {
-    const { data: validEnrichment } = EnrichmentSchema.safeParse(enrichment);
+    const { data: validEnrichment } = enrichmentSchema.safeParse(enrichment);
     if (validEnrichment) {
       validEnrichments.push(validEnrichment);
     } else {

@@ -1,18 +1,18 @@
-import {
-  Generated,
-  Insertable,
-  ColumnType as KyselyColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
+import { ColumnType, GeneratedAlways, Insertable, Updateable } from "kysely";
+import z from "zod";
 
-export interface UserTable {
-  id: Generated<string>;
-  email: string;
-  passwordHash: string;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
-}
+export const userSchema = z.object({
+  id: z.string(),
+  createdAt: z.date(),
+  email: z.string().email().trim().toLowerCase(),
+  passwordHash: z.string(),
+});
 
-export type User = Selectable<UserTable>;
+export type User = z.infer<typeof userSchema>;
+
+export type UserTable = User & {
+  id: GeneratedAlways<string>;
+  createdAt: ColumnType<Date, string | undefined, never>;
+};
 export type NewUser = Insertable<UserTable>;
 export type UserUpdate = Updateable<UserTable>;

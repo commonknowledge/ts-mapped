@@ -1,12 +1,18 @@
+import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { EnrichedRecord } from "@/server/mapping/enrich";
 import { updateDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { DataSourceType, ExternalRecord } from "@/types";
-import { GoogleOAuthCredentials, GoogleSheetsConfig } from "@/zod";
+import { ExternalRecord, TaggedRecord } from "@/types";
+import {
+  DataSourceType,
+  googleOAuthCredentialsSchema,
+} from "../models/DataSource";
 import { DataSourceAdaptor } from "./abstract";
+
+type GoogleOAuthCredentials = z.infer<typeof googleOAuthCredentialsSchema>;
 
 export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   private dataSourceId: string;
@@ -85,14 +91,13 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     logger.debug("Refreshed Google Sheets access token");
 
     try {
-      const newConfig: GoogleSheetsConfig = {
-        type: DataSourceType.googlesheets,
-        spreadsheetId: this.spreadsheetId,
-        sheetName: this.sheetName,
-        oAuthCredentials: this.credentials,
-      };
       await updateDataSource(this.dataSourceId, {
-        config: JSON.stringify(newConfig),
+        config: {
+          type: DataSourceType.GoogleSheets,
+          spreadsheetId: this.spreadsheetId,
+          sheetName: this.sheetName,
+          oAuthCredentials: this.credentials,
+        },
       });
     } catch (error) {
       logger.error("Could not update Google Sheets data source", { error });
@@ -543,6 +548,69 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
               values: [[column.value]],
             });
           }
+        }
+      }
+
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values:batchUpdate`;
+      const response = await this.makeGoogleSheetsRequest(url, {
+        method: "POST",
+        body: JSON.stringify({
+          valueInputOption: "USER_ENTERED",
+          data: updates,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(
+          `Failed to update records: ${response.status}, ${body}`,
+        );
+      }
+    }
+  }
+
+  async tagRecords(taggedRecords: TaggedRecord[]): Promise<void> {
+    const headers = await this.getHeaders();
+    const batches = batch(taggedRecords, 100);
+
+    // Assume same tag applied to all records
+    const fieldName = taggedRecords[0].tag.name;
+    if (!headers.includes(fieldName)) {
+      const newHeaders = [...headers, fieldName];
+      const headerRange = `${this.sheetName}!1:1`;
+      const headerUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${headerRange}?valueInputOption=USER_ENTERED`;
+
+      const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
+        method: "PUT",
+        body: JSON.stringify({
+          values: [newHeaders],
+        }),
+      });
+
+      if (!headerResponse.ok) {
+        const body = await headerResponse.text();
+        throw new Error(
+          `Failed to update headers: ${headerResponse.status}, ${body}`,
+        );
+      }
+
+      this.cachedHeaders = newHeaders;
+    }
+
+    const updatedHeaders = this.cachedHeaders || headers;
+
+    // Update records in batches
+    for (const batch of batches) {
+      const updates = [];
+      for (const record of batch) {
+        const columnIndex = updatedHeaders.indexOf(fieldName);
+        if (columnIndex !== -1) {
+          const columnLetter = indexToLetter(columnIndex);
+          const externalId = record.externalId;
+          updates.push({
+            range: `${this.sheetName}!${columnLetter}${externalId}:${externalId}`,
+            values: [[record.tag.present ? "true" : "false"]],
+          });
         }
       }
 

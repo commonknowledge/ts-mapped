@@ -36,6 +36,15 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   }
 
   try {
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        importStarted: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     let count = 0;
     const columnDefsAccumulator: ColumnDef[] = [];
     const total = await adaptor.getRecordCount();
@@ -65,7 +74,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     }
 
     await updateDataSource(dataSource.id, {
-      columnDefs: JSON.stringify(columnDefsAccumulator),
+      columnDefs: columnDefsAccumulator,
     });
 
     pubSub.publish("dataSourceEvent", {
@@ -113,8 +122,8 @@ export const importBatch = (
       );
       await upsertDataRecord({
         externalId: record.externalId,
-        json: JSON.stringify(typedJson),
-        geocodeResult: JSON.stringify(geocodeResult),
+        json: typedJson,
+        geocodeResult: geocodeResult,
         geocodePoint: geocodeResult?.centralPoint,
         dataSourceId: dataSource.id,
       });
