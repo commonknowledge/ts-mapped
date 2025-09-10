@@ -8,8 +8,6 @@ import {
   ListOrganisationsQueryVariables,
 } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
-import ConditionalMarketingFooter from "@/components/ConditionalMarketingFooter";
-import ConditionalMarketingNavbar from "@/components/ConditionalMarketingNavbar";
 import PublicMapPage from "@/components/PublicMapPage";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
@@ -88,9 +86,7 @@ export default async function RootLayout({
             <TRPCReactProvider>
               <ApolloProvider>
                 <NProgressProvider>
-                  <ConditionalMarketingNavbar />
                   <main className="min-h-screen">{children}</main>
-                  <ConditionalMarketingFooter />
                   <Toaster position="top-right" />
                 </NProgressProvider>
               </ApolloProvider>

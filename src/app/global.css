@@ -149,8 +149,8 @@ main {
 
 .container {
   margin: 0 auto;
-  max-width: var(--width-content, 1400px);
-  padding: 0 1.5rem;
+  max-width: var(--width-content);
+  padding: 3rem 1rem;
   width: 100%;
 }
 

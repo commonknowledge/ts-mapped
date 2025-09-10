@@ -2,21 +2,11 @@
 
 import { GithubIcon, HeartHandshakeIcon, MailIcon } from "lucide-react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import React from "react";
 import CTA from "@/components/CTA";
-import { isPrivateRoute } from "@/config/routes";
-import { Link } from "./Link";
+import { Link } from "@/components/Link";
 
-export default function ConditionalMarketingFooter() {
-  const pathname = usePathname();
-
-  // I feel like there is better logic for this, something that catches all the private routes
-  // and doesn't need to be updated when new private routes are added
-  if (isPrivateRoute(pathname)) {
-    return null;
-  }
-
+export default function MarketingFooter() {
   return (
     <>
       <CTA />

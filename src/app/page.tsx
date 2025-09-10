@@ -3,10 +3,10 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import HomepageFeatureSection from "@/components/HomepageFeatureSection";
+import MarketingLayout from "@/components/layout/MarketingLayout";
 import { Link } from "@/components/Link";
 import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
-
 export default function HomePage() {
   const user = useCurrentUser();
   if (user) {
@@ -14,8 +14,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="">
-      <div className=" overflow-hiddenflex flex-col items-center justify-center relative bg-brand-background md:pt-32 pt-16 py-16 p-4 overflow-hidden">
+    <MarketingLayout>
+      <div className="flex flex-col items-center justify-center relative bg-brand-background md:pt-32 pt-16 py-16 p-4 overflow-hidden">
         <Image
           src="/pattern.svg"
           alt="Mapped"
@@ -53,6 +53,6 @@ export default function HomePage() {
       </div>
 
       <HomepageFeatureSection />
-    </div>
+    </MarketingLayout>
   );
 }
