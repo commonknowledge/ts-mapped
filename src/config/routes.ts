@@ -1,5 +1,12 @@
 export const ROUTES = {
-  private: ["/dashboard", "/data-sources", "/map", "/api", "/admin"],
+  private: [
+    "/dashboard",
+    "/data-sources",
+    "/map",
+    "/api",
+    "/admin",
+    "/account",
+  ],
   marketing: ["/", "/features", "/about", "/privacy"],
 } as const;
 
