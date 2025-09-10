@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -148,8 +149,8 @@ main {
 
 .container {
   margin: 0 auto;
-  max-width: var(--width-content);
-  padding: 3rem 1rem;
+  max-width: var(--width-content, 1400px);
+  padding: 0 1.5rem;
   width: 100%;
 }
 

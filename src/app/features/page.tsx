@@ -145,8 +145,8 @@ export default function FeaturesPage() {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 py-16 mt-16 ">
+    <div className="py-[160px]">
+      <div className="container">
         <div className="mb-16">
           <h1 className="text-4xl font-medium  mb-4 tracking-tight">
             Features
