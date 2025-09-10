@@ -15,7 +15,7 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
   const dataSourceId = String(args.dataSourceId);
 
   logger.info(
-    `Enriching ${args.externalRecordIds.length} records for data source ${dataSourceId}`,
+    `Enriching ${args.externalRecordIds.length} records for data source ${dataSourceId}`
   );
 
   const dataSource = await findDataSourceById(dataSourceId);
@@ -27,25 +27,27 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
   const adaptor = getDataSourceAdaptor(dataSource);
   if (!adaptor) {
     logger.error(
-      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`,
+      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`
     );
     return false;
   }
 
   try {
-    const records = await adaptor.fetchByExternalId(args.externalRecordIds);
+    const records = await adaptor.fetchByExternalId(
+      args.externalRecordIds as string[]
+    );
 
     const enrichedRecords = await enrichBatch(records, dataSource);
     await adaptor.updateRecords(enrichedRecords);
 
     logger.info(
-      `Enriched ${records.length} data source records for ${dataSource.id}: ${dataSource.name}`,
+      `Enriched ${records.length} data source records for ${dataSource.id}: ${dataSource.name}`
     );
     return true;
   } catch (error) {
     logger.error(
       `Failed to enrich records for ${dataSource.config.type} ${dataSourceId}`,
-      { error },
+      { error }
     );
   }
 

@@ -31,11 +31,11 @@ const importPostcodes = async () => {
 
     const postcodeGeojsonPath = join(
       postcodeGeojsonDirPath,
-      `postcodes_${i}.geojsonl`,
+      `postcodes_${i}.geojsonl`
     );
     if (!fs.existsSync(postcodeGeojsonPath)) {
       logger.error(
-        `File not found: ${postcodeGeojsonPath}. Download from the Ordnance Survey website.`,
+        `File not found: ${postcodeGeojsonPath}. Download from the Ordnance Survey website.`
       );
       return;
     }
@@ -44,7 +44,10 @@ const importPostcodes = async () => {
     const count = geojsonLines.length;
     for (let j = 0; j < count; j++) {
       const line = geojsonLines[j];
-      const feature = JSON.parse(line);
+      const feature = JSON.parse(line) as {
+        properties: { POSTCODE: string };
+        geometry: unknown;
+      };
       const name = feature.properties.POSTCODE;
       const code = name.replace(/\s+/g, "");
       await sql`

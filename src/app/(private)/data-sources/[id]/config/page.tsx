@@ -1,31 +1,30 @@
-import {
-  DataSourceQuery,
-  DataSourceQueryVariables,
-} from "@/__generated__/types";
+"use client";
+import { useQuery } from "@tanstack/react-query";
+import { use } from "react";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import { query } from "@/services/apollo";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
+import { useTRPC } from "@/utils/trpc";
 import ConfigurationForm from "../components/ConfigurationForm";
-import { DATA_SOURCE_QUERY } from "../queries";
 
-export default async function DataSourceConfigPage({
+export default function DataSourceConfigPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const result = await query<DataSourceQuery, DataSourceQueryVariables>({
-    query: DATA_SOURCE_QUERY,
-    variables: { id },
-  });
+  const { id } = use(params);
+  const trpc = useTRPC();
+  const { data: dataSource, isPending } = useQuery(
+    trpc.dataSource.byId.queryOptions({ dataSourceId: id })
+  );
 
-  if (!result.data.dataSource) {
+  if (isPending) return null;
+  if (!dataSource) {
     return (
       <div className="container">
         <h1>Not found</h1>
@@ -42,8 +41,8 @@ export default async function DataSourceConfigPage({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <Link href={`/data-sources/${result.data.dataSource.id}`}>
-              {result.data.dataSource.name}
+            <Link href={`/data-sources/${dataSource.id}`}>
+              {dataSource.name}
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -51,10 +50,10 @@ export default async function DataSourceConfigPage({
         </BreadcrumbList>
       </Breadcrumb>
       <PageHeader
-        title={`Configure ${result.data.dataSource.name}`}
+        title={`Configure ${dataSource.name}`}
         description="Tell us about your data to take full advantage of Mapped."
       />
-      <ConfigurationForm dataSource={result.data.dataSource} redirectToParent />
+      <ConfigurationForm dataSource={dataSource} redirectToParent />
     </div>
   );
 }

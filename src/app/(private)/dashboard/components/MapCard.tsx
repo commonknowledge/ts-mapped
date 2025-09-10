@@ -1,14 +1,13 @@
 import { DotIcon } from "lucide-react";
 import Image from "next/image";
-import React from "react";
-import { ListMapsQuery } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
+import { RouterOutputs } from "@/utils/trpc";
 
 export function MapCard({
   map: { id, name, imageUrl, createdAt },
 }: {
-  map: NonNullable<ListMapsQuery["maps"]>[0];
+  map: RouterOutputs["map"]["list"][0];
 }) {
   return (
     <Link href={`/map/${id}`}>

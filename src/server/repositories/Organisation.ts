@@ -15,11 +15,27 @@ export function findOrganisationsByUserId(userId: string) {
     .innerJoin(
       "organisationUser",
       "organisation.id",
-      "organisationUser.organisationId",
+      "organisationUser.organisationId"
     )
     .where("organisationUser.userId", "=", userId)
     .selectAll("organisation")
     .execute();
+}
+export function findOrganisationForUser(
+  organisationId: string,
+  userId: string
+) {
+  return db
+    .selectFrom("organisation")
+    .innerJoin(
+      "organisationUser",
+      "organisation.id",
+      "organisationUser.organisationId"
+    )
+    .where("organisationUser.userId", "=", userId)
+    .where("organisationUser.organisationId", "=", organisationId)
+    .selectAll("organisation")
+    .executeTakeFirst();
 }
 
 export async function deleteOrganisation(id: string) {
@@ -38,7 +54,7 @@ export function upsertOrganisation(organisation: NewOrganisation) {
       // ON CONFLICT DO NOTHING doesn't return anything.
       oc.columns(["name"]).doUpdateSet({
         name: organisation.name,
-      }),
+      })
     )
     .returningAll()
     .executeTakeFirstOrThrow();

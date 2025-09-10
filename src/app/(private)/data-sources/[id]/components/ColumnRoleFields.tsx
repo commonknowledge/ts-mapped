@@ -1,17 +1,17 @@
-import { DataSourceQuery } from "@/__generated__/types";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@/shadcn/ui/dropdown-menu";
+import { RouterOutputs } from "@/utils/trpc";
 
-export default function ColumnRoleFields({
+export function ColumnRoleFields({
   dataSource,
   nameColumns,
   setNameColumns,
 }: {
-  dataSource: DataSourceQuery["dataSource"];
+  dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
   nameColumns: string[];
   setNameColumns: (ncs: string[]) => void;
 }) {

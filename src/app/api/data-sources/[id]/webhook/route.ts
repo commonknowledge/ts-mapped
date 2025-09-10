@@ -8,7 +8,7 @@ import { batchAsync } from "@/server/utils";
 
 const handler = async (
   dataSourceId: string,
-  body: Record<string, unknown>,
+  body: Record<string, unknown>
 ): Promise<NextResponse> => {
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
@@ -16,13 +16,13 @@ const handler = async (
   }
 
   logger.info(
-    `Webhook received: ${dataSource.config.type} (${dataSourceId}), ${JSON.stringify(body)}`,
+    `Webhook received: ${dataSource.config.type} (${dataSourceId}), ${JSON.stringify(body)}`
   );
 
   const adaptor = getDataSourceAdaptor(dataSource);
   if (!adaptor) {
     logger.error(
-      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`,
+      `Could not get data source adaptor for source ${dataSourceId}, type ${dataSource.config.type}`
     );
     return new NextResponse("Error", { status: 500 });
   }
@@ -57,7 +57,7 @@ const handler = async (
 
 export async function GET(
   request: NextRequest,
-  args: { params: Promise<{ id: string }> },
+  args: { params: Promise<{ id: string }> }
 ) {
   const realParams = await args.params;
   const body = Object.fromEntries(request.nextUrl.searchParams.entries());
@@ -66,9 +66,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  args: { params: Promise<{ id: string }> },
+  args: { params: Promise<{ id: string }> }
 ) {
   const realParams = await args.params;
-  const body = await request.json();
+  const body = (await request.json()) as Record<string, unknown>;
   return handler(realParams.id, body);
 }

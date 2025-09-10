@@ -1,26 +1,25 @@
-import {
-  DataSourceQuery,
-  DataSourceQueryVariables,
-} from "@/__generated__/types";
+"use client";
+import { useQuery } from "@tanstack/react-query";
+import { use } from "react";
 import { DataSourceFeatures } from "@/features";
-import { DataSourceType } from "@/server/models/DataSource";
-import { query } from "@/services/apollo";
-import DataSourceDashboard from "./DataSourceDashboard";
-import DataSourceEnrichmentDashboard from "./DataSourceEnrichmentDashboard";
-import { DATA_SOURCE_QUERY } from "./queries";
+import { useTRPC } from "@/utils/trpc";
+import { DataSourceDashboard } from "./DataSourceDashboard";
+import { DataSourceEnrichmentDashboard } from "./DataSourceEnrichmentDashboard";
 
-export default async function DataSourcePage({
+export default function DataSourcePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const result = await query<DataSourceQuery, DataSourceQueryVariables>({
-    query: DATA_SOURCE_QUERY,
-    variables: { id },
-  });
+  const { id } = use(params);
 
-  const dataSource = result.data.dataSource;
+  const trpc = useTRPC();
+  const { data: dataSource, isPending } = useQuery(
+    trpc.dataSource.byId.queryOptions({ dataSourceId: id })
+  );
+
+  if (isPending) return null;
+
   if (!dataSource) {
     return (
       <div className="container">
@@ -29,7 +28,7 @@ export default async function DataSourcePage({
     );
   }
 
-  const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
+  const features = DataSourceFeatures[dataSource.config.type];
   return (
     <>
       <DataSourceDashboard dataSource={dataSource} />

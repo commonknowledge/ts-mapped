@@ -1,6 +1,6 @@
 "use client";
 
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
   Boxes,
@@ -13,12 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { useContext, useState } from "react";
-import {
-  AreaSetGroupCode,
-  DataSourceRecordType,
-  ListDataSourcesQuery,
-  ListDataSourcesQueryVariables,
-} from "@/__generated__/types";
+import { AreaSetGroupCode, DataSourceRecordType } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { Link } from "@/components/Link";
@@ -28,120 +23,80 @@ import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { useTRPC } from "@/utils/trpc";
+
+// Define mapped data library items grouped by category
+const mappedDataLibrary = {
+  localityShapes: [
+    {
+      id: "boundaries-wmc24",
+      name: AreaSetGroupCodeLabels[AreaSetGroupCode.WMC24],
+      description: "Westminster Parliamentary Constituencies for UK mapping",
+      type: "boundary",
+      category: "Locality Shapes",
+    },
+    {
+      id: "boundaries-oa21",
+      name: AreaSetGroupCodeLabels[AreaSetGroupCode.OA21],
+      description: "Census Output Areas for detailed area mapping",
+      type: "boundary",
+      category: "Locality Shapes",
+    },
+  ],
+  referenceData: [
+    {
+      id: "ge-2024",
+      name: "General Election 2024",
+      description: "Elecectoral results for the 2024 General Election",
+      type: "dataset",
+      category: "Reference Data",
+    },
+    {
+      id: "deprivation-2021",
+      name: "Deprivation 2021",
+      description:
+        "Deprivation data for the 2021 Index of Multiple Deprivation",
+      type: "dataset",
+      category: "Reference Data",
+    },
+  ],
+};
 
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
   const [activeTab, setActiveTab] = useState<"your-data" | "mapped-library">(
-    "your-data",
+    "your-data"
   );
 
-  const { data, loading } = useQuery<
-    ListDataSourcesQuery,
-    ListDataSourcesQueryVariables
-  >(
-    gql`
-      query ListDataSources($organisationId: String) {
-        dataSources(organisationId: $organisationId) {
-          id
-          name
-          config
-          createdAt
-          public
-          autoEnrich
-          autoImport
-          recordType
-          columnDefs {
-            name
-            type
-          }
-          columnRoles {
-            nameColumns
-          }
-          recordCount {
-            count
-          }
-          geocodingConfig {
-            type
-            column
-            columns
-            areaSetCode
-          }
-          enrichments {
-            sourceType
-            areaSetCode
-            areaProperty
-            dataSourceId
-            dataSourceColumn
-          }
-        }
-      }
-    `,
-    {
-      variables: { organisationId },
-      skip: !organisationId,
-      fetchPolicy: "network-only",
-    },
+  const trpc = useTRPC();
+  const { data: dataSources, isPending } = useQuery(
+    trpc.dataSource.byOrganisation.queryOptions(
+      { organisationId: organisationId || "" },
+      { enabled: Boolean(organisationId) }
+    )
   );
-  const dataSources = data?.dataSources || [];
 
-  // Define mapped data library items grouped by category
-  const mappedDataLibrary = {
-    localityShapes: [
-      {
-        id: "boundaries-wmc24",
-        name: AreaSetGroupCodeLabels[AreaSetGroupCode.WMC24],
-        description: "Westminster Parliamentary Constituencies for UK mapping",
-        type: "boundary",
-        category: "Locality Shapes",
-      },
-      {
-        id: "boundaries-oa21",
-        name: AreaSetGroupCodeLabels[AreaSetGroupCode.OA21],
-        description: "Census Output Areas for detailed area mapping",
-        type: "boundary",
-        category: "Locality Shapes",
-      },
-    ],
-    referenceData: [
-      {
-        id: "ge-2024",
-        name: "General Election 2024",
-        description: "Elecectoral results for the 2024 General Election",
-        type: "dataset",
-        category: "Reference Data",
-      },
-      {
-        id: "deprivation-2021",
-        name: "Deprivation 2021",
-        description:
-          "Deprivation data for the 2021 Index of Multiple Deprivation",
-        type: "dataset",
-        category: "Reference Data",
-      },
-    ],
-  };
-
-  const memberDataSources = dataSources.filter((dataSource) => {
+  const memberDataSources = dataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Members;
   });
 
-  const referenceDataSources = dataSources.filter((dataSource) => {
+  const referenceDataSources = dataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Data;
   });
 
-  const eventDataSources = dataSources.filter((dataSource) => {
+  const eventDataSources = dataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Events;
   });
 
-  const locationDataSources = dataSources.filter((dataSource) => {
+  const locationDataSources = dataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Locations;
   });
 
-  const peopleDataSources = dataSources.filter((dataSource) => {
+  const peopleDataSources = dataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.People;
   });
 
-  const otherDataSources = dataSources.filter((dataSource) => {
+  const otherDataSources = dataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Other;
   });
 
@@ -169,7 +124,7 @@ export default function DataSourcesPage() {
         </TabsList>
 
         <TabsContent value="your-data" className="mt-6">
-          {loading ? (
+          {isPending ? (
             <div className="flex justify-center py-8">
               <LoaderPinwheel className="animate-spin" />
             </div>
@@ -188,10 +143,10 @@ export default function DataSourcesPage() {
                 }
               />
               {/* Show message if no data sources at all */}
-              {dataSources.length === 0 && (
+              {dataSources && dataSources.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
                   <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">No data sources yet</p>
+                  <p className="text-lg font-medium">No dddd sources yet</p>
                   <p className="text-sm mb-4">
                     Create your first data source to get started
                   </p>
@@ -211,7 +166,7 @@ export default function DataSourcesPage() {
                   Member Collections
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {memberDataSources.map((dataSource) => (
+                  {memberDataSources?.map((dataSource) => (
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
@@ -220,7 +175,7 @@ export default function DataSourcesPage() {
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
                   ))}
-                  {memberDataSources.length === 0 && (
+                  {memberDataSources?.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <Users className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No member collections yet</p>
@@ -236,7 +191,7 @@ export default function DataSourcesPage() {
                   Reference Data
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {referenceDataSources.map((dataSource) => (
+                  {referenceDataSources?.map((dataSource) => (
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
@@ -245,7 +200,7 @@ export default function DataSourcesPage() {
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
                   ))}
-                  {referenceDataSources.length === 0 && (
+                  {referenceDataSources?.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <Database className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No reference data yet</p>
@@ -261,7 +216,7 @@ export default function DataSourcesPage() {
                   Events
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {eventDataSources.map((dataSource) => (
+                  {eventDataSources?.map((dataSource) => (
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
@@ -270,7 +225,7 @@ export default function DataSourcesPage() {
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
                   ))}
-                  {eventDataSources.length === 0 && (
+                  {eventDataSources?.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <CalendarDays className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No events data yet</p>
@@ -286,7 +241,7 @@ export default function DataSourcesPage() {
                   Locations
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {locationDataSources.map((dataSource) => (
+                  {locationDataSources?.map((dataSource) => (
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
@@ -295,7 +250,7 @@ export default function DataSourcesPage() {
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
                   ))}
-                  {locationDataSources.length === 0 && (
+                  {locationDataSources?.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <MapPin className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No locations data yet</p>
@@ -311,7 +266,7 @@ export default function DataSourcesPage() {
                   People
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {peopleDataSources.map((dataSource) => (
+                  {peopleDataSources?.map((dataSource) => (
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
@@ -320,7 +275,7 @@ export default function DataSourcesPage() {
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
                   ))}
-                  {peopleDataSources.length === 0 && (
+                  {peopleDataSources?.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <Users className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No people data yet</p>
@@ -336,7 +291,7 @@ export default function DataSourcesPage() {
                   Other
                 </h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {otherDataSources.map((dataSource) => (
+                  {otherDataSources?.map((dataSource) => (
                     <Link
                       key={dataSource.id}
                       href={`/data-sources/${dataSource.id}`}
@@ -345,7 +300,7 @@ export default function DataSourcesPage() {
                       <DataSourceItem dataSource={dataSource} />
                     </Link>
                   ))}
-                  {otherDataSources.length === 0 && (
+                  {otherDataSources?.length === 0 && (
                     <div className="col-span-full text-center py-8 text-gray-400">
                       <Boxes className="w-8 h-8 mx-auto mb-2" />
                       <p className="text-sm">No other data yet</p>

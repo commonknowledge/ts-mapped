@@ -6,12 +6,10 @@ import { useCallback, useEffect, useState } from "react";
 import {
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
-  DataSourceQuery,
   EnqueueImportDataSourceJobMutation,
   EnqueueImportDataSourceJobMutationVariables,
   JobStatus,
 } from "@/__generated__/types";
-import DataSourceBadge from "@/components/DataSourceBadge";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
@@ -23,22 +21,20 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { RouterOutputs } from "@/utils/trpc";
 import ConfigurationForm from "./components/ConfigurationForm";
 
-export default function DataSourceDashboard({
+export function DataSourceDashboard({
   dataSource,
 }: {
-  // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
-  dataSource: Exclude<DataSourceQuery["dataSource"], null | undefined>;
+  dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
 }) {
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null,
+    dataSource.importInfo?.lastCompleted || null
   );
-  const [recordCount, setRecordCount] = useState(
-    dataSource.recordCount?.count || 0,
-  );
+  const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
   const [enqueueImportDataSourceJob] = useMutation<
     EnqueueImportDataSourceJobMutation,
@@ -73,7 +69,7 @@ export default function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -122,14 +118,9 @@ export default function DataSourceDashboard({
       k in DataSourceConfigLabels
         ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
         : k,
-    value:
-      k === "type" ? (
-        <DataSourceBadge type={dataSource.config[k]} />
-      ) : typeof dataSource.config[k] === "string" ? (
-        dataSource.config[k]
-      ) : (
-        JSON.stringify(dataSource.config[k])
-      ),
+    value: JSON.stringify(
+      dataSource.config[k as keyof typeof dataSource.config]
+    ),
   }));
 
   return (
@@ -206,11 +197,11 @@ export default function DataSourceDashboard({
   );
 }
 
-const isImporting = (dataSource: DataSourceQuery["dataSource"]) => {
+const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+        dataSource.importInfo?.status
+      )
   );
 };

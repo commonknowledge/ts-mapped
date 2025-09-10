@@ -22,7 +22,7 @@ import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/Publ
  */
 export async function GET(
   request: NextRequest,
-  args: { params: Promise<{ id: string; filter: string; search: string }> },
+  args: { params: Promise<{ id: string; filter: string; search: string }> }
 ): Promise<NextResponse> {
   const realParams = await args.params;
   const { currentUser } = await getServerSession();
@@ -36,9 +36,9 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const filter: RecordFilterInput | null = JSON.parse(
-    request?.nextUrl?.searchParams.get("filter") || "null",
-  );
+  const filter = JSON.parse(
+    request?.nextUrl?.searchParams.get("filter") || "null"
+  ) as RecordFilterInput | null;
   const search = request?.nextUrl?.searchParams.get("search") || "";
 
   const encoder = new TextEncoder();
@@ -47,14 +47,14 @@ export async function GET(
       // Start object
       controller.enqueue(
         encoder.encode(
-          `{"dataSourceId":"${dataSource.id}","dataSourceName":"${dataSource.name}","markers":{"type":"FeatureCollection","features":[`,
-        ),
+          `{"dataSourceId":"${dataSource.id}","dataSourceName":"${dataSource.name}","markers":{"type":"FeatureCollection","features":[`
+        )
       );
 
       const stream = streamDataRecordsByDataSource(
         dataSource.id,
         filter,
-        search,
+        search
       );
       let row = await stream.next();
       let firstItemWritten = false;
@@ -108,7 +108,7 @@ export async function GET(
 
 const checkAccess = async (
   dataSource: DataSource,
-  userId: string | undefined | null,
+  userId: string | undefined | null
 ): Promise<boolean> => {
   if (dataSource.public) {
     return true;
@@ -125,7 +125,7 @@ const checkAccess = async (
 
   const organisationUser = await findOrganisationUser(
     dataSource.organisationId,
-    userId,
+    userId
   );
   if (organisationUser) {
     return true;

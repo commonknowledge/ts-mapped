@@ -1,6 +1,5 @@
 import {
   AreaSetCode,
-  DataSourceQuery,
   GeocodingType,
   LooseGeocodingConfig,
 } from "@/__generated__/types";
@@ -12,6 +11,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@/shadcn/ui/dropdown-menu";
+import { RouterOutputs } from "@/utils/trpc";
 
 /**
  * This is a little complicated as it includes a front-end only
@@ -22,12 +22,12 @@ import {
  */
 type FriendlyGeocodingType = GeocodingType | "Postcode";
 
-export default function GeocodingConfigFields({
+export function GeocodingConfigFields({
   dataSource,
   geocodingConfig,
   onChange,
 }: {
-  dataSource: DataSourceQuery["dataSource"];
+  dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
   geocodingConfig: LooseGeocodingConfig;
   onChange: (config: Partial<LooseGeocodingConfig>) => void;
 }) {
@@ -39,9 +39,12 @@ export default function GeocodingConfigFields({
   const onTypeChange = (type: FriendlyGeocodingType) => {
     if (type === "Postcode") {
       onChange({ type: GeocodingType.Code, areaSetCode: AreaSetCode.PC });
-    } else if (areaSetCode === AreaSetCode.PC) {
+    } else if (geocodingConfig.areaSetCode === AreaSetCode.PC) {
       // Reset the areaSetCode if changing from postcode to other type
-      const prevType = dataSource?.geocodingConfig.areaSetCode;
+      const prevType =
+        "areaSetCode" in dataSource.geocodingConfig
+          ? dataSource.geocodingConfig.areaSetCode
+          : null;
       onChange({
         type,
         areaSetCode: prevType === AreaSetCode.PC ? null : prevType,

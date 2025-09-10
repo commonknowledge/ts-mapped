@@ -19,7 +19,7 @@ interface MappingDataRecord {
 
 export const geocodeRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: GeocodingConfig,
+  geocodingConfig: GeocodingConfig
 ): Promise<GeocodeResult | null> => {
   try {
     return await _geocodeRecord(dataRecord, geocodingConfig);
@@ -33,7 +33,7 @@ export const geocodeRecord = async (
 
 const _geocodeRecord = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: GeocodingConfig,
+  geocodingConfig: GeocodingConfig
 ): Promise<GeocodeResult> => {
   if (geocodingConfig.type === "Code" || geocodingConfig.type === "Name") {
     return geocodeRecordByArea(dataRecord, geocodingConfig);
@@ -46,7 +46,7 @@ const _geocodeRecord = async (
 
 const geocodeRecordByArea = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: AreaGeocodingConfig,
+  geocodingConfig: AreaGeocodingConfig
 ) => {
   const dataRecordJson = dataRecord.json;
   const { column: areaColumn, areaSetCode } = geocodingConfig;
@@ -66,7 +66,7 @@ const geocodeRecordByArea = async (
   }
   if (!area) {
     throw new Error(
-      `Area not found in area set ${areaSetCode}: ${dataRecordArea}`,
+      `Area not found in area set ${areaSetCode}: ${dataRecordArea}`
     );
   }
   const geocodeResult: GeocodeResult = {
@@ -79,7 +79,7 @@ const geocodeRecordByArea = async (
 
   const mappedAreas = await findAreasByPoint(
     area.samplePoint,
-    geocodingConfig.areaSetCode,
+    geocodingConfig.areaSetCode
   );
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
@@ -90,7 +90,7 @@ const geocodeRecordByArea = async (
 
 const geocodeRecordByAddress = async (
   dataRecord: MappingDataRecord,
-  geocodingConfig: AddressGeocodingConfig,
+  geocodingConfig: AddressGeocodingConfig
 ) => {
   const dataRecordJson = dataRecord.json;
   const { columns: addressColumns } = geocodingConfig;
@@ -103,21 +103,22 @@ const geocodeRecordByAddress = async (
   // TODO: remove UK when other countries are supported
   const address = addressColumns.map((c) => dataRecordJson[c]).join(", ");
   const geocodeUrl = new URL(
-    "https://api.mapbox.com/search/geocode/v6/forward",
+    "https://api.mapbox.com/search/geocode/v6/forward"
   );
   geocodeUrl.searchParams.set("q", address);
   geocodeUrl.searchParams.set("country", "GB");
   geocodeUrl.searchParams.set(
     "access_token",
-    process.env.MAPBOX_SECRET_TOKEN || "",
+    process.env.MAPBOX_SECRET_TOKEN || ""
   );
 
   const response = await fetch(geocodeUrl);
   if (!response.ok) {
     throw new Error(`Geocode request failed: ${response.status}`);
   }
-  const results: { features?: { id: string; geometry: GeoJSONPoint }[] } =
-    await response.json();
+  const results = (await response.json()) as {
+    features?: { id: string; geometry: GeoJSONPoint }[];
+  };
   if (!results.features?.length) {
     throw new Error(`Geocode request returned no features`);
   }
@@ -146,6 +147,7 @@ const geojsonPointToPoint = (geojson: string): Point | null => {
   if (!geojson) {
     return null;
   }
-  const [lng, lat] = JSON.parse(geojson).coordinates;
+  const [lng, lat] = (JSON.parse(geojson) as { coordinates: [number, number] })
+    .coordinates;
   return { lng, lat };
 };

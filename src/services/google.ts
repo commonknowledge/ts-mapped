@@ -1,7 +1,7 @@
 import { GoogleOAuthCredentials } from "@/server/models/DataSource";
 
 export const getOAuthCredentials = async (
-  redirectSuccessUrl: string,
+  redirectSuccessUrl: string
 ): Promise<GoogleOAuthCredentials> => {
   const response = await fetch("/api/google/oauth", {
     body: JSON.stringify({ redirectSuccessUrl }),
@@ -10,28 +10,28 @@ export const getOAuthCredentials = async (
   if (!response.ok) {
     throw new Error("Failed to get Google OAuth Credentials");
   }
-  return response.json();
+  return response.json() as Promise<GoogleOAuthCredentials>;
 };
 
 export const getOAuthURL = async (
-  state: Record<string, string>,
+  state: Record<string, string>
 ): Promise<string> => {
   const response = await fetch(
     `/api/google/oauth?state=${encodeURIComponent(JSON.stringify(state))}`,
     {
       method: "GET",
-    },
+    }
   );
   if (!response.ok) {
     throw new Error("Failed to get Google OAuth URL");
   }
-  const body = await response.json();
+  const body = (await response.json()) as { url: string };
   return body.url;
 };
 
 export const getSheets = async (
   oAuthCredentials: GoogleOAuthCredentials,
-  spreadsheetId: string,
+  spreadsheetId: string
 ): Promise<string[]> => {
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`,
@@ -40,16 +40,16 @@ export const getSheets = async (
       headers: {
         Authorization: `Bearer ${oAuthCredentials.access_token}`,
       },
-    },
+    }
   );
 
   if (!response.ok) {
     throw new Error("Failed to fetch sheet names");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as {
+    sheets: { properties: { title: string } }[];
+  };
   const sheets = data.sheets || [];
-  return sheets.map(
-    (sheet: { properties: { title: string } }) => sheet.properties.title,
-  );
+  return sheets.map((sheet) => sheet.properties.title);
 };

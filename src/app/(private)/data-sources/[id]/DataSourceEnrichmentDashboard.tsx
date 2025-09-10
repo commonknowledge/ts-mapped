@@ -7,7 +7,6 @@ import {
   AreaSetCode,
   DataSourceEnrichmentEventSubscription,
   DataSourceEnrichmentEventSubscriptionVariables,
-  DataSourceQuery,
   EnqueueEnrichDataSourceJobMutation,
   EnqueueEnrichDataSourceJobMutationVariables,
   EnrichmentSourceType,
@@ -19,17 +18,17 @@ import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
+import { RouterOutputs } from "@/utils/trpc";
 
-export default function DataSourceEnrichmentDashboard({
+export function DataSourceEnrichmentDashboard({
   dataSource,
 }: {
-  // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
-  dataSource: Exclude<DataSourceQuery["dataSource"], null | undefined>;
+  dataSource: RouterOutputs["dataSource"]["byId"];
 }) {
   const [enriching, setEnriching] = useState(isEnriching(dataSource));
   const [enrichmentError, setEnrichmentError] = useState("");
   const [lastEnriched, setLastEnriched] = useState(
-    dataSource.enrichmentInfo?.lastCompleted || null,
+    dataSource.enrichmentInfo?.lastCompleted || null
   );
   const [enrichmentCount, setEnrichmentCount] = useState(0);
 
@@ -63,7 +62,7 @@ export default function DataSourceEnrichmentDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -201,7 +200,7 @@ export default function DataSourceEnrichmentDashboard({
                     value={
                       dataSource.enrichmentDataSources?.find(
                         (dataSource) =>
-                          dataSource.id === enrichment.dataSourceId,
+                          dataSource.id === enrichment.dataSourceId
                       )?.name || "Unknown"
                     }
                     border
@@ -221,11 +220,11 @@ export default function DataSourceEnrichmentDashboard({
   );
 }
 
-const isEnriching = (dataSource: DataSourceQuery["dataSource"]) => {
+const isEnriching = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.enrichmentInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.enrichmentInfo?.status,
-      ),
+        dataSource.enrichmentInfo?.status
+      )
   );
 };

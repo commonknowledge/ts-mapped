@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
 import {
-  DataSourceQuery,
   UpdateDataSourceConfigMutation,
   UpdateDataSourceConfigMutationVariables,
 } from "@/__generated__/types";
@@ -17,27 +16,27 @@ import {
 } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
-import ColumnRoleFields from "./ColumnRoleFields";
-import GeocodingConfigFields from "./GeocodingConfigFields";
+import { RouterOutputs } from "@/utils/trpc";
+import { ColumnRoleFields } from "./ColumnRoleFields";
+import { GeocodingConfigFields } from "./GeocodingConfigFields";
 
 export default function ConfigurationForm({
   dataSource,
   redirectToParent = false,
 }: {
-  // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
-  dataSource: Exclude<DataSourceQuery["dataSource"], null | undefined>;
+  dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
   redirectToParent?: boolean;
 }) {
   const router = useRouter();
 
   // Columns config
   const [nameColumns, setNameColumns] = useState<string[]>(
-    dataSource.columnRoles.nameColumns || [],
+    dataSource.columnRoles.nameColumns || []
   );
 
   // Geocoding config
   const [geocodingConfig, setGeocodingConfig] = useState(
-    dataSource.geocodingConfig,
+    dataSource.geocodingConfig
   );
 
   const [autoImport, setAutoImport] = useState(dataSource.autoImport);
@@ -119,7 +118,10 @@ export default function ConfigurationForm({
         dataSource={dataSource}
         geocodingConfig={geocodingConfig}
         onChange={(nextGeocodingConfig) =>
-          setGeocodingConfig({ ...geocodingConfig, ...nextGeocodingConfig })
+          setGeocodingConfig({
+            ...geocodingConfig,
+            ...nextGeocodingConfig,
+          } as typeof geocodingConfig)
         }
       />
 
