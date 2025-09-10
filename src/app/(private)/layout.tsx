@@ -1,32 +1,14 @@
-"use client";
-
-import { usePathname } from "next/navigation";
 import { redirect } from "next/navigation";
-import Sidebar from "@/components/Sidebar";
-import { useCurrentUser } from "@/hooks";
+import { getServerSession } from "@/auth";
 
-export default function PrivateLayout({
+export default async function PrivateLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = useCurrentUser();
-  const pathname = usePathname();
+  const user = await getServerSession();
 
-  if (!user) {
-    redirect("/");
-  }
+  if (!user) redirect("/");
 
-  // If we're on a map page, don't show sidebar (map has its own navbar)
-  if (pathname.startsWith("/map/")) {
-    return <>{children}</>;
-  }
-
-  // For authenticated users on other pages, show sidebar layout
-  return (
-    <div className="flex h-screen">
-      <Sidebar slug={pathname} />
-      <div className="flex-1 overflow-auto p-10  w-full">{children}</div>
-    </div>
-  );
+  return <>{children}</>;
 }

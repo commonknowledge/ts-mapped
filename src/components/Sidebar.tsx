@@ -2,6 +2,7 @@
 
 import { Clock2, DatabaseIcon } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { SyntheticEvent, useContext } from "react";
 import { useCurrentUser } from "@/hooks";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
@@ -16,7 +17,9 @@ import {
 import { cn } from "@/shadcn/utils";
 import { Link } from "./Link";
 
-export default function Sidebar({ slug }: { slug: string }) {
+export default function Sidebar() {
+  const slug = usePathname();
+
   const user = useCurrentUser();
   const { organisations, organisationId, setOrganisationId } =
     useContext(OrganisationsContext);
@@ -27,9 +30,7 @@ export default function Sidebar({ slug }: { slug: string }) {
     location.reload();
   };
 
-  const isActive = (href: string) => {
-    return slug === href;
-  };
+  const isActive = (href: string) => slug === href;
 
   const navItems = [
     {
@@ -72,7 +73,7 @@ export default function Sidebar({ slug }: { slug: string }) {
                 href={item.href}
                 className={cn(
                   "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary",
+                  isActive(item.href) && "bg-neutral-100 text-primary"
                 )}
               >
                 {item.icon}
@@ -110,7 +111,7 @@ export default function Sidebar({ slug }: { slug: string }) {
           href={"/account"}
           className={cn(
             "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-            isActive("/account") && "bg-neutral-100 text-primary",
+            isActive("/account") && "bg-neutral-100 text-primary"
           )}
         >
           <div className="w-6 h-6 bg-neutral-200 rounded-full flex items-center justify-center">
