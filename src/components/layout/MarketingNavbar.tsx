@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
 
@@ -10,59 +11,63 @@ export default function MarketingNavbar() {
 
   return (
     <>
-      <nav className="flex justify-between items-center px-4 md:px-6 h-16 md:h-20 fixed top-0 left-0 right-0 bg-transparent z-50">
-        <div className="flex items-center">
-          <Link href="/" className="pr-2 shrink-0">
-            <Image
-              src="/logo.svg"
-              alt="Mapped"
-              width={28}
-              height={28}
-              className="md:w-8 md:h-8"
-            />
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 bg-brand-background rounded-lg">
-          <Link href="/features" className="text-sm">
-            Features
-          </Link>
-          <Link href="/about" className="text-sm">
-            About
-          </Link>
-          <Link href="/privacy" className="text-sm">
-            Privacy
-          </Link>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-md bg-brand-background"
-            aria-label="Toggle mobile menu"
-          >
-            <div className="w-5 h-5 flex flex-col justify-center items-center">
-              <span
-                className={`block w-4 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? "rotate-45 translate-y-0.5" : "-translate-y-1"}`}
-              ></span>
-              <span
-                className={`block w-4 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? "opacity-0" : "opacity-100"}`}
-              ></span>
-              <span
-                className={`block w-4 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? "-rotate-45 -translate-y-0.5" : "translate-y-1"}`}
-              ></span>
+      <div className="absolute top-0 left-0 right-0 bg-transparent z-50">
+        <Container>
+          <nav className="flex justify-between items-center h-16 md:h-20">
+            <div className="flex items-center">
+              <Link href="/" className="pr-2 shrink-0">
+                <Image
+                  src="/logo.svg"
+                  alt="Mapped"
+                  width={28}
+                  height={28}
+                  className="md:w-8 md:h-8"
+                />
+              </Link>
             </div>
-          </button>
-        </div>
 
-        <Link href="/login" className="hidden md:block">
-          <Button size="sm" className="text-xs md:text-sm">
-            Login
-          </Button>
-        </Link>
-      </nav>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 bg-brand-background rounded-lg">
+              <Link href="/features" className="text-sm">
+                Features
+              </Link>
+              <Link href="/about" className="text-sm">
+                About
+              </Link>
+              <Link href="/privacy" className="text-sm">
+                Privacy
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-md bg-brand-background"
+                aria-label="Toggle mobile menu"
+              >
+                <div className="w-5 h-5 flex flex-col justify-center items-center">
+                  <span
+                    className={`block w-4 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? "rotate-45 translate-y-0.5" : "-translate-y-1"}`}
+                  ></span>
+                  <span
+                    className={`block w-4 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? "opacity-0" : "opacity-100"}`}
+                  ></span>
+                  <span
+                    className={`block w-4 h-0.5 bg-current transition-all duration-300 ${isMobileMenuOpen ? "-rotate-45 -translate-y-0.5" : "translate-y-1"}`}
+                  ></span>
+                </div>
+              </button>
+            </div>
+
+            <Link href="/login" className="hidden md:block">
+              <Button size="sm" className="text-xs md:text-sm">
+                Login
+              </Button>
+            </Link>
+          </nav>
+        </Container>
+      </div>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
