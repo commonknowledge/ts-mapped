@@ -28,14 +28,14 @@ export default function MarketingNavbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 bg-brand-background rounded-lg">
+              <Link href="/" className="text-sm">
+                Home
+              </Link>
               <Link href="/features" className="text-sm">
                 Features
               </Link>
               <Link href="/about" className="text-sm">
                 About
-              </Link>
-              <Link href="/privacy" className="text-sm">
-                Privacy
               </Link>
             </div>
 
@@ -81,6 +81,13 @@ export default function MarketingNavbar() {
           >
             <div className="flex flex-col space-y-4">
               <Link
+                href="/"
+                className="text-lg font-medium py-2 border-b border-gray-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
                 href="/features"
                 className="text-lg font-medium py-2 border-b border-gray-100"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -93,13 +100,6 @@ export default function MarketingNavbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 About
-              </Link>
-              <Link
-                href="/privacy"
-                className="text-lg font-medium py-2 border-b border-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Privacy
               </Link>
               <div className="pt-4">
                 Mapped is built to be used on desktop. We recommend using a
