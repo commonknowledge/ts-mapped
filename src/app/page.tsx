@@ -32,7 +32,7 @@ export default function HomePage() {
         />
         <div className="flex flex-col items-center justify-center">
           <Image
-            src="/hero.svg"
+            src="/hero-new.svg"
             alt="Mapped"
             height={456}
             width={1024}
