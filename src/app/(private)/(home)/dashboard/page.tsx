@@ -7,7 +7,7 @@ import { useContext } from "react";
 import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Button } from "@/shadcn/ui/button";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/utils/trpc/react";
 import { MapCard } from "./components/MapCard";
 
 export default function DashboardPage() {

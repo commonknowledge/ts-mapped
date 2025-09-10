@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { DataSourceFeatures } from "@/features";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/utils/trpc/react";
 import { DataSourceDashboard } from "./DataSourceDashboard";
 import { DataSourceEnrichmentDashboard } from "./DataSourceEnrichmentDashboard";
 

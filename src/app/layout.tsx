@@ -18,7 +18,7 @@ import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
 import { Toaster } from "@/shadcn/ui/sonner";
-import { TRPCReactProvider } from "@/utils/trpc";
+import { TRPCReactProvider } from "@/utils/trpc/react";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -50,7 +50,7 @@ export default async function RootLayout({
   const host = headersList.get("x-forwarded-host") || headersList.get("host");
 
   const mainHost = new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
+    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL
   );
 
   if (host && host !== mainHost.host) {

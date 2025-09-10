@@ -7,7 +7,7 @@ import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/utils/trpc/react";
 
 export function ChangePasswordForm() {
   const [password, setPassword] = React.useState("");

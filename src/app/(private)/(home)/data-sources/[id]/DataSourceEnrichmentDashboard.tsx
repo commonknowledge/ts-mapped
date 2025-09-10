@@ -18,7 +18,7 @@ import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
-import { RouterOutputs } from "@/utils/trpc";
+import { RouterOutputs } from "@/utils/trpc/react";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,

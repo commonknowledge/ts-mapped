@@ -11,7 +11,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@/shadcn/ui/dropdown-menu";
-import { RouterOutputs } from "@/utils/trpc";
+import { RouterOutputs } from "@/utils/trpc/react";
 
 /**
  * This is a little complicated as it includes a front-end only

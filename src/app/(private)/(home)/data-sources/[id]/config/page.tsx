@@ -9,7 +9,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/utils/trpc/react";
 import ConfigurationForm from "../components/ConfigurationForm";
 
 export default function DataSourceConfigPage({

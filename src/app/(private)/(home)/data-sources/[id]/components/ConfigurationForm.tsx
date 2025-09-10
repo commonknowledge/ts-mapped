@@ -16,7 +16,7 @@ import {
 } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
-import { RouterOutputs } from "@/utils/trpc";
+import { RouterOutputs } from "@/utils/trpc/react";
 import { ColumnRoleFields } from "./ColumnRoleFields";
 import { GeocodingConfigFields } from "./GeocodingConfigFields";
 

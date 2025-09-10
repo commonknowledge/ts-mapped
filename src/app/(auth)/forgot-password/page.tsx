@@ -9,7 +9,7 @@ import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
-import { useTRPC } from "@/utils/trpc";
+import { useTRPC } from "@/utils/trpc/react";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
       onError: () => {
         setError("Email failed to send, please check your credentials.");
       },
-    }),
+    })
   );
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {

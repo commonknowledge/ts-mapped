@@ -5,6 +5,7 @@ import { getServerSession } from "@/auth";
 import { findDataSourceById } from "../repositories/DataSource";
 import { findOrganisationForUser } from "../repositories/Organisation";
 import { findUserById } from "../repositories/User";
+import { appRouter } from "./router";
 
 export async function createContext() {
   const session = await getServerSession();
@@ -16,6 +17,11 @@ export async function createContext() {
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
+
+export const createCaller = async () => {
+  const context = await createContext();
+  return appRouter.createCaller(context);
+};
 
 /**
  * Initialization of tRPC backend

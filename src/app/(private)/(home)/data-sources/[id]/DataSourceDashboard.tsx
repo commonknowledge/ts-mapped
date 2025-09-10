@@ -21,7 +21,7 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { RouterOutputs } from "@/utils/trpc";
+import { RouterOutputs } from "@/utils/trpc/react";
 import ConfigurationForm from "./components/ConfigurationForm";
 
 export function DataSourceDashboard({
