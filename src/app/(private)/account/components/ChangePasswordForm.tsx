@@ -1,51 +1,33 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "sonner";
-import {
-  UpdateUserPasswordMutation,
-  UpdateUserPasswordMutationVariables,
-} from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
+import { useTRPC } from "@/utils/trpc";
 
 export function ChangePasswordForm() {
   const [password, setPassword] = React.useState("");
 
-  const [updateUserPassword, { loading }] = useMutation<
-    UpdateUserPasswordMutation,
-    UpdateUserPasswordMutationVariables
-  >(gql`
-    mutation UpdateUserPassword($data: UpdateUserInput!) {
-      updateUser(data: $data) {
-        code
-        result {
-          id
-        }
-      }
-    }
-  `);
+  const trpc = useTRPC();
+  const { mutate: updateUserPassword, isPending } = useMutation(
+    trpc.user.update.mutationOptions({
+      onSuccess: () => {
+        setPassword("");
+        toast.success("Password updated");
+      },
+      onError: () => {
+        toast.error("Failed to update password");
+      },
+    })
+  );
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    try {
-      const { data } = await updateUserPassword({
-        variables: { data: { password } },
-      });
-      if (data?.updateUser?.code === 200) {
-        setPassword("");
-        toast.success("Password updated");
-      } else {
-        toast.error("Failed to update password");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to update password");
-    }
+    updateUserPassword({ password });
   };
 
   return (
@@ -70,8 +52,8 @@ export function ChangePasswordForm() {
             />
           </FormFieldWrapper>
 
-          <Button type="submit" disabled={loading}>
-            {loading ? "Saving..." : "Save"}
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Saving..." : "Save"}
           </Button>
         </CardContent>
       </Card>
