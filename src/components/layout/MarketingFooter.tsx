@@ -102,7 +102,7 @@ export default function MarketingFooter() {
                 Mapped is open sourced on Github under the GNU Affero GPL
                 license.
               </li>
-              <Link href="/privacy-policy" className="underline">
+              <Link href="/privacy" className="underline">
                 Privacy policy
               </Link>
             </ul>
