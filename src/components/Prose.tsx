@@ -1,6 +1,18 @@
-export default function Prose({ children }: { children: React.ReactNode }) {
+import { cn } from "@/shadcn/utils";
+export default function Prose({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="prose mx-auto text-foreground prose-headings:text-primary prose-headings:font-medium prose-headings:tracking-tight">
+    <div
+      className={cn(
+        "prose mx-auto text-foreground prose-headings:text-primary prose-headings:font-medium prose-headings:tracking-tight",
+        className,
+      )}
+    >
       {children}
     </div>
   );

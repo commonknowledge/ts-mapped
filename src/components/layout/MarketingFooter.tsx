@@ -3,9 +3,10 @@
 import { GithubIcon, HeartHandshakeIcon, MailIcon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
-import CTA from "@/components/CTA";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
+import CTA from "@/components/marketing/CTA";
+import Prose from "@/components/Prose";
 
 export default function MarketingFooter() {
   return (
@@ -13,32 +14,33 @@ export default function MarketingFooter() {
       <CTA />
 
       <Container>
-        <footer className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:p-10 p-6">
+        <footer className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full md:py-20 py-12">
           <div className="col-span-2">
-            <div className="flex flex-col gap-4 max-w-2xl">
-              <h2 className="text-3xl">
-                Made for the movement, by the movement
-              </h2>
-              <p>
-                Mapped was built for and with organisers: tenant unions, climate
-                action groups, migrant solidarity organisations, divestment
-                campaigns and more.
-              </p>
-              <p>
-                It’s a project by Common Knowledge, a not-for-profit worker
-                cooperative that uses digital technology to build power for
-                social movements.
-              </p>
-              <Link href="https://commonknowledge.coop">
-                <Image
-                  src="/CK_Logo_Black.svg"
-                  alt="Common Knowledge"
-                  width={300}
-                  height={200}
-                  className="max-w-48"
-                />
-              </Link>
-              <p className="mt-8">Funded by</p>
+            <div className="flex flex-col items-start gap-4 max-w-2xl">
+              <Prose className="mx-0 text-balance">
+                <h2>Made for the movement, by the movement</h2>
+                <p>
+                  Mapped was built for and with organisers: tenant unions,
+                  climate action groups, migrant solidarity organisations,
+                  divestment campaigns and more.
+                </p>
+                <p>
+                  It’s a project by Common Knowledge, a not-for-profit worker
+                  cooperative that uses digital technology to build power for
+                  social movements.
+                </p>
+                <Link href="https://commonknowledge.coop">
+                  <Image
+                    src="/CK_Logo_Black.svg"
+                    alt="Common Knowledge"
+                    width={300}
+                    height={200}
+                    className="max-w-48"
+                  />
+                </Link>
+              </Prose>
+
+              <h3>Funded by:</h3>
               <div className="flex gap-4">
                 <Image
                   src="/funders/CVC.svg"
