@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { EnrichmentSourceType } from "@/server/models/DataSource";
 import {
+  deleteDataSource,
   findDataSourcesByIds,
   getJobInfo,
 } from "@/server/repositories/DataSource";
@@ -51,7 +52,7 @@ export const dataSourceRouter = router({
         getJobInfo(ctx.dataSource.id, "enrichDataSource"),
         getJobInfo(ctx.dataSource.id, "importDataSource"),
         findDataSourcesByIds(dataSourceIds).then((ds) =>
-          ds.map((ds) => ({ name: ds.name, id: ds.id })),
+          ds.map((ds) => ({ name: ds.name, id: ds.id }))
         ),
       ]);
     return {
@@ -61,5 +62,10 @@ export const dataSourceRouter = router({
       enrichmentDataSources,
       recordCount: Number(dataSource.recordCount) || 0,
     };
+  }),
+
+  delete: dataSourceProcedure.mutation(async ({ ctx }) => {
+    await deleteDataSource(ctx.dataSource.id);
+    return true;
   }),
 });

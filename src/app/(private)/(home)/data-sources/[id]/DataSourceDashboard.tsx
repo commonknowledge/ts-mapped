@@ -1,8 +1,11 @@
 "use client";
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
-import { RefreshCw } from "lucide-react";
+import { useMutation as useTanstackMutation } from "@tanstack/react-query";
+import { RefreshCw, Trash2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
@@ -14,6 +17,17 @@ import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/shadcn/ui/alert-dialog";
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
@@ -21,6 +35,7 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { useTRPC } from "@/utils/trpc/react";
 import { RouterOutputs } from "@/utils/trpc/react";
 import ConfigurationForm from "./components/ConfigurationForm";
 
@@ -32,7 +47,7 @@ export function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null,
+    dataSource.importInfo?.lastCompleted || null
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -69,7 +84,7 @@ export function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -119,7 +134,7 @@ export function DataSourceDashboard({
         ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
         : k,
     value: JSON.stringify(
-      dataSource.config[k as keyof typeof dataSource.config],
+      dataSource.config[k as keyof typeof dataSource.config]
     ),
   }));
 
@@ -182,7 +197,7 @@ export function DataSourceDashboard({
         </>
       )}
 
-      <div className="grid grid-cols-2 gap-20">
+      <div className="grid grid-cols-2 gap-20 pb-10">
         <div className="flex flex-col gap-6">
           <h2 className="font-medium text-xl">About this data source</h2>
           <DefinitionList items={mappedInformation} />
@@ -191,6 +206,11 @@ export function DataSourceDashboard({
         <div className="flex flex-col gap-6">
           <h2 className="font-medium text-xl">Configuration</h2>
           <ConfigurationForm dataSource={dataSource} />
+          <Separator />
+          <h2 className="font-medium text-xl">Danger zone</h2>
+          <div>
+            <DeleteDataSourceButton dataSource={dataSource} />
+          </div>
         </div>
       </div>
     </div>
@@ -201,7 +221,56 @@ const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+        dataSource.importInfo?.status
+      )
   );
 };
+
+function DeleteDataSourceButton({
+  dataSource,
+}: {
+  dataSource: RouterOutputs["dataSource"]["byId"];
+}) {
+  const router = useRouter();
+  const trpc = useTRPC();
+  const { mutate, isPending } = useTanstackMutation(
+    trpc.dataSource.delete.mutationOptions({
+      onSuccess: () => {
+        router.push("/data-sources");
+        toast.success("Data source deleted successfully");
+      },
+      onError: () => {
+        toast.error("Failed to delete data source");
+      },
+    })
+  );
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive">
+          <Trash2Icon />
+          Delete data source
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your data
+            source.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={isPending}
+            onClick={() => mutate({ dataSourceId: dataSource.id })}
+          >
+            {isPending ? "Deleting..." : "Continue"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
