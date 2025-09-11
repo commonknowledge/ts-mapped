@@ -8,13 +8,6 @@ module.exports = {
     "./src/**/*.{ts,tsx}",
   ],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     fontFamily: {
       sans: ["var(--font-ibm-plex-sans)", "sans-serif"],
       mono: ["var(--font-ibm-plex-mono)", "monospace"],

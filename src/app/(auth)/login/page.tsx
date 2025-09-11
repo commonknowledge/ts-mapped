@@ -6,7 +6,6 @@ import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
-import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 import { login } from "./actions";
 
@@ -31,42 +30,41 @@ export default function LoginPage() {
         <CardTitle className="text-2xl">Login</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        <form onSubmit={onSubmitLogin} className="flex flex-col gap-2 ">
-          <FormFieldWrapper id="email" label="Username">
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="email"
-              required
-            />
+        <form onSubmit={onSubmitLogin} className="flex flex-col gap-6">
+          <FormFieldWrapper id="email" label="Email">
+            <Input id="email" name="email" type="email" required />
           </FormFieldWrapper>
 
           <FormFieldWrapper id="password" label="Password">
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="password"
-              required
-            />
+            <Input id="password" name="password" type="password" required />
           </FormFieldWrapper>
 
           <Button disabled={isPending} size="sm">
             Login
           </Button>
-          <span className="text-sm text-red-500">{error}</span>
+
+          {error ? (
+            <span className="text-sm text-red-500">{error}</span>
+          ) : (
+            <></>
+          )}
+
           <Link href="/forgot-password" className="text-sm text-center">
             Forgot password?
           </Link>
         </form>
         <Separator className="my-4" orientation="horizontal" />
-        <Label className="text-sm text-center">
-          Don&apos;t have an account?
-        </Label>
-        <Button variant="outline" asChild className="text-sm w-full">
-          <Link href="/apply">Sign up to the waitlist</Link>
-        </Button>
+        <p className="text-sm font-medium text-center">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="https://us19.list-manage.com/survey?u=7d61a70102ab811e6282bee60&id=089628c6aa&attribution=false"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            Sign up to the waitlist
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );

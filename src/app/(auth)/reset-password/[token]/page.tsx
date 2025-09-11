@@ -44,7 +44,7 @@ export default function Page({
   return (
     <Card className="w-[350px] border-none">
       <CardContent>
-        <form onSubmit={handleSubmit} className="w-full space-y-4">
+        <form onSubmit={handleSubmit} className="w-full space-y-6">
           <h1 className="text-2xl font-bold">Reset your password</h1>
           <FormFieldWrapper label="New Password">
             <Input
