@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { AvatarInput } from "@/components/forms/AvatarInput";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { useFormState } from "@/components/forms/useFormState";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
-import { getInitials } from "@/utils";
 
 export default function UserSettingsForm() {
   // TODO: replace with actual user data
@@ -40,15 +39,20 @@ export default function UserSettingsForm() {
     }
   };
 
+  const onAvatarChange = (file: File | undefined) => {
+    if (file) {
+      console.log(file);
+    } else {
+      toast.error("Something went wrong");
+    }
+  };
+
   return (
     <form
       className="w-full max-w-[36ch] flex flex-col items-start gap-6"
       onSubmit={handleSubmit}
     >
-      <Avatar>
-        <AvatarImage src="" />
-        <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
-      </Avatar>
+      <AvatarInput name={formState?.name} onChange={onAvatarChange} />
 
       <FormFieldWrapper label="Email" id="email">
         <Input

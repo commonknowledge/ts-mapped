@@ -2,13 +2,12 @@
 
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AvatarInput } from "@/components/forms/AvatarInput";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { useFormState } from "@/components/forms/useFormState";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
-import { getInitials } from "@/utils";
 
 export default function OrganisationSettingsForm() {
   const { organisations, organisationId } = useContext(OrganisationsContext);
@@ -43,15 +42,20 @@ export default function OrganisationSettingsForm() {
     }
   };
 
+  const onAvatarChange = (file: File | undefined) => {
+    if (file) {
+      console.log(file);
+    } else {
+      toast.error("Something went wrong");
+    }
+  };
+
   return (
     <form
       className="w-full max-w-[36ch] flex flex-col items-start gap-6"
       onSubmit={handleSubmit}
     >
-      <Avatar>
-        <AvatarImage src="" />
-        <AvatarFallback>{getInitials(formState.name)}</AvatarFallback>
-      </Avatar>
+      <AvatarInput name={formState?.name} onChange={onAvatarChange} />
 
       <FormFieldWrapper label="Organisation name" id="org-name">
         <Input

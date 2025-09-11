@@ -113,6 +113,7 @@ export default function Sidebar({ slug }: { slug: string }) {
             isActive("/account") && "bg-neutral-100 text-primary",
           )}
         >
+          {/* TODO: display actual user data */}
           <div className="w-6 h-6 bg-neutral-200 rounded-full flex items-center justify-center">
             <span className="text-xs font-medium">
               {user?.id?.charAt(0).toUpperCase()}
