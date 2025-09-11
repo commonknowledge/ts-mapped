@@ -1,7 +1,6 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -9,14 +8,13 @@ import {
   UpdateUserPasswordMutationVariables,
 } from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { useFormValidation } from "@/components/forms/useFormValidation";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 
 const passwordSchema = z
   .object({
-    currentPassword: z
-      .string()
-      .min(8, "Current password must be at least 8 characters"),
+    currentPassword: z.string().nonempty("Current password is required"),
     newPassword: z
       .string()
       .min(8, "New password must be at least 8 characters"),
@@ -27,17 +25,24 @@ const passwordSchema = z
     path: ["newPasswordValidation"],
   });
 
+const initialValues = {
+  currentPassword: "",
+  newPassword: "",
+  newPasswordValidation: "",
+};
+
 type FormState = z.infer<typeof passwordSchema>;
 
 export default function ChangePasswordForm() {
-  const [formState, setFormState] = useState<FormState>({
-    currentPassword: "",
-    newPassword: "",
-    newPasswordValidation: "",
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const {
+    formState,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    resetForm,
+    isValid,
+  } = useFormValidation<FormState>(passwordSchema, initialValues);
 
   const [updateUserPassword, { loading }] = useMutation<
     UpdateUserPasswordMutation,
@@ -53,59 +58,15 @@ export default function ChangePasswordForm() {
     }
   `);
 
-  const validate = (state: FormState) => {
-    const validation = passwordSchema.safeParse(state);
-    if (!validation.success) {
-      const newErrors: Record<string, string> = {};
-      validation.error.errors.forEach((err) => {
-        if (err.path[0]) newErrors[err.path[0] as string] = err.message;
-      });
-      return newErrors;
-    }
-    return {};
-  };
-
-  const handleChange =
-    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      const newState = { ...formState, [field]: value };
-      setFormState(newState);
-
-      // If the field already has an error, revalidate on change
-      if (errors[field]) {
-        setErrors(validate(newState));
-      }
-    };
-
-  const handleBlur = (field: keyof FormState) => () => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-    setErrors(validate(formState));
-  };
-
-  const resetForm = () => {
-    setFormState({
-      currentPassword: "",
-      newPassword: "",
-      newPasswordValidation: "",
-    });
-    setErrors({});
-    setTouched({});
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newErrors = validate(formState);
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setTouched({
-        currentPassword: true,
-        newPassword: true,
-        newPasswordValidation: true,
-      });
+    if (!isValid) {
+      toast.error("Please fix validation errors");
       return;
     }
 
+    // TODO: add backend verification of the current password
     try {
       const { data } = await updateUserPassword({
         variables: { data: { password: formState.newPassword } },
@@ -129,7 +90,7 @@ export default function ChangePasswordForm() {
       <FormFieldWrapper
         label="Verify current password"
         id="current-password"
-        error={touched.currentPassword ? errors.currentPassword : undefined}
+        error={touched.currentPassword ? errors.currentPassword : ""}
       >
         <Input
           id="current-password"
@@ -145,7 +106,7 @@ export default function ChangePasswordForm() {
         label="New password"
         id="new-password"
         hint="At least 8 characters"
-        error={touched.newPassword ? errors.newPassword : undefined}
+        error={touched.newPassword ? errors.newPassword : ""}
       >
         <Input
           id="new-password"
@@ -161,9 +122,7 @@ export default function ChangePasswordForm() {
         label="Confirm new password"
         id="confirm-new-password"
         error={
-          touched.newPasswordValidation
-            ? errors.newPasswordValidation
-            : undefined
+          touched.newPasswordValidation ? errors.newPasswordValidation : ""
         }
       >
         <Input
