@@ -84,7 +84,10 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const tokenData = await response.json();
+    const tokenData = (await response.json()) as {
+      access_token: string;
+      expires_in: number;
+    };
     this.credentials.access_token = tokenData.access_token;
     this.credentials.expiry_date = Date.now() + tokenData.expires_in * 1000;
 
@@ -142,7 +145,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
         return null;
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { values: string[][] };
       // Subtract 1 for header row
       return data.values ? Math.max(0, data.values.length - 1) : 0;
     } catch (error) {
@@ -169,7 +172,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       throw new Error(`Failed to get headers: ${response.status}, ${body}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { values: string[][] };
     this.cachedHeaders = data.values?.[0];
     return this.cachedHeaders || [];
   }
@@ -185,7 +188,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { values: string[][] };
     const rows = data.values || [];
     logger.debug(`Google Sheets data received: ${rows.length} rows`);
     if (rows.length === 0) {
@@ -225,7 +228,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
         return null;
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { values: string[][] };
       const rows = data.values || [];
 
       if (rows.length < 2) {
@@ -281,7 +284,9 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as {
+      valueRanges: { values: string[][] }[];
+    };
     const valueRanges = data.valueRanges || [];
 
     for (let i = 0; i < valueRanges.length; i++) {
@@ -358,7 +363,9 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as {
+      sheets: { properties: { sheetId: string; title: string } }[];
+    };
     return data.sheets || [];
   }
 
@@ -440,7 +447,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const { values } = await readResponse.json();
+    const { values } = (await readResponse.json()) as { values: string[][] };
     const numRows = values?.length || 0;
 
     if (numRows === 0) {

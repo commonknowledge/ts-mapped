@@ -809,19 +809,6 @@ export enum VisualisationType {
   Choropleth = "Choropleth",
 }
 
-export type UpdateUserPasswordMutationVariables = Exact<{
-  data: UpdateUserInput;
-}>;
-
-export type UpdateUserPasswordMutation = {
-  __typename?: "Mutation";
-  updateUser?: {
-    __typename?: "UpdateUserResponse";
-    code: number;
-    result?: { __typename?: "User"; id: string } | null;
-  } | null;
-};
-
 export type ListMapsQueryVariables = Exact<{
   organisationId: Scalars["String"]["input"];
 }>;
@@ -1039,50 +1026,6 @@ export type CreateDataSourceMutation = {
   } | null;
 };
 
-export type ListDataSourcesQueryVariables = Exact<{
-  organisationId?: InputMaybe<Scalars["String"]["input"]>;
-}>;
-
-export type ListDataSourcesQuery = {
-  __typename?: "Query";
-  dataSources?: Array<{
-    __typename?: "DataSource";
-    id: string;
-    name: string;
-    config: any;
-    createdAt: any;
-    public: boolean;
-    autoEnrich: boolean;
-    autoImport: boolean;
-    recordType: DataSourceRecordType;
-    columnDefs: Array<{
-      __typename?: "ColumnDef";
-      name: string;
-      type: ColumnType;
-    }>;
-    columnRoles: {
-      __typename?: "ColumnRoles";
-      nameColumns?: Array<string> | null;
-    };
-    recordCount?: { __typename?: "RecordCount"; count: number } | null;
-    geocodingConfig: {
-      __typename?: "LooseGeocodingConfig";
-      type: GeocodingType;
-      column?: string | null;
-      columns?: Array<string> | null;
-      areaSetCode?: AreaSetCode | null;
-    };
-    enrichments: Array<{
-      __typename?: "LooseEnrichment";
-      sourceType: EnrichmentSourceType;
-      areaSetCode?: AreaSetCode | null;
-      areaProperty?: string | null;
-      dataSourceId?: string | null;
-      dataSourceColumn?: string | null;
-    }>;
-  }> | null;
-};
-
 export type UpdateMapNameMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   mapInput: MapInput;
@@ -1273,6 +1216,8 @@ export type DataSourcesQuery = {
     id: string;
     name: string;
     config: any;
+    autoImport: boolean;
+    public: boolean;
     columnDefs: Array<{
       __typename?: "ColumnDef";
       name: string;

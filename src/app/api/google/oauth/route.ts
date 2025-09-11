@@ -35,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { redirectSuccessUrl: string };
     const { redirectSuccessUrl } = body;
 
     if (!redirectSuccessUrl) {

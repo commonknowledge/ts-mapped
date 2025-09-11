@@ -1,6 +1,7 @@
 import { expect, inject, test } from "vitest";
 import { ColumnType } from "@/__generated__/types";
 import { ActionNetworkAdaptor } from "@/server/adaptors/actionnetwork";
+import { ExternalRecord } from "@/types";
 
 const credentials = inject("credentials");
 
@@ -78,7 +79,12 @@ test("fetchAll yields records", async () => {
 
 test("fetchPage returns page data", async () => {
   const adaptor = new ActionNetworkAdaptor(credentials.actionnetwork.apiKey);
-  const result = await adaptor.fetchPage({ page: 1, limit: 5 });
+  const result = (await adaptor.fetchPage({ page: 1, limit: 5 })) as {
+    _embedded: { "osdi:people": ExternalRecord[] };
+  };
+  if (!result?._embedded) {
+    throw new Error("No result from fetchPage");
+  }
   expect(result).toHaveProperty("_embedded");
   expect(result._embedded).toHaveProperty("osdi:people");
 });

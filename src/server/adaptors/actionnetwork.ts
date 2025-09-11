@@ -222,7 +222,10 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      _embedded: { "osdi:people": ExternalRecord[] };
+      _links: { next: { href: string } };
+    };
     if (typeof json !== "object") {
       throw new Error(`Bad fetch page response body: ${JSON.stringify(json)}`);
     }
@@ -368,18 +371,25 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     }
   }
 
-  private extractIdFromRecord(record: unknown): string | null {
+  private extractIdFromRecord(input: unknown): string | null {
     // Try to extract ID
-    if (!record || typeof record !== "object") {
+
+    const schema = z.object({
+      identifiers: z.array(z.string()),
+      _links: z.object({ self: z.object({ href: z.string() }) }),
+    });
+    const parsedRecord = schema.safeParse(input);
+    if (!parsedRecord.success) {
       return null;
     }
+    const record = parsedRecord.data;
 
     if (
       "identifiers" in record &&
       Array.isArray(record.identifiers) &&
       record.identifiers.length
     ) {
-      return record.identifiers[0].replace(/^action_network:/, "");
+      return record.identifiers[0]?.replace(/^action_network:/, "");
     }
 
     // Fallback to self link
@@ -400,10 +410,31 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     return null;
   }
 
-  private normalizeRecord(record: unknown): Record<string, unknown> {
-    if (!record || typeof record !== "object") {
+  private normalizeRecord(input: unknown): Record<string, unknown> {
+    const recordSchema = z.object({
+      given_name: z.string(),
+      family_name: z.string(),
+      employer: z.string(),
+      occupation: z.string(),
+      created_date: z.string(),
+      modified_date: z.string(),
+      email_addresses: z.array(
+        z.object({ address: z.string(), primary: z.boolean() }),
+      ),
+      phone_numbers: z.array(
+        z.object({ number: z.string(), primary: z.boolean() }),
+      ),
+      postal_addresses: z.array(
+        z.object({ postal_code: z.string(), primary: z.boolean() }),
+      ),
+      custom_fields: z.record(z.unknown()),
+      languages_spoken: z.array(z.string()),
+    });
+    const parsedRecord = recordSchema.safeParse(input);
+    if (!parsedRecord.success) {
       return {};
     }
+    const record = parsedRecord.data;
 
     // Remove OSDI-specific metadata and flatten the record for easier processing
     const normalized: Record<string, unknown> = {};

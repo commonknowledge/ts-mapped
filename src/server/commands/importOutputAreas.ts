@@ -36,7 +36,12 @@ const importOutputAreas = async () => {
     logger.info(`Using area set ${AREA_SET_CODE}`);
   }
   const geojson = fs.readFileSync(outputAreasGeojsonPath, "utf8");
-  const areas = JSON.parse(geojson);
+  const areas = JSON.parse(geojson) as {
+    features: {
+      properties: { OA21CD: string; LSOA21NM: string };
+      geometry: unknown;
+    }[];
+  };
   const count = areas.features.length;
   for (let i = 0; i < count; i++) {
     const feature = areas.features[i];

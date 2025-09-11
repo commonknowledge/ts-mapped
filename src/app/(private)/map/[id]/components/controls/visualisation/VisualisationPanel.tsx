@@ -23,6 +23,8 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { getValidAreaSetGroupCodes } from "@/components/Map/sources";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import { GeocodingType } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -157,7 +159,7 @@ export default function VisualisationPanel({
               <Database className="w-4 h-4 text-muted-foreground" /> Data Source
             </Label>
 
-            {viewConfig.areaDataSourceId ? (
+            {viewConfig.areaDataSourceId && dataSource ? (
               // Show selected data source as a card
               <div className="space-y-2">
                 <button
@@ -169,11 +171,19 @@ export default function VisualisationPanel({
                 >
                   <DataSourceItem
                     className="border-blue-500 bg-blue-50 hover:bg-blue-100"
-                    dataSource={
-                      dataSources.find(
-                        (ds) => ds.id === viewConfig.areaDataSourceId,
-                      ) as DataSource
-                    }
+                    dataSource={{
+                      // temporary casting from gql to typescript
+                      ...dataSource,
+                      geocodingConfig: {
+                        ...dataSource.geocodingConfig,
+                        type: dataSource.geocodingConfig
+                          .type as GeocodingType.Code,
+                        column: dataSource.geocodingConfig.column as string,
+                        areaSetCode: dataSource.geocodingConfig
+                          .areaSetCode as AreaSetCode,
+                      },
+                      recordCount: dataSource?.recordCount?.count,
+                    }}
                   />
                 </button>
 
@@ -555,7 +565,19 @@ export default function VisualisationPanel({
                           ? "border-blue-500 bg-blue-50"
                           : "hover:border-blue-300"
                       }
-                      dataSource={ds as DataSource}
+                      dataSource={{
+                        // temporary casting from gql to typescript
+                        ...ds,
+                        recordCount: ds.recordCount?.count,
+                        geocodingConfig: {
+                          ...ds.geocodingConfig,
+                          type: ds.geocodingConfig.type as GeocodingType.Code,
+                          column: ds.geocodingConfig.column as string,
+                          areaSetCode: ds.geocodingConfig
+                            .areaSetCode as AreaSetCode,
+                        },
+                        config: ds.config,
+                      }}
                     />
                   </button>
                 ))}

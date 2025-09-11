@@ -75,18 +75,18 @@ export default function FeaturesPage() {
   // Categorize features
   const activeFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0,
   );
 
   const currentlyWorkingOn = features.filter(
     (feature) =>
       feature.timeline &&
-      compareTimeline(feature.timeline, currentQuarter) === 0
+      compareTimeline(feature.timeline, currentQuarter) === 0,
   );
 
   const roadmapFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0,
   );
 
   const renderFeatureCard = (feature: Feature) => (
