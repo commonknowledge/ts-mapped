@@ -3,6 +3,7 @@
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { useFormState } from "@/components/forms/useFormState";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
@@ -11,27 +12,34 @@ import { getInitials } from "@/utils";
 
 export default function OrganisationSettingsForm() {
   const { organisations, organisationId } = useContext(OrganisationsContext);
+  const [initialValues, setInitialValues] = useState({ name: "" });
 
-  const [showActions, setShowActions] = useState(false);
-  const [orgName, setOrgName] = useState("");
+  const { formState, handleChange, resetForm, isDirty } =
+    useFormState(initialValues);
 
   useEffect(() => {
     const currentOrganisation = organisations.find(
       (o) => o.id === organisationId,
     );
 
-    setOrgName(currentOrganisation?.name || "");
-  }, [organisationId, organisations]);
+    if (currentOrganisation) {
+      setInitialValues(currentOrganisation);
+    }
+  }, [organisationId, organisations, setInitialValues]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
-      console.log(orgName);
-      setShowActions(false);
+      // TODO: update organisation data in the db
+      console.log(formState.name);
+      toast.success("Organisation settings updated!");
+
+      // updating initial form values to the current db values on success
+      setInitialValues(formState);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update password");
+      toast.error("Failed to update organisation settings");
     }
   };
 
@@ -42,23 +50,24 @@ export default function OrganisationSettingsForm() {
     >
       <Avatar>
         <AvatarImage src="" />
-        <AvatarFallback>{getInitials(orgName)}</AvatarFallback>
+        <AvatarFallback>{getInitials(formState.name)}</AvatarFallback>
       </Avatar>
+
       <FormFieldWrapper label="Organisation name" id="org-name">
         <Input
           name="name"
           id="org-name"
           type="text"
           required
-          value={orgName}
-          onChange={(e) => setOrgName(e.target.value)}
+          value={formState.name}
+          onChange={handleChange("name")}
         />
       </FormFieldWrapper>
 
-      {showActions && (
+      {isDirty && (
         <div className="flex gap-4">
           <Button type="submit">Save changes</Button>
-          <Button type="button" variant="secondary">
+          <Button type="button" variant="secondary" onClick={resetForm}>
             Cancel
           </Button>
         </div>

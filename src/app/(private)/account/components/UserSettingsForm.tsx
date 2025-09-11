@@ -3,34 +3,37 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-
-import { useCurrentUser } from "@/hooks";
+import { useFormState } from "@/components/forms/useFormState";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { getInitials } from "@/utils";
 
 export default function UserSettingsForm() {
-  const userId = useCurrentUser();
-
   // TODO: replace with actual user data
   const user = {
-    id: userId,
     name: "Joaquim Souza",
     email: "joaquim@commonknowledge.coop",
   };
 
-  const [showActions, setShowActions] = useState(false);
-  const [email, setEmail] = useState(user.email);
-  const [username, setUsername] = useState(user.name);
+  const [initialValues, setInitialValues] = useState({
+    email: user.email,
+    name: user.name,
+  });
+
+  const { formState, handleChange, resetForm, isDirty } =
+    useFormState(initialValues);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
-      console.log(username);
+      // TODO: update user data in the db
+      console.log(formState.name, formState.email);
       toast.success("User settings updated!");
-      setShowActions(false);
+
+      // updating initial form values to the current db values on success
+      setInitialValues(formState);
     } catch (error) {
       console.error(error);
       toast.error("Failed to update user settings");
@@ -46,31 +49,33 @@ export default function UserSettingsForm() {
         <AvatarImage src="" />
         <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
       </Avatar>
+
       <FormFieldWrapper label="Email" id="email">
         <Input
           name="email"
           id="email"
           type="email"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={formState.email}
+          onChange={handleChange("email")}
         />
       </FormFieldWrapper>
+
       <FormFieldWrapper label="Name" id="username">
         <Input
           name="name"
           id="username"
           type="text"
           required
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          value={formState.name}
+          onChange={handleChange("name")}
         />
       </FormFieldWrapper>
 
-      {showActions && (
+      {isDirty && (
         <div className="flex gap-4">
           <Button type="submit">Save changes</Button>
-          <Button type="button" variant="secondary">
+          <Button type="button" variant="secondary" onClick={resetForm}>
             Cancel
           </Button>
         </div>
