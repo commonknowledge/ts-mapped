@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -12,9 +13,13 @@ import {
 import ChangePasswordForm from "./ChangePasswordForm";
 
 export default function ChangePassword() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const closeDialog = () => setDialogOpen(false);
+
   return (
     <div className="flex flex-col items-start gap-8">
-      <Dialog>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger>
           <Button asChild={true}>
             <span>Change password</span>
@@ -27,7 +32,7 @@ export default function ChangePassword() {
               Change password form
             </DialogDescription>
           </DialogHeader>
-          <ChangePasswordForm />
+          <ChangePasswordForm closeDialog={closeDialog} />
         </DialogContent>
       </Dialog>
     </div>

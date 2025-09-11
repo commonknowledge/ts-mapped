@@ -33,7 +33,11 @@ const initialValues = {
 
 type FormState = z.infer<typeof passwordSchema>;
 
-export default function ChangePasswordForm() {
+export default function ChangePasswordForm({
+  closeDialog,
+}: {
+  closeDialog: () => void;
+}) {
   const {
     formState,
     errors,
@@ -73,8 +77,9 @@ export default function ChangePasswordForm() {
       });
 
       if (data?.updateUser?.code === 200) {
-        toast.success("Password updated");
+        toast.success("Password updated!");
         resetForm();
+        closeDialog();
       } else {
         toast.error("Failed to update password");
       }
