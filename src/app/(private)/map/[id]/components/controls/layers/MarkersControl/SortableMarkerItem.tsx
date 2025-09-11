@@ -106,9 +106,9 @@ export default function SortableMarkerItem({
               </Button>
             </form>
           ) : (
-            <div className="flex items-center gap-1.5 flex-grow text-sm p-0.5">
+            <div className="group flex items-start gap-1.5 flex-grow text-sm p-0.5 overflow-hidden">
               <div
-                className="w-2 h-2 rounded-full aspect-square"
+                className="w-2 h-2 rounded-full aspect-square mt-[0.425em]"
                 style={{
                   backgroundColor: mapColors.markers.color,
                   border:
@@ -118,6 +118,20 @@ export default function SortableMarkerItem({
                 }}
               />
               <span className="break-all">{marker.label}</span>
+              <div className="hidden group-hover:flex gap-2 text-muted-foreground">
+                <button
+                  onClick={() => {
+                    setEditText(marker.label);
+                    setEditing(true);
+                    setKeyboardCapture(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button onClick={() => deletePlacedMarker(marker.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
         </li>
