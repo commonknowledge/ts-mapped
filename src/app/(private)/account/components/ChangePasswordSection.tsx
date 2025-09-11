@@ -16,7 +16,7 @@ export default function ChangePassword() {
     <div className="flex flex-col items-start gap-8">
       <Dialog>
         <DialogTrigger>
-          <Button variant="secondary" asChild={true}>
+          <Button asChild={true}>
             <span>Change password</span>
           </Button>
         </DialogTrigger>

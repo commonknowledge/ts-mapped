@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import * as React from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   UpdateUserPasswordMutation,
@@ -12,7 +12,18 @@ import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 
 export default function ChangePasswordForm() {
-  const [password, setPassword] = React.useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordValidation, setNewPasswordValidation] = useState("");
+  const [disableSubmit, setDisableSubmit] = useState(true);
+
+  useEffect(() => {
+    if (!newPassword || newPassword !== newPasswordValidation) {
+      setDisableSubmit(true);
+    } else {
+      setDisableSubmit(false);
+    }
+  }, [newPassword, newPasswordValidation, setDisableSubmit]);
 
   const [updateUserPassword, { loading }] = useMutation<
     UpdateUserPasswordMutation,
@@ -28,20 +39,30 @@ export default function ChangePasswordForm() {
     }
   `);
 
+  const resetForm = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setNewPasswordValidation("");
+    setDisableSubmit(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
+      // TODO: add current password validation on the BE
       const { data } = await updateUserPassword({
-        variables: { data: { password } },
+        variables: { data: { password: newPassword } },
       });
       if (data?.updateUser?.code === 200) {
-        setPassword("");
         toast.success("Password updated");
       } else {
         toast.error("Failed to update password");
       }
+
+      resetForm();
     } catch (error) {
+      resetForm();
       console.error(error);
       toast.error("Failed to update password");
     }
@@ -56,8 +77,8 @@ export default function ChangePasswordForm() {
           minLength={8}
           type="password"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
         />
       </FormFieldWrapper>
       <FormFieldWrapper
@@ -71,8 +92,8 @@ export default function ChangePasswordForm() {
           minLength={8}
           type="password"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
         />
       </FormFieldWrapper>
       <FormFieldWrapper label="Confirm new password" id="confirm-new-password">
@@ -81,12 +102,12 @@ export default function ChangePasswordForm() {
           id="confirm-new-password"
           type="password"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={newPasswordValidation}
+          onChange={(e) => setNewPasswordValidation(e.target.value)}
         />
       </FormFieldWrapper>
 
-      <Button type="submit" disabled={loading}>
+      <Button type="submit" disabled={disableSubmit || loading}>
         {loading ? "Saving..." : "Save"}
       </Button>
     </form>

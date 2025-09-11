@@ -1,21 +1,34 @@
 "use client";
 
-import * as React from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
+import { getInitials } from "@/utils";
 
 export default function OrganisationSettingsForm() {
-  const [orgName, setOrgName] = React.useState("");
+  const { organisations, organisationId } = useContext(OrganisationsContext);
+
+  const [showActions, setShowActions] = useState(false);
+  const [orgName, setOrgName] = useState("");
+
+  useEffect(() => {
+    const currentOrganisation = organisations.find(
+      (o) => o.id === organisationId,
+    );
+
+    setOrgName(currentOrganisation?.name || "");
+  }, [organisationId, organisations]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       console.log(orgName);
+      setShowActions(false);
     } catch (error) {
       console.error(error);
       toast.error("Failed to update password");
@@ -28,8 +41,8 @@ export default function OrganisationSettingsForm() {
       onSubmit={handleSubmit}
     >
       <Avatar>
-        <AvatarImage src="https://picsum.photos/100" />
-        <AvatarFallback>CN</AvatarFallback>
+        <AvatarImage src="" />
+        <AvatarFallback>{getInitials(orgName)}</AvatarFallback>
       </Avatar>
       <FormFieldWrapper label="Organisation name" id="org-name">
         <Input
@@ -42,9 +55,14 @@ export default function OrganisationSettingsForm() {
         />
       </FormFieldWrapper>
 
-      <Button type="submit" variant="secondary">
-        Save changes
-      </Button>
+      {showActions && (
+        <div className="flex gap-4">
+          <Button type="submit">Save changes</Button>
+          <Button type="button" variant="secondary">
+            Cancel
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

@@ -8,7 +8,7 @@ export default function Page() {
     <div>
       <PageHeader title="Settings" />
       <div className="grid grid-cols-2 gap-8 mt-8">
-        <div className="flex flex-col gap-16">
+        <div className="flex flex-col gap-12">
           <div>
             <h2 className="mb-6 / text-xl font-medium">Your profile</h2>
             <UserSettingsForm />

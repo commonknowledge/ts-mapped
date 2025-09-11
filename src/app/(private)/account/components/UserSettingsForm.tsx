@@ -1,25 +1,39 @@
 "use client";
 
-import * as React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 
+import { useCurrentUser } from "@/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
+import { getInitials } from "@/utils";
 
 export default function UserSettingsForm() {
-  const [email, setEmail] = React.useState("");
-  const [username, setUsername] = React.useState("");
+  const userId = useCurrentUser();
+
+  // TODO: replace with actual user data
+  const user = {
+    id: userId,
+    name: "Joaquim Souza",
+    email: "joaquim@commonknowledge.coop",
+  };
+
+  const [showActions, setShowActions] = useState(false);
+  const [email, setEmail] = useState(user.email);
+  const [username, setUsername] = useState(user.name);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       console.log(username);
+      toast.success("User settings updated!");
+      setShowActions(false);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update password");
+      toast.error("Failed to update user settings");
     }
   };
 
@@ -30,7 +44,7 @@ export default function UserSettingsForm() {
     >
       <Avatar>
         <AvatarImage src="" />
-        <AvatarFallback>CN</AvatarFallback>
+        <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
       </Avatar>
       <FormFieldWrapper label="Email" id="email">
         <Input
@@ -53,9 +67,14 @@ export default function UserSettingsForm() {
         />
       </FormFieldWrapper>
 
-      <Button type="submit" variant="secondary">
-        Save changes
-      </Button>
+      {showActions && (
+        <div className="flex gap-4">
+          <Button type="submit">Save changes</Button>
+          <Button type="button" variant="secondary">
+            Cancel
+          </Button>
+        </div>
+      )}
     </form>
   );
 }
