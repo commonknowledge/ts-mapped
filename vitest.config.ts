@@ -38,7 +38,7 @@ const testCredentials = JSON.parse(
   fs.readFileSync("test_credentials.json", "utf8")
 ) as ProvidedContext;
 
-for (const [key, value] of Object.entries(testCredentials)) {
+for (const [key, value] of Object.entries(testCredentials.env)) {
   process.env[key] = String(value);
 }
 
