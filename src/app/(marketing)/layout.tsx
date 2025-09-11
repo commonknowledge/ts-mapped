@@ -1,14 +1,130 @@
-"use client";
-
-import { GithubIcon, HeartHandshakeIcon, MailIcon } from "lucide-react";
+import {
+  GithubIcon,
+  HeartHandshakeIcon,
+  MailIcon,
+  MenuIcon,
+} from "lucide-react";
 import Image from "next/image";
 import React from "react";
+import { getServerSession } from "@/auth";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
 import CTA from "@/components/marketing/CTA";
 import Prose from "@/components/Prose";
+import { Button } from "@/shadcn/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shadcn/ui/dropdown-menu";
 
-export default function MarketingFooter() {
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <MarketingNavbar />
+      {children}
+      <MarketingFooter />
+    </>
+  );
+}
+
+async function MarketingNavbar() {
+  const session = await getServerSession();
+
+  return (
+    <div className="absolute top-0 left-0 right-0 bg-transparent z-50">
+      <Container>
+        <nav className="flex justify-between items-center h-16 md:h-20">
+          <div className="flex items-center">
+            <Link href="/" className="pr-2 shrink-0">
+              <Image
+                src="/logo.svg"
+                alt="Mapped"
+                width={28}
+                height={28}
+                className="md:w-8 md:h-8"
+              />
+            </Link>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 bg-brand-background rounded-lg">
+            <Link
+              href={session.currentUser ? "/dashboard" : "/"}
+              className="text-sm"
+            >
+              Home
+            </Link>
+            <Link href="/features" className="text-sm">
+              Features
+            </Link>
+            <Link href="/about" className="text-sm">
+              About
+            </Link>
+          </div>
+
+          {/* Mobile Menu Dropdown */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="p-2 bg-brand-background border-none"
+                  aria-label="Toggle mobile menu"
+                >
+                  <MenuIcon className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/" className="w-full">
+                    Home
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/features" className="w-full">
+                    Features
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/about" className="w-full">
+                    About
+                  </Link>
+                </DropdownMenuItem>
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                  Mapped is built to be used on desktop. We recommend using a
+                  desktop browser to get the best experience.
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {session.currentUser ? (
+            <Link href="/dashboard" className="hidden md:block">
+              <Button size="sm" className="text-xs md:text-sm">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/login" className="hidden md:block">
+              <Button size="sm" className="text-xs md:text-sm">
+                Login
+              </Button>
+            </Link>
+          )}
+        </nav>
+      </Container>
+    </div>
+  );
+}
+
+function MarketingFooter() {
   return (
     <>
       <CTA />

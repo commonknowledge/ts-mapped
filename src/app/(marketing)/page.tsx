@@ -1,20 +1,16 @@
-"use client";
-
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import MarketingLayout from "@/components/layout/MarketingLayout";
+import { getServerSession } from "@/auth";
 import { Link } from "@/components/Link";
 import HomepageFeatureSection from "@/components/marketing/HomepageFeatureSection";
-import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
-export default function HomePage() {
-  const user = useCurrentUser();
-  if (user) {
-    redirect("/dashboard");
-  }
+
+export default async function HomePage() {
+  const user = await getServerSession();
+  if (user.currentUser) redirect("/dashboard");
 
   return (
-    <MarketingLayout>
+    <>
       <div className="flex flex-col items-center justify-center relative bg-brand-background py-16 md:py-[120px] p-4 overflow-hidden">
         <Image
           src="/pattern.svg"
@@ -56,6 +52,6 @@ export default function HomePage() {
       </div>
 
       <HomepageFeatureSection />
-    </MarketingLayout>
+    </>
   );
 }
