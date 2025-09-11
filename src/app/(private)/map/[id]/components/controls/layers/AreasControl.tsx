@@ -134,10 +134,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm"
-          onClick={() => handleFlyTo(turf)}
-        >
+        <div className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm">
           {isEditing ? (
             <form
               onSubmit={(e) => {
@@ -158,14 +155,37 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
             </form>
           ) : (
             <>
-              <div className="flex items-center gap-2 pl-1">
-                <div
-                  style={{ backgroundColor: mapColors.areas.color }}
-                  className="w-2 h-2 rounded-full"
-                />
+              <div className="group flex items-center gap-2 w-full">
+                <button
+                  className="w-full overflow-hidden / flex items-center gap-2 / text-sm text-left / cursor-pointer"
+                  onClick={() => handleFlyTo(turf)}
+                >
+                  <div
+                    style={{ backgroundColor: mapColors.areas.color }}
+                    className="w-2 h-2 rounded-full shrink-0"
+                  />
+                  <span className="truncate">
+                    {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                  </span>
+                </button>
 
-                <div className="text-sm">
-                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                <div className="hidden group-hover:flex gap-2 text-muted-foreground">
+                  <button
+                    className="cursor-pointer hover:text-primary"
+                    onClick={() => {
+                      setEditing(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="cursor-pointer hover:text-primary"
+                    onClick={() => {
+                      deleteTurf(turf.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </>
