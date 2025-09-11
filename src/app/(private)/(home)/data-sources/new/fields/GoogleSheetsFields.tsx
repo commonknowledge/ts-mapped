@@ -1,7 +1,11 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import DataListRow from "@/components/DataListRow";
-import { DataSourceType, GoogleSheetsConfig } from "@/server/models/DataSource";
+import {
+  DataSourceRecordType,
+  DataSourceType,
+  GoogleSheetsConfig,
+} from "@/server/models/DataSource";
 import { getOAuthCredentials, getOAuthURL, getSheets } from "@/services/google";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -16,10 +20,12 @@ import { NewDataSourceConfig } from "../schema";
 
 export default function GoogleSheetsFields({
   dataSourceName,
+  recordType,
   config,
   onChange,
 }: {
   dataSourceName: string;
+  recordType: DataSourceRecordType | null;
   config: Partial<NewDataSourceConfig>;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
@@ -30,6 +36,7 @@ export default function GoogleSheetsFields({
   return (
     <GoogleSheetsFieldsWithOAuth
       dataSourceName={dataSourceName}
+      recordType={recordType}
       config={config}
       onChange={onChange}
     />
@@ -38,10 +45,12 @@ export default function GoogleSheetsFields({
 
 function GoogleSheetsFieldsWithOAuth({
   dataSourceName,
+  recordType,
   config,
   onChange,
 }: {
   dataSourceName: string;
+  recordType: DataSourceRecordType | null;
   config: Partial<GoogleSheetsConfig>;
   onChange: (config: Partial<NewDataSourceConfig>) => void;
 }) {
@@ -115,6 +124,7 @@ function GoogleSheetsFieldsWithOAuth({
     try {
       const url = await getOAuthURL({
         dataSourceName,
+        recordType: recordType || "",
         dataSourceType: DataSourceType.GoogleSheets,
       });
       window.location.href = url;

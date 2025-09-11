@@ -52,7 +52,7 @@ export default function NewDataSourcePage() {
   >;
 
   const [recordType, setRecordType] = useState<DataSourceRecordType | null>(
-    null
+    state.recordType as DataSourceRecordType | null
   );
   const [name, setName] = useState(state.dataSourceName || "");
   const [config, setConfig] = useState<ConfigState>({
@@ -213,6 +213,7 @@ export default function NewDataSourcePage() {
               <CSVFields config={config} onChange={onChangeConfig} />
               <GoogleSheetsFields
                 dataSourceName={name}
+                recordType={recordType}
                 config={config}
                 onChange={onChangeConfig}
               />

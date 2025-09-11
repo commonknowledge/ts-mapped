@@ -236,7 +236,7 @@ function DeleteDataSourceButton({
   const { mutate, isPending } = useTanstackMutation(
     trpc.dataSource.delete.mutationOptions({
       onSuccess: () => {
-        router.push("/data-sources");
+        router.replace("/data-sources");
         toast.success("Data source deleted successfully");
       },
       onError: () => {
