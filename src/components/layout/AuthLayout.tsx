@@ -8,7 +8,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <div className="bg-brand-background">
       <header className="absolute top-0 left-0 w-full flex items-center h-16 md:h-20">
         <Container>
           <Link href="/">
@@ -22,9 +22,9 @@ export default function AuthLayout({
           </Link>
         </Container>
       </header>
-      <main className="h-full / flex justify-center items-center py-[120px] px-6">
+      <main className="min-h-[100vh] / flex justify-center items-center py-[120px] px-6">
         {children}
       </main>
-    </>
+    </div>
   );
 }
