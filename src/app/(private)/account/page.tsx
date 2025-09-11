@@ -1,19 +1,27 @@
 import PageHeader from "@/components/PageHeader";
-// import { ChangePasswordForm } from "./components/ChangePasswordForm";
+import ChangePasswordSection from "./components/ChangePasswordSection";
+import OrganisationSettingsForm from "./components/OrganisationSettingsForm";
+import UserSettingsForm from "./components/UserSettingsForm";
 
 export default function Page() {
   return (
     <div>
       <PageHeader title="Settings" />
-      <div className="grid grid-cols-2 gap-8">
-        <div className="">
-          <h2 className="mb-6 / text-xl font-medium">Your profile</h2>
-          {/* <ChangePasswordForm /> */}
+      <div className="grid grid-cols-2 gap-8 mt-8">
+        <div className="flex flex-col gap-16">
+          <div>
+            <h2 className="mb-6 / text-xl font-medium">Your profile</h2>
+            <UserSettingsForm />
+          </div>
+          <div>
+            <h2 className="mb-6 / text-xl font-medium">Password</h2>
+            <ChangePasswordSection />
+          </div>
         </div>
 
         <div className="">
-           <h2 className="mb-6 / text-xl font-medium">Organisation settings</h2>
-
+          <h2 className="mb-6 / text-xl font-medium">Organisation settings</h2>
+          <OrganisationSettingsForm />
         </div>
       </div>
     </div>
