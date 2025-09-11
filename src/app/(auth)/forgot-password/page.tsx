@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
@@ -20,7 +21,9 @@ export default function ForgotPasswordPage() {
   const { mutate: forgotPassword, isPending } = useMutation(
     trpc.auth.forgotPassword.mutationOptions({
       onSuccess: () => {
-        toast.success("Email sent to reset password");
+        toast.success(
+          "We received your request. If you have an account, we will send you an e-mail with a link to reset password.",
+        );
         router.push("/login");
       },
       onError: () => {
@@ -39,8 +42,8 @@ export default function ForgotPasswordPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Forgot password?</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        <form onSubmit={onSubmit} className="flex flex-col gap-2">
+      <CardContent>
+        <form onSubmit={onSubmit} className="flex flex-col gap-6">
           <FormFieldWrapper id="email" label="Email">
             <Input
               id="email"
@@ -54,9 +57,15 @@ export default function ForgotPasswordPage() {
           <Button disabled={isPending} size="sm">
             Send instructions
           </Button>
-          <span className="text-sm text-red-500">{error}</span>
-          <Link href="/login" className="text-sm text-center">
-            Login
+
+          {error && <span className="text-sm text-red-500">{error}</span>}
+
+          <Link
+            href="/login"
+            className="flex gap-2 items-center justify-center text-sm text-center"
+          >
+            <ArrowLeft size={16} />
+            Back to login
           </Link>
         </form>
       </CardContent>

@@ -13,7 +13,6 @@ import {
   useState,
 } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
-import { v4 as uuidv4 } from "uuid";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
@@ -33,6 +32,7 @@ import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
+import SearchResultMarker from "./SearchResultMarker";
 
 export default function Map({
   onSourceLoad,
@@ -52,8 +52,14 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
-  const { insertPlacedMarker, deleteTurf, insertTurf, updateTurf, turfs } =
-    useContext(MarkerAndTurfContext);
+  const {
+    deleteTurf,
+    insertTurf,
+    updateTurf,
+    turfs,
+    searchMarker,
+    setSearchMarker,
+  } = useContext(MarkerAndTurfContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
@@ -265,19 +271,13 @@ export default function Map({
             const geocoder = new MapboxGeocoder({
               accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
               mapboxgl: mapboxgl,
+              marker: false,
               countries: "GB", // TODO: remove when we support other countries
             });
 
             // Listen for search results
             geocoder.on("result", (event) => {
-              const result = event.result;
-              insertPlacedMarker({
-                id: uuidv4(),
-                label: result.place_name,
-                notes: "",
-                point: { lng: result.center[0], lat: result.center[1] },
-                folderId: null,
-              });
+              setSearchMarker(event.result);
               geocoder.clear();
             });
 
@@ -431,6 +431,7 @@ export default function Map({
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
+            {searchMarker && <SearchResultMarker />}
             {hoverMarker && (
               <Popup
                 longitude={hoverMarker.coordinates[0]}

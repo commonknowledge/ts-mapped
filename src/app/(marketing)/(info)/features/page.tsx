@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import React from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -74,18 +75,18 @@ export default function FeaturesPage() {
   // Categorize features
   const activeFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0,
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0
   );
 
   const currentlyWorkingOn = features.filter(
     (feature) =>
       feature.timeline &&
-      compareTimeline(feature.timeline, currentQuarter) === 0,
+      compareTimeline(feature.timeline, currentQuarter) === 0
   );
 
   const roadmapFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0,
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0
   );
 
   const renderFeatureCard = (feature: Feature) => (
@@ -145,106 +146,100 @@ export default function FeaturesPage() {
   };
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 py-16 mt-16 ">
-        <div className="mb-16">
-          <h1 className="text-4xl font-medium  mb-4 tracking-tight">
-            Features
-          </h1>
-          <p className="text-lg text-neutral-600 max-w-2xl ">
-            Discover what&apos;s available now and what&apos;s coming soon to
-            help you map and understand your data geographically.
-          </p>
-        </div>
+    <>
+      <div className="mb-16">
+        <h1 className="text-4xl font-medium  mb-4 tracking-tight">Features</h1>
+        <p className="text-lg text-neutral-600 max-w-2xl ">
+          Discover what&apos;s available now and what&apos;s coming soon to help
+          you map and understand your data geographically.
+        </p>
+      </div>
 
-        <div className="relative">
-          {/* Main timeline line */}
-          <div className="absolute left-[1.05rem] top-4 bottom-0 w-0.5 bg-gradient-to-b from-brand-blue via-[#B3C6F1] to-neutral-50" />
+      <div className="relative">
+        {/* Main timeline line */}
+        <div className="absolute left-[1.05rem] top-4 bottom-0 w-0.5 bg-gradient-to-b from-brand-blue via-[#B3C6F1] to-neutral-50" />
 
-          <div className="grid grid-cols-1 gap-8">
-            {/* Active Features */}
-            <div className="space-y-6">
-              <div className="relative">
-                <div
-                  className={`absolute left-3 w-3 h-3 rounded-full  shadow-lg z-10 -tranneutral-x-1/2 ${stageColors.active}`}
-                  style={{ top: "0.5rem" }}
-                />
-                <div className="ml-12 ">
-                  <h2 className="text-neutral-600 font-mono  mb-1">
-                    Active Features
-                  </h2>
-                  <p className="text-neutral-600 text-sm">
-                    Released and available now
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                {activeFeatures.length > 0 ? (
-                  activeFeatures.map((feature) => renderFeatureCard(feature))
-                ) : (
-                  <div className="text-center py-8 text-neutral-500">
-                    <p>No active features yet</p>
-                  </div>
-                )}
+        <div className="grid grid-cols-1 gap-8">
+          {/* Active Features */}
+          <div className="space-y-6">
+            <div className="relative">
+              <div
+                className={`absolute left-3 w-3 h-3 rounded-full  shadow-lg z-10 -tranneutral-x-1/2 ${stageColors.active}`}
+                style={{ top: "0.5rem" }}
+              />
+              <div className="ml-12 ">
+                <h2 className="text-neutral-600 font-mono  mb-1">
+                  Active Features
+                </h2>
+                <p className="text-neutral-600 text-sm">
+                  Released and available now
+                </p>
               </div>
             </div>
-
-            {/* Currently Working On */}
-            <div className="space-y-6">
-              <div className="relative">
-                <div
-                  className={`absolute left-3 w-3 h-3 rounded-full  shadow-lg z-10 -tranneutral-x-1/2 ${stageColors.working}`}
-                  style={{ top: "0.5rem" }}
-                />
-                <div className="ml-12 ">
-                  <h2 className="text-neutral-600 font-mono  mb-1">
-                    Currently Working On
-                  </h2>
-                  <p className="text-neutral-600 text-sm">
-                    In development for {currentQuarter}
-                  </p>
+            <div className="space-y-4">
+              {activeFeatures.length > 0 ? (
+                activeFeatures.map((feature) => renderFeatureCard(feature))
+              ) : (
+                <div className="text-center py-8 text-neutral-500">
+                  <p>No active features yet</p>
                 </div>
-              </div>
-              <div className="space-y-4">
-                {currentlyWorkingOn.length > 0 ? (
-                  currentlyWorkingOn.map((feature) =>
-                    renderFeatureCard(feature),
-                  )
-                ) : (
-                  <div className="text-center py-8 text-neutral-500">
-                    <p>No features in current quarter</p>
-                  </div>
-                )}
+              )}
+            </div>
+          </div>
+
+          {/* Currently Working On */}
+          <div className="space-y-6">
+            <div className="relative">
+              <div
+                className={`absolute left-3 w-3 h-3 rounded-full  shadow-lg z-10 -tranneutral-x-1/2 ${stageColors.working}`}
+                style={{ top: "0.5rem" }}
+              />
+              <div className="ml-12 ">
+                <h2 className="text-neutral-600 font-mono  mb-1">
+                  Currently Working On
+                </h2>
+                <p className="text-neutral-600 text-sm">
+                  In development for {currentQuarter}
+                </p>
               </div>
             </div>
-
-            {/* Roadmap */}
-            <div className="space-y-6">
-              <div className="relative">
-                <div
-                  className={`absolute left-3 w-3 h-3 rounded-full  shadow-lg z-10 -tranneutral-x-1/2 ${stageColors.roadmap}`}
-                  style={{ top: "0.5rem" }}
-                />
-                <div className="ml-12 ">
-                  <h2 className="text-neutral-600 font-mono  mb-1">Roadmap</h2>
-                  <p className="text-neutral-600 text-sm">
-                    Planned for future quarters
-                  </p>
+            <div className="space-y-4">
+              {currentlyWorkingOn.length > 0 ? (
+                currentlyWorkingOn.map((feature) => renderFeatureCard(feature))
+              ) : (
+                <div className="text-center py-8 text-neutral-500">
+                  <p>No features in current quarter</p>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Roadmap */}
+          <div className="space-y-6">
+            <div className="relative">
+              <div
+                className={`absolute left-3 w-3 h-3 rounded-full  shadow-lg z-10 -tranneutral-x-1/2 ${stageColors.roadmap}`}
+                style={{ top: "0.5rem" }}
+              />
+              <div className="ml-12 ">
+                <h2 className="text-neutral-600 font-mono  mb-1">Roadmap</h2>
+                <p className="text-neutral-600 text-sm">
+                  Planned for future quarters
+                </p>
               </div>
-              <div className="space-y-4">
-                {roadmapFeatures.length > 0 ? (
-                  roadmapFeatures.map((feature) => renderFeatureCard(feature))
-                ) : (
-                  <div className="text-center py-8 text-neutral-500">
-                    <p>No roadmap features yet</p>
-                  </div>
-                )}
-              </div>
+            </div>
+            <div className="space-y-4">
+              {roadmapFeatures.length > 0 ? (
+                roadmapFeatures.map((feature) => renderFeatureCard(feature))
+              ) : (
+                <div className="text-center py-8 text-neutral-500">
+                  <p>No roadmap features yet</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
