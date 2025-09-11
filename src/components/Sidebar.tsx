@@ -2,6 +2,7 @@
 
 import { Clock2, DatabaseIcon } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { SyntheticEvent, useContext } from "react";
 import { useCurrentUser } from "@/hooks";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
@@ -16,7 +17,9 @@ import {
 import { cn } from "@/shadcn/utils";
 import { Link } from "./Link";
 
-export default function Sidebar({ slug }: { slug: string }) {
+export default function Sidebar() {
+  const slug = usePathname();
+
   const user = useCurrentUser();
   const { organisations, organisationId, setOrganisationId } =
     useContext(OrganisationsContext);
@@ -27,9 +30,7 @@ export default function Sidebar({ slug }: { slug: string }) {
     location.reload();
   };
 
-  const isActive = (href: string) => {
-    return slug === href;
-  };
+  const isActive = (href: string) => slug === href;
 
   const navItems = [
     {

@@ -222,11 +222,6 @@ const typeDefs = `
     createdAt: Date!
   }
 
-  input UpdateUserInput {
-    password: String
-    email: String
-  }
-
   input SortInput {
     name: String!
     desc: Boolean!
@@ -475,11 +470,6 @@ const typeDefs = `
     publishedPublicMap(host: String!): PublicMap
   }
 
-  type UpdateUserResponse {
-    code: Int!
-    result: User
-  }
-
   type CreateDataSourceResponse {
     code: Int!
     result: DataSource
@@ -594,8 +584,6 @@ const typeDefs = `
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
-
-    updateUser(data: UpdateUserInput!): UpdateUserResponse @auth
 
     forgotPassword(email: String!): MutationResponse
     resetPassword(token: String!, password: String!): MutationResponse

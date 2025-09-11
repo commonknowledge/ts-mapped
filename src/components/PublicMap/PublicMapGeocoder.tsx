@@ -78,8 +78,9 @@ async function doGeocode(search: string): Promise<[number, number] | null> {
     return null;
   }
 
-  const results: { features?: { id: string; geometry: GeoJSONPoint }[] } =
-    await response.json();
+  const results = (await response.json()) as {
+    features?: { id: string; geometry: GeoJSONPoint }[];
+  };
 
   if (!results.features?.length) {
     return null;

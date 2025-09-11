@@ -1,27 +1,22 @@
 import { Database } from "lucide-react";
-import { ColumnDef, LooseGeocodingConfig } from "@/__generated__/types";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { DataSourceType } from "@/server/models/DataSource";
+import { type DataSource, DataSourceType } from "@/server/models/DataSource";
 import { cn } from "@/shadcn/utils";
 
-interface DataSource {
-  id: string;
-  config: {
-    type: DataSourceType;
-  };
-  name: string;
-  public: boolean;
-  columnDefs: ColumnDef[];
-  geocodingConfig: LooseGeocodingConfig;
-  recordCount?: {
-    count: number;
-  } | null;
-  autoImport: boolean;
-}
+type DataSourceItemType = Pick<
+  DataSource,
+  | "id"
+  | "config"
+  | "name"
+  | "public"
+  | "columnDefs"
+  | "geocodingConfig"
+  | "autoImport"
+> & { recordCount?: number };
 
 // Helper function to get data source type from config
 const getDataSourceType = (
-  dataSource: DataSource,
+  dataSource: DataSourceItemType,
 ): DataSourceType | "unknown" => {
   try {
     const config = dataSource.config;
@@ -74,7 +69,7 @@ const getDataSourceStyle = (type: DataSourceType | "unknown") => {
 };
 
 // Helper function to get geocoding status
-const getGeocodingStatus = (dataSource: DataSource) => {
+const getGeocodingStatus = (dataSource: DataSourceItemType) => {
   const geocodingConfig = dataSource.geocodingConfig;
   if (geocodingConfig.type === "None") {
     return { status: "No geocoding", color: "text-gray-500" };
@@ -92,7 +87,7 @@ export function DataSourceItem({
   dataSource,
   className,
 }: {
-  dataSource: DataSource;
+  dataSource: DataSourceItemType;
   className?: string;
 }) {
   const dataSourceType = getDataSourceType(dataSource);
@@ -137,7 +132,7 @@ export function DataSourceItem({
           <div className="flex flex-wrap items-center gap-x-2 text-xs text-gray-600">
             <span>{dataSource.columnDefs.length} columns</span>
             <span className="text-gray-400">•</span>
-            <span>{dataSource.recordCount?.count || "Unknown"} records</span>
+            <span>{dataSource.recordCount || "Unknown"} records</span>
             <span className="text-gray-400">•</span>
             <span className={geocodingStatus.color}>
               {geocodingStatus.status}

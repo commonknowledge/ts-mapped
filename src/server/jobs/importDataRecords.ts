@@ -37,8 +37,10 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
   }
 
   try {
-    const columnDefsAccumulator: ColumnDef[] = [];
-    const records = await adaptor.fetchByExternalId(args.externalRecordIds);
+    const columnDefsAccumulator = [] as ColumnDef[];
+    const records = await adaptor.fetchByExternalId(
+      args.externalRecordIds as string[],
+    );
 
     await importBatch(records, dataSource, columnDefsAccumulator);
 

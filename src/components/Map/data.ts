@@ -54,6 +54,9 @@ export const useDataSourcesQuery = () =>
         recordCount {
           count
         }
+        autoImport
+        public
+        config
       }
     }
   `);
@@ -233,7 +236,8 @@ export const useMarkerQueries = ({
             if (!response.ok) {
               throw new Error(`Bad response: ${response.status}`);
             }
-            const dataSourceMarkers = await response.json();
+            const dataSourceMarkers =
+              (await response.json()) as DataSourceMarkers;
             cache.current[cacheId] = dataSourceMarkers;
           }
           cacheKeyByDataSource.current[id] = cacheId;

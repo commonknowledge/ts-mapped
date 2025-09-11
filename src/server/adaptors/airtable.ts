@@ -178,7 +178,11 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         );
       }
 
-      const payloadData = await response.json();
+      const payloadData = (await response.json()) as {
+        cursor: number;
+        mightHaveMore: boolean;
+        payloads: unknown[];
+      };
       cursor = payloadData.cursor;
       mightHaveMore = payloadData.mightHaveMore;
       payloads = payloads.concat(payloadData.payloads);
@@ -211,7 +215,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      tables: { id: string; fields: { name: string }[] }[];
+    };
     const table = json.tables.find(
       (table: { id: string }) => table.id === this.tableId,
     );
@@ -244,7 +250,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     let offset: string | undefined;
     do {
       const pageData = await this.fetchPage({ offset });
-      for (const record of pageData.records) {
+      for (const record of pageData?.records || []) {
         yield {
           externalId: record.id,
           json: record.fields,
@@ -302,7 +308,10 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       throw Error(`Bad fetch page response body: ${response.json}`);
     }
 
-    return json;
+    return json as {
+      offset: string;
+      records: { id: string; fields: Record<string, unknown> }[];
+    };
   }
 
   async fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
@@ -329,7 +338,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      records: { id: string; fields: Record<string, unknown> }[];
+    };
     if (typeof json !== "object") {
       throw Error(`Bad fetch page response body: ${response.json}`);
     }
@@ -355,7 +366,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       throw Error(`Bad webhooks response: ${response.status}, ${responseText}`);
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as { webhooks: Webhook[] };
     if (typeof json !== "object") {
       throw Error(`Bad webhooks response body: ${response.json}`);
     }

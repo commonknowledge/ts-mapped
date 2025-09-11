@@ -69,6 +69,6 @@ export async function POST(
   args: { params: Promise<{ id: string }> },
 ) {
   const realParams = await args.params;
-  const body = await request.json();
+  const body = (await request.json()) as Record<string, unknown>;
   return handler(realParams.id, body);
 }

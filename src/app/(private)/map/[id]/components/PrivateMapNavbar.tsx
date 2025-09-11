@@ -225,7 +225,7 @@ export default function PrivateMapNavbar() {
                 onClick={() => onClickSave()}
                 disabled={loading}
               >
-                Save
+                Save view
               </Button>
               <Button
                 type="button"

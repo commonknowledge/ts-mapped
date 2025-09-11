@@ -256,7 +256,7 @@ export function DataTable({
                       .filter((c) => !hiddenColumns.includes(c.name))
                       .map((column) => (
                         <TableCell key={column.name}>
-                          {String(row.json[column.name] || "-")}
+                          {renderCell(row.json[column.name])}
                         </TableCell>
                       ))}
                   </TableRow>
@@ -325,3 +325,17 @@ export function DataTable({
     </div>
   );
 }
+
+const renderCell = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return value.map(renderCell).join(", ");
+  }
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value);
+    if (keys.every((k) => /^\d+$/.test(k) && Number(k) >= 0)) {
+      return renderCell(Object.values(value));
+    }
+    return JSON.stringify(value);
+  }
+  return value ? String(value) : "-";
+};
