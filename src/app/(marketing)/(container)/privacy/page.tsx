@@ -1,10 +1,9 @@
 import { Metadata } from "next";
-import MarketingLayout from "@/components/layout/MarketingLayout";
 import Prose from "@/components/Prose";
 
 export default function PrivacyPage() {
   return (
-    <MarketingLayout withContainer>
+    <>
       <Prose>
         <h1>Privacy Policy</h1>
         <p>Effective date: 07/01/2025</p>
@@ -418,7 +417,7 @@ export default function PrivacyPage() {
           contact: data@commonknowledge.coop
         </p>
       </Prose>
-    </MarketingLayout>
+    </>
   );
 }
 

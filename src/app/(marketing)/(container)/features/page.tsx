@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import React from "react";
-import MarketingLayout from "@/components/layout/MarketingLayout";
+
 import {
   Dialog,
   DialogContent,
@@ -75,18 +75,18 @@ export default function FeaturesPage() {
   // Categorize features
   const activeFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0,
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0
   );
 
   const currentlyWorkingOn = features.filter(
     (feature) =>
       feature.timeline &&
-      compareTimeline(feature.timeline, currentQuarter) === 0,
+      compareTimeline(feature.timeline, currentQuarter) === 0
   );
 
   const roadmapFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0,
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0
   );
 
   const renderFeatureCard = (feature: Feature) => (
@@ -146,7 +146,7 @@ export default function FeaturesPage() {
   };
 
   return (
-    <MarketingLayout withContainer>
+    <>
       <div className="mb-16">
         <h1 className="text-4xl font-medium  mb-4 tracking-tight">Features</h1>
         <p className="text-lg text-neutral-600 max-w-2xl ">
@@ -240,6 +240,6 @@ export default function FeaturesPage() {
           </div>
         </div>
       </div>
-    </MarketingLayout>
+    </>
   );
 }

@@ -4,10 +4,12 @@ import Image from "next/image";
 import { useState } from "react";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
+import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
 
 export default function MarketingNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const user = useCurrentUser();
 
   return (
     <>
@@ -28,7 +30,7 @@ export default function MarketingNavbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 bg-brand-background rounded-lg">
-              <Link href="/" className="text-sm">
+              <Link href={user ? "/dashboard" : "/"} className="text-sm">
                 Home
               </Link>
               <Link href="/features" className="text-sm">
@@ -60,11 +62,19 @@ export default function MarketingNavbar() {
               </button>
             </div>
 
-            <Link href="/login" className="hidden md:block">
-              <Button size="sm" className="text-xs md:text-sm">
-                Login
-              </Button>
-            </Link>
+            {user ? (
+              <Link href="/dashboard" className="hidden md:block">
+                <Button size="sm" className="text-xs md:text-sm">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login" className="hidden md:block">
+                <Button size="sm" className="text-xs md:text-sm">
+                  Login
+                </Button>
+              </Link>
+            )}
           </nav>
         </Container>
       </div>
