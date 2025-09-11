@@ -15,7 +15,7 @@ interface TestCredentials extends VitestCredentials {
 }
 
 const testCredentials = JSON.parse(
-  fs.readFileSync("test_credentials.json", "utf8")
+  fs.readFileSync("test_credentials.json", "utf8"),
 ) as TestCredentials;
 
 for (const [key, value] of Object.entries(testCredentials.env)) {

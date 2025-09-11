@@ -32,7 +32,7 @@ export default function DataSourceEnrichmentForm({
     // to encourage users to get started
     dataSource.enrichments.length
       ? dataSource.enrichments
-      : [{ sourceType: "" }]
+      : [{ sourceType: "" }],
   );
 
   // Form state

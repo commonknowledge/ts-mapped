@@ -52,7 +52,7 @@ export default function NewDataSourcePage() {
   >;
 
   const [recordType, setRecordType] = useState<DataSourceRecordType | null>(
-    null
+    null,
   );
   const [name, setName] = useState(state.dataSourceName || "");
   const [config, setConfig] = useState<ConfigState>({
@@ -65,7 +65,7 @@ export default function NewDataSourcePage() {
     (update: Partial<NewDataSourceConfig>) => {
       setConfig(Object.assign({}, config, update));
     },
-    [config]
+    [config],
   );
 
   const [createDataSource] = useMutation<
@@ -232,7 +232,7 @@ export default function NewDataSourcePage() {
 }
 
 const prepareDataSource = async (
-  config: NewDataSourceConfig
+  config: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
   if (config.type === DataSourceType.CSV) {
     const url = await uploadFile(config.file);
