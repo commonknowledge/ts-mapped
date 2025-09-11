@@ -22,7 +22,7 @@ import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/Publ
  */
 export async function GET(
   request: NextRequest,
-  args: { params: Promise<{ id: string; filter: string; search: string }> },
+  args: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const realParams = await args.params;
   const { currentUser } = await getServerSession();
