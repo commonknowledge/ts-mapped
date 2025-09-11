@@ -54,7 +54,7 @@ export const organisationProcedure = protectedProcedure
   .use(async ({ ctx, input, next }) => {
     const organisation = await findOrganisationForUser(
       input.organisationId,
-      ctx.user.id
+      ctx.user.id,
     );
     if (!organisation)
       throw new TRPCError({
@@ -78,7 +78,7 @@ export const dataSourceProcedure = protectedProcedure
 
     const organisation = await findOrganisationForUser(
       dataSource.organisationId,
-      ctx.user.id
+      ctx.user.id,
     );
     if (!organisation)
       throw new TRPCError({

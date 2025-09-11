@@ -32,7 +32,7 @@ export function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null
+    dataSource.importInfo?.lastCompleted || null,
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -69,7 +69,7 @@ export function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } }
+    { variables: { dataSourceId: dataSource.id } },
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -119,7 +119,7 @@ export function DataSourceDashboard({
         ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
         : k,
     value: JSON.stringify(
-      dataSource.config[k as keyof typeof dataSource.config]
+      dataSource.config[k as keyof typeof dataSource.config],
     ),
   }));
 
@@ -201,7 +201,7 @@ const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status
-      )
+        dataSource.importInfo?.status,
+      ),
   );
 };

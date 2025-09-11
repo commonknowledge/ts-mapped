@@ -28,7 +28,7 @@ export function DataSourceEnrichmentDashboard({
   const [enriching, setEnriching] = useState(isEnriching(dataSource));
   const [enrichmentError, setEnrichmentError] = useState("");
   const [lastEnriched, setLastEnriched] = useState(
-    dataSource.enrichmentInfo?.lastCompleted || null
+    dataSource.enrichmentInfo?.lastCompleted || null,
   );
   const [enrichmentCount, setEnrichmentCount] = useState(0);
 
@@ -62,7 +62,7 @@ export function DataSourceEnrichmentDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } }
+    { variables: { dataSourceId: dataSource.id } },
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -200,7 +200,7 @@ export function DataSourceEnrichmentDashboard({
                     value={
                       dataSource.enrichmentDataSources?.find(
                         (dataSource) =>
-                          dataSource.id === enrichment.dataSourceId
+                          dataSource.id === enrichment.dataSourceId,
                       )?.name || "Unknown"
                     }
                     border
@@ -224,7 +224,7 @@ const isEnriching = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.enrichmentInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.enrichmentInfo?.status
-      )
+        dataSource.enrichmentInfo?.status,
+      ),
   );
 };

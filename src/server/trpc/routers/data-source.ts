@@ -51,7 +51,7 @@ export const dataSourceRouter = router({
         getJobInfo(ctx.dataSource.id, "enrichDataSource"),
         getJobInfo(ctx.dataSource.id, "importDataSource"),
         findDataSourcesByIds(dataSourceIds).then((ds) =>
-          ds.map((ds) => ({ name: ds.name, id: ds.id }))
+          ds.map((ds) => ({ name: ds.name, id: ds.id })),
         ),
       ]);
     return {

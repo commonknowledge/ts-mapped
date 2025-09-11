@@ -22,7 +22,7 @@ export function ChangePasswordForm() {
       onError: () => {
         toast.error("Failed to update password");
       },
-    })
+    }),
   );
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

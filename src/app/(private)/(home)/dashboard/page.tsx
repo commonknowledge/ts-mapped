@@ -18,8 +18,8 @@ export default function DashboardPage() {
   const { data, isPending } = useQuery(
     trpc.map.list.queryOptions(
       { organisationId: organisationId || "" },
-      { enabled: Boolean(organisationId) }
-    )
+      { enabled: Boolean(organisationId) },
+    ),
   );
 
   const { mutate: createMap, isPending: createMapLoading } = useMutation(
@@ -27,7 +27,7 @@ export default function DashboardPage() {
       onSuccess: (data) => {
         router.push(`/map/${data.id}`);
       },
-    })
+    }),
   );
 
   const onClickNew = () => {

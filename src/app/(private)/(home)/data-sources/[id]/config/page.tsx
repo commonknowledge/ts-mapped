@@ -20,7 +20,7 @@ export default function DataSourceConfigPage({
   const { id } = use(params);
   const trpc = useTRPC();
   const { data: dataSource, isPending } = useQuery(
-    trpc.dataSource.byId.queryOptions({ dataSourceId: id })
+    trpc.dataSource.byId.queryOptions({ dataSourceId: id }),
   );
 
   if (isPending) return null;

@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
       onError: () => {
         setError("Email failed to send, please check your credentials.");
       },
-    })
+    }),
   );
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {

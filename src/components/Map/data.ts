@@ -100,7 +100,7 @@ export const useDataRecordsQuery = (variables: {
         }
       }
     `,
-    { variables, skip: !variables.dataSourceId }
+    { variables, skip: !variables.dataSourceId },
   );
 
 export const useMapQuery = (mapId: string | null) =>
@@ -188,7 +188,7 @@ export const useMapQuery = (mapId: string | null) =>
       variables: { id: mapId || "" },
       skip: !mapId,
       fetchPolicy: "network-only",
-    }
+    },
   );
 
 // Use API request instead of GraphQL to avoid server memory load
@@ -220,7 +220,7 @@ export const useMarkerQueries = ({
         for (const id of dataSourceIds) {
           const filter = JSON.stringify(
             dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.filter ||
-              null
+              null,
           );
           const search =
             dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.search ||
@@ -231,7 +231,7 @@ export const useMarkerQueries = ({
             params.set("filter", filter);
             params.set("search", search);
             const response = await fetch(
-              `/api/data-sources/${id}/markers?${params.toString()}`
+              `/api/data-sources/${id}/markers?${params.toString()}`,
             );
             if (!response.ok) {
               throw new Error(`Bad response: ${response.status}`);
@@ -246,7 +246,7 @@ export const useMarkerQueries = ({
           setData(
             Object.values(cacheKeyByDataSource.current)
               .map((k) => cache.current[k])
-              .filter(Boolean)
+              .filter(Boolean),
           );
         }
       } catch (e) {
@@ -334,7 +334,7 @@ export const useAreaStatsQuery = ({
       },
       skip: skipCondition,
       notifyOnNetworkStatusChange: true,
-    }
+    },
   );
 };
 
@@ -350,7 +350,7 @@ export const useUpdateMapConfigMutation = () => {
           code
         }
       }
-    `
+    `,
   );
 };
 

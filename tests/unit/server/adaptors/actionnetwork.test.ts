@@ -55,7 +55,7 @@ test("extractExternalRecordIdsFromWebhookBody yields external IDs", async () => 
 
   const ids = [];
   for await (const id of adaptor.extractExternalRecordIdsFromWebhookBody(
-    body
+    body,
   )) {
     ids.push(id);
   }
@@ -124,7 +124,7 @@ test("fetchByExternalId handles multiple IDs", async () => {
   const result = await adaptor.fetchByExternalId(externalIds);
   expect(result.length).toBe(2);
   expect(result.map((r) => r.externalId)).toEqual(
-    expect.arrayContaining(externalIds)
+    expect.arrayContaining(externalIds),
   );
 });
 
@@ -216,7 +216,7 @@ test("extractExternalRecordIdsFromWebhookBody handles malformed payloads", async
   await expect(async () => {
     const ids = [];
     for await (const id of adaptor.extractExternalRecordIdsFromWebhookBody(
-      null
+      null,
     )) {
       ids.push(id);
     }
@@ -226,7 +226,7 @@ test("extractExternalRecordIdsFromWebhookBody handles malformed payloads", async
   const malformedBody = { invalid: "payload" };
   const ids = [];
   for await (const id of adaptor.extractExternalRecordIdsFromWebhookBody(
-    malformedBody
+    malformedBody,
   )) {
     ids.push(id);
   }
@@ -240,6 +240,6 @@ test("fetchByExternalId respects batch size limit", async () => {
   const tooManyIds = Array.from({ length: 101 }, (_, i) => `id-${i}`);
 
   await expect(adaptor.fetchByExternalId(tooManyIds)).rejects.toThrow(
-    "Cannot fetch more than 100 records at once."
+    "Cannot fetch more than 100 records at once.",
   );
 });

@@ -17,11 +17,11 @@ const importMSOAs = async () => {
     getBaseDir(),
     "resources",
     "areaSets",
-    "msoas.geojson"
+    "msoas.geojson",
   );
   if (!fs.existsSync(msoasGeojsonPath)) {
     logger.error(
-      `File not found: ${msoasGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3-2/about`
+      `File not found: ${msoasGeojsonPath}. Download from https://geoportal.statistics.gov.uk/datasets/ons::middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3-2/about`,
     );
     return;
   }

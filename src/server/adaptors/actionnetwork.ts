@@ -22,7 +22,7 @@ const ActionNetworkWebhookPayload = z.array(
                 primary: z.boolean().optional(),
                 address: z.string(),
                 status: z.string().optional(),
-              })
+              }),
             )
             .optional(),
           phone_numbers: z
@@ -31,7 +31,7 @@ const ActionNetworkWebhookPayload = z.array(
                 primary: z.boolean().optional(),
                 number: z.string(),
                 number_type: z.string().optional(),
-              })
+              }),
             )
             .optional(),
           postal_addresses: z
@@ -43,7 +43,7 @@ const ActionNetworkWebhookPayload = z.array(
                 region: z.string().optional(),
                 postal_code: z.string().optional(),
                 country: z.string().optional(),
-              })
+              }),
             )
             .optional(),
           custom_fields: z.record(z.unknown()).optional(),
@@ -81,7 +81,7 @@ const ActionNetworkWebhookPayload = z.array(
         .optional(),
       idempotency_key: z.string().optional(),
     })
-    .passthrough()
+    .passthrough(),
 );
 
 export class ActionNetworkAdaptor implements DataSourceAdaptor {
@@ -94,7 +94,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
   }
 
   async *extractExternalRecordIdsFromWebhookBody(
-    body: unknown
+    body: unknown,
   ): AsyncGenerator<string> {
     if (!body) {
       throw new Error("Empty Action Network webhook body");
@@ -105,7 +105,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     const parsedPayload = ActionNetworkWebhookPayload.safeParse(body);
     if (!parsedPayload.success) {
       logger.warn(
-        `Failed to parse Action Network webhook payload: ${JSON.stringify(body)}`
+        `Failed to parse Action Network webhook payload: ${JSON.stringify(body)}`,
       );
       return;
     }
@@ -114,7 +114,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       const identifiers = record["osdi:signature"].identifiers;
       if (identifiers && identifiers[0]) {
         logger.debug(
-          `Received Action Network person from webhook: ${identifiers}`
+          `Received Action Network person from webhook: ${identifiers}`,
         );
         yield identifiers[0].replace(/^action_network:/, "");
       } else {
@@ -124,7 +124,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
           const externalId = urlParts[urlParts.length - 1];
           if (externalId) {
             logger.debug(
-              `Received Action Network person from webhook: ${identifiers}`
+              `Received Action Network person from webhook: ${identifiers}`,
             );
             yield externalId.replace(/^action_network:/, "");
           }
@@ -218,7 +218,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const responseText = await response.text();
       throw new Error(
-        `Bad fetch page response: ${response.status}, ${responseText}`
+        `Bad fetch page response: ${response.status}, ${responseText}`,
       );
     }
 
@@ -263,7 +263,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       } catch (error) {
         logger.warn(
           `Could not fetch record ${externalId} from Action Network`,
-          { error }
+          { error },
         );
       }
     }
@@ -317,13 +317,13 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         if (!response.ok) {
           const responseText = await response.text();
           logger.error(
-            `Failed to update Action Network record ${record.externalRecord.externalId}: ${response.status}, ${responseText}`
+            `Failed to update Action Network record ${record.externalRecord.externalId}: ${response.status}, ${responseText}`,
           );
         }
       } catch (error) {
         logger.error(
           `Error updating Action Network record ${record.externalRecord.externalId}`,
-          { error }
+          { error },
         );
       }
     }
@@ -359,13 +359,13 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         if (!response.ok) {
           const responseText = await response.text();
           logger.error(
-            `Failed to update Action Network record ${record.externalId}: ${response.status}, ${responseText}`
+            `Failed to update Action Network record ${record.externalId}: ${response.status}, ${responseText}`,
           );
         }
       } catch (error) {
         logger.error(
           `Error updating Action Network record ${record.externalId}`,
-          { error }
+          { error },
         );
       }
     }
@@ -419,13 +419,13 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       created_date: z.string(),
       modified_date: z.string(),
       email_addresses: z.array(
-        z.object({ address: z.string(), primary: z.boolean() })
+        z.object({ address: z.string(), primary: z.boolean() }),
       ),
       phone_numbers: z.array(
-        z.object({ number: z.string(), primary: z.boolean() })
+        z.object({ number: z.string(), primary: z.boolean() }),
       ),
       postal_addresses: z.array(
-        z.object({ postal_code: z.string(), primary: z.boolean() })
+        z.object({ postal_code: z.string(), primary: z.boolean() }),
       ),
       custom_fields: z.record(z.unknown()),
       languages_spoken: z.array(z.string()),
@@ -500,7 +500,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         normalized.postcode = primaryAddress.postal_code;
       } else {
         const postcodeAddress = record.postal_addresses.find(
-          (a) => a.postal_code
+          (a) => a.postal_code,
         );
         if (postcodeAddress) {
           normalized.postcode = postcodeAddress.postal_code;

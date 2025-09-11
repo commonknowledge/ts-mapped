@@ -73,7 +73,7 @@ export default function Sidebar() {
                 href={item.href}
                 className={cn(
                   "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary"
+                  isActive(item.href) && "bg-neutral-100 text-primary",
                 )}
               >
                 {item.icon}
@@ -111,7 +111,7 @@ export default function Sidebar() {
           href={"/account"}
           className={cn(
             "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-            isActive("/account") && "bg-neutral-100 text-primary"
+            isActive("/account") && "bg-neutral-100 text-primary",
           )}
         >
           <div className="w-6 h-6 bg-neutral-200 rounded-full flex items-center justify-center">

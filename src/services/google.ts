@@ -1,7 +1,7 @@
 import { GoogleOAuthCredentials } from "@/server/models/DataSource";
 
 export const getOAuthCredentials = async (
-  redirectSuccessUrl: string
+  redirectSuccessUrl: string,
 ): Promise<GoogleOAuthCredentials> => {
   const response = await fetch("/api/google/oauth", {
     body: JSON.stringify({ redirectSuccessUrl }),
@@ -14,13 +14,13 @@ export const getOAuthCredentials = async (
 };
 
 export const getOAuthURL = async (
-  state: Record<string, string>
+  state: Record<string, string>,
 ): Promise<string> => {
   const response = await fetch(
     `/api/google/oauth?state=${encodeURIComponent(JSON.stringify(state))}`,
     {
       method: "GET",
-    }
+    },
   );
   if (!response.ok) {
     throw new Error("Failed to get Google OAuth URL");
@@ -31,7 +31,7 @@ export const getOAuthURL = async (
 
 export const getSheets = async (
   oAuthCredentials: GoogleOAuthCredentials,
-  spreadsheetId: string
+  spreadsheetId: string,
 ): Promise<string[]> => {
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`,
@@ -40,7 +40,7 @@ export const getSheets = async (
       headers: {
         Authorization: `Bearer ${oAuthCredentials.access_token}`,
       },
-    }
+    },
   );
 
   if (!response.ok) {

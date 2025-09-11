@@ -15,7 +15,7 @@ export function findOrganisationsByUserId(userId: string) {
     .innerJoin(
       "organisationUser",
       "organisation.id",
-      "organisationUser.organisationId"
+      "organisationUser.organisationId",
     )
     .where("organisationUser.userId", "=", userId)
     .selectAll("organisation")
@@ -23,14 +23,14 @@ export function findOrganisationsByUserId(userId: string) {
 }
 export function findOrganisationForUser(
   organisationId: string,
-  userId: string
+  userId: string,
 ) {
   return db
     .selectFrom("organisation")
     .innerJoin(
       "organisationUser",
       "organisation.id",
-      "organisationUser.organisationId"
+      "organisationUser.organisationId",
     )
     .where("organisationUser.userId", "=", userId)
     .where("organisationUser.organisationId", "=", organisationId)
@@ -54,7 +54,7 @@ export function upsertOrganisation(organisation: NewOrganisation) {
       // ON CONFLICT DO NOTHING doesn't return anything.
       oc.columns(["name"]).doUpdateSet({
         name: organisation.name,
-      })
+      }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();

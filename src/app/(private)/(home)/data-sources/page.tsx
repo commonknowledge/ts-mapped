@@ -65,15 +65,15 @@ const mappedDataLibrary = {
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
   const [activeTab, setActiveTab] = useState<"your-data" | "mapped-library">(
-    "your-data"
+    "your-data",
   );
 
   const trpc = useTRPC();
   const { data: dataSources, isPending } = useQuery(
     trpc.dataSource.byOrganisation.queryOptions(
       { organisationId: organisationId || "" },
-      { enabled: Boolean(organisationId) }
-    )
+      { enabled: Boolean(organisationId) },
+    ),
   );
 
   const memberDataSources = dataSources?.filter((dataSource) => {
