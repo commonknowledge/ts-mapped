@@ -17,6 +17,8 @@ import DataSourceBadge from "@/components/DataSourceBadge";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
+import { useTRPC } from "@/services/trpc/react";
+import { RouterOutputs } from "@/services/trpc/react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,8 +38,6 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
-import { useTRPC } from "@/utils/trpc/react";
-import { RouterOutputs } from "@/utils/trpc/react";
 import ConfigurationForm from "./components/ConfigurationForm";
 
 export function DataSourceDashboard({

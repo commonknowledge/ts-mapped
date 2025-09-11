@@ -3,13 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
+import { useTRPC } from "@/services/trpc/react";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
-import { useTRPC } from "@/utils/trpc/react";
 import ConfigurationForm from "../components/ConfigurationForm";
 
 export default function DataSourceConfigPage({

@@ -7,11 +7,11 @@ import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
 import { AreaGeocodingType } from "@/server/models/DataSource";
+import { RouterOutputs } from "@/services/trpc/react";
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@/shadcn/ui/dropdown-menu";
-import { RouterOutputs } from "@/utils/trpc/react";
 
 /**
  * This is a little complicated as it includes a front-end only

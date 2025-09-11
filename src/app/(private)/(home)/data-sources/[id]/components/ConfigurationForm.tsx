@@ -14,9 +14,9 @@ import {
   DataSourceType,
   geocodingConfigSchema,
 } from "@/server/models/DataSource";
+import { RouterOutputs } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
-import { RouterOutputs } from "@/utils/trpc/react";
 import { ColumnRoleFields } from "./ColumnRoleFields";
 import { GeocodingConfigFields } from "./GeocodingConfigFields";
 

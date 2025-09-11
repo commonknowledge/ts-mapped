@@ -21,9 +21,9 @@ import { mapColors } from "@/components/Map/styles";
 import PageHeader from "@/components/PageHeader";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import { useTRPC } from "@/utils/trpc/react";
 
 // Define mapped data library items grouped by category
 const mappedDataLibrary = {

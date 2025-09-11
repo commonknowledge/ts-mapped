@@ -4,10 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "sonner";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
-import { useTRPC } from "@/utils/trpc/react";
 
 export function ChangePasswordForm() {
   const [password, setPassword] = React.useState("");

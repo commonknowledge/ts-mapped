@@ -15,8 +15,8 @@ import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
+import { TRPCReactProvider } from "@/services/trpc/react";
 import { Toaster } from "@/shadcn/ui/sonner";
-import { TRPCReactProvider } from "@/utils/trpc/react";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({
