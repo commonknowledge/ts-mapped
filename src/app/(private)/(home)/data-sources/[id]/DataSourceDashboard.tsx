@@ -10,6 +10,7 @@ import {
   EnqueueImportDataSourceJobMutationVariables,
   JobStatus,
 } from "@/__generated__/types";
+import DataSourceBadge from "@/components/DataSourceBadge";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
@@ -32,7 +33,7 @@ export function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null,
+    dataSource.importInfo?.lastCompleted || null
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -69,7 +70,7 @@ export function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -118,9 +119,15 @@ export function DataSourceDashboard({
       k in DataSourceConfigLabels
         ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
         : k,
-    value: JSON.stringify(
-      dataSource.config[k as keyof typeof dataSource.config],
-    ),
+    value:
+      k === "type" ? (
+        <DataSourceBadge type={dataSource.config[k]} />
+      ) : typeof dataSource.config[k as keyof typeof dataSource.config] ===
+        "string" ? (
+        dataSource.config[k as keyof typeof dataSource.config]
+      ) : (
+        JSON.stringify(dataSource.config[k as keyof typeof dataSource.config])
+      ),
   }));
 
   return (
@@ -201,7 +208,7 @@ const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+        dataSource.importInfo?.status
+      )
   );
 };
