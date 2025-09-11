@@ -48,7 +48,11 @@ export class JSONTransformer extends OperationNodeTransformer {
     this.#caster = (serializedValue: unknown) =>
       sql`${serializedValue}::${sql.raw("jsonb")}`;
     this.#serializer = (parameter: unknown) => {
-      if (parameter && typeof parameter === "object") {
+      if (
+        parameter &&
+        typeof parameter === "object" &&
+        !(parameter instanceof Date)
+      ) {
         return JSON.stringify(parameter);
       }
       return parameter;
