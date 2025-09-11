@@ -5,7 +5,6 @@ import { getServerSession } from "@/auth";
 import { findDataSourceById } from "../repositories/DataSource";
 import { findOrganisationForUser } from "../repositories/Organisation";
 import { findUserById } from "../repositories/User";
-import { appRouter } from "./router";
 
 export async function createContext() {
   const session = await getServerSession();
@@ -17,11 +16,6 @@ export async function createContext() {
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
-
-export const createCaller = async () => {
-  const context = await createContext();
-  return appRouter.createCaller(context);
-};
 
 /**
  * Initialization of tRPC backend
@@ -54,7 +48,7 @@ export const organisationProcedure = protectedProcedure
   .use(async ({ ctx, input, next }) => {
     const organisation = await findOrganisationForUser(
       input.organisationId,
-      ctx.user.id,
+      ctx.user.id
     );
     if (!organisation)
       throw new TRPCError({
@@ -78,7 +72,7 @@ export const dataSourceProcedure = protectedProcedure
 
     const organisation = await findOrganisationForUser(
       dataSource.organisationId,
-      ctx.user.id,
+      ctx.user.id
     );
     if (!organisation)
       throw new TRPCError({
