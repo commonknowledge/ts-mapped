@@ -13,6 +13,7 @@ import {
   EnqueueImportDataSourceJobMutationVariables,
   JobStatus,
 } from "@/__generated__/types";
+import DataSourceBadge from "@/components/DataSourceBadge";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
@@ -133,9 +134,15 @@ export function DataSourceDashboard({
       k in DataSourceConfigLabels
         ? DataSourceConfigLabels[k as keyof typeof DataSourceConfigLabels]
         : k,
-    value: JSON.stringify(
-      dataSource.config[k as keyof typeof dataSource.config]
-    ),
+    value:
+      k === "type" ? (
+        <DataSourceBadge type={dataSource.config[k]} />
+      ) : typeof dataSource.config[k as keyof typeof dataSource.config] ===
+        "string" ? (
+        dataSource.config[k as keyof typeof dataSource.config]
+      ) : (
+        JSON.stringify(dataSource.config[k as keyof typeof dataSource.config])
+      ),
   }));
 
   return (

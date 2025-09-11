@@ -76,7 +76,7 @@ function GoogleSheetsFieldsWithOAuth({
           setError("");
           setLoading(true);
           const oAuthCredentials = await getOAuthCredentials(
-            window.location.href
+            window.location.href,
           );
           onChange({ oAuthCredentials });
         }
@@ -98,7 +98,7 @@ function GoogleSheetsFieldsWithOAuth({
           setLoading(true);
           const sheets = await getSheets(
             config.oAuthCredentials,
-            config.spreadsheetId
+            config.spreadsheetId,
           );
           setSheets(sheets);
         }
