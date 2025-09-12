@@ -1,4 +1,3 @@
-import { ColumnDef } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   findDataSourceById,
@@ -6,6 +5,7 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { importBatch } from "./importDataSource";
+import type { ColumnDef } from "@/__generated__/types";
 
 const importDataRecords = async (args: object | null): Promise<boolean> => {
   if (

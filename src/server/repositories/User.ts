@@ -1,7 +1,7 @@
 import { jwtVerify } from "jose";
-import { NewUser, UserUpdate } from "@/server/models/User";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
+import type { NewUser, UserUpdate } from "@/server/models/User";
 
 type Nullable<T> = { [K in keyof T]: T[K] | null };
 

@@ -1,6 +1,6 @@
-import { MapConfig } from "@/__generated__/types";
-import { MapUpdate } from "@/server/models/Map";
 import { db } from "@/server/services/database";
+import type { MapConfig } from "@/__generated__/types";
+import type { MapUpdate } from "@/server/models/Map";
 
 const createBlankConfig = (): MapConfig => {
   return {

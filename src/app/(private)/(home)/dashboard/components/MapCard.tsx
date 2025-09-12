@@ -1,8 +1,8 @@
 import { DotIcon } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/components/Link";
-import { RouterOutputs } from "@/services/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 export function MapCard({
   map: { id, name, imageUrl, createdAt },

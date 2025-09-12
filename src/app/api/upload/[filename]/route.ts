@@ -1,8 +1,9 @@
 import fs from "fs";
 import { join } from "path";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getBaseDir } from "@/server/utils";
-import { UploadResponseBody } from "@/types";
+import type { UploadResponseBody } from "@/types";
+import type { NextRequest } from "next/server";
 
 /**
  * Local uploads directory static file server.

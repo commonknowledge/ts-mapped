@@ -1,16 +1,16 @@
-import { Point as GeoJSONPoint } from "geojson";
 import {
   findAreaByCode,
   findAreaByName,
   findAreasByPoint,
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
-import {
+import type {
   AddressGeocodingConfig,
   AreaGeocodingConfig,
   GeocodingConfig,
 } from "../models/DataSource";
-import { GeocodeResult, Point } from "../models/shared";
+import type { GeocodeResult, Point } from "../models/shared";
+import type { Point as GeoJSONPoint } from "geojson";
 
 interface MappingDataRecord {
   externalId: string;

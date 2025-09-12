@@ -1,16 +1,18 @@
-import z from "zod";
 import {
   AreaSetCode,
   EnrichmentSourceType,
   GeocodingType,
+} from "@/__generated__/types";
+import { AreaPropertyType } from "@/server/models/DataSource";
+import type {
   LooseEnrichment,
   LooseGeocodingConfig,
 } from "@/__generated__/types";
-import {
-  AreaPropertyType,
+import type {
   enrichmentSchema,
   geocodingConfigSchema,
 } from "@/server/models/DataSource";
+import type z from "zod";
 
 /**
  * This file is used for compile-type checking that GraphQL

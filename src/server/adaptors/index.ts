@@ -1,10 +1,11 @@
-import z from "zod";
 import logger from "@/server/services/logger";
-import { DataSourceType, dataSourceConfigSchema } from "../models/DataSource";
+import { DataSourceType } from "../models/DataSource";
 import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
+import type { dataSourceConfigSchema } from "../models/DataSource";
+import type z from "zod";
 
 export const getDataSourceAdaptor = (dataSource: {
   id: string;

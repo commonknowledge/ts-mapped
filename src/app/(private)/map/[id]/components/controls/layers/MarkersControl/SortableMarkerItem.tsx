@@ -1,8 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Pencil, Trash2 } from "lucide-react";
-import { SyntheticEvent, useContext, useRef, useState } from "react";
-import { PlacedMarker } from "@/__generated__/types";
+import { useContext, useRef, useState } from "react";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
@@ -14,6 +13,8 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import type { PlacedMarker } from "@/__generated__/types";
+import type { SyntheticEvent } from "react";
 
 export default function SortableMarkerItem({
   marker,

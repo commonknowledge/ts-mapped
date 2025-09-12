@@ -2,11 +2,7 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { Database, Settings } from "lucide-react";
-import { FormEvent, useContext, useEffect, useState } from "react";
-import {
-  UpsertPublicMapMutation,
-  UpsertPublicMapMutationVariables,
-} from "@/__generated__/types";
+import { useContext, useEffect, useState } from "react";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import {
@@ -21,6 +17,11 @@ import { cn } from "@/shadcn/utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
+import type {
+  UpsertPublicMapMutation,
+  UpsertPublicMapMutationVariables,
+} from "@/__generated__/types";
+import type { FormEvent } from "react";
 
 export default function PublishPublicMapSidebar() {
   const {

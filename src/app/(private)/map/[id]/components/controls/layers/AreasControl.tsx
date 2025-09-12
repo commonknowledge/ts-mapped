@@ -1,7 +1,6 @@
 import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Turf } from "@/__generated__/types";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import Loading from "@/components/Map/components/Loading";
@@ -17,6 +16,7 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
+import type { Turf } from "@/__generated__/types";
 
 export default function AreasControl() {
   const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);

@@ -1,5 +1,5 @@
-import { Generated, Insertable, Updateable } from "kysely";
 import z from "zod";
+import type { Generated, Insertable, Updateable } from "kysely";
 
 export const polygonSchema = z.object({
   bbox: z.array(z.number()).optional(),

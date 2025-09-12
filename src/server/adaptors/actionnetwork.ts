@@ -1,9 +1,9 @@
 import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
-import { EnrichedRecord } from "@/server/mapping/enrich";
 import logger from "@/server/services/logger";
-import { ExternalRecord, TaggedRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
 
 const ActionNetworkWebhookPayload = z.array(
   z

@@ -1,10 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapRef } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import { BoundingBoxInput } from "@/__generated__/types";
 import {
   MapConfig,
   MapContext,
@@ -12,8 +10,11 @@ import {
 } from "@/components/Map/context/MapContext";
 import { useMapQuery, useUpdateMapConfigMutation } from "@/components/Map/data";
 import { DEFAULT_ZOOM } from "@/constants";
-import { View } from "../types";
 import { getNewLastPosition } from "../utils";
+import type { View } from "../types";
+import type { BoundingBoxInput } from "@/__generated__/types";
+import type { ReactNode } from "react";
+import type { MapRef } from "react-map-gl/mapbox";
 
 export default function MapProvider({
   children,

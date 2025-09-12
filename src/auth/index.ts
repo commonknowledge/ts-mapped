@@ -1,6 +1,6 @@
 import { cache } from "react";
-import { ServerSession } from "@/authTypes";
 import { decodeJWT } from "./jwt";
+import type { ServerSession } from "@/authTypes";
 
 export const getServerSession = cache(async (): Promise<ServerSession> => {
   const defaultSession = { jwt: null, currentUser: null };

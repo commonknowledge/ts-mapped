@@ -1,4 +1,3 @@
-import { FeatureCollection, Point } from "geojson";
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -9,6 +8,7 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useContext(MapContext);

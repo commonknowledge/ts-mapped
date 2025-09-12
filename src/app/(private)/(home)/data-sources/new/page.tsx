@@ -2,18 +2,13 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SyntheticEvent, useCallback, useContext, useState } from "react";
-import {
-  CreateDataSourceMutation,
-  CreateDataSourceMutationVariables,
-  DataSourceRecordType,
-} from "@/__generated__/types";
+import { useCallback, useContext, useState } from "react";
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
-import { DataSourceConfig, DataSourceType } from "@/server/models/DataSource";
+import { DataSourceType } from "@/server/models/DataSource";
 import { uploadFile } from "@/services/uploads";
 import {
   Breadcrumb,
@@ -35,7 +30,15 @@ import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
-import { NewDataSourceConfig, newDataSourceConfigSchema } from "./schema";
+import { newDataSourceConfigSchema } from "./schema";
+import type { NewDataSourceConfig } from "./schema";
+import type {
+  CreateDataSourceMutation,
+  CreateDataSourceMutationVariables,
+  DataSourceRecordType,
+} from "@/__generated__/types";
+import type { DataSourceConfig } from "@/server/models/DataSource";
+import type { SyntheticEvent } from "react";
 
 // Loose type for incomplete config
 type ConfigState = Partial<NewDataSourceConfig> | { type: "" };

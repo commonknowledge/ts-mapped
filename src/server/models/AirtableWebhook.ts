@@ -1,5 +1,5 @@
-import { Insertable, Updateable } from "kysely";
 import z from "zod";
+import type { Insertable, Updateable } from "kysely";
 
 export const airtableWebhookSchema = z.object({
   id: z.string(),

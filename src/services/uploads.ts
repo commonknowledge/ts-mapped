@@ -1,4 +1,4 @@
-import { UploadResponseBody } from "@/types";
+import type { UploadResponseBody } from "@/types";
 
 export const uploadFile = async (file: File | null): Promise<string> => {
   if (!file) {

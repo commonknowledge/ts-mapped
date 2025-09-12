@@ -1,5 +1,5 @@
-import { ColumnType, Generated, Insertable, Updateable } from "kysely";
 import { z } from "zod";
+import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export const organisationSchema = z.object({
   id: z.string(),

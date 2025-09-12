@@ -1,4 +1,4 @@
-import { GoogleOAuthCredentials } from "@/server/models/DataSource";
+import type { GoogleOAuthCredentials } from "@/server/models/DataSource";
 
 export const getOAuthCredentials = async (
   redirectSuccessUrl: string,

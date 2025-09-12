@@ -2,16 +2,19 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import { Fragment, SyntheticEvent, useState } from "react";
-import {
+import { Fragment, useState } from "react";
+import { enrichmentSchema } from "@/server/models/DataSource";
+import { Button } from "@/shadcn/ui/button";
+import { Separator } from "@/shadcn/ui/separator";
+import EnrichmentFields from "./EnrichmentFields";
+import type { NewEnrichment } from "./EnrichmentFields";
+import type {
   DataSourceEnrichmentQuery,
   UpdateDataSourceEnrichmentMutation,
   UpdateDataSourceEnrichmentMutationVariables,
 } from "@/__generated__/types";
-import { Enrichment, enrichmentSchema } from "@/server/models/DataSource";
-import { Button } from "@/shadcn/ui/button";
-import { Separator } from "@/shadcn/ui/separator";
-import EnrichmentFields, { NewEnrichment } from "./EnrichmentFields";
+import type { Enrichment } from "@/server/models/DataSource";
+import type { SyntheticEvent } from "react";
 
 export default function DataSourceEnrichmentForm({
   dataSource,
