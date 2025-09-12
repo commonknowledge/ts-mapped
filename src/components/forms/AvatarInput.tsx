@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { uploadFile } from "@/services/uploads";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
-import { getInitials } from "@/utils";
+import { getInitials } from "@/utils/text";
 
 interface EditableAvatarProps {
   name: string;

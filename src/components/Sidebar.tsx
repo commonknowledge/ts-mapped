@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
-import { getInitials } from "@/utils";
+import { getInitials } from "@/utils/text";
 import { Link } from "./Link";
 import styles from "./Sidebar.module.css";
 import type { SyntheticEvent } from "react";
