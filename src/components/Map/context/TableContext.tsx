@@ -1,9 +1,9 @@
-import { QueryResult } from "@apollo/client";
 import { createContext } from "react";
-import {
+import type {
   DataRecordsQuery,
   DataRecordsQueryVariables,
 } from "@/__generated__/types";
+import type { QueryResult } from "@apollo/client";
 
 export const TableContext = createContext<{
   /* State */

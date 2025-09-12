@@ -1,8 +1,6 @@
-import {
-  PublicMapColumnType,
-  PublicMapDataRecordsQuery,
-} from "@/__generated__/types";
+import { PublicMapColumnType } from "@/__generated__/types";
 import { toBoolean } from "./utils";
+import type { PublicMapDataRecordsQuery } from "@/__generated__/types";
 import type { PublicFiltersFormValue } from "@/types";
 
 export const getActiveFilters = (

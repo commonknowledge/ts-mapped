@@ -1,6 +1,6 @@
 "use server";
 
-import { sign } from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { redirect, unstable_rethrow as rethrow } from "next/navigation";
 import z from "zod";
@@ -23,13 +23,14 @@ export async function login(formData: FormData) {
     const user = await findUserByEmailAndPassword(result.data);
     if (!user) return "Invalid credentials";
 
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+    const token = await new SignJWT({ id: user.id, email: user.email })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("24h")
+      .sign(secret);
+
     const cookieStore = await cookies();
-    cookieStore.set(
-      "JWT",
-      sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "", {
-        expiresIn: 24 * 60 * 60,
-      }),
-    );
+    cookieStore.set("JWT", token);
 
     redirect("/dashboard");
   } catch (error) {

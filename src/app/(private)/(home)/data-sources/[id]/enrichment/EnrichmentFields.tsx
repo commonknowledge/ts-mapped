@@ -1,9 +1,4 @@
-import {
-  AreaSetCode,
-  DataSourceEnrichmentQuery,
-  EnrichmentSourceType,
-  LooseEnrichment,
-} from "@/__generated__/types";
+import { EnrichmentSourceType } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
 import {
@@ -13,6 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
+import type {
+  AreaSetCode,
+  DataSourceEnrichmentQuery,
+  LooseEnrichment,
+} from "@/__generated__/types";
 
 // Extend the GraphQL type with a placeholder for new enrichments
 export type NewEnrichment = LooseEnrichment | { sourceType: "" };

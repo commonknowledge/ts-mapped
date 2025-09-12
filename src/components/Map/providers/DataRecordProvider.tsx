@@ -1,7 +1,8 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
+import type { ReactNode } from "react";
 
 const DataRecordProvider = ({ children }: { children: ReactNode }) => {
   const [selectedDataRecord, setSelectedDataRecord] = useState<{

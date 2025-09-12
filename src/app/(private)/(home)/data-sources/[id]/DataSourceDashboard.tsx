@@ -6,19 +6,12 @@ import { RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  DataSourceEventSubscription,
-  DataSourceEventSubscriptionVariables,
-  EnqueueImportDataSourceJobMutation,
-  EnqueueImportDataSourceJobMutationVariables,
-  JobStatus,
-} from "@/__generated__/types";
+import { JobStatus } from "@/__generated__/types";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
 import { useTRPC } from "@/services/trpc/react";
-import { RouterOutputs } from "@/services/trpc/react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +32,13 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import ConfigurationForm from "./components/ConfigurationForm";
+import type {
+  DataSourceEventSubscription,
+  DataSourceEventSubscriptionVariables,
+  EnqueueImportDataSourceJobMutation,
+  EnqueueImportDataSourceJobMutationVariables,
+} from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 export function DataSourceDashboard({
   dataSource,

@@ -3,10 +3,6 @@ import "./global.css";
 import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { headers } from "next/headers";
-import {
-  ListOrganisationsQuery,
-  ListOrganisationsQueryVariables,
-} from "@/__generated__/types";
 import { getServerSession } from "@/auth";
 import PublicMapPage from "@/components/PublicMapPage";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
@@ -17,6 +13,10 @@ import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
 import { TRPCReactProvider } from "@/services/trpc/react";
 import { Toaster } from "@/shadcn/ui/sonner";
+import type {
+  ListOrganisationsQuery,
+  ListOrganisationsQueryVariables,
+} from "@/__generated__/types";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({

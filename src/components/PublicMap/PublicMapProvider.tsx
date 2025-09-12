@@ -1,8 +1,13 @@
 "use client";
 
-import { QueryResult, gql, useQuery } from "@apollo/client";
-import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import {
+import { gql, useQuery } from "@apollo/client";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
+import { DataSourcesContext } from "../Map/context/DataSourcesContext";
+import { PublicMapContext } from "./PublicMapContext";
+import { createDataSourceConfig } from "./PublishedComponents/DataSourcesSelect";
+import type {
   PublicMap,
   PublicMapColumn,
   PublicMapDataRecordsQuery,
@@ -10,12 +15,9 @@ import {
   PublicMapDataSourceConfig,
   PublishedPublicMapQuery,
 } from "@/__generated__/types";
-import { MapContext } from "@/components/Map/context/MapContext";
-import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
-import { DataSourcesContext } from "../Map/context/DataSourcesContext";
-import { PublicMapContext } from "./PublicMapContext";
-import { createDataSourceConfig } from "./PublishedComponents/DataSourcesSelect";
 import type { Point } from "@/server/models/shared";
+import type { QueryResult } from "@apollo/client";
+import type { ReactNode } from "react";
 
 export default function PublicMapProvider({
   publicMap: initialPublicMap,

@@ -1,6 +1,5 @@
 import {
   DndContext,
-  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   closestCenter,
@@ -38,7 +37,8 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
-import { View } from "../types";
+import type { View } from "../types";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function MapViews() {
   const {

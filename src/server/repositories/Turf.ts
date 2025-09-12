@@ -1,5 +1,5 @@
-import { NewTurf, TurfUpdate } from "@/server/models/Turf";
 import { db } from "@/server/services/database";
+import type { NewTurf, TurfUpdate } from "@/server/models/Turf";
 
 export function findTurfsByMapId(mapId: string) {
   return db.selectFrom("turf").where("mapId", "=", mapId).selectAll().execute();

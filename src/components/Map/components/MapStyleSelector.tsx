@@ -1,6 +1,5 @@
 import { Paintbrush, Scan, Type } from "lucide-react";
 import { useContext } from "react";
-import { MapStyleName } from "@/__generated__/types";
 import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { Label } from "@/shadcn/ui/label";
@@ -18,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import mapStyles from "../styles";
+import type { MapStyleName } from "@/__generated__/types";
 
 export default function MapStyleSelector() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);

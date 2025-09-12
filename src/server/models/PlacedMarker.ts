@@ -1,6 +1,6 @@
-import { ColumnType, Generated, Insertable, Updateable } from "kysely";
 import z from "zod";
 import { pointSchema } from "./shared";
+import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export const placedMarkerSchema = z.object({
   id: z.string(),

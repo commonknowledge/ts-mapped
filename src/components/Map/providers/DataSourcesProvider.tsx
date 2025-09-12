@@ -1,9 +1,10 @@
 "use client";
 
-import { ReactNode, useCallback, useContext } from "react";
+import { useCallback, useContext } from "react";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { useDataSourcesQuery } from "../data";
+import type { ReactNode } from "react";
 
 export default function DataSourcesProvider({
   children,

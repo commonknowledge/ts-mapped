@@ -1,5 +1,5 @@
-import { Generated, Insertable, JSONColumnType, Updateable } from "kysely";
 import z from "zod";
+import type { Generated, Insertable, JSONColumnType, Updateable } from "kysely";
 
 export const areaGeographySchema = z.record(z.string(), z.unknown());
 

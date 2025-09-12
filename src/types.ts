@@ -1,6 +1,6 @@
 // Only import library types and generated types into this file
-import { Geometry } from "geojson";
-import { PublicMapColumnType } from "./__generated__/types";
+import type { PublicMapColumnType } from "./__generated__/types";
+import type { Geometry } from "geojson";
 
 export interface DrawModeChangeEvent {
   mode: string;

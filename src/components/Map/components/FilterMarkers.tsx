@@ -1,18 +1,18 @@
 import { circle } from "@turf/turf";
-import {
+import { useContext, useEffect, useMemo } from "react";
+import { Layer, Source } from "react-map-gl/mapbox";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { MARKER_ID_KEY } from "@/constants";
+import { mapColors } from "../styles";
+import type { RecordFilterInput } from "@/__generated__/types";
+import type {
   Feature,
   FeatureCollection,
   GeoJsonProperties,
   Polygon,
 } from "geojson";
-import { LngLatBoundsLike } from "mapbox-gl";
-import { useContext, useEffect, useMemo } from "react";
-import { Layer, Source } from "react-map-gl/mapbox";
-import { RecordFilterInput } from "@/__generated__/types";
-import { MapContext } from "@/components/Map/context/MapContext";
-import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
-import { MARKER_ID_KEY } from "@/constants";
-import { mapColors } from "../styles";
+import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
   const { mapRef, mapConfig, view } = useContext(MapContext);

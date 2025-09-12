@@ -8,8 +8,8 @@ import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findMapViewById } from "@/server/repositories/MapView";
 import logger from "@/server/services/logger";
 import { batchAsync } from "@/server/utils";
-import { TaggedRecord } from "@/types";
 import { findMapById } from "../repositories/Map";
+import type { TaggedRecord } from "@/types";
 
 const tagDataSource = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args) || !("viewId" in args)) {

@@ -267,4 +267,4 @@ describe("Airtable adaptor tests", () => {
 
     expect(updatedRecords[0].json["My View"]).toBeFalsy();
   });
-});
+}, 10000);

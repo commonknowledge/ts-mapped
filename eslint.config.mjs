@@ -19,7 +19,7 @@ const eslintConfig = [
   ...tseslint.configs.stylistic,
   {
     rules: {
-      // "@typescript-eslint/consistent-type-imports": "error", // TODO: re-enable when ready
+      "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },

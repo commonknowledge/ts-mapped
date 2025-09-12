@@ -1,8 +1,4 @@
 import {
-  DataSource,
-  DataSourceResolvers as DataSourceResolversType,
-} from "@/__generated__/types";
-import {
   countDataRecordsForDataSource,
   findDataRecordsByDataSource,
 } from "@/server/repositories/DataRecord";
@@ -11,6 +7,10 @@ import {
   findDataSourcesByIds,
   getJobInfo,
 } from "@/server/repositories/DataSource";
+import type {
+  DataSource,
+  DataSourceResolvers as DataSourceResolversType,
+} from "@/__generated__/types";
 
 const DataSourceResolvers: DataSourceResolversType = {
   // Remove sensitive credentials (leave only the `type` property)

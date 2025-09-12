@@ -1,6 +1,6 @@
 "use client";
 
-import { SyntheticEvent, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
 import { Separator } from "@/shadcn/ui/separator";
 import { login } from "./actions";
+import type { SyntheticEvent } from "react";
 
 export default function LoginPage() {
   const [error, setError] = useState("");

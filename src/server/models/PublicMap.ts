@@ -1,11 +1,10 @@
-import {
+import z from "zod";
+import type {
   Generated,
   Insertable,
   ColumnType as KyselyColumnType,
   Updateable,
 } from "kysely";
-
-import z from "zod";
 
 export enum PublicMapColumnType {
   Boolean = "Boolean",

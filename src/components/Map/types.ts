@@ -1,5 +1,5 @@
-import { MapView } from "@/__generated__/types";
-import { PointFeature } from "@/types";
+import type { MapView } from "@/__generated__/types";
+import type { PointFeature } from "@/types";
 
 export interface DataSourceMarkers {
   dataSourceId: string;

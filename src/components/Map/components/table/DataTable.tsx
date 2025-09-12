@@ -12,8 +12,7 @@ import {
   Settings2,
   X,
 } from "lucide-react";
-import { ReactNode, useState } from "react";
-import { ColumnDef, DataRecord, SortInput } from "@/__generated__/types";
+import { useState } from "react";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -31,6 +30,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import type { ColumnDef, DataRecord, SortInput } from "@/__generated__/types";
+import type { ReactNode } from "react";
 
 interface DataTableProps {
   title?: string;

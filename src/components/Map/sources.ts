@@ -1,8 +1,5 @@
-import {
-  AreaSetCode,
-  AreaSetGroupCode,
-  LooseGeocodingConfig,
-} from "@/__generated__/types";
+import { AreaSetCode, AreaSetGroupCode } from "@/__generated__/types";
+import type { LooseGeocodingConfig } from "@/__generated__/types";
 
 export interface ChoroplethLayerConfig {
   areaSetCode: AreaSetCode;

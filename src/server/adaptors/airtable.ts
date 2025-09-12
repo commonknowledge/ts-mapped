@@ -1,7 +1,6 @@
 import z from "zod";
 import { ColumnType } from "@/__generated__/types";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
-import { EnrichedRecord } from "@/server/mapping/enrich";
 import {
   findAirtableWebhookById,
   upsertAirtableWebhook,
@@ -9,8 +8,9 @@ import {
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { ExternalRecord, TaggedRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface Webhook {
   id: string;

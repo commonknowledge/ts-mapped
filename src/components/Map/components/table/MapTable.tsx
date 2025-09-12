@@ -1,10 +1,11 @@
 import { useContext } from "react";
-import { DataSourceView, FilterType } from "@/__generated__/types";
+import { FilterType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { TableContext } from "@/components/Map/context/TableContext";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
+import type { DataSourceView } from "@/__generated__/types";
 
 interface DataRecord {
   id: string;

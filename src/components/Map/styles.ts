@@ -1,4 +1,4 @@
-import { MapStyleName } from "@/__generated__/types";
+import type { MapStyleName } from "@/__generated__/types";
 
 export interface MapStyleConfig {
   name: string;

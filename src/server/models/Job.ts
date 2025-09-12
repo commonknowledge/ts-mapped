@@ -1,5 +1,5 @@
-import { JSONColumnType } from "kysely";
 import z from "zod";
+import type { JSONColumnType } from "kysely";
 
 const jobDataSchema = z.object({
   args: z.record(z.string(), z.unknown()),

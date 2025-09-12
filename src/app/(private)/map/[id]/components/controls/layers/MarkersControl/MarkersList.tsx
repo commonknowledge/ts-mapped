@@ -1,9 +1,6 @@
 import {
   DndContext,
-  DragEndEvent,
-  DragOverEvent,
   DragOverlay,
-  DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   closestCenter,
@@ -18,7 +15,6 @@ import {
 } from "@dnd-kit/sortable";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { PlacedMarker } from "@/__generated__/types";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
@@ -36,6 +32,12 @@ import EmptyLayer from "../../Emptylayer";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
+import type { PlacedMarker } from "@/__generated__/types";
+import type {
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+} from "@dnd-kit/core";
 
 export default function MarkersList() {
   const { viewConfig } = useContext(MapContext);

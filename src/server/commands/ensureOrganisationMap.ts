@@ -1,12 +1,10 @@
 import { ADMIN_ORGANISATION_NAME } from "@/constants";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
-  DataSource,
   DataSourceRecordType,
   DataSourceType,
   GeocodingType,
 } from "@/server/models/DataSource";
-import { Map } from "@/server/models/Map";
 import {
   createDataSource,
   findCSVDataSourceByUrl,
@@ -18,7 +16,10 @@ import {
 } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { AreaSetCode, AreaSetGroupCode } from "../models/AreaSet";
-import { MapStyleName, MapView, VisualisationType } from "../models/MapView";
+import { MapStyleName, VisualisationType } from "../models/MapView";
+import type { MapView } from "../models/MapView";
+import type { DataSource } from "@/server/models/DataSource";
+import type { Map } from "@/server/models/Map";
 
 const MAP_AND_DATA_SOURCE_NAME = "2024 GE Results";
 

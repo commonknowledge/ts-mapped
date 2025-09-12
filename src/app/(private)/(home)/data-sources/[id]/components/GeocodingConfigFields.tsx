@@ -1,17 +1,14 @@
-import {
-  AreaSetCode,
-  GeocodingType,
-  LooseGeocodingConfig,
-} from "@/__generated__/types";
+import { AreaSetCode, GeocodingType } from "@/__generated__/types";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
 import { AreaGeocodingType } from "@/server/models/DataSource";
-import { RouterOutputs } from "@/services/trpc/react";
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@/shadcn/ui/dropdown-menu";
+import type { LooseGeocodingConfig } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 /**
  * This is a little complicated as it includes a front-end only

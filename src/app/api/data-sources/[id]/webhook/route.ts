@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import { batchAsync } from "@/server/utils";
+import type { NextRequest } from "next/server";
 
 const handler = async (
   dataSourceId: string,

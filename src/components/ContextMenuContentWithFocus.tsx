@@ -1,6 +1,7 @@
-import { ReactNode, RefObject, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { ContextMenuContent } from "@/shadcn/ui/context-menu";
+import type { ReactNode, RefObject } from "react";
 
 /**
  * ContextMenuContent wrapper that fixes bugs that happen when a

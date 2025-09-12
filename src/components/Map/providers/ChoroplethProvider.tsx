@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { VisualisationType } from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -8,6 +8,7 @@ import { useAreaStatsQuery } from "@/components/Map/data";
 import { getChoroplethLayerConfig } from "@/components/Map/sources";
 import { ChoroplethContext } from "../context/ChoroplethContext";
 import { DataSourcesContext } from "../context/DataSourcesContext";
+import type { ReactNode } from "react";
 
 export default function ChoroplethProvider({
   children,

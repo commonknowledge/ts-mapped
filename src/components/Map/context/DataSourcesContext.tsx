@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { DataSourcesQuery } from "@/__generated__/types";
+import type { DataSourcesQuery } from "@/__generated__/types";
 
 type DataSource = NonNullable<DataSourcesQuery["dataSources"]>[0];
 

@@ -1,7 +1,7 @@
-import {
+import { OperationNodeTransformer, sql } from "kysely";
+import type {
   ColumnUpdateNode,
   KyselyPlugin,
-  OperationNodeTransformer,
   PluginTransformQueryArgs,
   PluginTransformResultArgs,
   PrimitiveValueListNode,
@@ -11,7 +11,6 @@ import {
   ValueListNode,
   ValueNode,
   ValuesNode,
-  sql,
 } from "kysely";
 
 /**

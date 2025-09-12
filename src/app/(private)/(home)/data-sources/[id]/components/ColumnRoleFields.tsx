@@ -1,10 +1,10 @@
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 
-import { RouterOutputs } from "@/services/trpc/react";
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@/shadcn/ui/dropdown-menu";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 export function ColumnRoleFields({
   dataSource,

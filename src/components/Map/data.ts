@@ -1,10 +1,12 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
+import { CalculationType, VisualisationType } from "@/__generated__/types";
+import type { ViewConfig } from "./context/MapContext";
+import type { DataSourceMarkers } from "./types";
+import type {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
-  CalculationType,
   DataRecordsQuery,
   DataRecordsQueryVariables,
   DataSourceView,
@@ -27,10 +29,7 @@ import {
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
-  VisualisationType,
 } from "@/__generated__/types";
-import { ViewConfig } from "./context/MapContext";
-import { DataSourceMarkers } from "./types";
 
 export const useDataSourcesQuery = () =>
   useQuery<DataSourcesQuery>(gql`

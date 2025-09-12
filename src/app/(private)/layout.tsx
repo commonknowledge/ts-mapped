@@ -6,9 +6,11 @@ export default async function PrivateLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getServerSession();
+  const serverSession = await getServerSession();
 
-  if (!user) redirect("/");
+  if (!serverSession.currentUser) {
+    return redirect("/");
+  }
 
   return <>{children}</>;
 }

@@ -1,9 +1,10 @@
-import { Point as GeoJSONPoint } from "geojson";
 import { Search } from "lucide-react";
-import { FormEvent, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { Input } from "@/shadcn/ui/input";
 import type { Point } from "@/server/models/shared";
+import type { Point as GeoJSONPoint } from "geojson";
+import type { FormEvent } from "react";
 
 export default function PublicMapGeocoder({
   onGeocode,

@@ -1,6 +1,6 @@
 import { createContext } from "react";
-import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
-import { MarkerQueriesResult } from "../types";
+import type { MarkerQueriesResult } from "../types";
+import type { Folder, PlacedMarker, Turf } from "@/__generated__/types";
 import type { Result } from "@mapbox/mapbox-gl-geocoder";
 
 export const MarkerAndTurfContext = createContext<{
