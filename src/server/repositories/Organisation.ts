@@ -1,5 +1,8 @@
 import { db } from "@/server/services/database";
-import type { NewOrganisation } from "@/server/models/Organisation";
+import type {
+  NewOrganisation,
+  OrganisationUpdate,
+} from "@/server/models/Organisation";
 
 export function findOrganisationByName(name: string) {
   return db
@@ -56,6 +59,18 @@ export function upsertOrganisation(organisation: NewOrganisation) {
         name: organisation.name,
       }),
     )
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function updateOrganisation(
+  id: string,
+  organisation: OrganisationUpdate,
+) {
+  return db
+    .updateTable("organisation")
+    .set(organisation)
+    .where("id", "=", id)
     .returningAll()
     .executeTakeFirstOrThrow();
 }

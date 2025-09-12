@@ -34,7 +34,6 @@ import {
   upsertPublicMap,
 } from "@/server/repositories/PublicMap";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
-import { updateUser } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
 import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
@@ -49,7 +48,6 @@ import type {
   MutationUpdateMapArgs,
   MutationUpdateMapConfigArgs,
   PolygonInput,
-  UpdateUserResponse,
   UpsertFolderResponse,
   UpsertPlacedMarkerResponse,
   UpsertPublicMapResponse,
@@ -439,11 +437,6 @@ const MutationResolvers: MutationResolversType = {
       logger.error(`Could not create placed marker`, { error });
     }
     return { code: 500 };
-  },
-  updateUser: async (_, args, { currentUser }): Promise<UpdateUserResponse> => {
-    if (!currentUser) return { code: 401, result: null };
-    const user = await updateUser(currentUser.id, args.data);
-    return { code: 200, result: user };
   },
 };
 

@@ -3,60 +3,129 @@
 import { useMutation } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { useForm } from "@/components/forms/useForm";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { Card, CardContent, CardHeader } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
 
-export function ChangePasswordForm() {
-  const [password, setPassword] = React.useState("");
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().nonempty("Current password is required"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
+    newPasswordValidation: z.string(),
+  })
+  .refine((data) => data.newPassword === data.newPasswordValidation, {
+    message: "Passwords do not match",
+    path: ["newPasswordValidation"],
+  });
+
+type FormState = z.infer<typeof passwordSchema>;
+
+export default function ChangePasswordForm({
+  closeDialog,
+}: {
+  closeDialog: () => void;
+}) {
+  const {
+    formState,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    resetForm,
+    isValid,
+  } = useForm<FormState>(passwordSchema, {
+    currentPassword: "",
+    newPassword: "",
+    newPasswordValidation: "",
+  });
 
   const trpc = useTRPC();
   const { mutate: updateUserPassword, isPending } = useMutation(
     trpc.user.update.mutationOptions({
       onSuccess: () => {
-        setPassword("");
         toast.success("Password updated");
+        resetForm();
+        closeDialog();
       },
       onError: () => {
         toast.error("Failed to update password");
+        resetForm();
       },
     }),
   );
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    updateUserPassword({ password });
+
+    if (!isValid) {
+      toast.error("Please fix validation errors");
+      return;
+    }
+
+    updateUserPassword({
+      currentPassword: formState.currentPassword,
+      newPassword: formState.newPassword,
+    });
   };
 
   return (
-    <form className="max-w-md" onSubmit={handleSubmit}>
-      <Card>
-        <CardHeader>Change your password</CardHeader>
+    <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+      <FormFieldWrapper
+        label="Verify current password"
+        id="current-password"
+        error={touched.currentPassword ? errors.currentPassword : ""}
+      >
+        <Input
+          id="current-password"
+          type="password"
+          required
+          value={formState.currentPassword}
+          onChange={handleChange("currentPassword")}
+          onBlur={handleBlur("currentPassword")}
+        />
+      </FormFieldWrapper>
 
-        <CardContent className="space-y-2">
-          <FormFieldWrapper
-            label="New password"
-            id="password"
-            hint="At least 8 characters"
-          >
-            <Input
-              name="password"
-              id="password"
-              minLength={8}
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </FormFieldWrapper>
+      <FormFieldWrapper
+        label="New password"
+        id="new-password"
+        hint="At least 8 characters"
+        error={touched.newPassword ? errors.newPassword : ""}
+      >
+        <Input
+          id="new-password"
+          type="password"
+          required
+          value={formState.newPassword}
+          onChange={handleChange("newPassword")}
+          onBlur={handleBlur("newPassword")}
+        />
+      </FormFieldWrapper>
 
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Saving..." : "Save"}
-          </Button>
-        </CardContent>
-      </Card>
+      <FormFieldWrapper
+        label="Confirm new password"
+        id="confirm-new-password"
+        error={
+          touched.newPasswordValidation ? errors.newPasswordValidation : ""
+        }
+      >
+        <Input
+          id="confirm-new-password"
+          type="password"
+          required
+          value={formState.newPasswordValidation}
+          onChange={handleChange("newPasswordValidation")}
+          onBlur={handleBlur("newPasswordValidation")}
+        />
+      </FormFieldWrapper>
+
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Saving..." : "Save"}
+      </Button>
     </form>
   );
 }

@@ -3,6 +3,7 @@ import { Label } from "@/shadcn/ui/label";
 export default function FormFieldWrapper({
   label,
   children,
+  error,
   hint,
   id,
   isHorizontal = false,
@@ -10,6 +11,7 @@ export default function FormFieldWrapper({
   label: string;
   children: React.ReactNode;
 
+  error?: string;
   hint?: string;
   id?: string;
   isHorizontal?: boolean;
@@ -23,6 +25,7 @@ export default function FormFieldWrapper({
         {children}
       </div>
       {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }

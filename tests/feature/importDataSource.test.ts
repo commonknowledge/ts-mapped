@@ -19,7 +19,9 @@ const credentials = inject("credentials");
 describe("importDataSource tests", () => {
   test("importDataSource imports John Lennon record from Airtable", async () => {
     // 1. Create test organisation
-    const org = await upsertOrganisation({ name: "Test Import Org" });
+    const org = await upsertOrganisation({
+      name: "Test Import Org",
+    });
 
     // 2. Create test data source with Airtable credentials
     const dataSource = await createDataSource({

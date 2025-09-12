@@ -1,17 +1,35 @@
+import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { userSchema } from "@/server/models/User";
 import { updateUser } from "@/server/repositories/User";
+import { verifyPassword } from "@/server/utils/auth";
 import { protectedProcedure, router } from "../index";
 
 export const userRouter = router({
   update: protectedProcedure
     .input(
       userSchema
-        .pick({ email: true })
+        .pick({ email: true, name: true, avatarUrl: true })
         .partial()
-        .and(z.object({ password: z.string().optional() })),
+        .and(
+          z.object({
+            currentPassword: z.string().optional(),
+            newPassword: z.string().optional(),
+          }),
+        ),
     )
     .mutation(async ({ input, ctx }) => {
+      if (input.newPassword) {
+        if (
+          !input.currentPassword ||
+          !verifyPassword(input.currentPassword, ctx.user.passwordHash)
+        ) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid credentials.",
+          });
+        }
+      }
       const user = await updateUser(ctx.user.id, input);
       return user;
     }),

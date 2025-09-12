@@ -32,7 +32,7 @@ export const authRouter = router({
       const { token, password } = input;
       const user = await findUserByToken(token);
       if (!user) return false;
-      await updateUser(user.id, { password });
+      await updateUser(user.id, { newPassword: password });
       return true;
     }),
 });
