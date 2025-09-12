@@ -52,7 +52,7 @@ describe("importDataSource tests", () => {
     const stream = streamDataRecordsByDataSource(
       dataSource.id,
       { type: FilterType.MULTI },
-      ""
+      "",
     );
     const records = [];
     for await (const record of stream) {
@@ -72,7 +72,7 @@ describe("importDataSource tests", () => {
       records.map((r) => ({
         ...r,
         json: { Name: r.json.Name, Postcode: r.json.Postcode },
-      }))
+      })),
     ).toEqual([
       {
         externalId: "recHSNLI2dfwSoo8U",

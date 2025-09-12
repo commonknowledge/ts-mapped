@@ -355,13 +355,17 @@ describe("Google Sheets adaptor tests", () => {
       firstRecord.externalId,
     ]);
 
-    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe("true");
+    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe(
+      "true",
+    );
 
     taggedRecords[0].tag.present = false;
     await adaptor.tagRecords(taggedRecords);
     updatedRecords = await adaptor.fetchByExternalId([firstRecord.externalId]);
 
-    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe("false");
+    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe(
+      "false",
+    );
   });
 
   test("access token refresh works when token is expired", async () => {
