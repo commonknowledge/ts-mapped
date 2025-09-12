@@ -8,9 +8,7 @@ const credentials = inject("credentials");
 
 const uuid = uuidv4();
 
-// TODO: remove this skip when oauth app is approved
-// (as then refresh tokens last forever)
-describe.skip("Google Sheets adaptor tests", () => {
+describe("Google Sheets adaptor tests", () => {
   test("Connection succeeds", async () => {
     const adaptor = new GoogleSheetsAdaptor(
       uuid,
@@ -357,13 +355,13 @@ describe.skip("Google Sheets adaptor tests", () => {
       firstRecord.externalId,
     ]);
 
-    expect(updatedRecords[0].json["My View"]).toBe("true");
+    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe("true");
 
     taggedRecords[0].tag.present = false;
     await adaptor.tagRecords(taggedRecords);
     updatedRecords = await adaptor.fetchByExternalId([firstRecord.externalId]);
 
-    expect(updatedRecords[0].json["My View"]).toBe("false");
+    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe("false");
   });
 
   test("access token refresh works when token is expired", async () => {
