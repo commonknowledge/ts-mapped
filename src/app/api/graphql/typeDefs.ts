@@ -371,6 +371,7 @@ const typeDefs = `
   type Organisation {
     id: String!
     name: String!
+    avatarUrl: String
   }
 
   type PlacedMarker {

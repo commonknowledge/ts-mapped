@@ -9,7 +9,7 @@ export const userRouter = router({
   update: protectedProcedure
     .input(
       userSchema
-        .pick({ email: true, name: true })
+        .pick({ email: true, name: true, avatarUrl: true })
         .partial()
         .and(
           z.object({

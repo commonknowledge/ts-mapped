@@ -96,7 +96,9 @@ program
   .description("Create a new user")
   .action(async (options) => {
     try {
-      const org = await upsertOrganisation({ name: options.org });
+      const org = await upsertOrganisation({
+        name: options.org,
+      });
       const user = await upsertUser({
         email: options.email,
         name: options.name,

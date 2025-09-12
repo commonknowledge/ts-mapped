@@ -526,6 +526,7 @@ export type MutationResponse = {
 
 export type Organisation = {
   __typename?: "Organisation";
+  avatarUrl?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
 };
@@ -786,6 +787,7 @@ export type User = {
   createdAt: Scalars["Date"]["output"];
   email: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
 };
 
 export enum VisualisationType {
@@ -1020,6 +1022,7 @@ export type ListOrganisationsQuery = {
     __typename?: "Organisation";
     id: string;
     name: string;
+    avatarUrl?: string | null;
   }> | null;
 };
 
@@ -2309,6 +2312,11 @@ export type OrganisationResolvers<
   ParentType extends
     ResolversParentTypes["Organisation"] = ResolversParentTypes["Organisation"],
 > = {
+  avatarUrl?: Resolver<
+    Maybe<ResolversTypes["String"]>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2659,6 +2667,7 @@ export type UserResolvers<
   createdAt?: Resolver<ResolversTypes["Date"], ParentType, ContextType>;
   email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

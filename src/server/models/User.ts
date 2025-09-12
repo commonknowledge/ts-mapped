@@ -11,6 +11,7 @@ export const userSchema = z.object({
   createdAt: z.date(),
   email: z.string().email().trim().toLowerCase(),
   name: z.string().trim(),
+  avatarUrl: z.string().url().trim().nullish(),
   passwordHash: z.string(),
 });
 

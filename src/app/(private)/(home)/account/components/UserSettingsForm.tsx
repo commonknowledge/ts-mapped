@@ -1,28 +1,23 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
 import { toast } from "sonner";
 import { AvatarInput } from "@/components/forms/AvatarInput";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { useFormState } from "@/components/forms/useFormState";
 import { useCurrentUser } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
-import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 
 export default function UserSettingsForm() {
   const { currentUser, setCurrentUser } = useCurrentUser();
 
-  const [initialValues] = useState({
+  const { formState, handleChange, resetForm, isDirty } = useFormState({
     email: currentUser?.email || "",
     name: currentUser?.name || "",
-    avatarURL: currentUser?.avatarURL || "",
+    avatarUrl: currentUser?.avatarUrl || "",
   });
-
-  const { formState, handleChange, resetForm, isDirty } =
-    useFormState(initialValues);
 
   const trpc = useTRPC();
   const { mutate: updateUser, isPending } = useMutation(
@@ -33,6 +28,7 @@ export default function UserSettingsForm() {
             ...currentUser,
             email: formState.email,
             name: formState.name,
+            avatarUrl: formState.avatarUrl,
           });
         }
         toast.success("User settings updated!");
@@ -45,18 +41,15 @@ export default function UserSettingsForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    updateUser({ email: formState.email, name: formState.name });
+    updateUser({
+      email: formState.email,
+      name: formState.name,
+      avatarUrl: formState.avatarUrl || undefined,
+    });
   };
 
-  const onAvatarChange = async (file: File | undefined) => {
-    try {
-      if (!file) {
-        throw new Error("Missing file");
-      }
-    } catch (e) {
-      console.error("Error uploading avatar image", e);
-      toast.error("Something went wrong");
-    }
+  const onAvatarChange = (avatarUrl: string) => {
+    handleChange("avatarUrl")({ target: { value: avatarUrl } });
   };
 
   return (
@@ -64,7 +57,11 @@ export default function UserSettingsForm() {
       className="w-full max-w-[36ch] flex flex-col items-start gap-6"
       onSubmit={handleSubmit}
     >
-      <AvatarInput name={formState?.name} onChange={onAvatarChange} />
+      <AvatarInput
+        name={formState?.name}
+        src={formState?.avatarUrl}
+        onChange={onAvatarChange}
+      />
 
       <FormFieldWrapper label="Email" id="email">
         <Input

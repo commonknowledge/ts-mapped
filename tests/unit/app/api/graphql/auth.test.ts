@@ -51,8 +51,12 @@ describe("Auth Functions", () => {
     });
 
     // Create test organisations
-    testOrganisation = await upsertOrganisation({ name: "Test Org" });
-    otherOrganisation = await upsertOrganisation({ name: "Other Org" });
+    testOrganisation = await upsertOrganisation({
+      name: "Test Org",
+    });
+    otherOrganisation = await upsertOrganisation({
+      name: "Other Org",
+    });
 
     // Create organisation user relationships
     await upsertOrganisationUser({

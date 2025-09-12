@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useContext } from "react";
 import { useCurrentUser } from "@/hooks";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
-import { Avatar, AvatarFallback } from "@/shadcn/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import {
   Select,
@@ -18,6 +18,7 @@ import {
 import { cn } from "@/shadcn/utils";
 import { getInitials } from "@/utils";
 import { Link } from "./Link";
+import styles from "./Sidebar.module.css";
 import type { SyntheticEvent } from "react";
 
 export default function Sidebar() {
@@ -115,11 +116,16 @@ export default function Sidebar() {
           className={cn(
             "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
             isActive("/account") && "bg-neutral-100 text-primary",
+            styles["account"],
           )}
         >
           <Avatar>
+            <AvatarImage src={user?.avatarUrl || ""} alt={user?.name} />
             <AvatarFallback
-              className={isActive("/account") ? "bg-neutral-200" : ""}
+              className={cn(
+                isActive("/account") ? "bg-neutral-200" : "",
+                styles["avatar-fallback"],
+              )}
             >
               {getInitials(user?.name)}
             </AvatarFallback>

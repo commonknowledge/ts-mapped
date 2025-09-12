@@ -1,22 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 export function useFormState<T extends Record<string, string | number>>(
   initialState: Partial<T> = {},
 ) {
+  const initialStateRef = useRef<T>({ ...initialState } as T);
   const [formState, setFormState] = useState<T>({ ...initialState } as T);
 
-  useEffect(() => {
-    setFormState({ ...initialState } as T);
-  }, [initialState]);
-
   const handleChange =
-    (field: keyof T) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof T) => (e: { target: { value: string } }) => {
       const value = e.target.value;
       setFormState((prev) => ({ ...prev, [field]: value }));
     };
 
   const resetForm = () => {
-    setFormState({ ...initialState } as T);
+    setFormState({ ...initialStateRef.current });
   };
 
   const isDirty = useMemo(() => {
@@ -31,6 +28,7 @@ export function useFormState<T extends Record<string, string | number>>(
   return {
     handleChange,
     formState,
+    setFormState,
     resetForm,
     isDirty,
     hasChanged,

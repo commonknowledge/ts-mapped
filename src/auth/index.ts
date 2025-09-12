@@ -13,7 +13,12 @@ export const getServerSession = cache(async (): Promise<ServerSession> => {
     }
     return {
       jwt: jwt.encoded,
-      currentUser: { id: user.id, email: user.email, name: user.name },
+      currentUser: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+      },
     };
   }
   return defaultSession;
