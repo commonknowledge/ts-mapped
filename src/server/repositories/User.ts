@@ -71,7 +71,10 @@ export async function updateUser(
     ...data
   }: Omit<UserUpdate, "id" | "passwordHash"> & { newPassword?: string },
 ) {
-  const update = { email: data?.email || undefined } as UserUpdate;
+  const update: UserUpdate = {
+    email: data.email || undefined,
+    name: data.name,
+  };
 
   if (newPassword) {
     update.passwordHash = await hashPassword(newPassword);

@@ -219,6 +219,7 @@ const typeDefs = `
   type User {
     id: String!
     email: String!
+    name: String!
     createdAt: Date!
   }
 

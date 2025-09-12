@@ -1,52 +1,64 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AvatarInput } from "@/components/forms/AvatarInput";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { useFormState } from "@/components/forms/useFormState";
+import { useCurrentUser } from "@/hooks";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
+import { uploadFile } from "@/services/uploads";
 
 export default function UserSettingsForm() {
-  // TODO: replace with actual user data
-  const user = {
-    name: "Joaquim Souza",
-    email: "joaquim@commonknowledge.coop",
-  };
+  const { currentUser, setCurrentUser } = useCurrentUser();
 
-  const [initialValues, setInitialValues] = useState({
-    email: user.email,
-    name: user.name,
+  const [initialValues] = useState({
+    email: currentUser?.email || "",
+    name: currentUser?.name || "",
+    avatarURL: currentUser?.avatarURL || "",
   });
 
   const { formState, handleChange, resetForm, isDirty } =
     useFormState(initialValues);
 
+  const trpc = useTRPC();
+  const { mutate: updateUser, isPending } = useMutation(
+    trpc.user.update.mutationOptions({
+      onSuccess: () => {
+        if (currentUser) {
+          setCurrentUser({
+            ...currentUser,
+            email: formState.email,
+            name: formState.name,
+          });
+        }
+        toast.success("User settings updated!");
+      },
+      onError: () => {
+        toast.error("Failed to update user settings");
+      },
+    }),
+  );
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    try {
-      // TODO: update user data in the db
-      console.log(formState.name, formState.email);
-      toast.success("User settings updated!");
-
-      // updating initial form values to the current db values on success
-      setInitialValues(formState);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to update user settings");
-    }
+    updateUser({ email: formState.email, name: formState.name });
   };
 
-  const onAvatarChange = (file: File | undefined) => {
-    if (file) {
-      console.log(file);
-    } else {
+  const onAvatarChange = async (file: File | undefined) => {
+    try {
+      if (!file) {
+        throw new Error("Missing file")
+      }
+    } catch (e) {
+      console.error("Error uploading avatar image", e)
       toast.error("Something went wrong");
     }
-  };
-
+  }
+  
   return (
     <form
       className="w-full max-w-[36ch] flex flex-col items-start gap-6"
@@ -78,7 +90,9 @@ export default function UserSettingsForm() {
 
       {isDirty && (
         <div className="flex gap-4">
-          <Button type="submit">Save changes</Button>
+          <Button type="submit" disabled={isPending}>
+            Save changes
+          </Button>
           <Button type="button" variant="secondary" onClick={resetForm}>
             Cancel
           </Button>

@@ -44,10 +44,12 @@ describe("Auth Functions", () => {
     // Create test users
     testUser = await upsertUser({
       email: "test@example.com",
+      name: "Test User",
       password: "password",
     });
     otherUser = await upsertUser({
       email: "other@example.com",
+      name: "Other User",
       password: "password",
     });
 
@@ -136,7 +138,9 @@ describe("Auth Functions", () => {
         read: { dataSourceIdArg: "dataSourceId" },
       };
       const fieldArgs = { dataSourceId: publicDataSource.id };
-      const context: GraphQLContext = { currentUser: { id: otherUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: otherUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(true);
@@ -147,7 +151,9 @@ describe("Auth Functions", () => {
         read: { dataSourceIdArg: "dataSourceId" },
       };
       const fieldArgs = { dataSourceId: testDataSource.id };
-      const context: GraphQLContext = { currentUser: { id: testUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: testUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(true);
@@ -158,7 +164,9 @@ describe("Auth Functions", () => {
         read: { dataSourceIdArg: "dataSourceId" },
       };
       const fieldArgs = { dataSourceId: testDataSource.id };
-      const context: GraphQLContext = { currentUser: { id: otherUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: otherUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(false);
@@ -169,7 +177,9 @@ describe("Auth Functions", () => {
         write: { dataSourceIdArg: "dataSourceId" },
       };
       const fieldArgs = { dataSourceId: testDataSource.id };
-      const context: GraphQLContext = { currentUser: { id: testUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: testUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(true);
@@ -180,7 +190,9 @@ describe("Auth Functions", () => {
         write: { dataSourceIdArg: "dataSourceId" },
       };
       const fieldArgs = { dataSourceId: testDataSource.id };
-      const context: GraphQLContext = { currentUser: { id: otherUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: otherUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(false);
@@ -195,7 +207,9 @@ describe("Auth Functions", () => {
         dataSourceId: testDataSource.id,
         mapId: testMap.id,
       };
-      const context: GraphQLContext = { currentUser: { id: testUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: testUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(true);
@@ -210,7 +224,9 @@ describe("Auth Functions", () => {
         dataSourceId: testDataSource.id,
         organisationId: otherOrganisation.id,
       };
-      const context: GraphQLContext = { currentUser: { id: otherUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: otherUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(false);
@@ -225,7 +241,9 @@ describe("Auth Functions", () => {
         dataSourceId: publicDataSource.id,
         otherDataSourceId: testDataSource.id,
       };
-      const context: GraphQLContext = { currentUser: { id: otherUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: otherUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(false);
@@ -236,7 +254,9 @@ describe("Auth Functions", () => {
         read: { dataSourceIdArg: "dataSourceId" },
       };
       const fieldArgs = { dataSourceId: NULL_UUID };
-      const context: GraphQLContext = { currentUser: { id: testUser.id } };
+      const context: GraphQLContext = {
+        currentUser: { id: testUser.id, name: "", email: "" },
+      };
 
       const result = await checkAuth(authDirective, fieldArgs, context);
       expect(result).toBe(false);

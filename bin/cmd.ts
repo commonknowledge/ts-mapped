@@ -87,6 +87,7 @@ program
 program
   .command("upsertUser")
   .option("--email <email>")
+  .option("--name <name>")
   .option("--password <password>")
   .option(
     "--org <organisation>",
@@ -98,6 +99,7 @@ program
       const org = await upsertOrganisation({ name: options.org });
       const user = await upsertUser({
         email: options.email,
+        name: options.name,
         password: options.password,
       });
       await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
@@ -105,47 +107,6 @@ program
       logger.info(`Created user ${options.email}, ID ${user.id}`);
     } catch (error) {
       logger.error("Could not create user", { error });
-    }
-  });
-
-program
-  .command("createsuperuser")
-  .description(
-    "Create a superuser with hello@commonknowledge.coop and password 1234",
-  )
-  .action(async () => {
-    try {
-      const email = "hello@commonknowledge.coop";
-      const password = "1234";
-      const orgName = "Common Knowledge";
-
-      logger.info("Creating superuser...");
-
-      // Create or find the organisation
-      const org = await upsertOrganisation({ name: orgName });
-      logger.info(`Organisation: ${org.name} (ID: ${org.id})`);
-
-      // Create the user
-      const user = await upsertUser({
-        email,
-        password,
-      });
-      logger.info(`User created: ${user.email} (ID: ${user.id})`);
-
-      // Link user to organisation
-      await upsertOrganisationUser({ organisationId: org.id, userId: user.id });
-      logger.info(`User linked to organisation: ${org.name}`);
-
-      // Ensure the organisation has a map
-      const map = await ensureOrganisationMap(org.id);
-      logger.info(`Organisation map ensured: ${map.id}`);
-
-      logger.info("✅ Superuser created successfully!");
-      logger.info(`Email: ${email}`);
-      logger.info(`Password: ${password}`);
-      logger.info(`Organisation: ${orgName}`);
-    } catch (error) {
-      logger.error("❌ Failed to create superuser", { error });
     }
   });
 

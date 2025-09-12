@@ -26,7 +26,7 @@ export async function login(formData: FormData) {
     const cookieStore = await cookies();
     cookieStore.set(
       "JWT",
-      sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || "", {
+      sign({ id: user.id }, process.env.JWT_SECRET || "", {
         expiresIn: 24 * 60 * 60,
       }),
     );

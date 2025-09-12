@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { SyntheticEvent, useContext } from "react";
 import { useCurrentUser } from "@/hooks";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { Avatar, AvatarFallback } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import {
   Select,
@@ -15,19 +16,20 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
+import { getInitials } from "@/utils";
 import { Link } from "./Link";
 
 export default function Sidebar() {
   const slug = usePathname();
 
-  const user = useCurrentUser();
+  const { currentUser: user } = useCurrentUser();
   const { organisations, organisationId, setOrganisationId } =
     useContext(OrganisationsContext);
 
   const onSubmitLogout = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     document.cookie = "JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-    location.reload();
+    location.href = "/";
   };
 
   const isActive = (href: string) => slug === href;
@@ -114,15 +116,16 @@ export default function Sidebar() {
             isActive("/account") && "bg-neutral-100 text-primary",
           )}
         >
-          {/* TODO: display actual user data */}
-          <div className="w-6 h-6 bg-neutral-200 rounded-full flex items-center justify-center">
-            <span className="text-xs font-medium">
-              {user?.id?.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <Avatar>
+            <AvatarFallback
+              className={isActive("/account") ? "bg-neutral-200" : ""}
+            >
+              {getInitials(user?.name)}
+            </AvatarFallback>
+          </Avatar>{" "}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-neutral-900 truncate">
-              User
+              {user?.name || user?.email}
             </p>
           </div>
         </Link>
