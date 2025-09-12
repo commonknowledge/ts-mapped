@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ZodType } from "zod";
 
-export function useFormValidation<T extends Record<string, string | number>>(
-  schema: ZodType<T>,
-  initialState: Partial<T> = {},
+export function useForm<T extends Record<string, string | number>>(
+  schema: ZodType<T> | undefined = undefined,
+  _initialState: Partial<T> = {},
 ) {
-  const [formState, setFormState] = useState<T>({ ...initialState } as T);
+  const initialStateRef = useRef<T>({ ..._initialState } as T);
+  const [formState, setFormState] = useState<T>({ ..._initialState } as T);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const validate = (state: T) => {
+    if (!schema) {
+      return {};
+    }
+
     const result = schema.safeParse(state);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
@@ -22,7 +27,7 @@ export function useFormValidation<T extends Record<string, string | number>>(
   };
 
   const handleChange =
-    (field: keyof T) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof T) => (e: { target: { value: string } }) => {
       const value = e.target.value;
       const newState = { ...formState, [field]: value };
       setFormState(newState);
@@ -39,15 +44,23 @@ export function useFormValidation<T extends Record<string, string | number>>(
   };
 
   const resetForm = () => {
-    setFormState({ ...initialState } as T);
+    setFormState({ ...initialStateRef.current } as T);
     setErrors({});
     setTouched({});
   };
 
   const isValid = Object.keys(validate(formState)).length === 0;
 
+  const isDirty = useMemo(() => {
+    return Object.keys(initialStateRef.current).some(
+      (key) =>
+        formState[key as keyof T] !== initialStateRef.current[key as keyof T],
+    );
+  }, [formState]);
+
   return {
     formState,
+    setFormState,
     errors,
     touched,
     handleChange,
@@ -55,5 +68,6 @@ export function useFormValidation<T extends Record<string, string | number>>(
     resetForm,
     validate,
     isValid,
+    isDirty,
   };
 }

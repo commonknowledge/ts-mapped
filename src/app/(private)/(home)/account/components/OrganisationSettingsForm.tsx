@@ -5,7 +5,7 @@ import { useContext, useEffect } from "react";
 import { toast } from "sonner";
 import { AvatarInput } from "@/components/forms/AvatarInput";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-import { useFormState } from "@/components/forms/useFormState";
+import { useForm } from "@/components/forms/useForm";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -17,7 +17,7 @@ export default function OrganisationSettingsForm() {
   const currentOrganisation = getOrganisation();
 
   const { formState, setFormState, handleChange, resetForm, isDirty } =
-    useFormState<{ name: string; avatarUrl: string }>({
+    useForm<{ name: string; avatarUrl: string }>(undefined, {
       name: currentOrganisation?.name || "",
       avatarUrl: currentOrganisation?.avatarUrl || "",
     });

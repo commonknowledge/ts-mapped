@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AvatarInput } from "@/components/forms/AvatarInput";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-import { useFormState } from "@/components/forms/useFormState";
+import { useForm } from "@/components/forms/useForm";
 import { useCurrentUser } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -13,7 +13,7 @@ import { Input } from "@/shadcn/ui/input";
 export default function UserSettingsForm() {
   const { currentUser, setCurrentUser } = useCurrentUser();
 
-  const { formState, handleChange, resetForm, isDirty } = useFormState({
+  const { formState, handleChange, resetForm, isDirty } = useForm(undefined, {
     email: currentUser?.email || "",
     name: currentUser?.name || "",
     avatarUrl: currentUser?.avatarUrl || "",

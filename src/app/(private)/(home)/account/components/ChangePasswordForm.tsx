@@ -5,7 +5,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-import { useFormValidation } from "@/components/forms/useFormValidation";
+import { useForm } from "@/components/forms/useForm";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -23,12 +23,6 @@ const passwordSchema = z
     path: ["newPasswordValidation"],
   });
 
-const initialValues = {
-  currentPassword: "",
-  newPassword: "",
-  newPasswordValidation: "",
-};
-
 type FormState = z.infer<typeof passwordSchema>;
 
 export default function ChangePasswordForm({
@@ -44,7 +38,11 @@ export default function ChangePasswordForm({
     handleBlur,
     resetForm,
     isValid,
-  } = useFormValidation<FormState>(passwordSchema, initialValues);
+  } = useForm<FormState>(passwordSchema, {
+    currentPassword: "",
+    newPassword: "",
+    newPasswordValidation: "",
+  });
 
   const trpc = useTRPC();
   const { mutate: updateUserPassword, isPending } = useMutation(
