@@ -1,8 +1,8 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
+import type { LucideIcon } from "lucide-react";
 
 interface VerticalTabsProps {
   value: string;

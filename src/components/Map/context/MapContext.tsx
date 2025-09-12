@@ -1,21 +1,24 @@
-import { QueryResult } from "@apollo/client";
-import { RefObject, createContext } from "react";
-import { MapRef } from "react-map-gl/mapbox";
+import { createContext } from "react";
 import {
-  AreaSetGroupCode,
-  BoundingBoxInput,
   CalculationType,
   ColorScheme,
-  MapConfigInput,
-  MapQuery,
-  MapQueryVariables,
   MapStyleName,
-  MapViewConfigInput,
-  VisualisationType,
 } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
 import mapStyles from "../styles";
-import { View } from "../types";
+import type { View } from "../types";
+import type {
+  AreaSetGroupCode,
+  BoundingBoxInput,
+  MapConfigInput,
+  MapQuery,
+  MapQueryVariables,
+  MapViewConfigInput,
+  VisualisationType,
+} from "@/__generated__/types";
+import type { QueryResult } from "@apollo/client";
+import type { RefObject } from "react";
+import type { MapRef } from "react-map-gl/mapbox";
 
 export class MapConfig implements MapConfigInput {
   public markerDataSourceIds: string[] = [];

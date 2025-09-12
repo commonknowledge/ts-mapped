@@ -2,23 +2,24 @@
 
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import { SyntheticEvent, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import {
-  UpdateDataSourceConfigMutation,
-  UpdateDataSourceConfigMutationVariables,
-} from "@/__generated__/types";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceFeatures } from "@/features";
 import {
   DataSourceType,
   geocodingConfigSchema,
 } from "@/server/models/DataSource";
-import { RouterOutputs } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
 import { ColumnRoleFields } from "./ColumnRoleFields";
 import { GeocodingConfigFields } from "./GeocodingConfigFields";
+import type {
+  UpdateDataSourceConfigMutation,
+  UpdateDataSourceConfigMutationVariables,
+} from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
+import type { SyntheticEvent } from "react";
 
 export default function ConfigurationForm({
   dataSource,

@@ -1,8 +1,8 @@
 import fs from "fs";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
-import { ProvidedContext } from "vitest";
 import { defineConfig } from "vitest/config";
+import type { ProvidedContext } from "vitest";
 
 type VitestCredentials = ProvidedContext["credentials"];
 

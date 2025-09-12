@@ -1,11 +1,6 @@
 "use client";
 
-import { QueryResult } from "@apollo/client";
 import { useContext } from "react";
-import {
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
-} from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
@@ -17,6 +12,11 @@ import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
 import { getActiveFilters } from "./filtersHelpers";
 import FiltersList from "./FiltersList";
+import type {
+  PublicMapDataRecordsQuery,
+  PublicMapDataRecordsQueryVariables,
+} from "@/__generated__/types";
+import type { QueryResult } from "@apollo/client";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };

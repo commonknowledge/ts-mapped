@@ -2,10 +2,6 @@ import { gql, useMutation } from "@apollo/client";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
-import {
-  DeleteMapMutation,
-  DeleteMapMutationVariables,
-} from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -14,6 +10,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
+import type {
+  DeleteMapMutation,
+  DeleteMapMutationVariables,
+} from "@/__generated__/types";
 
 export default function PrivateMapNavbarControls({
   setIsEditingName,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ZodType } from "zod";
+import type { ZodType } from "zod";
 
 export function useFormValidation<T extends Record<string, string | number>>(
   schema: ZodType<T>,

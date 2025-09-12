@@ -1,11 +1,5 @@
 import { MapperKind, getDirective, mapSchema } from "@graphql-tools/utils";
-import {
-  GraphQLError,
-  GraphQLNonNull,
-  GraphQLSchema,
-  defaultFieldResolver,
-} from "graphql";
-import { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
+import { GraphQLError, GraphQLNonNull, defaultFieldResolver } from "graphql";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findMapById } from "@/server/repositories/Map";
 import { findMapViewById } from "@/server/repositories/MapView";
@@ -16,7 +10,9 @@ import {
   findPublishedPublicMapByMapId,
 } from "@/server/repositories/PublicMap";
 import logger from "@/server/services/logger";
-import { GraphQLContext } from "./context";
+import type { GraphQLContext } from "./context";
+import type { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
+import type { GraphQLSchema } from "graphql";
 
 type AccessType = keyof AuthDirectiveArgs;
 

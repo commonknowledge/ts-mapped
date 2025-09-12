@@ -10,10 +10,8 @@ import {
 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import {
-  AreaSetGroupCode,
   CalculationType,
   ColorScheme,
-  DataSource,
   VisualisationType,
 } from "@/__generated__/types";
 import { DataSourceItem } from "@/components/DataSourceItem";
@@ -23,8 +21,6 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { getValidAreaSetGroupCodes } from "@/components/Map/sources";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
-import { AreaSetCode } from "@/server/models/AreaSet";
-import { GeocodingType } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -50,6 +46,9 @@ import {
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
+import type { AreaSetGroupCode, DataSource } from "@/__generated__/types";
+import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { GeocodingType } from "@/server/models/DataSource";
 
 export default function VisualisationPanel({
   positionLeft,

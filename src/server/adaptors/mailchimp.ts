@@ -1,5 +1,5 @@
-import { ExternalRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { ExternalRecord } from "@/types";
 
 export class MailchimpAdaptor implements DataSourceAdaptor {
   async *extractExternalRecordIdsFromWebhookBody(

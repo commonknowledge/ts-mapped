@@ -1,14 +1,7 @@
 "use client";
 
 import { HttpLink } from "@apollo/client";
-import {
-  ApolloLink,
-  FetchResult,
-  Observable,
-  Operation,
-  from,
-  split,
-} from "@apollo/client/core";
+import { ApolloLink, Observable, from, split } from "@apollo/client/core";
 import { onError } from "@apollo/client/link/error";
 import { getMainDefinition } from "@apollo/client/utilities";
 import {
@@ -17,16 +10,13 @@ import {
   InMemoryCache,
 } from "@apollo/experimental-nextjs-app-support";
 import { print } from "graphql";
-import {
-  Client,
-  ClientOptions,
-  ExecutionResult,
-  createClient,
-} from "graphql-sse";
+import { createClient } from "graphql-sse";
 import { useContext } from "react";
-import { AreaStat, AreaStats } from "@/__generated__/types";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import { ServerSessionContext } from "./ServerSessionProvider";
+import type { AreaStat, AreaStats } from "@/__generated__/types";
+import type { FetchResult, Operation } from "@apollo/client/core";
+import type { Client, ClientOptions, ExecutionResult } from "graphql-sse";
 
 /**
  * A server-side-events link for GraphQL subscriptions.

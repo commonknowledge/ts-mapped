@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useState } from "react";
-import { CurrentUser, ServerSession } from "@/authTypes";
+import type { CurrentUser, ServerSession } from "@/authTypes";
 
 export const ServerSessionContext = createContext<
   ServerSession & { setCurrentUser: (u: CurrentUser) => void }

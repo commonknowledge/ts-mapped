@@ -1,10 +1,4 @@
 import {
-  BoundingBoxInput,
-  CalculationType,
-  QueryResolvers as QueryResolversType,
-} from "@/__generated__/types";
-import { GraphQLContext } from "@/app/api/graphql/context";
-import {
   findDataSourceById,
   findReadableDataSources,
 } from "@/server/repositories/DataSource";
@@ -18,6 +12,12 @@ import {
   findPublicMapByViewId,
 } from "@/server/repositories/PublicMap";
 import { getAreaStats } from "@/server/stats";
+import type {
+  BoundingBoxInput,
+  CalculationType,
+  QueryResolvers as QueryResolversType,
+} from "@/__generated__/types";
+import type { GraphQLContext } from "@/app/api/graphql/context";
 
 const QueryResolvers: QueryResolversType = {
   areaStats: (

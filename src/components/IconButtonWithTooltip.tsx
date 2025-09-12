@@ -7,7 +7,8 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import MultiDropdownMenu, { MultiDropdownMenuProps } from "./MultiDropdownMenu";
+import MultiDropdownMenu from "./MultiDropdownMenu";
+import type { MultiDropdownMenuProps } from "./MultiDropdownMenu";
 
 // Main component props
 type IconButtonWithTooltipProps = Partial<MultiDropdownMenuProps> & {

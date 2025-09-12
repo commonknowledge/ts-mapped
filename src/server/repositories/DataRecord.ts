@@ -1,25 +1,22 @@
-import {
-  AliasableExpression,
-  ExpressionBuilder,
-  SelectQueryBuilder,
-  SqlBool,
-  sql,
-} from "kysely";
-import {
-  FilterOperator,
-  FilterType,
-  RecordFilterInput,
-  SortInput,
-} from "@/__generated__/types";
+import { sql } from "kysely";
+import { FilterOperator, FilterType } from "@/__generated__/types";
 import {
   DATA_RECORDS_PAGE_SIZE,
   MARKER_MATCHED_COLUMN,
   SORT_BY_LOCATION,
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
-import { NewDataRecord } from "@/server/models/DataRecord";
-import { Database, db } from "@/server/services/database";
-import { Point } from "../models/shared";
+import { db } from "@/server/services/database";
+import type { Point } from "../models/shared";
+import type { RecordFilterInput, SortInput } from "@/__generated__/types";
+import type { NewDataRecord } from "@/server/models/DataRecord";
+import type { Database } from "@/server/services/database";
+import type {
+  AliasableExpression,
+  ExpressionBuilder,
+  SelectQueryBuilder,
+  SqlBool,
+} from "kysely";
 
 export async function countDataRecordsForDataSource(
   dataSourceId: string,

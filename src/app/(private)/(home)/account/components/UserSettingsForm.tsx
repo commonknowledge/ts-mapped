@@ -8,9 +8,9 @@ import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { useFormState } from "@/components/forms/useFormState";
 import { useCurrentUser } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
+import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
-import { uploadFile } from "@/services/uploads";
 
 export default function UserSettingsForm() {
   const { currentUser, setCurrentUser } = useCurrentUser();
@@ -51,14 +51,14 @@ export default function UserSettingsForm() {
   const onAvatarChange = async (file: File | undefined) => {
     try {
       if (!file) {
-        throw new Error("Missing file")
+        throw new Error("Missing file");
       }
     } catch (e) {
-      console.error("Error uploading avatar image", e)
+      console.error("Error uploading avatar image", e);
       toast.error("Something went wrong");
     }
-  }
-  
+  };
+
   return (
     <form
       className="w-full max-w-[36ch] flex flex-col items-start gap-6"

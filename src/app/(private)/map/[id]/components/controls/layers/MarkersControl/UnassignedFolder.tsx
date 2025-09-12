@@ -4,10 +4,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useMemo } from "react";
-import { Folder, PlacedMarker } from "@/__generated__/types";
 import { sortByPositionAndId } from "@/components/Map/utils";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
+import type { Folder, PlacedMarker } from "@/__generated__/types";
 
 // Unassigned folder component (behaves like a regular folder)
 export default function UnassignedFolder({

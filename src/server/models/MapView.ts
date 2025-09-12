@@ -1,11 +1,11 @@
-import {
+import z from "zod";
+import { areaSetGroupCode } from "./AreaSet";
+import type {
   Generated,
   Insertable,
   ColumnType as KyselyColumnType,
   Updateable,
 } from "kysely";
-import z from "zod";
-import { areaSetGroupCode } from "./AreaSet";
 
 enum FilterOperator {
   AND = "AND",

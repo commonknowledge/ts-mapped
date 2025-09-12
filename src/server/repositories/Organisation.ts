@@ -1,5 +1,5 @@
-import { NewOrganisation } from "@/server/models/Organisation";
 import { db } from "@/server/services/database";
+import type { NewOrganisation } from "@/server/models/Organisation";
 
 export function findOrganisationByName(name: string) {
   return db

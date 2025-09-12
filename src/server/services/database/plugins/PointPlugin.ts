@@ -1,7 +1,9 @@
-import { Polygon } from "geojson";
-import {
+import { OperationNodeTransformer } from "kysely";
+import logger from "../../../services/logger"; // Relative import required for Kysely CLI
+import type { Point } from "@/server/models/shared";
+import type { Polygon } from "geojson";
+import type {
   KyselyPlugin,
-  OperationNodeTransformer,
   PluginTransformQueryArgs,
   PluginTransformResultArgs,
   PrimitiveValueListNode,
@@ -10,8 +12,6 @@ import {
   UnknownRow,
   ValueNode,
 } from "kysely";
-import logger from "../../../services/logger"; // Relative import required for Kysely CLI
-import type { Point } from "@/server/models/shared";
 
 export class PointPlugin implements KyselyPlugin {
   readonly #transformer = new PointTransformer();

@@ -1,10 +1,4 @@
-import {
-  ScaleOrdinal,
-  ScaleSequential,
-  scaleLinear,
-  scaleOrdinal,
-  scaleSequential,
-} from "d3-scale";
+import { scaleLinear, scaleOrdinal, scaleSequential } from "d3-scale";
 import {
   interpolateBlues,
   interpolateBrBG,
@@ -15,10 +9,12 @@ import {
   interpolateViridis,
   schemeCategory10,
 } from "d3-scale-chromatic";
-import { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 import { useMemo } from "react";
-import { AreaStats, ColorScheme, ColumnType } from "@/__generated__/types";
+import { ColorScheme, ColumnType } from "@/__generated__/types";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
+import type { AreaStats } from "@/__generated__/types";
+import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
+import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
 export interface CategoricColorScheme {
   columnType: ColumnType.String;

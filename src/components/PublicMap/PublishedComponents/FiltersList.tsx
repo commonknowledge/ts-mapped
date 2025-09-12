@@ -5,10 +5,10 @@ import { Fragment, useContext } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Badge } from "@/shadcn/ui/badge";
-import { PublicFiltersFormValue } from "@/types";
 import { PublicMapContext } from "../PublicMapContext";
 import { getActiveFilters } from "./filtersHelpers";
 import { toBoolean } from "./utils";
+import type { PublicFiltersFormValue } from "@/types";
 
 function FiltersListBadge({
   name,

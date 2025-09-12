@@ -3,7 +3,7 @@
 import { Clock2, DatabaseIcon } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { SyntheticEvent, useContext } from "react";
+import { useContext } from "react";
 import { useCurrentUser } from "@/hooks";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { Avatar, AvatarFallback } from "@/shadcn/ui/avatar";
@@ -18,6 +18,7 @@ import {
 import { cn } from "@/shadcn/utils";
 import { getInitials } from "@/utils";
 import { Link } from "./Link";
+import type { SyntheticEvent } from "react";
 
 export default function Sidebar() {
   const slug = usePathname();

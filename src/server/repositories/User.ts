@@ -1,7 +1,7 @@
-import { verify } from "jsonwebtoken";
-import { NewUser, UserUpdate } from "@/server/models/User";
+import { jwtVerify } from "jose";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
+import type { NewUser, UserUpdate } from "@/server/models/User";
 
 export async function upsertUser(
   user: Omit<NewUser, "passwordHash"> & { password: string },
@@ -60,8 +60,9 @@ export async function findUserByEmail(email: string) {
 }
 
 export async function findUserByToken(token: string) {
-  const decoded = verify(token, process.env.JWT_SECRET || "") as { id: string };
-  return findUserById(decoded.id);
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+  const { payload } = await jwtVerify<{ id: string }>(token, secret);
+  return findUserById(payload.id);
 }
 
 export async function updateUser(

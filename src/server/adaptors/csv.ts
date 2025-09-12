@@ -4,10 +4,10 @@ import readline from "readline";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 import logger from "@/server/services/logger";
-import { ExternalRecord } from "@/types";
 import { getAbsoluteUrl } from "@/utils/appUrl";
 import { getBaseDir } from "../utils";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { ExternalRecord } from "@/types";
 
 export class CSVAdaptor implements DataSourceAdaptor {
   private url: string;

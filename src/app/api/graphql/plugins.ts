@@ -1,4 +1,4 @@
-import { Plugin } from "graphql-yoga";
+import type { Plugin } from "graphql-yoga";
 
 // Remove __typename from Input objects
 // (it is added by Apollo client and difficult to remove)

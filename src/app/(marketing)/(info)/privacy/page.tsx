@@ -1,5 +1,5 @@
-import { Metadata } from "next";
 import Prose from "@/components/Prose";
+import type { Metadata } from "next";
 
 export default function PrivacyPage() {
   return (

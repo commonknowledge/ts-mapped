@@ -1,6 +1,5 @@
-import { QueryResult } from "@apollo/client";
 import { createContext } from "react";
-import {
+import type {
   PublicMap,
   PublicMapColumn,
   PublicMapDataRecordsQuery,
@@ -9,6 +8,7 @@ import {
   PublishedPublicMapQuery,
 } from "@/__generated__/types";
 import type { Point } from "@/server/models/shared";
+import type { QueryResult } from "@apollo/client";
 
 export const PublicMapContext = createContext<{
   publicMap: PublishedPublicMapQuery["publishedPublicMap"];

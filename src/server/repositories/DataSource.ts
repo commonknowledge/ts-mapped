@@ -1,11 +1,12 @@
 import { sql } from "kysely";
-import { JobInfo, JobStatus } from "@/__generated__/types";
-import {
-  DataSourceType,
+import { JobStatus } from "@/__generated__/types";
+import { DataSourceType } from "@/server/models/DataSource";
+import { db } from "@/server/services/database";
+import type { JobInfo } from "@/__generated__/types";
+import type {
   DataSourceUpdate,
   NewDataSource,
 } from "@/server/models/DataSource";
-import { db } from "@/server/services/database";
 
 export async function createDataSource(dataSource: NewDataSource) {
   return await db

@@ -1,6 +1,5 @@
-import { Generated, Insertable, Updateable } from "kysely";
-
 import z from "zod";
+import type { Generated, Insertable, Updateable } from "kysely";
 
 export const organisationUserSchema = z.object({
   id: z.number(),

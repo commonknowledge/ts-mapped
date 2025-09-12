@@ -1,5 +1,5 @@
-import { NewMapView } from "@/server/models/MapView";
 import { db } from "@/server/services/database";
+import type { NewMapView } from "@/server/models/MapView";
 
 export function findMapViewById(viewId: string) {
   return db

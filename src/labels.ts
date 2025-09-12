@@ -1,21 +1,21 @@
 // Human friendly labels for enums
 
-import z from "zod";
-import { DataSourceType } from "@/server/models/DataSource";
-import {
+import type {
   AreaSetCode,
   AreaSetGroupCode,
   DataSourceRecordType,
   EnrichmentSourceType,
   GeocodingType,
 } from "./__generated__/types";
-import {
+import type {
   CSVConfigSchema,
   actionNetworkConfigSchema,
   airtableConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "./server/models/DataSource";
+import type { DataSourceType } from "@/server/models/DataSource";
+import type z from "zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "UK Postcode",

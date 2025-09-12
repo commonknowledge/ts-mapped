@@ -8,26 +8,12 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  ColumnDef,
-  FilterDataRecordsQuery,
-  FilterDataRecordsQueryVariables,
-  FilterOperator,
-  FilterType,
-  MapConfig,
-  PlacedMarker,
-  RecordFilterInput,
-  Turf,
-} from "@/__generated__/types";
+import { FilterOperator, FilterType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { TableContext } from "@/components/Map/context/TableContext";
-import MultiDropdownMenu, {
-  DropdownMenuItemType,
-  DropdownSubComponent,
-  DropdownSubMenu,
-} from "@/components/MultiDropdownMenu";
+import MultiDropdownMenu from "@/components/MultiDropdownMenu";
 import { Button } from "@/shadcn/ui/button";
 import {
   Command,
@@ -41,6 +27,20 @@ import { DropdownMenuItem } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { mapColors } from "../../styles";
+import type {
+  ColumnDef,
+  FilterDataRecordsQuery,
+  FilterDataRecordsQueryVariables,
+  MapConfig,
+  PlacedMarker,
+  RecordFilterInput,
+  Turf,
+} from "@/__generated__/types";
+import type {
+  DropdownMenuItemType,
+  DropdownSubComponent,
+  DropdownSubMenu,
+} from "@/components/MultiDropdownMenu";
 
 interface TableFilterProps {
   filter: RecordFilterInput;

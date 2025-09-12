@@ -10,8 +10,10 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getServerSession();
-  if (user.currentUser) redirect("/dashboard");
+  const serverSession = await getServerSession();
+  if (serverSession.currentUser) {
+    return redirect("/dashboard");
+  }
 
   return (
     <div className="bg-brand-background">

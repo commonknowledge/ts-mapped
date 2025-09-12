@@ -1,8 +1,4 @@
 import { gql } from "@apollo/client";
-import {
-  DataSourceEnrichmentQuery,
-  DataSourceEnrichmentQueryVariables,
-} from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { query } from "@/services/apollo";
@@ -13,6 +9,10 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import DataSourceEnrichmentForm from "./DataSourceEnrichmentForm";
+import type {
+  DataSourceEnrichmentQuery,
+  DataSourceEnrichmentQueryVariables,
+} from "@/__generated__/types";
 
 export default async function DataSourceEnrichmentPage({
   params,

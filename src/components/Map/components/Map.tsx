@@ -25,7 +25,6 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
-import { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
@@ -33,6 +32,7 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
 export default function Map({
   onSourceLoad,

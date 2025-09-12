@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  AuthDirectiveArgs,
-  DataSourceRecordType,
-  GeocodingType,
-  ProtectedArgs,
-} from "@/__generated__/types";
+import { DataSourceRecordType, GeocodingType } from "@/__generated__/types";
 import {
   _checkArg as checkArg,
   _checkArgs as checkArgs,
@@ -13,12 +8,8 @@ import {
   _mapGuard as mapGuard,
   _organisationGuard as organisationGuard,
 } from "@/app/api/graphql/auth";
-import { GraphQLContext } from "@/app/api/graphql/context";
 import { NULL_UUID } from "@/constants";
-import { DataSource, DataSourceType } from "@/server/models/DataSource";
-import { Map } from "@/server/models/Map";
-import { Organisation } from "@/server/models/Organisation";
-import { User } from "@/server/models/User";
+import { DataSourceType } from "@/server/models/DataSource";
 import {
   createDataSource,
   deleteDataSource,
@@ -30,6 +21,12 @@ import {
 } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { deleteUser, upsertUser } from "@/server/repositories/User";
+import type { AuthDirectiveArgs, ProtectedArgs } from "@/__generated__/types";
+import type { GraphQLContext } from "@/app/api/graphql/context";
+import type { DataSource } from "@/server/models/DataSource";
+import type { Map } from "@/server/models/Map";
+import type { Organisation } from "@/server/models/Organisation";
+import type { User } from "@/server/models/User";
 
 describe("Auth Functions", () => {
   let testUser: User;

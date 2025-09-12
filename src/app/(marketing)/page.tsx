@@ -1,14 +1,9 @@
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import { getServerSession } from "@/auth";
 import { Link } from "@/components/Link";
 import HomepageFeatureSection from "@/components/marketing/HomepageFeatureSection";
 import { Button } from "@/shadcn/ui/button";
 
-export default async function HomePage() {
-  const user = await getServerSession();
-  if (user.currentUser) redirect("/dashboard");
-
+export default function HomePage() {
   return (
     <>
       <div className="flex flex-col items-center justify-center relative bg-brand-background py-16 md:py-[120px] p-4 overflow-hidden">

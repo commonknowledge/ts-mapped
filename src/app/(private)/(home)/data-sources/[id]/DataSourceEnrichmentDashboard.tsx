@@ -3,22 +3,21 @@
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { LoaderPinwheel } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
+import { EnrichmentSourceType, JobStatus } from "@/__generated__/types";
+import DataListRow from "@/components/DataListRow";
+import { Link } from "@/components/Link";
+import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
+import { Button } from "@/shadcn/ui/button";
+import { Label } from "@/shadcn/ui/label";
+import { Separator } from "@/shadcn/ui/separator";
+import type {
   AreaSetCode,
   DataSourceEnrichmentEventSubscription,
   DataSourceEnrichmentEventSubscriptionVariables,
   EnqueueEnrichDataSourceJobMutation,
   EnqueueEnrichDataSourceJobMutationVariables,
-  EnrichmentSourceType,
-  JobStatus,
 } from "@/__generated__/types";
-import DataListRow from "@/components/DataListRow";
-import { Link } from "@/components/Link";
-import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
-import { RouterOutputs } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
-import { Label } from "@/shadcn/ui/label";
-import { Separator } from "@/shadcn/ui/separator";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,

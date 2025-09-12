@@ -1,32 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
-import {
-  ColumnDef,
-  ColumnType,
-  CreateDataSourceResponse,
-  CreateMapResponse,
-  DataSourceRecordType,
-  MutationResolvers as MutationResolversType,
-  MutationResponse,
-  MutationUpdateDataSourceConfigArgs,
-  MutationUpdateMapArgs,
-  MutationUpdateMapConfigArgs,
-  PolygonInput,
-  UpsertFolderResponse,
-  UpsertPlacedMarkerResponse,
-  UpsertPublicMapResponse,
-  UpsertTurfResponse,
-} from "@/__generated__/types";
+import { ColumnType } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
-  DataSourceUpdate,
   GeocodingType,
   dataSourceConfigSchema,
   enrichmentSchema,
 } from "@/server/models/DataSource";
 import { geocodingConfigSchema } from "@/server/models/DataSource";
-import { mapConfigSchema } from "@/server/models/Map";
-import { Polygon } from "@/server/models/Turf";
 import {
   createDataSource,
   findDataSourceById,
@@ -57,6 +37,26 @@ import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import logger from "@/server/services/logger";
 import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
+import type {
+  ColumnDef,
+  CreateDataSourceResponse,
+  CreateMapResponse,
+  DataSourceRecordType,
+  MutationResolvers as MutationResolversType,
+  MutationResponse,
+  MutationUpdateDataSourceConfigArgs,
+  MutationUpdateMapArgs,
+  MutationUpdateMapConfigArgs,
+  PolygonInput,
+  UpsertFolderResponse,
+  UpsertPlacedMarkerResponse,
+  UpsertPublicMapResponse,
+  UpsertTurfResponse,
+} from "@/__generated__/types";
+import type { DataSourceUpdate } from "@/server/models/DataSource";
+import type { mapConfigSchema } from "@/server/models/Map";
+import type { Polygon } from "@/server/models/Turf";
+import type { z } from "zod";
 
 const MutationResolvers: MutationResolversType = {
   createDataSource: async (

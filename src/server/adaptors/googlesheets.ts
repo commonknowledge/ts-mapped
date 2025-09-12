@@ -1,16 +1,14 @@
-import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
-import { EnrichedRecord } from "@/server/mapping/enrich";
 import { updateDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { ExternalRecord, TaggedRecord } from "@/types";
-import {
-  DataSourceType,
-  googleOAuthCredentialsSchema,
-} from "../models/DataSource";
-import { DataSourceAdaptor } from "./abstract";
+import { DataSourceType } from "../models/DataSource";
+import type { DataSourceAdaptor } from "./abstract";
+import type { googleOAuthCredentialsSchema } from "../models/DataSource";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
+import type z from "zod";
 
 type GoogleOAuthCredentials = z.infer<typeof googleOAuthCredentialsSchema>;
 

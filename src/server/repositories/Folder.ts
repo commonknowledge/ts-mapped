@@ -1,5 +1,5 @@
-import { NewFolder } from "@/server/models/Folder";
 import { db } from "@/server/services/database";
+import type { NewFolder } from "@/server/models/Folder";
 
 export function findFoldersByMapId(mapId: string) {
   return db

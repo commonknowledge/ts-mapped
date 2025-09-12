@@ -1,4 +1,3 @@
-import { ColumnDef } from "@/__generated__/types";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -7,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { cn } from "@/shadcn/utils";
+import type { ColumnDef } from "@/__generated__/types";
 
 export default function ColumnsMultiSelect({
   buttonClassName,

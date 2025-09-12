@@ -1,8 +1,7 @@
-import { ColumnDef, ColumnType } from "@/__generated__/types";
+import { ColumnType } from "@/__generated__/types";
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { geocodeRecord } from "@/server/mapping/geocode";
-import { DataSource } from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
@@ -11,7 +10,9 @@ import {
 import logger from "@/server/services/logger";
 import pubSub from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import { ExternalRecord } from "@/types";
+import type { ColumnDef } from "@/__generated__/types";
+import type { DataSource } from "@/server/models/DataSource";
+import type { ExternalRecord } from "@/types";
 
 const importDataSource = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {

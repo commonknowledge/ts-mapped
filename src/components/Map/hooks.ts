@@ -1,5 +1,4 @@
 import { useCallback, useRef, useState } from "react";
-import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
 import { getNewLastPosition } from "@/components/Map/utils";
 import {
   useDeleteFolderMutation,
@@ -9,6 +8,7 @@ import {
   useUpsertPlacedMarkerMutation,
   useUpsertTurfMutation,
 } from "./data";
+import type { Folder, PlacedMarker, Turf } from "@/__generated__/types";
 
 export const useFolders = (mapId: string | null) => {
   const [folders, setFolders] = useState<Folder[]>([]);
