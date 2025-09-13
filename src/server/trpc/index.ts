@@ -2,6 +2,7 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import z from "zod";
 import { getServerSession } from "@/auth";
+import { serverDataSourceSerializer } from "@/utils/superjson";
 import { findDataSourceById } from "../repositories/DataSource";
 import { findOrganisationForUser } from "../repositories/Organisation";
 import { findUserById } from "../repositories/User";
@@ -16,6 +17,9 @@ export async function createContext() {
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
+
+// Prevent sensitive DataSource config being sent to the client
+superjson.registerCustom(serverDataSourceSerializer, "DataSource");
 
 /**
  * Initialization of tRPC backend

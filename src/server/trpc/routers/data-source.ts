@@ -57,6 +57,10 @@ export const dataSourceRouter = router({
       ]);
     return {
       ...dataSource,
+      config: {
+        ...dataSource.config,
+        __SERIALIZE_CREDENTIALS: true,
+      },
       enrichmentInfo,
       importInfo,
       enrichmentDataSources,
