@@ -48,9 +48,9 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
+      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} `}
     >
-      <body className={ibmPlexSans.className}>
+      <body className={ibmPlexSans.className + " antialiased"}>
         <ServerSessionProvider serverSession={serverSession}>
           <OrganisationsProvider organisations={organisations}>
             <ApolloProvider>

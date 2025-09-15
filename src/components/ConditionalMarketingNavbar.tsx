@@ -3,9 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isPrivateRoute } from "@/config/routes";
 import { Button } from "@/shadcn/ui/button";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/shadcn/ui/navigation-menu";
 
 export default function ConditionalMarketingNavbar() {
   const pathname = usePathname();
@@ -32,6 +40,7 @@ export default function ConditionalMarketingNavbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 ">
+          <DesktopNavbar />
           <Link href="/features" className="text-sm">
             Features
           </Link>
@@ -114,3 +123,62 @@ export default function ConditionalMarketingNavbar() {
     </>
   );
 }
+
+const DesktopNavbar = () => {
+  const [solutions, setSolutions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSolutions = async () => {
+      try {
+        const response = await fetch("/api/solutions");
+        const solutions = await response.json();
+        setSolutions(solutions || []);
+      } catch (error) {
+        console.error("Error fetching solutions:", error);
+        setSolutions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSolutions();
+  }, []);
+  return (
+    <NavigationMenu>
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>Solutions</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className="grid w-[400px] gap-3 p-4">
+              {isLoading ? (
+                <li className="text-sm text-muted-foreground">Loading...</li>
+              ) : solutions.length > 0 ? (
+                solutions.map((solution) => (
+                  <li
+                    key={solution._id}
+                    className="cursor-pointer hover:bg-neutral-100 p-1 rounded-sm"
+                  >
+                    <NavigationMenuLink asChild>
+                      <Link
+                        href={`/solutions/${solution.slug?.current || solution._id}`}
+                      >
+                        <div className="font-medium">{solution.title}</div>
+                        <div className="text-muted-foreground text-sm">
+                          {solution.subtitle}
+                        </div>
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                ))
+              ) : (
+                <li className="text-sm text-muted-foreground">
+                  No solutions available
+                </li>
+              )}
+            </ul>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
+  );
+};
