@@ -2,6 +2,7 @@
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { useMutation as useTanstackMutation } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
 import { RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -48,8 +49,16 @@ export function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null,
+    dataSource.importInfo?.lastCompleted || null
   );
+
+  const lastImportedDateReadable = lastImported
+    ? format(new Date(lastImported), "d MMMM yyyy, h:mm a")
+    : null;
+  const lastImportedFormattedFromNow = lastImported
+    ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
+    : null;
+
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
   const [enqueueImportDataSourceJob] = useMutation<
@@ -85,7 +94,7 @@ export function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -197,9 +206,12 @@ export function DataSourceDashboard({
       {lastImported && (
         <>
           <h2 className="mb-2 font-medium text-xl">Last imported</h2>
-          <time className="text-sm">
-            {new Date(lastImported).toLocaleString("en-GB")}
-          </time>
+          <time className="text-sm">{lastImportedDateReadable}</time>
+          {lastImportedFormattedFromNow && (
+            <span className="text-neutral-500 text-sm flex items-center gap-1 ">
+              ({lastImportedFormattedFromNow})
+            </span>
+          )}
           <Separator className="my-8" />
         </>
       )}
@@ -228,8 +240,8 @@ const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+        dataSource.importInfo?.status
+      )
   );
 };
 
@@ -249,7 +261,7 @@ function DeleteDataSourceButton({
       onError: () => {
         toast.error("Failed to delete data source");
       },
-    }),
+    })
   );
 
   return (

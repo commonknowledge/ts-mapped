@@ -19,9 +19,17 @@ export const dataSourceRouter = router({
       .groupBy("dataSource.id")
       .execute();
 
-    return dataSources.map((dataSource) => ({
+    // Get import info for all data sources
+    const importInfos = await Promise.all(
+      dataSources.map((dataSource) =>
+        getJobInfo(dataSource.id, "importDataSource")
+      )
+    );
+
+    return dataSources.map((dataSource, index) => ({
       ...dataSource,
       recordCount: Number(dataSource.recordCount) || 0,
+      importInfo: importInfos[index],
     }));
   }),
   byId: dataSourceProcedure.query(async ({ ctx }) => {
@@ -52,7 +60,7 @@ export const dataSourceRouter = router({
         getJobInfo(ctx.dataSource.id, "enrichDataSource"),
         getJobInfo(ctx.dataSource.id, "importDataSource"),
         findDataSourcesByIds(dataSourceIds).then((ds) =>
-          ds.map((ds) => ({ name: ds.name, id: ds.id })),
+          ds.map((ds) => ({ name: ds.name, id: ds.id }))
         ),
       ]);
     return {

@@ -45,6 +45,12 @@
   --sidebar-ring: oklch(0.708 0 0);
   --brandBlue: oklch(65.39% 0.1357 264.88);
   --brandBackground: oklch(0.9583 0.0154 269.98);
+  --brandRoyalBlue: #00749E;
+  --brandGreen: #30A46C;
+  --brandRed: #DC3B5D;
+  --brandPurple: #C026D3;
+  --brandOrange: #EF5F00;
+  --brandGray: #808080;
 
   /* layout */
   --navbar-height: 3.5rem;

@@ -1,22 +1,24 @@
-import { Database } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { Database, RefreshCw } from "lucide-react";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { type DataSource, DataSourceType } from "@/server/models/DataSource";
+import {
+  type DataSourceRecordType,
+  DataSourceType,
+} from "@/server/models/DataSource";
 import { cn } from "@/shadcn/utils";
+import {
+  dataSourceRecordTypeColors,
+  dataSourceRecordTypeIcons,
+} from "./DataSourceRecordTypeIcon";
+import type { RouterOutputs } from "@/services/trpc/react";
 
-type DataSourceItemType = Pick<
-  DataSource,
-  | "id"
-  | "config"
-  | "name"
-  | "public"
-  | "columnDefs"
-  | "geocodingConfig"
-  | "autoImport"
-> & { recordCount?: number };
+type DataSourceItemType = NonNullable<
+  RouterOutputs["dataSource"]["byOrganisation"]
+>[0];
 
 // Helper function to get data source type from config
 const getDataSourceType = (
-  dataSource: DataSourceItemType,
+  dataSource: DataSourceItemType
 ): DataSourceType | "unknown" => {
   try {
     const config = dataSource.config;
@@ -43,7 +45,7 @@ const getDataSourceStyle = (type: DataSourceType | "unknown") => {
       };
     case DataSourceType.CSV:
       return {
-        bgColor: "from-gray-400 to-gray-600",
+        bgColor: "from-neutral-400 to-neutral-600",
         label: "CSV",
         description: "Comma-separated values data",
       };
@@ -72,7 +74,7 @@ const getDataSourceStyle = (type: DataSourceType | "unknown") => {
 const getGeocodingStatus = (dataSource: DataSourceItemType) => {
   const geocodingConfig = dataSource.geocodingConfig;
   if (geocodingConfig.type === "None") {
-    return { status: "No geocoding", color: "text-gray-500" };
+    return { status: "No geocoding", color: "text-neutral-500" };
   }
   if (geocodingConfig.type === "Address") {
     return { status: "Address geocoding", color: "text-green-600" };
@@ -91,81 +93,89 @@ export function DataSourceItem({
   className?: string;
 }) {
   const dataSourceType = getDataSourceType(dataSource);
+  const recordType = dataSource.recordType as DataSourceRecordType;
   const style = getDataSourceStyle(dataSourceType);
   const geocodingStatus = getGeocodingStatus(dataSource);
+  const lastImported = dataSource.importInfo?.lastCompleted;
+
+  const lastImportedText = lastImported
+    ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
+    : null;
+
+  const backgroundColor =
+    dataSourceRecordTypeColors[recordType] || "var(--brandGray)";
+  const icon = dataSourceRecordTypeIcons[recordType] || (
+    <Database className="w-4 h-4" />
+  );
 
   return (
     <div
       className={cn(
-        "p-3 border rounded-lg cursor-pointer transition-all border-gray-200",
-        className,
+        "p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
+        className
       )}
     >
       <div className="flex items-start gap-3">
-        {/* Data Source Icon/Preview */}
+        {/* Icon */}
         <div
-          className={`w-10 h-10 bg-gradient-to-br ${style.bgColor} rounded-lg flex items-center justify-center text-white`}
+          className="w-11 h-11 rounded flex items-center justify-center text-white"
+          style={{ backgroundColor }}
         >
-          {dataSourceType !== "unknown" ? (
-            <DataSourceIcon type={dataSourceType} />
-          ) : (
-            <Database className="w-4 h-4" />
-          )}
+          <span className="text-white [&>svg]:w-6 [&>svg]:h-6 ">{icon}</span>
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-medium text-sm truncate">{dataSource.name}</h4>
-            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-              {style.label}
-            </span>
-            {dataSource.public && (
-              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                Public
-              </span>
-            )}
+        <div className="flex-1 min-w-0 space-y-4">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h4 className="font-medium truncate">{dataSource.name}</h4>
+              <div className="flex items-center gap-1 text-xs text-neutral-600">
+                <DataSourceIcon type={dataSourceType} />
+                {style.label}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              {dataSource.public && (
+                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                  Public
+                </span>
+              )}
+              {lastImportedText && (
+                <span className="flex items-center gap-1 px-2 py-1 bg-neutral-100 text-neutral-500 text-xs rounded-sm">
+                  <RefreshCw className="w-3 h-3" />
+                  {lastImportedText}
+                </span>
+              )}
+            </div>
           </div>
-
-          <p className="text-xs text-gray-600 mb-1">{style.description}</p>
-
-          <div className="flex flex-wrap items-center gap-x-2 text-xs text-gray-600">
-            <span>{dataSource.columnDefs.length} columns</span>
-            <span className="text-gray-400">•</span>
-            <span>{dataSource.recordCount || "Unknown"} records</span>
-            <span className="text-gray-400">•</span>
-            <span className={geocodingStatus.color}>
-              {geocodingStatus.status}
-            </span>
-          </div>
-
-          {/* Additional metadata based on type */}
-          {dataSourceType === DataSourceType.ActionNetwork && (
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-xs text-gray-500">
-                Activist engagement data
-              </span>
-            </div>
-          )}
-
-          {dataSourceType === DataSourceType.Mailchimp && (
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-xs text-gray-500">
-                Email subscriber data
-              </span>
-            </div>
-          )}
-
-          {dataSource.autoImport && (
-            <div className="mt-2">
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                <Database className="w-3 h-3" />
-                Auto-import enabled
-              </span>
-            </div>
-          )}
         </div>
       </div>
+      {/* Stats */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500 mt-3">
+        <span>{dataSource.columnDefs.length} columns</span>
+        <span className="text-neutral-400">•</span>
+        <span>{dataSource.recordCount || "Unknown"} records</span>
+        <span className="text-neutral-400">•</span>
+        <span>{geocodingStatus.status}</span>
+      </div>
+
+      {/* Type-specific info */}
+      {dataSourceType === DataSourceType.ActionNetwork && (
+        <span className="text-xs text-neutral-500">
+          Activist engagement data
+        </span>
+      )}
+      {dataSourceType === DataSourceType.Mailchimp && (
+        <span className="text-xs text-neutral-500">Email subscriber data</span>
+      )}
+      {dataSource.autoImport && (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+          <Database className="w-3 h-3" />
+          Auto-import enabled
+        </span>
+      )}
     </div>
   );
 }
