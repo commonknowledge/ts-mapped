@@ -3,6 +3,9 @@ import { MapContext } from "../context/MapContext";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import MapStyleSelector from "./MapStyleSelector";
 
+// overriding styles of mapbox elements
+import "./MapWrapper.css";
+
 export default function MapWrapper({
   currentMode,
   children,
@@ -19,7 +22,7 @@ export default function MapWrapper({
     if (currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
-        "You are in draw mode. Click to add points. Double click to finish drawing.",
+        "You are in draw mode. Click to add points. Double click to finish drawing."
       );
     } else if (currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
@@ -37,7 +40,7 @@ export default function MapWrapper({
   };
 
   return (
-    <div className="absolute top-0 right-0 h-full w-full">
+    <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
 
       <div

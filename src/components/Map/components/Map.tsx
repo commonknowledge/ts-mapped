@@ -77,7 +77,7 @@ export default function Map({
         .getDataSourceIds()
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig],
+    [mapConfig]
   );
 
   // draw existing turfs
@@ -177,7 +177,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
           )
           .map((layer) => layer.id);
 
@@ -188,7 +188,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded],
+    [mapRef, styleLoaded]
   );
 
   useEffect(() => {
@@ -349,7 +349,7 @@ export default function Map({
               setDraw(newDraw);
 
               const mapInstance = map.getMap();
-              mapInstance.addControl(newDraw, "top-right");
+              mapInstance.addControl(newDraw, "bottom-right");
 
               // Add event listeners for drawing
               mapInstance.on("draw.create", () => {
@@ -426,7 +426,7 @@ export default function Map({
       >
         {ready && (
           <>
-            <NavigationControl showZoom={true} showCompass={false} />
+            <NavigationControl showZoom={true} showCompass={false} position="bottom-right" />
             <Choropleth />
             <FilterMarkers />
             <PlacedMarkers />
