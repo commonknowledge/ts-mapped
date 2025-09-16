@@ -73,7 +73,9 @@ export default async function RootLayout({
   }
 
   const serverSession = await getServerSession();
-  const organisations = await getOrganisations();
+  const organisations = serverSession.currentUser
+    ? await getOrganisations()
+    : [];
 
   return (
     <html
