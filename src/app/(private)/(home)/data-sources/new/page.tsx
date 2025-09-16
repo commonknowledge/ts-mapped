@@ -224,7 +224,7 @@ export default function NewDataSourcePage() {
             </>
           )}
         </div>
-        <Button disabled={!validConfig || loading}>Submit</Button>
+        <Button disabled={!validConfig || loading}>Configure fields</Button>
         {error && (
           <div>
             <span className="text-xs text-red-500">{error}</span>

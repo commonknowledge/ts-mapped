@@ -85,7 +85,7 @@ export function GeocodingConfigFields({
       <CustomSelect
         id="config-location-type"
         label="Location type"
-        placeholder="What kind of data is this?"
+        hint="Select how location data is formatted in your data source."
         value={typeSelectValue}
         options={locationTypeOptions}
         onValueChange={onTypeChange}
@@ -124,7 +124,7 @@ export function GeocodingConfigFields({
         <CustomSelect
           id="config-location-column-postcode"
           label="Location column"
-          placeholder="Select a column to geocode on"
+          hint="Select which column to use as location data."
           value={column}
           options={locationColumnOptions}
           onValueChange={(column) => onChange({ column })}
@@ -136,7 +136,7 @@ export function GeocodingConfigFields({
           <CustomSelect
             id="config-location-column-area-code"
             label="Location column"
-            placeholder="Select a column to geocode on"
+            hint="Select which column to use as location data."
             value={column}
             options={locationColumnOptions}
             onValueChange={(column) => onChange({ column })}
@@ -144,7 +144,6 @@ export function GeocodingConfigFields({
           <CustomSelect
             id="config-area-type"
             label="Area type"
-            placeholder="What kind of area is this?"
             value={areaSetCode}
             options={areaTypeOptions}
             onValueChange={(areaSetCode) =>

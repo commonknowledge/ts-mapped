@@ -160,7 +160,7 @@ export function DataSourceEnrichmentDashboard({
 
       <div className="flex flex-col ">
         <div className="mb-4 flex justify-between">
-          <Label className="text-xl">Enrichment config</Label>
+          <Label className="text-xl">Enrichment configuration</Label>
           <Button asChild={true}>
             <Link href={`/data-sources/${dataSource.id}/enrichment`}>Edit</Link>
           </Button>

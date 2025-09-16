@@ -46,12 +46,12 @@ export default function DataSourceConfigPage({
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>Config</BreadcrumbItem>
+          <BreadcrumbItem>Configuration</BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
       <PageHeader
         title={`Configure ${dataSource.name}`}
-        description="Tell us about your data to take full advantage of Mapped."
+        description="Select the name and location columns in your data source to import them into Mapped"
       />
       <ConfigurationForm dataSource={dataSource} redirectToParent />
     </div>
