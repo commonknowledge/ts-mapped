@@ -21,10 +21,35 @@ interface SolutionArray {
   button?: {
     text: string;
     url: string;
+    linkType: string;
+    docsPage?: {
+      slug: {
+        current: string;
+      };
+    };
   };
 }
 
-const POST_QUERY = `*[_type == "solutions" && slug.current == $slug][0]`;
+const POST_QUERY = `*[_type == "solutions" && slug.current == $slug][0]{
+  title,
+  subtitle,
+  slug,
+  position,
+  publishedAt,
+  solutionsArray[]{
+    title,
+    description,
+    image,
+    button{
+      text,
+      linkType,
+      url,
+      docsPage->{
+        slug
+      }
+    }
+  }
+}`;
 const options = { next: { revalidate: 30 } };
 
 export default async function SolutionPage({
@@ -75,16 +100,25 @@ export default async function SolutionPage({
           />
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Content */}
-        {solution.solutionsArray.map(
-          (solution: SolutionArray, index: number) => (
-            <SolutionItemCard
-              key={solution.title}
-              solutionItem={solution}
-              isReversed={index % 2 === 1}
-            />
+        {solution.solutionsArray && solution.solutionsArray.length > 0 ? (
+          solution.solutionsArray.map(
+            (solution: SolutionArray, index: number) => (
+              <SolutionItemCard
+                key={solution.title}
+                solutionItem={solution}
+                isReversed={index % 2 === 1}
+              />
+            )
           )
+        ) : (
+          <div className="text-center py-12">
+            <TypographyH2>No solutions available</TypographyH2>
+            <TypographyP className="mt-2 text-neutral-600">
+              This solution page doesn&apos;t have any content yet.
+            </TypographyP>
+          </div>
         )}
       </div>
     </div>
@@ -110,7 +144,15 @@ function SolutionItemCard({
       </div>
       {solutionItem.button && (
         <Button className="mt-4" variant="secondary">
-          <Link href={solutionItem.button.url}>{solutionItem.button.text}</Link>
+          <Link
+            href={
+              solutionItem.button.linkType === "docs"
+                ? `/docs/${solutionItem.button.docsPage?.slug?.current}`
+                : solutionItem.button.url
+            }
+          >
+            {solutionItem.button.text}
+          </Link>
         </Button>
       )}
     </div>
@@ -124,33 +166,42 @@ function SolutionItemCard({
           alt={solutionItem.title}
           width={1400}
           height={1000}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-md border border-neutral-200 shadow-md"
         />
       ) : (
         <Image
-          src={"/screenshot.png"}
+          src={"/screenshot-placeholder.jpeg"}
           alt={solutionItem.title}
           width={1400}
           height={1000}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-md border border-neutral-200 shadow-md"
         />
       )}
     </div>
   );
 
   return (
-    <div className="grid grid-cols-3 gap-4 py-12 items-center">
-      {isReversed ? (
-        <>
-          {imageContent}
-          {textContent}
-        </>
-      ) : (
-        <>
-          {textContent}
-          {imageContent}
-        </>
-      )}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-12 items-center">
+      {/* Mobile: Always image first, then text */}
+      <div className="md:hidden">
+        {imageContent}
+        {textContent}
+      </div>
+
+      {/* Desktop: Respect isReversed logic */}
+      <div className="hidden md:contents">
+        {isReversed ? (
+          <>
+            {imageContent}
+            {textContent}
+          </>
+        ) : (
+          <>
+            {textContent}
+            {imageContent}
+          </>
+        )}
+      </div>
     </div>
   );
 }

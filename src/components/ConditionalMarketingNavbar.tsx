@@ -13,6 +13,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
 } from "@/shadcn/ui/navigation-menu";
 
 export default function ConditionalMarketingNavbar() {
@@ -41,15 +42,6 @@ export default function ConditionalMarketingNavbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 ">
           <DesktopNavbar />
-          <Link href="/features" className="text-sm">
-            Features
-          </Link>
-          <Link href="/about" className="text-sm">
-            About
-          </Link>
-          <Link href="/privacy" className="text-sm">
-            Privacy
-          </Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -124,8 +116,16 @@ export default function ConditionalMarketingNavbar() {
   );
 }
 
+interface Solution {
+  _id: string;
+  title: string;
+  subtitle: string;
+  slug: { current: string };
+  position: number;
+}
+
 const DesktopNavbar = () => {
-  const [solutions, setSolutions] = useState<any[]>([]);
+  const [solutions, setSolutions] = useState<Solution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -148,28 +148,30 @@ const DesktopNavbar = () => {
       <NavigationMenuList>
         <NavigationMenuItem>
           <NavigationMenuTrigger>Solutions</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid w-[400px] gap-3 p-4">
+          <NavigationMenuContent className="border-0 shadow-lg">
+            <ul className="grid w-[400px] gap-2 p-2">
               {isLoading ? (
                 <li className="text-sm text-muted-foreground">Loading...</li>
               ) : solutions.length > 0 ? (
-                solutions.map((solution) => (
-                  <li
-                    key={solution._id}
-                    className="cursor-pointer hover:bg-neutral-100 p-1 rounded-sm"
-                  >
-                    <NavigationMenuLink asChild>
-                      <Link
-                        href={`/solutions/${solution.slug?.current || solution._id}`}
-                      >
-                        <div className="font-medium">{solution.title}</div>
-                        <div className="text-muted-foreground text-sm">
-                          {solution.subtitle}
-                        </div>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                ))
+                solutions
+                  .sort((a, b) => a.position - b.position)
+                  .map((solution) => (
+                    <li
+                      key={solution._id}
+                      className="cursor-pointer hover:bg-neutral-100 p-2 rounded-sm"
+                    >
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href={`/solutions/${solution.slug?.current || solution._id}`}
+                        >
+                          <div className="font-medium">{solution.title}</div>
+                          <div className="text-muted-foreground text-sm">
+                            {solution.subtitle}
+                          </div>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                  ))
               ) : (
                 <li className="text-sm text-muted-foreground">
                   No solutions available
@@ -178,6 +180,15 @@ const DesktopNavbar = () => {
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
+        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+          <Link href="/docs">Docs</Link>
+        </NavigationMenuLink>
+        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+          <Link href="/about">About</Link>
+        </NavigationMenuLink>
+        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+          <Link href="/privacy">Privacy</Link>
+        </NavigationMenuLink>
       </NavigationMenuList>
     </NavigationMenu>
   );

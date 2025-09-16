@@ -1,13 +1,13 @@
 import { Metadata } from "next";
-
-import "./privacy.css";
+import { TypographyH1 } from "@/components/typography";
+import { TypographyH2 } from "@/components/typography";
 
 export default function PrivacyPage() {
   return (
     <div className="max-w-4xl mx-auto py-6 mt-20 px-4">
-      <h1>Privacy Policy</h1>
+      <TypographyH1>Privacy Policy</TypographyH1>
       <p>Effective date: 07/01/2025</p>
-      <h2>1. Introduction</h2>
+      <TypographyH2 className="mt-8">1. Introduction</TypographyH2>
       <p>
         Welcome to Mapped! Mapped is developed and maintained by Common
         Knowledge, a not-for-profit worker cooperative of technologists,
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
         together with the Privacy Policy constitutes your agreement with us
         (“agreement”).
       </p>
-      <h2>2. Definitions</h2>
+      <TypographyH2 className="mt-8">2. Definitions</TypographyH2>
       <p>
         <strong>SERVICE</strong> means the https://ts-mapped.onrender.com
         website operated by Common Knowledge Cooperative Limited.
@@ -84,7 +84,9 @@ export default function PrivacyPage() {
         <strong>THE USER</strong> is the individual using our Service. The User
         corresponds to the Data Subject, who is the subject of Personal Data.
       </p>
-      <h2>3. Your data protection rights</h2>
+      <TypographyH2 className="mt-8">
+        3. Your data protection rights
+      </TypographyH2>
       <p>Under data protection law, you have rights including:</p>
       <p>
         <strong>Your right of access -</strong> You have the right to ask us for
@@ -123,12 +125,14 @@ export default function PrivacyPage() {
         Please contact us at hello@commonknowledge.coop if you wish to make a
         request.
       </p>
-      <h2>4. Information Collection and Use</h2>
+      <TypographyH2 className="mt-8">
+        4. Information Collection and Use
+      </TypographyH2>
       <p>
         <strong>4.1.</strong> We collect several different types of information
         for various purposes to provide and improve our Service to you.
       </p>
-      <h2>5. Types of Data Collected</h2>
+      <TypographyH2 className="mt-8">5. Types of Data Collected</TypographyH2>
       <p>
         <strong>5.1. Personal Data</strong>
       </p>
@@ -195,7 +199,7 @@ export default function PrivacyPage() {
           Security Cookies: We use Security Cookies for security purposes.
         </li>
       </ol>
-      <h2>6. Use of Data</h2>
+      <TypographyH2 className="mt-8">6. Use of Data</TypographyH2>
       <p>Common Knowledge uses the collected data for various purposes:</p>
       <ol>
         <li>to provide and maintain our Service;</li>
@@ -232,7 +236,7 @@ export default function PrivacyPage() {
         </li>
         <li>for any other purpose with your consent.</li>
       </ol>
-      <h2>7. Retention of Data</h2>
+      <TypographyH2 className="mt-8">7. Retention of Data</TypographyH2>
       <p>
         <strong>7.1.</strong> We will retain your Personal Data only for as long
         as is necessary for the purposes set out in the Agreement and this
@@ -242,13 +246,13 @@ export default function PrivacyPage() {
         required to retain your data to comply with applicable laws, resolve
         disputes, and enforce our legal agreements and policies).
       </p>
-      <h2>8. Processing Location</h2>
+      <TypographyH2 className="mt-8">8. Processing Location</TypographyH2>
       <p>
         <strong>8.1.</strong> Your consent to this Privacy Policy followed by
         your submission of such information represents your agreement to process
         the data in the United Kingdom.
       </p>
-      <h2>9. Disclosure of Data</h2>
+      <TypographyH2 className="mt-8">9. Disclosure of Data</TypographyH2>
       <p>
         We may disclose personal information that we collect, or you provide:
       </p>
@@ -286,7 +290,7 @@ export default function PrivacyPage() {
           </ol>
         </li>
       </ol>
-      <h2>10. Security of Data</h2>
+      <TypographyH2 className="mt-8">10. Security of Data</TypographyH2>
       <p>
         The security of your data is important to us but remember that no method
         of transmission over the Internet or method of electronic storage is
@@ -296,7 +300,7 @@ export default function PrivacyPage() {
         While we strive to use commercially acceptable means to protect your
         Personal Data, we cannot guarantee its absolute security.
       </p>
-      <h2>11. Service Providers</h2>
+      <TypographyH2 className="mt-8">11. Service Providers</TypographyH2>
       <p>
         We may employ third party companies and individuals to facilitate our
         Service (“Service Providers”), provide Service on our behalf, perform
@@ -308,7 +312,7 @@ export default function PrivacyPage() {
         these tasks on our behalf and are obligated not to disclose or use it
         for any other purpose.
       </p>
-      <h2>12. Analytics</h2>
+      <TypographyH2 className="mt-8">12. Analytics</TypographyH2>
       <p>
         We may use third-party Service Providers to monitor and analyse the use
         of the Service.
@@ -324,7 +328,7 @@ export default function PrivacyPage() {
         we use to capture usage data, which we use to maintain and improve the
         product.
       </p>
-      <h2>13. CI/CD tools</h2>
+      <TypographyH2 className="mt-8">13. CI/CD tools</TypographyH2>
       <p>
         We may use third-party Service Providers to automate the development
         process of our Service.
@@ -337,7 +341,7 @@ export default function PrivacyPage() {
         GitHub Privacy Policy page:
         https://help.github.com/en/articles/github-privacy-statement
       </p>
-      <h2>14. Links to Other Sites</h2>
+      <TypographyH2 className="mt-8">14. Links to Other Sites</TypographyH2>
       <p>
         Our Service may contain links to other sites that are not operated by
         us. If you click a third party link, you will be directed to that third
@@ -348,7 +352,7 @@ export default function PrivacyPage() {
         We have no control over and assume no responsibility for the content,
         privacy policies or practices of any third party sites or services.
       </p>
-      <h2>15. Children{"'"}s Privacy</h2>
+      <TypographyH2 className="mt-8">15. Children{"'"}s Privacy</TypographyH2>
       <p>
         Our Services are not intended for use by children age 13 and under for
         users in the United States, Belgium, Denmark, Portugal, Sweden and the
@@ -364,7 +368,9 @@ export default function PrivacyPage() {
         Personal Data from Children without verification of parental consent, we
         take steps to remove that information from our servers.
       </p>
-      <h2>16. Changes to This Privacy Policy</h2>
+      <TypographyH2 className="mt-8">
+        16. Changes to This Privacy Policy
+      </TypographyH2>
       <p>
         We may update our Privacy Policy from time to time. We will notify you
         of any changes by posting the new Privacy Policy on this page.
@@ -379,7 +385,7 @@ export default function PrivacyPage() {
         changes. Changes to this Privacy Policy are effective when they are
         posted on this page.
       </p>
-      <h2>16. How to complain</h2>
+      <TypographyH2 className="mt-8">16. How to complain</TypographyH2>
       <p>
         If you have any concerns about our use of your personal information, you
         can make a complaint to us at data@commonknowledge.coop
@@ -404,7 +410,7 @@ export default function PrivacyPage() {
       </p>
       <p>Helpline number: 0303 123 1113</p>
       <p>ICO website: https://www.ico.org.uk</p>
-      <h2>17. Contact us</h2>
+      <TypographyH2 className="mt-8">17. Contact us</TypographyH2>
       <p>
         If you have any questions relating to this Privacy Policy, please
         contact: data@commonknowledge.coop

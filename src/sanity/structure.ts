@@ -1,36 +1,39 @@
-import type { StructureResolver } from 'sanity/structure'
-import { map } from 'rxjs'
+import { map } from "rxjs";
+import type { StructureResolver } from "sanity/structure";
 
 // https://www.sanity.io/docs/structure-builder-cheat-sheet
 export const structure: StructureResolver = (S, context) => {
   // Helper function to create parent-child structure for features
   const featureHierarchy = () => {
-    const filter = `_type == "featureSet" && !(_id in path("drafts.**"))`
-    const query = `*[${filter}]{ _id, title, order } | order(order asc)`
-    const options = { apiVersion: '2025-09-04' }
+    const filter = `_type == "featureSet" && !(_id in path("drafts.**"))`;
+    const query = `*[${filter}]{ _id, title, order } | order(order asc)`;
+    const options = { apiVersion: "2025-09-04" };
 
     return context.documentStore.listenQuery(query, {}, options).pipe(
-      map((featureSets: any[]) =>
+      map((featureSets: { _id: string; title: string }[]) =>
         S.list()
-          .title('Feature Sets')
+          .title("Feature Sets")
           .items([
             // Create a list item for each feature set
             ...featureSets.map((featureSet: { _id: string; title: string }) =>
               S.listItem({
                 id: featureSet._id,
                 title: featureSet.title,
-                schemaType: 'featureSet',
+                schemaType: "featureSet",
                 child: () =>
                   S.documentList()
                     .title(featureSet.title)
-                    .filter(`_type == "feature" && featureSet._ref == $featureSetId`)
+                    .filter(
+                      `_type == "feature" && featureSet._ref == $featureSetId`
+                    )
                     .params({ featureSetId: featureSet._id })
                     .canHandleIntent(
                       (intentName, params) =>
-                        intentName === 'create' && params.template === 'feature-child'
+                        intentName === "create" &&
+                        params.template === "feature-child"
                     )
                     .initialValueTemplates([
-                      S.initialValueTemplateItem('feature-child', {
+                      S.initialValueTemplateItem("feature-child", {
                         featureSetId: featureSet._id,
                       }),
                     ]),
@@ -39,38 +42,36 @@ export const structure: StructureResolver = (S, context) => {
             S.divider(),
             // Show all feature sets
             S.listItem()
-              .title('All Feature Sets')
+              .title("All Feature Sets")
               .child(
-                S.documentTypeList('featureSet')
-                  .title('All Feature Sets')
+                S.documentTypeList("featureSet").title("All Feature Sets")
               ),
 
             // Show all features
             S.listItem()
-              .title('All Feature Items')
-              .child(
-                S.documentTypeList('feature')
-                  .title('All Feature Items')
-              ),
+              .title("All Feature Items")
+              .child(S.documentTypeList("feature").title("All Feature Items")),
           ])
       )
-    )
-  }
+    );
+  };
 
   return S.list()
-    .title('Content')
+    .title("Content")
     .items([
       // Features section with dynamic hierarchy
-      S.listItem()
-        .title('Features')
-        .child(featureHierarchy),
+      S.listItem().title("Features").child(featureHierarchy),
 
       // Solutions section
       S.listItem()
-        .title('Solutions')
+        .title("Solutions")
         .child(
-          S.documentTypeList('solutions')
-            .title('Solutions')
+          S.documentTypeList("solutions")
+            .title("Solutions")
+            .defaultOrdering([
+              { field: "position", direction: "asc" },
+              { field: "_createdAt", direction: "desc" },
+            ])
         ),
-    ])
-}
+    ]);
+};

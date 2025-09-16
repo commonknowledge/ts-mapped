@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { client } from "@/sanity/lib/client";
 
-const SOLUTIONS_QUERY = `*[_type == "solutions"] | order(_createdAt desc)`;
+const SOLUTIONS_QUERY = `*[_type == "solutions"] | order(position asc)`;
 
 export async function GET() {
   try {
