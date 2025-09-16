@@ -1,0 +1,5 @@
+@reference "../app/global.css";
+
+.account:hover .avatar-fallback {
+  @apply bg-neutral-200;
+}

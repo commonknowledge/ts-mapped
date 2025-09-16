@@ -132,7 +132,7 @@ export default function PublishPublicMapSidebar() {
         {!hideSidebar && (
           <form onSubmit={onSubmitForm} className="flex flex-col h-full">
             <VerticalTabs
-              className="overflow-y-auto flex-1 flex flex-col"
+              className="overflow-y-hidden flex-1 flex flex-col"
               value={activePublishTab}
               onValueChange={(value) => {
                 setActivePublishTab(value);
@@ -162,7 +162,7 @@ export default function PublishPublicMapSidebar() {
                 }
               }}
             >
-              <VerticalTabsList className="flex flex-row border-b border-neutral-200 w-full">
+              <VerticalTabsList className="flex flex-row w-full">
                 <VerticalTabsTrigger
                   value="settings"
                   icon={Settings}

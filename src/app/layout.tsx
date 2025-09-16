@@ -61,7 +61,7 @@ export default async function RootLayout({
           <TRPCReactProvider>
             <ApolloProvider ignoreAuthErrors>
               <NProgressProvider>
-                <main>
+                <main className="min-h-screen relative z-10">
                   <PublicMapPage host={host} />
                 </main>
               </NProgressProvider>
@@ -86,7 +86,7 @@ export default async function RootLayout({
             <TRPCReactProvider>
               <ApolloProvider>
                 <NProgressProvider>
-                  <main className="min-h-screen">{children}</main>
+                  <main className="min-h-screen relative z-10">{children}</main>
                   <Toaster position="top-center" />
                 </NProgressProvider>
               </ApolloProvider>
@@ -109,6 +109,7 @@ const getOrganisations = async () => {
         organisations {
           id
           name
+          avatarUrl
         }
       }
     `,

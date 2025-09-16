@@ -33,7 +33,7 @@ export default function PublicMap() {
 
   return (
     <div
-      className="flex flex-col h-screen"
+      className="flex flex-col h-screen lg:overflow-hidden"
       style={
         showNavbar ? {} : ({ "--navbar-height": 0 } as React.CSSProperties)
       }
