@@ -24,7 +24,7 @@ export default function LoginPage() {
       if (error) {
         setError(error);
       } else {
-        // Use a client side redirection here to force a full page reload.
+        // Use a browser-level redirection here to force a full page reload.
         // This is a good idea after auth changes, as it clears client-side state.
         window.location.href = "/";
       }
