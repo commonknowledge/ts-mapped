@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { MapContext } from "../context/MapContext";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 
 // overriding styles of mapbox elements
@@ -54,6 +55,13 @@ export default function MapWrapper({
         style={positionLeft}
       >
         <MapStyleSelector />
+      </div>
+
+      <div
+        className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
+        style={absolutelyCenter}
+      >
+        <MapMarkerAndAreaControls />
       </div>
 
       {indicatorColor && (
