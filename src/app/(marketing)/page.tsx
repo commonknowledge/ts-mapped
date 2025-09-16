@@ -10,14 +10,14 @@ export default function HomePage() {
         <Image
           src="/pattern.svg"
           alt="Mapped"
-          className="absolute -top-10 -right-4 w-1/2"
+          className="absolute -top-10 -right-4 w-1/3"
           height={533}
           width={512}
         />
         <Image
           src="/pattern.svg"
           alt="Mapped"
-          className="absolute -bottom-4 -left-4 rotate-180 w-1/2"
+          className="absolute -bottom-4 -left-4 rotate-180 w-1/3"
           height={533}
           width={512}
         />

@@ -82,7 +82,7 @@ export default async function FeaturePage({
   const featureSetsWithFeatures = featureSets.map((featureSet: FeatureSet) => ({
     ...featureSet,
     features: allFeatures.filter(
-      (feature: Feature) => feature.featureSet?._id === featureSet._id,
+      (feature: Feature) => feature.featureSet?._id === featureSet._id
     ),
   }));
 
@@ -124,7 +124,7 @@ export default async function FeaturePage({
               </div>
 
               {/* Content */}
-              <div className="prose prose-lg flex flex-col gap-8 ">
+              <div className=" flex flex-col gap-8 ">
                 {feature.explainer && (
                   <RichTextComponent
                     content={feature.explainer}
@@ -140,7 +140,7 @@ export default async function FeaturePage({
                     {feature.howToUse.steps.map(
                       (step: FeatureHowToUseSteps, index: number) => {
                         const descriptionText = getTextFromBlocks(
-                          step.description,
+                          step.description
                         );
 
                         return (
@@ -149,9 +149,9 @@ export default async function FeaturePage({
                               <div className="h-6 w-6 bg-brand-background rounded-full text-sm font-mono items-center justify-center flex text-brand-blue">
                                 {index + 1}
                               </div>
-                              <div>
+                              <div className="flex flex-col gap-4">
                                 <div className="max-w-2xl">
-                                  <p className="">{step.title}</p>
+                                  <p className="mb-2">{step.title}</p>
                                   {descriptionText && (
                                     <p className="text-sm text-neutral-500">
                                       {descriptionText}
@@ -184,7 +184,7 @@ export default async function FeaturePage({
                             </div>
                           </div>
                         );
-                      },
+                      }
                     )}
                   </div>
                 )}
