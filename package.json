@@ -135,7 +135,8 @@
     "vitest": "^3.2.4"
   },
   "optionalDependencies": {
-    "@ngrok/ngrok-linux-x64-gnu": "^1.5.1",
-    "@rollup/rollup-linux-x64-gnu": "^4.44"
+    "@ngrok/ngrok-linux-x64-gnu": "^1.5",
+    "@rollup/rollup-linux-x64-gnu": "^4.44",
+    "lightningcss-linux-x64-gnu": "^1.30"
   }
 }

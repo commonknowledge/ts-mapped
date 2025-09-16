@@ -28,6 +28,7 @@ export const serverDataSourceSerializer = {
   serialize: (v: DataSource) => {
     if (v.config.__SERIALIZE_CREDENTIALS) {
       // Remove __SERIALIZE_CREDENTIALS key from output
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { __SERIALIZE_CREDENTIALS, ...config } = v.config;
       return { ...v, config };
     } else {
