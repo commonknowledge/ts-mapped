@@ -22,7 +22,7 @@ export default function MapWrapper({
     if (currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
-        "You are in draw mode. Click to add points. Double click to finish drawing."
+        "You are in draw mode. Click to add points. Double click to finish drawing.",
       );
     } else if (currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
@@ -39,13 +39,19 @@ export default function MapWrapper({
       : "translate(-50%)",
   };
 
+  const positionLeft = {
+    transform: showControls
+      ? `translateX(calc(${CONTROL_PANEL_WIDTH}px))`
+      : "translateX(0)",
+  };
+
   return (
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
 
       <div
-        className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
-        style={absolutelyCenter}
+        className="absolute bottom-8 left-8 z-10 transition-transform duration-300"
+        style={positionLeft}
       >
         <MapStyleSelector />
       </div>

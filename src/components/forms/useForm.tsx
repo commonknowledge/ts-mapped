@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import type { ZodType } from "zod";
 
-export function useForm<T extends Record<string, string | number>>(
+export function useForm<T extends Record<string, string | number | boolean>>(
   schema: ZodType<T> | undefined = undefined,
   _initialState: Partial<T> = {},
 ) {
