@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { Link } from "@/components/Link";
 import { useCurrentUser } from "@/hooks";
 import { Button } from "@/shadcn/ui/button";
@@ -24,9 +25,21 @@ interface Solution {
   position: number;
 }
 
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: "Docs", href: "/docs" },
+  { label: "About", href: "/about" },
+  { label: "Privacy", href: "/privacy" },
+];
+
 export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
   const { currentUser } = useCurrentUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
 
   return (
     <>
@@ -88,7 +101,7 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
       <div
         className={cn(
           "md:hidden fixed inset-0 bg-black/50 z-40",
-          isMobileMenuOpen ? "" : "invisible",
+          isMobileMenuOpen ? "" : "invisible"
         )}
         onClick={() => setIsMobileMenuOpen(false)}
       >
@@ -97,27 +110,57 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex flex-col space-y-4">
-            <Link
-              href="/features"
-              className="text-lg font-medium py-2 border-b border-gray-100"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Features
-            </Link>
-            <Link
-              href="/about"
-              className="text-lg font-medium py-2 border-b border-gray-100"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              About
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-lg font-medium py-2 border-b border-gray-100"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Privacy
-            </Link>
+            {/* Solutions Accordion */}
+            <div>
+              <button
+                onClick={() => setIsSolutionsOpen(!isSolutionsOpen)}
+                className="flex items-center justify-between w-full text-lg font-medium py-2 border-b border-gray-100"
+              >
+                Solutions
+                {isSolutionsOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {isSolutionsOpen && (
+                <div className="space-y-2 mt-2">
+                  {solutions.length > 0 ? (
+                    solutions
+                      .sort((a, b) => a.position - b.position)
+                      .map((solution) => (
+                        <Link
+                          key={solution._id}
+                          href={`/solutions/${solution.slug?.current || solution._id}`}
+                          className="block text-base py-2 pl-4 border-b border-gray-100"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <div className="font-medium">{solution.title}</div>
+                          <div className="text-sm text-neutral-500">
+                            {solution.subtitle}
+                          </div>
+                        </Link>
+                      ))
+                  ) : (
+                    <div className="text-sm text-neutral-500 pl-4">
+                      No solutions available
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Other Navigation Items */}
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-lg font-medium py-2 border-b border-gray-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
             <div className="pt-4">
               Mapped is built to be used on desktop. We recommend using a
               desktop browser to get the best experience.
@@ -165,15 +208,15 @@ const DesktopNavbar = ({ solutions }: { solutions: Solution[] }) => {
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
-        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-          <Link href="/docs">Docs</Link>
-        </NavigationMenuLink>
-        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-          <Link href="/about">About</Link>
-        </NavigationMenuLink>
-        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-          <Link href="/privacy">Privacy</Link>
-        </NavigationMenuLink>
+        {NAV_ITEMS.map((item) => (
+          <NavigationMenuLink
+            key={item.href}
+            asChild
+            className={navigationMenuTriggerStyle()}
+          >
+            <Link href={item.href}>{item.label}</Link>
+          </NavigationMenuLink>
+        ))}
       </NavigationMenuList>
     </NavigationMenu>
   );
