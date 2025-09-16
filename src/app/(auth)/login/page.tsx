@@ -39,11 +39,23 @@ export default function LoginPage() {
       <CardContent className="flex flex-col gap-2">
         <form onSubmit={onSubmitLogin} className="flex flex-col gap-6">
           <FormFieldWrapper id="email" label="Email">
-            <Input id="email" name="email" type="email" required />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+            />
           </FormFieldWrapper>
 
           <FormFieldWrapper id="password" label="Password">
-            <Input id="password" name="password" type="password" required />
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
           </FormFieldWrapper>
 
           <div className="flex flex-col gap-2">
