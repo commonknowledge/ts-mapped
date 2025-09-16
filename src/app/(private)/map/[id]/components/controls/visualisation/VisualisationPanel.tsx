@@ -7,6 +7,7 @@ import {
   Palette,
   Pentagon,
   PlusIcon,
+  X,
 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import {
@@ -56,7 +57,8 @@ export default function VisualisationPanel({
   positionLeft: number;
 }) {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
-  const { boundariesPanelOpen } = useContext(ChoroplethContext);
+  const { boundariesPanelOpen, setBoundariesPanelOpen } =
+    useContext(ChoroplethContext);
   const { getDataSources, getChoroplethDataSource } =
     useContext(DataSourcesContext);
 
@@ -100,7 +102,16 @@ export default function VisualisationPanel({
     >
       {/* Choose Visualization Type */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium">Create Visualization</h3>
+        <div className="flex justify-between items-start gap-6 / text-sm">
+          <h3 className="mt-2 font-medium">Create Visualization</h3>
+          <button
+            aria-label="Close visualization panel"
+            className="text-muted-foreground hover:text-primary cursor-pointer"
+            onClick={() => setBoundariesPanelOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
 
         <div className="grid grid-cols-2 gap-2">
           <button
