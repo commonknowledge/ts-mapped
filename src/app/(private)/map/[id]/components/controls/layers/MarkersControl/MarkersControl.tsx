@@ -14,20 +14,14 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
+  const { mapConfig, updateMapConfig, viewConfig, updateViewConfig } =
+    useContext(MapContext);
   const {
-    mapConfig,
-    updateMapConfig,
-    viewConfig,
-    updateViewConfig,
-    mapRef,
-    setPinDropMode,
-  } = useContext(MapContext);
-  const {
-    insertPlacedMarker,
     placedMarkersLoading,
     folders,
     foldersLoading,
     insertFolder,
+    handleDropPin,
   } = useContext(MarkerAndTurfContext);
   const { getDataSources } = useContext(DataSourcesContext);
 
@@ -57,37 +51,6 @@ export default function MarkersControl() {
         );
       }
     }, 200);
-  };
-
-  const handleDropPin = () => {
-    const map = mapRef?.current;
-    if (map) {
-      map.getCanvas().style.cursor = "crosshair";
-      setPinDropMode(true);
-
-      const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-        insertPlacedMarker({
-          id: uuidv4(),
-          label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
-          notes: "",
-          point: e.lngLat,
-          folderId: null,
-        });
-
-        // Reset cursor
-        map.getCanvas().style.cursor = "";
-        map.off("click", clickHandler);
-        setPinDropMode(false);
-
-        // Fly to the new marker
-        map.flyTo({
-          center: e.lngLat,
-          zoom: 14,
-        });
-      };
-
-      map.once("click", clickHandler);
-    }
   };
 
   const getDataSourceDropdownItems = () => {

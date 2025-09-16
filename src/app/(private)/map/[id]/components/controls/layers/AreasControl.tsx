@@ -19,8 +19,9 @@ import LayerHeader from "../LayerHeader";
 import type { Turf } from "@/__generated__/types";
 
 export default function AreasControl() {
-  const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
-  const { turfs, turfsLoading } = useContext(MarkerAndTurfContext);
+  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { handleAddArea, turfs, turfsLoading } =
+    useContext(MarkerAndTurfContext);
   const [, setFormattedDates] = useState<Record<string, string>>({});
   const [isAddingArea, setAddingArea] = useState(false);
 
@@ -41,21 +42,13 @@ export default function AreasControl() {
     setFormattedDates(dates);
   }, [turfs]);
 
-  const handleAddArea = () => {
-    const map = mapRef?.current;
-    if (map) {
-      // Find the polygon draw button and click it
-      const drawButton = document.querySelector(
-        ".mapbox-gl-draw_polygon",
-      ) as HTMLButtonElement;
-      if (drawButton) {
-        drawButton.click();
-        setAddingArea(true);
-        setTimeout(() => {
-          setAddingArea(false);
-        }, 5000);
-      }
-    }
+  const onAddArea = () => {
+    handleAddArea();
+    setAddingArea(true);
+
+    setTimeout(() => {
+      setAddingArea(false);
+    }, 5000);
   };
 
   return (
@@ -67,12 +60,7 @@ export default function AreasControl() {
         setLayer={(show) => updateViewConfig({ showTurf: show })}
       >
         {!isAddingArea ? (
-          <IconButtonWithTooltip
-            tooltip="Add Area"
-            onClick={() => {
-              handleAddArea();
-            }}
-          >
+          <IconButtonWithTooltip tooltip="Add Area" onClick={() => onAddArea()}>
             <PlusIcon className="w-4 h-4" />
           </IconButtonWithTooltip>
         ) : (
