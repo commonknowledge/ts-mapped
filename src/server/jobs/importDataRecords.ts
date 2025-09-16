@@ -1,4 +1,3 @@
-import { ColumnDef } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   findDataSourceById,
@@ -6,6 +5,7 @@ import {
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { importBatch } from "./importDataSource";
+import type { ColumnDef } from "@/__generated__/types";
 
 const importDataRecords = async (args: object | null): Promise<boolean> => {
   if (
@@ -37,13 +37,15 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
   }
 
   try {
-    const columnDefsAccumulator: ColumnDef[] = [];
-    const records = await adaptor.fetchByExternalId(args.externalRecordIds);
+    const columnDefsAccumulator = [] as ColumnDef[];
+    const records = await adaptor.fetchByExternalId(
+      args.externalRecordIds as string[],
+    );
 
     await importBatch(records, dataSource, columnDefsAccumulator);
 
     await updateDataSource(dataSource.id, {
-      columnDefs: JSON.stringify(columnDefsAccumulator),
+      columnDefs: columnDefsAccumulator,
     });
 
     logger.info(

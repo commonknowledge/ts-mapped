@@ -1,7 +1,7 @@
 import { createRedisEventTarget } from "@graphql-yoga/redis-event-target";
 import { createPubSub } from "graphql-yoga";
 import { Redis } from "ioredis";
-import { DataSourceEvent } from "@/__generated__/types";
+import type { DataSourceEvent } from "@/__generated__/types";
 
 const publishClient = new Redis(process.env.REDIS_URL || "");
 const subscribeClient = new Redis(process.env.REDIS_URL || "");

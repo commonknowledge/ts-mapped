@@ -1,13 +1,14 @@
 "use client";
 
 import { createContext, useCallback, useState } from "react";
-import { Organisation } from "@/__generated__/types";
+import type { Organisation } from "@/__generated__/types";
 
 export const OrganisationsContext = createContext<{
   organisations: Organisation[];
   organisationId: string | null;
   setOrganisationId: (id: string) => void;
   getOrganisation: () => Organisation | undefined;
+  updateOrganisation: (id: string, update: Partial<Organisation>) => void;
 }>({
   organisations: [],
   organisationId: null,
@@ -17,15 +18,17 @@ export const OrganisationsContext = createContext<{
   getOrganisation: () => {
     return undefined;
   },
+  updateOrganisation: () => null,
 });
 
 export default function OrganisationsProvider({
-  organisations,
+  organisations: initialOrganisations,
   children,
 }: {
   organisations: Organisation[];
   children: React.ReactNode;
 }) {
+  const [organisations, setOrganisations] = useState(initialOrganisations);
   const [organisationId, setOrganisationId] = useState<string | null>(
     organisations.length ? organisations[0].id : null,
   );
@@ -34,6 +37,18 @@ export default function OrganisationsProvider({
     return organisations.find((o) => o.id === organisationId);
   }, [organisations, organisationId]);
 
+  const updateOrganisation = (id: string, update: Partial<Organisation>) => {
+    setOrganisations(
+      organisations.map((o) => {
+        if (o.id === id) {
+          return { ...o, ...update };
+        } else {
+          return o;
+        }
+      }),
+    );
+  };
+
   return (
     <OrganisationsContext
       value={{
@@ -41,6 +56,7 @@ export default function OrganisationsProvider({
         organisationId,
         setOrganisationId,
         getOrganisation,
+        updateOrganisation,
       }}
     >
       {children}

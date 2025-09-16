@@ -33,7 +33,9 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
   }
 
   try {
-    const records = await adaptor.fetchByExternalId(args.externalRecordIds);
+    const records = await adaptor.fetchByExternalId(
+      args.externalRecordIds as string[],
+    );
 
     const enrichedRecords = await enrichBatch(records, dataSource);
     await adaptor.updateRecords(enrichedRecords);

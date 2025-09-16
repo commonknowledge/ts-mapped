@@ -19,6 +19,7 @@ const eslintConfig = [
   ...tseslint.configs.stylistic,
   {
     rules: {
+      "@typescript-eslint/consistent-type-imports": "error",
       "import/order": [
         "error",
         {

@@ -1,5 +1,5 @@
-import { NewPlacedMarker } from "@/server/models/PlacedMarker";
 import { db } from "@/server/services/database";
+import type { NewPlacedMarker } from "@/server/models/PlacedMarker";
 
 export function findPlacedMarkersByMapId(mapId: string) {
   return db

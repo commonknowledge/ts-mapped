@@ -1,12 +1,12 @@
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { enrichRecord } from "@/server/mapping/enrich";
-import { DataSource } from "@/server/models/DataSource";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import pubSub from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import { ExternalRecord } from "@/types";
+import type { DataSource } from "@/server/models/DataSource";
+import type { ExternalRecord } from "@/types";
 
 const enrichDataSource = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {
@@ -31,6 +31,15 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
   }
 
   try {
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        enrichmentStarted: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     let count = 0;
     const total = await adaptor.getRecordCount();
     const records = adaptor.fetchAll();

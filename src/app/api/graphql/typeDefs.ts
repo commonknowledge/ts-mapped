@@ -1,5 +1,12 @@
 const typeDefs = `
-  directive @auth(read: ArgNames, write: ArgNames) on FIELD_DEFINITION
+  directive @auth(read: ProtectedArgs, write: ProtectedArgs) on FIELD_DEFINITION
+
+  input ProtectedArgs {
+    dataSourceIdArg: String
+    mapIdArg: String
+    organisationIdArg: String
+    viewIdArg: String
+  }
 
   scalar Date
   scalar JSON
@@ -16,6 +23,22 @@ const typeDefs = `
     WMC24
   }
 
+  enum CalculationType {
+    Value
+    Count
+    Sum
+    Average
+  }
+
+  enum ColorScheme {
+    RedBlue
+    GreenYellowRed
+    Viridis
+    Plasma
+    Diverging
+    Sequential
+  }
+
   enum ColumnType {
     Empty
     Boolean
@@ -28,6 +51,17 @@ const typeDefs = `
   enum EnrichmentSourceType {
     Area
     DataSource
+  }
+
+  enum FilterOperator {
+    AND
+    OR
+  }
+
+  enum FilterType {
+    GEO
+    MULTI
+    TEXT
   }
 
   enum GeocodingType {
@@ -52,17 +86,16 @@ const typeDefs = `
     Satellite
   }
 
-  enum Operation {
-    AVG
-    SUM
+  enum VisualisationType {
+    BoundaryOnly
+    Choropleth
   }
 
-  input ArgNames {
-    dataSourceIdArg: String
-    mapIdArg: String
-    organisationIdArg: String
+  enum PublicMapColumnType {
+    CommaSeparatedList
+    Boolean
+    String
   }
-
 
   input BoundingBoxInput {
     north: Float!
@@ -72,7 +105,23 @@ const typeDefs = `
   }
 
   input ColumnRolesInput {
-    nameColumn: String!
+    nameColumns: [String!]!
+  }
+
+  enum DataSourceRecordType {
+    Members
+    People
+    Locations
+    Events
+    Data
+    Other
+  }
+
+  input DataSourceViewInput {
+    dataSourceId: String!
+    filter: RecordFilterInput!
+    search: String!
+    sort: [SortInput!]!
   }
 
   input LooseGeocodingConfigInput {
@@ -104,20 +153,24 @@ const typeDefs = `
     id: String!
     name: String!
     config: MapViewConfigInput!
+    dataSourceViews: [DataSourceViewInput!]!
     position: Float!
   }
 
   input MapViewConfigInput {
-    areaDataSourceId: String
-    areaDataColumn: String
+    areaDataSourceId: String!
+    areaDataColumn: String!
     areaSetGroupCode: AreaSetGroupCode
-    excludeColumnsString: String
-    mapStyleName: MapStyleName
-    showBoundaryOutline: Boolean
-    showLabels: Boolean
-    showLocations: Boolean
-    showMembers: Boolean
-    showTurf: Boolean
+    excludeColumnsString: String!
+    mapStyleName: MapStyleName!
+    showBoundaryOutline: Boolean!
+    showLabels: Boolean!
+    showLocations: Boolean!
+    showMembers: Boolean!
+    showTurf: Boolean!
+    visualisationType: VisualisationType
+    calculationType: CalculationType
+    colorScheme: ColorScheme
   }
 
   input PointInput {
@@ -125,9 +178,55 @@ const typeDefs = `
     lng: Float!
   }
 
+  input PolygonInput {
+    type: String!
+    coordinates: [[[Float!]!]!]!
+  }
+
+  input PublicMapDataSourceConfigInput {
+    allowUserEdit: Boolean!
+    allowUserSubmit: Boolean!
+    dataSourceId: String!
+    dataSourceLabel: String!
+    formUrl: String!
+    nameColumns: [String!]!
+    nameLabel: String!
+    descriptionColumn: String!
+    descriptionLabel: String!
+    additionalColumns: [PublicMapColumnInput!]!
+  }
+
+  input PublicMapColumnInput {
+    label: String!
+    sourceColumns: [String!]!
+    type: PublicMapColumnType!
+  }
+
+  input RecordFilterInput {
+    children: [RecordFilterInput!]
+    column: String
+    dataSourceId: String
+    dataRecordId: String
+    distance: Int
+    label: String
+    operator: FilterOperator
+    placedMarker: String
+    search: String
+    turf: String
+    type: FilterType!
+  }
+
+  type User {
+    id: String!
+    email: String!
+    name: String!
+    createdAt: Date!
+  }
+
   input SortInput {
     name: String!
     desc: Boolean!
+    location: PointInput
   }
 
   type AreaStat {
@@ -147,7 +246,7 @@ const typeDefs = `
   }
 
   type ColumnRoles {
-    nameColumn: String
+    nameColumns: [String!]
   }
 
   type DataRecord {
@@ -168,14 +267,22 @@ const typeDefs = `
     columnRoles: ColumnRoles!
     enrichments: [LooseEnrichment!]!
     geocodingConfig: LooseGeocodingConfig!
-
+    public: Boolean!
+    recordType: DataSourceRecordType!
     enrichmentDataSources: [EnrichmentDataSource!]
     enrichmentInfo: JobInfo
     importInfo: JobInfo
 
-    records(filter: String, page: Int, sort: [SortInput!]): [DataRecord!]
+    records(filter: RecordFilterInput, search: String, page: Int, sort: [SortInput!], all: Boolean): [DataRecord!]
 
-    recordCount(filter: String, sort: [SortInput!]): Int
+    recordCount(filter: RecordFilterInput, search: String, sort: [SortInput!]): RecordCount
+  }
+
+  type DataSourceView {
+    dataSourceId: String!
+    filter: RecordFilter!
+    search: String!
+    sort: [Sort!]!
   }
 
   """
@@ -233,7 +340,7 @@ const typeDefs = `
 
   type MapConfig {
     markerDataSourceIds: [String!]!
-    membersDataSourceId: String!
+    membersDataSourceId: String
   }
 
   type MapView {
@@ -241,6 +348,7 @@ const typeDefs = `
     name: String!
     position: Float!
     config: MapViewConfig!
+    dataSourceViews: [DataSourceView!]!
     mapId: String!
   }
 
@@ -255,11 +363,15 @@ const typeDefs = `
     showLocations: Boolean!
     showMembers: Boolean!
     showTurf: Boolean!
+    visualisationType: VisualisationType
+    calculationType: CalculationType
+    colorScheme: ColorScheme
   }
 
   type Organisation {
     id: String!
     name: String!
+    avatarUrl: String
   }
 
   type PlacedMarker {
@@ -276,13 +388,68 @@ const typeDefs = `
     lng: Float!
   }
 
+  type PublicMap {
+    id: String!
+    viewId: String!
+    mapId: String!
+    host: String!
+    name: String!
+    description: String!
+    descriptionLink: String!
+    published: Boolean!
+    dataSourceConfigs: [PublicMapDataSourceConfig!]!
+  }
+
+  type PublicMapDataSourceConfig {
+    allowUserEdit: Boolean!
+    allowUserSubmit: Boolean!
+    dataSourceId: String!
+    dataSourceLabel: String!
+    formUrl: String!
+    nameColumns: [String!]!
+    nameLabel: String!
+    descriptionColumn: String!
+    descriptionLabel: String!
+    additionalColumns: [PublicMapColumn!]!
+  }
+
+  type PublicMapColumn {
+    label: String!
+    sourceColumns: [String!]!
+    type: PublicMapColumnType!
+  }
+
+  type RecordCount {
+    count: Int!
+    matched: Int!
+  }
+
+  type RecordFilter {
+    children: [RecordFilter!]
+    column: String
+    dataSourceId: String
+    dataRecordId: String
+    distance: Int
+    label: String
+    operator: FilterOperator
+    placedMarker: String
+    search: String
+    turf: String
+    type: FilterType!
+  }
+
   type Turf {
     id: String!
     label: String!
     notes: String!
     area: Float!
-    geometry: JSON!
+    polygon: JSON!
     createdAt: Date!
+  }
+
+  type Sort {
+    name: String!
+    desc: Boolean!
   }
 
   type Query {
@@ -290,17 +457,19 @@ const typeDefs = `
       areaSetCode: AreaSetCode!
       dataSourceId: String!
       column: String!
-      operation: Operation!
       excludeColumns: [String!]!
       boundingBox: BoundingBoxInput
+      calculationType: CalculationType!
     ): AreaStats @auth(read: { dataSourceIdArg: "dataSourceId" })
 
     dataSource(id: String!): DataSource @auth(read: { dataSourceIdArg: "id" })
-    dataSources(organisationId: String): [DataSource!] @auth
+    dataSources(organisationId: String, includePublic: Boolean): [DataSource!] @auth
 
     map(id: String!): Map @auth(read: { mapIdArg: "id" })
     maps(organisationId: String!): [Map!] @auth(read: { organisationIdArg: "organisationId" })
     organisations: [Organisation!] @auth
+    publicMap(viewId: String!): PublicMap @auth(write: { viewIdArg: "viewId" })
+    publishedPublicMap(host: String!): PublicMap
   }
 
   type CreateDataSourceResponse {
@@ -341,6 +510,11 @@ const typeDefs = `
     result: PlacedMarker
   }
 
+  type UpsertPublicMapResponse {
+    code: Int!
+    result: PublicMap
+  }
+
   type UpsertTurfResponse {
     code: Int!
     result: Turf
@@ -350,6 +524,7 @@ const typeDefs = `
     createDataSource(
       name: String!
       organisationId: String!
+      recordType: DataSourceRecordType!
       rawConfig: JSON!
     ): CreateDataSourceResponse @auth(read: { organisationIdArg: "organisationId" })
     createMap(organisationId: String!): CreateMapResponse @auth(read: { organisationIdArg: "organisationId" })
@@ -358,6 +533,7 @@ const typeDefs = `
     deleteTurf(id: String!, mapId: String!): MutationResponse @auth(write: { mapIdArg: "mapId" })
     enqueueEnrichDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
     enqueueImportDataSourceJob(dataSourceId: String!): MutationResponse @auth(read: { dataSourceIdArg: "dataSourceId" })
+    saveMapViewsToCRM(id: String!): MutationResponse @auth(write: { mapIdArg: "id" })
     updateDataSourceConfig(
       id: String!
       autoEnrich: Boolean
@@ -392,35 +568,45 @@ const typeDefs = `
       folderId: String
       position: Float!
     ): UpsertPlacedMarkerResponse @auth(write: { mapIdArg: "mapId" })
+    upsertPublicMap(
+      viewId: String!
+      host: String!
+      name: String!
+      description: String!
+      descriptionLink: String!
+      dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
+      published: Boolean!
+    ): UpsertPublicMapResponse @auth(write: { viewIdArg: "viewId" })
     upsertTurf(
       id: String
       label: String!
       notes: String!
       area: Float!
-      geometry: JSON!
+      polygon: JSON!
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
+
+    forgotPassword(email: String!): MutationResponse
+    resetPassword(token: String!, password: String!): MutationResponse
   }
 
   type DataSourceEvent {
     dataSourceId: String!
 
-    enrichmentComplete: JobCompleteEvent
-    enrichmentFailed: JobFailedEvent
+    enrichmentStarted: JobStatusEvent
+    enrichmentComplete: JobStatusEvent
+    enrichmentFailed: JobStatusEvent
 
-    importComplete: JobCompleteEvent
-    importFailed: JobFailedEvent
+    importStarted: JobStatusEvent
+    importComplete: JobStatusEvent
+    importFailed: JobStatusEvent
 
     recordsEnriched: RecordsProcessedEvent
     recordsImported: RecordsProcessedEvent
   }
 
-  type JobCompleteEvent {
-    at: String!
-  }
-
-  type JobFailedEvent {
+  type JobStatusEvent {
     at: String!
   }
 

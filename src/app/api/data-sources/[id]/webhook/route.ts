@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import { batchAsync } from "@/server/utils";
+import type { NextRequest } from "next/server";
 
 const handler = async (
   dataSourceId: string,
@@ -69,6 +70,6 @@ export async function POST(
   args: { params: Promise<{ id: string }> },
 ) {
   const realParams = await args.params;
-  const body = await request.json();
+  const body = (await request.json()) as Record<string, unknown>;
   return handler(realParams.id, body);
 }

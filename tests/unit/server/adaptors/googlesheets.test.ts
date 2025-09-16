@@ -8,9 +8,7 @@ const credentials = inject("credentials");
 
 const uuid = uuidv4();
 
-// TODO: remove this skip when oauth app is approved
-// (as then refresh tokens last forever)
-describe.skip("Google Sheets adaptor tests", () => {
+describe("Google Sheets adaptor tests", () => {
   test("Connection succeeds", async () => {
     const adaptor = new GoogleSheetsAdaptor(
       uuid,
@@ -324,6 +322,50 @@ describe.skip("Google Sheets adaptor tests", () => {
     expect(updatedRecord[2].json["BatchTestField"]).toBe(newValue);
     expect(updatedRecord[3].json["Name"]).toBeTruthy(); // Check not all records were updated
     expect(updatedRecord[3].json["BatchTestField"]).toBeFalsy();
+  });
+
+  test("tagRecords attempts to tag records", async () => {
+    const adaptor = new GoogleSheetsAdaptor(
+      uuid,
+      credentials.googlesheets.spreadsheetId,
+      credentials.googlesheets.sheetName,
+      credentials.googlesheets.oAuthCredentials,
+    );
+
+    // Get a record first
+    const firstRecord = await adaptor.fetchFirst();
+    if (!firstRecord) {
+      throw new Error("No records found in Action Network");
+    }
+
+    const taggedRecords = [
+      {
+        externalId: firstRecord.externalId,
+        json: firstRecord.json,
+        tag: {
+          name: "My View",
+          present: true,
+        },
+      },
+    ];
+
+    await adaptor.tagRecords(taggedRecords);
+
+    let updatedRecords = await adaptor.fetchByExternalId([
+      firstRecord.externalId,
+    ]);
+
+    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe(
+      "true",
+    );
+
+    taggedRecords[0].tag.present = false;
+    await adaptor.tagRecords(taggedRecords);
+    updatedRecords = await adaptor.fetchByExternalId([firstRecord.externalId]);
+
+    expect(String(updatedRecords[0].json["My View"]).toLowerCase()).toBe(
+      "false",
+    );
   });
 
   test("access token refresh works when token is expired", async () => {

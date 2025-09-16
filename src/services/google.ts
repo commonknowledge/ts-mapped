@@ -1,4 +1,4 @@
-import { GoogleOAuthCredentials } from "@/zod";
+import type { GoogleOAuthCredentials } from "@/server/models/DataSource";
 
 export const getOAuthCredentials = async (
   redirectSuccessUrl: string,
@@ -10,7 +10,7 @@ export const getOAuthCredentials = async (
   if (!response.ok) {
     throw new Error("Failed to get Google OAuth Credentials");
   }
-  return response.json();
+  return response.json() as Promise<GoogleOAuthCredentials>;
 };
 
 export const getOAuthURL = async (
@@ -25,7 +25,7 @@ export const getOAuthURL = async (
   if (!response.ok) {
     throw new Error("Failed to get Google OAuth URL");
   }
-  const body = await response.json();
+  const body = (await response.json()) as { url: string };
   return body.url;
 };
 
@@ -47,9 +47,9 @@ export const getSheets = async (
     throw new Error("Failed to fetch sheet names");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as {
+    sheets: { properties: { title: string } }[];
+  };
   const sheets = data.sheets || [];
-  return sheets.map(
-    (sheet: { properties: { title: string } }) => sheet.properties.title,
-  );
+  return sheets.map((sheet) => sheet.properties.title);
 };

@@ -10,7 +10,7 @@ export function TypographyH1({ children, className }: TypographyProps) {
     <h1
       className={cn(
         "scroll-m-20 text-5xl font-medium tracking-tight text-balance antialiased",
-        className
+        className,
       )}
     >
       {children}
@@ -23,7 +23,7 @@ export function TypographyH2({ children, className }: TypographyProps) {
     <h2
       className={cn(
         "scroll-m-20 text-3xl font-medium tracking-tight transition-colors first:mt-0 antialiased",
-        className
+        className,
       )}
     >
       {children}
@@ -36,7 +36,7 @@ export function TypographyH3({ children, className }: TypographyProps) {
     <h3
       className={cn(
         "scroll-m-20 text-2xl font-semibold tracking-tight antialiased",
-        className
+        className,
       )}
     >
       {children}
@@ -49,7 +49,7 @@ export function TypographyH4({ children, className }: TypographyProps) {
     <h4
       className={cn(
         "scroll-m-20 text-xl font-semibold tracking-tight antialiased",
-        className
+        className,
       )}
     >
       {children}
@@ -62,7 +62,7 @@ export function TypographyP({ children, className }: TypographyProps) {
     <p
       className={cn(
         "leading-6 [&:not(:first-child)]:mt-3 antialiased",
-        className
+        className,
       )}
     >
       {children}
@@ -123,7 +123,7 @@ export function TypographyInlineCode({ children, className }: TypographyProps) {
     <code
       className={cn(
         "bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
-        className
+        className,
       )}
     >
       {children}

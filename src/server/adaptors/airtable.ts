@@ -1,7 +1,6 @@
 import z from "zod";
 import { ColumnType } from "@/__generated__/types";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
-import { EnrichedRecord } from "@/server/mapping/enrich";
 import {
   findAirtableWebhookById,
   upsertAirtableWebhook,
@@ -9,8 +8,9 @@ import {
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { ExternalRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface Webhook {
   id: string;
@@ -106,7 +106,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       type: string;
       description: string;
       options?: {
-        precision: number;
+        color?: string;
+        icon?: string;
+        precision?: number;
       };
     } = {
       name,
@@ -123,6 +125,10 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         break;
       case ColumnType.Boolean:
         body.type = "checkbox";
+        body.options = {
+          color: "blueBright",
+          icon: "check",
+        };
         break;
     }
 
@@ -172,7 +178,11 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         );
       }
 
-      const payloadData = await response.json();
+      const payloadData = (await response.json()) as {
+        cursor: number;
+        mightHaveMore: boolean;
+        payloads: unknown[];
+      };
       cursor = payloadData.cursor;
       mightHaveMore = payloadData.mightHaveMore;
       payloads = payloads.concat(payloadData.payloads);
@@ -205,7 +215,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      tables: { id: string; fields: { name: string }[] }[];
+    };
     const table = json.tables.find(
       (table: { id: string }) => table.id === this.tableId,
     );
@@ -238,7 +250,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     let offset: string | undefined;
     do {
       const pageData = await this.fetchPage({ offset });
-      for (const record of pageData.records) {
+      for (const record of pageData?.records || []) {
         yield {
           externalId: record.id,
           json: record.fields,
@@ -296,7 +308,10 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       throw Error(`Bad fetch page response body: ${response.json}`);
     }
 
-    return json;
+    return json as {
+      offset: string;
+      records: { id: string; fields: Record<string, unknown> }[];
+    };
   }
 
   async fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
@@ -323,7 +338,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      records: { id: string; fields: Record<string, unknown> }[];
+    };
     if (typeof json !== "object") {
       throw Error(`Bad fetch page response body: ${response.json}`);
     }
@@ -349,7 +366,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       throw Error(`Bad webhooks response: ${response.status}, ${responseText}`);
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as { webhooks: Webhook[] };
     if (typeof json !== "object") {
       throw Error(`Bad webhooks response body: ${response.json}`);
     }
@@ -490,6 +507,52 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         return {
           id: record.externalRecord.externalId,
           fields,
+        };
+      });
+
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({ records: airtableRecords }),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw Error(
+          `Bad update records response: ${response.status}, ${responseText}`,
+        );
+      }
+    }
+  }
+
+  async tagRecords(taggedRecords: TaggedRecord[]): Promise<void> {
+    if (!taggedRecords.length) {
+      return;
+    }
+
+    const url = this.getURL();
+
+    // Airtable update has a maximum record count of 10
+    const batches = batch(taggedRecords, 10);
+
+    // Assume same tag applied to all records
+    const fieldName = taggedRecords[0].tag.name;
+
+    const existingFields = await this.getFields();
+    if (!existingFields.includes(fieldName)) {
+      await this.createField(fieldName, ColumnType.Boolean);
+    }
+
+    for (const batch of batches) {
+      const airtableRecords = batch.map((record) => {
+        return {
+          id: record.externalId,
+          fields: {
+            [fieldName]: record.tag.present,
+          },
         };
       });
 

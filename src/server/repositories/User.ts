@@ -1,6 +1,7 @@
-import { NewUser } from "@/server/models/User";
+import { jwtVerify } from "jose";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
+import type { NewUser, UserUpdate } from "@/server/models/User";
 
 export async function upsertUser(
   user: Omit<NewUser, "passwordHash"> & { password: string },
@@ -17,6 +18,10 @@ export async function upsertUser(
     )
     .returningAll()
     .executeTakeFirstOrThrow();
+}
+
+export async function deleteUser(id: string) {
+  return db.deleteFrom("user").where("id", "=", id).executeTakeFirstOrThrow();
 }
 
 export async function findUserByEmailAndPassword({
@@ -36,4 +41,53 @@ export async function findUserByEmailAndPassword({
   }
   const passwordValid = await verifyPassword(password, user.passwordHash);
   return passwordValid ? user : null;
+}
+
+export async function findUserById(id: string) {
+  return db
+    .selectFrom("user")
+    .where("id", "=", id)
+    .selectAll()
+    .executeTakeFirst();
+}
+
+export async function findUserByEmail(email: string) {
+  return db
+    .selectFrom("user")
+    .where("email", "=", email)
+    .selectAll()
+    .executeTakeFirst();
+}
+
+export async function findUserByToken(token: string) {
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+  const { payload } = await jwtVerify<{ id: string }>(token, secret);
+  return findUserById(payload.id);
+}
+
+export async function updateUser(
+  id: string,
+  {
+    newPassword,
+    ...data
+  }: Omit<UserUpdate, "id" | "passwordHash"> & { newPassword?: string },
+) {
+  const update: UserUpdate = {
+    name: data.name,
+    avatarUrl: data.avatarUrl,
+  };
+
+  if (newPassword) {
+    update.passwordHash = await hashPassword(newPassword);
+  }
+  if (data.email) {
+    update.email = data.email.toLowerCase().trim();
+  }
+
+  return db
+    .updateTable("user")
+    .where("id", "=", id)
+    .set(update)
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }

@@ -1,6 +1,6 @@
 import { filter, pipe } from "graphql-yoga";
-import { SubscriptionResolvers as SubscriptionResolversType } from "@/__generated__/types";
 import pubSub from "@/server/services/pubsub";
+import type { SubscriptionResolvers as SubscriptionResolversType } from "@/__generated__/types";
 
 const Subscription: SubscriptionResolversType = {
   dataSourceEvent: {

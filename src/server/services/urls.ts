@@ -1,7 +1,8 @@
 import http from "http";
 import ngrok from "@ngrok/ngrok";
 import httpProxy from "http-proxy";
-import { trimLeadingSlashes, trimTrailingSlashes } from "@/server/utils/text";
+import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
+import { trimLeadingSlashes, trimTrailingSlashes } from "@/utils/text";
 import logger from "./logger";
 import { getClient } from "./redis";
 
@@ -39,8 +40,8 @@ const createHttpsTunnel = () => {
   // Create an http => https proxy, as ngrok free tier is http only
   // The chain is: https://ngrok => http://localhost:3001 => https://localhost:3000
   const proxy = httpProxy.createProxyServer({
-    target: "https://localhost:3000",
-    changeOrigin: true,
+    target: DEV_NEXT_PUBLIC_BASE_URL,
+    changeOrigin: false,
     secure: false, // Accept self-signed certs
   });
 
@@ -50,6 +51,11 @@ const createHttpsTunnel = () => {
 
   server.listen(3001, () => {
     logger.info("Proxy listening on http://localhost:3001");
+  });
+
+  // Add WebSocket support
+  server.on("upgrade", (req, socket, head) => {
+    proxy.ws(req, socket, head);
   });
 
   return ngrok.forward({
@@ -77,9 +83,4 @@ export const getPublicUrl = async (path = "/") => {
     publicUrl = storedPublicUrl;
   }
   return `${trimTrailingSlashes(publicUrl)}/${trimLeadingSlashes(path)}`;
-};
-
-export const getAbsoluteUrl = (path = "/") => {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000";
-  return `${trimTrailingSlashes(base)}/${trimLeadingSlashes(path)}`;
 };

@@ -1,12 +1,12 @@
 import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Turf } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import Loading from "@/components/Map/components/Loading";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { CONTROL_PANEL_WIDTH, mapColors } from "@/components/Map/styles";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -14,8 +14,9 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
-import Loading from "../../Loading";
+import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
+import type { Turf } from "@/__generated__/types";
 
 export default function AreasControl() {
   const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
@@ -58,7 +59,7 @@ export default function AreasControl() {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2">
+    <div className="flex flex-col gap-1 p-3">
       <LayerHeader
         label="Areas"
         color={mapColors.areas.color}
@@ -83,6 +84,7 @@ export default function AreasControl() {
       </LayerHeader>
 
       <div className="relative">
+        {turfs.length === 0 && <EmptyLayer message="Add an Area Layer" />}
         {/* Disable interactions while turfs are loading/updating in the background */}
         {turfsLoading && <Loading blockInteraction />}
         <ul
@@ -100,29 +102,39 @@ export default function AreasControl() {
 const TurfItem = ({ turf }: { turf: Turf }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
-  const { mapRef } = useContext(MapContext);
+  const { mapRef, showControls } = useContext(MapContext);
   const { updateTurf, deleteTurf } = useContext(MarkerAndTurfContext);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFlyTo = (turf: Turf) => {
-    // Calculate the center of the polygon using turf.js
-    const center = turfLib.center(turf.geometry);
     const map = mapRef?.current;
-    if (map) {
-      map.flyTo({
-        center: center.geometry.coordinates as [number, number],
-        zoom: 12,
-      });
-    }
+    if (!map) return;
+
+    // the bounding box of the polygon
+    const bbox = turfLib.bbox(turf.polygon);
+    const padding = 20;
+
+    map.fitBounds(
+      [
+        [bbox[0], bbox[1]], // southwest corner
+        [bbox[2], bbox[3]], // northeast corner
+      ],
+      {
+        padding: {
+          left: showControls ? CONTROL_PANEL_WIDTH + padding : padding,
+          top: padding,
+          right: padding,
+          bottom: padding,
+        },
+        duration: 1000,
+      },
+    );
   };
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm"
-          onClick={() => handleFlyTo(turf)}
-        >
+        <div className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm">
           {isEditing ? (
             <form
               onSubmit={(e) => {
@@ -143,13 +155,38 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
             </form>
           ) : (
             <>
-              <div className="flex items-center gap-2 pl-1">
-                <div
-                  style={{ backgroundColor: mapColors.areas.color }}
-                  className="w-2 h-2 rounded-full"
-                />
+              <div className="group flex items-center gap-2 w-full">
+                <button
+                  className="w-full overflow-hidden / flex items-center gap-2 / text-sm text-left / cursor-pointer"
+                  onClick={() => handleFlyTo(turf)}
+                >
+                  <div
+                    style={{ backgroundColor: mapColors.areas.color }}
+                    className="w-2 h-2 rounded-full shrink-0"
+                  />
+                  <span className="truncate">
+                    {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                  </span>
+                </button>
 
-                <div className="text-sm">{turf.label}</div>
+                <div className="hidden group-hover:flex gap-2 text-muted-foreground">
+                  <button
+                    className="cursor-pointer hover:text-primary"
+                    onClick={() => {
+                      setEditing(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="cursor-pointer hover:text-primary"
+                    onClick={() => {
+                      deleteTurf(turf.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </>
           )}

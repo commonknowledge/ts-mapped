@@ -2,9 +2,11 @@
 
 import { Clock2, DatabaseIcon } from "lucide-react";
 import Image from "next/image";
-import { SyntheticEvent, useContext } from "react";
+import { usePathname } from "next/navigation";
+import { useContext } from "react";
 import { useCurrentUser } from "@/hooks";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import { Button } from "@/shadcn/ui/button";
 import {
   Select,
@@ -14,22 +16,25 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
+import { getInitials } from "@/utils/text";
 import { Link } from "./Link";
+import styles from "./Sidebar.module.css";
+import type { SyntheticEvent } from "react";
 
-export default function Sidebar({ slug }: { slug: string }) {
-  const user = useCurrentUser();
+export default function Sidebar() {
+  const slug = usePathname();
+
+  const { currentUser: user } = useCurrentUser();
   const { organisations, organisationId, setOrganisationId } =
     useContext(OrganisationsContext);
 
   const onSubmitLogout = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     document.cookie = "JWT=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-    location.reload();
+    location.href = "/";
   };
 
-  const isActive = (href: string) => {
-    return slug === href;
-  };
+  const isActive = (href: string) => slug === href;
 
   const navItems = [
     {
@@ -63,28 +68,6 @@ export default function Sidebar({ slug }: { slug: string }) {
         </Button> */}
       </div>
 
-      {/* Organisation Selector */}
-      <div className="p-4 border-b border-neutral-200">
-        <label className="text-sm font-medium text-neutral-700 mb-2 block">
-          Organisation
-        </label>
-        <Select
-          onValueChange={(value) => setOrganisationId(value)}
-          value={organisationId || ""}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select an organisation" />
-          </SelectTrigger>
-          <SelectContent>
-            {organisations.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                {o.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
@@ -105,20 +88,55 @@ export default function Sidebar({ slug }: { slug: string }) {
         </ul>
       </nav>
 
-      {/* User Section */}
+      {/* Organisation Selector */}
       <div className="p-4 border-t border-neutral-200">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 bg-neutral-200 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium">
-              {user?.id?.charAt(0).toUpperCase()}
-            </span>
-          </div>
+        <label className="text-sm font-medium text-neutral-700 mb-2 block">
+          Organisation
+        </label>
+        <Select
+          onValueChange={(value) => setOrganisationId(value)}
+          value={organisationId || ""}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select an organisation" />
+          </SelectTrigger>
+          <SelectContent>
+            {organisations.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                {o.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {/* User Section */}
+      <div className="p-4 space-y-2 border-t border-neutral-200">
+        <Link
+          href={"/account"}
+          className={cn(
+            "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+            isActive("/account") && "bg-neutral-100 text-primary",
+            styles["account"],
+          )}
+        >
+          <Avatar>
+            <AvatarImage src={user?.avatarUrl || ""} alt={user?.name} />
+            <AvatarFallback
+              className={cn(
+                isActive("/account") ? "bg-neutral-200" : "",
+                styles["avatar-fallback"],
+              )}
+            >
+              {getInitials(user?.name)}
+            </AvatarFallback>
+          </Avatar>{" "}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-neutral-900 truncate">
-              User
+              {user?.name || user?.email}
             </p>
           </div>
-        </div>
+        </Link>
+
         <form onSubmit={onSubmitLogout}>
           <Button variant="outline" size="sm" className="w-full">
             Logout

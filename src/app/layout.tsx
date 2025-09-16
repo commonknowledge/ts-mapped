@@ -2,19 +2,21 @@ import "nprogress/nprogress.css";
 import "./global.css";
 import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
-import {
-  ListOrganisationsQuery,
-  ListOrganisationsQueryVariables,
-} from "@/__generated__/types";
+import { headers } from "next/headers";
 import { getServerSession } from "@/auth";
-import ConditionalMarketingFooter from "@/components/ConditionalMarketingFooter";
-import ConditionalMarketingNavbar from "@/components/ConditionalMarketingNavbar";
-
+import PublicMapPage from "@/components/PublicMapPage";
+import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
+import { TRPCReactProvider } from "@/services/trpc/react";
+import { Toaster } from "@/shadcn/ui/sonner";
+import type {
+  ListOrganisationsQuery,
+  ListOrganisationsQueryVariables,
+} from "@/__generated__/types";
 import type { Metadata } from "next";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -42,6 +44,34 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const host = headersList.get("x-forwarded-host") || headersList.get("host");
+
+  const mainHost = new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
+  );
+
+  if (host && host !== mainHost.host) {
+    return (
+      <html
+        lang="en"
+        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
+      >
+        <body className={ibmPlexSans.className}>
+          <TRPCReactProvider>
+            <ApolloProvider ignoreAuthErrors>
+              <NProgressProvider>
+                <main className="min-h-screen relative z-10">
+                  <PublicMapPage host={host} />
+                </main>
+              </NProgressProvider>
+            </ApolloProvider>
+          </TRPCReactProvider>
+        </body>
+      </html>
+    );
+  }
+
   const serverSession = await getServerSession();
   const organisations = await getOrganisations();
 
@@ -53,13 +83,14 @@ export default async function RootLayout({
       <body className={ibmPlexSans.className + " antialiased"}>
         <ServerSessionProvider serverSession={serverSession}>
           <OrganisationsProvider organisations={organisations}>
-            <ApolloProvider>
-              <NProgressProvider>
-                <ConditionalMarketingNavbar />
-                <main className=" min-h-screen">{children}</main>
-                <ConditionalMarketingFooter />
-              </NProgressProvider>
-            </ApolloProvider>
+            <TRPCReactProvider>
+              <ApolloProvider>
+                <NProgressProvider>
+                  <main className="min-h-screen relative z-10">{children}</main>
+                  <Toaster position="top-center" />
+                </NProgressProvider>
+              </ApolloProvider>
+            </TRPCReactProvider>
           </OrganisationsProvider>
         </ServerSessionProvider>
       </body>
@@ -78,6 +109,7 @@ const getOrganisations = async () => {
         organisations {
           id
           name
+          avatarUrl
         }
       }
     `,

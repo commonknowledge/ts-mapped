@@ -1,5 +1,5 @@
-import { ExternalRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { ExternalRecord } from "@/types";
 
 export class MailchimpAdaptor implements DataSourceAdaptor {
   async *extractExternalRecordIdsFromWebhookBody(
@@ -31,6 +31,10 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
   removeDevWebhooks(): Promise<void> {
     throw new Error("Method not implemented.");
+  }
+
+  tagRecords(): Promise<void> {
+    throw new Error("Unimplemented.");
   }
 
   async toggleWebhook(

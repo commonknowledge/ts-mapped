@@ -1,17 +1,19 @@
-import {
-  Generated,
-  Insertable,
-  ColumnType as KyselyColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
+import { z } from "zod";
+import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
-export interface OrganisationTable {
+export const organisationSchema = z.object({
+  id: z.string(),
+  name: z.string().trim(),
+  avatarUrl: z.string().url().trim().nullish(),
+  createdAt: z.date(),
+});
+
+export type Organisation = z.infer<typeof organisationSchema>;
+
+export type OrganisationTable = Organisation & {
   id: Generated<string>;
-  name: string;
-  createdAt: KyselyColumnType<Date, string | undefined, never>;
-}
+  createdAt: ColumnType<Date, string | undefined, never>;
+};
 
-export type Organisation = Selectable<OrganisationTable>;
 export type NewOrganisation = Insertable<OrganisationTable>;
 export type OrganisationUpdate = Updateable<OrganisationTable>;

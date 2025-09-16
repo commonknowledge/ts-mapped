@@ -1,10 +1,10 @@
 import React from "react";
-import { RichTextBlock } from "@/app/docs/types";
 import {
   TypographyH2,
   TypographyH3,
   TypographyP,
 } from "@/components/typography";
+import type { RichTextBlock } from "@/app/docs/types";
 
 export default function RichTextComponent({
   content,

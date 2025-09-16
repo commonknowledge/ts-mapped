@@ -1,20 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
-import {
-  ColumnDef,
-  ColumnType,
-  CreateDataSourceResponse,
-  CreateMapResponse,
-  GeocodingType,
-  MutationResolvers as MutationResolversType,
-  MutationResponse,
-  MutationUpdateDataSourceConfigArgs,
-  MutationUpdateMapArgs,
-  MutationUpdateMapConfigArgs,
-  UpsertFolderResponse,
-  UpsertPlacedMarkerResponse,
-  UpsertTurfResponse,
-} from "@/__generated__/types";
+import { ColumnType } from "@/__generated__/types";
 import { getDataSourceAdaptor } from "@/server/adaptors";
+import {
+  GeocodingType,
+  dataSourceConfigSchema,
+  enrichmentSchema,
+} from "@/server/models/DataSource";
+import { geocodingConfigSchema } from "@/server/models/DataSource";
 import {
   createDataSource,
   findDataSourceById,
@@ -27,22 +19,44 @@ import {
   findMapById,
   updateMap,
 } from "@/server/repositories/Map";
-import { upsertMapView } from "@/server/repositories/MapView";
+import {
+  findMapViewById,
+  findMapViewsByMapId,
+  upsertMapView,
+} from "@/server/repositories/MapView";
 import {
   deletePlacedMarker,
   deletePlacedMarkersByFolderId,
   upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
+import {
+  findPublicMapByHost,
+  upsertPublicMap,
+} from "@/server/repositories/PublicMap";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
 import logger from "@/server/services/logger";
 import { deleteFile } from "@/server/services/minio";
 import { enqueue } from "@/server/services/queue";
-import {
-  DataSourceConfigSchema,
-  EnrichmentSchema,
-  GeocodingConfig,
-  GeocodingConfigSchema,
-} from "@/zod";
+import type {
+  ColumnDef,
+  CreateDataSourceResponse,
+  CreateMapResponse,
+  DataSourceRecordType,
+  MutationResolvers as MutationResolversType,
+  MutationResponse,
+  MutationUpdateDataSourceConfigArgs,
+  MutationUpdateMapArgs,
+  MutationUpdateMapConfigArgs,
+  PolygonInput,
+  UpsertFolderResponse,
+  UpsertPlacedMarkerResponse,
+  UpsertPublicMapResponse,
+  UpsertTurfResponse,
+} from "@/__generated__/types";
+import type { DataSourceUpdate } from "@/server/models/DataSource";
+import type { mapConfigSchema } from "@/server/models/Map";
+import type { Polygon } from "@/server/models/Turf";
+import type { z } from "zod";
 
 const MutationResolvers: MutationResolversType = {
   createDataSource: async (
@@ -50,12 +64,18 @@ const MutationResolvers: MutationResolversType = {
     {
       name,
       organisationId,
+      recordType,
       rawConfig,
-    }: { name: string; organisationId: string; rawConfig: unknown },
+    }: {
+      name: string;
+      organisationId: string;
+      recordType: DataSourceRecordType;
+      rawConfig: unknown;
+    },
   ): Promise<CreateDataSourceResponse> => {
     try {
       const id = uuidv4();
-      const config = DataSourceConfigSchema.parse(rawConfig);
+      const config = dataSourceConfigSchema.parse(rawConfig);
 
       const adaptor = getDataSourceAdaptor({ id, config });
 
@@ -71,20 +91,19 @@ const MutationResolvers: MutationResolversType = {
         }),
       );
 
-      const geocodingConfig: GeocodingConfig = {
-        type: GeocodingType.None,
-      };
       const dataSource = await createDataSource({
         id,
         name,
         organisationId,
         autoEnrich: false,
         autoImport: false,
-        config: JSON.stringify(config),
-        columnRoles: JSON.stringify({}),
-        enrichments: JSON.stringify([]),
-        geocodingConfig: JSON.stringify(geocodingConfig),
-        columnDefs: JSON.stringify(columnDefs),
+        recordType,
+        config: config,
+        columnRoles: { nameColumns: [] },
+        enrichments: [],
+        geocodingConfig: { type: GeocodingType.None },
+        columnDefs,
+        public: false,
       });
 
       logger.info(`Created ${config.type} data source: ${dataSource.id}`);
@@ -157,6 +176,21 @@ const MutationResolvers: MutationResolversType = {
     await enqueue("importDataSource", { dataSourceId });
     return { code: 200 };
   },
+  saveMapViewsToCRM: async (
+    _: unknown,
+    { id }: { id: string },
+  ): Promise<MutationResponse> => {
+    const views = await findMapViewsByMapId(id);
+    for (const view of views) {
+      for (const dsv of view.dataSourceViews) {
+        await enqueue("tagDataSource", {
+          dataSourceId: dsv.dataSourceId,
+          viewId: view.id,
+        });
+      }
+    }
+    return { code: 200 };
+  },
   updateDataSourceConfig: async (
     _: unknown,
     {
@@ -176,13 +210,7 @@ const MutationResolvers: MutationResolversType = {
 
       const adaptor = getDataSourceAdaptor(dataSource);
 
-      const update: {
-        columnRoles?: string;
-        enrichments?: string;
-        geocodingConfig?: string;
-        autoEnrich?: boolean;
-        autoImport?: boolean;
-      } = {};
+      const update = {} as DataSourceUpdate;
 
       // Keep track of whether webhooks need to be enabled/disabled
       const nextAutoStatus = {
@@ -209,27 +237,30 @@ const MutationResolvers: MutationResolversType = {
       }
 
       if (columnRoles) {
-        update.columnRoles = JSON.stringify(columnRoles);
+        update.columnRoles = columnRoles;
       }
 
       if (looseEnrichments) {
         const enrichments = [];
         for (const enrichment of looseEnrichments) {
-          enrichments.push(EnrichmentSchema.parse(enrichment));
+          enrichments.push(enrichmentSchema.parse(enrichment));
         }
-        update.enrichments = JSON.stringify(enrichments);
+        update.enrichments = enrichments;
       }
 
       if (looseGeocodingConfig) {
         const geocodingConfig =
-          GeocodingConfigSchema.parse(looseGeocodingConfig);
-        update.geocodingConfig = JSON.stringify(geocodingConfig);
+          geocodingConfigSchema.parse(looseGeocodingConfig);
+        update.geocodingConfig = geocodingConfig;
       }
 
       await updateDataSource(id, update);
       logger.info(
         `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
       );
+
+      await enqueue("importDataSource", { dataSourceId: id });
+
       return { code: 200 };
     } catch (error) {
       logger.error(`Could not update data source`, { error });
@@ -279,11 +310,24 @@ const MutationResolvers: MutationResolversType = {
   updateMapConfig: async (_: unknown, args: MutationUpdateMapConfigArgs) => {
     try {
       const { mapId, mapConfig, views } = args;
-      await updateMap(mapId, { config: JSON.stringify(mapConfig) });
+
+      const config = {} as z.infer<typeof mapConfigSchema>;
+
+      if (mapConfig.markerDataSourceIds) {
+        config.markerDataSourceIds = mapConfig.markerDataSourceIds.filter(
+          Boolean,
+        ) as string[];
+      }
+      if (mapConfig.membersDataSourceId) {
+        config.membersDataSourceId = mapConfig.membersDataSourceId;
+      }
+      await updateMap(mapId, { config });
+
       for (const view of views) {
         await upsertMapView({
           ...view,
-          config: JSON.stringify(view.config),
+          config: view.config,
+          dataSourceViews: view.dataSourceViews,
           mapId,
         });
       }
@@ -308,6 +352,47 @@ const MutationResolvers: MutationResolversType = {
     }
     return { code: 500 };
   },
+  upsertPublicMap: async (
+    _,
+    {
+      viewId,
+      host,
+      name,
+      dataSourceConfigs,
+      description,
+      descriptionLink,
+      published,
+    },
+  ): Promise<UpsertPublicMapResponse> => {
+    try {
+      const existingPublicMap = await findPublicMapByHost(host);
+      if (existingPublicMap && existingPublicMap.viewId !== viewId) {
+        return { code: 409 };
+      }
+      const view = await findMapViewById(viewId);
+      if (!view) {
+        return { code: 404 };
+      }
+      const map = await findMapById(view.mapId);
+      if (!map) {
+        return { code: 404 };
+      }
+      const result = await upsertPublicMap({
+        mapId: view.mapId,
+        viewId,
+        host,
+        name,
+        dataSourceConfigs,
+        description,
+        descriptionLink,
+        published,
+      });
+      return { code: 200, result };
+    } catch (error) {
+      logger.error(`Could not upsert public map`, { error });
+    }
+    return { code: 500 };
+  },
   upsertTurf: async (
     _: unknown,
     {
@@ -315,7 +400,7 @@ const MutationResolvers: MutationResolversType = {
       label,
       notes,
       area,
-      geometry,
+      polygon,
       createdAt,
       mapId,
     }: {
@@ -323,7 +408,7 @@ const MutationResolvers: MutationResolversType = {
       label: string;
       notes: string;
       area: number;
-      geometry: unknown;
+      polygon: PolygonInput;
       createdAt: string;
       mapId: string;
     },
@@ -337,7 +422,7 @@ const MutationResolvers: MutationResolversType = {
         label,
         notes,
         area,
-        geometry: JSON.stringify(geometry),
+        polygon: polygon as Polygon,
         createdAt: new Date(createdAt),
         mapId,
       };

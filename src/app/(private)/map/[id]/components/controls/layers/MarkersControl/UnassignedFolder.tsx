@@ -4,11 +4,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useMemo } from "react";
-import { Folder, PlacedMarker } from "@/__generated__/types";
-import { sortByPositionAndId } from "@/app/(private)/map/[id]/utils";
-import { Separator } from "@/shadcn/ui/separator";
+import { sortByPositionAndId } from "@/components/Map/utils";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
+import type { Folder, PlacedMarker } from "@/__generated__/types";
 
 // Unassigned folder component (behaves like a regular folder)
 export default function UnassignedFolder({
@@ -32,15 +31,9 @@ export default function UnassignedFolder({
 
   return (
     <div className="mb-3">
-      {folders.length > 0 && (
-        <div ref={setNodeRef} className="px-1 py-3">
-          <Separator orientation="horizontal" className="h-4 w-full" />
-        </div>
-      )}
+      {folders.length > 0 && <div ref={setNodeRef} className="px-1 py-1" />}
 
-      <div
-        className={cn("mt-1 space-y-0.5", folders.length > 0 ? "ml-3" : "ml-1")}
-      >
+      <div className={cn("mt-1 space-y-0.5 ml-1")}>
         <SortableContext
           items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
           strategy={verticalListSortingStrategy}

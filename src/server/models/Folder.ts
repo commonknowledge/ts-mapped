@@ -1,13 +1,22 @@
-import { Generated, Insertable, Selectable, Updateable } from "kysely";
+import z from "zod";
+import type { Insertable, Updateable } from "kysely";
 
-export interface FolderTable {
-  id: Generated<string>;
-  name: string;
-  mapId: string;
-  notes: string;
-  position: number;
-}
+import type { ColumnType, GeneratedAlways } from "kysely";
 
-export type Folder = Selectable<FolderTable>;
+export const folderSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  notes: z.string(),
+  position: z.number(),
+  mapId: z.string(),
+});
+
+export type Folder = z.infer<typeof folderSchema>;
+
+export type FolderTable = Folder & {
+  id: GeneratedAlways<string>;
+  createdAt: ColumnType<Date, string | undefined, never>;
+};
+
 export type NewFolder = Insertable<FolderTable>;
 export type FolderUpdate = Updateable<FolderTable>;

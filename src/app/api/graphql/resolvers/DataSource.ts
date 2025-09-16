@@ -1,8 +1,4 @@
 import {
-  DataSource,
-  DataSourceResolvers as DataSourceResolversType,
-} from "@/__generated__/types";
-import {
   countDataRecordsForDataSource,
   findDataRecordsByDataSource,
 } from "@/server/repositories/DataRecord";
@@ -11,6 +7,10 @@ import {
   findDataSourcesByIds,
   getJobInfo,
 } from "@/server/repositories/DataSource";
+import type {
+  DataSource,
+  DataSourceResolvers as DataSourceResolversType,
+} from "@/__generated__/types";
 
 const DataSourceResolvers: DataSourceResolversType = {
   // Remove sensitive credentials (leave only the `type` property)
@@ -34,11 +34,18 @@ const DataSourceResolvers: DataSourceResolversType = {
     const dataSources = await findDataSourcesByIds(dataSourceIds);
     return dataSources.map((ds) => ({ name: ds.name, id: ds.id }));
   },
-  records: ({ id }: DataSource, { filter, page, sort }) => {
-    return findDataRecordsByDataSource(id, filter, page || 0, sort || []);
+  records: async ({ id }: DataSource, { filter, search, page, sort, all }) => {
+    return findDataRecordsByDataSource(
+      id,
+      filter,
+      search,
+      page || 0,
+      sort || [],
+      all,
+    );
   },
-  recordCount: ({ id }: DataSource, { filter }) =>
-    countDataRecordsForDataSource(id, filter),
+  recordCount: ({ id }: DataSource, { filter, search }) =>
+    countDataRecordsForDataSource(id, filter, search),
 };
 
 export default DataSourceResolvers;

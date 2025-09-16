@@ -36,7 +36,12 @@ const importConstituencies = async () => {
     logger.info(`Using area set ${AREA_SET_CODE}`);
   }
   const geojson = fs.readFileSync(constituenciesGeojsonPath, "utf8");
-  const areas = JSON.parse(geojson);
+  const areas = JSON.parse(geojson) as {
+    features: {
+      properties: { PCON24CD: string; PCON24NM: string };
+      geometry: unknown;
+    }[];
+  };
   const count = areas.features.length;
   for (let i = 0; i < count; i++) {
     const feature = areas.features[i];

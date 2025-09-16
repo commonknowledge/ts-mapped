@@ -1,7 +1,8 @@
 import { OAuth2Client } from "google-auth-library";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import logger from "@/server/services/logger";
-import { getAbsoluteUrl } from "@/server/services/urls";
+import { getAbsoluteUrl } from "@/utils/appUrl";
+import type { NextRequest } from "next/server";
 
 const redirectUri = getAbsoluteUrl("/data-sources/new");
 const oauth2Client = new OAuth2Client({
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { redirectSuccessUrl: string };
     const { redirectSuccessUrl } = body;
 
     if (!redirectSuccessUrl) {

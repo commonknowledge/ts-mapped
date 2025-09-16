@@ -1,13 +1,19 @@
-import { ColumnDef, ColumnType } from "@/__generated__/types";
-import { DataSource } from "@/server/models/DataSource";
+import { ColumnType } from "@/__generated__/types";
 import { findAreaByCode } from "@/server/repositories/Area";
 import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { ExternalRecord, GeocodeResult } from "@/types";
-import { AreaEnrichment, DataSourceEnrichment, Enrichment } from "@/zod";
 import { geocodeRecord } from "./geocode";
+import type { GeocodeResult } from "../models/shared";
+import type { ColumnDef } from "@/__generated__/types";
+import type {
+  AreaEnrichment,
+  DataSource,
+  DataSourceEnrichment,
+  Enrichment,
+} from "@/server/models/DataSource";
+import type { ExternalRecord } from "@/types";
 
 export interface EnrichedRecord {
   externalRecord: ExternalRecord;

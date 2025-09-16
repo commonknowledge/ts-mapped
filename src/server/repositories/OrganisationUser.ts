@@ -1,5 +1,5 @@
-import { NewOrganisationUser } from "@/server/models/OrganisationUser";
 import { db } from "@/server/services/database";
+import type { NewOrganisationUser } from "@/server/models/OrganisationUser";
 
 export function upsertOrganisationUser(organisationUser: NewOrganisationUser) {
   return db

@@ -1,17 +1,21 @@
 // Human friendly labels for enums
 
-import { DataSourceType } from "@/types";
-import {
+import type {
   AreaSetCode,
+  AreaSetGroupCode,
+  DataSourceRecordType,
   EnrichmentSourceType,
   GeocodingType,
 } from "./__generated__/types";
-import {
-  AirtableConfig,
-  CSVConfig,
-  GoogleSheetsConfig,
-  MailchimpConfig,
-} from "./zod";
+import type {
+  CSVConfigSchema,
+  actionNetworkConfigSchema,
+  airtableConfigSchema,
+  googleSheetsConfigSchema,
+  mailchimpConfigSchema,
+} from "./server/models/DataSource";
+import type { DataSourceType } from "@/server/models/DataSource";
+import type z from "zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "UK Postcode",
@@ -20,11 +24,17 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   WMC24: "Westminster Constituency (2024)",
 };
 
+export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
+  OA21: "Census Output Area (2021)",
+  WMC24: "Westminster Constituency (2024)",
+};
+
 type DataSourceConfigKey =
-  | keyof AirtableConfig
-  | keyof CSVConfig
-  | keyof GoogleSheetsConfig
-  | keyof MailchimpConfig;
+  | keyof z.infer<typeof actionNetworkConfigSchema>
+  | keyof z.infer<typeof airtableConfigSchema>
+  | keyof z.infer<typeof googleSheetsConfigSchema>
+  | keyof z.infer<typeof mailchimpConfigSchema>
+  | keyof z.infer<typeof CSVConfigSchema>;
 
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
@@ -60,3 +70,13 @@ export const GeocodingTypeLabels: Record<GeocodingType | "Postcode", string> = {
   Postcode: "UK Postcode", // Front-end only
   None: "Disabled",
 };
+
+export const DataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =
+  {
+    Members: "Members",
+    People: "People",
+    Locations: "Locations",
+    Events: "Events",
+    Data: "Data",
+    Other: "Other",
+  };

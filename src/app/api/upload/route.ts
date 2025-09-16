@@ -1,12 +1,13 @@
 import { randomBytes } from "crypto";
 import { writeFile } from "fs/promises";
 import { join } from "path";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
 import logger from "@/server/services/logger";
 import { uploadFile } from "@/server/services/minio";
 import { getBaseDir } from "@/server/utils";
-import { UploadResponseBody } from "@/types";
+import type { UploadResponseBody } from "@/types";
+import type { NextRequest } from "next/server";
 
 export async function POST(
   request: NextRequest,

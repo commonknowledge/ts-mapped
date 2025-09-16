@@ -1,12 +1,11 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Pencil, Trash2 } from "lucide-react";
-import { SyntheticEvent, useContext, useRef, useState } from "react";
-import { PlacedMarker } from "@/__generated__/types";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
+import { useContext, useRef, useState } from "react";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { mapColors } from "@/components/Map/styles";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -14,6 +13,8 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import type { PlacedMarker } from "@/__generated__/types";
+import type { SyntheticEvent } from "react";
 
 export default function SortableMarkerItem({
   marker,
@@ -35,8 +36,12 @@ export default function SortableMarkerItem({
   } = useSortable({ id: `marker-${marker.id}` });
 
   const { mapRef } = useContext(MapContext);
-  const { updatePlacedMarker, deletePlacedMarker } =
-    useContext(MarkerAndTurfContext);
+  const {
+    updatePlacedMarker,
+    deletePlacedMarker,
+    selectedPlacedMarkerId,
+    setSelectedPlacedMarkerId,
+  } = useContext(MarkerAndTurfContext);
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
@@ -63,6 +68,7 @@ export default function SortableMarkerItem({
       return;
     }
 
+    setSelectedPlacedMarkerId(marker.id);
     map.flyTo({
       center: marker.point,
       zoom: 12,
@@ -101,12 +107,32 @@ export default function SortableMarkerItem({
               </Button>
             </form>
           ) : (
-            <div className="flex items-center gap-1.5 flex-grow text-sm p-0.5">
+            <div className="group flex items-start gap-1.5 flex-grow text-sm p-0.5 overflow-hidden">
               <div
-                className="w-2 h-2 rounded-full aspect-square"
-                style={{ backgroundColor: mapColors.markers.color }}
+                className="w-2 h-2 rounded-full aspect-square mt-[0.425em]"
+                style={{
+                  backgroundColor: mapColors.markers.color,
+                  border:
+                    marker.id === selectedPlacedMarkerId
+                      ? `2px solid ${mapColors.markers.color}`
+                      : "none",
+                }}
               />
               <span className="break-all">{marker.label}</span>
+              <div className="hidden group-hover:flex gap-2 text-muted-foreground">
+                <button
+                  onClick={() => {
+                    setEditText(marker.label);
+                    setEditing(true);
+                    setKeyboardCapture(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button onClick={() => deletePlacedMarker(marker.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
         </li>

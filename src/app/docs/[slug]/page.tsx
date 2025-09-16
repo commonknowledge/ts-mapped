@@ -16,7 +16,7 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
-import { Feature, FeatureHowToUseSteps, FeatureSet } from "../types";
+import type { Feature, FeatureHowToUseSteps, FeatureSet } from "../types";
 
 const FEATURE_QUERY = `*[_type == "feature" && slug.current == $slug][0]{
   _id,
@@ -78,14 +78,11 @@ export default async function FeaturePage({
     notFound();
   }
 
-  // Debug: Log the feature data
-  console.log("Feature data:", JSON.stringify(feature, null, 2));
-
   // Group features by their feature set
   const featureSetsWithFeatures = featureSets.map((featureSet: FeatureSet) => ({
     ...featureSet,
     features: allFeatures.filter(
-      (feature: Feature) => feature.featureSet?._id === featureSet._id
+      (feature: Feature) => feature.featureSet?._id === featureSet._id,
     ),
   }));
 
@@ -143,7 +140,7 @@ export default async function FeaturePage({
                     {feature.howToUse.steps.map(
                       (step: FeatureHowToUseSteps, index: number) => {
                         const descriptionText = getTextFromBlocks(
-                          step.description
+                          step.description,
                         );
 
                         return (
@@ -187,7 +184,7 @@ export default async function FeaturePage({
                             </div>
                           </div>
                         );
-                      }
+                      },
                     )}
                   </div>
                 )}

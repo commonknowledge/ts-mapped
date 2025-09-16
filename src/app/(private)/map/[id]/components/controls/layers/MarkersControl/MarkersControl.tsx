@@ -1,28 +1,27 @@
-import {
-  Check,
-  DatabaseIcon,
-  Ellipsis,
-  FolderPlusIcon,
-  LoaderPinwheel,
-  MapPinIcon,
-} from "lucide-react";
+import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { v4 as uuidv4 } from "uuid";
-import AddMembersDataModal from "@/app/(private)/map/[id]/components/controls/AddMemberModal";
-import ControlItemWrapper from "@/app/(private)/map/[id]/components/controls/ControlItemWrapper";
-import LayerHeader from "@/app/(private)/map/[id]/components/controls/LayerHeader";
-import { DataSourcesContext } from "@/app/(private)/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/(private)/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/(private)/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/(private)/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
+import { mapColors } from "@/components/Map/styles";
+import { CollectionIcon } from "../../../Icons";
+import ControlItemWrapper from "../../ControlItemWrapper";
+import LayerHeader from "../../LayerHeader";
 import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { mapConfig, updateMapConfig, viewConfig, updateViewConfig, mapRef } =
-    useContext(MapContext);
+  const {
+    mapConfig,
+    updateMapConfig,
+    viewConfig,
+    updateViewConfig,
+    mapRef,
+    setPinDropMode,
+  } = useContext(MapContext);
   const {
     insertPlacedMarker,
     placedMarkersLoading,
@@ -30,8 +29,6 @@ export default function MarkersControl() {
     foldersLoading,
     insertFolder,
   } = useContext(MarkerAndTurfContext);
-  const [dataSourcesModalOpen, setDataSourcesModalOpen] =
-    useState<boolean>(false);
   const { getDataSources } = useContext(DataSourcesContext);
 
   const createFolder = () => {
@@ -66,6 +63,7 @@ export default function MarkersControl() {
     const map = mapRef?.current;
     if (map) {
       map.getCanvas().style.cursor = "crosshair";
+      setPinDropMode(true);
 
       const clickHandler = (e: mapboxgl.MapMouseEvent) => {
         insertPlacedMarker({
@@ -79,6 +77,7 @@ export default function MarkersControl() {
         // Reset cursor
         map.getCanvas().style.cursor = "";
         map.off("click", clickHandler);
+        setPinDropMode(false);
 
         // Fly to the new marker
         map.flyTo({
@@ -116,7 +115,12 @@ export default function MarkersControl() {
     {
       type: "submenu" as const,
       label: "Add Single Marker",
-      icon: <MapPinIcon className="w-4 h-4 text-muted-foreground" />,
+      icon: (
+        <div
+          className="w-2.5 h-2.5 rounded-full"
+          style={{ backgroundColor: mapColors.markers.color }}
+        />
+      ),
       items: [
         {
           type: "item" as const,
@@ -133,7 +137,7 @@ export default function MarkersControl() {
     {
       type: "submenu" as const,
       label: "Add Marker Collection",
-      icon: <DatabaseIcon className="w-4 h-4 text-muted-foreground" />,
+      icon: <CollectionIcon color={mapColors.markers.color} />,
       items: [
         ...getDataSourceDropdownItems(),
         {
@@ -159,10 +163,6 @@ export default function MarkersControl() {
 
   return (
     <ControlItemWrapper className="markers-control">
-      <AddMembersDataModal
-        open={dataSourcesModalOpen}
-        onOpenChange={setDataSourcesModalOpen}
-      />
       <LayerHeader
         label="Markers"
         color={mapColors.markers.color}

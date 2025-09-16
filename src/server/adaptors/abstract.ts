@@ -1,5 +1,5 @@
-import { EnrichedRecord } from "@/server/mapping/enrich";
-import { ExternalRecord } from "@/types";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
 
 export interface DataSourceAdaptor {
   extractExternalRecordIdsFromWebhookBody(
@@ -12,4 +12,5 @@ export interface DataSourceAdaptor {
   removeDevWebhooks(): Promise<void>;
   toggleWebhook(enable: boolean): Promise<void>;
   updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void>;
+  tagRecords(records: TaggedRecord[]): Promise<void>;
 }

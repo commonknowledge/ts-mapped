@@ -1,19 +1,21 @@
-import {
-  Generated,
-  Insertable,
-  JSONColumnType,
-  Selectable,
-  Updateable,
-} from "kysely";
+import z from "zod";
+import type { Generated, Insertable, JSONColumnType, Updateable } from "kysely";
 
-export interface AreaTable {
+export const areaGeographySchema = z.record(z.string(), z.unknown());
+
+export const areaSchema = z.object({
+  id: z.number(),
+  code: z.string(),
+  name: z.string(),
+  geography: areaGeographySchema,
+  areaSetId: z.number(),
+});
+
+export type Area = z.infer<typeof areaSchema>;
+
+export type AreaTable = Area & {
   id: Generated<number>;
-  code: string;
-  name: string;
   geography: JSONColumnType<object>;
-  areaSetId: number;
-}
-
-export type Area = Selectable<AreaTable>;
+};
 export type NewArea = Insertable<AreaTable>;
 export type AreaUpdate = Updateable<AreaTable>;

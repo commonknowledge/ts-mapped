@@ -1,10 +1,14 @@
-import { Insertable, Selectable, Updateable } from "kysely";
+import z from "zod";
+import type { Insertable, Updateable } from "kysely";
 
-export interface AirtableWebhookTable {
-  id: string;
-  cursor: number;
-}
+export const airtableWebhookSchema = z.object({
+  id: z.string(),
+  cursor: z.number(),
+});
 
-export type AirtableWebhook = Selectable<AirtableWebhookTable>;
+export type AirtableWebhook = z.infer<typeof airtableWebhookSchema>;
+
+export type AirtableWebhookTable = AirtableWebhook;
+
 export type NewAirtableWebhook = Insertable<AirtableWebhookTable>;
 export type AirtableWebhookUpdate = Updateable<AirtableWebhookTable>;

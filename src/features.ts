@@ -1,30 +1,31 @@
-import { DataSourceType } from "./types";
+import { DataSourceType } from "./server/models/DataSource";
 
 export const DataSourceFeatures: Record<
   DataSourceType,
   { autoEnrich: boolean; autoImport: boolean; enrichment: boolean }
 > = {
-  [DataSourceType.actionnetwork]: {
+  [DataSourceType.ActionNetwork]: {
     autoEnrich: true,
     autoImport: true,
     enrichment: false,
   },
-  [DataSourceType.airtable]: {
+  [DataSourceType.Airtable]: {
     autoEnrich: true,
     autoImport: true,
     enrichment: false,
   },
-  [DataSourceType.csv]: {
+  [DataSourceType.CSV]: {
     autoEnrich: false,
     autoImport: false,
     enrichment: false,
   },
-  [DataSourceType.googlesheets]: {
-    autoEnrich: true,
-    autoImport: true,
+  [DataSourceType.GoogleSheets]: {
+    // TODO: update this when there is webhook batching
+    autoEnrich: false,
+    autoImport: false,
     enrichment: false,
   },
-  [DataSourceType.mailchimp]: {
+  [DataSourceType.Mailchimp]: {
     autoEnrich: true,
     autoImport: true,
     enrichment: false,

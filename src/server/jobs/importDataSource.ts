@@ -1,8 +1,7 @@
-import { ColumnDef, ColumnType } from "@/__generated__/types";
+import { ColumnType } from "@/__generated__/types";
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { geocodeRecord } from "@/server/mapping/geocode";
-import { DataSource } from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
@@ -11,7 +10,9 @@ import {
 import logger from "@/server/services/logger";
 import pubSub from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import { ExternalRecord } from "@/types";
+import type { ColumnDef } from "@/__generated__/types";
+import type { DataSource } from "@/server/models/DataSource";
+import type { ExternalRecord } from "@/types";
 
 const importDataSource = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {
@@ -36,6 +37,15 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   }
 
   try {
+    pubSub.publish("dataSourceEvent", {
+      dataSourceEvent: {
+        dataSourceId: dataSource.id,
+        importStarted: {
+          at: new Date().toISOString(),
+        },
+      },
+    });
+
     let count = 0;
     const columnDefsAccumulator: ColumnDef[] = [];
     const total = await adaptor.getRecordCount();
@@ -65,7 +75,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     }
 
     await updateDataSource(dataSource.id, {
-      columnDefs: JSON.stringify(columnDefsAccumulator),
+      columnDefs: columnDefsAccumulator,
     });
 
     pubSub.publish("dataSourceEvent", {
@@ -113,8 +123,8 @@ export const importBatch = (
       );
       await upsertDataRecord({
         externalId: record.externalId,
-        json: JSON.stringify(typedJson),
-        geocodeResult: JSON.stringify(geocodeResult),
+        json: typedJson,
+        geocodeResult: geocodeResult,
         geocodePoint: geocodeResult?.centralPoint,
         dataSourceId: dataSource.id,
       });

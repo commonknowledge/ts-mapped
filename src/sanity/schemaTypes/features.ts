@@ -227,7 +227,7 @@ export const featureType = defineType({
 
                   // Extract text from rich text blocks
                   const getTextFromBlocks = (
-                    blocks: { _type: string; children: { text: string }[] }[]
+                    blocks: { _type: string; children: { text: string }[] }[],
                   ) => {
                     if (!blocks || !Array.isArray(blocks)) return "";
                     return blocks
