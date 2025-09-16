@@ -109,6 +109,7 @@ const getOrganisations = async () => {
         organisations {
           id
           name
+          avatarUrl
         }
       }
     `,

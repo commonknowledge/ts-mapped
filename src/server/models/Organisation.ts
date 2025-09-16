@@ -3,7 +3,8 @@ import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export const organisationSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().trim(),
+  avatarUrl: z.string().url().trim().nullish(),
   createdAt: z.date(),
 });
 

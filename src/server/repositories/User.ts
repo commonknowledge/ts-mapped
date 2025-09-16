@@ -3,8 +3,6 @@ import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
 import type { NewUser, UserUpdate } from "@/server/models/User";
 
-type Nullable<T> = { [K in keyof T]: T[K] | null };
-
 export async function upsertUser(
   user: Omit<NewUser, "passwordHash"> & { password: string },
 ) {
@@ -70,14 +68,17 @@ export async function findUserByToken(token: string) {
 export async function updateUser(
   id: string,
   {
-    password,
+    newPassword,
     ...data
-  }: Nullable<Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }>,
+  }: Omit<UserUpdate, "id" | "passwordHash"> & { newPassword?: string },
 ) {
-  const update = { email: data?.email || undefined } as UserUpdate;
+  const update: UserUpdate = {
+    name: data.name,
+    avatarUrl: data.avatarUrl,
+  };
 
-  if (password) {
-    update.passwordHash = await hashPassword(password);
+  if (newPassword) {
+    update.passwordHash = await hashPassword(newPassword);
   }
   if (data.email) {
     update.email = data.email.toLowerCase().trim();
