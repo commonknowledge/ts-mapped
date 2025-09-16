@@ -16,6 +16,16 @@ export const solutionsType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "icon",
+      type: "image",
+      title: "Icon",
+      description: "Visit https://lucide.dev/icons/ to download an SVG icon",
+      options: {
+        accept: "image/svg+xml",
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
       name: "slug",
       type: "slug",
       options: { source: "title" },

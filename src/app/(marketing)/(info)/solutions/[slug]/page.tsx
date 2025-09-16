@@ -60,7 +60,7 @@ export default async function SolutionPage({
   const solution = await client.fetch<SanityDocument>(
     POST_QUERY,
     await params,
-    options,
+    options
   );
 
   if (!solution) {
@@ -82,7 +82,7 @@ export default async function SolutionPage({
           — Solutions
         </TypographyMuted>
 
-        <div>
+        <div className="z-10">
           <TypographyH1>{solution.title}</TypographyH1>
           {solution.subtitle && (
             <TypographyLead className="mt-2 max-w-2xl">
@@ -90,7 +90,7 @@ export default async function SolutionPage({
             </TypographyLead>
           )}
         </div>
-        <div className="absolute -top-2 -right-2">
+        <div className="absolute -top-2 -right-2 md:w-auto w-1/2">
           <Image
             src="/pattern.svg"
             alt="Mapped"
@@ -110,7 +110,7 @@ export default async function SolutionPage({
                 solutionItem={solution}
                 isReversed={index % 2 === 1}
               />
-            ),
+            )
           )
         ) : (
           <div className="text-center py-12">

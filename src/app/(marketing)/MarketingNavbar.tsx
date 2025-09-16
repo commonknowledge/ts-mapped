@@ -1,10 +1,11 @@
 "use client";
 
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import { Link } from "@/components/Link";
 import { useCurrentUser } from "@/hooks";
+import { urlFor } from "@/sanity/lib/image";
 import { Button } from "@/shadcn/ui/button";
 import {
   NavigationMenu,
@@ -23,6 +24,7 @@ interface Solution {
   subtitle: string;
   slug: { current: string };
   position: number;
+  icon: string;
 }
 
 interface NavItem {
@@ -132,12 +134,21 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
                         <Link
                           key={solution._id}
                           href={`/solutions/${solution.slug?.current || solution._id}`}
-                          className="block text-base py-2 pl-4 border-b border-gray-100"
+                          className="text-base py-2 pl-2 border-b border-gray-100 flex gap-1"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <div className="font-medium">{solution.title}</div>
-                          <div className="text-sm text-neutral-500">
-                            {solution.subtitle}
+                          <Image
+                            src={urlFor(solution.icon).url()}
+                            alt={solution.title}
+                            className="w-4 h-4 mr-2 mt-1 opacity-50"
+                            width={20}
+                            height={20}
+                          />
+                          <div className="flex flex-col">
+                            <div className="font-medium">{solution.title}</div>
+                            <div className="text-sm text-neutral-500">
+                              {solution.subtitle}
+                            </div>
                           </div>
                         </Link>
                       ))
@@ -191,10 +202,20 @@ const DesktopNavbar = ({ solutions }: { solutions: Solution[] }) => {
                       <NavigationMenuLink asChild>
                         <Link
                           href={`/solutions/${solution.slug?.current || solution._id}`}
+                          className="flex  gap-1"
                         >
-                          <div className="font-medium">{solution.title}</div>
-                          <div className="text-muted-foreground text-sm">
-                            {solution.subtitle}
+                          <Image
+                            src={urlFor(solution.icon).url()}
+                            alt={solution.title}
+                            className="w-4 h-4 mr-2 mt-1 opacity-50"
+                            width={20}
+                            height={20}
+                          />
+                          <div className="flex flex-col">
+                            <div className="font-medium">{solution.title}</div>
+                            <div className="text-muted-foreground text-sm">
+                              {solution.subtitle}
+                            </div>
                           </div>
                         </Link>
                       </NavigationMenuLink>
