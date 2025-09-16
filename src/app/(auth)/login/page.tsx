@@ -20,8 +20,14 @@ export default function LoginPage() {
     setError("");
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
-      const result = await login(formData);
-      if (result) setError(result);
+      const error = await login(formData);
+      if (error) {
+        setError(error);
+      } else {
+        // Use a client side redirection here to force a full page reload.
+        // This is a good idea after auth changes, as it clears client-side state.
+        window.location.href = "/";
+      }
     });
   };
 
@@ -40,15 +46,13 @@ export default function LoginPage() {
             <Input id="password" name="password" type="password" required />
           </FormFieldWrapper>
 
-          <Button disabled={isPending} size="sm">
-            Login
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button disabled={isPending} size="sm">
+              Login
+            </Button>
 
-          {error ? (
-            <span className="text-sm text-red-500">{error}</span>
-          ) : (
-            <></>
-          )}
+            {error && <span className="text-sm text-red-500">{error}</span>}
+          </div>
 
           <Link href="/forgot-password" className="text-sm text-center">
             Forgot password?

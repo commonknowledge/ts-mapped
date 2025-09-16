@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useState } from "react";
 import type { Organisation } from "@/__generated__/types";
 
 export const OrganisationsContext = createContext<{
@@ -32,12 +32,6 @@ export default function OrganisationsProvider({
   const [organisationId, setOrganisationId] = useState<string | null>(
     organisations.length ? organisations[0].id : null,
   );
-
-  useEffect(() => {
-    if (organisations.length && !organisationId) {
-      setOrganisationId(organisations[0].id);
-    }
-  }, [organisationId, organisations]);
 
   const getOrganisation = useCallback(() => {
     return organisations.find((o) => o.id === organisationId);
