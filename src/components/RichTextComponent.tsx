@@ -4,7 +4,7 @@ import {
   TypographyH3,
   TypographyP,
 } from "@/components/typography";
-import type { RichTextBlock } from "@/app/docs/types";
+import type { RichTextBlock } from "@/app/(marketing)/(info)/docs/types";
 
 export default function RichTextComponent({
   content,

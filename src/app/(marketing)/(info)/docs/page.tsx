@@ -1,6 +1,5 @@
 import Link from "next/link";
 import React from "react";
-import DocsSidebar from "@/app/docs/DocsSidebar";
 import {
   TypographyH1,
   TypographyH2,
@@ -9,6 +8,7 @@ import {
   TypographyP,
 } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
+import DocsSidebar from "./DocsSidebar";
 import type { Feature, FeatureSet } from "./types";
 
 const FEATURE_SETS_QUERY = `*[_type == "featureSet"] | order(order asc) {

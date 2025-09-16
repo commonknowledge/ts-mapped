@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type SanityDocument } from "next-sanity";
-import DocsSidebar from "@/app/docs/DocsSidebar";
 import RichTextComponent, {
   getTextFromBlocks,
 } from "@/components/RichTextComponent";
@@ -16,6 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
+import DocsSidebar from "../DocsSidebar";
 import type { Feature, FeatureHowToUseSteps, FeatureSet } from "../types";
 
 const FEATURE_QUERY = `*[_type == "feature" && slug.current == $slug][0]{
