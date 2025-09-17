@@ -73,7 +73,7 @@ export default function DataSourcesPage() {
   const { data: dataSources, isPending } = useQuery(
     trpc.dataSource.byOrganisation.queryOptions(
       { organisationId: organisationId || "" },
-      { enabled: Boolean(organisationId) },
+      { enabled: Boolean(organisationId), refetchOnMount: "always" },
     ),
   );
 
