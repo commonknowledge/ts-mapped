@@ -36,6 +36,10 @@ export const MarkerAndTurfContext = createContext<{
 
   /* GraphQL Queries */
   markerQueries: MarkerQueriesResult | null;
+
+  /* helpers */
+  handleAddArea: () => void;
+  handleDropPin: () => void;
 }>({
   editingTurf: null,
   setEditingTurf: () => null,
@@ -61,4 +65,6 @@ export const MarkerAndTurfContext = createContext<{
   insertTurf: () => null,
   updateTurf: () => null,
   markerQueries: null,
+  handleAddArea: () => null,
+  handleDropPin: () => null,
 });

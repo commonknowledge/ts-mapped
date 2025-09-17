@@ -349,7 +349,7 @@ export default function Map({
               setDraw(newDraw);
 
               const mapInstance = map.getMap();
-              mapInstance.addControl(newDraw, "top-right");
+              mapInstance.addControl(newDraw, "bottom-right");
 
               // Add event listeners for drawing
               mapInstance.on("draw.create", () => {
@@ -426,7 +426,11 @@ export default function Map({
       >
         {ready && (
           <>
-            <NavigationControl showZoom={true} showCompass={false} />
+            <NavigationControl
+              showZoom={true}
+              showCompass={false}
+              position="bottom-right"
+            />
             <Choropleth />
             <FilterMarkers />
             <PlacedMarkers />

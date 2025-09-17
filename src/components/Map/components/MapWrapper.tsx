@@ -1,7 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { MapContext } from "../context/MapContext";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
+
+// overriding styles of mapbox elements
+import "./MapWrapper.css";
 
 export default function MapWrapper({
   currentMode,
@@ -36,15 +40,28 @@ export default function MapWrapper({
       : "translate(-50%)",
   };
 
+  const positionLeft = {
+    transform: showControls
+      ? `translateX(calc(${CONTROL_PANEL_WIDTH}px))`
+      : "translateX(0)",
+  };
+
   return (
-    <div className="absolute top-0 right-0 h-full w-full">
+    <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
+
+      <div
+        className="absolute bottom-8 left-8 z-10 transition-transform duration-300"
+        style={positionLeft}
+      >
+        <MapStyleSelector />
+      </div>
 
       <div
         className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
         style={absolutelyCenter}
       >
-        <MapStyleSelector />
+        <MapMarkerAndAreaControls />
       </div>
 
       {indicatorColor && (
