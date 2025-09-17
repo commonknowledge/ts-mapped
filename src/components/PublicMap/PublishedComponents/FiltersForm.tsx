@@ -1,14 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import CustomMultiSelectWrapper from "@/components/forms/CustomMultiSelectWrapper";
+import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { Button } from "@/shadcn/ui/button";
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-} from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Switch } from "@/shadcn/ui/switch";
 import { PublicMapContext } from "../PublicMapContext";
@@ -141,31 +137,11 @@ export default function FiltersForm({
             </FormFieldWrapper>
           ) : field?.options?.length ? (
             // multiselect
-            <CustomMultiSelectWrapper
-              label={field.name}
-              id={`filters-${field.name}`}
-              selectedOptions={
-                values?.find((v) => v.name === field.name)?.selectedOptions ||
-                []
-              }
-            >
-              <DropdownMenuContent>
-                {field?.options.map((option) => (
-                  <DropdownMenuCheckboxItem
-                    key={option}
-                    checked={values
-                      ?.find((v) => v.name === field.name)
-                      ?.selectedOptions?.includes(option)}
-                    onSelect={(e) => e.preventDefault()}
-                    onCheckedChange={(checked) => {
-                      handleOptionCheck(field.name, option, checked);
-                    }}
-                  >
-                    {option}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </CustomMultiSelectWrapper>
+            <FiltersMultiSelect
+              field={field}
+              values={values}
+              onSelect={handleOptionCheck}
+            />
           ) : (
             <></>
           )}
@@ -177,3 +153,34 @@ export default function FiltersForm({
     </form>
   );
 }
+
+const FiltersMultiSelect = ({
+  field,
+  values,
+  onSelect,
+}: {
+  field: FilterField;
+  values: PublicFiltersFormValue[];
+  onSelect: (fieldName: string, option: string, checked: boolean) => void;
+}) => {
+  const onChange = (option: string) => {
+    const checked =
+      values
+        ?.find((v) => v.name === field.name)
+        ?.selectedOptions?.includes(option) || false;
+
+    onSelect(field.name, option, !checked);
+  };
+
+  return (
+    <CustomMultiSelect
+      label={field.name}
+      id={`filters-${field.name}`}
+      allOptions={field.options || []}
+      selectedOptions={
+        values?.find((v) => v.name === field.name)?.selectedOptions || []
+      }
+      onChange={onChange}
+    />
+  );
+};
