@@ -16,7 +16,7 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
 import DocsSidebar from "../DocsSidebar";
-import type { Feature, FeatureHowToUseSteps, FeatureSet } from "../types";
+import type { Feature, FeatureHowToUseSteps, FeatureSet } from "../../types";
 
 const FEATURE_QUERY = `*[_type == "feature" && slug.current == $slug][0]{
   _id,

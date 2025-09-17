@@ -55,3 +55,11 @@ export interface FeatureHowToUseSteps {
   images: ImageAsset[];
   order: number;
 }
+
+export interface NewsItem {
+  _id: string;
+  title: string;
+  slug: { current: string };
+  publishedAt: string;
+  image: ImageAsset;
+}

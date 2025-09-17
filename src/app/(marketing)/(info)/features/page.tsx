@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
 
-interface Feature {
+interface FeatureArchived {
   title: string;
   description: string;
   image?: string;
@@ -17,7 +17,7 @@ interface Feature {
 }
 
 export default function FeaturesPage() {
-  const features: Feature[] = [
+  const features: FeatureArchived[] = [
     {
       title: "See my members on a map",
       description:
@@ -75,21 +75,21 @@ export default function FeaturesPage() {
   // Categorize features
   const activeFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0,
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) < 0
   );
 
   const currentlyWorkingOn = features.filter(
     (feature) =>
       feature.timeline &&
-      compareTimeline(feature.timeline, currentQuarter) === 0,
+      compareTimeline(feature.timeline, currentQuarter) === 0
   );
 
   const roadmapFeatures = features.filter(
     (feature) =>
-      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0,
+      feature.timeline && compareTimeline(feature.timeline, currentQuarter) > 0
   );
 
-  const renderFeatureCard = (feature: Feature) => (
+  const renderFeatureCard = (feature: FeatureArchived) => (
     <div key={feature.title} className="relative">
       {/* Content */}
       <div className="ml-12 mb-8">

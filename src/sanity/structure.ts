@@ -24,35 +24,35 @@ export const structure: StructureResolver = (S, context) => {
                   S.documentList()
                     .title(featureSet.title)
                     .filter(
-                      `_type == "feature" && featureSet._ref == $featureSetId`,
+                      `_type == "feature" && featureSet._ref == $featureSetId`
                     )
                     .params({ featureSetId: featureSet._id })
                     .canHandleIntent(
                       (intentName, params) =>
                         intentName === "create" &&
-                        params.template === "feature-child",
+                        params.template === "feature-child"
                     )
                     .initialValueTemplates([
                       S.initialValueTemplateItem("feature-child", {
                         featureSetId: featureSet._id,
                       }),
                     ]),
-              }),
+              })
             ),
             S.divider(),
             // Show all feature sets
             S.listItem()
               .title("All Feature Sets")
               .child(
-                S.documentTypeList("featureSet").title("All Feature Sets"),
+                S.documentTypeList("featureSet").title("All Feature Sets")
               ),
 
             // Show all features
             S.listItem()
               .title("All Feature Items")
               .child(S.documentTypeList("feature").title("All Feature Items")),
-          ]),
-      ),
+          ])
+      )
     );
   };
 
@@ -71,7 +71,12 @@ export const structure: StructureResolver = (S, context) => {
             .defaultOrdering([
               { field: "position", direction: "asc" },
               { field: "_createdAt", direction: "desc" },
-            ]),
+            ])
         ),
+
+      // News section
+      S.listItem()
+        .title("News")
+        .child(S.documentTypeList("news").title("News")),
     ]);
 };

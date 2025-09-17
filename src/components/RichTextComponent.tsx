@@ -1,10 +1,12 @@
+import { PortableText } from "next-sanity";
 import React from "react";
 import {
+  TypographyH1,
   TypographyH2,
   TypographyH3,
   TypographyP,
 } from "@/components/typography";
-import type { RichTextBlock } from "@/app/(marketing)/(info)/docs/types";
+import type { RichTextBlock } from "@/app/(marketing)/(info)/types";
 
 export default function RichTextComponent({
   content,
@@ -17,54 +19,73 @@ export default function RichTextComponent({
     return null;
   }
 
-  const renderBlock = (block: RichTextBlock, index: number) => {
-    if (block._type !== "block" || !block.children) {
-      return null;
-    }
-
-    // Extract text from children
-    const text = block.children
-      .map((child: { text: string }) => child.text || "")
-      .join("");
-
-    // Handle different styles
-    switch (block.style) {
-      case "h2":
-        return (
-          <TypographyH2 key={index} className="mt-6 mb-4">
-            {text}
-          </TypographyH2>
-        );
-
-      case "h3":
-        return (
-          <TypographyH3 key={index} className="mt-4 mb-2">
-            {text}
-          </TypographyH3>
-        );
-
-      case "blockquote":
-        return (
-          <blockquote
-            key={index}
-            className="border-l-4 border-brand-primary pl-4 italic text-neutral-600"
-          >
-            {text}
-          </blockquote>
-        );
-
-      default:
-        return (
-          <TypographyP key={index} className="text-neutral-700 leading-relaxed">
-            {text}
-          </TypographyP>
-        );
-    }
-  };
-
   return (
     <div className={`space-y-4 ${className}`}>
-      {content.map((block, index) => renderBlock(block, index))}
+      <PortableText
+        value={content}
+        components={{
+          block: {
+            h1: ({ children }) => (
+              <TypographyH1 className="mt-6 mb-4">{children}</TypographyH1>
+            ),
+            h2: ({ children }) => (
+              <TypographyH2 className="mt-6 mb-4">{children}</TypographyH2>
+            ),
+            h3: ({ children }) => (
+              <TypographyH3 className="mt-4 mb-2">{children}</TypographyH3>
+            ),
+            blockquote: ({ children }) => (
+              <blockquote className="border-l-4 border-brand-primary pl-4 italic text-neutral-600">
+                {children}
+              </blockquote>
+            ),
+            normal: ({ children }) => (
+              <TypographyP className="text-neutral-700 leading-relaxed">
+                {children}
+              </TypographyP>
+            ),
+          },
+          marks: {
+            strong: ({ children }) => <strong>{children}</strong>,
+            em: ({ children }) => <em>{children}</em>,
+            code: ({ children }) => (
+              <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">
+                {children}
+              </code>
+            ),
+            link: ({ children, value }) => (
+              <a
+                href={value?.href}
+                className="text-brand-primary hover:text-brand-primary/80 underline"
+                target={value?.href?.startsWith("http") ? "_blank" : undefined}
+                rel={
+                  value?.href?.startsWith("http")
+                    ? "noopener noreferrer"
+                    : undefined
+                }
+              >
+                {children}
+              </a>
+            ),
+          },
+          list: {
+            bullet: ({ children }) => (
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                {children}
+              </ul>
+            ),
+            number: ({ children }) => (
+              <ol className="list-decimal list-inside space-y-2 ml-4">
+                {children}
+              </ol>
+            ),
+          },
+          listItem: {
+            bullet: ({ children }) => <li>{children}</li>,
+            number: ({ children }) => <li>{children}</li>,
+          },
+        }}
+      />
     </div>
   );
 }
