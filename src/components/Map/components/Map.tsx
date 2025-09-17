@@ -296,7 +296,7 @@ export default function Map({
                     filter: [
                       "all",
                       ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
+                      ["!=", "mode", "draw_polygon"],
                     ],
                     paint: {
                       "fill-color": mapColors.areas.color,
@@ -309,7 +309,6 @@ export default function Map({
                     filter: [
                       "all",
                       ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
                     ],
                     paint: {
                       "line-color": mapColors.areas.color,
