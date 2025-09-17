@@ -18,7 +18,13 @@ export default function DataSourcePage({
     trpc.dataSource.byId.queryOptions({ dataSourceId: id }),
   );
 
-  if (isPending) return null;
+  if (isPending) {
+    return (
+      <div className="container">
+        <h1>Loading</h1>
+      </div>
+    );
+  }
 
   if (!dataSource) {
     return (
