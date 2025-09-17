@@ -26,7 +26,7 @@ export default function CustomMultiSelect({
         <DropdownMenuTrigger asChild id={id}>
           <Button
             variant="outline"
-            className="max-w-full min-h-[2.5rem] h-auto justify-between text-start font-normal hover:bg-white cursor-auto"
+            className="max-w-full min-h-[2.5rem] h-auto justify-between text-start font-normal hover:bg-white hover:border-action-hover cursor-auto"
           >
             {selectedOptions?.length ? (
               <div className="flex flex-wrap gap-1">
