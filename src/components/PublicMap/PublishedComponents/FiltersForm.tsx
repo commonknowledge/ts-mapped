@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
+import CustomMultiSelectWrapper from "@/components/forms/CustomMultiSelectWrapper";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
@@ -141,7 +141,7 @@ export default function FiltersForm({
             </FormFieldWrapper>
           ) : field?.options?.length ? (
             // multiselect
-            <CustomMultiSelect
+            <CustomMultiSelectWrapper
               label={field.name}
               id={`filters-${field.name}`}
               selectedOptions={
@@ -165,7 +165,7 @@ export default function FiltersForm({
                   </DropdownMenuCheckboxItem>
                 ))}
               </DropdownMenuContent>
-            </CustomMultiSelect>
+            </CustomMultiSelectWrapper>
           ) : (
             <></>
           )}
