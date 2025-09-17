@@ -86,18 +86,16 @@ export default function Map({
       return;
     }
 
-    if (turfs?.length) {
-      draw.deleteAll();
+    draw.deleteAll();
 
-      // Add existing polygons from your array
-      turfs.forEach((turf) => {
-        draw.add({
-          type: "Feature",
-          properties: { ...turf },
-          geometry: turf.polygon,
-        });
+    // Add existing polygons from your array
+    turfs.forEach((turf) => {
+      draw.add({
+        type: "Feature",
+        properties: { ...turf },
+        geometry: turf.polygon,
       });
-    }
+    });
   }, [turfs, draw]);
 
   // Hover behavior
