@@ -16,6 +16,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 
@@ -82,6 +83,20 @@ async function MarketingNavbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                {session.currentUser ? (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="w-full">
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link href="/" className="w-full">
+                      Login
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/" className="w-full">
                     Home
