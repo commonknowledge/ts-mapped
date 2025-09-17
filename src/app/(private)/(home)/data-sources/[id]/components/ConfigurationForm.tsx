@@ -158,7 +158,7 @@ export default function ConfigurationForm({
         variant="secondary"
         type="submit"
       >
-        Save changes
+        Import data
       </Button>
 
       {error && <p className="text-xs text-red-500">{error}</p>}

@@ -19,6 +19,7 @@ export function ColumnRoleFields({
     <CustomMultiSelect
       id="config-name-columns-multi"
       label="Name columns"
+      hint="Select one or more fields to use as labels on the map."
       selectedOptions={nameColumns}
     >
       <DropdownMenuContent>

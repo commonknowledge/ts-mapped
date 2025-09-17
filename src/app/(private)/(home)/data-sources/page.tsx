@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Database,
   LoaderPinwheel,
+  Mail,
   MapPin,
   Pentagon,
   PlusIcon,
@@ -134,12 +135,12 @@ export default function DataSourcesPage() {
                 title="Your Data Sources"
                 description="Here you can find all the data sources that you have uploaded."
                 action={
-                  <Link href="/data-sources/new">
-                    <Button variant="default" size="lg">
+                  <Button variant="default" size="lg" asChild={true}>
+                    <Link href="/data-sources/new">
                       <PlusIcon className="w-4 h-4" />
                       Add new
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 }
               />
               {/* Show message if no data sources at all */}
@@ -319,12 +320,12 @@ export default function DataSourcesPage() {
                 title="Mapped Data Library"
                 description="Here you can find all the data sources that Mapped manages and makes available to use in your maps."
                 action={
-                  <Link href="/data-sources/new">
-                    <Button variant="default" size="lg">
-                      <PlusIcon className="w-4 h-4" />
+                  <Button variant="default" size="lg" asChild={true}>
+                    <Link href="mailto:mapped@commonknowledge.coop?subject=Movement Data Library request">
+                      <Mail size={16} />
                       Request a new data source
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 }
               />
             </div>

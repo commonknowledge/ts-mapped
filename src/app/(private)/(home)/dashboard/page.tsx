@@ -54,9 +54,7 @@ export default function DashboardPage() {
         <LoaderPinwheel className="animate-spin" />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
-          {data?.map((map) => (
-            <MapCard key={map.id} map={map} />
-          ))}
+          {data?.map((map) => <MapCard key={map.id} map={map} />)}
         </div>
       )}
     </div>
