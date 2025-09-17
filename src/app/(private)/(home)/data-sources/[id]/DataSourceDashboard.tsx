@@ -2,7 +2,7 @@
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { useMutation as useTanstackMutation } from "@tanstack/react-query";
-import { RefreshCw, Trash2Icon } from "lucide-react";
+import { LoaderPinwheel, MapIcon, RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import DataSourceBadge from "@/components/DataSourceBadge";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
+import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
@@ -48,7 +49,7 @@ export function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null,
+    dataSource.importInfo?.lastCompleted || null
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -85,7 +86,7 @@ export function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } },
+    { variables: { dataSourceId: dataSource.id } }
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -144,6 +145,20 @@ export function DataSourceDashboard({
         JSON.stringify(dataSource.config[k as keyof typeof dataSource.config])
       ),
   }));
+  const trpc = useTRPC();
+  const router = useRouter();
+
+  const { mutate: createMap, isPending: createMapLoading } =
+    useTanstackMutation(
+      trpc.map.createFromDataSource.mutationOptions({
+        onSuccess: (data) => {
+          router.push(`/map/${data.id}`);
+        },
+        onError: () => {
+          toast.error("Failed to create map");
+        },
+      })
+    );
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -173,9 +188,15 @@ export function DataSourceDashboard({
           </p>
         </div>
 
-        <div className="flex flex-col items-end gap-2 ">
+        <div className="flex flex-row items-start gap-2">
+          {importError && (
+            <div>
+              <span className="text-xs text-red-500">{importError}</span>
+            </div>
+          )}
           <Button
             type="button"
+            variant="outline"
             onClick={onClickImportRecords}
             disabled={importing}
             size="lg"
@@ -184,10 +205,24 @@ export function DataSourceDashboard({
             {importing ? "Importing" : "Import"}
           </Button>
 
-          {importError && (
-            <div>
-              <span className="text-xs text-red-500">{importError}</span>
-            </div>
+          {(dataSource.recordType === DataSourceRecordType.Members ||
+            dataSource.recordType === DataSourceRecordType.Data) && (
+            <Button
+              onClick={() =>
+                createMap({
+                  organisationId: dataSource.organisationId,
+                  dataSourceId: dataSource.id,
+                })
+              }
+              disabled={createMapLoading}
+            >
+              {createMapLoading ? (
+                <LoaderPinwheel className="animate-spin" />
+              ) : (
+                <MapIcon />
+              )}
+              Create map
+            </Button>
           )}
         </div>
       </div>
@@ -228,8 +263,8 @@ const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+        dataSource.importInfo?.status
+      )
   );
 };
 
@@ -249,7 +284,7 @@ function DeleteDataSourceButton({
       onError: () => {
         toast.error("Failed to delete data source");
       },
-    }),
+    })
   );
 
   return (

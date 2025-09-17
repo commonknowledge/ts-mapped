@@ -306,10 +306,7 @@ export default function Map({
                   {
                     id: "gl-draw-polygon-stroke",
                     type: "line",
-                    filter: [
-                      "all",
-                      ["==", "$type", "Polygon"],
-                    ],
+                    filter: ["all", ["==", "$type", "Polygon"]],
                     paint: {
                       "line-color": mapColors.areas.color,
                       "line-width": 2,
