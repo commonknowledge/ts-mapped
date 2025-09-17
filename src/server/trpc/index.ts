@@ -28,8 +28,7 @@ superjson.registerCustom(serverDataSourceSerializer, "DataSource");
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
-    console.log(error);
-
+    // This catches any errors and gives us a nice formError + fieldErrors key to use in the frontend
     return {
       ...shape,
       data: {
