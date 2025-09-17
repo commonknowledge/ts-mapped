@@ -89,7 +89,7 @@ export const dataSourceRouter = router({
       if (!firstRecord) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Could not fetch first record",
+          message: "Could not fetch records, please check your config",
         });
       }
 

@@ -227,7 +227,7 @@ export default function NewDataSourcePage() {
             </Button>
           )}
         </form.Subscribe>
-        {formError && <p className="text-xs text-red-500">{formError}</p>}
+        {formError && <p className="text-xs mt-2 text-red-500">{formError}</p>}
       </form>
     </div>
   );

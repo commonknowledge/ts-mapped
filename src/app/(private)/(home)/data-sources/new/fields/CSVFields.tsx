@@ -18,6 +18,7 @@ export default function CSVFields({
         <Input
           type="file"
           className="w-50"
+          accept=".csv"
           required
           onChange={(e) => {
             const file = e.target.files ? e.target.files[0] : null;
