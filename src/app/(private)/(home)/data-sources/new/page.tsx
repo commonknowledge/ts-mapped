@@ -10,7 +10,7 @@ import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
-import { DataSourceType, GeocodingType } from "@/server/models/DataSource";
+import { DataSourceType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import {
@@ -37,7 +37,6 @@ import { type NewDataSourceConfig, defaultStateSchema } from "./schema";
 import type {
   DataSourceConfig,
   DataSourceRecordType,
-  GeocodingConfig,
 } from "@/server/models/DataSource";
 
 export default function NewDataSourcePage() {
@@ -68,7 +67,6 @@ export default function NewDataSourcePage() {
       config: (parsedState.dataSourceType
         ? { type: parsedState.dataSourceType }
         : undefined) as NewDataSourceConfig | undefined,
-      geocodingConfig: { type: GeocodingType.None } as GeocodingConfig,
     },
     onSubmit: async ({ value }) => {
       if (!organisationId) return toast.error("No organisation selected");

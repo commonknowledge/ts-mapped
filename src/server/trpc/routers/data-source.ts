@@ -1,6 +1,10 @@
 import { TRPCError } from "@trpc/server";
+import { v4 as uuidv4 } from "uuid";
+import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
+  ColumnType,
   EnrichmentSourceType,
+  GeocodingType,
   dataSourceSchema,
 } from "@/server/models/DataSource";
 import {
@@ -10,6 +14,7 @@ import {
   getJobInfo,
 } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
+import logger from "@/server/services/logger";
 import { dataSourceProcedure, organisationProcedure, router } from "../index";
 
 export const dataSourceRouter = router({
@@ -78,19 +83,39 @@ export const dataSourceRouter = router({
         name: true,
         recordType: true,
         config: true,
-        geocodingConfig: true,
       })
     )
     .mutation(async ({ input }) => {
-      return createDataSource({
+      const id = uuidv4();
+      const adaptor = getDataSourceAdaptor({ id, config: input.config });
+
+      const firstRecord = adaptor ? await adaptor.fetchFirst() : null;
+      if (!firstRecord) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Could not fetch first record",
+        });
+      }
+
+      const columnDefs = Object.keys(firstRecord.json).map((key) => ({
+        name: key,
+        type: ColumnType.Unknown,
+      }));
+
+      const dataSource = await createDataSource({
         ...input,
         autoEnrich: false,
         autoImport: false,
         public: false,
-        columnDefs: [],
+        columnDefs,
         columnRoles: { nameColumns: [] },
+        geocodingConfig: { type: GeocodingType.None },
         enrichments: [],
       });
+
+      logger.info(`Created ${input.config.type} data source: ${dataSource.id}`);
+
+      return dataSource;
     }),
 
   delete: dataSourceProcedure.mutation(async ({ ctx }) => {
