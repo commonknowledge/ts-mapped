@@ -89,6 +89,7 @@
     "react-dom": "19.1.1",
     "react-map-gl": "^8.0.1",
     "react-resizable-panels": "^3.0.3",
+    "sharp": "^0.34.4",
     "sonner": "^2.0.7",
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.0.2",
@@ -138,6 +139,7 @@
   },
   "optionalDependencies": {
     "@ngrok/ngrok-linux-x64-gnu": "^1.5",
-    "@rollup/rollup-linux-x64-gnu": "^4.44"
+    "@rollup/rollup-linux-x64-gnu": "^4.44",
+    "@img/sharp-linux-x64": "^0.34.1"
   }
 }

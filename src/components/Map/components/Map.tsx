@@ -86,18 +86,16 @@ export default function Map({
       return;
     }
 
-    if (turfs?.length) {
-      draw.deleteAll();
+    draw.deleteAll();
 
-      // Add existing polygons from your array
-      turfs.forEach((turf) => {
-        draw.add({
-          type: "Feature",
-          properties: { ...turf },
-          geometry: turf.polygon,
-        });
+    // Add existing polygons from your array
+    turfs.forEach((turf) => {
+      draw.add({
+        type: "Feature",
+        properties: { ...turf },
+        geometry: turf.polygon,
       });
-    }
+    });
   }, [turfs, draw]);
 
   // Hover behavior
@@ -298,7 +296,7 @@ export default function Map({
                     filter: [
                       "all",
                       ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
+                      ["!=", "mode", "draw_polygon"],
                     ],
                     paint: {
                       "fill-color": mapColors.areas.color,
@@ -311,7 +309,6 @@ export default function Map({
                     filter: [
                       "all",
                       ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
                     ],
                     paint: {
                       "line-color": mapColors.areas.color,
