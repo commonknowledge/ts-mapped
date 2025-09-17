@@ -2,6 +2,11 @@ import PageHeader from "@/components/PageHeader";
 import ChangePasswordSection from "./components/ChangePasswordSection";
 import OrganisationSettingsForm from "./components/OrganisationSettingsForm";
 import UserSettingsForm from "./components/UserSettingsForm";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mapped - Account",
+};
 
 export default function Page() {
   return (
