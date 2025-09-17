@@ -138,8 +138,9 @@
     "vitest": "^3.2.4"
   },
   "optionalDependencies": {
+    "@img/sharp-linux-x64": "^0.34.1",
     "@ngrok/ngrok-linux-x64-gnu": "^1.5",
     "@rollup/rollup-linux-x64-gnu": "^4.44",
-    "@img/sharp-linux-x64": "^0.34.1"
+    "lightningcss-linux-x64-gnu": "^1.30.1"
   }
 }
