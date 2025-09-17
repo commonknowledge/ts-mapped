@@ -79,11 +79,7 @@ export const dataSourceRouter = router({
 
   create: organisationProcedure
     .input(
-      dataSourceSchema.pick({
-        name: true,
-        recordType: true,
-        config: true,
-      })
+      dataSourceSchema.pick({ name: true, recordType: true, config: true })
     )
     .mutation(async ({ input }) => {
       const id = uuidv4();
