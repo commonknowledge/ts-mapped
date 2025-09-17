@@ -104,24 +104,22 @@ export default function NewDataSourcePage() {
       >
         <form.Field name="name">
           {(field) => (
-            <>
-              <DataListRow label="Name" name={field.name}>
-                <Input
-                  type="text"
-                  id={field.name}
-                  placeholder="Name"
-                  value={field.state.value}
-                  className="w-50"
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  required
-                />
-                {fieldErrors?.[field.name] && (
-                  <div className="text-xs text-red-500 mt-1">
-                    {fieldErrors[field.name]?.join(", ")}
-                  </div>
-                )}
-              </DataListRow>
-            </>
+            <DataListRow label="Name" name={field.name}>
+              <Input
+                type="text"
+                id={field.name}
+                placeholder="Name"
+                value={field.state.value}
+                className="w-50"
+                onChange={(e) => field.handleChange(e.target.value)}
+                required
+              />
+              {fieldErrors?.[field.name] && (
+                <div className="text-xs text-red-500 mt-1">
+                  {fieldErrors[field.name]?.join(", ")}
+                </div>
+              )}
+            </DataListRow>
           )}
         </form.Field>
 
