@@ -1,6 +1,10 @@
 import { TRPCError } from "@trpc/server";
-import { EnrichmentSourceType } from "@/server/models/DataSource";
 import {
+  EnrichmentSourceType,
+  dataSourceSchema,
+} from "@/server/models/DataSource";
+import {
+  createDataSource,
   deleteDataSource,
   findDataSourcesByIds,
   getJobInfo,
@@ -52,7 +56,7 @@ export const dataSourceRouter = router({
         getJobInfo(ctx.dataSource.id, "enrichDataSource"),
         getJobInfo(ctx.dataSource.id, "importDataSource"),
         findDataSourcesByIds(dataSourceIds).then((ds) =>
-          ds.map((ds) => ({ name: ds.name, id: ds.id })),
+          ds.map((ds) => ({ name: ds.name, id: ds.id }))
         ),
       ]);
     return {
@@ -67,6 +71,27 @@ export const dataSourceRouter = router({
       recordCount: Number(dataSource.recordCount) || 0,
     };
   }),
+
+  create: organisationProcedure
+    .input(
+      dataSourceSchema.pick({
+        name: true,
+        recordType: true,
+        config: true,
+        geocodingConfig: true,
+      })
+    )
+    .mutation(async ({ input }) => {
+      return createDataSource({
+        ...input,
+        autoEnrich: false,
+        autoImport: false,
+        public: false,
+        columnDefs: [],
+        columnRoles: { nameColumns: [] },
+        enrichments: [],
+      });
+    }),
 
   delete: dataSourceProcedure.mutation(async ({ ctx }) => {
     await deleteDataSource(ctx.dataSource.id);

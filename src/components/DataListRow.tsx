@@ -6,6 +6,7 @@ export default function DataListRow({
   label,
   description,
   value,
+  name,
   badge,
   border,
   children,
@@ -13,6 +14,7 @@ export default function DataListRow({
 }: {
   label: string;
   description?: string;
+  name?: string;
   value?: string;
   badge?: boolean;
   border?: boolean;
@@ -23,16 +25,18 @@ export default function DataListRow({
     <div
       className={cn(
         "flex flex-col gap-2 py-2",
-        border && "border-b border-border/50 ",
+        border && "border-b border-border/50 "
       )}
     >
       <div
         className={cn(
           "flex gap-2 items-center",
-          orientation === "vertical" && "flex-col items-start",
+          orientation === "vertical" && "flex-col items-start"
         )}
       >
-        <Label className="w-44">{label}</Label>
+        <Label className="w-44" htmlFor={name}>
+          {label}
+        </Label>
         {badge ? (
           <Badge variant="outline" className="text-base">
             {value}

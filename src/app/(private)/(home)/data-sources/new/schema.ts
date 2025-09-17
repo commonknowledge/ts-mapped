@@ -1,18 +1,20 @@
 import z from "zod";
 import {
+  DataSourceRecordType,
   DataSourceType,
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "@/server/models/DataSource";
 
-// Unsaved CSV config is quite different to saved config
-export const newCSVConfigSchema = z.object({
-  type: z.literal(DataSourceType.CSV),
+export const newCSVConfigSchema = csvConfigSchema.extend({
   file: z.instanceof(File),
-  filename: z.string().nonempty(),
+  filename: z.string().min(1, "Filename is required"),
 });
+
+export type NewCSVConfig = z.infer<typeof newCSVConfigSchema>;
 
 export const newDataSourceConfigSchema = z.discriminatedUnion("type", [
   actionNetworkConfigSchema,
@@ -23,3 +25,17 @@ export const newDataSourceConfigSchema = z.discriminatedUnion("type", [
 ]);
 
 export type NewDataSourceConfig = z.infer<typeof newDataSourceConfigSchema>;
+
+export const defaultStateSchema = z
+  .object({
+    dataSourceName: z.string().optional(),
+    recordType: z.nativeEnum(DataSourceRecordType).optional(),
+    dataSourceType: z.nativeEnum(DataSourceType).optional(),
+  })
+  .catch({
+    dataSourceName: undefined,
+    recordType: undefined,
+    dataSourceType: undefined,
+  });
+
+export type DefaultState = z.infer<typeof defaultStateSchema>;

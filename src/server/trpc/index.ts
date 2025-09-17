@@ -1,6 +1,6 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
-import z from "zod";
+import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
 import { serverDataSourceSerializer } from "@/utils/superjson";
 import { findDataSourceById } from "../repositories/DataSource";
@@ -27,6 +27,25 @@ superjson.registerCustom(serverDataSourceSerializer, "DataSource");
  */
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
+  errorFormatter({ shape, error }) {
+    console.log(error);
+
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        formError: !(error.cause instanceof ZodError)
+          ? error.code === "INTERNAL_SERVER_ERROR"
+            ? "There was an error processing your request."
+            : error.message
+          : undefined,
+        zodError:
+          error.code === "BAD_REQUEST" && error.cause instanceof ZodError
+            ? error.cause.flatten()
+            : null,
+      },
+    };
+  },
 });
 
 /**
@@ -52,7 +71,7 @@ export const organisationProcedure = protectedProcedure
   .use(async ({ ctx, input, next }) => {
     const organisation = await findOrganisationForUser(
       input.organisationId,
-      ctx.user.id,
+      ctx.user.id
     );
     if (!organisation)
       throw new TRPCError({
@@ -76,7 +95,7 @@ export const dataSourceProcedure = protectedProcedure
 
     const organisation = await findOrganisationForUser(
       dataSource.organisationId,
-      ctx.user.id,
+      ctx.user.id
     );
     if (!organisation)
       throw new TRPCError({

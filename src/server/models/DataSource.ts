@@ -22,6 +22,8 @@ export const actionNetworkConfigSchema = z.object({
   type: z.literal(DataSourceType.ActionNetwork),
 });
 
+export type ActionNetworkConfig = z.infer<typeof actionNetworkConfigSchema>;
+
 export const airtableConfigSchema = z.object({
   type: z.literal(DataSourceType.Airtable),
   apiKey: z.string().nonempty(),
@@ -29,12 +31,16 @@ export const airtableConfigSchema = z.object({
   tableId: z.string().nonempty(),
 });
 
+export type AirtableConfig = z.infer<typeof airtableConfigSchema>;
+
 export const mailchimpConfigSchema = z.object({
   type: z.literal(DataSourceType.Mailchimp),
   apiKey: z.string().nonempty(),
   listId: z.string().nonempty(),
   serverPrefix: z.string().nonempty(),
 });
+
+export type MailchimpConfig = z.infer<typeof mailchimpConfigSchema>;
 
 export const googleOAuthCredentialsSchema = z.object({
   access_token: z.string().nonempty(),
@@ -55,19 +61,19 @@ export const googleSheetsConfigSchema = z.object({
 
 export type GoogleSheetsConfig = z.infer<typeof googleSheetsConfigSchema>;
 
-export const CSVConfigSchema = z.object({
+export const csvConfigSchema = z.object({
   type: z.literal(DataSourceType.CSV),
   url: z.string().nonempty(),
 });
 
-export type CSVConfig = z.infer<typeof CSVConfigSchema>;
+export type CSVConfig = z.infer<typeof csvConfigSchema>;
 
 export const dataSourceConfigSchema = z.discriminatedUnion("type", [
   actionNetworkConfigSchema,
   airtableConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
-  CSVConfigSchema,
+  csvConfigSchema,
 ]);
 
 export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
@@ -194,10 +200,12 @@ export const dataSourceRecordTypes = Object.values(DataSourceRecordType);
 
 export const dataSourceSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z.string().min(1, "Name is required"),
   autoEnrich: z.boolean(),
   autoImport: z.boolean(),
-  recordType: z.nativeEnum(DataSourceRecordType),
+  recordType: z.nativeEnum(DataSourceRecordType, {
+    errorMap: () => ({ message: "Valid record type is required" }),
+  }),
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
   columnRoles: columnRolesSchema,

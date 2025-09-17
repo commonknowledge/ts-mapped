@@ -1,24 +1,24 @@
 import DataListRow from "@/components/DataListRow";
 import { DataSourceType } from "@/server/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
-import type { NewDataSourceConfig } from "../schema";
+import type { NewCSVConfig } from "../schema";
 
 export default function CSVFields({
   config,
   onChange,
 }: {
-  config: Partial<NewDataSourceConfig>;
-  onChange: (config: Partial<NewDataSourceConfig>) => void;
+  config: Partial<NewCSVConfig>;
+  onChange: (config: Partial<Pick<NewCSVConfig, "file" | "filename">>) => void;
 }) {
-  if (config.type !== DataSourceType.CSV) {
-    return;
-  }
+  if (config.type !== DataSourceType.CSV) return;
 
   return (
     <>
       <DataListRow label="File">
         <Input
           type="file"
+          className="w-50"
+          required
           onChange={(e) => {
             const file = e.target.files ? e.target.files[0] : null;
             if (file) {
