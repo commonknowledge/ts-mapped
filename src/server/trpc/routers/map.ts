@@ -1,15 +1,15 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-// import { AreaSetGroupCode } from "@/server/models/AreaSet";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-// import { MapStyleName } from "@/server/models/MapView";
+import { MapStyleName } from "@/server/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import {
   createMap,
   findMapsByOrganisationId,
   updateMap,
 } from "@/server/repositories/Map";
-// import { upsertMapView } from "@/server/repositories/MapView";
+import { upsertMapView } from "@/server/repositories/MapView";
 import { organisationProcedure, router } from "../index";
 
 export const mapRouter = router({
@@ -44,24 +44,24 @@ export const mapRouter = router({
                 },
         });
       } else {
-        // await upsertMapView({
-        //   mapId: map.id,
-        //   name: "Default View",
-        //   dataSourceViews: [],
-        //   position: 0,
-        //   config: {
-        //     areaDataSourceId: input.dataSourceId,
-        //     areaDataColumn: "",
-        //     areaSetGroupCode: AreaSetGroupCode.WMC24,
-        //     excludeColumnsString: "",
-        //     mapStyleName: MapStyleName.Light,
-        //     showBoundaryOutline: true,
-        //     showLabels: true,
-        //     showLocations: true,
-        //     showMembers: true,
-        //     showTurf: true,
-        //   },
-        // });
+        await upsertMapView({
+          mapId: map.id,
+          name: "Default View",
+          dataSourceViews: [],
+          position: 0,
+          config: {
+            areaDataSourceId: input.dataSourceId,
+            areaDataColumn: "",
+            areaSetGroupCode: AreaSetGroupCode.WMC24,
+            excludeColumnsString: "",
+            mapStyleName: MapStyleName.Light,
+            showBoundaryOutline: true,
+            showLabels: true,
+            showLocations: true,
+            showMembers: true,
+            showTurf: true,
+          },
+        });
       }
       return map;
     }),

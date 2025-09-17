@@ -11,7 +11,6 @@ import DataSourceBadge from "@/components/DataSourceBadge";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
-import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
@@ -205,25 +204,22 @@ export function DataSourceDashboard({
             {importing ? "Importing" : "Import"}
           </Button>
 
-          {(dataSource.recordType === DataSourceRecordType.Members ||
-            dataSource.recordType === DataSourceRecordType.Data) && (
-            <Button
-              onClick={() =>
-                createMap({
-                  organisationId: dataSource.organisationId,
-                  dataSourceId: dataSource.id,
-                })
-              }
-              disabled={createMapLoading}
-            >
-              {createMapLoading ? (
-                <LoaderPinwheel className="animate-spin" />
-              ) : (
-                <MapIcon />
-              )}
-              Create map
-            </Button>
-          )}
+          <Button
+            onClick={() =>
+              createMap({
+                organisationId: dataSource.organisationId,
+                dataSourceId: dataSource.id,
+              })
+            }
+            disabled={createMapLoading}
+          >
+            {createMapLoading ? (
+              <LoaderPinwheel className="animate-spin" />
+            ) : (
+              <MapIcon />
+            )}
+            Create map
+          </Button>
         </div>
       </div>
 
