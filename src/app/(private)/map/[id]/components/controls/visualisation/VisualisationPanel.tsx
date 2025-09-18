@@ -48,8 +48,6 @@ import {
 import { cn } from "@/shadcn/utils";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
 import type { AreaSetGroupCode } from "@/__generated__/types";
-import type { AreaSetCode } from "@/server/models/AreaSet";
-import type { GeocodingType } from "@/server/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSource = RouterOutputs["dataSource"]["byOrganisation"][number];
@@ -185,17 +183,7 @@ export default function VisualisationPanel({
                   <DataSourceItem
                     className="border-blue-500 bg-blue-50 hover:bg-blue-100"
                     dataSource={{
-                      // temporary casting from gql to typescript
                       ...dataSource,
-                      geocodingConfig: {
-                        ...dataSource.geocodingConfig,
-                        type: dataSource.geocodingConfig
-                          .type as GeocodingType.Code,
-                        column: dataSource.geocodingConfig.column as string, // there is geocodingConfig.columns - string[]
-                        areaSetCode: dataSource.geocodingConfig
-                          .areaSetCode as AreaSetCode, // no areaSetCode key
-                      },
-                      recordCount: dataSource?.recordCount,
                     }}
                   />
                 </button>
@@ -579,17 +567,7 @@ export default function VisualisationPanel({
                           : "hover:border-blue-300"
                       }
                       dataSource={{
-                        // temporary casting from gql to typescript
                         ...ds,
-                        recordCount: ds.recordCount,
-                        geocodingConfig: {
-                          ...ds.geocodingConfig,
-                          type: ds.geocodingConfig.type as GeocodingType.Code,
-                          column: ds.geocodingConfig.column as string,
-                          areaSetCode: ds.geocodingConfig
-                            .areaSetCode as AreaSetCode,
-                        },
-                        config: ds.config,
                       }}
                     />
                   </button>

@@ -1,12 +1,12 @@
 import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
-import { DataSourceRecordType } from "@/__generated__/types";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { TableContext } from "@/components/Map/context/TableContext";
 import { mapColors } from "@/components/Map/styles";
+import { DataSourceRecordType } from "@/server/models/DataSource";
 import { CollectionIcon } from "../../Icons";
 import CollectionLayer from "../CollectionLayer";
 import ControlItemWrapper from "../ControlItemWrapper";
