@@ -270,18 +270,18 @@ export const MailchimpIconSVG = () => {
   );
 };
 
-const icons: Record<DataSourceType, React.ReactNode> = {
+const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.ActionNetwork]: (
     <div className=" p-1 rounded-sm py-0">AN</div>
   ),
   [DataSourceType.Airtable]: <AirtableIconSVG />,
-  [DataSourceType.CSV]: <File />,
+  [DataSourceType.CSV]: <File className="w-4 h-4" />,
   [DataSourceType.GoogleSheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.Mailchimp]: <MailchimpIconSVG />,
 };
 
 const DataSourceIcon = ({ type }: { type: string }) => {
-  return icons[type as DataSourceType];
+  return dataSourceIcons[type as DataSourceType];
 };
 
 export default DataSourceIcon;
