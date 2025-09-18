@@ -105,7 +105,11 @@ function GoogleSheetsFieldsWithOAuth({
   useEffect(() => {
     const loadSheets = async () => {
       try {
-        if (config.oAuthCredentials && config.spreadsheetId) {
+        if (config.oAuthCredentials && spreadsheetUrl) {
+          if (!config.spreadsheetId) {
+            throw new Error("Invalid spreadsheet URL");
+          }
+
           setError("");
           setLoading(true);
           const sheets = await getSheets(
@@ -121,7 +125,7 @@ function GoogleSheetsFieldsWithOAuth({
       }
     };
     loadSheets();
-  }, [config.oAuthCredentials, config.spreadsheetId]);
+  }, [config.oAuthCredentials, config.spreadsheetId, spreadsheetUrl]);
 
   // Extract the Spreadsheet ID from the user-provided URL
   useEffect(() => {
