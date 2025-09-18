@@ -1,4 +1,9 @@
 import Sidebar from "@/components/Sidebar";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mapped - Dashboard",
+};
 
 export default function HomeLayout({
   children,
