@@ -82,7 +82,7 @@ export default async function FeaturePage({
   const featureSetsWithFeatures = featureSets.map((featureSet: FeatureSet) => ({
     ...featureSet,
     features: allFeatures.filter(
-      (feature: Feature) => feature.featureSet?._id === featureSet._id
+      (feature: Feature) => feature.featureSet?._id === featureSet._id,
     ),
   }));
 
@@ -140,7 +140,7 @@ export default async function FeaturePage({
                     {feature.howToUse.steps.map(
                       (step: FeatureHowToUseSteps, index: number) => {
                         const descriptionText = getTextFromBlocks(
-                          step.description
+                          step.description,
                         );
 
                         return (
@@ -184,7 +184,7 @@ export default async function FeaturePage({
                             </div>
                           </div>
                         );
-                      }
+                      },
                     )}
                   </div>
                 )}

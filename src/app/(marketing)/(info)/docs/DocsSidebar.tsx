@@ -22,7 +22,7 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
             "block px-3 py-2 text-sm font-medium rounded-md transition-colors",
             pathname === "/docs"
               ? "bg-neutral-100"
-              : "text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100"
+              : "text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100",
           )}
         >
           Overview
@@ -52,7 +52,7 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
                         "block px-3 py-2 text-sm rounded-md transition-colors ml-3",
                         pathname === `/docs/${feature.slug.current}`
                           ? "bg-neutral-100"
-                          : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+                          : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
                       )}
                     >
                       {feature.title}

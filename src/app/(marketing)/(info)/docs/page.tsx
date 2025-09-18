@@ -48,7 +48,7 @@ export default async function FeaturesPage() {
   const featureSetsWithFeatures = featureSets.map((featureSet: FeatureSet) => ({
     ...featureSet,
     features: allFeatures.filter(
-      (feature: Feature) => feature.featureSet?._id === featureSet._id
+      (feature: Feature) => feature.featureSet?._id === featureSet._id,
     ),
   }));
 
@@ -87,7 +87,7 @@ export default async function FeaturesPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         {featureSet.features
                           .filter(
-                            (feature: Feature) => feature.isActive !== false
+                            (feature: Feature) => feature.isActive !== false,
                           )
                           .map((feature: Feature) => (
                             <Link

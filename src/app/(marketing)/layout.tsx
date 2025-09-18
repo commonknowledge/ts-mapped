@@ -14,7 +14,7 @@ export default async function MarketingLayout({
   children: React.ReactNode;
 }) {
   const solutions = await client.fetch(
-    `*[_type == "solutions"] | order(position asc)`
+    `*[_type == "solutions"] | order(position asc)`,
   );
   return (
     <>

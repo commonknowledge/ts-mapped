@@ -60,7 +60,7 @@ export default async function SolutionPage({
   const solution = await client.fetch<SanityDocument>(
     POST_QUERY,
     await params,
-    options
+    options,
   );
 
   if (!solution) {
@@ -110,7 +110,7 @@ export default async function SolutionPage({
                 solutionItem={solution}
                 isReversed={index % 2 === 1}
               />
-            )
+            ),
           )
         ) : (
           <div className="text-center py-12">
