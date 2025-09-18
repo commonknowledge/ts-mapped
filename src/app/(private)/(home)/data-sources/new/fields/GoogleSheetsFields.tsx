@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import type { NewDataSourceConfig } from "../schema";
+import type { DefaultState } from "../schema";
 import type {
   DataSourceRecordType,
   GoogleSheetsConfig,
@@ -25,13 +25,18 @@ export default function GoogleSheetsFields({
   onChange,
 }: {
   dataSourceName: string;
-  recordType: DataSourceRecordType | null;
-  config: Partial<NewDataSourceConfig>;
-  onChange: (config: Partial<NewDataSourceConfig>) => void;
+  recordType: DataSourceRecordType;
+  config: Partial<GoogleSheetsConfig>;
+  onChange: (
+    config: Partial<
+      Pick<
+        GoogleSheetsConfig,
+        "oAuthCredentials" | "spreadsheetId" | "sheetName"
+      >
+    >,
+  ) => void;
 }) {
-  if (config.type !== DataSourceType.GoogleSheets) {
-    return;
-  }
+  if (config.type !== DataSourceType.GoogleSheets) return;
 
   return (
     <GoogleSheetsFieldsWithOAuth
@@ -50,9 +55,16 @@ function GoogleSheetsFieldsWithOAuth({
   onChange,
 }: {
   dataSourceName: string;
-  recordType: DataSourceRecordType | null;
+  recordType: DataSourceRecordType;
   config: Partial<GoogleSheetsConfig>;
-  onChange: (config: Partial<NewDataSourceConfig>) => void;
+  onChange: (
+    config: Partial<
+      Pick<
+        GoogleSheetsConfig,
+        "oAuthCredentials" | "spreadsheetId" | "sheetName"
+      >
+    >,
+  ) => void;
 }) {
   // Use a ref to keep track of if OAuth has been completed
   // This updates immediately, so no chance of duplicate requests
@@ -93,7 +105,11 @@ function GoogleSheetsFieldsWithOAuth({
   useEffect(() => {
     const loadSheets = async () => {
       try {
-        if (config.oAuthCredentials && config.spreadsheetId) {
+        if (config.oAuthCredentials && spreadsheetUrl) {
+          if (!config.spreadsheetId) {
+            throw new Error("Invalid spreadsheet URL");
+          }
+
           setError("");
           setLoading(true);
           const sheets = await getSheets(
@@ -109,7 +125,7 @@ function GoogleSheetsFieldsWithOAuth({
       }
     };
     loadSheets();
-  }, [config.oAuthCredentials, config.spreadsheetId]);
+  }, [config.oAuthCredentials, config.spreadsheetId, spreadsheetUrl]);
 
   // Extract the Spreadsheet ID from the user-provided URL
   useEffect(() => {
@@ -126,7 +142,7 @@ function GoogleSheetsFieldsWithOAuth({
         dataSourceName,
         recordType: recordType || "",
         dataSourceType: DataSourceType.GoogleSheets,
-      });
+      } satisfies DefaultState);
       window.location.href = url;
     } catch {
       setError("Could not authorize with Google.");
@@ -145,9 +161,12 @@ function GoogleSheetsFieldsWithOAuth({
 
   return (
     <>
-      <DataListRow label="Spreadsheet URL">
+      <DataListRow label="Spreadsheet URL" name="spreadsheetUrl">
         <Input
           type="text"
+          className="w-50"
+          id="spreadsheetUrl"
+          required
           placeholder="https://docs.google.com/spreadsheets/d/1GB...doA/edit?gid=0#gid=0"
           value={spreadsheetUrl || ""}
           onChange={(e) => setSpreadsheetUrl(e.target.value)}
@@ -155,12 +174,13 @@ function GoogleSheetsFieldsWithOAuth({
       </DataListRow>
       {config.spreadsheetId &&
         (sheets.length > 0 ? (
-          <DataListRow label="Sheet Name">
+          <DataListRow label="Sheet Name" name="sheetName">
             <Select
               value={config.sheetName || ""}
+              required
               onValueChange={(sheetName) => onChange({ sheetName })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-50" id="sheetName">
                 <SelectValue placeholder="Select a sheet" />
               </SelectTrigger>
               <SelectContent>
@@ -176,11 +196,7 @@ function GoogleSheetsFieldsWithOAuth({
           <p className="text-xs">Loading sheet names...</p>
         ))}
 
-      {error && (
-        <div>
-          <span className="text-xs text-red-500">{error}</span>
-        </div>
-      )}
+      {error && <p className="text-xs text-red-500">{error}</p>}
     </>
   );
 }

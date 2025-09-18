@@ -8,9 +8,9 @@ import type {
   GeocodingType,
 } from "./__generated__/types";
 import type {
-  CSVConfigSchema,
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "./server/models/DataSource";
@@ -34,7 +34,7 @@ type DataSourceConfigKey =
   | keyof z.infer<typeof airtableConfigSchema>
   | keyof z.infer<typeof googleSheetsConfigSchema>
   | keyof z.infer<typeof mailchimpConfigSchema>
-  | keyof z.infer<typeof CSVConfigSchema>;
+  | keyof z.infer<typeof csvConfigSchema>;
 
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
