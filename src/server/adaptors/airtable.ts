@@ -44,7 +44,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
   private apiKey: string;
   private baseId: string;
   private tableId: string;
-  private cachedFieldNames: string[] | null = null;
+  private cachedFieldNamesById: Record<string, string> | null = null;
 
   constructor(
     dataSourceId: string,
@@ -148,7 +148,19 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    this.cachedFieldNames?.push(name);
+    const json = await response.json();
+    if (
+      !json ||
+      !(typeof json === "object") ||
+      !("id" in json) ||
+      !("name" in json)
+    ) {
+      throw Error(`Bad create field response body: ${json}`);
+    }
+
+    if (this.cachedFieldNamesById) {
+      this.cachedFieldNamesById[String(json.id)] = String(json.name);
+    }
   }
 
   async fetchWebhookPayloads(webhookId: string): Promise<unknown[]> {
@@ -193,9 +205,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     return payloads;
   }
 
-  async getFields(): Promise<string[]> {
-    if (this.cachedFieldNames) {
-      return this.cachedFieldNames;
+  async getFields(): Promise<Record<string, string> | null> {
+    if (this.cachedFieldNamesById) {
+      return this.cachedFieldNamesById;
     }
 
     const url = new URL(
@@ -216,21 +228,26 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
 
     const json = (await response.json()) as {
-      tables: { id: string; fields: { name: string }[] }[];
+      tables: { id: string; fields: { id: string; name: string }[] }[];
     };
     const table = json.tables.find(
       (table: { id: string }) => table.id === this.tableId,
     );
     if (!table) {
-      return [];
+      return null;
     }
 
-    const cachedFieldNames = table.fields.map(
-      (field: { name: string }) => field.name,
+    const cachedFieldNamesById = table.fields.reduce(
+      (o, f) => {
+        o[f.id] = f.name;
+        return o;
+      },
+      {} as Record<string, string>,
     );
-    this.cachedFieldNames = cachedFieldNames;
 
-    return cachedFieldNames;
+    this.cachedFieldNamesById = cachedFieldNamesById;
+
+    return cachedFieldNamesById;
   }
 
   async getRecordCount() {
@@ -283,6 +300,8 @@ export class AirtableAdaptor implements DataSourceAdaptor {
 
   async fetchPage({ offset, limit }: { offset?: string; limit?: number }) {
     const url = this.getURL();
+    url.searchParams.set("returnFieldsByFieldId", "true");
+
     if (offset) {
       url.searchParams.set("offset", offset);
     }
@@ -304,14 +323,46 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
 
     const json = await response.json();
-    if (typeof json !== "object") {
-      throw Error(`Bad fetch page response body: ${response.json}`);
+
+    if (
+      !json ||
+      typeof json !== "object" ||
+      !("records" in json) ||
+      !Array.isArray(json.records)
+    ) {
+      throw Error(`Bad fetch page response body: ${json}`);
     }
 
-    return json as {
-      offset: string;
-      records: { id: string; fields: Record<string, unknown> }[];
+    const nextOffset = "offset" in json ? String(json.offset) : undefined;
+
+    const fields = await this.getFields();
+    if (!fields) {
+      logger.warn(
+        "Failed to fetch Airtable records: missing field definitions",
+      );
+      return { offset: nextOffset, records: [] };
+    }
+
+    const mappedJson = {
+      offset: nextOffset,
+      records: json.records.map((r) => {
+        const record = r as { id: string; fields: Record<string, unknown> };
+        return {
+          id: record.id,
+          // Map field IDs to field names
+          fields: Object.keys(record.fields).reduce(
+            (o, f) => {
+              const fieldName = fields[f];
+              o[fieldName] = record.fields[f];
+              return o;
+            },
+            {} as Record<string, unknown>,
+          ),
+        };
+      }),
     };
+
+    return mappedJson;
   }
 
   async fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
@@ -490,7 +541,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
 
     const existingFields = await this.getFields();
-    for (const fieldName of existingFields) {
+    for (const fieldName of Object.values(existingFields || {})) {
       newFields.delete(fieldName);
     }
 
@@ -542,7 +593,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     const fieldName = taggedRecords[0].tag.name;
 
     const existingFields = await this.getFields();
-    if (!existingFields.includes(fieldName)) {
+    if (!Object.values(existingFields || {}).includes(fieldName)) {
       await this.createField(fieldName, ColumnType.Boolean);
     }
 
