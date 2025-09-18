@@ -61,7 +61,7 @@ export const dataSourceRouter = router({
         getJobInfo(ctx.dataSource.id, "enrichDataSource"),
         getJobInfo(ctx.dataSource.id, "importDataSource"),
         findDataSourcesByIds(dataSourceIds).then((ds) =>
-          ds.map((ds) => ({ name: ds.name, id: ds.id }))
+          ds.map((ds) => ({ name: ds.name, id: ds.id })),
         ),
       ]);
     return {
@@ -79,7 +79,7 @@ export const dataSourceRouter = router({
 
   create: organisationProcedure
     .input(
-      dataSourceSchema.pick({ name: true, recordType: true, config: true })
+      dataSourceSchema.pick({ name: true, recordType: true, config: true }),
     )
     .mutation(async ({ input }) => {
       const id = uuidv4();

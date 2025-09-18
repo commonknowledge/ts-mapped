@@ -1,9 +1,4 @@
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
-
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-} from "@/shadcn/ui/dropdown-menu";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function ColumnRoleFields({
@@ -15,31 +10,22 @@ export function ColumnRoleFields({
   nameColumns: string[];
   setNameColumns: (ncs: string[]) => void;
 }) {
+  const onChange = (currentValue: string) => {
+    if (nameColumns.some((c) => c === currentValue)) {
+      setNameColumns(nameColumns.filter((c) => c !== currentValue));
+    } else {
+      setNameColumns(nameColumns.concat([currentValue]));
+    }
+  };
+
   return (
     <CustomMultiSelect
       id="config-name-columns-multi"
       label="Name columns"
       hint="Select one or more fields to use as labels on the map."
+      allOptions={dataSource?.columnDefs.map((cd) => cd.name)}
       selectedOptions={nameColumns}
-    >
-      <DropdownMenuContent>
-        {dataSource?.columnDefs.map((cd) => (
-          <DropdownMenuCheckboxItem
-            key={cd.name}
-            checked={nameColumns.includes(cd.name)}
-            onSelect={(e) => e.preventDefault()}
-            onCheckedChange={(checked) => {
-              if (checked) {
-                setNameColumns(nameColumns.concat([cd.name]));
-              } else {
-                setNameColumns(nameColumns.filter((c) => c !== cd.name));
-              }
-            }}
-          >
-            {cd.name}
-          </DropdownMenuCheckboxItem>
-        ))}
-      </DropdownMenuContent>
-    </CustomMultiSelect>
+      onChange={onChange}
+    ></CustomMultiSelect>
   );
 }

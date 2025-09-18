@@ -3,7 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { toast } from "sonner";
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
@@ -42,36 +42,36 @@ import type {
 export default function NewDataSourcePage() {
   const { organisationId } = useContext(OrganisationsContext);
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const parsedState = defaultStateSchema.parse(searchParams.get("state") || {});
+  const oAuthState = useOAuthState();
 
   const trpc = useTRPC();
 
-  const {
-    mutate: createDataSource,
-    error,
-    isPending,
-  } = useMutation(
+  const { mutate: createDataSource, error } = useMutation(
     trpc.dataSource.create.mutationOptions({
       onSuccess: (data) => {
         router.push(`/data-sources/${data.id}/config`);
       },
-    })
+      onError: () => {
+        setLoading(false);
+      },
+    }),
   );
 
+  // Manually manage loading state to account for success redirect duration
+  const [loading, setLoading] = useState(false);
   const form = useForm({
     defaultValues: {
-      name: parsedState.dataSourceName || "",
-      recordType: parsedState.recordType || ("" as DataSourceRecordType),
-      config: (parsedState.dataSourceType
-        ? { type: parsedState.dataSourceType }
+      name: oAuthState?.dataSourceName || "",
+      recordType: oAuthState?.recordType || ("" as DataSourceRecordType),
+      config: (oAuthState?.dataSourceType
+        ? { type: oAuthState?.dataSourceType }
         : undefined) as NewDataSourceConfig | undefined,
     },
     onSubmit: async ({ value }) => {
       if (!organisationId) return toast.error("No organisation selected");
       if (!value.config) return toast.error("No config added");
       const preparedConfig = await prepareDataSource(value.config);
+      setLoading(true);
       createDataSource({ ...value, config: preparedConfig, organisationId });
     },
   });
@@ -97,7 +97,6 @@ export default function NewDataSourcePage() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          e.stopPropagation();
           form.handleSubmit();
         }}
         className="max-w-2xl"
@@ -193,7 +192,7 @@ export default function NewDataSourcePage() {
           {({ config, dataSourceName, recordType }) => (
             <>
               {config && (
-                <div className="mb-10">
+                <div>
                   <ConfigFields
                     config={config}
                     dataSourceName={dataSourceName}
@@ -220,9 +219,11 @@ export default function NewDataSourcePage() {
           selector={(state) => [state.canSubmit, state.isSubmitting]}
         >
           {([canSubmit, isSubmitting]) => (
-            <Button disabled={!canSubmit || isPending} type="submit">
-              {isSubmitting || isPending ? "Creating..." : "Configure fields"}
-            </Button>
+            <div className="mt-10">
+              <Button disabled={!canSubmit || loading} type="submit">
+                {isSubmitting || loading ? "Creating..." : "Configure fields"}
+              </Button>
+            </div>
           )}
         </form.Subscribe>
         {formError && <p className="text-xs mt-2 text-red-500">{formError}</p>}
@@ -266,11 +267,21 @@ function ConfigFields({
 }
 
 const prepareDataSource = async (
-  config: NewDataSourceConfig
+  config: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
   if (config.type === DataSourceType.CSV) {
     const url = await uploadFile(config.file);
     return { ...config, url };
   }
   return config;
+};
+
+const useOAuthState = () => {
+  const searchParams = useSearchParams();
+  try {
+    const rawState = JSON.parse(searchParams.get("state") || "{}");
+    return defaultStateSchema.parse(rawState);
+  } catch {
+    return null;
+  }
 };

@@ -9,7 +9,9 @@ export default function MailchimpFields({
 }: {
   config: Partial<MailchimpConfig>;
   onChange: (
-    config: Partial<Pick<MailchimpConfig, "listId" | "serverPrefix" | "apiKey">>
+    config: Partial<
+      Pick<MailchimpConfig, "listId" | "serverPrefix" | "apiKey">
+    >,
   ) => void;
 }) {
   if (config.type !== DataSourceType.Mailchimp) return;

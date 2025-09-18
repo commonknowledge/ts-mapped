@@ -9,7 +9,7 @@ export default function AirtableFields({
 }: {
   config: Partial<AirtableConfig>;
   onChange: (
-    config: Partial<Pick<AirtableConfig, "apiKey" | "baseId" | "tableId">>
+    config: Partial<Pick<AirtableConfig, "apiKey" | "baseId" | "tableId">>,
   ) => void;
 }) {
   if (config.type !== DataSourceType.Airtable) return;

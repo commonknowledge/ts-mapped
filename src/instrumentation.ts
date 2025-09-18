@@ -1,4 +1,16 @@
+import * as Sentry from "@sentry/nextjs";
+
 export async function register() {
+  // Sentry
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("../sentry.server.config");
+  }
+
+  if (process.env.NEXT_RUNTIME === "edge") {
+    await import("../sentry.edge.config");
+  }
+
+  // Internal service setup
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { default: logger } = await import("@/server/services/logger");
     if (!process.env.JWT_SECRET) {
@@ -25,3 +37,5 @@ export async function register() {
     logger.info("Started");
   }
 }
+
+export const onRequestError = Sentry.captureRequestError;

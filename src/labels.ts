@@ -8,9 +8,9 @@ import type {
   GeocodingType,
 } from "./__generated__/types";
 import type {
-  csvConfigSchema,
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "./server/models/DataSource";

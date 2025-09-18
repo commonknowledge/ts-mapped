@@ -33,7 +33,7 @@ export default function GoogleSheetsFields({
         GoogleSheetsConfig,
         "oAuthCredentials" | "spreadsheetId" | "sheetName"
       >
-    >
+    >,
   ) => void;
 }) {
   if (config.type !== DataSourceType.GoogleSheets) return;
@@ -63,7 +63,7 @@ function GoogleSheetsFieldsWithOAuth({
         GoogleSheetsConfig,
         "oAuthCredentials" | "spreadsheetId" | "sheetName"
       >
-    >
+    >,
   ) => void;
 }) {
   // Use a ref to keep track of if OAuth has been completed
@@ -88,7 +88,7 @@ function GoogleSheetsFieldsWithOAuth({
           setError("");
           setLoading(true);
           const oAuthCredentials = await getOAuthCredentials(
-            window.location.href
+            window.location.href,
           );
           onChange({ oAuthCredentials });
         }
@@ -110,7 +110,7 @@ function GoogleSheetsFieldsWithOAuth({
           setLoading(true);
           const sheets = await getSheets(
             config.oAuthCredentials,
-            config.spreadsheetId
+            config.spreadsheetId,
           );
           setSheets(sheets);
         }
