@@ -6,6 +6,7 @@ import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext"
 import { MapContext } from "@/components/Map/context/MapContext";
 import { TableContext } from "@/components/Map/context/TableContext";
 import { mapColors } from "@/components/Map/styles";
+import { DataSourceRecordType } from "@/server/models/DataSource";
 import { CollectionIcon } from "../../Icons";
 import CollectionLayer from "../CollectionLayer";
 import ControlItemWrapper from "../ControlItemWrapper";
@@ -26,7 +27,9 @@ export default function MembersControl() {
     ? selectedDataSourceId === dataSource.id
     : false;
 
-  const dataSources = getDataSources();
+  const dataSources = getDataSources().filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Members;
+  });
 
   const getDropdownItems = () => {
     const items = dataSources.map((ds) => ({
