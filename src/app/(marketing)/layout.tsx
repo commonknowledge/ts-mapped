@@ -6,7 +6,7 @@ import { Link } from "@/components/Link";
 import CTA from "@/components/marketing/CTA";
 import Prose from "@/components/Prose";
 import { client } from "@/sanity/lib/client";
-import { MarketingNavbar } from "./MarketingNavbar";
+import { MarketingNavbar } from "./components/MarketingNavbar";
 
 export default async function MarketingLayout({
   children,

@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { getTextFromBlocks } from "@/sanity/helpers";
 
 export const featureSetType = defineType({
   name: "featureSet",
@@ -224,23 +225,6 @@ export const featureType = defineType({
                 },
                 prepare(selection) {
                   const { title, subtitle } = selection;
-
-                  // Extract text from rich text blocks
-                  const getTextFromBlocks = (
-                    blocks: { _type: string; children: { text: string }[] }[],
-                  ) => {
-                    if (!blocks || !Array.isArray(blocks)) return "";
-                    return blocks
-                      .map((block) => {
-                        if (block._type === "block" && block.children) {
-                          return block.children
-                            .map((child: { text: string }) => child.text || "")
-                            .join("");
-                        }
-                        return "";
-                      })
-                      .join(" ");
-                  };
 
                   const descriptionText = getTextFromBlocks(subtitle);
 

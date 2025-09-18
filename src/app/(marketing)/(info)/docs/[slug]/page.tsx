@@ -2,9 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type SanityDocument } from "next-sanity";
-import RichTextComponent, {
-  getTextFromBlocks,
-} from "@/app/(marketing)/components/RichTextComponent";
+import RichTextComponent from "@/app/(marketing)/components/RichTextComponent";
 import { TypographyH1, TypographyLead } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
@@ -139,24 +137,19 @@ export default async function FeaturePage({
                     </p>
                     {feature.howToUse.steps.map(
                       (step: FeatureHowToUseSteps, index: number) => {
-                        const descriptionText = getTextFromBlocks(
-                          step.description,
-                        );
-
                         return (
                           <div key={index}>
                             <div className="flex gap-2">
-                              <div className="h-6 w-6 bg-brand-background rounded-full text-sm font-mono items-center justify-center flex text-brand-blue">
+                              <div className="shrink-0 h-6 w-6 bg-brand-background rounded-full text-sm font-mono items-center justify-center flex text-brand-blue">
                                 {index + 1}
                               </div>
                               <div className="flex flex-col gap-4">
                                 <div className="max-w-2xl">
-                                  <p className="mb-2">{step.title}</p>
-                                  {descriptionText && (
-                                    <p className="text-sm text-neutral-500">
-                                      {descriptionText}
-                                    </p>
-                                  )}
+                                  <h3 className="mb-2">{step.title}</h3>
+                                  <RichTextComponent
+                                    content={step.description}
+                                    className="text-sm text-neutral-500"
+                                  />
                                 </div>
                                 {step.images && step.images.length > 0 && (
                                   <div className="flex gap-2" key={index}>

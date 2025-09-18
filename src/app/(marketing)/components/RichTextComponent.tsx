@@ -15,26 +15,8 @@ export default function RichTextComponent({
   }
 
   return (
-    <div className={className}>
-      <Prose>
-        <PortableText value={content} />
-      </Prose>
-    </div>
+    <Prose className={className}>
+      <PortableText value={content} />
+    </Prose>
   );
-}
-
-// Helper function to extract plain text from rich text blocks
-export function getTextFromBlocks(blocks: RichTextBlock[]): string {
-  if (!blocks || !Array.isArray(blocks)) return "";
-
-  return blocks
-    .map((block) => {
-      if (block._type === "block" && block.children) {
-        return block.children
-          .map((child: { text: string }) => child.text || "")
-          .join("");
-      }
-      return "";
-    })
-    .join(" ");
 }
