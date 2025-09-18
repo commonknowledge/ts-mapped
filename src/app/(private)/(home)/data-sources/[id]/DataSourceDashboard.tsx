@@ -3,7 +3,7 @@
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { useMutation as useTanstackMutation } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
-import { RefreshCw, Trash2Icon } from "lucide-react";
+import { LoaderPinwheel, MapIcon, RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -153,6 +153,21 @@ export function DataSourceDashboard({
         JSON.stringify(dataSource.config[k as keyof typeof dataSource.config])
       ),
   }));
+  const trpc = useTRPC();
+  const router = useRouter();
+
+  const [createMapLoading, setCreateMapLoading] = useState(false);
+  const { mutate: createMap } = useTanstackMutation(
+    trpc.map.createFromDataSource.mutationOptions({
+      onSuccess: (data) => {
+        router.push(`/map/${data.id}`);
+      },
+      onError: () => {
+        toast.error("Failed to create map");
+        setCreateMapLoading(false);
+      },
+    }),
+  );
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -182,9 +197,15 @@ export function DataSourceDashboard({
           </p>
         </div>
 
-        <div className="flex flex-col items-end gap-2 ">
+        <div className="flex flex-row items-start gap-2">
+          {importError && (
+            <div>
+              <span className="text-xs text-red-500">{importError}</span>
+            </div>
+          )}
           <Button
             type="button"
+            variant="outline"
             onClick={onClickImportRecords}
             disabled={importing}
             size="lg"
@@ -193,11 +214,23 @@ export function DataSourceDashboard({
             {importing ? "Importing" : "Import"}
           </Button>
 
-          {importError && (
-            <div>
-              <span className="text-xs text-red-500">{importError}</span>
-            </div>
-          )}
+          <Button
+            onClick={() => {
+              setCreateMapLoading(true);
+              createMap({
+                organisationId: dataSource.organisationId,
+                dataSourceId: dataSource.id,
+              });
+            }}
+            disabled={createMapLoading}
+          >
+            {createMapLoading ? (
+              <LoaderPinwheel className="animate-spin" />
+            ) : (
+              <MapIcon />
+            )}
+            Create map
+          </Button>
         </div>
       </div>
 
