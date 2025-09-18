@@ -73,14 +73,16 @@ export default async function RootLayout({
   }
 
   const serverSession = await getServerSession();
-  const organisations = await getOrganisations();
+  const organisations = serverSession.currentUser
+    ? await getOrganisations()
+    : [];
 
   return (
     <html
       lang="en"
-      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
+      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} `}
     >
-      <body className={ibmPlexSans.className}>
+      <body className={ibmPlexSans.className + " antialiased"}>
         <ServerSessionProvider serverSession={serverSession}>
           <OrganisationsProvider organisations={organisations}>
             <TRPCReactProvider>

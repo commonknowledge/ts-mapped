@@ -14,7 +14,9 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    remotePatterns: [new URL(`https://${process.env.MINIO_DOMAIN}/**`)],
+    remotePatterns: ["localhost", process.env.MINIO_DOMAIN, "cdn.sanity.io"]
+      .filter((d) => d !== undefined)
+      .map((d) => new URL(`https://${d}/**`)),
   },
   // Packages that can't be bundled in the NextJS build
   serverExternalPackages: ["@whatwg-node", "@ngrok/ngrok"],

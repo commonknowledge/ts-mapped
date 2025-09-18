@@ -12,6 +12,7 @@ export function Link({
   href,
   children,
   replace,
+  onClick,
   ...rest
 }: Parameters<typeof NextLink>[0]) {
   const router = useRouter();
@@ -27,6 +28,7 @@ export function Link({
     <NextLink
       href={href}
       onClick={(e) => {
+        onClick?.(e);
         // Don't modify modified click behavior
         if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
           return;

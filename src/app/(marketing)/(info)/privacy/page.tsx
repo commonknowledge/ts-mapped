@@ -1,10 +1,11 @@
+import Container from "@/components/layout/Container";
 import Prose from "@/components/Prose";
 import type { Metadata } from "next";
 
 export default function PrivacyPage() {
   return (
-    <>
-      <Prose>
+    <Container>
+      <Prose className="mx-auto">
         <h1>Privacy Policy</h1>
         <p>Effective date: 07/01/2025</p>
         <h2>1. Introduction</h2>
@@ -417,7 +418,7 @@ export default function PrivacyPage() {
           contact: data@commonknowledge.coop
         </p>
       </Prose>
-    </>
+    </Container>
   );
 }
 
