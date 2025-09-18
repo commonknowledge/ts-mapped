@@ -183,7 +183,7 @@ export default function MapViews() {
               </div>
             ) : (
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"

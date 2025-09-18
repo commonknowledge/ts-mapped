@@ -48,7 +48,7 @@ export function DataSourceDashboard({
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
-    dataSource.importInfo?.lastCompleted || null
+    dataSource.importInfo?.lastCompleted || null,
   );
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
@@ -85,7 +85,7 @@ export function DataSourceDashboard({
         }
       }
     `,
-    { variables: { dataSourceId: dataSource.id } }
+    { variables: { dataSourceId: dataSource.id } },
   );
 
   const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
@@ -147,17 +147,18 @@ export function DataSourceDashboard({
   const trpc = useTRPC();
   const router = useRouter();
 
-  const { mutate: createMap, isPending: createMapLoading } =
-    useTanstackMutation(
-      trpc.map.createFromDataSource.mutationOptions({
-        onSuccess: (data) => {
-          router.push(`/map/${data.id}`);
-        },
-        onError: () => {
-          toast.error("Failed to create map");
-        },
-      })
-    );
+  const [createMapLoading, setCreateMapLoading] = useState(false);
+  const { mutate: createMap } = useTanstackMutation(
+    trpc.map.createFromDataSource.mutationOptions({
+      onSuccess: (data) => {
+        router.push(`/map/${data.id}`);
+      },
+      onError: () => {
+        toast.error("Failed to create map");
+        setCreateMapLoading(false);
+      },
+    }),
+  );
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -205,12 +206,13 @@ export function DataSourceDashboard({
           </Button>
 
           <Button
-            onClick={() =>
+            onClick={() => {
+              setCreateMapLoading(true);
               createMap({
                 organisationId: dataSource.organisationId,
                 dataSourceId: dataSource.id,
-              })
-            }
+              });
+            }}
             disabled={createMapLoading}
           >
             {createMapLoading ? (
@@ -259,8 +261,8 @@ const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
       [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status
-      )
+        dataSource.importInfo?.status,
+      ),
   );
 };
 
@@ -280,7 +282,7 @@ function DeleteDataSourceButton({
       onError: () => {
         toast.error("Failed to delete data source");
       },
-    })
+    }),
   );
 
   return (

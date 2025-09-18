@@ -2,7 +2,11 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import { MapStyleName } from "@/server/models/MapView";
+import {
+  CalculationType,
+  MapStyleName,
+  VisualisationType,
+} from "@/server/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import {
   createMap,
@@ -29,7 +33,7 @@ export const mapRouter = router({
 
       if (
         dataSource.recordType === DataSourceRecordType.Members ||
-        dataSource.recordType === DataSourceRecordType.Data
+        dataSource.recordType !== DataSourceRecordType.Data
       ) {
         return updateMap(map.id, {
           config:
@@ -40,7 +44,7 @@ export const mapRouter = router({
                 }
               : {
                   markerDataSourceIds: [input.dataSourceId],
-                  membersDataSourceId: "",
+                  membersDataSourceId: null,
                 },
         });
       } else {
@@ -50,9 +54,11 @@ export const mapRouter = router({
           dataSourceViews: [],
           position: 0,
           config: {
-            areaDataSourceId: input.dataSourceId,
             areaDataColumn: "",
+            areaDataSourceId: input.dataSourceId,
             areaSetGroupCode: AreaSetGroupCode.WMC24,
+            calculationType: CalculationType.Count,
+            colorScheme: null,
             excludeColumnsString: "",
             mapStyleName: MapStyleName.Light,
             showBoundaryOutline: true,
@@ -60,6 +66,7 @@ export const mapRouter = router({
             showLocations: true,
             showMembers: true,
             showTurf: true,
+            visualisationType: VisualisationType.Choropleth,
           },
         });
       }
