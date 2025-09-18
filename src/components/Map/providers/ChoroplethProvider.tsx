@@ -33,9 +33,10 @@ export default function ChoroplethProvider({
 
   const choroplethLayerConfig = useMemo(() => {
     const dataSource = getChoroplethDataSource();
+
     return getChoroplethLayerConfig(
       viewConfig.visualisationType === VisualisationType.Choropleth
-        ? dataSource?.geocodingConfig?.areaSetCode
+        ? dataSource?.geocodingConfig?.areaSetCode // no areaSetCode key
         : undefined,
       viewConfig.areaSetGroupCode,
       zoom,

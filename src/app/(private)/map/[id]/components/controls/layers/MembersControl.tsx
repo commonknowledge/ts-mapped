@@ -1,6 +1,7 @@
 import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
+import { DataSourceRecordType } from "@/__generated__/types";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -26,7 +27,9 @@ export default function MembersControl() {
     ? selectedDataSourceId === dataSource.id
     : false;
 
-  const dataSources = getDataSources();
+  const dataSources = getDataSources().filter((dataSource) => {
+    return dataSource.recordType === DataSourceRecordType.Members;
+  });
 
   const getDropdownItems = () => {
     const items = dataSources.map((ds) => ({
