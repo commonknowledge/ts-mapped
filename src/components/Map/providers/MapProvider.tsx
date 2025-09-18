@@ -40,12 +40,14 @@ export default function MapProvider({
   const [pinDropMode, setPinDropMode] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [ready, setReady] = useState(false);
+  const [configDirty, setConfigDirty] = useState(false);
 
   /* GraphQL Data */
   const mapQuery = useMapQuery(mapId);
 
   const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
     setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
+    setConfigDirty(true);
   };
 
   const view = useMemo(
@@ -115,6 +117,30 @@ export default function MapProvider({
       setViews([newView]);
     }
   }, [initialViewId, mapData]);
+
+  useEffect(() => {
+    const autoSave = async () => {
+      if (!mapId || !mapConfig || !configDirty) {
+        return;
+      }
+
+      try {
+        await saveMapConfig();
+      } catch (e) {
+        console.error("UpdateMapConfig failed", e);
+      }
+    };
+
+    const handler = setTimeout(() => {
+      autoSave();
+    }, 1000); // debounce 1s
+
+    return () => {
+      clearTimeout(handler);
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapConfig]);
 
   const viewConfig = useMemo(() => {
     return new ViewConfig({ ...view?.config });
