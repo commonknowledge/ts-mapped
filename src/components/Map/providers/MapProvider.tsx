@@ -118,19 +118,27 @@ export default function MapProvider({
     }
   }, [initialViewId, mapData]);
 
+  const viewConfig = useMemo(() => {
+    return new ViewConfig({ ...view?.config });
+  }, [view]);
+
+  const autoSave = async () => {
+    if (!mapId || !mapConfig) {
+      return;
+    }
+
+    try {
+      await saveMapConfig();
+    } catch (e) {
+      console.error("UpdateMapConfig failed", e);
+    }
+  };
+
+  // auto save map config
   useEffect(() => {
-    const autoSave = async () => {
-      if (!mapId || !mapConfig || !configDirty) {
-        return;
-      }
-
-      try {
-        await saveMapConfig();
-      } catch (e) {
-        console.error("UpdateMapConfig failed", e);
-      }
-    };
-
+    if (!configDirty) {
+      return;
+    }
     const handler = setTimeout(() => {
       autoSave();
     }, 1000); // debounce 1s
@@ -142,9 +150,21 @@ export default function MapProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapConfig]);
 
-  const viewConfig = useMemo(() => {
-    return new ViewConfig({ ...view?.config });
-  }, [view]);
+  // auto save map view
+  useEffect(() => {
+    if (!dirtyViewIds?.length) {
+      return;
+    }
+    const handler = setTimeout(() => {
+      autoSave();
+    }, 1000); // debounce 1s
+
+    return () => {
+      clearTimeout(handler);
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirtyViewIds]);
 
   return (
     <MapContext
