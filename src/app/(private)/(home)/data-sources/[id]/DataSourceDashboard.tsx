@@ -2,6 +2,7 @@
 
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { useMutation as useTanstackMutation } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
 import { LoaderPinwheel, MapIcon, RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -50,6 +51,14 @@ export function DataSourceDashboard({
   const [lastImported, setLastImported] = useState(
     dataSource.importInfo?.lastCompleted || null,
   );
+
+  const lastImportedDateReadable = lastImported
+    ? format(new Date(lastImported), "d MMMM yyyy, h:mm a")
+    : null;
+  const lastImportedFormattedFromNow = lastImported
+    ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
+    : null;
+
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
   const [enqueueImportDataSourceJob] = useMutation<
@@ -230,9 +239,12 @@ export function DataSourceDashboard({
       {lastImported && (
         <>
           <h2 className="mb-2 font-medium text-xl">Last imported</h2>
-          <time className="text-sm">
-            {new Date(lastImported).toLocaleString("en-GB")}
-          </time>
+          <time className="text-sm">{lastImportedDateReadable}</time>
+          {lastImportedFormattedFromNow && (
+            <span className="text-neutral-500 text-sm flex items-center gap-1 ">
+              ({lastImportedFormattedFromNow})
+            </span>
+          )}
           <Separator className="my-8" />
         </>
       )}
