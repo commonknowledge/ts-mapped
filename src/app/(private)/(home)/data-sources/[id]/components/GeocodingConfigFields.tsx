@@ -3,10 +3,6 @@ import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
 import { AreaGeocodingType } from "@/server/models/DataSource";
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-} from "@/shadcn/ui/dropdown-menu";
 import type { LooseGeocodingConfig } from "@/__generated__/types";
 import type { RouterOutputs } from "@/services/trpc/react";
 
@@ -80,6 +76,16 @@ export function GeocodingConfigFields({
         value: type,
       })) || [];
 
+  const onDropdownChange = (currentValue: string) => {
+    if (columns.some((c) => c === currentValue)) {
+      onChange({
+        columns: columns.filter((c) => c !== currentValue),
+      });
+    } else {
+      onChange({ columns: columns.concat([currentValue]) });
+    }
+  };
+
   return (
     <>
       <CustomSelect
@@ -95,29 +101,10 @@ export function GeocodingConfigFields({
         <CustomMultiSelect
           id="config-location-columns-multi"
           label="Location columns"
+          allOptions={dataSource?.columnDefs.map((cd) => cd.name)}
           selectedOptions={columns}
-        >
-          <DropdownMenuContent>
-            {dataSource?.columnDefs.map((cd) => (
-              <DropdownMenuCheckboxItem
-                key={cd.name}
-                checked={columns.includes(cd.name)}
-                onSelect={(e) => e.preventDefault()}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    onChange({ columns: columns.concat([cd.name]) });
-                  } else {
-                    onChange({
-                      columns: columns.filter((c) => c !== cd.name),
-                    });
-                  }
-                }}
-              >
-                {cd.name}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </CustomMultiSelect>
+          onChange={onDropdownChange}
+        />
       )}
 
       {typeSelectValue === "Postcode" && (
