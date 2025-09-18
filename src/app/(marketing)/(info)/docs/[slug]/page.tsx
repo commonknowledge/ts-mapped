@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { type SanityDocument } from "next-sanity";
 import RichTextComponent, {
   getTextFromBlocks,
-} from "@/components/RichTextComponent";
+} from "@/app/(marketing)/components/RichTextComponent";
 import { TypographyH1, TypographyLead } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";

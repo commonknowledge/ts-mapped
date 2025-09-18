@@ -34,7 +34,7 @@ function MarketingFooter() {
         <footer className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full md:py-20 py-12">
           <div className="col-span-2">
             <div className="flex flex-col items-start gap-4 max-w-2xl">
-              <Prose className="mx-0 text-balance">
+              <Prose className="text-balance">
                 <h2>Made for the movement, by the movement</h2>
                 <p>
                   Mapped was built for and with organisers: tenant unions,

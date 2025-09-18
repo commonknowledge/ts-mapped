@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import RichTextComponent from "@/app/(marketing)/components/RichTextComponent";
 import Container from "@/components/layout/Container";
-import RichTextComponent from "@/components/RichTextComponent";
 import { TypographyH1, TypographyP } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";

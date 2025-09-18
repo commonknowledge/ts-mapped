@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export default function PrivacyPage() {
   return (
     <Container>
-      <Prose>
+      <Prose className="mx-auto">
         <h1>Privacy Policy</h1>
         <p>Effective date: 07/01/2025</p>
         <h2>1. Introduction</h2>

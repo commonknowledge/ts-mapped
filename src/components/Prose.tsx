@@ -9,7 +9,7 @@ export default function Prose({
   return (
     <div
       className={cn(
-        "prose mx-auto text-foreground prose-headings:text-primary prose-headings:font-medium prose-headings:tracking-tight",
+        "prose text-foreground prose-headings:text-primary prose-headings:font-medium prose-headings:tracking-tight",
         className,
       )}
     >

@@ -6,7 +6,7 @@ import Prose from "@/components/Prose";
 export default function AboutPage() {
   return (
     <Container>
-      <Prose>
+      <Prose className="mx-auto">
         <h1>About Mapped</h1>
         <p>
           Mapped is a tool for organising and mobilising people. It&apos;s a
