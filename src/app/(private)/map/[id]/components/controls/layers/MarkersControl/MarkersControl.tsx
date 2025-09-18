@@ -2,6 +2,7 @@ import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { DataSourceRecordType } from "@/__generated__/types";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -54,7 +55,10 @@ export default function MarkersControl() {
   };
 
   const getDataSourceDropdownItems = () => {
-    const markerDataSources = getDataSources();
+    const markerDataSources = getDataSources().filter((dataSource) => {
+      return dataSource.recordType !== DataSourceRecordType.Members;
+    });
+
     return markerDataSources.map((dataSource) => {
       const selected = mapConfig.markerDataSourceIds.includes(dataSource.id);
       return {

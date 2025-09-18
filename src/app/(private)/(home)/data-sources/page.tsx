@@ -73,7 +73,7 @@ export default function DataSourcesPage() {
   const { data: dataSources, isPending } = useQuery(
     trpc.dataSource.byOrganisation.queryOptions(
       { organisationId: organisationId || "" },
-      { enabled: Boolean(organisationId) },
+      { enabled: Boolean(organisationId), refetchOnMount: "always" },
     ),
   );
 
@@ -133,7 +133,6 @@ export default function DataSourcesPage() {
             <div className="space-y-8">
               <PageHeader
                 title="Your Data Sources"
-                description="Here you can find all the data sources that you have uploaded."
                 action={
                   <Button variant="default" size="lg" asChild={true}>
                     <Link href="/data-sources/new">
