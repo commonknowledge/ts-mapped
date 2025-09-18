@@ -3,6 +3,7 @@
 import { gql, useMutation } from "@apollo/client";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { useContext, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
@@ -25,6 +26,7 @@ export default function PrivateMapNavbar() {
   const router = useRouter();
   const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
     useContext(MapContext);
+  const showPublishButton = useFeatureFlagEnabled("public-maps");
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -235,7 +237,7 @@ export default function PrivateMapNavbar() {
               >
                 Save to CRM
               </Button>
-              {view && (
+              {showPublishButton && view && (
                 <Button
                   type="button"
                   variant="outline"
