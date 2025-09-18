@@ -1,9 +1,11 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useContext } from "react";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
-import { useDataSourcesQuery } from "../data";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { useTRPC } from "@/services/trpc/react";
 import type { ReactNode } from "react";
 
 export default function DataSourcesProvider({
@@ -12,12 +14,20 @@ export default function DataSourcesProvider({
   children: ReactNode;
 }) {
   const { mapConfig, viewConfig } = useContext(MapContext);
+  const { organisationId } = useContext(OrganisationsContext);
 
-  const dataSourcesQuery = useDataSourcesQuery();
+  const trpc = useTRPC();
+
+  const { data: dataSources, isPending } = useQuery(
+    trpc.dataSource.byOrganisation.queryOptions(
+      { organisationId: organisationId || "" },
+      { enabled: Boolean(organisationId) },
+    ),
+  );
 
   const getDataSources = useCallback(() => {
-    return dataSourcesQuery.data?.dataSources || [];
-  }, [dataSourcesQuery.data?.dataSources]);
+    return dataSources || [];
+  }, [dataSources]);
 
   const getDataSourceById = useCallback(
     (id: string | null | undefined) => {
@@ -33,11 +43,9 @@ export default function DataSourcesProvider({
   const getChoroplethDataSource = useCallback(() => {
     if (!viewConfig.areaDataSourceId) return null;
     return (
-      dataSourcesQuery.data?.dataSources?.find(
-        (ds) => ds.id === viewConfig.areaDataSourceId,
-      ) || null
+      dataSources?.find((ds) => ds.id === viewConfig.areaDataSourceId) || null
     );
-  }, [dataSourcesQuery.data?.dataSources, viewConfig.areaDataSourceId]);
+  }, [dataSources, viewConfig.areaDataSourceId]);
 
   const getMarkerDataSources = () => {
     const dataSources = getDataSources();
@@ -53,7 +61,7 @@ export default function DataSourcesProvider({
   return (
     <DataSourcesContext
       value={{
-        dataSourcesLoading: dataSourcesQuery.loading,
+        dataSourcesLoading: isPending,
         getDataSources,
         getDataSourceById,
         getChoroplethDataSource,

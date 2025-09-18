@@ -1,7 +1,7 @@
 import { createContext } from "react";
-import type { DataSourcesQuery } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 
-type DataSource = NonNullable<DataSourcesQuery["dataSources"]>[0];
+type DataSource = RouterOutputs["dataSource"]["byOrganisation"][number];
 
 export const DataSourcesContext = createContext<{
   /* State */
