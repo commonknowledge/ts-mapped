@@ -130,7 +130,7 @@ export default function ConfigurationForm({
         <>
           <FormFieldWrapper
             label="Automatically sync data to Mapped"
-            hint="When enabled, any change you make in this Action Network database will automatically display on your map."
+            hint="When enabled, any change you make in this database will automatically display on your map."
             isHorizontal
           >
             <Switch
