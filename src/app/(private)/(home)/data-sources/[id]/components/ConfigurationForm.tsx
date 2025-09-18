@@ -129,7 +129,8 @@ export default function ConfigurationForm({
       {features.autoImport && (
         <>
           <FormFieldWrapper
-            label="Automatically sync fields to Mapped"
+            label="Automatically sync data to Mapped"
+            hint="When enabled, any change you make in this Action Network database will automatically display on your map."
             isHorizontal
           >
             <Switch
