@@ -23,6 +23,7 @@ export default function Legend() {
   const colorScheme = useColorScheme(
     areaStats,
     viewConfig.colorScheme || ColorScheme.RedBlue,
+    viewConfig.calculationType === CalculationType.Count,
   );
   if (!colorScheme) {
     return null;

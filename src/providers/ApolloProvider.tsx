@@ -13,6 +13,7 @@ import { print } from "graphql";
 import { createClient } from "graphql-sse";
 import { useContext } from "react";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
+import { createSentryErrorLink } from "@/utils/apollo";
 import { ServerSessionContext } from "./ServerSessionProvider";
 import type { AreaStat, AreaStats } from "@/__generated__/types";
 import type { FetchResult, Operation } from "@apollo/client/core";
@@ -76,7 +77,7 @@ function makeClient(jwt: string | null, ignoreAuthErrors = false) {
     httpLink,
   );
 
-  const errorLink = onError(({ graphQLErrors, networkError }) => {
+  const redirectErrorLink = onError(({ graphQLErrors, networkError }) => {
     let unauthorized = false;
     if (
       networkError &&
@@ -99,7 +100,11 @@ function makeClient(jwt: string | null, ignoreAuthErrors = false) {
     }
   });
 
-  const linkChain = from([errorLink, splitLink]);
+  const linkChain = from([
+    redirectErrorLink,
+    createSentryErrorLink(),
+    splitLink,
+  ]);
 
   return new ApolloClient({
     cache: new InMemoryCache({

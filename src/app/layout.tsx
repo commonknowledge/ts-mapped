@@ -36,7 +36,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Full Stack TS Mapped",
+  title: "Mapped",
 };
 
 export default async function RootLayout({

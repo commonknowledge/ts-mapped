@@ -86,18 +86,16 @@ export default function Map({
       return;
     }
 
-    if (turfs?.length) {
-      draw.deleteAll();
+    draw.deleteAll();
 
-      // Add existing polygons from your array
-      turfs.forEach((turf) => {
-        draw.add({
-          type: "Feature",
-          properties: { ...turf },
-          geometry: turf.polygon,
-        });
+    // Add existing polygons from your array
+    turfs.forEach((turf) => {
+      draw.add({
+        type: "Feature",
+        properties: { ...turf },
+        geometry: turf.polygon,
       });
-    }
+    });
   }, [turfs, draw]);
 
   // Hover behavior
@@ -298,7 +296,7 @@ export default function Map({
                     filter: [
                       "all",
                       ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
+                      ["!=", "mode", "draw_polygon"],
                     ],
                     paint: {
                       "fill-color": mapColors.areas.color,
@@ -308,11 +306,7 @@ export default function Map({
                   {
                     id: "gl-draw-polygon-stroke",
                     type: "line",
-                    filter: [
-                      "all",
-                      ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
-                    ],
+                    filter: ["all", ["==", "$type", "Polygon"]],
                     paint: {
                       "line-color": mapColors.areas.color,
                       "line-width": 2,
@@ -349,7 +343,7 @@ export default function Map({
               setDraw(newDraw);
 
               const mapInstance = map.getMap();
-              mapInstance.addControl(newDraw, "top-right");
+              mapInstance.addControl(newDraw, "bottom-right");
 
               // Add event listeners for drawing
               mapInstance.on("draw.create", () => {
@@ -426,7 +420,11 @@ export default function Map({
       >
         {ready && (
           <>
-            <NavigationControl showZoom={true} showCompass={false} />
+            <NavigationControl
+              showZoom={true}
+              showCompass={false}
+              position="bottom-right"
+            />
             <Choropleth />
             <FilterMarkers />
             <PlacedMarkers />

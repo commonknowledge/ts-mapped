@@ -1,4 +1,4 @@
-import { HttpLink } from "@apollo/client";
+import { HttpLink, from } from "@apollo/client";
 import {
   ApolloClient,
   InMemoryCache,
@@ -6,10 +6,19 @@ import {
 } from "@apollo/experimental-nextjs-app-support";
 import { getServerSession } from "@/auth";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
+import { createSentryErrorLink } from "@/utils/apollo";
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(
   async () => {
     const { jwt } = await getServerSession();
+    const httpLink = new HttpLink({
+      uri: `${
+        process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL
+      }/api/graphql`,
+      headers: {
+        cookie: `JWT=${jwt || ""}`,
+      },
+    });
     return new ApolloClient({
       cache: new InMemoryCache(),
       // Don't throw exceptions on errors, instead use the { errors }
@@ -26,14 +35,7 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(
           errorPolicy: "all", // for client.mutate()
         },
       },
-      link: new HttpLink({
-        uri: `${
-          process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL
-        }/api/graphql`,
-        headers: {
-          cookie: `JWT=${jwt || ""}`,
-        },
-      }),
+      link: from([createSentryErrorLink(), httpLink]),
     });
   },
 );

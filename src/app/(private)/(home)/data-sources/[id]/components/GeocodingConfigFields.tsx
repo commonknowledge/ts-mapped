@@ -3,10 +3,6 @@ import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
 import { AreaGeocodingType } from "@/server/models/DataSource";
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-} from "@/shadcn/ui/dropdown-menu";
 import type { LooseGeocodingConfig } from "@/__generated__/types";
 import type { RouterOutputs } from "@/services/trpc/react";
 
@@ -80,12 +76,22 @@ export function GeocodingConfigFields({
         value: type,
       })) || [];
 
+  const onDropdownChange = (currentValue: string) => {
+    if (columns.some((c) => c === currentValue)) {
+      onChange({
+        columns: columns.filter((c) => c !== currentValue),
+      });
+    } else {
+      onChange({ columns: columns.concat([currentValue]) });
+    }
+  };
+
   return (
     <>
       <CustomSelect
         id="config-location-type"
         label="Location type"
-        placeholder="What kind of data is this?"
+        hint="Select how location data is formatted in your data source."
         value={typeSelectValue}
         options={locationTypeOptions}
         onValueChange={onTypeChange}
@@ -95,36 +101,17 @@ export function GeocodingConfigFields({
         <CustomMultiSelect
           id="config-location-columns-multi"
           label="Location columns"
+          allOptions={dataSource?.columnDefs.map((cd) => cd.name)}
           selectedOptions={columns}
-        >
-          <DropdownMenuContent>
-            {dataSource?.columnDefs.map((cd) => (
-              <DropdownMenuCheckboxItem
-                key={cd.name}
-                checked={columns.includes(cd.name)}
-                onSelect={(e) => e.preventDefault()}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    onChange({ columns: columns.concat([cd.name]) });
-                  } else {
-                    onChange({
-                      columns: columns.filter((c) => c !== cd.name),
-                    });
-                  }
-                }}
-              >
-                {cd.name}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </CustomMultiSelect>
+          onChange={onDropdownChange}
+        />
       )}
 
       {typeSelectValue === "Postcode" && (
         <CustomSelect
           id="config-location-column-postcode"
           label="Location column"
-          placeholder="Select a column to geocode on"
+          hint="Select which column to use as location data."
           value={column}
           options={locationColumnOptions}
           onValueChange={(column) => onChange({ column })}
@@ -136,7 +123,7 @@ export function GeocodingConfigFields({
           <CustomSelect
             id="config-location-column-area-code"
             label="Location column"
-            placeholder="Select a column to geocode on"
+            hint="Select which column to use as location data."
             value={column}
             options={locationColumnOptions}
             onValueChange={(column) => onChange({ column })}
@@ -144,7 +131,6 @@ export function GeocodingConfigFields({
           <CustomSelect
             id="config-area-type"
             label="Area type"
-            placeholder="What kind of area is this?"
             value={areaSetCode}
             options={areaTypeOptions}
             onValueChange={(areaSetCode) =>

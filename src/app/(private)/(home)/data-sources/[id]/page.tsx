@@ -1,4 +1,5 @@
 "use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { DataSourceFeatures } from "@/features";
@@ -14,11 +15,20 @@ export default function DataSourcePage({
   const { id } = use(params);
 
   const trpc = useTRPC();
-  const { data: dataSource, isPending } = useQuery(
-    trpc.dataSource.byId.queryOptions({ dataSourceId: id }),
+  const { data: dataSource, isFetching } = useQuery(
+    trpc.dataSource.byId.queryOptions(
+      { dataSourceId: id },
+      { refetchOnMount: "always" },
+    ),
   );
 
-  if (isPending) return null;
+  if (isFetching) {
+    return (
+      <div className="container">
+        <h1>Loading</h1>
+      </div>
+    );
+  }
 
   if (!dataSource) {
     return (

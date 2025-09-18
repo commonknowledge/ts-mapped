@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { LoaderPinwheel } from "lucide-react";
+import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import PageHeader from "@/components/PageHeader";
@@ -42,10 +42,11 @@ export default function DashboardPage() {
         action={
           <Button
             type="button"
+            size="lg"
             onClick={() => onClickNew()}
             disabled={createMapLoading}
           >
-            + New
+            <PlusIcon /> Add new
           </Button>
         }
       />

@@ -1,107 +1,95 @@
-import { Paintbrush, Scan, Type } from "lucide-react";
-import { useContext } from "react";
-import { ChoroplethContext } from "@/components/Map/context/ChoroplethContext";
+import { Layers, X } from "lucide-react";
+import Image from "next/image";
+import { useContext, useState } from "react";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { MapContext } from "@/components/Map/context/MapContext";
-import { Label } from "@/shadcn/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/shadcn/ui/select";
-import { Toggle } from "@/shadcn/ui/toggle";
-import { Tooltip } from "@/shadcn/ui/tooltip";
-import {
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shadcn/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
+import { Switch } from "@/shadcn/ui/switch";
+import { cn } from "@/shadcn/utils";
 import mapStyles from "../styles";
 import type { MapStyleName } from "@/__generated__/types";
 
 export default function MapStyleSelector() {
+  const [open, setOpen] = useState(false);
   const { viewConfig, updateViewConfig } = useContext(MapContext);
-  const { boundariesPanelOpen, setBoundariesPanelOpen } =
-    useContext(ChoroplethContext);
 
   return (
-    <div className="h-14 rounded-lg py-2 px-4 bg-white shadow-lg">
-      <div className="flex gap-2 items-center h-full">
-        <TooltipProvider>
-          <Tooltip>
-            <Select
-              value={viewConfig.getMapStyle().name}
-              onValueChange={(value) =>
-                updateViewConfig({
-                  mapStyleName: value as MapStyleName,
-                })
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger className="w-12 h-12 flex items-center justify-center rounded-xl shadow-sm bg-white hover:bg-muted text-primary cursor-pointer">
+        <Layers size={20} />
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 border-0 shadow-sm">
+        <div className="flex justify-between items-center gap-8 p-3 border-b">
+          <h2 className="font-semibold text-sm">Map Layers</h2>
+          <button
+            aria-label="Close style selector popover"
+            className="text-muted-foreground hover:text-primary cursor-pointer"
+            onClick={() => setOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <form className="flex flex-col gap-6 p-3">
+          <fieldset>
+            <legend className="sr-only">Select map style:</legend>
+
+            <div className="flex gap-2">
+              {Object.keys(mapStyles).map((code) => {
+                const styleName =
+                  mapStyles[code as keyof typeof mapStyles].name;
+                const thumbnail =
+                  mapStyles[code as keyof typeof mapStyles].thumbnail;
+                const isChecked = viewConfig.mapStyleName === styleName;
+
+                return (
+                  <div key={styleName}>
+                    <input
+                      className="sr-only"
+                      type="radio"
+                      name="mapStyle"
+                      id={styleName}
+                      value={styleName}
+                      checked={isChecked}
+                      onChange={() =>
+                        updateViewConfig({
+                          mapStyleName: styleName as MapStyleName,
+                        })
+                      }
+                    />
+                    <label
+                      htmlFor={styleName}
+                      className="flex flex-col gap-1 / text-center text-xs text-muted-foreground / cursor-pointer"
+                    >
+                      <div
+                        className={cn(
+                          "w-[56px] h-[56px] rounded-lg overflow-hidden bg-muted",
+                          "border-2 border-transparent hover:border-neutral-200",
+                          {
+                            "border-blue-300 hover:border-blue-300": isChecked,
+                          },
+                        )}
+                      >
+                        {thumbnail && <Image src={thumbnail} alt="" />}
+                      </div>
+                      {styleName}
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <FormFieldWrapper label="Show labels" isHorizontal>
+            <Switch
+              checked={viewConfig.showLabels}
+              onCheckedChange={(checked) =>
+                updateViewConfig({ showLabels: checked })
               }
-            >
-              <TooltipTrigger asChild>
-                <SelectTrigger className="border-0 p-1 gap-0 h-auto w-auto shadow-none bg-transparent hover:bg-accent">
-                  <Paintbrush className="w-4 h-4 mr-1 text-muted-foreground" />
-                </SelectTrigger>
-              </TooltipTrigger>
-              <SelectContent align="center">
-                <Label className="p-2">Select Map Style</Label>
-                {Object.keys(mapStyles).map((code) => (
-                  <SelectItem
-                    key={code}
-                    value={mapStyles[code as keyof typeof mapStyles].name}
-                  >
-                    {mapStyles[code as keyof typeof mapStyles].name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <TooltipContent>
-              <p>Map style</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle
-                pressed={viewConfig.showLabels}
-                onPressedChange={(value) =>
-                  updateViewConfig({ showLabels: value })
-                }
-              >
-                <Type
-                  className={`w-4 h-4  text-muted-foreground ${
-                    viewConfig.showLabels ? "opacity-100" : "opacity-50"
-                  }`}
-                />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{viewConfig.showLabels ? "Hide" : "Show"} labels</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle
-                pressed={boundariesPanelOpen}
-                onPressedChange={(value) => setBoundariesPanelOpen(value)}
-                className={`relative ${boundariesPanelOpen ? "bg-neutral-200" : ""}`}
-              >
-                <Scan className="w-4 h-4  text-muted-foreground" />
-                {viewConfig.areaSetGroupCode && (
-                  <div
-                    className={`absolute top-1 right-1  bg-neutral-500 rounded-full h-1.5 w-1.5  ${
-                      boundariesPanelOpen ? "opacity-100" : "opacity-50"
-                    }`}
-                  />
-                )}
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{boundariesPanelOpen ? "Hide" : "Show"} boundaries</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </div>
+            />
+          </FormFieldWrapper>
+        </form>
+      </PopoverContent>
+    </Popover>
   );
 }
