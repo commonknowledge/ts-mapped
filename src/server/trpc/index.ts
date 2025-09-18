@@ -4,6 +4,7 @@ import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
 import { serverDataSourceSerializer } from "@/utils/superjson";
 import { findDataSourceById } from "../repositories/DataSource";
+import { findMapById } from "../repositories/Map";
 import { findOrganisationForUser } from "../repositories/Organisation";
 import { findUserById } from "../repositories/User";
 
@@ -103,4 +104,28 @@ export const dataSourceProcedure = protectedProcedure
       });
 
     return next({ ctx: { organisation, dataSource } });
+  });
+
+export const mapProcedure = protectedProcedure
+  .input(z.object({ mapId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const map = await findMapById(input.mapId);
+
+    if (!map)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Map not found",
+      });
+
+    const organisation = await findOrganisationForUser(
+      map.organisationId,
+      ctx.user.id,
+    );
+    if (!organisation)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organisation not found",
+      });
+
+    return next({ ctx: { organisation, map } });
   });
