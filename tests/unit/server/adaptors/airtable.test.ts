@@ -16,6 +16,8 @@ describe("Airtable adaptor tests", () => {
     );
     const firstRow = await adaptor.fetchFirst();
     expect(firstRow).toHaveProperty("externalId");
+    expect(firstRow?.json).toHaveProperty("Empty Field");
+    expect(firstRow?.json["Constant Field"]).toBe("Hello");
   });
 
   test("extractExternalRecordIdsFromWebhookBody yields external IDs", async () => {
@@ -89,12 +91,12 @@ describe("Airtable adaptor tests", () => {
       credentials.airtable.tableId,
     );
     try {
-      await adaptor.createField("TestField", ColumnType.String);
+      await adaptor.createField("TestField abc", ColumnType.String);
     } catch (e) {
       expect(String(e)).toContain("DUPLICATE");
     }
     const fields = await adaptor.getFields();
-    expect(fields).toContain("TestField");
+    expect(Object.values(fields || {})).toContain("TestField");
   });
 
   test("getFields returns field names", async () => {
@@ -105,8 +107,7 @@ describe("Airtable adaptor tests", () => {
       credentials.airtable.tableId,
     );
     const fields = await adaptor.getFields();
-    expect(Array.isArray(fields)).toBe(true);
-    expect(fields.length).toBeGreaterThan(0);
+    expect(Object.keys(fields || {}).length).toBeGreaterThan(0);
   });
 
   test("getRecordCount returns null", async () => {
