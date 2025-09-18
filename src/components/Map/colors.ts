@@ -52,7 +52,8 @@ const getInterpolator = (scheme: ColorScheme | undefined) => {
 
 export const useColorScheme = (
   areaStats: AreaStats | null | undefined,
-  scheme?: ColorScheme,
+  scheme: ColorScheme,
+  isCount: boolean,
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
@@ -88,6 +89,11 @@ export const useColorScheme = (
       }
     }
 
+    // Override minValue for counts for full range of values
+    if (isCount) {
+      minValue = 0;
+    }
+
     // Handle case where all values are the same (e.g., all counts are 1)
     if (minValue === maxValue) {
       // For count records, create a simple color scheme
@@ -117,7 +123,7 @@ export const useColorScheme = (
       maxValue,
       colorScale,
     };
-  }, [areaStats, scheme]);
+  }, [areaStats, isCount, scheme]);
 };
 
 const getCategoricalColor = (
@@ -129,10 +135,10 @@ const getCategoricalColor = (
 
 export const useFillColor = (
   areaStats: AreaStats | null | undefined,
-  scheme?: ColorScheme,
-  isCount?: boolean,
+  scheme: ColorScheme,
+  isCount: boolean,
 ): DataDrivenPropertyValueSpecification<string> => {
-  const colorScheme = useColorScheme(areaStats, scheme);
+  const colorScheme = useColorScheme(areaStats, scheme, isCount);
   // useMemo to cache calculated fillColor
   return useMemo(() => {
     if (!colorScheme) {
