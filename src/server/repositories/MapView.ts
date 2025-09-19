@@ -27,3 +27,7 @@ export async function upsertMapView(view: NewMapView) {
     .returningAll()
     .executeTakeFirstOrThrow();
 }
+
+export async function deleteMapView(id: string) {
+  return db.deleteFrom("mapView").where("id", "=", id).execute();
+}
