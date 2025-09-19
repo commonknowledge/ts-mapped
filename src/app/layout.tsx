@@ -9,6 +9,7 @@ import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
+import { PostHogProvider } from "@/providers/PostHogProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { getClient } from "@/services/apollo";
 import { TRPCReactProvider } from "@/services/trpc/react";
@@ -58,15 +59,17 @@ export default async function RootLayout({
         className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
       >
         <body className={ibmPlexSans.className}>
-          <TRPCReactProvider>
-            <ApolloProvider ignoreAuthErrors>
-              <NProgressProvider>
-                <main className="min-h-screen relative z-10">
-                  <PublicMapPage host={host} />
-                </main>
-              </NProgressProvider>
-            </ApolloProvider>
-          </TRPCReactProvider>
+          <PostHogProvider>
+            <TRPCReactProvider>
+              <ApolloProvider ignoreAuthErrors>
+                <NProgressProvider>
+                  <main className="min-h-screen relative z-10">
+                    <PublicMapPage host={host} />
+                  </main>
+                </NProgressProvider>
+              </ApolloProvider>
+            </TRPCReactProvider>
+          </PostHogProvider>
         </body>
       </html>
     );
@@ -83,18 +86,22 @@ export default async function RootLayout({
       className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} `}
     >
       <body className={ibmPlexSans.className + " antialiased"}>
-        <ServerSessionProvider serverSession={serverSession}>
-          <OrganisationsProvider organisations={organisations}>
-            <TRPCReactProvider>
-              <ApolloProvider>
-                <NProgressProvider>
-                  <main className="min-h-screen relative z-10">{children}</main>
-                  <Toaster position="top-center" />
-                </NProgressProvider>
-              </ApolloProvider>
-            </TRPCReactProvider>
-          </OrganisationsProvider>
-        </ServerSessionProvider>
+        <PostHogProvider>
+          <ServerSessionProvider serverSession={serverSession}>
+            <OrganisationsProvider organisations={organisations}>
+              <TRPCReactProvider>
+                <ApolloProvider>
+                  <NProgressProvider>
+                    <main className="min-h-screen relative z-10">
+                      {children}
+                    </main>
+                    <Toaster position="top-center" />
+                  </NProgressProvider>
+                </ApolloProvider>
+              </TRPCReactProvider>
+            </OrganisationsProvider>
+          </ServerSessionProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
