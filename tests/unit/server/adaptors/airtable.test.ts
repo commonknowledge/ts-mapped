@@ -7,7 +7,7 @@ import { getPublicUrl } from "@/server/services/urls";
 const credentials = inject("credentials");
 
 describe("Airtable adaptor tests", () => {
-   test("Connection succeeds", async () => {
+  test("Connection succeeds", async () => {
     const adaptor = new AirtableAdaptor(
       "test-data-source",
       credentials.airtable.apiKey,
