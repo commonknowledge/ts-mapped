@@ -317,16 +317,16 @@ export class AirtableAdaptor implements DataSourceAdaptor {
 
     const mappedJson = {
       offset: "offset" in json ? String(json.offset) : undefined,
-      records: json.records.map(r => {
-        const record = r as { id: string, fields: Record<string, unknown> }
+      records: json.records.map((r) => {
+        const record = r as { id: string; fields: Record<string, unknown> };
         for (const f of fields) {
           if (!(f in record.fields)) {
-            record.fields[f] = null
+            record.fields[f] = null;
           }
         }
-        return record
-      })
-    }
+        return record;
+      }),
+    };
 
     return mappedJson;
   }
