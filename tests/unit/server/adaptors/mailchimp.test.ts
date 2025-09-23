@@ -1,8 +1,8 @@
 import { describe, expect, inject, test } from "vitest";
 import { ColumnType } from "@/__generated__/types";
 import { MailchimpAdaptor } from "@/server/adaptors/mailchimp";
-import { getPublicUrl } from "@/server/services/urls";
 import logger from "@/server/services/logger";
+import { getPublicUrl } from "@/server/services/urls";
 import { sleep } from "../../../utils";
 
 const credentials = inject("credentials");
@@ -12,7 +12,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
     const firstRow = await adaptor.fetchFirst();
     expect(firstRow).toHaveProperty("externalId");
@@ -22,7 +22,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     // Test webhook body structure for Mailchimp
@@ -38,7 +38,7 @@ describe("Mailchimp adaptor tests", () => {
 
     const ids = [];
     for await (const id of adaptor.extractExternalRecordIdsFromWebhookBody(
-      body
+      body,
     )) {
       ids.push(id);
     }
@@ -50,7 +50,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
     const mergeFields = await adaptor.getMergeFields();
     expect(Array.isArray(mergeFields)).toBe(true);
@@ -64,7 +64,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
     const count = await adaptor.getRecordCount();
     expect(typeof count).toBe("number");
@@ -75,7 +75,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
     const results = [];
     let recordCount = 0;
@@ -98,7 +98,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
     const firstRecord = await adaptor.fetchFirst();
 
@@ -114,7 +114,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     // Get some records first
@@ -143,7 +143,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     const firstRecord = await adaptor.fetchFirst();
@@ -171,7 +171,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     // Enable webhook
@@ -202,7 +202,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     // This should run without error even if no ngrok webhooks exist
@@ -213,11 +213,11 @@ describe("Mailchimp adaptor tests", () => {
     expect(ngrokWebhooks.length).toBe(0);
   });
 
-  test.only("updateRecords updates member merge fields", async () => {
+  test("updateRecords updates member merge fields", async () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     // Get a member to update
@@ -270,7 +270,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     // Create array with more than allowed batch size
@@ -279,7 +279,7 @@ describe("Mailchimp adaptor tests", () => {
       .map((_, i) => `fake-id-${i}`);
 
     await expect(adaptor.fetchByExternalId(tooManyIds)).rejects.toThrow(
-      "Cannot fetch more than 100 records at once"
+      "Cannot fetch more than 100 records at once",
     );
   });
 
@@ -287,7 +287,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     try {
@@ -311,7 +311,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     const bodyWithWrongListId = {
@@ -326,7 +326,7 @@ describe("Mailchimp adaptor tests", () => {
 
     const ids = [];
     for await (const id of adaptor.extractExternalRecordIdsFromWebhookBody(
-      bodyWithWrongListId
+      bodyWithWrongListId,
     )) {
       ids.push(id);
     }
@@ -339,7 +339,7 @@ describe("Mailchimp adaptor tests", () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
-      credentials.mailchimp.listId
+      credentials.mailchimp.listId,
     );
 
     // Get a record first
@@ -367,7 +367,6 @@ describe("Mailchimp adaptor tests", () => {
           firstRecord.externalId,
         ]);
 
-        console.log("updated", updatedRecords[0]);
         expect(updatedRecords[0].json["My View"]).toBe(true);
         break;
       } catch {
@@ -385,11 +384,12 @@ describe("Mailchimp adaptor tests", () => {
           firstRecord.externalId,
         ]);
 
-        console.log("updated", updatedRecords[0]);
-        expect(updatedRecords[0].json["My View"]).toBeFalsy(true);
+        expect(updatedRecords[0].json["My View"]).toBeFalsy();
         break;
       } catch {
-        logger.warn("Mailchimp member not untagged yet, sleeping for 5 seconds");
+        logger.warn(
+          "Mailchimp member not untagged yet, sleeping for 5 seconds",
+        );
         await sleep(5000);
       }
     }

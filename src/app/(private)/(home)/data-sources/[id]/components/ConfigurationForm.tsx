@@ -89,20 +89,18 @@ export default function ConfigurationForm({
       if (result.data?.updateDataSourceConfig?.code !== 200) {
         throw new Error(String(result.errors || "Unknown error"));
       } else {
-        setLoading(false);
         if (redirectToParent) {
           router.push(`/data-sources/${dataSource.id}`);
         } else {
           toast.success("Your changes have been saved.");
+          setLoading(false);
         }
-        return;
       }
     } catch (e) {
       console.error(`Could not update data source: ${e}`);
       setError("Could not update data source.");
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
@@ -159,7 +157,7 @@ export default function ConfigurationForm({
         variant="secondary"
         type="submit"
       >
-        Import data
+        Save and import
       </Button>
 
       {error && <p className="text-xs text-red-500">{error}</p>}

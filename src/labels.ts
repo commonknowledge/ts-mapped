@@ -46,7 +46,6 @@ export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   tableId: "Table ID",
   type: "Type",
   url: "URL",
-  serverPrefix: "Server Prefix",
 };
 
 export const DataSourceTypeLabels: Record<DataSourceType, string> = {
