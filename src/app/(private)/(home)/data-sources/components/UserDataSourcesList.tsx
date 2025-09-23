@@ -112,7 +112,7 @@ export default function UserDataSourcesList({
               <Link
                 key={dataSource.id}
                 href={`/data-sources/${dataSource.id}`}
-                className="hover:border-blue-300"
+                className="hover:border-blue-300 h-full"
               >
                 <DataSourceItem dataSource={dataSource} />
               </Link>
