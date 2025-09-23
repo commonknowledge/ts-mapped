@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import DataListRow from "@/components/DataListRow";
+import DataSourceIcon from "@/components/DataSourceIcon";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
@@ -168,6 +169,7 @@ export default function NewDataSourcePage() {
                 <SelectContent>
                   {Object.values(DataSourceType).map((type) => (
                     <SelectItem key={type} value={type}>
+                      <DataSourceIcon type={type} />
                       {DataSourceTypeLabels[type as DataSourceType]}
                     </SelectItem>
                   ))}
