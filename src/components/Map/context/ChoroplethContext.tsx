@@ -1,8 +1,12 @@
-import { QueryResult } from "@apollo/client";
 import { createContext } from "react";
-import { AreaStatsQuery, AreaStatsQueryVariables } from "@/__generated__/types";
 import { DEFAULT_ZOOM } from "@/constants";
-import { ChoroplethLayerConfig, getChoroplethLayerConfig } from "../sources";
+import { getChoroplethLayerConfig } from "../sources";
+import type { ChoroplethLayerConfig } from "../sources";
+import type {
+  AreaStatsQuery,
+  AreaStatsQueryVariables,
+} from "@/__generated__/types";
+import type { QueryResult } from "@apollo/client";
 
 export const ChoroplethContext = createContext<{
   /* State */

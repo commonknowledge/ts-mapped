@@ -12,18 +12,14 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: [".next", "src/__generated__"],
+    ignores: [".next", ".sanity", "next-env.d.ts", "src/__generated__"],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   {
     rules: {
-      // "@typescript-eslint/consistent-type-imports": "error", // TODO: re-enable when ready
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/consistent-type-imports": "error",
       "import/order": [
         "error",
         {

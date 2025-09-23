@@ -1,8 +1,4 @@
 import { gql } from "@apollo/client";
-import {
-  PublishedPublicMapQuery,
-  PublishedPublicMapQueryVariables,
-} from "@/__generated__/types";
 import ChoroplethProvider from "@/components/Map/providers/ChoroplethProvider";
 import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
 import DataSourcesProvider from "@/components/Map/providers/DataSourcesProvider";
@@ -13,6 +9,10 @@ import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import { getClient } from "@/services/apollo";
 import PublicMap from "./PublicMap/PublicMap";
+import type {
+  PublishedPublicMapQuery,
+  PublishedPublicMapQueryVariables,
+} from "@/__generated__/types";
 
 export default async function PublicMapPage({ host }: { host: string }) {
   const apolloClient = await getClient();
@@ -32,8 +32,11 @@ export default async function PublicMapPage({ host }: { host: string }) {
           descriptionLink
           published
           dataSourceConfigs {
+            allowUserEdit
+            allowUserSubmit
             dataSourceId
             dataSourceLabel
+            formUrl
             nameLabel
             nameColumns
             descriptionLabel

@@ -1,9 +1,7 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as turf from "@turf/turf";
-import * as mapboxgl from "mapbox-gl";
+import dynamic from "next/dynamic";
 import {
   useCallback,
   useContext,
@@ -13,7 +11,6 @@ import {
   useState,
 } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
-import { v4 as uuidv4 } from "uuid";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
@@ -26,13 +23,13 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
-import { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
+import SearchResultMarker from "./SearchResultMarker";
+import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
 export default function Map({
   onSourceLoad,
@@ -52,7 +49,7 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
-  const { insertPlacedMarker, deleteTurf, insertTurf, updateTurf, turfs } =
+  const { deleteTurf, insertTurf, updateTurf, turfs, searchMarker } =
     useContext(MarkerAndTurfContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
@@ -80,18 +77,16 @@ export default function Map({
       return;
     }
 
-    if (turfs?.length) {
-      draw.deleteAll();
+    draw.deleteAll();
 
-      // Add existing polygons from your array
-      turfs.forEach((turf) => {
-        draw.add({
-          type: "Feature",
-          properties: { ...turf },
-          geometry: turf.polygon,
-        });
+    // Add existing polygons from your array
+    turfs.forEach((turf) => {
+      draw.add({
+        type: "Feature",
+        properties: { ...turf },
+        geometry: turf.polygon,
       });
-    }
+    });
   }, [turfs, draw]);
 
   // Hover behavior
@@ -261,142 +256,115 @@ export default function Map({
 
           toggleLabelVisibility(viewConfig.showLabels);
 
-          if (!hideDrawControls) {
-            const geocoder = new MapboxGeocoder({
-              accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
-              mapboxgl: mapboxgl,
-              countries: "GB", // TODO: remove when we support other countries
-            });
-
-            // Listen for search results
-            geocoder.on("result", (event) => {
-              const result = event.result;
-              insertPlacedMarker({
-                id: uuidv4(),
-                label: result.place_name,
-                notes: "",
-                point: { lng: result.center[0], lat: result.center[1] },
-                folderId: null,
-              });
-              geocoder.clear();
-            });
-
-            map.addControl(geocoder, "top-right");
-
-            // Initialize draw if not already done
-            if (!draw) {
-              const newDraw = new MapboxDraw({
-                displayControlsDefault: false,
-                controls: {
-                  polygon: true,
+          // Initialize draw if not already done
+          if (!hideDrawControls && !draw) {
+            const newDraw = new MapboxDraw({
+              displayControlsDefault: false,
+              controls: {
+                polygon: true,
+              },
+              userProperties: true,
+              styles: [
+                {
+                  id: "gl-draw-polygon-fill",
+                  type: "fill",
+                  filter: [
+                    "all",
+                    ["==", "$type", "Polygon"],
+                    ["!=", "mode", "draw_polygon"],
+                  ],
+                  paint: {
+                    "fill-color": mapColors.areas.color,
+                    "fill-opacity": 0.3,
+                  },
                 },
-                userProperties: true,
-                styles: [
-                  {
-                    id: "gl-draw-polygon-fill",
-                    type: "fill",
-                    filter: [
-                      "all",
-                      ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
-                    ],
-                    paint: {
-                      "fill-color": mapColors.areas.color,
-                      "fill-opacity": 0.3,
-                    },
+                {
+                  id: "gl-draw-polygon-stroke",
+                  type: "line",
+                  filter: ["all", ["==", "$type", "Polygon"]],
+                  paint: {
+                    "line-color": mapColors.areas.color,
+                    "line-width": 2,
                   },
-                  {
-                    id: "gl-draw-polygon-stroke",
-                    type: "line",
-                    filter: [
-                      "all",
-                      ["==", "$type", "Polygon"],
-                      ["!=", "mode", "draw"],
-                    ],
-                    paint: {
-                      "line-color": mapColors.areas.color,
-                      "line-width": 2,
-                    },
+                },
+                {
+                  id: "gl-draw-polygon-and-line-vertex-halo-active",
+                  type: "circle",
+                  filter: [
+                    "all",
+                    ["==", "meta", "vertex"],
+                    ["==", "$type", "Point"],
+                  ],
+                  paint: {
+                    "circle-radius": 11,
+                    "circle-color": "#FFF",
                   },
-                  {
-                    id: "gl-draw-polygon-and-line-vertex-halo-active",
-                    type: "circle",
-                    filter: [
-                      "all",
-                      ["==", "meta", "vertex"],
-                      ["==", "$type", "Point"],
-                    ],
-                    paint: {
-                      "circle-radius": 11,
-                      "circle-color": "#FFF",
-                    },
+                },
+                {
+                  id: "gl-draw-polygon-and-line-vertex-active",
+                  type: "circle",
+                  filter: [
+                    "all",
+                    ["==", "meta", "vertex"],
+                    ["==", "$type", "Point"],
+                  ],
+                  paint: {
+                    "circle-radius": 10,
+                    "circle-color": mapColors.areas.color,
                   },
-                  {
-                    id: "gl-draw-polygon-and-line-vertex-active",
-                    type: "circle",
-                    filter: [
-                      "all",
-                      ["==", "meta", "vertex"],
-                      ["==", "$type", "Point"],
-                    ],
-                    paint: {
-                      "circle-radius": 10,
-                      "circle-color": mapColors.areas.color,
-                    },
-                  },
-                ],
-              });
-              setDraw(newDraw);
+                },
+              ],
+            });
+            setDraw(newDraw);
 
-              const mapInstance = map.getMap();
-              mapInstance.addControl(newDraw, "top-right");
+            const mapInstance = map.getMap();
+            mapInstance.addControl(newDraw, "bottom-right");
 
-              // Add event listeners for drawing
-              mapInstance.on("draw.create", () => {
-                const data = newDraw.getAll();
-                if (data.features.length > 0) {
-                  const feature = data.features[data.features.length - 1];
+            // Add event listeners for drawing
+            mapInstance.on("draw.create", () => {
+              const data = newDraw.getAll();
+              if (data.features.length > 0) {
+                const feature = data.features[data.features.length - 1];
+                const area = turf.area(feature);
+                const roundedArea = Math.round(area * 100) / 100;
+                insertTurf({
+                  id: `turf-temp-${new Date().getTime()}`,
+                  label: feature.properties?.name || "",
+                  notes: "",
+                  area: roundedArea,
+                  polygon: feature.geometry,
+                  createdAt: new Date().toISOString(),
+                });
+              }
+            });
+
+            // When user updates polygon on the map
+            mapInstance.on("draw.update", (e: MapboxDraw.DrawUpdateEvent) => {
+              if (e.features.length > 0) {
+                e?.features?.forEach((feature) => {
                   const area = turf.area(feature);
                   const roundedArea = Math.round(area * 100) / 100;
-                  insertTurf({
-                    id: `turf-temp-${new Date().getTime()}`,
-                    label: feature.properties?.name || "",
-                    notes: "",
+
+                  // Update your turf using the feature.id
+                  updateTurf({
+                    id: feature?.properties?.id,
+                    notes: feature?.properties?.notes,
+                    label: feature?.properties?.label,
                     area: roundedArea,
                     polygon: feature.geometry,
-                    createdAt: new Date().toISOString(),
+                    createdAt: feature?.properties?.createdAt,
                   });
-                }
-              });
+                });
+              }
+            });
 
-              // When user updates polygon on the map
-              mapInstance.on("draw.update", (e: MapboxDraw.DrawUpdateEvent) => {
-                if (e.features.length > 0) {
-                  e?.features?.forEach((feature) => {
-                    const area = turf.area(feature);
-                    const roundedArea = Math.round(area * 100) / 100;
-
-                    // Update your turf using the feature.id
-                    updateTurf({
-                      id: feature?.properties?.id,
-                      notes: feature?.properties?.notes,
-                      label: feature?.properties?.label,
-                      area: roundedArea,
-                      polygon: feature.geometry,
-                      createdAt: feature?.properties?.createdAt,
-                    });
-                  });
-                }
-              });
-
-              // Add delete handler
-              mapInstance.on("draw.delete", (e: DrawDeleteEvent) => {
-                const deletedIds = e.features.map((f) => f.id);
-                for (const id of deletedIds) {
-                  deleteTurf(id);
-                }
-              });
-            }
+            // Add delete handler
+            mapInstance.on("draw.delete", (e: DrawDeleteEvent) => {
+              const deletedIds = e.features.map((f) => f.id);
+              for (const id of deletedIds) {
+                deleteTurf(id);
+              }
+            });
           }
           setReady(true);
         }}
@@ -426,11 +394,16 @@ export default function Map({
       >
         {ready && (
           <>
-            <NavigationControl showZoom={true} showCompass={false} />
+            <NavigationControl
+              showZoom={true}
+              showCompass={false}
+              position="bottom-right"
+            />
             <Choropleth />
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
+            {searchMarker && <SearchResultMarker />}
             {hoverMarker && (
               <Popup
                 longitude={hoverMarker.coordinates[0]}
@@ -448,6 +421,17 @@ export default function Map({
           </>
         )}
       </MapGL>
+      <div className="absolute top-4 right-4 z-20">
+        <SearchBox />
+      </div>
     </MapWrapper>
   );
 }
+
+const SearchBox = dynamic(
+  () => import("./SearchBox").then((mod) => ({ default: mod.SearchBox })),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);

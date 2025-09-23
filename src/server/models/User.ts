@@ -1,10 +1,17 @@
-import { ColumnType, GeneratedAlways, Insertable, Updateable } from "kysely";
 import z from "zod";
+import type {
+  ColumnType,
+  GeneratedAlways,
+  Insertable,
+  Updateable,
+} from "kysely";
 
 export const userSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
   email: z.string().email().trim().toLowerCase(),
+  name: z.string().trim(),
+  avatarUrl: z.string().url().trim().nullish(),
   passwordHash: z.string(),
 });
 

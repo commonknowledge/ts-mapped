@@ -1,7 +1,7 @@
-import { Insertable, Updateable } from "kysely";
-
-import { ColumnType, GeneratedAlways } from "kysely";
 import z from "zod";
+import type { Insertable, Updateable } from "kysely";
+
+import type { ColumnType, GeneratedAlways } from "kysely";
 
 export const folderSchema = z.object({
   id: z.string(),

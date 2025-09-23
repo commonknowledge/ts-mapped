@@ -33,7 +33,7 @@
 
 - Run tests with `npm test`
 - This will download `test_credentials.json` from BitWarden Secrets manager, which is required to test the data source adaptors.
-- Filter tests with `npm test -t [filter]`
+- Filter tests with `npm test -- -t [filter]`
 
 ## Further Details
 

@@ -1,12 +1,12 @@
 import crypto from "crypto";
 import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
-import { EnrichedRecord } from "@/server/mapping/enrich";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { ExternalRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface MergeField {
   merge_id: number;
@@ -72,7 +72,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
   }
 
   async *extractExternalRecordIdsFromWebhookBody(
-    body: unknown,
+    body: unknown
   ): AsyncGenerator<string> {
     if (!body) {
       throw new Error("Empty Mailchimp webhook body");
@@ -85,7 +85,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     // Only process events for our specific list
     if (notification.data.list_id !== this.listId) {
       logger.error(
-        `Mismatched Mailchimp webhook list: Expected ${this.listId}, got ${notification.data.list_id}`,
+        `Mismatched Mailchimp webhook list: Expected ${this.listId}, got ${notification.data.list_id}`
       );
       return;
     }
@@ -127,18 +127,20 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const responseText = await response.text();
         throw Error(
-          `Bad get list response: ${response.status}, ${responseText}`,
+          `Bad get list response: ${response.status}, ${responseText}`
         );
       }
 
-      const json = await response.json();
+      const json = (await response.json()) as {
+        stats?: { member_count?: number };
+      };
       return json.stats?.member_count || null;
     } catch (error) {
       logger.warn(
         `Could not get record count for Mailchimp list ${this.listId}`,
         {
           error,
-        },
+        }
       );
       return null;
     }
@@ -157,17 +159,17 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const responseText = await response.text();
       throw Error(
-        `Bad get merge fields response: ${response.status}, ${responseText}`,
+        `Bad get merge fields response: ${response.status}, ${responseText}`
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as { merge_fields: MergeField[] };
     this.cachedMergeFields = json.merge_fields || [];
     return json.merge_fields || [];
   }
 
   private flattenAddress(
-    addressData: Record<string, string>,
+    addressData: Record<string, string>
   ): Record<string, unknown> {
     if (!addressData || typeof addressData !== "object") {
       return {};
@@ -184,7 +186,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
   }
 
   private transformMemberData(
-    member: Record<string, unknown>,
+    member: Record<string, unknown>
   ): Record<string, unknown> {
     const data: Record<string, unknown> = {
       email_address: member.email_address,
@@ -214,9 +216,11 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
     // Add tags as a comma-separated string
     if (member.tags && Array.isArray(member.tags)) {
-      data.tags = member.tags
-        .map((tag: { name: string }) => tag.name)
-        .join(", ");
+      for (const tag of member.tags as { name: string, status: string }[]) {
+        if (tag.status === "present") {
+          data[tag.name] = true
+        }
+      }
     }
 
     return data;
@@ -235,11 +239,11 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const responseText = await response.text();
         throw Error(
-          `Bad fetch members response: ${response.status}, ${responseText}`,
+          `Bad fetch members response: ${response.status}, ${responseText}`
         );
       }
 
-      const json = await response.json();
+      const json = (await response.json()) as { members: { id: string }[] };
       const members = json.members || [];
 
       for (const member of members) {
@@ -267,11 +271,11 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const responseText = await response.text();
         throw Error(
-          `Bad fetch first member response: ${response.status}, ${responseText}`,
+          `Bad fetch first member response: ${response.status}, ${responseText}`
         );
       }
 
-      const json = await response.json();
+      const json = (await response.json()) as { members: { id: string }[] };
       const members = json.members || [];
 
       if (members.length > 0) {
@@ -286,7 +290,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         `Could not get first record for Mailchimp list ${this.listId}`,
         {
           error,
-        },
+        }
       );
     }
     return null;
@@ -308,7 +312,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         });
 
         if (response.ok) {
-          const member = await response.json();
+          const member = (await response.json()) as { id: string };
           records.push({
             externalId: member.id,
             json: this.transformMemberData(member),
@@ -319,7 +323,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         } else {
           const responseText = await response.text();
           logger.warn(
-            `Error fetching Mailchimp member ${externalId}: ${response.status}, ${responseText}`,
+            `Error fetching Mailchimp member ${externalId}: ${response.status}, ${responseText}`
           );
         }
       } catch (error) {
@@ -339,20 +343,65 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const responseText = await response.text();
       throw Error(
-        `Bad list webhooks response: ${response.status}, ${responseText}`,
+        `Bad list webhooks response: ${response.status}, ${responseText}`
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as { webhooks: Webhook[] };
     const webhooks = json.webhooks || [];
 
     return webhooks.filter((webhook: Webhook) =>
-      webhook.url.includes(urlContains),
+      webhook.url.includes(urlContains)
     );
   }
 
-  tagRecords(): Promise<void> {
-    throw new Error("Unimplemented.");
+  async tagRecords(
+    records: TaggedRecord[]
+  ): Promise<void> {
+    // Mailchimp allows batch operations with up to 500 operations
+    const batches = batch(records, 500);
+
+    for (const recordBatch of batches) {
+      const operations = recordBatch.map((record) => {
+        return {
+          method: "POST",
+          path: `/lists/${this.listId}/members/${record.externalId}/tags`,
+          body: JSON.stringify({
+            tags: {
+              name: record.tag.name,
+              status: record.tag.present ? "active" : "inactive",
+            },
+          }),
+        };
+      });
+
+      console.log('operations', operations)
+
+      const batchUrl = `${this.getBaseUrl()}/batches`;
+      const response = await fetch(batchUrl, {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          operations,
+        }),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw Error(
+          `Bad batch tag response: ${response.status}, ${responseText}`
+        );
+      }
+
+      const batchResponse = (await response.json()) as { id: string };
+      logger.info(
+        `Submitted Mailchimp batch tag operation for data source ${this.dataSourceId}: ${batchResponse.id}`
+      );
+
+      // Note: Mailchimp batch operations are asynchronous
+      // You might want to implement polling to check batch status
+      // For now, we'll just log the batch ID
+    }
   }
 
   async removeDevWebhooks(): Promise<void> {
@@ -367,7 +416,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     // Remove webhooks on user request
     if (!enable) {
       logger.info(
-        `Removing Mailchimp webhooks for data source ${this.dataSourceId}`,
+        `Removing Mailchimp webhooks for data source ${this.dataSourceId}`
       );
       await this.removeWebhooks(webhooks);
       return;
@@ -376,18 +425,18 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     // If we already have a webhook, don't create another
     if (webhooks.length > 0) {
       logger.info(
-        `Mailchimp webhook already exists for data source ${this.dataSourceId}`,
+        `Mailchimp webhook already exists for data source ${this.dataSourceId}`
       );
       return;
     }
 
     const url = `${this.getListUrl()}/webhooks`;
     const notificationUrl = await getPublicUrl(
-      `/api/data-sources/${this.dataSourceId}/webhook`,
+      `/api/data-sources/${this.dataSourceId}/webhook`
     );
 
     logger.info(
-      `Mailchimp notification URL for data source ${this.dataSourceId}: ${notificationUrl}`,
+      `Mailchimp notification URL for data source ${this.dataSourceId}: ${notificationUrl}`
     );
 
     const response = await fetch(url, {
@@ -414,20 +463,20 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     if (!response.ok) {
       const responseText = await response.text();
       throw Error(
-        `Bad create webhook response: ${response.status}, ${responseText}`,
+        `Bad create webhook response: ${response.status}, ${responseText}`
       );
     }
 
-    const webhook = await response.json();
+    const webhook = (await response.json()) as { id: string };
     logger.info(
-      `Created Mailchimp webhook for data source ${this.dataSourceId}: ${webhook.id}`,
+      `Created Mailchimp webhook for data source ${this.dataSourceId}: ${webhook.id}`
     );
   }
 
   async removeWebhooks(webhooks: Webhook[]): Promise<void> {
     for (const webhook of webhooks) {
       logger.info(
-        `Removing Mailchimp webhook for data source ${this.dataSourceId}: ${webhook.id}`,
+        `Removing Mailchimp webhook for data source ${this.dataSourceId}: ${webhook.id}`
       );
       const url = `${this.getListUrl()}/webhooks/${webhook.id}`;
 
@@ -439,7 +488,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const responseText = await response.text();
         throw Error(
-          `Bad delete webhook response: ${response.status}, ${responseText}`,
+          `Bad delete webhook response: ${response.status}, ${responseText}`
         );
       }
     }
@@ -467,7 +516,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
         // Reconstruct ADDRESS merge field if we have address components
         const addressFields = record.columns.filter((col) =>
-          col.def.name.startsWith("address_"),
+          col.def.name.startsWith("address_")
         );
 
         if (addressFields.length > 0) {
@@ -502,13 +551,13 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       if (!response.ok) {
         const responseText = await response.text();
         throw Error(
-          `Bad batch update response: ${response.status}, ${responseText}`,
+          `Bad batch update response: ${response.status}, ${responseText}`
         );
       }
 
-      const batchResponse = await response.json();
+      const batchResponse = (await response.json()) as { id: string };
       logger.info(
-        `Submitted Mailchimp batch update for data source ${this.dataSourceId}: ${batchResponse.id}`,
+        `Submitted Mailchimp batch update for data source ${this.dataSourceId}: ${batchResponse.id}`
       );
 
       // Note: Mailchimp batch operations are asynchronous

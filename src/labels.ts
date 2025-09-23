@@ -1,21 +1,21 @@
 // Human friendly labels for enums
 
-import z from "zod";
-import { DataSourceType } from "@/server/models/DataSource";
-import {
+import type {
   AreaSetCode,
   AreaSetGroupCode,
   DataSourceRecordType,
   EnrichmentSourceType,
   GeocodingType,
 } from "./__generated__/types";
-import {
-  CSVConfigSchema,
+import type {
   actionNetworkConfigSchema,
   airtableConfigSchema,
+  csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "./server/models/DataSource";
+import type { DataSourceType } from "@/server/models/DataSource";
+import type z from "zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "UK Postcode",
@@ -34,7 +34,7 @@ type DataSourceConfigKey =
   | keyof z.infer<typeof airtableConfigSchema>
   | keyof z.infer<typeof googleSheetsConfigSchema>
   | keyof z.infer<typeof mailchimpConfigSchema>
-  | keyof z.infer<typeof CSVConfigSchema>;
+  | keyof z.infer<typeof csvConfigSchema>;
 
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",

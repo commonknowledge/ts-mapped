@@ -1,10 +1,7 @@
 import GraphQLJSON from "graphql-type-json";
 import { createSchema, createYoga } from "graphql-yoga";
-import { NextRequest } from "next/server";
-import { Resolvers } from "@/__generated__/types";
 import { getServerSession } from "@/auth";
 import { applyAuthDirective } from "./auth";
-import { GraphQLContext } from "./context";
 import { removeTypenamePlugin } from "./plugins";
 import DataSource from "./resolvers/DataSource";
 import Map from "./resolvers/Map";
@@ -13,6 +10,9 @@ import Query from "./resolvers/Query";
 import Subscription from "./resolvers/Subscription";
 import { GraphQLDate } from "./scalars";
 import typeDefs from "./typeDefs";
+import type { GraphQLContext } from "./context";
+import type { Resolvers } from "@/__generated__/types";
+import type { NextRequest } from "next/server";
 
 const resolvers: Resolvers = {
   Date: GraphQLDate,

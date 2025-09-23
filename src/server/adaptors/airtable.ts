@@ -1,7 +1,6 @@
 import z from "zod";
 import { ColumnType } from "@/__generated__/types";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
-import { EnrichedRecord } from "@/server/mapping/enrich";
 import {
   findAirtableWebhookById,
   upsertAirtableWebhook,
@@ -9,8 +8,9 @@ import {
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
-import { ExternalRecord, TaggedRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface Webhook {
   id: string;
@@ -178,7 +178,11 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         );
       }
 
-      const payloadData = await response.json();
+      const payloadData = (await response.json()) as {
+        cursor: number;
+        mightHaveMore: boolean;
+        payloads: unknown[];
+      };
       cursor = payloadData.cursor;
       mightHaveMore = payloadData.mightHaveMore;
       payloads = payloads.concat(payloadData.payloads);
@@ -211,7 +215,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      tables: { id: string; fields: { name: string }[] }[];
+    };
     const table = json.tables.find(
       (table: { id: string }) => table.id === this.tableId,
     );
@@ -244,7 +250,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     let offset: string | undefined;
     do {
       const pageData = await this.fetchPage({ offset });
-      for (const record of pageData.records) {
+      for (const record of pageData?.records || []) {
         yield {
           externalId: record.id,
           json: record.fields,
@@ -298,11 +304,31 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
 
     const json = await response.json();
-    if (typeof json !== "object") {
-      throw Error(`Bad fetch page response body: ${response.json}`);
+    if (
+      !json ||
+      typeof json !== "object" ||
+      !("records" in json) ||
+      !Array.isArray(json.records)
+    ) {
+      throw Error(`Bad fetch page response body: ${json}`);
     }
 
-    return json;
+    const fields = await this.getFields();
+
+    const mappedJson = {
+      offset: "offset" in json ? String(json.offset) : undefined,
+      records: json.records.map((r) => {
+        const record = r as { id: string; fields: Record<string, unknown> };
+        for (const f of fields) {
+          if (!(f in record.fields)) {
+            record.fields[f] = null;
+          }
+        }
+        return record;
+      }),
+    };
+
+    return mappedJson;
   }
 
   async fetchByExternalId(externalIds: string[]): Promise<ExternalRecord[]> {
@@ -329,7 +355,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      records: { id: string; fields: Record<string, unknown> }[];
+    };
     if (typeof json !== "object") {
       throw Error(`Bad fetch page response body: ${response.json}`);
     }
@@ -355,7 +383,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       throw Error(`Bad webhooks response: ${response.status}, ${responseText}`);
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as { webhooks: Webhook[] };
     if (typeof json !== "object") {
       throw Error(`Bad webhooks response body: ${response.json}`);
     }

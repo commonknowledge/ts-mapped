@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,6 +10,7 @@
 }
 
 :root {
+  --action-hover: #f1f5f9;
   --background: oklch(1 0 0);
   --foreground: oklch(34.07% 0 0);
   --card: oklch(1 0 0);
@@ -44,6 +46,12 @@
   --sidebar-ring: oklch(0.708 0 0);
   --brandBlue: oklch(65.39% 0.1357 264.88);
   --brandBackground: oklch(0.9583 0.0154 269.98);
+  --brandRoyalBlue: #00749e;
+  --brandGreen: #30a46c;
+  --brandRed: #dc3b5d;
+  --brandPurple: #c026d3;
+  --brandOrange: #ef5f00;
+  --brandGray: #808080;
 
   /* layout */
   --navbar-height: 3.5rem;
@@ -85,6 +93,7 @@
 }
 
 @theme inline {
+  --color-action-hover: var(--action-hover);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

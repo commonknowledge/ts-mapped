@@ -1,10 +1,4 @@
-import {
-  ScaleOrdinal,
-  ScaleSequential,
-  scaleLinear,
-  scaleOrdinal,
-  scaleSequential,
-} from "d3-scale";
+import { scaleLinear, scaleOrdinal, scaleSequential } from "d3-scale";
 import {
   interpolateBlues,
   interpolateBrBG,
@@ -15,10 +9,12 @@ import {
   interpolateViridis,
   schemeCategory10,
 } from "d3-scale-chromatic";
-import { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 import { useMemo } from "react";
-import { AreaStats, ColorScheme, ColumnType } from "@/__generated__/types";
+import { ColorScheme, ColumnType } from "@/__generated__/types";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
+import type { AreaStats } from "@/__generated__/types";
+import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
+import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
 export interface CategoricColorScheme {
   columnType: ColumnType.String;
@@ -56,7 +52,8 @@ const getInterpolator = (scheme: ColorScheme | undefined) => {
 
 export const useColorScheme = (
   areaStats: AreaStats | null | undefined,
-  scheme?: ColorScheme,
+  scheme: ColorScheme,
+  isCount: boolean,
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
@@ -92,6 +89,11 @@ export const useColorScheme = (
       }
     }
 
+    // Override minValue for counts for full range of values
+    if (isCount) {
+      minValue = 0;
+    }
+
     // Handle case where all values are the same (e.g., all counts are 1)
     if (minValue === maxValue) {
       // For count records, create a simple color scheme
@@ -121,7 +123,7 @@ export const useColorScheme = (
       maxValue,
       colorScale,
     };
-  }, [areaStats, scheme]);
+  }, [areaStats, isCount, scheme]);
 };
 
 const getCategoricalColor = (
@@ -133,10 +135,10 @@ const getCategoricalColor = (
 
 export const useFillColor = (
   areaStats: AreaStats | null | undefined,
-  scheme?: ColorScheme,
-  isCount?: boolean,
+  scheme: ColorScheme,
+  isCount: boolean,
 ): DataDrivenPropertyValueSpecification<string> => {
-  const colorScheme = useColorScheme(areaStats, scheme);
+  const colorScheme = useColorScheme(areaStats, scheme, isCount);
   // useMemo to cache calculated fillColor
   return useMemo(() => {
     if (!colorScheme) {

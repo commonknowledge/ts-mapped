@@ -1,8 +1,8 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
+import type { LucideIcon } from "lucide-react";
 
 interface VerticalTabsProps {
   value: string;
@@ -87,7 +87,7 @@ export function VerticalTabsList({
   return (
     <TabsList
       className={cn(
-        "flex flex-col h-fit w-fit bg-transparent  rounded-none p-0",
+        "flex flex-col h-fit w-fit bg-transparent rounded-none p-0",
         className,
       )}
     >
@@ -106,12 +106,12 @@ export function VerticalTabsTrigger({
     <TabsTrigger
       value={value}
       className={cn(
-        "w-full  p-4 text-left border-none border-neutral-200",
-        "data-[state=active]:bg-neutral-200 data-[state=active]:text-primary",
-        "data-[state=inactive]:bg-white data-[state=inactive]:text-muted-foreground",
-        "hover:bg-muted/80 hover:text-foreground",
+        "w-full h-full p-4 text-left cursor-pointer",
+        "bg-white text-primary",
+        "data-[state=inactive]:bg-neutral-200 data-[state=inactive]:text-muted-foreground",
+        "data-[state=inactive]:hover:text-primary",
         "transition-colors duration-200",
-        "rounded-none ",
+        "rounded-none border-none shadow-none",
 
         className,
       )}
@@ -133,12 +133,12 @@ export function VerticalTabsContent({
     <TabsContent
       value={value}
       className={cn(
-        "flex-1 mt-0 p-4 bg-card text-card-foreground w-full border-r border-neutral-200 overflow-y-auto",
+        "flex-1 mt-0 p-4 bg-card text-card-foreground w-full overflow-y-auto",
         className,
       )}
     >
       {header && (
-        <div className="flex items-center gap-2 pb-3 border-b border-neutral-200">
+        <div className="flex items-center gap-2 pb-3">
           {Icon && <Icon className="size-4 flex-shrink-0" />}
           <h3 className="text-lg font-medium">{header}</h3>
         </div>

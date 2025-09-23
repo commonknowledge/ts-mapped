@@ -1,13 +1,15 @@
 "use client";
 
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { VisualisationType } from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { useAreaStatsQuery } from "@/components/Map/data";
 import { getChoroplethLayerConfig } from "@/components/Map/sources";
+import { GeocodingType } from "@/server/models/DataSource";
 import { ChoroplethContext } from "../context/ChoroplethContext";
 import { DataSourcesContext } from "../context/DataSourcesContext";
+import type { ReactNode } from "react";
 
 export default function ChoroplethProvider({
   children,
@@ -32,9 +34,14 @@ export default function ChoroplethProvider({
 
   const choroplethLayerConfig = useMemo(() => {
     const dataSource = getChoroplethDataSource();
+    const areaSetCode =
+      dataSource?.geocodingConfig?.type === GeocodingType.Code
+        ? dataSource?.geocodingConfig?.areaSetCode
+        : undefined;
+
     return getChoroplethLayerConfig(
       viewConfig.visualisationType === VisualisationType.Choropleth
-        ? dataSource?.geocodingConfig?.areaSetCode
+        ? areaSetCode
         : undefined,
       viewConfig.areaSetGroupCode,
       zoom,

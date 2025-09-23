@@ -184,8 +184,11 @@ const typeDefs = `
   }
 
   input PublicMapDataSourceConfigInput {
+    allowUserEdit: Boolean!
+    allowUserSubmit: Boolean!
     dataSourceId: String!
     dataSourceLabel: String!
+    formUrl: String!
     nameColumns: [String!]!
     nameLabel: String!
     descriptionColumn: String!
@@ -216,12 +219,8 @@ const typeDefs = `
   type User {
     id: String!
     email: String!
+    name: String!
     createdAt: Date!
-  }
-
-  input UpdateUserInput {
-    password: String
-    email: String
   }
 
   input SortInput {
@@ -372,6 +371,7 @@ const typeDefs = `
   type Organisation {
     id: String!
     name: String!
+    avatarUrl: String
   }
 
   type PlacedMarker {
@@ -401,8 +401,11 @@ const typeDefs = `
   }
 
   type PublicMapDataSourceConfig {
+    allowUserEdit: Boolean!
+    allowUserSubmit: Boolean!
     dataSourceId: String!
     dataSourceLabel: String!
+    formUrl: String!
     nameColumns: [String!]!
     nameLabel: String!
     descriptionColumn: String!
@@ -467,11 +470,6 @@ const typeDefs = `
     organisations: [Organisation!] @auth
     publicMap(viewId: String!): PublicMap @auth(write: { viewIdArg: "viewId" })
     publishedPublicMap(host: String!): PublicMap
-  }
-
-  type UpdateUserResponse {
-    code: Int!
-    result: User
   }
 
   type CreateDataSourceResponse {
@@ -588,8 +586,6 @@ const typeDefs = `
       createdAt: Date!
       mapId: String!
     ): UpsertTurfResponse @auth(write: { mapIdArg: "mapId" })
-
-    updateUser(data: UpdateUserInput!): UpdateUserResponse @auth
 
     forgotPassword(email: String!): MutationResponse
     resetPassword(token: String!, password: String!): MutationResponse

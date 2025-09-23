@@ -1,7 +1,6 @@
 import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Turf } from "@/__generated__/types";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import Loading from "@/components/Map/components/Loading";
@@ -17,10 +16,12 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
+import type { Turf } from "@/__generated__/types";
 
 export default function AreasControl() {
-  const { viewConfig, mapRef, updateViewConfig } = useContext(MapContext);
-  const { turfs, turfsLoading } = useContext(MarkerAndTurfContext);
+  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { handleAddArea, turfs, turfsLoading } =
+    useContext(MarkerAndTurfContext);
   const [, setFormattedDates] = useState<Record<string, string>>({});
   const [isAddingArea, setAddingArea] = useState(false);
 
@@ -41,21 +42,13 @@ export default function AreasControl() {
     setFormattedDates(dates);
   }, [turfs]);
 
-  const handleAddArea = () => {
-    const map = mapRef?.current;
-    if (map) {
-      // Find the polygon draw button and click it
-      const drawButton = document.querySelector(
-        ".mapbox-gl-draw_polygon",
-      ) as HTMLButtonElement;
-      if (drawButton) {
-        drawButton.click();
-        setAddingArea(true);
-        setTimeout(() => {
-          setAddingArea(false);
-        }, 5000);
-      }
-    }
+  const onAddArea = () => {
+    handleAddArea();
+    setAddingArea(true);
+
+    setTimeout(() => {
+      setAddingArea(false);
+    }, 5000);
   };
 
   return (
@@ -67,12 +60,7 @@ export default function AreasControl() {
         setLayer={(show) => updateViewConfig({ showTurf: show })}
       >
         {!isAddingArea ? (
-          <IconButtonWithTooltip
-            tooltip="Add Area"
-            onClick={() => {
-              handleAddArea();
-            }}
-          >
+          <IconButtonWithTooltip tooltip="Add Area" onClick={() => onAddArea()}>
             <PlusIcon className="w-4 h-4" />
           </IconButtonWithTooltip>
         ) : (
@@ -134,10 +122,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm"
-          onClick={() => handleFlyTo(turf)}
-        >
+        <div className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm">
           {isEditing ? (
             <form
               onSubmit={(e) => {
@@ -158,14 +143,37 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
             </form>
           ) : (
             <>
-              <div className="flex items-center gap-2 pl-1">
-                <div
-                  style={{ backgroundColor: mapColors.areas.color }}
-                  className="w-2 h-2 rounded-full"
-                />
+              <div className="group flex items-center gap-2 w-full">
+                <button
+                  className="w-full overflow-hidden / flex items-center gap-2 / text-sm text-left / cursor-pointer"
+                  onClick={() => handleFlyTo(turf)}
+                >
+                  <div
+                    style={{ backgroundColor: mapColors.areas.color }}
+                    className="w-2 h-2 rounded-full shrink-0"
+                  />
+                  <span className="truncate">
+                    {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                  </span>
+                </button>
 
-                <div className="text-sm">
-                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                <div className="hidden group-hover:flex gap-2 text-muted-foreground">
+                  <button
+                    className="cursor-pointer hover:text-primary"
+                    onClick={() => {
+                      setEditing(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="cursor-pointer hover:text-primary"
+                    onClick={() => {
+                      deleteTurf(turf.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </>

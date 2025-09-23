@@ -1,7 +1,8 @@
 import { Pencil } from "lucide-react";
-import { FormEvent, ReactNode, useContext, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Input } from "@/shadcn/ui/input";
+import type { FormEvent, ReactNode } from "react";
 
 export default function EditablePublicMapProperty({
   property,

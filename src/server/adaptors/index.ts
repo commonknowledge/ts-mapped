@@ -1,15 +1,15 @@
-import z from "zod";
 import logger from "@/server/services/logger";
-import { DataSourceType, dataSourceConfigSchema } from "../models/DataSource";
+import { DataSourceType } from "../models/DataSource";
 import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
 import { MailchimpAdaptor } from "./mailchimp";
+import type { DataSourceConfig } from "../models/DataSource";
 
 export const getDataSourceAdaptor = (dataSource: {
   id: string;
-  config: z.infer<typeof dataSourceConfigSchema>;
+  config: DataSourceConfig;
 }) => {
   const { id, config } = dataSource;
 

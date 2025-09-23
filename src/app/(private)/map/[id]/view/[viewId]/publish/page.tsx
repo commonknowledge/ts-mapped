@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
 import { v4 as uuidv4 } from "uuid";
-import { PublicMapQuery, PublicMapQueryVariables } from "@/__generated__/types";
 import ChoroplethProvider from "@/components/Map/providers/ChoroplethProvider";
 import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
 import DataSourcesProvider from "@/components/Map/providers/DataSourcesProvider";
@@ -10,6 +9,10 @@ import PublicFiltersProvider from "@/components/PublicMap/providers/PublicFilter
 import PublicMap from "@/components/PublicMap/PublicMap";
 import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
 import { getClient } from "@/services/apollo";
+import type {
+  PublicMapQuery,
+  PublicMapQueryVariables,
+} from "@/__generated__/types";
 
 export default async function PublicMapAdminPage({
   params,
@@ -34,8 +37,11 @@ export default async function PublicMapAdminPage({
           descriptionLink
           published
           dataSourceConfigs {
+            allowUserEdit
+            allowUserSubmit
             dataSourceId
             dataSourceLabel
+            formUrl
             nameLabel
             nameColumns
             descriptionLabel

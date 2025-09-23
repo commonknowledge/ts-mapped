@@ -1,10 +1,15 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation as useTanstackMutation } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
+import { toast } from "sonner";
+import { CalculationType, VisualisationType } from "@/__generated__/types";
+import { useTRPC } from "@/services/trpc/react";
+import type { ViewConfig } from "./context/MapContext";
+import type { DataSourceMarkers } from "./types";
+import type {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
-  CalculationType,
   DataRecordsQuery,
   DataRecordsQueryVariables,
   DataSourceView,
@@ -27,10 +32,7 @@ import {
   UpsertPlacedMarkerMutationVariables,
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
-  VisualisationType,
 } from "@/__generated__/types";
-import { ViewConfig } from "./context/MapContext";
-import { DataSourceMarkers } from "./types";
 
 export const useDataSourcesQuery = () =>
   useQuery<DataSourcesQuery>(gql`
@@ -54,6 +56,9 @@ export const useDataSourcesQuery = () =>
         recordCount {
           count
         }
+        autoImport
+        public
+        config
       }
     }
   `);
@@ -233,7 +238,8 @@ export const useMarkerQueries = ({
             if (!response.ok) {
               throw new Error(`Bad response: ${response.status}`);
             }
-            const dataSourceMarkers = await response.json();
+            const dataSourceMarkers =
+              (await response.json()) as DataSourceMarkers;
             cache.current[cacheId] = dataSourceMarkers;
           }
           cacheKeyByDataSource.current[id] = cacheId;
@@ -347,6 +353,21 @@ export const useUpdateMapConfigMutation = () => {
         }
       }
     `,
+  );
+};
+
+export const useDeleteMapViewMutation = () => {
+  const trpc = useTRPC();
+
+  return useTanstackMutation(
+    trpc.mapView.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success("View deleted successfully");
+      },
+      onError: () => {
+        toast.error("Failed to delete view");
+      },
+    }),
   );
 };
 

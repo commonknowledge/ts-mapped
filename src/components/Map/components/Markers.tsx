@@ -6,7 +6,7 @@ import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFilte
 import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
-import { DataSourceMarkers as DataSourceMarkersType } from "../types";
+import type { DataSourceMarkers as DataSourceMarkersType } from "../types";
 import type { FeatureCollection } from "geojson";
 
 const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";

@@ -16,6 +16,8 @@ describe("Airtable adaptor tests", () => {
     );
     const firstRow = await adaptor.fetchFirst();
     expect(firstRow).toHaveProperty("externalId");
+    expect(firstRow?.json).toHaveProperty("Empty Field");
+    expect(firstRow?.json["Constant Field"]).toBe("Hello");
   });
 
   test("extractExternalRecordIdsFromWebhookBody yields external IDs", async () => {
@@ -267,4 +269,4 @@ describe("Airtable adaptor tests", () => {
 
     expect(updatedRecords[0].json["My View"]).toBeFalsy();
   });
-});
+}, 10000);

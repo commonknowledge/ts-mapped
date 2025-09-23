@@ -1,15 +1,12 @@
-import { CaseBuilder, CaseWhenBuilder, sql } from "kysely";
-import {
-  AreaStat,
-  BoundingBoxInput,
-  CalculationType,
-  ColumnType,
-} from "@/__generated__/types";
+import { sql } from "kysely";
+import { CalculationType, ColumnType } from "@/__generated__/types";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
-import { Database } from "@/server/services/database";
 import logger from "@/server/services/logger";
+import type { AreaStat, BoundingBoxInput } from "@/__generated__/types";
+import type { Database } from "@/server/services/database";
+import type { CaseBuilder, CaseWhenBuilder } from "kysely";
 
 export const getAreaStats = async (
   areaSetCode: string,

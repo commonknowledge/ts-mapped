@@ -1,4 +1,4 @@
-import { UploadResponseBody } from "@/types";
+import type { UploadResponseBody } from "@/types";
 
 export const uploadFile = async (file: File | null): Promise<string> => {
   if (!file) {
@@ -13,6 +13,6 @@ export const uploadFile = async (file: File | null): Promise<string> => {
   if (!response.ok) {
     throw new Error("Failed to upload file");
   }
-  const data: UploadResponseBody = await response.json();
+  const data = (await response.json()) as UploadResponseBody;
   return data.url;
 };

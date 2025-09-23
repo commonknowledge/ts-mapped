@@ -1,9 +1,7 @@
-import { verify } from "jsonwebtoken";
-import { NewUser, UserUpdate } from "@/server/models/User";
+import { jwtVerify } from "jose";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
-
-type Nullable<T> = { [K in keyof T]: T[K] | null };
+import type { NewUser, UserUpdate } from "@/server/models/User";
 
 export async function upsertUser(
   user: Omit<NewUser, "passwordHash"> & { password: string },
@@ -62,21 +60,25 @@ export async function findUserByEmail(email: string) {
 }
 
 export async function findUserByToken(token: string) {
-  const decoded = verify(token, process.env.JWT_SECRET || "") as { id: string };
-  return findUserById(decoded.id);
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+  const { payload } = await jwtVerify<{ id: string }>(token, secret);
+  return findUserById(payload.id);
 }
 
 export async function updateUser(
   id: string,
   {
-    password,
+    newPassword,
     ...data
-  }: Nullable<Omit<UserUpdate, "id" | "passwordHash"> & { password?: string }>,
+  }: Omit<UserUpdate, "id" | "passwordHash"> & { newPassword?: string },
 ) {
-  const update = { email: data?.email || undefined } as UserUpdate;
+  const update: UserUpdate = {
+    name: data.name,
+    avatarUrl: data.avatarUrl,
+  };
 
-  if (password) {
-    update.passwordHash = await hashPassword(password);
+  if (newPassword) {
+    update.passwordHash = await hashPassword(newPassword);
   }
   if (data.email) {
     update.email = data.email.toLowerCase().trim();

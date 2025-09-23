@@ -1,0 +1,144 @@
+import { AreaSetCode, GeocodingType } from "@/__generated__/types";
+import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
+import CustomSelect from "@/components/forms/CustomSelect";
+import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
+import { AreaGeocodingType } from "@/server/models/DataSource";
+import type { LooseGeocodingConfig } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
+
+/**
+ * This is a little complicated as it includes a front-end only
+ * "Postcode" option for the "Geocoding type" dropdown.
+ *
+ * There is code to detect when this should be selected, and
+ * to convert into a valid geocoding config.
+ */
+type FriendlyGeocodingType = GeocodingType | "Postcode";
+
+export function GeocodingConfigFields({
+  dataSource,
+  geocodingConfig,
+  onChange,
+}: {
+  dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
+  geocodingConfig: LooseGeocodingConfig;
+  onChange: (config: Partial<LooseGeocodingConfig>) => void;
+}) {
+  const column = geocodingConfig.column || "";
+  const columns = geocodingConfig.columns || [];
+  const areaSetCode = geocodingConfig.areaSetCode || "";
+
+  // Convert "Postcode" type to a valid geocoding config
+  const onTypeChange = (type: FriendlyGeocodingType) => {
+    if (type === "Postcode") {
+      onChange({ type: GeocodingType.Code, areaSetCode: AreaSetCode.PC });
+    } else if (geocodingConfig.areaSetCode === AreaSetCode.PC) {
+      // Reset the areaSetCode if changing from postcode to other type
+      const prevType =
+        "areaSetCode" in dataSource.geocodingConfig
+          ? dataSource.geocodingConfig.areaSetCode
+          : null;
+      onChange({
+        type,
+        areaSetCode: prevType === AreaSetCode.PC ? null : prevType,
+      });
+    } else {
+      onChange({ type });
+    }
+  };
+
+  let typeSelectValue: FriendlyGeocodingType | "" = geocodingConfig.type;
+  if (typeSelectValue === GeocodingType.None) {
+    typeSelectValue = ""; // The select value needs to be "" to show the placeholder
+  } else if (areaSetCode === AreaSetCode.PC) {
+    typeSelectValue = "Postcode"; // Detect "Postcode" config
+  }
+
+  const locationTypeOptions =
+    Object.keys(GeocodingTypeLabels)
+      .filter((type) => type !== GeocodingType.None)
+      .map((type) => ({
+        label: GeocodingTypeLabels[type as GeocodingType],
+        value: type,
+      })) || [];
+
+  const locationColumnOptions =
+    dataSource?.columnDefs.map((cd) => ({
+      label: cd.name,
+      value: cd.name,
+    })) || [];
+
+  const areaTypeOptions =
+    Object.keys(AreaSetCodeLabels)
+      .filter((type) => type !== AreaSetCode.PC)
+      .map((type) => ({
+        label: AreaSetCodeLabels[type as AreaSetCode],
+        value: type,
+      })) || [];
+
+  const onDropdownChange = (currentValue: string) => {
+    if (columns.some((c) => c === currentValue)) {
+      onChange({
+        columns: columns.filter((c) => c !== currentValue),
+      });
+    } else {
+      onChange({ columns: columns.concat([currentValue]) });
+    }
+  };
+
+  return (
+    <>
+      <CustomSelect
+        id="config-location-type"
+        label="Location type"
+        hint="Select how location data is formatted in your data source."
+        value={typeSelectValue}
+        options={locationTypeOptions}
+        onValueChange={onTypeChange}
+      />
+
+      {typeSelectValue === GeocodingType.Address && (
+        <CustomMultiSelect
+          id="config-location-columns-multi"
+          label="Location columns"
+          allOptions={dataSource?.columnDefs.map((cd) => cd.name)}
+          selectedOptions={columns}
+          onChange={onDropdownChange}
+        />
+      )}
+
+      {typeSelectValue === "Postcode" && (
+        <CustomSelect
+          id="config-location-column-postcode"
+          label="Location column"
+          hint="Select which column to use as location data."
+          value={column}
+          options={locationColumnOptions}
+          onValueChange={(column) => onChange({ column })}
+        />
+      )}
+
+      {typeSelectValue in AreaGeocodingType.Values && (
+        <>
+          <CustomSelect
+            id="config-location-column-area-code"
+            label="Location column"
+            hint="Select which column to use as location data."
+            value={column}
+            options={locationColumnOptions}
+            onValueChange={(column) => onChange({ column })}
+          />
+          <CustomSelect
+            id="config-area-type"
+            label="Area type"
+            value={areaSetCode}
+            options={areaTypeOptions}
+            onValueChange={(areaSetCode) =>
+              onChange({ areaSetCode } as { areaSetCode: AreaSetCode })
+            }
+          />
+        </>
+      )}
+    </>
+  );
+}

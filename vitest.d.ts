@@ -22,6 +22,7 @@ declare module "vitest" {
         apiKey: string;
         listId: string;
       };
+      ngrokToken: string;
     };
   }
 }

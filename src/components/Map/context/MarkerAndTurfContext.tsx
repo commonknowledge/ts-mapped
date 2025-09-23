@@ -1,6 +1,7 @@
 import { createContext } from "react";
-import { Folder, PlacedMarker, Turf } from "@/__generated__/types";
-import { MarkerQueriesResult } from "../types";
+import type { MarkerQueriesResult } from "../types";
+import type { Folder, PlacedMarker, Turf } from "@/__generated__/types";
+import type { Feature } from "geojson";
 
 export const MarkerAndTurfContext = createContext<{
   /* State */
@@ -24,6 +25,9 @@ export const MarkerAndTurfContext = createContext<{
   selectedPlacedMarkerId: string | null;
   setSelectedPlacedMarkerId: (id: string | null) => void;
 
+  searchMarker: Feature | null;
+  setSearchMarker: (marker: Feature | null) => void;
+
   turfs: Turf[];
   turfsLoading: boolean;
   deleteTurf: (id: string) => void;
@@ -32,6 +36,10 @@ export const MarkerAndTurfContext = createContext<{
 
   /* GraphQL Queries */
   markerQueries: MarkerQueriesResult | null;
+
+  /* helpers */
+  handleAddArea: () => void;
+  handleDropPin: () => void;
 }>({
   editingTurf: null,
   setEditingTurf: () => null,
@@ -49,10 +57,14 @@ export const MarkerAndTurfContext = createContext<{
   updatePlacedMarker: () => null,
   selectedPlacedMarkerId: null,
   setSelectedPlacedMarkerId: () => null,
+  searchMarker: null,
+  setSearchMarker: () => null,
   turfs: [],
   turfsLoading: false,
   deleteTurf: () => null,
   insertTurf: () => null,
   updateTurf: () => null,
   markerQueries: null,
+  handleAddArea: () => null,
+  handleDropPin: () => null,
 });

@@ -1,6 +1,5 @@
 import {
   DndContext,
-  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   closestCenter,
@@ -37,8 +36,10 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import { View } from "../types";
+import type { View } from "../types";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function MapViews() {
   const {
@@ -181,14 +182,19 @@ export default function MapViews() {
                 />
               </div>
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded shadow-none"
-                onClick={() => setIsCreating(true)}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded shadow-none"
+                    onClick={() => setIsCreating(true)}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Create view</TooltipContent>
+              </Tooltip>
             )}
           </div>
         </SortableContext>
@@ -214,6 +220,7 @@ function SortableViewItem({
     views,
     deleteView,
     updateView,
+    saveMapConfig,
   } = useContext(MapContext);
   const [editName, setEditName] = useState(view.name);
   const isSelected = selectedView?.id === view.id;
@@ -249,6 +256,7 @@ function SortableViewItem({
   };
 
   const handleViewSelect = () => {
+    saveMapConfig(); // save current config in the background when changing view (to not lose the changes)
     setSelectedViewId(view.id);
   };
 
@@ -283,10 +291,10 @@ function SortableViewItem({
           style={style}
           {...attributes}
           {...listeners}
-          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border ${
+          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${
             isRenaming ? "cursor-default" : "cursor-pointer"
           } ${
-            isSelected ? "bg-muted" : "bg-transparent"
+            isSelected ? "bg-muted" : "bg-transparent hover:border-action-hover"
           } ${isDragging ? "opacity-50" : "opacity-100"}`}
           onClick={() => !isRenaming && handleViewSelect()}
           onDoubleClick={() => !isRenaming && handleDoubleClick()}

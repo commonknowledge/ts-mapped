@@ -5,6 +5,11 @@ import MapProvider from "@/components/Map/providers/MapProvider";
 import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvider";
 import TableProvider from "@/components/Map/providers/TableProvider";
 import PrivateMap from "./PrivateMap";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mapped - Map View",
+};
 
 export default async function MapPage({
   params,

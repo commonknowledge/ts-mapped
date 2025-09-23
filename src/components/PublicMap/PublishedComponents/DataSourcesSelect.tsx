@@ -1,6 +1,5 @@
 import { Database } from "lucide-react";
 import { useContext } from "react";
-import { ColumnDef, PublicMapDataSourceConfig } from "@/__generated__/types";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
@@ -12,6 +11,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
+import type {
+  ColumnDef,
+  PublicMapDataSourceConfig,
+} from "@/__generated__/types";
 
 interface DataSource {
   id: string;
@@ -74,8 +77,11 @@ export const createDataSourceConfig = (
   dataSource: DataSource,
 ): PublicMapDataSourceConfig => {
   return {
+    allowUserEdit: false,
+    allowUserSubmit: false,
     dataSourceId: dataSource.id,
     dataSourceLabel: dataSource.name,
+    formUrl: "",
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
     descriptionLabel: "",

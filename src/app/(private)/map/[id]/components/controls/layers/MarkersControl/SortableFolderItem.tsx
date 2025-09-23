@@ -12,8 +12,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { SyntheticEvent, useContext, useMemo, useRef, useState } from "react";
-import { Folder, PlacedMarker } from "@/__generated__/types";
+import { useContext, useMemo, useRef, useState } from "react";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { sortByPositionAndId } from "@/components/Map/utils";
@@ -26,6 +25,8 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
+import type { Folder, PlacedMarker } from "@/__generated__/types";
+import type { SyntheticEvent } from "react";
 
 // Folder component
 export default function SortableFolderItem({

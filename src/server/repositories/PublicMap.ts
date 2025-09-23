@@ -1,7 +1,7 @@
-import { TraversedJSONPathBuilder } from "kysely";
-import { MapConfig } from "@/__generated__/types";
-import { NewPublicMap } from "@/server/models/PublicMap";
 import { db } from "@/server/services/database";
+import type { MapConfig } from "@/__generated__/types";
+import type { NewPublicMap } from "@/server/models/PublicMap";
+import type { TraversedJSONPathBuilder } from "kysely";
 
 export function findPublicMapByHost(host: string) {
   return db

@@ -1,24 +1,7 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { LoaderPinwheel, X } from "lucide-react";
-import {
-  FormEvent,
-  Fragment,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  ColumnDef,
-  PublicMap,
-  PublicMapColumn,
-  PublicMapColumnType,
-  PublicMapDataSourceConfig,
-  PublicMapModalQuery,
-  PublicMapModalQueryVariables,
-  UpsertPublicMapMutation,
-  UpsertPublicMapMutationVariables,
-} from "@/__generated__/types";
+import { Fragment, useContext, useEffect, useMemo, useState } from "react";
+import { PublicMapColumnType } from "@/__generated__/types";
 import ColumnsMultiSelect from "@/components/ColumnsMultiSelect";
 import DataListRow from "@/components/DataListRow";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
@@ -41,6 +24,17 @@ import {
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
+import type {
+  ColumnDef,
+  PublicMap,
+  PublicMapColumn,
+  PublicMapDataSourceConfig,
+  PublicMapModalQuery,
+  PublicMapModalQueryVariables,
+  UpsertPublicMapMutation,
+  UpsertPublicMapMutationVariables,
+} from "@/__generated__/types";
+import type { FormEvent } from "react";
 
 type PublicMapConfig = Omit<PublicMap, "id" | "mapId">;
 interface DataSource {
@@ -96,8 +90,11 @@ export default function PublishViewModal({
           descriptionLink
           published
           dataSourceConfigs {
+            allowUserEdit
+            allowUserSubmit
             dataSourceId
             dataSourceLabel
+            formUrl
             nameLabel
             nameColumns
             descriptionLabel
@@ -557,11 +554,14 @@ const createDataSourceConfig = (
   dataSource: DataSource,
 ): PublicMapDataSourceConfig => {
   return {
+    allowUserEdit: false,
+    allowUserSubmit: false,
     dataSourceId: dataSource.id,
     dataSourceLabel: dataSource.name,
+    formUrl: "",
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
-    descriptionLabel: "Description",
+    descriptionLabel: "",
     descriptionColumn: "",
     additionalColumns: [],
   };

@@ -1,5 +1,8 @@
-import { NewOrganisation } from "@/server/models/Organisation";
 import { db } from "@/server/services/database";
+import type {
+  NewOrganisation,
+  OrganisationUpdate,
+} from "@/server/models/Organisation";
 
 export function findOrganisationByName(name: string) {
   return db
@@ -21,6 +24,22 @@ export function findOrganisationsByUserId(userId: string) {
     .selectAll("organisation")
     .execute();
 }
+export function findOrganisationForUser(
+  organisationId: string,
+  userId: string,
+) {
+  return db
+    .selectFrom("organisation")
+    .innerJoin(
+      "organisationUser",
+      "organisation.id",
+      "organisationUser.organisationId",
+    )
+    .where("organisationUser.userId", "=", userId)
+    .where("organisationUser.organisationId", "=", organisationId)
+    .selectAll("organisation")
+    .executeTakeFirst();
+}
 
 export async function deleteOrganisation(id: string) {
   return db
@@ -40,6 +59,18 @@ export function upsertOrganisation(organisation: NewOrganisation) {
         name: organisation.name,
       }),
     )
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function updateOrganisation(
+  id: string,
+  organisation: OrganisationUpdate,
+) {
+  return db
+    .updateTable("organisation")
+    .set(organisation)
+    .where("id", "=", id)
     .returningAll()
     .executeTakeFirstOrThrow();
 }

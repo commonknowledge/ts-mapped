@@ -7,13 +7,12 @@ import {
   Palette,
   Pentagon,
   PlusIcon,
+  X,
 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
 import {
-  AreaSetGroupCode,
   CalculationType,
   ColorScheme,
-  DataSource,
   VisualisationType,
 } from "@/__generated__/types";
 import { DataSourceItem } from "@/components/DataSourceItem";
@@ -48,6 +47,10 @@ import {
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
+import type { AreaSetGroupCode } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
+
+type DataSource = RouterOutputs["dataSource"]["byOrganisation"][number];
 
 export default function VisualisationPanel({
   positionLeft,
@@ -55,7 +58,8 @@ export default function VisualisationPanel({
   positionLeft: number;
 }) {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
-  const { boundariesPanelOpen } = useContext(ChoroplethContext);
+  const { boundariesPanelOpen, setBoundariesPanelOpen } =
+    useContext(ChoroplethContext);
   const { getDataSources, getChoroplethDataSource } =
     useContext(DataSourcesContext);
 
@@ -99,7 +103,16 @@ export default function VisualisationPanel({
     >
       {/* Choose Visualization Type */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium">Create Visualization</h3>
+        <div className="flex justify-between items-start gap-6 / text-sm">
+          <h3 className="mt-2 font-medium">Create Visualization</h3>
+          <button
+            aria-label="Close visualization panel"
+            className="text-muted-foreground hover:text-primary cursor-pointer"
+            onClick={() => setBoundariesPanelOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
 
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -157,7 +170,7 @@ export default function VisualisationPanel({
               <Database className="w-4 h-4 text-muted-foreground" /> Data Source
             </Label>
 
-            {viewConfig.areaDataSourceId ? (
+            {viewConfig.areaDataSourceId && dataSource ? (
               // Show selected data source as a card
               <div className="space-y-2">
                 <button
@@ -169,11 +182,9 @@ export default function VisualisationPanel({
                 >
                   <DataSourceItem
                     className="border-blue-500 bg-blue-50 hover:bg-blue-100"
-                    dataSource={
-                      dataSources.find(
-                        (ds) => ds.id === viewConfig.areaDataSourceId,
-                      ) as DataSource
-                    }
+                    dataSource={{
+                      ...dataSource,
+                    }}
                   />
                 </button>
 
@@ -555,7 +566,9 @@ export default function VisualisationPanel({
                           ? "border-blue-500 bg-blue-50"
                           : "hover:border-blue-300"
                       }
-                      dataSource={ds as DataSource}
+                      dataSource={{
+                        ...ds,
+                      }}
                     />
                   </button>
                 ))}

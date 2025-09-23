@@ -1,16 +1,16 @@
-import { Point as GeoJSONPoint } from "geojson";
 import {
   findAreaByCode,
   findAreaByName,
   findAreasByPoint,
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
-import {
+import type {
   AddressGeocodingConfig,
   AreaGeocodingConfig,
   GeocodingConfig,
 } from "../models/DataSource";
-import { GeocodeResult, Point } from "../models/shared";
+import type { GeocodeResult, Point } from "../models/shared";
+import type { Point as GeoJSONPoint } from "geojson";
 
 interface MappingDataRecord {
   externalId: string;
@@ -116,8 +116,9 @@ const geocodeRecordByAddress = async (
   if (!response.ok) {
     throw new Error(`Geocode request failed: ${response.status}`);
   }
-  const results: { features?: { id: string; geometry: GeoJSONPoint }[] } =
-    await response.json();
+  const results = (await response.json()) as {
+    features?: { id: string; geometry: GeoJSONPoint }[];
+  };
   if (!results.features?.length) {
     throw new Error(`Geocode request returned no features`);
   }
@@ -146,6 +147,7 @@ const geojsonPointToPoint = (geojson: string): Point | null => {
   if (!geojson) {
     return null;
   }
-  const [lng, lat] = JSON.parse(geojson).coordinates;
+  const [lng, lat] = (JSON.parse(geojson) as { coordinates: [number, number] })
+    .coordinates;
   return { lng, lat };
 };

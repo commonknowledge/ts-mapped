@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
-import { RecordFilterInput } from "@/__generated__/types";
+import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
 import {
   MARKER_DATA_SOURCE_ID_KEY,
@@ -9,12 +8,14 @@ import {
   MARKER_MATCHED_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
-import { DataRecord } from "@/server/models/DataRecord";
-import { DataSource } from "@/server/models/DataSource";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/PublicMap";
+import type { RecordFilterInput } from "@/__generated__/types";
+import type { DataRecord } from "@/server/models/DataRecord";
+import type { DataSource } from "@/server/models/DataSource";
+import type { NextRequest } from "next/server";
 
 /**
  * Replace a GraphQL query so that streams can be used, to avoid
@@ -22,7 +23,7 @@ import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/Publ
  */
 export async function GET(
   request: NextRequest,
-  args: { params: Promise<{ id: string; filter: string; search: string }> },
+  args: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const realParams = await args.params;
   const { currentUser } = await getServerSession();
@@ -36,9 +37,9 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const filter: RecordFilterInput | null = JSON.parse(
+  const filter = JSON.parse(
     request?.nextUrl?.searchParams.get("filter") || "null",
-  );
+  ) as RecordFilterInput | null;
   const search = request?.nextUrl?.searchParams.get("search") || "";
 
   const encoder = new TextEncoder();

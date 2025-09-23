@@ -1,11 +1,6 @@
 "use client";
 
-import { QueryResult } from "@apollo/client";
 import { useContext } from "react";
-import {
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
-} from "@/__generated__/types";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicFiltersContext } from "@/components/PublicMap/context/PublicFiltersContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
@@ -17,6 +12,11 @@ import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
 import { getActiveFilters } from "./filtersHelpers";
 import FiltersList from "./FiltersList";
+import type {
+  PublicMapDataRecordsQuery,
+  PublicMapDataRecordsQueryVariables,
+} from "@/__generated__/types";
+import type { QueryResult } from "@apollo/client";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };
@@ -134,10 +134,19 @@ function SingleDataSourceContent({
 }: SingleDataSourceContentProps) {
   const { publicFilters, setPublicFilters, records } =
     useContext(PublicFiltersContext);
+  const { publicMap } = useContext(PublicMapContext);
+
   const dataSourceId = dataRecordsQuery.data?.dataSource?.id;
   const activeFilters = getActiveFilters(
     dataSourceId ? publicFilters[dataSourceId] : [],
   );
+
+  const config =
+    publicMap?.dataSourceConfigs?.length === 1
+      ? publicMap?.dataSourceConfigs[0]
+      : publicMap?.dataSourceConfigs.find(
+          (c) => c.dataSourceId === dataSourceId,
+        );
 
   const getListingsLabel = () => {
     if (!records?.length) {
@@ -182,6 +191,16 @@ function SingleDataSourceContent({
         onSelect={onSelect}
         colourScheme={colourScheme}
       />
+
+      {!editable && config && config.formUrl && config.allowUserSubmit && (
+        <div className="sticky bottom-0 left-0 p-4 pb-0 / bg-white">
+          <Button asChild={true} className="w-full">
+            <a href={config.formUrl} target="_blank">
+              Add a listing
+            </a>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

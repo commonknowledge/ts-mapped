@@ -1,8 +1,13 @@
 "use client";
 
-import { QueryResult, gql, useQuery } from "@apollo/client";
-import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import {
+import { gql, useQuery } from "@apollo/client";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { MapContext } from "@/components/Map/context/MapContext";
+import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
+import { DataSourcesContext } from "../Map/context/DataSourcesContext";
+import { PublicMapContext } from "./PublicMapContext";
+import { createDataSourceConfig } from "./PublishedComponents/DataSourcesSelect";
+import type {
   PublicMap,
   PublicMapColumn,
   PublicMapDataRecordsQuery,
@@ -10,10 +15,9 @@ import {
   PublicMapDataSourceConfig,
   PublishedPublicMapQuery,
 } from "@/__generated__/types";
-import { MapContext } from "@/components/Map/context/MapContext";
-import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
-import { PublicMapContext } from "./PublicMapContext";
 import type { Point } from "@/server/models/shared";
+import type { QueryResult } from "@apollo/client";
+import type { ReactNode } from "react";
 
 export default function PublicMapProvider({
   publicMap: initialPublicMap,
@@ -24,12 +28,10 @@ export default function PublicMapProvider({
   editable?: boolean;
   children: ReactNode;
 }) {
-  const [publicMap, setPublicMap] =
-    useState<PublishedPublicMapQuery["publishedPublicMap"]>(initialPublicMap);
+  const { publicMap, setPublicMap, activeTabId, setActiveTabId } =
+    usePublicMapAndActiveTab(initialPublicMap, editable);
   const [searchLocation, setSearchLocation] = useState<Point | null>(null);
-  const [activeTabId, setActiveTabId] = useState<string | null>(
-    publicMap?.dataSourceConfigs[0].dataSourceId || null,
-  );
+
   const [activePublishTab, setActivePublishTab] = useState<string>("settings");
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);
@@ -212,3 +214,38 @@ function DataRecordsQueryComponent({
 
   return null;
 }
+
+// When loading an editable public map with no data sources,
+// update the public map to show all available data sources
+const usePublicMapAndActiveTab = (
+  initialPublicMap: NonNullable<PublishedPublicMapQuery["publishedPublicMap"]>,
+  editable: boolean,
+) => {
+  const { mapConfig } = useContext(MapContext);
+  const { getDataSourceById } = useContext(DataSourcesContext);
+
+  const [publicMap, setPublicMap] = useState(initialPublicMap);
+  const [activeTabId, setActiveTabId] = useState<string | null>(
+    publicMap?.dataSourceConfigs?.[0]?.dataSourceId || null,
+  );
+
+  useEffect(() => {
+    if (!editable) {
+      return;
+    }
+
+    const dataSources = mapConfig
+      .getDataSourceIds()
+      .map((id) => getDataSourceById(id))
+      .filter((ds) => ds !== undefined && ds !== null);
+
+    const dataSourceConfigs = dataSources.map(createDataSourceConfig);
+
+    setPublicMap((prev) => ({ ...prev, dataSourceConfigs }));
+    if (dataSourceConfigs.length) {
+      setActiveTabId(dataSourceConfigs[0].dataSourceId);
+    }
+  }, [editable, getDataSourceById, mapConfig]);
+
+  return { publicMap, setPublicMap, activeTabId, setActiveTabId };
+};

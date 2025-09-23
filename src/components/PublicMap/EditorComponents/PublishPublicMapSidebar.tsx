@@ -1,12 +1,8 @@
 "use client";
 
 import { gql, useMutation } from "@apollo/client";
-import { Database, Globe, Settings } from "lucide-react";
-import { FormEvent, useContext, useEffect, useState } from "react";
-import {
-  UpsertPublicMapMutation,
-  UpsertPublicMapMutationVariables,
-} from "@/__generated__/types";
+import { Database, Settings } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import {
@@ -21,6 +17,11 @@ import { cn } from "@/shadcn/utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
+import type {
+  UpsertPublicMapMutation,
+  UpsertPublicMapMutationVariables,
+} from "@/__generated__/types";
+import type { FormEvent } from "react";
 
 export default function PublishPublicMapSidebar() {
   const {
@@ -99,6 +100,7 @@ export default function PublishPublicMapSidebar() {
   const onSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
     try {
       const result = await upsertPublicMap({
         variables: publicMap,
@@ -130,7 +132,7 @@ export default function PublishPublicMapSidebar() {
         {!hideSidebar && (
           <form onSubmit={onSubmitForm} className="flex flex-col h-full">
             <VerticalTabs
-              className="overflow-y-auto flex-1 flex flex-col"
+              className="overflow-y-hidden flex-1 flex flex-col"
               value={activePublishTab}
               onValueChange={(value) => {
                 setActivePublishTab(value);
@@ -160,7 +162,7 @@ export default function PublishPublicMapSidebar() {
                 }
               }}
             >
-              <VerticalTabsList className="flex flex-row border-b border-neutral-200 w-full">
+              <VerticalTabsList className="flex flex-row w-full">
                 <VerticalTabsTrigger
                   value="settings"
                   icon={Settings}
@@ -199,7 +201,7 @@ export function PublishActionsSection({ loading }: { loading: boolean }) {
         size="lg"
         className="flex-1 rounded-none h-full"
       >
-        <Globe className="w-4 h-4" /> Publish Map
+        Save changes
       </Button>
     </div>
   );

@@ -4,12 +4,6 @@ import { gql, useMutation } from "@apollo/client";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
-import {
-  SaveMapViewsToCrmMutation,
-  SaveMapViewsToCrmMutationVariables,
-  UpdateMapImageMutation,
-  UpdateMapImageMutationVariables,
-} from "@/__generated__/types";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
 import MapViews from "@/components/Map/components/MapViews";
@@ -17,6 +11,12 @@ import { MapContext } from "@/components/Map/context/MapContext";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
+import type {
+  SaveMapViewsToCrmMutation,
+  SaveMapViewsToCrmMutationVariables,
+  UpdateMapImageMutation,
+  UpdateMapImageMutationVariables,
+} from "@/__generated__/types";
 
 /**
  * TODO: Move complex logic into MapProvider
@@ -225,7 +225,7 @@ export default function PrivateMapNavbar() {
                 onClick={() => onClickSave()}
                 disabled={loading}
               >
-                Save
+                Save view
               </Button>
               <Button
                 type="button"

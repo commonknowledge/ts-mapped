@@ -1,11 +1,12 @@
 "use client";
 
-import { ReactNode, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import type { PublicMapDataRecordsQuery } from "@/__generated__/types";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
+import type { ReactNode } from "react";
 
 export default function PublicFiltersProvider({
   children,

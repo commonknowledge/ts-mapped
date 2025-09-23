@@ -44,7 +44,10 @@ const importPostcodes = async () => {
     const count = geojsonLines.length;
     for (let j = 0; j < count; j++) {
       const line = geojsonLines[j];
-      const feature = JSON.parse(line);
+      const feature = JSON.parse(line) as {
+        properties: { POSTCODE: string };
+        geometry: unknown;
+      };
       const name = feature.properties.POSTCODE;
       const code = name.replace(/\s+/g, "");
       await sql`

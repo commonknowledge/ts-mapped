@@ -6,6 +6,7 @@ export default function DataListRow({
   label,
   description,
   value,
+  name,
   badge,
   border,
   children,
@@ -13,6 +14,7 @@ export default function DataListRow({
 }: {
   label: string;
   description?: string;
+  name?: string;
   value?: string;
   badge?: boolean;
   border?: boolean;
@@ -32,7 +34,9 @@ export default function DataListRow({
           orientation === "vertical" && "flex-col items-start",
         )}
       >
-        <Label className="w-44">{label}</Label>
+        <Label className="w-44" htmlFor={name}>
+          {label}
+        </Label>
         {badge ? (
           <Badge variant="outline" className="text-base">
             {value}

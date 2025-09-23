@@ -1,20 +1,24 @@
 "use client";
 
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Turf } from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { useMarkerQueries } from "@/components/Map/data";
 import { useFolders, usePlacedMarkers, useTurfs } from "@/components/Map/hooks";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
+import type { Turf } from "@/__generated__/types";
+import type { Feature } from "geojson";
+import type { ReactNode } from "react";
 
 export default function MarkerAndTurfProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const { mapId, mapQuery, mapConfig, view } = useContext(MapContext);
+  const { mapRef, mapId, mapQuery, mapConfig, view, setPinDropMode } =
+    useContext(MapContext);
   const { publicMap } = useContext(PublicMapContext);
   /* State */
 
@@ -22,6 +26,8 @@ export default function MarkerAndTurfProvider({
   const [selectedPlacedMarkerId, setSelectedPlacedMarkerId] = useState<
     string | null
   >(null);
+
+  const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
   /* GraphQL Data */
   const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {
@@ -93,6 +99,51 @@ export default function MarkerAndTurfProvider({
     }
   }, [mapQuery, setFolders, setPlacedMarkers, setTurfs]);
 
+  const handleAddArea = () => {
+    const map = mapRef?.current;
+    if (map) {
+      // Find the polygon draw button and click it
+      const drawButton = document.querySelector(
+        ".mapbox-gl-draw_polygon",
+      ) as HTMLButtonElement;
+      if (drawButton) {
+        drawButton.click();
+      }
+    }
+  };
+
+  const handleDropPin = () => {
+    const map = mapRef?.current;
+    if (map) {
+      setPinDropMode(true);
+      map.getCanvas().style.cursor = "crosshair";
+
+      const clickHandler = (e: mapboxgl.MapMouseEvent) => {
+        insertPlacedMarker({
+          id: uuidv4(),
+          label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
+          notes: "",
+          point: e.lngLat,
+          folderId: null,
+        });
+
+        // Reset cursor
+        map.getCanvas().style.cursor = "";
+        map.off("click", clickHandler);
+
+        setPinDropMode(false);
+
+        // Fly to the new marker
+        map.flyTo({
+          center: e.lngLat,
+          zoom: 14,
+        });
+      };
+
+      map.once("click", clickHandler);
+    }
+  };
+
   return (
     <MarkerAndTurfContext
       value={{
@@ -118,6 +169,10 @@ export default function MarkerAndTurfProvider({
         insertTurf,
         updateTurf,
         markerQueries,
+        searchMarker,
+        setSearchMarker,
+        handleAddArea,
+        handleDropPin,
       }}
     >
       {children}

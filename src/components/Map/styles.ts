@@ -1,10 +1,16 @@
-import { MapStyleName } from "@/__generated__/types";
+import ThumbDark from "@/assets/map/dark.png";
+import ThumbLight from "@/assets/map/light.png";
+import ThumbSatellite from "@/assets/map/satellite.png";
+import ThumbStreets from "@/assets/map/streets.png";
+import type { MapStyleName } from "@/__generated__/types";
+import type { StaticImageData } from "next/image";
 
 export interface MapStyleConfig {
   name: string;
   slug: string;
   textColor: string;
   textHaloColor: string;
+  thumbnail: StaticImageData;
 }
 
 const mapStyles: Record<MapStyleName, MapStyleConfig> = {
@@ -13,24 +19,28 @@ const mapStyles: Record<MapStyleName, MapStyleConfig> = {
     slug: "light-v11",
     textColor: "#6D6D6D",
     textHaloColor: "#ffffff",
+    thumbnail: ThumbLight,
   },
   Dark: {
     name: "Dark",
     slug: "dark-v11",
     textColor: "#ffffff",
     textHaloColor: "#000000",
+    thumbnail: ThumbDark,
   },
   Streets: {
     name: "Streets",
     slug: "streets-v12",
     textColor: "#6D6D6D",
     textHaloColor: "#ffffff",
+    thumbnail: ThumbStreets,
   },
   Satellite: {
     name: "Satellite",
     slug: "satellite-v9",
     textColor: "#ffffff",
     textHaloColor: "#000000",
+    thumbnail: ThumbSatellite,
   },
 };
 

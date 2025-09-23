@@ -1,5 +1,5 @@
-import { NewMapView } from "@/server/models/MapView";
 import { db } from "@/server/services/database";
+import type { NewMapView } from "@/server/models/MapView";
 
 export function findMapViewById(viewId: string) {
   return db
@@ -26,4 +26,8 @@ export async function upsertMapView(view: NewMapView) {
     .onConflict((oc) => oc.columns(["id"]).doUpdateSet(view))
     .returningAll()
     .executeTakeFirstOrThrow();
+}
+
+export async function deleteMapView(id: string) {
+  return db.deleteFrom("mapView").where("id", "=", id).execute();
 }

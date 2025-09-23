@@ -1,6 +1,11 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
+import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
+import { serverDataSourceSerializer } from "@/utils/superjson";
+import { findDataSourceById } from "../repositories/DataSource";
+import { findMapById } from "../repositories/Map";
+import { findOrganisationForUser } from "../repositories/Organisation";
 import { findUserById } from "../repositories/User";
 
 export async function createContext() {
@@ -14,12 +19,33 @@ export async function createContext() {
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
 
+// Prevent sensitive DataSource config being sent to the client
+superjson.registerCustom(serverDataSourceSerializer, "DataSource");
+
 /**
  * Initialization of tRPC backend
  * Should be done only once per backend!
  */
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
+  errorFormatter({ shape, error }) {
+    // This catches any errors and gives us a nice formError + fieldErrors key to use in the frontend
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        formError: !(error.cause instanceof ZodError)
+          ? error.code === "INTERNAL_SERVER_ERROR"
+            ? "There was an error processing your request."
+            : error.message
+          : undefined,
+        zodError:
+          error.code === "BAD_REQUEST" && error.cause instanceof ZodError
+            ? error.cause.flatten()
+            : null,
+      },
+    };
+  },
 });
 
 /**
@@ -39,3 +65,67 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 });
 
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+
+export const organisationProcedure = protectedProcedure
+  .input(z.object({ organisationId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const organisation = await findOrganisationForUser(
+      input.organisationId,
+      ctx.user.id,
+    );
+    if (!organisation)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organisation not found",
+      });
+
+    return next({ ctx: { organisation } });
+  });
+
+export const dataSourceProcedure = protectedProcedure
+  .input(z.object({ dataSourceId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const dataSource = await findDataSourceById(input.dataSourceId);
+
+    if (!dataSource)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Data source not found",
+      });
+
+    const organisation = await findOrganisationForUser(
+      dataSource.organisationId,
+      ctx.user.id,
+    );
+    if (!organisation)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organisation not found",
+      });
+
+    return next({ ctx: { organisation, dataSource } });
+  });
+
+export const mapProcedure = protectedProcedure
+  .input(z.object({ mapId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const map = await findMapById(input.mapId);
+
+    if (!map)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Map not found",
+      });
+
+    const organisation = await findOrganisationForUser(
+      map.organisationId,
+      ctx.user.id,
+    );
+    if (!organisation)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organisation not found",
+      });
+
+    return next({ ctx: { organisation, map } });
+  });

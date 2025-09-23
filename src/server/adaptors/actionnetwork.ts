@@ -1,9 +1,9 @@
 import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
-import { EnrichedRecord } from "@/server/mapping/enrich";
 import logger from "@/server/services/logger";
-import { ExternalRecord, TaggedRecord } from "@/types";
-import { DataSourceAdaptor } from "./abstract";
+import type { DataSourceAdaptor } from "./abstract";
+import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { ExternalRecord, TaggedRecord } from "@/types";
 
 const ActionNetworkWebhookPayload = z.array(
   z
@@ -186,17 +186,15 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         return null;
       }
 
-      const record = records[0];
-      const externalId = this.extractIdFromRecord(record);
-
-      if (!externalId) {
-        return null;
+      for (const record of records) {
+        const externalId = this.extractIdFromRecord(record);
+        const json = this.normalizeRecord(record);
+        if (externalId && Object.keys(json).length) {
+          return { externalId, json };
+        }
       }
 
-      return {
-        externalId,
-        json: this.normalizeRecord(record),
-      };
+      return null;
     } catch (error) {
       logger.warn(`Could not get first record for Action Network`, { error });
       return null;
@@ -222,7 +220,10 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       );
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      _embedded: { "osdi:people": ExternalRecord[] };
+      _links: { next: { href: string } };
+    };
     if (typeof json !== "object") {
       throw new Error(`Bad fetch page response body: ${JSON.stringify(json)}`);
     }
@@ -368,18 +369,25 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     }
   }
 
-  private extractIdFromRecord(record: unknown): string | null {
+  private extractIdFromRecord(input: unknown): string | null {
     // Try to extract ID
-    if (!record || typeof record !== "object") {
+
+    const schema = z.object({
+      identifiers: z.array(z.string()),
+      _links: z.object({ self: z.object({ href: z.string() }) }),
+    });
+    const parsedRecord = schema.safeParse(input);
+    if (!parsedRecord.success) {
       return null;
     }
+    const record = parsedRecord.data;
 
     if (
       "identifiers" in record &&
       Array.isArray(record.identifiers) &&
       record.identifiers.length
     ) {
-      return record.identifiers[0].replace(/^action_network:/, "");
+      return record.identifiers[0]?.replace(/^action_network:/, "");
     }
 
     // Fallback to self link
@@ -400,10 +408,36 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     return null;
   }
 
-  private normalizeRecord(record: unknown): Record<string, unknown> {
-    if (!record || typeof record !== "object") {
+  private normalizeRecord(input: unknown): Record<string, unknown> {
+    const recordSchema = z
+      .object({
+        given_name: z.string(),
+        family_name: z.string(),
+        employer: z.string(),
+        occupation: z.string(),
+        created_date: z.string(),
+        modified_date: z.string(),
+        email_addresses: z.array(
+          z.object({ address: z.string(), primary: z.boolean() }).partial(),
+        ),
+        phone_numbers: z.array(
+          z.object({ number: z.string(), primary: z.boolean() }).partial(),
+        ),
+        postal_addresses: z.array(
+          z.object({ postal_code: z.string(), primary: z.boolean() }).partial(),
+        ),
+        custom_fields: z.record(z.unknown()),
+        languages_spoken: z.array(z.string()),
+      })
+      .partial();
+    const parsedRecord = recordSchema.safeParse(input);
+    if (!parsedRecord.success) {
+      logger.warn("Error parsing Action Network record", {
+        error: parsedRecord.error,
+      });
       return {};
     }
+    const record = parsedRecord.data;
 
     // Remove OSDI-specific metadata and flatten the record for easier processing
     const normalized: Record<string, unknown> = {};

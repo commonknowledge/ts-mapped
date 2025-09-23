@@ -1,6 +1,7 @@
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import { Button } from "@/shadcn/ui/button";
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
+import { Switch } from "@/shadcn/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import DataSourcesSelect from "../PublishedComponents/DataSourcesSelect";
 import ColumnCard from "./ColumnCard";
@@ -173,9 +175,9 @@ export default function EditorDataSettings() {
 
                 <Separator />
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4">
                   {/* Additional Columns */}
-                  <Label className="text-sm font-medium">
+                  <Label className="text-base font-medium">
                     Additional Columns
                   </Label>
                   <div className="flex flex-col gap-2">
@@ -378,6 +380,49 @@ export default function EditorDataSettings() {
                     })()}
                   </div>
                 </div>
+                <fieldset className="flex flex-col gap-6 / mt-8">
+                  <div>
+                    <legend className="text-base font-medium">
+                      User actions
+                    </legend>
+                  </div>
+
+                  <FormFieldWrapper label="Submit listing" isHorizontal>
+                    <Switch
+                      checked={dataSourceConfig.allowUserSubmit}
+                      onCheckedChange={(v) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          allowUserSubmit: v,
+                        })
+                      }
+                    />
+                  </FormFieldWrapper>
+                  <FormFieldWrapper label="Suggest edits" isHorizontal>
+                    <Switch
+                      checked={dataSourceConfig.allowUserEdit}
+                      onCheckedChange={(v) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          allowUserEdit: v,
+                        })
+                      }
+                    />
+                  </FormFieldWrapper>
+                  <FormFieldWrapper
+                    label="Submission form URL"
+                    id={`${dataSourceConfig.dataSourceId}-form-url`}
+                  >
+                    <Input
+                      type="url"
+                      id={`${dataSourceConfig.dataSourceId}-form-url`}
+                      value={dataSourceConfig.formUrl}
+                      onChange={(e) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          formUrl: e.target.value,
+                        })
+                      }
+                    />
+                  </FormFieldWrapper>
+                </fieldset>
               </div>
             </TabsContent>
           ))}
