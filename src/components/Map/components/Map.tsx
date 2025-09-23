@@ -68,7 +68,7 @@ export default function Map({
         .getDataSourceIds()
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig],
+    [mapConfig]
   );
 
   // draw existing turfs
@@ -166,7 +166,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
           )
           .map((layer) => layer.id);
 
@@ -177,7 +177,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded],
+    [mapRef, styleLoaded]
   );
 
   useEffect(() => {
@@ -390,6 +390,21 @@ export default function Map({
           /* @ts-expect-error The style property is missing in the MapBox type definitions */
           onSourceLoad(e.style.globalId);
           setStyleLoaded(true);
+
+          const map = mapRef?.current?.getMap();
+          if (map) {
+            const layers = map.getStyle().layers;
+            if (!layers) return;
+
+            layers.forEach((layer) => {
+              if (layer.type === "symbol" && layer.layout?.["text-field"]) {
+                map.setLayoutProperty(layer.id, "text-field", [
+                  "get",
+                  "name_en",
+                ]);
+              }
+            });
+          }
         }}
       >
         {ready && (
@@ -433,5 +448,5 @@ const SearchBox = dynamic(
   {
     ssr: false,
     loading: () => null,
-  },
+  }
 );
