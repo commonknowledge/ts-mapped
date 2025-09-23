@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -88,10 +88,11 @@ export default function MapProvider({
   };
 
   const [_saveMapConfig] = useUpdateMapConfigMutation();
-  const saveMapConfig = async () => {
+  const saveMapConfig = useCallback(async () => {
     await _saveMapConfig({ variables: { mapId, mapConfig, views } });
     setDirtyViewIds([]);
-  };
+    setConfigDirty(false);
+  }, [_saveMapConfig, mapConfig, mapId, views]);
 
   /* Effects */
 
@@ -128,7 +129,7 @@ export default function MapProvider({
     return new ViewConfig({ ...view?.config });
   }, [view]);
 
-  const autoSave = async () => {
+  const autoSave = useCallback(async () => {
     if (!mapId || !mapConfig) {
       return;
     }
@@ -138,7 +139,7 @@ export default function MapProvider({
     } catch (e) {
       console.error("UpdateMapConfig failed", e);
     }
-  };
+  }, [mapConfig, mapId, saveMapConfig]);
 
   // auto save map config
   useEffect(() => {
@@ -152,15 +153,14 @@ export default function MapProvider({
     return () => {
       clearTimeout(handler);
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapConfig]);
+  }, [autoSave, configDirty]);
 
   // auto save map view
   useEffect(() => {
     if (!dirtyViewIds?.length) {
       return;
     }
+
     const handler = setTimeout(() => {
       autoSave();
     }, 1000); // debounce 1s
@@ -168,9 +168,7 @@ export default function MapProvider({
     return () => {
       clearTimeout(handler);
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dirtyViewIds]);
+  }, [autoSave, dirtyViewIds]);
 
   return (
     <MapContext
