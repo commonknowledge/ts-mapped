@@ -3,7 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
@@ -35,6 +35,8 @@ import type {
 } from "@/server/models/DataSource";
 
 export default function NewDataSourcePage() {
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
   const { organisationId } = useContext(OrganisationsContext);
   const router = useRouter();
   const oAuthState = useOAuthState();
@@ -78,6 +80,12 @@ export default function NewDataSourcePage() {
     return fieldErrors?.[field.name] ? fieldErrors[field.name]?.join(", ") : "";
   };
 
+  useEffect(() => {
+    if (firstInputRef.current) {
+      firstInputRef.current.focus();
+    }
+  }, []);
+
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
       <PageHeader
@@ -99,6 +107,7 @@ export default function NewDataSourcePage() {
               error={getFieldErrorMessage(field)}
             >
               <Input
+                ref={firstInputRef}
                 type="text"
                 id={field.name}
                 placeholder="Name"
