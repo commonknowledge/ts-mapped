@@ -102,7 +102,7 @@ export function DataSourceItem({
   return (
     <div
       className={cn(
-        "p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
+        "h-full flex flex-col justify-between p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
         className,
       )}
     >
