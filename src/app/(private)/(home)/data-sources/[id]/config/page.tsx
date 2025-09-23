@@ -31,7 +31,9 @@ export default function DataSourceConfigPage({
         title={`Configure ${dataSource.name}`}
         description="Select the name and location columns in your data source to import them into Mapped"
       />
-      <ConfigurationForm dataSource={dataSource} redirectToParent />
+      <div className="max-w-[40ch] mt-8">
+        <ConfigurationForm dataSource={dataSource} redirectToParent />
+      </div>
     </div>
   );
 }

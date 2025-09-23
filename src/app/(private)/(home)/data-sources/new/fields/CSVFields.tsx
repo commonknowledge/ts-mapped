@@ -1,4 +1,4 @@
-import DataListRow from "@/components/DataListRow";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceType } from "@/server/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
 import type { NewCSVConfig } from "../schema";
@@ -14,11 +14,12 @@ export default function CSVFields({
 
   return (
     <>
-      <DataListRow label="File">
+      <FormFieldWrapper label="File" id="csv-file-input">
         <Input
           type="file"
-          className="w-50"
+          className="w-full"
           accept=".csv"
+          name="csv-file-input"
           required
           onChange={(e) => {
             const file = e.target.files ? e.target.files[0] : null;
@@ -29,7 +30,7 @@ export default function CSVFields({
             }
           }}
         />
-      </DataListRow>
+      </FormFieldWrapper>
     </>
   );
 }
