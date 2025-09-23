@@ -1,6 +1,6 @@
 import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { DataSourceRecordType } from "@/__generated__/types";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -25,6 +25,7 @@ export default function MarkersControl() {
     handleDropPin,
   } = useContext(MarkerAndTurfContext);
   const { getDataSources } = useContext(DataSourcesContext);
+  const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
     const newFolder = {
@@ -135,6 +136,8 @@ export default function MarkersControl() {
         color={mapColors.markers.color}
         showLayer={viewConfig.showLocations}
         setLayer={(show) => updateViewConfig({ showLocations: show })}
+        expanded={expanded}
+        setExpanded={setExpanded}
       >
         {loading && <LoaderPinwheel className="animate-spin" size={16} />}
         <IconButtonWithTooltip
@@ -147,7 +150,7 @@ export default function MarkersControl() {
           <Ellipsis className="w-4 h-4" />
         </IconButtonWithTooltip>
       </LayerHeader>
-      <MarkersList />
+      {expanded && <MarkersList />}
     </ControlItemWrapper>
   );
 }

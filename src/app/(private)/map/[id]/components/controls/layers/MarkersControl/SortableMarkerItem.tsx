@@ -118,9 +118,10 @@ export default function SortableMarkerItem({
                       : "none",
                 }}
               />
-              <span className="break-all">{marker.label}</span>
+              <span className="truncate">{marker.label}</span>
               <div className="hidden group-hover:flex gap-2 text-muted-foreground">
                 <button
+                  className="cursor-pointer hover:text-primary"
                   onClick={() => {
                     setEditText(marker.label);
                     setEditing(true);
@@ -129,7 +130,10 @@ export default function SortableMarkerItem({
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
-                <button onClick={() => deletePlacedMarker(marker.id)}>
+                <button
+                  className="cursor-pointer hover:text-primary"
+                  onClick={() => deletePlacedMarker(marker.id)}
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
