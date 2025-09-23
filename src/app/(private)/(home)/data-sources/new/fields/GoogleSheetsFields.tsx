@@ -1,6 +1,6 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import DataListRow from "@/components/DataListRow";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceType } from "@/server/models/DataSource";
 import { getOAuthCredentials, getOAuthURL, getSheets } from "@/services/google";
 import { Button } from "@/shadcn/ui/button";
@@ -161,26 +161,26 @@ function GoogleSheetsFieldsWithOAuth({
 
   return (
     <>
-      <DataListRow label="Spreadsheet URL" name="spreadsheetUrl">
+      <FormFieldWrapper label="Spreadsheet URL" id="spreadsheetUrl">
         <Input
           type="text"
-          className="w-50"
+          className="w-full"
           id="spreadsheetUrl"
           required
           placeholder="https://docs.google.com/spreadsheets/d/1GB...doA/edit?gid=0#gid=0"
           value={spreadsheetUrl || ""}
           onChange={(e) => setSpreadsheetUrl(e.target.value)}
         />
-      </DataListRow>
+      </FormFieldWrapper>
       {config.spreadsheetId &&
         (sheets.length > 0 ? (
-          <DataListRow label="Sheet Name" name="sheetName">
+          <FormFieldWrapper label="Sheet Name" id="sheetName">
             <Select
               value={config.sheetName || ""}
               required
               onValueChange={(sheetName) => onChange({ sheetName })}
             >
-              <SelectTrigger className="w-50" id="sheetName">
+              <SelectTrigger className="w-full" id="sheetName">
                 <SelectValue placeholder="Select a sheet" />
               </SelectTrigger>
               <SelectContent>
@@ -191,7 +191,7 @@ function GoogleSheetsFieldsWithOAuth({
                 ))}
               </SelectContent>
             </Select>
-          </DataListRow>
+          </FormFieldWrapper>
         ) : (
           <p className="text-xs">Loading sheet names...</p>
         ))}

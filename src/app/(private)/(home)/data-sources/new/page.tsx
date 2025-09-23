@@ -5,8 +5,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
-import DataListRow from "@/components/DataListRow";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
@@ -27,6 +27,7 @@ import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
+
 import { type NewDataSourceConfig, defaultStateSchema } from "./schema";
 import type {
   DataSourceConfig,
@@ -73,6 +74,10 @@ export default function NewDataSourcePage() {
   const fieldErrors = error?.data?.zodError?.fieldErrors;
   const formError = error?.data?.formError;
 
+  const getFieldErrorMessage = (field: { name: string }) => {
+    return fieldErrors?.[field.name] ? fieldErrors[field.name]?.join(", ") : "";
+  };
+
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
       <PageHeader
@@ -84,32 +89,35 @@ export default function NewDataSourcePage() {
           e.preventDefault();
           form.handleSubmit();
         }}
-        className="max-w-2xl"
+        className="flex flex-col items-start gap-6 max-w-[40ch] mt-12"
       >
         <form.Field name="name">
           {(field) => (
-            <DataListRow label="Name" name={field.name}>
+            <FormFieldWrapper
+              label="Name"
+              id={field.name}
+              error={getFieldErrorMessage(field)}
+            >
               <Input
                 type="text"
                 id={field.name}
                 placeholder="Name"
                 value={field.state.value}
-                className="w-50"
+                className="w-full"
                 onChange={(e) => field.handleChange(e.target.value)}
                 required
               />
-              {fieldErrors?.[field.name] && (
-                <div className="text-xs text-red-500 mt-1">
-                  {fieldErrors[field.name]?.join(", ")}
-                </div>
-              )}
-            </DataListRow>
+            </FormFieldWrapper>
           )}
         </form.Field>
 
         <form.Field name="recordType">
           {(field) => (
-            <DataListRow label="Data type" border name={field.name}>
+            <FormFieldWrapper
+              label="Data type"
+              id={field.name}
+              error={getFieldErrorMessage(field)}
+            >
               <Select
                 required
                 value={field.state.value || ""}
@@ -117,7 +125,7 @@ export default function NewDataSourcePage() {
                   field.handleChange(value as DataSourceRecordType)
                 }
               >
-                <SelectTrigger className="w-50" id={field.name}>
+                <SelectTrigger className="w-full" id={field.name}>
                   <SelectValue placeholder="Choose a record type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -128,18 +136,17 @@ export default function NewDataSourcePage() {
                   ))}
                 </SelectContent>
               </Select>
-              {fieldErrors?.[field.name] && (
-                <div className="text-xs text-red-500 mt-1">
-                  {fieldErrors[field.name]?.join(", ")}
-                </div>
-              )}
-            </DataListRow>
+            </FormFieldWrapper>
           )}
         </form.Field>
 
         <form.Field name="config.type">
           {(field) => (
-            <DataListRow label="Source type" name={field.name}>
+            <FormFieldWrapper
+              label="Source type"
+              id={field.name}
+              error={getFieldErrorMessage(field)}
+            >
               <Select
                 required
                 value={field.state.value || ""}
@@ -147,7 +154,7 @@ export default function NewDataSourcePage() {
                   field.handleChange(value as DataSourceType)
                 }
               >
-                <SelectTrigger className="w-50" id={field.name}>
+                <SelectTrigger className="w-full" id={field.name}>
                   <SelectValue placeholder="Choose a type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,12 +166,7 @@ export default function NewDataSourcePage() {
                   ))}
                 </SelectContent>
               </Select>
-              {fieldErrors?.[field.name] && (
-                <div className="text-xs text-red-500 mt-1">
-                  {fieldErrors[field.name]?.join(", ")}
-                </div>
-              )}
-            </DataListRow>
+            </FormFieldWrapper>
           )}
         </form.Field>
 
@@ -178,7 +180,7 @@ export default function NewDataSourcePage() {
           {({ config, dataSourceName, recordType }) => (
             <>
               {config && (
-                <div>
+                <div className="flex flex-col items-start gap-6 w-full">
                   <ConfigFields
                     config={config}
                     dataSourceName={dataSourceName}
@@ -205,13 +207,12 @@ export default function NewDataSourcePage() {
           selector={(state) => [state.canSubmit, state.isSubmitting]}
         >
           {([canSubmit, isSubmitting]) => (
-            <div className="mt-10">
-              <Button disabled={!canSubmit || loading} type="submit">
-                {isSubmitting || loading ? "Creating..." : "Configure fields"}
-              </Button>
-            </div>
+            <Button disabled={!canSubmit || loading} type="submit">
+              {isSubmitting || loading ? "Creating..." : "Configure fields"}
+            </Button>
           )}
         </form.Subscribe>
+
         {formError && <p className="text-xs mt-2 text-red-500">{formError}</p>}
       </form>
     </div>

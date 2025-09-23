@@ -1,4 +1,4 @@
-import DataListRow from "@/components/DataListRow";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { DataSourceType } from "@/server/models/DataSource";
 import { Input } from "@/shadcn/ui/input";
 import type { AirtableConfig } from "@/server/models/DataSource";
@@ -16,39 +16,39 @@ export default function AirtableFields({
 
   return (
     <>
-      <DataListRow label="Base ID" name="baseId">
+      <FormFieldWrapper label="Base ID" id="baseId">
         <Input
           type="text"
           required
           placeholder="Base ID"
-          className="w-50"
+          className="w-full"
           id="baseId"
           value={config.baseId || ""}
           onChange={(e) => onChange({ baseId: e.target.value })}
         />
-      </DataListRow>
-      <DataListRow label="Table ID" name="tableId">
+      </FormFieldWrapper>
+      <FormFieldWrapper label="Table ID" id="tableId">
         <Input
           type="text"
           required
           placeholder="Table ID"
           id="tableId"
-          className="w-50"
+          className="w-full"
           value={config.tableId || ""}
           onChange={(e) => onChange({ tableId: e.target.value })}
         />
-      </DataListRow>
-      <DataListRow label="API Key" name="apiKey">
+      </FormFieldWrapper>
+      <FormFieldWrapper label="API Key" id="apiKey">
         <Input
           type="text"
           required
           placeholder="API Key"
-          className="w-50"
+          className="w-full"
           id="apiKey"
           value={config.apiKey || ""}
           onChange={(e) => onChange({ apiKey: e.target.value })}
         />
-      </DataListRow>
+      </FormFieldWrapper>
     </>
   );
 }

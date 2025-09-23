@@ -13,7 +13,7 @@ export default function DataSourceConfigPage({
   const { id } = use(params);
   const trpc = useTRPC();
   const { data: dataSource, isPending } = useQuery(
-    trpc.dataSource.byId.queryOptions({ dataSourceId: id }),
+    trpc.dataSource.byId.queryOptions({ dataSourceId: id })
   );
 
   if (isPending) return null;
@@ -31,7 +31,9 @@ export default function DataSourceConfigPage({
         title={`Configure ${dataSource.name}`}
         description="Select the name and location columns in your data source to import them into Mapped"
       />
-      <ConfigurationForm dataSource={dataSource} redirectToParent />
+      <div className="max-w-[40ch] mt-12">
+        <ConfigurationForm dataSource={dataSource} redirectToParent />
+      </div>
     </div>
   );
 }

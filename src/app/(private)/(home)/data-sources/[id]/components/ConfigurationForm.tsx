@@ -108,7 +108,10 @@ export default function ConfigurationForm({
   const features = DataSourceFeatures[dataSource.config.type as DataSourceType];
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col items-start gap-6">
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col items-start gap-6"
+    >
       <ColumnRoleFields
         dataSource={dataSource}
         nameColumns={nameColumns}
