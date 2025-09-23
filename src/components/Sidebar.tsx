@@ -38,12 +38,12 @@ export default function Sidebar() {
 
   const navItems = [
     {
-      label: "Recent Maps",
+      label: "Recent maps",
       href: "/dashboard",
       icon: <Clock2 className="w-4 h-4" />,
     },
     {
-      label: "Data Sources",
+      label: "Data sources",
       href: "/data-sources",
       icon: <DatabaseIcon className="w-4 h-4" />,
     },

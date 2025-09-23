@@ -22,7 +22,7 @@ const dataSourceRecordTypeColors: Record<DataSourceRecordType, string> = {
 
 const dataSourceRecordTypeLabels: Record<DataSourceRecordType, string> = {
   [DataSourceRecordType.Members]: "Members",
-  [DataSourceRecordType.Data]: "Reference Data",
+  [DataSourceRecordType.Data]: "Reference data",
   [DataSourceRecordType.Events]: "Events",
   [DataSourceRecordType.Locations]: "Locations",
   [DataSourceRecordType.People]: "People",
