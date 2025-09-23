@@ -28,14 +28,14 @@ const mappedDataLibrary = {
       name: AreaSetGroupCodeLabels[AreaSetGroupCode.WMC24],
       description: "Westminster Parliamentary Constituencies for UK mapping",
       type: "boundary",
-      category: "Locality Shapes",
+      category: "Locality shapes",
     },
     {
       id: "boundaries-oa21",
       name: AreaSetGroupCodeLabels[AreaSetGroupCode.OA21],
       description: "Census Output Areas for detailed area mapping",
       type: "boundary",
-      category: "Locality Shapes",
+      category: "Locality shapes",
     },
   ],
   referenceData: [
@@ -44,7 +44,7 @@ const mappedDataLibrary = {
       name: "General Election 2024",
       description: "Elecectoral results for the 2024 General Election",
       type: "dataset",
-      category: "Reference Data",
+      category: "Reference data",
     },
     {
       id: "deprivation-2021",
@@ -52,7 +52,7 @@ const mappedDataLibrary = {
       description:
         "Deprivation data for the 2021 Index of Multiple Deprivation",
       type: "dataset",
-      category: "Reference Data",
+      category: "Reference data",
     },
   ],
 };
@@ -83,14 +83,14 @@ export default function DataSourcesPage() {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="your-data" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
-            Your Data
+            Your data
           </TabsTrigger>
           <TabsTrigger
             value="mapped-library"
             className="flex items-center gap-2"
           >
             <BookOpen className="w-4 h-4" />
-            Mapped Data Library
+            Mapped data library
           </TabsTrigger>
         </TabsList>
 
@@ -102,7 +102,7 @@ export default function DataSourcesPage() {
           ) : (
             <div className="space-y-8">
               <PageHeader
-                title="Your Data Sources"
+                title="Your data sources"
                 action={
                   <Button variant="default" size="lg" asChild={true}>
                     <Link href="/data-sources/new">
@@ -117,7 +117,7 @@ export default function DataSourcesPage() {
               {dataSources && dataSources.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
                   <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">No dddd sources yet</p>
+                  <p className="text-lg font-medium">No sources yet</p>
                   <p className="text-sm mb-4">
                     Create your first data source to get started
                   </p>
@@ -157,7 +157,7 @@ export default function DataSourcesPage() {
             <div>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Pentagon className="w-5 h-5 text-blue-600" />
-                Locality Shapes
+                Locality shapes
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {mappedDataLibrary.localityShapes.map((item) => (
@@ -195,7 +195,7 @@ export default function DataSourcesPage() {
             <div>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Database className="w-5 h-5 text-green-600" />
-                Reference Data
+                Reference data
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {mappedDataLibrary.referenceData.map((item) => (

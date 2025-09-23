@@ -102,7 +102,7 @@ export default function UserDataSourcesList({
             <Link href="/data-sources/new">
               <Button variant="outline" size="sm">
                 <PlusIcon className="w-4 h-4 mr-2" />
-                Create Your First Data Source
+                Create your first data source
               </Button>
             </Link>
           </div>
@@ -112,7 +112,7 @@ export default function UserDataSourcesList({
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <CollectionIcon color={mapColors.member.color} />
-            Member Data Sources
+            Member data sources
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 ">
             {memberDataSources?.map((dataSource) => (
@@ -127,7 +127,7 @@ export default function UserDataSourcesList({
             {memberDataSources?.length === 0 && (
               <div className="col-span-full text-center py-8 text-neutral-400">
                 <Users className="w-8 h-8 mx-auto mb-2" />
-                <p className="text-sm">No member Data Sources yet</p>
+                <p className="text-sm">No member data sources yet</p>
               </div>
             )}
           </div>
@@ -138,7 +138,7 @@ export default function UserDataSourcesList({
           <div className="flex items-center mb-6 gap-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <CollectionIcon color={mapColors.dataSource.color} />
-              Other Data Sources
+              Other data sources
             </h2>
             <div className="flex gap-2 flex-wrap">
               {filterOptions.map((option) => {
@@ -179,7 +179,7 @@ export default function UserDataSourcesList({
                 <Boxes className="w-8 h-8 mx-auto mb-2" />
                 <p className="text-sm">
                   {selectedFilter === "all"
-                    ? "No other Data Sources yet"
+                    ? "No other data sources yet"
                     : `No ${filterOptions.find((opt) => opt.value === selectedFilter)?.label.toLowerCase()} data yet`}
                 </p>
               </div>

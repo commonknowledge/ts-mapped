@@ -1,15 +1,8 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
-import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { useTRPC } from "@/services/trpc/react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/shadcn/ui/breadcrumb";
 import ConfigurationForm from "../components/ConfigurationForm";
 
 export default function DataSourceConfigPage({
@@ -34,21 +27,6 @@ export default function DataSourceConfigPage({
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <Link href="/data-sources">Data sources</Link>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <Link href={`/data-sources/${dataSource.id}`}>
-              {dataSource.name}
-            </Link>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>Configuration</BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
       <PageHeader
         title={`Configure ${dataSource.name}`}
         description="Select the name and location columns in your data source to import them into Mapped"
