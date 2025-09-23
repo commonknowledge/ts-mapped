@@ -1,6 +1,9 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation as useTanstackMutation } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { CalculationType, VisualisationType } from "@/__generated__/types";
+import { useTRPC } from "@/services/trpc/react";
 import type { ViewConfig } from "./context/MapContext";
 import type { DataSourceMarkers } from "./types";
 import type {
@@ -350,6 +353,21 @@ export const useUpdateMapConfigMutation = () => {
         }
       }
     `,
+  );
+};
+
+export const useDeleteMapViewMutation = () => {
+  const trpc = useTRPC();
+
+  return useTanstackMutation(
+    trpc.mapView.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success("View deleted successfully");
+      },
+      onError: () => {
+        toast.error("Failed to delete view");
+      },
+    }),
   );
 };
 

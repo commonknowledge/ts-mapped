@@ -91,12 +91,12 @@ describe("Airtable adaptor tests", () => {
       credentials.airtable.tableId,
     );
     try {
-      await adaptor.createField("TestField abc", ColumnType.String);
+      await adaptor.createField("TestField", ColumnType.String);
     } catch (e) {
       expect(String(e)).toContain("DUPLICATE");
     }
     const fields = await adaptor.getFields();
-    expect(Object.values(fields || {})).toContain("TestField");
+    expect(fields).toContain("TestField");
   });
 
   test("getFields returns field names", async () => {
@@ -107,7 +107,8 @@ describe("Airtable adaptor tests", () => {
       credentials.airtable.tableId,
     );
     const fields = await adaptor.getFields();
-    expect(Object.keys(fields || {}).length).toBeGreaterThan(0);
+    expect(Array.isArray(fields)).toBe(true);
+    expect(fields.length).toBeGreaterThan(0);
   });
 
   test("getRecordCount returns null", async () => {

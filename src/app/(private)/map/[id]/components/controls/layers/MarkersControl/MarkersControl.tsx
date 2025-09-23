@@ -38,7 +38,7 @@ export default function MarkersControl() {
   const handleManualSearch = () => {
     setTimeout(() => {
       const geocoderInput = document.querySelector(
-        ".mapboxgl-ctrl-geocoder--input",
+        'mapbox-search-box [class$="--Input"]',
       ) as HTMLInputElement;
       if (geocoderInput) {
         geocoderInput.focus();

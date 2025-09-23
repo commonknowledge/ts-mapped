@@ -5,21 +5,27 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { mapColors } from "@/components/Map/styles";
+import type { Feature } from "geojson";
 
 export default function SearchResultMarker() {
   const { insertPlacedMarker, searchMarker, setSearchMarker } =
     useContext(MarkerAndTurfContext);
 
+  const center = getFeatureCenter(searchMarker);
+  const label =
+    (searchMarker?.properties && searchMarker.properties["name"]) ||
+    "Unknown location";
+
   const addMarker = () => {
-    if (!searchMarker) {
+    if (!searchMarker || !center) {
       return;
     }
 
     insertPlacedMarker({
       id: uuidv4(),
-      label: searchMarker.place_name,
+      label,
       notes: "",
-      point: { lng: searchMarker.center[0], lat: searchMarker.center[1] },
+      point: { lng: center[0], lat: center[1] },
       folderId: null,
     });
 
@@ -27,19 +33,16 @@ export default function SearchResultMarker() {
     toast.success("Marker added!");
   };
 
-  if (!searchMarker) return <></>;
+  if (!searchMarker || !center) return <></>;
 
   return (
     <>
-      <Marker
-        longitude={searchMarker.center[0]}
-        latitude={searchMarker.center[1]}
-      >
+      <Marker longitude={center[0]} latitude={center[1]}>
         <MarkerIcon />
       </Marker>
       <Popup
-        longitude={searchMarker.center[0]}
-        latitude={searchMarker.center[1]}
+        longitude={center[0]}
+        latitude={center[1]}
         offset={8}
         closeButton={false}
         onClose={() => setSearchMarker(null)}
@@ -48,8 +51,7 @@ export default function SearchResultMarker() {
         }}
       >
         <div className="flex items-center gap-2 pb-2 border-b / font-semibold text-sm">
-          {/* <MarkerIcon /> */}
-          {searchMarker.text}
+          {label}
         </div>
         <button
           onClick={() => addMarker()}
@@ -76,4 +78,16 @@ const MarkerIcon = () => {
       style={{ background: mapColors.markers.color }}
     ></div>
   );
+};
+
+const getFeatureCenter = (feature: Feature | null | undefined) => {
+  if (!feature) {
+    return null;
+  }
+  switch (feature.geometry.type) {
+    case "Point":
+      return feature.geometry.coordinates;
+    default:
+      return null;
+  }
 };

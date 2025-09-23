@@ -9,7 +9,7 @@ import { useMarkerQueries } from "@/components/Map/data";
 import { useFolders, usePlacedMarkers, useTurfs } from "@/components/Map/hooks";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
 import type { Turf } from "@/__generated__/types";
-import type { Result } from "@mapbox/mapbox-gl-geocoder";
+import type { Feature } from "geojson";
 import type { ReactNode } from "react";
 
 export default function MarkerAndTurfProvider({
@@ -27,7 +27,7 @@ export default function MarkerAndTurfProvider({
     string | null
   >(null);
 
-  const [searchMarker, setSearchMarker] = useState<Result | null>(null);
+  const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
   /* GraphQL Data */
   const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {

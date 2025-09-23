@@ -8,7 +8,11 @@ import {
   MapContext,
   ViewConfig,
 } from "@/components/Map/context/MapContext";
-import { useMapQuery, useUpdateMapConfigMutation } from "@/components/Map/data";
+import {
+  useDeleteMapViewMutation,
+  useMapQuery,
+  useUpdateMapConfigMutation,
+} from "@/components/Map/data";
 import { DEFAULT_ZOOM } from "@/constants";
 import { getNewLastPosition } from "../utils";
 import type { View } from "../types";
@@ -67,8 +71,10 @@ export default function MapProvider({
     setDirtyViewIds([...dirtyViewIds, view.id]);
   };
 
+  const { mutate: deleteViewMutate } = useDeleteMapViewMutation();
   const deleteView = (viewId: string) => {
     setViews(views.filter((v) => v.id !== viewId));
+    deleteViewMutate({ mapId, viewId });
   };
 
   const insertView = (view: Omit<View, "position">) => {
