@@ -1,7 +1,7 @@
 "use client";
 
 import { Boxes, Database, PlusIcon, Users } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DataSourceRecordType } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import { DataSourceItem } from "@/components/DataSourceItem";
@@ -11,9 +11,8 @@ import DataSourceRecordTypeIcon, {
 } from "@/components/DataSourceRecordTypeIcon";
 import { Link } from "@/components/Link";
 import { mapColors } from "@/components/Map/styles";
-
 import { Button } from "@/shadcn/ui/button";
-
+import { cn } from "@/shadcn/utils";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceItemType = NonNullable<
@@ -29,62 +28,56 @@ export default function UserDataSourcesList({
     DataSourceRecordType | "all"
   >("all");
 
-  const memberDataSources = dataSources?.filter((dataSource) => {
-    return dataSource.recordType === DataSourceRecordType.Members;
-  });
+  const memberDataSources = useMemo(
+    () =>
+      dataSources?.filter(
+        (dataSource) => dataSource.recordType === DataSourceRecordType.Members,
+      ),
+    [dataSources],
+  );
 
-  // Combine all non-member data sources
-  const otherDataSources = dataSources?.filter((dataSource) => {
-    return dataSource.recordType !== DataSourceRecordType.Members;
-  });
+  const otherDataSources = useMemo(
+    () =>
+      dataSources?.filter(
+        (dataSource) => dataSource.recordType !== DataSourceRecordType.Members,
+      ),
+    [dataSources],
+  );
 
-  // Filter other data sources based on selected filter
+  const filterOptions = useMemo(() => {
+    const options = [
+      {
+        value: "all" as const,
+        label: "All",
+        color: "text-neutral-600",
+        items: otherDataSources,
+      },
+      ...Object.values(DataSourceRecordType)
+        .filter((rt) => rt !== DataSourceRecordType.Members)
+        .map((rt) => ({
+          value: rt,
+          label: dataSourceRecordTypeLabels[rt],
+          color: dataSourceRecordTypeColors[rt],
+          items: otherDataSources?.filter((ds) => ds.recordType === rt),
+        })),
+    ];
+
+    // push ones with no items to the end
+    return options.sort((a, b) => {
+      const aEmpty = !a.items?.length;
+      const bEmpty = !b.items?.length;
+      if (aEmpty === bEmpty) return 0;
+      return aEmpty ? 1 : -1;
+    });
+  }, [otherDataSources]);
+
   const filteredOtherDataSources =
-    selectedFilter === "all"
-      ? otherDataSources
-      : otherDataSources?.filter(
-          (dataSource) => dataSource.recordType === selectedFilter,
-        );
-
-  // Define filter options with their labels and icons
-  const filterOptions = [
-    {
-      value: "all" as const,
-      label: "All",
-      icon: null,
-      color: "text-neutral-600",
-    },
-    {
-      value: DataSourceRecordType.Data,
-      label: dataSourceRecordTypeLabels[DataSourceRecordType.Data],
-      color: dataSourceRecordTypeColors[DataSourceRecordType.Data],
-    },
-    {
-      value: DataSourceRecordType.Events,
-      label: dataSourceRecordTypeLabels[DataSourceRecordType.Events],
-      color: dataSourceRecordTypeColors[DataSourceRecordType.Events],
-    },
-    {
-      value: DataSourceRecordType.Locations,
-      label: dataSourceRecordTypeLabels[DataSourceRecordType.Locations],
-      color: dataSourceRecordTypeColors[DataSourceRecordType.Locations],
-    },
-    {
-      value: DataSourceRecordType.People,
-      label: dataSourceRecordTypeLabels[DataSourceRecordType.People],
-      color: dataSourceRecordTypeColors[DataSourceRecordType.People],
-    },
-    {
-      value: DataSourceRecordType.Other,
-      label: dataSourceRecordTypeLabels[DataSourceRecordType.Other],
-      color: dataSourceRecordTypeColors[DataSourceRecordType.Other],
-    },
-  ];
+    filterOptions.find((o) => o.value === selectedFilter)?.items || [];
 
   return (
     <div>
       <div className="py-6 flex flex-col gap-12">
-        {/* Show message if no data sources at all */}
+        {/* Empty state */}
         {dataSources && dataSources.length === 0 && (
           <div className="text-center py-12 text-neutral-500">
             <Database className="w-12 h-12 mx-auto mb-6 text-neutral-300" />
@@ -135,15 +128,23 @@ export default function UserDataSourcesList({
             </h2>
             <div className="flex gap-2 flex-wrap">
               {filterOptions.map((option) => {
+                const isDisabled = !option.items?.length;
+                const isSelected = selectedFilter === option.value;
+
                 return (
                   <button
                     key={option.value}
-                    onClick={() => setSelectedFilter(option.value)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-colors flex items-center gap-1 cursor-pointer ${
-                      selectedFilter === option.value
+                    disabled={isDisabled}
+                    onClick={() =>
+                      !isDisabled && setSelectedFilter(option.value)
+                    }
+                    className={cn(
+                      "px-3 py-1 text-xs rounded-full border transition-colors flex items-center gap-1 cursor-pointer",
+                      isDisabled && "pointer-events-none opacity-60",
+                      isSelected
                         ? "bg-blue-100 border-blue-200"
-                        : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                    }`}
+                        : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100",
+                    )}
                   >
                     {option.value === "all" ? null : (
                       <DataSourceRecordTypeIcon
@@ -152,7 +153,7 @@ export default function UserDataSourcesList({
                         size={16}
                       />
                     )}
-                    {option.label}
+                    {option.label} ({option.items?.length || 0})
                   </button>
                 );
               })}
@@ -174,7 +175,9 @@ export default function UserDataSourcesList({
                 <p className="text-sm">
                   {selectedFilter === "all"
                     ? "No other data sources yet"
-                    : `No ${filterOptions.find((opt) => opt.value === selectedFilter)?.label.toLowerCase()} data yet`}
+                    : `No ${filterOptions
+                        .find((opt) => opt.value === selectedFilter)
+                        ?.label.toLowerCase()} data yet`}
                 </p>
               </div>
             )}
