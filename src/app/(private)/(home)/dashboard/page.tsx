@@ -38,7 +38,7 @@ export default function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title="Recent Maps"
+        title="Recent maps"
         action={
           <Button
             type="button"

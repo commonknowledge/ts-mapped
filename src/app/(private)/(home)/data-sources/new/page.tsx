@@ -6,19 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import DataListRow from "@/components/DataListRow";
-import { Link } from "@/components/Link";
+import DataSourceIcon from "@/components/DataSourceIcon";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { DataSourceType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import {
@@ -81,17 +75,8 @@ export default function NewDataSourcePage() {
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <Link href="/data-sources">Data sources</Link>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>New</BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
       <PageHeader
-        title="New Data Source"
+        title="New data source"
         description="Create a new data source to import into your maps."
       />
       <form
@@ -168,6 +153,7 @@ export default function NewDataSourcePage() {
                 <SelectContent>
                   {Object.values(DataSourceType).map((type) => (
                     <SelectItem key={type} value={type}>
+                      <DataSourceIcon type={type} />
                       {DataSourceTypeLabels[type as DataSourceType]}
                     </SelectItem>
                   ))}

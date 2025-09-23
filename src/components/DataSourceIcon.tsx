@@ -270,10 +270,31 @@ export const MailchimpIconSVG = () => {
   );
 };
 
+const ActionNetworkSVG = () => (
+  <svg
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 64 64"
+    width="20"
+    height="20"
+  >
+    <path
+      d="M25.437 31.623 14.614 2.71c-.425-1.133-2.114-.83-2.114.38v57.823c0 1.21 1.69 1.514 2.114.379L25.438 32.38a1.073 1.073 0 0 0-.001-.757Z"
+      fill="#FD570D"
+    />
+    <path
+      d="M38.435 31.62 27.61 2.708c-.425-1.135-2.114-.83-2.114.38V60.91c0 1.21 1.69 1.513 2.114.379l10.825-28.913a1.069 1.069 0 0 0 0-.756Z"
+      fill="#CC70EB"
+    />
+    <path
+      d="M51.432 31.62 40.607 2.708c-.425-1.135-2.113-.83-2.113.38V60.91c0 1.21 1.688 1.513 2.113.379l10.825-28.913c.09-.244.09-.51 0-.756Z"
+      fill="#1781FA"
+    />
+  </svg>
+);
+
 const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
-  [DataSourceType.ActionNetwork]: (
-    <div className=" p-1 rounded-sm py-0">AN</div>
-  ),
+  [DataSourceType.ActionNetwork]: <ActionNetworkSVG />,
   [DataSourceType.Airtable]: <AirtableIconSVG />,
   [DataSourceType.CSV]: <File className="w-4 h-4" />,
   [DataSourceType.GoogleSheets]: <GoogleSheetsIconSVG />,

@@ -95,7 +95,7 @@ export default function VisualisationPanel({
     <div
       className={cn(
         "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-10",
+        "absolute top-0 h-full z-100",
       )}
       style={{
         left: positionLeft,
@@ -104,7 +104,7 @@ export default function VisualisationPanel({
       {/* Choose Visualization Type */}
       <div className="space-y-3">
         <div className="flex justify-between items-start gap-6 / text-sm">
-          <h3 className="mt-2 font-medium">Create Visualization</h3>
+          <h3 className="mt-2 font-medium">Create visualization</h3>
           <button
             aria-label="Close visualization panel"
             className="text-muted-foreground hover:text-primary cursor-pointer"
@@ -132,7 +132,7 @@ export default function VisualisationPanel({
             }
           >
             <div className="w-8 h-8 mx-auto mb-2 bg-gray-200 rounded"></div>
-            <span className="text-xs">Boundary Outline</span>
+            <span className="text-xs">Boundary outline</span>
           </button>
 
           <button
@@ -151,7 +151,7 @@ export default function VisualisationPanel({
             }
           >
             <div className="w-8 h-8 mx-auto mb-2 bg-gradient-to-br from-red-400 to-blue-400 rounded"></div>
-            <span className="text-xs">Filled Map</span>
+            <span className="text-xs">Filled map</span>
           </button>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function VisualisationPanel({
           {/* Data Source Selection */}
           <div className="space-y-2">
             <Label className="text-sm text-neutral-600">
-              <Database className="w-4 h-4 text-muted-foreground" /> Data Source
+              <Database className="w-4 h-4 text-muted-foreground" /> Data source
             </Label>
 
             {viewConfig.areaDataSourceId && dataSource ? (
@@ -218,8 +218,8 @@ export default function VisualisationPanel({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">
-              <Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map
-              Locality Shapes
+              <Pentagon className="w-4 h-4 text-muted-foreground" />
+              Select map locality shapes
             </Label>
             <Select
               value={viewConfig.areaSetGroupCode || NULL_UUID}
@@ -348,7 +348,7 @@ export default function VisualisationPanel({
                   <div className="flex items-center gap-2 mb-2">
                     <Info className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-medium text-blue-800">
-                      Count Records
+                      Count records
                     </span>
                   </div>
                   <p className="text-xs text-blue-700">
@@ -367,7 +367,7 @@ export default function VisualisationPanel({
                 <div className="flex items-center gap-2">
                   <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
                   <Label className="text-xs text-muted-foreground font-normal">
-                    Your Data Boundary will be matched with the map boundaries
+                    Your data boundary will be matched with the map boundaries
                     that you&apos;ve selected
                   </Label>
                   <TooltipProvider>
@@ -438,7 +438,7 @@ export default function VisualisationPanel({
           {/* Exclude Columns Input - only show when MAX_COLUMN_KEY is selected */}
           {viewConfig.areaDataColumn === MAX_COLUMN_KEY && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Exclude Columns</Label>
+              <Label className="text-sm font-medium">Exclude columns</Label>
               <input
                 type="text"
                 onChange={(e) =>
@@ -457,7 +457,7 @@ export default function VisualisationPanel({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Palette className="w-4 h-4 text-muted-foreground" />
-              <Label className="text-sm text-neutral-600">Color Scheme</Label>
+              <Label className="text-sm text-neutral-600">Color scheme</Label>
             </div>
 
             <Select
@@ -475,13 +475,13 @@ export default function VisualisationPanel({
                 <SelectItem value={ColorScheme.RedBlue}>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-blue-400 rounded"></div>
-                    Red to Blue
+                    Red to blue
                   </div>
                 </SelectItem>
                 <SelectItem value={ColorScheme.GreenYellowRed}>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded"></div>
-                    Green to Red
+                    Green to red
                   </div>
                 </SelectItem>
                 <SelectItem value={ColorScheme.Viridis}>
@@ -518,7 +518,7 @@ export default function VisualisationPanel({
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
           <DialogHeader>
-            <DialogTitle>Select Data Source for Visualization</DialogTitle>
+            <DialogTitle>Select data source for visualization</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col">
@@ -540,9 +540,9 @@ export default function VisualisationPanel({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Sources</SelectItem>
-                  <SelectItem value="public">Public Library</SelectItem>
-                  <SelectItem value="user">My Data</SelectItem>
+                  <SelectItem value="all">All sources</SelectItem>
+                  <SelectItem value="public">Public library</SelectItem>
+                  <SelectItem value="user">My data</SelectItem>
                 </SelectContent>
               </Select>
             </div>
