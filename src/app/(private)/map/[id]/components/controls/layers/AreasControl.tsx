@@ -24,6 +24,7 @@ export default function AreasControl() {
     useContext(MarkerAndTurfContext);
   const [, setFormattedDates] = useState<Record<string, string>>({});
   const [isAddingArea, setAddingArea] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   // TODO: display these dates somewhere
   useEffect(() => {
@@ -58,6 +59,8 @@ export default function AreasControl() {
         color={mapColors.areas.color}
         showLayer={viewConfig.showTurf}
         setLayer={(show) => updateViewConfig({ showTurf: show })}
+        expanded={expanded}
+        setExpanded={setExpanded}
       >
         {!isAddingArea ? (
           <IconButtonWithTooltip tooltip="Add Area" onClick={() => onAddArea()}>
@@ -71,18 +74,20 @@ export default function AreasControl() {
         )}
       </LayerHeader>
 
-      <div className="relative">
-        {turfs.length === 0 && <EmptyLayer message="Add an Area Layer" />}
-        {/* Disable interactions while turfs are loading/updating in the background */}
-        {turfsLoading && <Loading blockInteraction />}
-        <ul
-          className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
-        >
-          {turfs.map((turf) => (
-            <TurfItem key={turf.id} turf={turf} />
-          ))}
-        </ul>
-      </div>
+      {expanded && (
+        <div className="relative">
+          {turfs.length === 0 && <EmptyLayer message="Add an Area Layer" />}
+          {/* Disable interactions while turfs are loading/updating in the background */}
+          {turfsLoading && <Loading blockInteraction />}
+          <ul
+            className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
+          >
+            {turfs.map((turf) => (
+              <TurfItem key={turf.id} turf={turf} />
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
