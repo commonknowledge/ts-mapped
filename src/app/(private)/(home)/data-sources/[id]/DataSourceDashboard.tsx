@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { JobStatus } from "@/__generated__/types";
 import DataSourceBadge from "@/components/DataSourceBadge";
+import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
@@ -182,7 +183,12 @@ export function DataSourceDashboard({
               <BreadcrumbItem>{dataSource.name}</BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <h1 className="text-3xl font-medium tracking-tight">
+          <h1 className="flex items-center gap-2 / text-3xl font-medium tracking-tight">
+            <DataSourceRecordTypeIcon
+              type={dataSource.recordType}
+              withBackground={true}
+              className="w-8"
+            />
             {dataSource.name}
           </h1>
           <p className="mt-1 text-2xl text-muted-foreground">

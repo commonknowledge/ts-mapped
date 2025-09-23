@@ -97,7 +97,7 @@ export default function NewDataSourcePage() {
           e.preventDefault();
           form.handleSubmit();
         }}
-        className="flex flex-col items-start gap-6 max-w-[40ch] mt-12"
+        className="flex flex-col items-start gap-6 max-w-[40ch] mt-8"
       >
         <form.Field name="name">
           {(field) => (

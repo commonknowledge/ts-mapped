@@ -5,10 +5,8 @@ import { useState } from "react";
 import { DataSourceRecordType } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/(private)/map/[id]/components/Icons";
 import { DataSourceItem } from "@/components/DataSourceItem";
-import {
-  DataSourceRecordTypeIcon,
+import DataSourceRecordTypeIcon, {
   dataSourceRecordTypeColors,
-  dataSourceRecordTypeIcons,
   dataSourceRecordTypeLabels,
 } from "@/components/DataSourceRecordTypeIcon";
 import { Link } from "@/components/Link";
@@ -59,31 +57,26 @@ export default function UserDataSourcesList({
     {
       value: DataSourceRecordType.Data,
       label: dataSourceRecordTypeLabels[DataSourceRecordType.Data],
-      icon: dataSourceRecordTypeIcons[DataSourceRecordType.Data],
       color: dataSourceRecordTypeColors[DataSourceRecordType.Data],
     },
     {
       value: DataSourceRecordType.Events,
       label: dataSourceRecordTypeLabels[DataSourceRecordType.Events],
-      icon: dataSourceRecordTypeIcons[DataSourceRecordType.Events],
       color: dataSourceRecordTypeColors[DataSourceRecordType.Events],
     },
     {
       value: DataSourceRecordType.Locations,
       label: dataSourceRecordTypeLabels[DataSourceRecordType.Locations],
-      icon: dataSourceRecordTypeIcons[DataSourceRecordType.Locations],
       color: dataSourceRecordTypeColors[DataSourceRecordType.Locations],
     },
     {
       value: DataSourceRecordType.People,
       label: dataSourceRecordTypeLabels[DataSourceRecordType.People],
-      icon: dataSourceRecordTypeIcons[DataSourceRecordType.People],
       color: dataSourceRecordTypeColors[DataSourceRecordType.People],
     },
     {
       value: DataSourceRecordType.Other,
       label: dataSourceRecordTypeLabels[DataSourceRecordType.Other],
-      icon: dataSourceRecordTypeIcons[DataSourceRecordType.Other],
       color: dataSourceRecordTypeColors[DataSourceRecordType.Other],
     },
   ];
@@ -156,6 +149,7 @@ export default function UserDataSourcesList({
                       <DataSourceRecordTypeIcon
                         type={option.value}
                         className={option.color}
+                        size={16}
                       />
                     )}
                     {option.label}
