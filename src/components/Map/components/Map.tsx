@@ -68,7 +68,7 @@ export default function Map({
         .getDataSourceIds()
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig]
+    [mapConfig],
   );
 
   // draw existing turfs
@@ -166,7 +166,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
           )
           .map((layer) => layer.id);
 
@@ -177,7 +177,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded]
+    [mapRef, styleLoaded],
   );
 
   useEffect(() => {
@@ -425,12 +425,10 @@ export default function Map({
                 latitude={hoverMarker.coordinates[1]}
                 closeButton={false}
               >
-                <div>
-                  <strong>
-                    {String(hoverMarker.properties[MARKER_NAME_KEY]) ||
-                      `ID: ${hoverMarker.properties[MARKER_EXTERNAL_ID_KEY]}`}
-                  </strong>
-                </div>
+                <p className="font-sans font-semibold text-sm">
+                  {String(hoverMarker.properties[MARKER_NAME_KEY]) ||
+                    `ID: ${hoverMarker.properties[MARKER_EXTERNAL_ID_KEY]}`}
+                </p>
               </Popup>
             )}
           </>
@@ -448,5 +446,5 @@ const SearchBox = dynamic(
   {
     ssr: false,
     loading: () => null,
-  }
+  },
 );
