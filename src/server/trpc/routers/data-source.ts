@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
+import z from "zod";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import {
   ColumnType,
@@ -7,6 +8,7 @@ import {
   GeocodingType,
   dataSourceSchema,
 } from "@/server/models/DataSource";
+import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   deleteDataSource,
@@ -84,6 +86,34 @@ export const dataSourceRouter = router({
       recordCount: Number(dataSource.recordCount) || 0,
     };
   }),
+
+  byIdWithRecords: dataSourceProcedure
+    .input(z.object({ search: z.string().trim().optional() }))
+    .query(async ({ ctx, input }) => {
+      const dataSource = await db
+        .selectFrom("dataSource")
+        .where("id", "=", ctx.dataSource.id)
+        .selectAll()
+        .executeTakeFirst();
+
+      if (!dataSource) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Data source not found",
+        });
+      }
+
+      const records = await findDataRecordsByDataSource(
+        ctx.dataSource.id,
+        null,
+        input.search,
+        0,
+        [],
+        true,
+      );
+
+      return { ...dataSource, records };
+    }),
 
   create: organisationProcedure
     .input(
