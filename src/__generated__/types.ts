@@ -356,7 +356,7 @@ export type MapViewConfig = {
   colorScheme?: Maybe<ColorScheme>;
   excludeColumnsString: Scalars["String"]["output"];
   mapStyleName: MapStyleName;
-  reverseColorScheme: Scalars["Boolean"]["output"];
+  reverseColorScheme?: Maybe<Scalars["Boolean"]["output"]>;
   showBoundaryOutline: Scalars["Boolean"]["output"];
   showLabels: Scalars["Boolean"]["output"];
   showLocations: Scalars["Boolean"]["output"];
@@ -373,7 +373,7 @@ export type MapViewConfigInput = {
   colorScheme?: InputMaybe<ColorScheme>;
   excludeColumnsString: Scalars["String"]["input"];
   mapStyleName: MapStyleName;
-  reverseColorScheme: Scalars["Boolean"]["input"];
+  reverseColorScheme?: InputMaybe<Scalars["Boolean"]["input"]>;
   showBoundaryOutline: Scalars["Boolean"]["input"];
   showLabels: Scalars["Boolean"]["input"];
   showLocations: Scalars["Boolean"]["input"];
@@ -1218,7 +1218,7 @@ export type MapQuery = {
         visualisationType?: VisualisationType | null;
         calculationType?: CalculationType | null;
         colorScheme?: ColorScheme | null;
-        reverseColorScheme: boolean;
+        reverseColorScheme?: boolean | null;
       };
       dataSourceViews: Array<{
         __typename?: "DataSourceView";
@@ -2133,7 +2133,7 @@ export type MapViewConfigResolvers<
     ContextType
   >;
   reverseColorScheme?: Resolver<
-    ResolversTypes["Boolean"],
+    Maybe<ResolversTypes["Boolean"]>,
     ParentType,
     ContextType
   >;

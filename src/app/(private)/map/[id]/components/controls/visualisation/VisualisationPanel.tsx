@@ -515,7 +515,7 @@ export default function VisualisationPanel({
             <div className="flex items-center gap-2 py-2">
               <Switch
                 id="color-scheme-switch"
-                checked={viewConfig.reverseColorScheme}
+                checked={Boolean(viewConfig.reverseColorScheme)}
                 onCheckedChange={(v) =>
                   updateViewConfig({ reverseColorScheme: v })
                 }

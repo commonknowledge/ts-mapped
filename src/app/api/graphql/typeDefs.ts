@@ -171,7 +171,7 @@ const typeDefs = `
     visualisationType: VisualisationType
     calculationType: CalculationType
     colorScheme: ColorScheme
-    reverseColorScheme: Boolean!
+    reverseColorScheme: Boolean
   }
 
   input PointInput {
@@ -367,7 +367,7 @@ const typeDefs = `
     visualisationType: VisualisationType
     calculationType: CalculationType
     colorScheme: ColorScheme
-    reverseColorScheme: Boolean!
+    reverseColorScheme: Boolean
   }
 
   type Organisation {

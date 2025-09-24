@@ -49,7 +49,7 @@ export class ViewConfig implements MapViewConfigInput {
   public showTurf = true;
   public calculationType?: CalculationType | null = CalculationType.Value;
   public colorScheme?: ColorScheme | null = ColorScheme.RedBlue;
-  public reverseColorScheme = false;
+  public reverseColorScheme?: boolean | null | undefined;
   public visualisationType?: VisualisationType | null;
 
   constructor(params: Partial<ViewConfig> = {}) {
