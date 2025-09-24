@@ -1,6 +1,6 @@
 import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
@@ -21,6 +21,7 @@ export default function MembersControl() {
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
   const { getDataSources } = useContext(DataSourcesContext);
+  const [expanded, setExpanded] = useState(true);
 
   const dataSource = getMembersDataSource();
   const isSelected = dataSource
@@ -58,6 +59,8 @@ export default function MembersControl() {
         color={mapColors.member.color}
         showLayer={viewConfig.showMembers}
         setLayer={(show) => updateViewConfig({ showMembers: show })}
+        expanded={expanded}
+        setExpanded={setExpanded}
       >
         <IconButtonWithTooltip
           align="start"
@@ -70,31 +73,33 @@ export default function MembersControl() {
         </IconButtonWithTooltip>
       </LayerHeader>
 
-      <ul
-        className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
-      >
-        {dataSource ? (
-          <CollectionLayer
-            dataSource={dataSource}
-            isSelected={isSelected}
-            onClick={() => handleDataSourceSelect(dataSource.id)}
-            handleDataSourceSelect={handleDataSourceSelect}
-            layerType="member"
-          />
-        ) : (
-          <EmptyLayer
-            message={
-              <p className="flex  items-center gap-2">
-                Add a{" "}
-                <span className="text-sm  flex items-center gap-1">
-                  <CollectionIcon color={mapColors.member.color} /> Member
-                  Collection
-                </span>
-              </p>
-            }
-          />
-        )}
-      </ul>
+      {expanded && (
+        <ul
+          className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
+        >
+          {dataSource ? (
+            <CollectionLayer
+              dataSource={dataSource}
+              isSelected={isSelected}
+              onClick={() => handleDataSourceSelect(dataSource.id)}
+              handleDataSourceSelect={handleDataSourceSelect}
+              layerType="member"
+            />
+          ) : (
+            <EmptyLayer
+              message={
+                <p className="flex  items-center gap-2">
+                  Add a{" "}
+                  <span className="text-sm  flex items-center gap-1">
+                    <CollectionIcon color={mapColors.member.color} /> Member
+                    Collection
+                  </span>
+                </p>
+              }
+            />
+          )}
+        </ul>
+      )}
     </ControlItemWrapper>
   );
 }

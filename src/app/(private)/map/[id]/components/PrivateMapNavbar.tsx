@@ -3,7 +3,9 @@
 import { gql, useMutation } from "@apollo/client";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { useContext, useState } from "react";
+import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
 import MapViews from "@/components/Map/components/MapViews";
@@ -25,11 +27,11 @@ export default function PrivateMapNavbar() {
   const router = useRouter();
   const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
     useContext(MapContext);
+  const showPublishButton = useFeatureFlagEnabled("public-maps");
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
   const [crmSaveLoading, setCRMSaveLoading] = useState(false);
-  const [saveError, setSaveError] = useState("");
 
   const [updateMapName] = useMutation(gql`
     mutation UpdateMapName($id: String!, $mapInput: MapInput!) {
@@ -76,13 +78,13 @@ export default function PrivateMapNavbar() {
     }
 
     setLoading(true);
-    setSaveError("");
     try {
       await saveMapConfig();
       await regenerateMapImage();
+      toast.success("Map view saved!");
     } catch (e) {
       console.error("UpdateMapConfig failed", e);
-      setSaveError("Could not save this map view, please try again.");
+      toast.error("Could not save this map view, please try again.");
     }
     setLoading(false);
   };
@@ -95,13 +97,12 @@ export default function PrivateMapNavbar() {
 
     // Need to save the map + view before trying to publish it
     setLoading(true);
-    setSaveError("");
     try {
       await saveMapConfig();
       router.push(`/map/${mapId}/view/${view.id}/publish`);
     } catch (e) {
       console.error("UpdateMapConfig failed", e);
-      setSaveError("Could not publish this map view, please try again.");
+      toast.error("Could not publish this map view, please try again.");
       setLoading(false);
     }
   };
@@ -113,10 +114,10 @@ export default function PrivateMapNavbar() {
     }
 
     setCRMSaveLoading(true);
-    setSaveError("");
+
     const { data } = await saveMapViewsToCRM({ variables: { id: mapId } });
     if (data?.saveMapViewsToCRM?.code !== 200) {
-      setSaveError("Could not save to your CRM, please try again.");
+      toast.error("Could not save to your CRM, please try again.");
     }
     setCRMSaveLoading(false);
   };
@@ -217,9 +218,6 @@ export default function PrivateMapNavbar() {
         <div className="flex items-center gap-4">
           {mapId && (
             <div className="flex items-center gap-4">
-              {saveError && (
-                <span className="text-xs text-red-500">{saveError}</span>
-              )}
               <Button
                 type="button"
                 onClick={() => onClickSave()}
@@ -235,7 +233,7 @@ export default function PrivateMapNavbar() {
               >
                 Save to CRM
               </Button>
-              {view && (
+              {showPublishButton && view && (
                 <Button
                   type="button"
                   variant="outline"

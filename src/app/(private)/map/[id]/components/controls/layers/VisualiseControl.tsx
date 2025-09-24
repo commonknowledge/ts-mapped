@@ -37,11 +37,11 @@ export default function VisualiseControl() {
           <TooltipTrigger asChild>
             <div className="flex items-center gap-2 p-3">
               <LandPlot className="w-4 h-4  text-muted-foreground" />
-              <h3 className="text-sm font-medium">Visualise Localities</h3>
+              <h3 className="text-sm font-medium">Visualise localities</h3>
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{boundariesPanelOpen ? "Hide" : "Show"} Localities panel</p>
+            <p>{boundariesPanelOpen ? "Hide" : "Show"} localities panel</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

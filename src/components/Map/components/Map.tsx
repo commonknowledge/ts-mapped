@@ -390,6 +390,21 @@ export default function Map({
           /* @ts-expect-error The style property is missing in the MapBox type definitions */
           onSourceLoad(e.style.globalId);
           setStyleLoaded(true);
+
+          const map = mapRef?.current?.getMap();
+          if (map) {
+            const layers = map.getStyle().layers;
+            if (!layers) return;
+
+            layers.forEach((layer) => {
+              if (layer.type === "symbol" && layer.layout?.["text-field"]) {
+                map.setLayoutProperty(layer.id, "text-field", [
+                  "get",
+                  "name_en",
+                ]);
+              }
+            });
+          }
         }}
       >
         {ready && (
@@ -410,12 +425,10 @@ export default function Map({
                 latitude={hoverMarker.coordinates[1]}
                 closeButton={false}
               >
-                <div>
-                  <strong>
-                    {String(hoverMarker.properties[MARKER_NAME_KEY]) ||
-                      `ID: ${hoverMarker.properties[MARKER_EXTERNAL_ID_KEY]}`}
-                  </strong>
-                </div>
+                <p className="font-sans font-semibold text-sm">
+                  {String(hoverMarker.properties[MARKER_NAME_KEY]) ||
+                    `ID: ${hoverMarker.properties[MARKER_EXTERNAL_ID_KEY]}`}
+                </p>
               </Popup>
             )}
           </>

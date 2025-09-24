@@ -46,11 +46,8 @@ export default function SearchResultMarker() {
         offset={8}
         closeButton={false}
         onClose={() => setSearchMarker(null)}
-        style={{
-          fontFamily: "IBM Plex Sans",
-        }}
       >
-        <div className="flex items-center gap-2 pb-2 border-b / font-semibold text-sm">
+        <div className="flex items-center gap-2 pb-2 border-b / font-sans font-semibold text-sm">
           {label}
         </div>
         <button
@@ -58,7 +55,7 @@ export default function SearchResultMarker() {
           className="flex items-center gap-2 mt-2 cursor-pointer"
         >
           <Plus size={12} />
-          <span className="inline-flex items-center gap-[0.5em] text-sm">
+          <span className="font-sans inline-flex items-center gap-[0.5em] text-sm">
             Add to your
             <span className="inline-flex items-center gap-[0.3em] font-semibold">
               <MarkerIcon />

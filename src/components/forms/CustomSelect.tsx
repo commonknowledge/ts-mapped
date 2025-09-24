@@ -32,7 +32,7 @@ export default function CustomSelect({
         <SelectTrigger className="w-full" id={id}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="w-full">
           {options.map(({ label, value }) => (
             <SelectItem key={value} value={value}>
               {label}

@@ -44,7 +44,7 @@ export default function VisualisationShapeLibrarySelector() {
       {
         id: "no-locality",
         code: null,
-        name: "No Locality",
+        name: "No locality",
         description: "Show no boundary shapes on the map",
         icon: <Pentagon className="w-4 h-4" />,
       },
@@ -125,8 +125,8 @@ export default function VisualisationShapeLibrarySelector() {
   return (
     <div className="space-y-3">
       <Label className="text-sm font-medium">
-        <Pentagon className="w-4 h-4 text-muted-foreground" /> Select Map
-        Locality Shapes
+        <Pentagon className="w-4 h-4 text-muted-foreground" />
+        Select map locality shapes
       </Label>
 
       <div className="space-y-2">

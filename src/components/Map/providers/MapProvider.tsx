@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -44,12 +44,14 @@ export default function MapProvider({
   const [pinDropMode, setPinDropMode] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [ready, setReady] = useState(false);
+  const [configDirty, setConfigDirty] = useState(false);
 
   /* GraphQL Data */
   const mapQuery = useMapQuery(mapId);
 
   const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
     setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
+    setConfigDirty(true);
   };
 
   const view = useMemo(
@@ -86,10 +88,11 @@ export default function MapProvider({
   };
 
   const [_saveMapConfig] = useUpdateMapConfigMutation();
-  const saveMapConfig = async () => {
+  const saveMapConfig = useCallback(async () => {
     await _saveMapConfig({ variables: { mapId, mapConfig, views } });
     setDirtyViewIds([]);
-  };
+    setConfigDirty(false);
+  }, [_saveMapConfig, mapConfig, mapId, views]);
 
   /* Effects */
 
@@ -125,6 +128,47 @@ export default function MapProvider({
   const viewConfig = useMemo(() => {
     return new ViewConfig({ ...view?.config });
   }, [view]);
+
+  const autoSave = useCallback(async () => {
+    if (!mapId || !mapConfig) {
+      return;
+    }
+
+    try {
+      await saveMapConfig();
+    } catch (e) {
+      console.error("UpdateMapConfig failed", e);
+    }
+  }, [mapConfig, mapId, saveMapConfig]);
+
+  // auto save map config
+  useEffect(() => {
+    if (!configDirty) {
+      return;
+    }
+    const handler = setTimeout(() => {
+      autoSave();
+    }, 1000); // debounce 1s
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [autoSave, configDirty]);
+
+  // auto save map view
+  useEffect(() => {
+    if (!dirtyViewIds?.length) {
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      autoSave();
+    }, 1000); // debounce 1s
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [autoSave, dirtyViewIds]);
 
   return (
     <MapContext

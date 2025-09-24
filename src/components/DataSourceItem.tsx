@@ -6,10 +6,7 @@ import {
   DataSourceType,
 } from "@/server/models/DataSource";
 import { cn } from "@/shadcn/utils";
-import {
-  dataSourceRecordTypeColors,
-  dataSourceRecordTypeIcons,
-} from "./DataSourceRecordTypeIcon";
+import DataSourceRecordTypeIcon from "./DataSourceRecordTypeIcon";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceItemType = NonNullable<
@@ -102,27 +99,21 @@ export function DataSourceItem({
     ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
     : null;
 
-  const backgroundColor =
-    dataSourceRecordTypeColors[recordType] || "var(--brandGray)";
-  const icon = dataSourceRecordTypeIcons[recordType] || (
-    <Database className="w-4 h-4" />
-  );
-
   return (
     <div
       className={cn(
-        "p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
+        "h-full flex flex-col justify-between p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
         className,
       )}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <div
-          className="w-11 h-11 rounded flex items-center justify-center text-white"
-          style={{ backgroundColor }}
-        >
-          <span className="text-white [&>svg]:w-6 [&>svg]:h-6 ">{icon}</span>
-        </div>
+        <DataSourceRecordTypeIcon
+          type={recordType}
+          withBackground={true}
+          size={24}
+          className="w-12"
+        />
 
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-4">

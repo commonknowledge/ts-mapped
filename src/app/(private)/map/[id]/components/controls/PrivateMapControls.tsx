@@ -67,7 +67,7 @@ export default function PrivateMapControls() {
 
           {/* Content */}
           <div
-            className="flex flex-col overflow-y-auto flex-1"
+            className="flex-1 overflow-y-auto"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
             <MembersControl />
@@ -75,10 +75,10 @@ export default function PrivateMapControls() {
             <MarkersControl />
             <Separator />
             <AreasControl />
-            <div className="flex flex-col  mt-auto">
-              <Separator />
-              <VisualiseControl />
-            </div>
+          </div>
+          <div className="sticky bottom-0 left-0 w-full bg-white">
+            <Separator />
+            <VisualiseControl />
           </div>
         </div>
       </div>
