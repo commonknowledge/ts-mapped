@@ -11,12 +11,10 @@ import type {
   AreaSetGroupCode,
   BoundingBoxInput,
   MapConfigInput,
-  MapQuery,
-  MapQueryVariables,
   MapViewConfigInput,
   VisualisationType,
 } from "@/__generated__/types";
-import type { QueryResult } from "@apollo/client";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 
@@ -109,8 +107,10 @@ export const MapContext = createContext<{
   showControls: boolean;
   setShowControls: (showControls: boolean) => void;
 
-  /* GraphQL Queries */
-  mapQuery: QueryResult<MapQuery, MapQueryVariables> | null;
+  mapQuery: {
+    data: RouterOutputs["map"]["byId"] | undefined;
+    isPending: boolean;
+  } | null;
 }>({
   mapId: null,
   mapRef: null,

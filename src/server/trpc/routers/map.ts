@@ -9,18 +9,25 @@ import {
 } from "@/server/models/MapView";
 import { publicMapSchema } from "@/server/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {
   createMap,
   findMapsByOrganisationId,
   updateMap,
 } from "@/server/repositories/Map";
-import { upsertMapView } from "@/server/repositories/MapView";
+import {
+  findMapViewsByMapId,
+  upsertMapView,
+} from "@/server/repositories/MapView";
+import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
 import {
   findPublicMapByHost,
   findPublicMapByViewId,
   upsertPublicMap,
 } from "@/server/repositories/PublicMap";
+import { findTurfsByMapId } from "@/server/repositories/Turf";
 import {
+  mapProcedure,
   organisationProcedure,
   publicMapViewProcedure,
   router,
@@ -82,6 +89,15 @@ export const mapRouter = router({
       }
       return map;
     }),
+  byId: mapProcedure.query(async ({ ctx: { map } }) => {
+    const [folders, placedMarkers, turfs, views] = await Promise.all([
+      findFoldersByMapId(map.id),
+      findPlacedMarkersByMapId(map.id),
+      findTurfsByMapId(map.id),
+      findMapViewsByMapId(map.id),
+    ]);
+    return { ...map, folders, placedMarkers, turfs, views };
+  }),
   publicByViewId: publicMapViewProcedure.query(({ input }) => {
     return findPublicMapByViewId(input.viewId);
   }),

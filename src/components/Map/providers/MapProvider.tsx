@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapConfig,
@@ -10,10 +11,10 @@ import {
 } from "@/components/Map/context/MapContext";
 import {
   useDeleteMapViewMutation,
-  useMapQuery,
   useUpdateMapConfigMutation,
 } from "@/components/Map/data";
 import { DEFAULT_ZOOM } from "@/constants";
+import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import type { View } from "../types";
 import type { BoundingBoxInput } from "@/__generated__/types";
@@ -46,8 +47,8 @@ export default function MapProvider({
   const [ready, setReady] = useState(false);
   const [configDirty, setConfigDirty] = useState(false);
 
-  /* GraphQL Data */
-  const mapQuery = useMapQuery(mapId);
+  const trpc = useTRPC();
+  const mapQuery = useQuery(trpc.map.byId.queryOptions({ mapId }));
 
   const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
     setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
@@ -100,18 +101,17 @@ export default function MapProvider({
   const { data: mapData } = mapQuery;
 
   useEffect(() => {
-    setMapName(mapData?.map?.name || "Untitled");
+    setMapName(mapData?.name || "Untitled");
 
-    if (mapData?.map?.config) {
-      setMapConfig(new MapConfig(mapData.map.config));
+    if (mapData?.config) {
+      setMapConfig(new MapConfig(mapData.config));
     }
 
-    if (mapData?.map?.views && mapData.map.views.length > 0) {
+    if (mapData?.views && mapData.views.length > 0) {
       const nextView =
-        mapData.map.views.find((v) => v.id === initialViewId) ||
-        mapData.map.views[0];
+        mapData.views.find((v) => v.id === initialViewId) || mapData.views[0];
       setViewId(nextView.id);
-      setViews(mapData.map.views);
+      setViews(mapData.views);
     } else {
       const newView = {
         id: uuidv4(),
@@ -193,7 +193,10 @@ export default function MapProvider({
         updateViewConfig,
         zoom,
         setZoom,
-        mapQuery,
+        mapQuery: {
+          data: mapData,
+          isPending: mapQuery.isPending,
+        },
         pinDropMode,
         setPinDropMode,
         ready,

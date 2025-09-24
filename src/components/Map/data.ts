@@ -17,8 +17,6 @@ import type {
   DeletePlacedMarkerMutationMutationVariables,
   DeleteTurfMutation,
   DeleteTurfMutationVariables,
-  MapQuery,
-  MapQueryVariables,
   UpdateMapConfigMutation,
   UpdateMapConfigMutationVariables,
   UpsertFolderMutation,
@@ -28,94 +26,6 @@ import type {
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
 } from "@/__generated__/types";
-
-export const useMapQuery = (mapId: string | null) =>
-  useQuery<MapQuery, MapQueryVariables>(
-    gql`
-      query Map($id: String!) {
-        map(id: $id) {
-          name
-          config {
-            markerDataSourceIds
-            membersDataSourceId
-          }
-          folders {
-            id
-            name
-            notes
-            position
-          }
-          placedMarkers {
-            id
-            label
-            notes
-            point {
-              lat
-              lng
-            }
-            folderId
-            position
-          }
-          turfs {
-            id
-            label
-            notes
-            area
-            polygon
-            createdAt
-          }
-          views {
-            id
-            name
-            position
-            config {
-              areaDataSourceId
-              areaDataColumn
-              areaSetGroupCode
-              excludeColumnsString
-              mapStyleName
-              showBoundaryOutline
-              showLabels
-              showLocations
-              showMembers
-              showTurf
-              visualisationType
-              calculationType
-              colorScheme
-            }
-            dataSourceViews {
-              dataSourceId
-              filter {
-                children {
-                  column
-                  dataSourceId
-                  dataRecordId
-                  distance
-                  label
-                  operator
-                  placedMarker
-                  search
-                  turf
-                  type
-                }
-                type
-              }
-              search
-              sort {
-                name
-                desc
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      variables: { id: mapId || "" },
-      skip: !mapId,
-      fetchPolicy: "network-only",
-    },
-  );
 
 // Use API request instead of GraphQL to avoid server memory load
 // TODO: replace with gql @stream directive when Apollo client supports it
