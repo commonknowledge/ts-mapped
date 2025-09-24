@@ -1,7 +1,7 @@
 import { PortableText } from "next-sanity";
 import React from "react";
 import Prose from "@/components/Prose";
-import type { RichTextBlock } from "@/app/(marketing)/(info)/types";
+import type { RichTextBlock } from "@/app/(marketing)/types";
 
 export default function RichTextComponent({
   content,

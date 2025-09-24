@@ -8,8 +8,8 @@ import {
   TypographyP,
 } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
-import DocsSidebar from "./DocsSidebar";
-import type { Feature, FeatureSet } from "../types";
+import DocsSidebar from "../../components/DocsSidebar";
+import type { Feature, FeatureSet } from "@/app/(marketing)/types";
 
 const FEATURE_SETS_QUERY = `*[_type == "featureSet"] | order(order asc) {
   _id,

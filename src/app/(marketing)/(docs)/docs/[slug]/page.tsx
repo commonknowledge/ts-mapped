@@ -13,8 +13,12 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import { Separator } from "@/shadcn/ui/separator";
-import DocsSidebar from "../DocsSidebar";
-import type { Feature, FeatureHowToUseSteps, FeatureSet } from "../../types";
+import DocsSidebar from "../../../components/DocsSidebar";
+import type {
+  Feature,
+  FeatureHowToUseSteps,
+  FeatureSet,
+} from "@/app/(marketing)/types";
 
 const FEATURE_QUERY = `*[_type == "feature" && slug.current == $slug][0]{
   _id,
