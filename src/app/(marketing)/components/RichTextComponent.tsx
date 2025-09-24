@@ -13,14 +13,14 @@ export default function RichTextComponent({
   content: RichTextBlock[];
   className?: string;
 }) {
-  console.log(content);
-
   if (!content || !Array.isArray(content)) {
     return null;
   }
+
   const components: PortableTextComponents = {
     types: {
       image: ({ value }) => <RichTextImage value={value} />,
+      youtube: ({ value }) => <RichTextYoutubeEmbed value={value} />,
     },
   };
 
@@ -52,8 +52,32 @@ function RichTextImage({ value }: { value: SanityImage }) {
 
   return (
     <figure>
-      <Image src={url} alt={value.alt || ""} width={800} height={500} />
+      <Image src={url} alt={value.alt || ""} width={624} height={624} />
       {value.caption ? <figcaption>{value.caption} </figcaption> : <></>}
+    </figure>
+  );
+}
+
+interface YouTubeEmbed {
+  _type: "youtube";
+  src: string;
+}
+
+function RichTextYoutubeEmbed({ value }: { value: YouTubeEmbed }) {
+  const src = value.src;
+
+  if (!src) {
+    return <></>;
+  }
+
+  return (
+    <figure>
+      <div className="relative h-0 pb-[56.25%]">
+        <iframe
+          src={src}
+          className="absolute top-0 left-0 w-full !h-full block"
+        ></iframe>
+      </div>
     </figure>
   );
 }
