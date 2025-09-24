@@ -32,7 +32,7 @@ export default function UserSettingsForm() {
       onError: () => {
         toast.error("Failed to update user settings");
       },
-    })
+    }),
   );
 
   const form = useForm({

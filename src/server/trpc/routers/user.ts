@@ -8,7 +8,7 @@ import { protectedProcedure, router } from "../index";
 export const userRouter = router({
   update: protectedProcedure
     .input(
-      userSchema.pick({ email: true, name: true, avatarUrl: true }).partial()
+      userSchema.pick({ email: true, name: true, avatarUrl: true }).partial(),
     )
     .mutation(async ({ input, ctx }) => {
       const user = await updateUser(ctx.user.id, input);
@@ -26,12 +26,12 @@ export const userRouter = router({
         .refine((data) => data.newPassword === data.newPasswordValidation, {
           message: "Passwords do not match.",
           path: ["newPasswordValidation"],
-        })
+        }),
     )
     .mutation(async ({ input, ctx }) => {
       const passwordValid = await verifyPassword(
         input.currentPassword,
-        ctx.user.passwordHash
+        ctx.user.passwordHash,
       );
       if (!passwordValid) {
         throw new TRPCError({

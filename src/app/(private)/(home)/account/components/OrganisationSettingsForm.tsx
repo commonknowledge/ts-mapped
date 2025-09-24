@@ -35,7 +35,7 @@ export default function OrganisationSettingsForm() {
       onError: () => {
         toast.error("Failed to update organisation settings");
       },
-    })
+    }),
   );
 
   const form = useForm({

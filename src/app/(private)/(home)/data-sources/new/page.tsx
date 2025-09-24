@@ -57,7 +57,7 @@ export default function NewDataSourcePage() {
       onError: () => {
         setIsNavigating(false);
       },
-    })
+    }),
   );
 
   const form = useForm({
@@ -247,7 +247,7 @@ function ConfigFields({
 }
 
 const prepareDataSource = async (
-  config: NewDataSourceConfig
+  config: NewDataSourceConfig,
 ): Promise<DataSourceConfig> => {
   if (config.type === DataSourceType.CSV) {
     const url = await uploadFile(config.file);

@@ -29,7 +29,7 @@ export default function ChangePasswordForm({
       onError: () => {
         toast.error("Failed to update password");
       },
-    })
+    }),
   );
 
   const form = useForm({

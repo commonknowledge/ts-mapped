@@ -4,7 +4,7 @@ import { hashPassword, verifyPassword } from "@/server/utils/auth";
 import type { NewUser, UserUpdate } from "@/server/models/User";
 
 export async function upsertUser(
-  user: Omit<NewUser, "passwordHash"> & { password: string }
+  user: Omit<NewUser, "passwordHash"> & { password: string },
 ) {
   const passwordHash = await hashPassword(user.password);
   const newUser = { ...user, passwordHash, password: undefined };
@@ -14,7 +14,7 @@ export async function upsertUser(
     .onConflict((oc) =>
       oc.columns(["email"]).doUpdateSet({
         passwordHash: newUser.passwordHash,
-      })
+      }),
     )
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -70,7 +70,7 @@ export async function updateUser(
   {
     newPassword,
     ...data
-  }: Omit<UserUpdate, "id" | "passwordHash"> & { newPassword?: string }
+  }: Omit<UserUpdate, "id" | "passwordHash"> & { newPassword?: string },
 ) {
   const update: UserUpdate = {
     name: data.name,
