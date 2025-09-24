@@ -8,7 +8,6 @@ import {
   TypographyP,
 } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
-import DocsSidebar from "../../components/DocsSidebar";
 import type { Feature, FeatureSet } from "@/app/(marketing)/types";
 
 const FEATURE_SETS_QUERY = `*[_type == "featureSet"] | order(order asc) {
@@ -53,64 +52,50 @@ export default async function FeaturesPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
-          <DocsSidebar featureSets={featureSetsWithFeatures} />
+    <div className="max-w-4xl">
+      {/* Header */}
+      <TypographyMuted className="mb-4">— Docs</TypographyMuted>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            <div className="max-w-4xl">
-              {/* Header */}
-              <TypographyMuted className="mb-4">— Docs</TypographyMuted>
+      <TypographyH1>Mapped Documentation</TypographyH1>
 
-              <TypographyH1>Mapped Documentation</TypographyH1>
+      <TypographyLead className="mt-6">
+        Discover the powerful tools and capabilities that make Mapped the
+        ultimate solution for data management and mapping.
+      </TypographyLead>
 
-              <TypographyLead className="mt-6">
-                Discover the powerful tools and capabilities that make Mapped
-                the ultimate solution for data management and mapping.
-              </TypographyLead>
+      {/* Feature Sets */}
+      <div className="mt-12 space-y-12">
+        {featureSetsWithFeatures.map((featureSet: FeatureSet) => (
+          <section key={featureSet._id}>
+            <TypographyH2>{featureSet.title}</TypographyH2>
+            {featureSet.description && (
+              <TypographyP className="mt-2">
+                {featureSet.description}
+              </TypographyP>
+            )}
 
-              {/* Feature Sets */}
-              <div className="mt-12 space-y-12">
-                {featureSetsWithFeatures.map((featureSet: FeatureSet) => (
-                  <section key={featureSet._id}>
-                    <TypographyH2>{featureSet.title}</TypographyH2>
-                    {featureSet.description && (
-                      <TypographyP className="mt-2">
-                        {featureSet.description}
-                      </TypographyP>
-                    )}
-
-                    {featureSet.features && featureSet.features.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        {featureSet.features
-                          .filter(
-                            (feature: Feature) => feature.isActive !== false,
-                          )
-                          .map((feature: Feature) => (
-                            <Link
-                              key={feature._id}
-                              href={`/docs/${feature.slug.current}`}
-                              className="flex flex-col p-4 font-medium gap-2 border hover:bg-neutral-50 transition-all duration-300 border-neutral-200 pb-4 rounded-md"
-                            >
-                              <p>{feature.title}</p>
-                              {feature.description && (
-                                <p className="mt-1 text-neutral-600">
-                                  {feature.description}
-                                </p>
-                              )}
-                            </Link>
-                          ))}
-                      </div>
-                    )}
-                  </section>
-                ))}
+            {featureSet.features && featureSet.features.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {featureSet.features
+                  .filter((feature: Feature) => feature.isActive !== false)
+                  .map((feature: Feature) => (
+                    <Link
+                      key={feature._id}
+                      href={`/docs/${feature.slug.current}`}
+                      className="flex flex-col p-4 font-medium gap-2 border hover:bg-neutral-50 transition-all duration-300 border-neutral-200 pb-4 rounded-md"
+                    >
+                      <p>{feature.title}</p>
+                      {feature.description && (
+                        <p className="mt-1 text-neutral-600">
+                          {feature.description}
+                        </p>
+                      )}
+                    </Link>
+                  ))}
               </div>
-            </div>
-          </div>
-        </div>
+            )}
+          </section>
+        ))}
       </div>
     </div>
   );
