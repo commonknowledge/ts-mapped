@@ -2,20 +2,21 @@ import { createContext } from "react";
 import type {
   PublicMap,
   PublicMapColumn,
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
   PublicMapDataSourceConfig,
   PublishedPublicMapQuery,
 } from "@/__generated__/types";
 import type { Point } from "@/server/models/shared";
-import type { QueryResult } from "@apollo/client";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 export const PublicMapContext = createContext<{
   publicMap: PublishedPublicMapQuery["publishedPublicMap"];
   editable: boolean;
   dataRecordsQueries: Record<
     string,
-    QueryResult<PublicMapDataRecordsQuery, PublicMapDataRecordsQueryVariables>
+    {
+      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+      isPending: boolean;
+    }
   >;
   searchLocation: Point | null;
   setSearchLocation: (p: Point | null) => void;

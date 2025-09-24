@@ -18,7 +18,7 @@ export default function DataRecordSidebar() {
     }
     const dataRecordsQuery =
       dataRecordsQueries[selectedDataRecord.dataSourceId];
-    return dataRecordsQuery.data?.dataSource?.records?.find(
+    return dataRecordsQuery.data?.records?.find(
       (r) => r.id === selectedDataRecord.id,
     );
   }, [dataRecordsQueries, selectedDataRecord]);
@@ -35,8 +35,9 @@ export default function DataRecordSidebar() {
     dataSourceConfig?.nameColumns || [],
     selectedDataRecordDetails.json,
   );
-  const description =
-    selectedDataRecordDetails.json[dataSourceConfig?.descriptionColumn || ""];
+  const description = selectedDataRecordDetails.json[
+    dataSourceConfig?.descriptionColumn || ""
+  ] as string;
 
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
@@ -124,7 +125,7 @@ export default function DataRecordSidebar() {
             <a
               target="_blank"
               href={`${dataSourceConfig.formUrl}${jsonToAirtablePrefill(
-                selectedDataRecordDetails.json,
+                selectedDataRecordDetails.json as Record<string, string>,
               )}`}
             >
               Submit an edit

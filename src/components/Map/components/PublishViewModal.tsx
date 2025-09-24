@@ -1,4 +1,4 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel, X } from "lucide-react";
 import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
@@ -6,6 +6,7 @@ import ColumnsMultiSelect from "@/components/ColumnsMultiSelect";
 import DataListRow from "@/components/DataListRow";
 import { DataSourcesContext } from "@/components/Map/context/DataSourcesContext";
 import { MapContext } from "@/components/Map/context/MapContext";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -29,10 +30,6 @@ import type {
   PublicMap,
   PublicMapColumn,
   PublicMapDataSourceConfig,
-  PublicMapModalQuery,
-  PublicMapModalQueryVariables,
-  UpsertPublicMapMutation,
-  UpsertPublicMapMutationVariables,
 } from "@/__generated__/types";
 import type { FormEvent } from "react";
 
@@ -76,111 +73,43 @@ export default function PublishViewModal({
   // Stores the last published host (only changes when form is submitted)
   const [publishedHost, setPublishedHost] = useState("");
 
-  const publicMapQuery = useQuery<
-    PublicMapModalQuery,
-    PublicMapModalQueryVariables
-  >(
-    gql`
-      query PublicMapModal($viewId: String!) {
-        publicMap(viewId: $viewId) {
-          id
-          host
-          name
-          description
-          descriptionLink
-          published
-          dataSourceConfigs {
-            allowUserEdit
-            allowUserSubmit
-            dataSourceId
-            dataSourceLabel
-            formUrl
-            nameLabel
-            nameColumns
-            descriptionLabel
-            descriptionColumn
-            additionalColumns {
-              label
-              sourceColumns
-              type
-            }
-          }
-        }
-      }
-    `,
-    { variables: { viewId }, fetchPolicy: "network-only" },
+  const trpc = useTRPC();
+  const { data, isPending } = useQuery(
+    trpc.map.publicByViewId.queryOptions({ viewId }),
   );
 
   useEffect(() => {
-    if (publicMapQuery.data?.publicMap) {
-      const publicMap = { ...publicMapQuery.data.publicMap, viewId };
-      const dataSourceConfigs = [...publicMap.dataSourceConfigs];
-      // Ensure a config item exists for all data sources
-      for (const ds of mapDataSources) {
-        if (!dataSourceConfigs.some((dsc) => dsc.dataSourceId === ds.id)) {
-          dataSourceConfigs.push(createDataSourceConfig(ds));
-        }
-      }
-      setPublicMap({ ...publicMap, dataSourceConfigs });
-      setPublishedHost(publicMapQuery.data.publicMap.host);
-    }
-  }, [mapDataSources, publicMapQuery.data, viewId]);
+    if (!data) return;
 
-  const [upsertPublicMap, { loading }] = useMutation<
-    UpsertPublicMapMutation,
-    UpsertPublicMapMutationVariables
-  >(gql`
-    mutation UpsertPublicMap(
-      $viewId: String!
-      $host: String!
-      $name: String!
-      $description: String!
-      $descriptionLink: String!
-      $published: Boolean!
-      $dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
-    ) {
-      upsertPublicMap(
-        viewId: $viewId
-        host: $host
-        name: $name
-        description: $description
-        descriptionLink: $descriptionLink
-        published: $published
-        dataSourceConfigs: $dataSourceConfigs
-      ) {
-        code
-        result {
-          host
-          published
-        }
+    const publicMap = { ...data, viewId };
+    const dataSourceConfigs = [...publicMap.dataSourceConfigs];
+    // Ensure a config item exists for all data sources
+    for (const ds of mapDataSources) {
+      if (!dataSourceConfigs.some((dsc) => dsc.dataSourceId === ds.id)) {
+        dataSourceConfigs.push(createDataSourceConfig(ds));
       }
     }
-  `);
+    setPublicMap({ ...publicMap, dataSourceConfigs });
+    setPublishedHost(data.host);
+  }, [mapDataSources, data, viewId]);
+
+  const { mutate: upsertPublicMap, isPending: loading } = useMutation(
+    trpc.map.updatePublicMap.mutationOptions({
+      onSuccess: (res) => {
+        setPublishedHost(res.host);
+      },
+      onError: (e) => {
+        console.error("Failed to upsert public map", e);
+        setError(e.message);
+      },
+    }),
+  );
 
   const onSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!viewId) {
-      return;
-    }
+    if (!viewId) return;
     setError("");
-    try {
-      const result = await upsertPublicMap({
-        variables: publicMap,
-      });
-      if (result.data?.upsertPublicMap?.result) {
-        setPublishedHost(
-          result.data.upsertPublicMap.result.published
-            ? result.data.upsertPublicMap.result.host
-            : "",
-        );
-      }
-      if (result.data?.upsertPublicMap?.code === 409) {
-        setError("A public map already exists for this subdomain.");
-      }
-    } catch (e) {
-      console.error("Failed to upsert public map", e);
-      setError("Unknown error.");
-    }
+    upsertPublicMap(publicMap);
   };
 
   return (
@@ -211,7 +140,7 @@ export default function PublishViewModal({
             )}
           </DialogDescription>
         </DialogHeader>
-        {publicMapQuery.loading ? (
+        {isPending ? (
           <LoaderPinwheel className="animate-spin" />
         ) : showConfigForm ? (
           <ConfigureDataForm

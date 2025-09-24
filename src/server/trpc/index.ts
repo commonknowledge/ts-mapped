@@ -5,6 +5,7 @@ import { getServerSession } from "@/auth";
 import { serverDataSourceSerializer } from "@/utils/superjson";
 import { findDataSourceById } from "../repositories/DataSource";
 import { findMapById } from "../repositories/Map";
+import { findMapViewById } from "../repositories/MapView";
 import { findOrganisationForUser } from "../repositories/Organisation";
 import { findUserById } from "../repositories/User";
 
@@ -128,4 +129,37 @@ export const mapProcedure = protectedProcedure
       });
 
     return next({ ctx: { organisation, map } });
+  });
+
+export const publicMapViewProcedure = protectedProcedure
+  .input(z.object({ viewId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const view = await findMapViewById(input.viewId);
+    if (!view)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "View not found",
+      });
+
+    const map = await findMapById(view.mapId);
+    if (!map)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Map not found",
+      });
+
+    const organisation = await findOrganisationForUser(
+      map.organisationId,
+      ctx.user.id,
+    );
+
+    if (!organisation) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message:
+          "You must be a member of the organisation to perform this action.",
+      });
+    }
+
+    return next({ ctx: { view, map, organisation } });
   });

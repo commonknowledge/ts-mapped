@@ -7,6 +7,7 @@ import {
   MapStyleName,
   VisualisationType,
 } from "@/server/models/MapView";
+import { publicMapSchema } from "@/server/models/PublicMap";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import {
   createMap,
@@ -14,13 +15,22 @@ import {
   updateMap,
 } from "@/server/repositories/Map";
 import { upsertMapView } from "@/server/repositories/MapView";
-import { organisationProcedure, router } from "../index";
+import {
+  findPublicMapByHost,
+  findPublicMapByViewId,
+  upsertPublicMap,
+} from "@/server/repositories/PublicMap";
+import {
+  organisationProcedure,
+  publicMapViewProcedure,
+  router,
+} from "../index";
 
 export const mapRouter = router({
-  list: organisationProcedure.query(async ({ ctx }) => {
+  list: organisationProcedure.query(({ ctx }) => {
     return findMapsByOrganisationId(ctx.organisation.id);
   }),
-  create: organisationProcedure.mutation(async ({ ctx }) => {
+  create: organisationProcedure.mutation(({ ctx }) => {
     return createMap(ctx.organisation.id);
   }),
   createFromDataSource: organisationProcedure
@@ -71,5 +81,24 @@ export const mapRouter = router({
         });
       }
       return map;
+    }),
+  publicByViewId: publicMapViewProcedure.query(({ input }) => {
+    return findPublicMapByViewId(input.viewId);
+  }),
+
+  updatePublicMap: publicMapViewProcedure
+    .input(publicMapSchema.omit({ createdAt: true, mapId: true, id: true }))
+    .mutation(async ({ input, ctx: { view } }) => {
+      const publicMap = findPublicMapByViewId(input.viewId);
+
+      const existingPublicMap = await findPublicMapByHost(input.host);
+      if (existingPublicMap && existingPublicMap.viewId !== input.viewId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "A public map already exists for this subdomain.",
+        });
+      }
+      if (!publicMap) throw new TRPCError({ code: "NOT_FOUND" });
+      return upsertPublicMap({ ...publicMap, ...input, mapId: view.mapId });
     }),
 });

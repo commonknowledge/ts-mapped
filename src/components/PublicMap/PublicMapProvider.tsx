@@ -1,22 +1,21 @@
 "use client";
 
-import { gql, useQuery } from "@apollo/client";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
+import { useTRPC } from "@/services/trpc/react";
 import { DataSourcesContext } from "../Map/context/DataSourcesContext";
 import { PublicMapContext } from "./PublicMapContext";
 import { createDataSourceConfig } from "./PublishedComponents/DataSourcesSelect";
 import type {
   PublicMap,
   PublicMapColumn,
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
   PublicMapDataSourceConfig,
   PublishedPublicMapQuery,
 } from "@/__generated__/types";
 import type { Point } from "@/server/models/shared";
-import type { QueryResult } from "@apollo/client";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { ReactNode } from "react";
 
 export default function PublicMapProvider({
@@ -39,17 +38,20 @@ export default function PublicMapProvider({
   const [dataRecordsQueries, setDataRecordsQueries] = useState<
     Record<
       string,
-      QueryResult<PublicMapDataRecordsQuery, PublicMapDataRecordsQueryVariables>
+      {
+        data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+        isPending: boolean;
+      }
     >
   >({});
 
   const onLoadDataRecords = useCallback(
     (
       dataSourceId: string,
-      q: QueryResult<
-        PublicMapDataRecordsQuery,
-        PublicMapDataRecordsQueryVariables
-      >,
+      q: {
+        data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+        isPending: boolean;
+      },
     ) => {
       setDataRecordsQueries((prev) => ({ ...prev, [dataSourceId]: q }));
     },
@@ -151,10 +153,10 @@ function DataRecordsQueryComponent({
   location: Point | null;
   onLoadDataRecords: (
     dataSourceId: string,
-    q: QueryResult<
-      PublicMapDataRecordsQuery,
-      PublicMapDataRecordsQueryVariables
-    >,
+    q: {
+      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+      isPending: boolean;
+    },
   ) => void;
 }) {
   const { view } = useContext(MapContext);
@@ -167,45 +169,12 @@ function DataRecordsQueryComponent({
     ? [{ name: SORT_BY_LOCATION, location, desc: false }]
     : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
 
-  const dataRecordsQuery = useQuery<
-    PublicMapDataRecordsQuery,
-    PublicMapDataRecordsQueryVariables
-  >(
-    gql`
-      query PublicMapDataRecords(
-        $dataSourceId: String!
-        $filter: RecordFilterInput
-        $sort: [SortInput!]
-      ) {
-        dataSource(id: $dataSourceId) {
-          id
-          name
-          columnRoles {
-            nameColumns
-          }
-          records(filter: $filter, sort: $sort, all: true) {
-            id
-            externalId
-            geocodePoint {
-              lat
-              lng
-            }
-            json
-          }
-          recordCount(filter: $filter) {
-            count
-            matched
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        dataSourceId,
-        filter,
-        sort,
-      },
-    },
+  const trpc = useTRPC();
+  const dataRecordsQuery = useQuery(
+    trpc.dataSource.byIdWithRecords.queryOptions(
+      { dataSourceId, filter, sort },
+      { placeholderData: keepPreviousData },
+    ),
   );
 
   useEffect(() => {

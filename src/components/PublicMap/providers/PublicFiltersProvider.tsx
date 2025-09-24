@@ -56,19 +56,16 @@ export default function PublicFiltersProvider({
       const fields = typedColumns.map((col) => {
         if (col.type === PublicMapColumnType.CommaSeparatedList) {
           const records =
-            dataRecordsQueries?.[dataSourceConfig?.dataSourceId]?.data
-              ?.dataSource?.records;
+            dataRecordsQueries?.[dataSourceConfig?.dataSourceId]?.data?.records;
 
           if (!records?.length) {
             return col;
           }
 
           const allValues = records
-            .map((record) => record.json[col.name])
+            .map((record) => record.json[col.name] as string | undefined)
             .filter(Boolean) // remove null
-            .flatMap((item: string) =>
-              item.split(",").map((s: string) => s.trim()),
-            ); // split and trim;
+            .flatMap((item) => item.split(",").map((s) => s.trim())); // split and trim;
 
           const uniqueValues = [...new Set(allValues)].sort((a, b) =>
             a.localeCompare(b),

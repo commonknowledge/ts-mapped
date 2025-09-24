@@ -75,7 +75,7 @@ export default function PublishPublicMapSidebar() {
   useEffect(() => {
     if (activePublishTab === "data" && recordSidebarVisible && activeTabId) {
       const dataRecordsQuery = dataRecordsQueries[activeTabId];
-      const records = dataRecordsQuery?.data?.dataSource?.records;
+      const records = dataRecordsQuery?.data?.records;
       if (records && records.length > 0) {
         const firstRecord = records[0];
         setSelectedDataRecord({
@@ -150,7 +150,7 @@ export default function PublishPublicMapSidebar() {
                     dataRecordsQueries[currentDataSourceId]
                   ) {
                     const firstRecord =
-                      dataRecordsQueries[currentDataSourceId]?.data?.dataSource
+                      dataRecordsQueries[currentDataSourceId]?.data
                         ?.records?.[0];
                     if (firstRecord) {
                       setSelectedDataRecord({
