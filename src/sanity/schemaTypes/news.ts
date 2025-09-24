@@ -15,9 +15,8 @@ export const newsSchema = defineType({
       options: { source: "title" },
     }),
     defineField({
-      name: "content",
-      type: "array",
-      of: [{ type: "block" }],
+      name: "body",
+      type: "blockContent",
     }),
     defineField({
       name: "publishedAt",

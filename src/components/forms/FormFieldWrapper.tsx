@@ -10,8 +10,7 @@ export default function FormFieldWrapper({
 }: {
   label: string;
   children: React.ReactNode;
-
-  error?: string;
+  error?: string | string[] | null;
   hint?: string;
   id?: string;
   isHorizontal?: boolean;
@@ -24,8 +23,28 @@ export default function FormFieldWrapper({
         <Label htmlFor={id || ""}>{label}</Label>
         {children}
       </div>
-      {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {hint && <FormFieldHint hint={hint} />}
+      {error && (
+        <FormFieldError
+          error={typeof error === "string" ? error : error.join(", ")}
+        />
+      )}
     </div>
+  );
+}
+export function FormFieldHint({ hint }: { hint: string }) {
+  return <p className="text-sm text-muted-foreground">{hint}</p>;
+}
+
+export function FormFieldError({
+  error,
+}: {
+  error?: string | string[] | null;
+}) {
+  if (!error) return null;
+  return (
+    <p className="text-sm text-red-600">
+      {typeof error === "string" ? error : error.join(", ")}
+    </p>
   );
 }

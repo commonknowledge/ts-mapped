@@ -55,8 +55,9 @@ export default async function NewsPage({
             />
           )}
         </div>
+
         <div className="max-w-4xl">
-          <RichTextComponent content={news.content} />
+          <RichTextComponent content={news.body} />
         </div>
       </div>
     </Container>

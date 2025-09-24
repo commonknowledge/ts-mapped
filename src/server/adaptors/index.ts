@@ -4,12 +4,12 @@ import { ActionNetworkAdaptor } from "./actionnetwork";
 import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
-import type { dataSourceConfigSchema } from "../models/DataSource";
-import type z from "zod";
+import { MailchimpAdaptor } from "./mailchimp";
+import type { DataSourceConfig } from "../models/DataSource";
 
 export const getDataSourceAdaptor = (dataSource: {
   id: string;
-  config: z.infer<typeof dataSourceConfigSchema>;
+  config: DataSourceConfig;
 }) => {
   const { id, config } = dataSource;
 
@@ -34,6 +34,7 @@ export const getDataSourceAdaptor = (dataSource: {
         config.oAuthCredentials,
       );
     case DataSourceType.Mailchimp:
+      return new MailchimpAdaptor(id, config.apiKey, config.listId);
     default:
       logger.error(`Unimplemented data source type: ${dataSourceType}`);
       return null;
