@@ -1,5 +1,5 @@
-import Link from "next/link";
 import React from "react";
+import { Link } from "@/components/Link";
 import {
   TypographyH1,
   TypographyH2,

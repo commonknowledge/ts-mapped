@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import Container from "@/components/layout/Container";
+import { Link } from "@/components/Link";
 import {
   TypographyH1,
   TypographyH3,

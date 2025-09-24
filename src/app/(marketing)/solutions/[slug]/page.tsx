@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { type SanityDocument } from "next-sanity";
 import React from "react";
 import Container from "@/components/layout/Container";
+import { Link } from "@/components/Link";
 import {
   TypographyH1,
   TypographyH2,

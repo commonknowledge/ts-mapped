@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type SanityDocument } from "next-sanity";
 import RichTextComponent from "@/app/(marketing)/components/RichTextComponent";
+import { Link } from "@/components/Link";
 import { TypographyH1, TypographyLead } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";

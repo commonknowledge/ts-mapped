@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { TypographyH1, TypographyP } from "@/components/typography";
 import { Button } from "@/shadcn/ui/button";
 

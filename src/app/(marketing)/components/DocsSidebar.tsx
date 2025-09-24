@@ -1,9 +1,9 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import type { FeatureSetProps } from "../types";
