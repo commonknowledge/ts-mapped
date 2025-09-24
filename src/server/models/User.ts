@@ -6,13 +6,18 @@ import type {
   Updateable,
 } from "kysely";
 
+export const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .trim();
+
 export const userSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
   email: z.string().email().trim().toLowerCase(),
   name: z.string().trim(),
   avatarUrl: z.string().url().trim().nullish(),
-  passwordHash: z.string(),
+  passwordHash: passwordSchema,
 });
 
 export type User = z.infer<typeof userSchema>;

@@ -9,8 +9,7 @@ import { getInitials } from "@/utils/text";
 interface EditableAvatarProps {
   name: string;
   onChange: (avatarUrl: string) => void;
-
-  src?: string;
+  src?: string | null;
 }
 
 export const AvatarInput: React.FC<EditableAvatarProps> = ({
@@ -46,7 +45,10 @@ export const AvatarInput: React.FC<EditableAvatarProps> = ({
       <TooltipTrigger asChild>
         <div className="cursor-pointer" onClick={triggerFileInput}>
           <Avatar>
-            <AvatarImage src={loading ? undefined : src} alt={name} />
+            <AvatarImage
+              src={loading ? undefined : src || undefined}
+              alt={name}
+            />
             <AvatarFallback>
               {loading ? (
                 <LoaderPinwheel className="animate-spin" size={16} />
