@@ -69,6 +69,7 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
       colorScheme: null,
       excludeColumnsString: "",
       mapStyleName: MapStyleName.Light,
+      reverseColorScheme: false,
       showBoundaryOutline: true,
       showLabels: true,
       showLocations: true,

@@ -158,6 +158,7 @@ export const useMapQuery = (mapId: string | null) =>
               visualisationType
               calculationType
               colorScheme
+              reverseColorScheme
             }
             dataSourceViews {
               dataSourceId

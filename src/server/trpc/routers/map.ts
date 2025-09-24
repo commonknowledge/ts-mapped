@@ -61,6 +61,7 @@ export const mapRouter = router({
             colorScheme: null,
             excludeColumnsString: "",
             mapStyleName: MapStyleName.Light,
+            reverseColorScheme: false,
             showBoundaryOutline: true,
             showLabels: true,
             showLocations: true,
