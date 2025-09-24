@@ -77,7 +77,7 @@ export async function GET(
                 ? nameColumns
                     .map((c) => dr.json[c])
                     .filter(Boolean)
-                    .join(", ")
+                    .join(" ")
                 : dr.externalId,
               [MARKER_MATCHED_KEY]: dr[MARKER_MATCHED_COLUMN],
             },
