@@ -42,7 +42,7 @@ export default function NewDataSourcePage() {
   const oAuthState = useOAuthState();
 
   // Manually manage loading state to account for success redirect duration
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const trpc = useTRPC();
   const {
@@ -55,7 +55,7 @@ export default function NewDataSourcePage() {
         router.push(`/data-sources/${data.id}/config`);
       },
       onError: () => {
-        setIsNavigating(false);
+        setIsLoading(false);
       },
     }),
   );
@@ -71,8 +71,8 @@ export default function NewDataSourcePage() {
     onSubmit: async ({ value }) => {
       if (!organisationId) return toast.error("No organisation selected");
       if (!value.config) return toast.error("No config added");
+      setIsLoading(true);
       const preparedConfig = await prepareDataSource(value.config);
-      setIsNavigating(true);
       createDataSource({ ...value, config: preparedConfig, organisationId });
     },
   });
@@ -202,9 +202,16 @@ export default function NewDataSourcePage() {
           )}
         </form.Subscribe>
 
-        <Button disabled={isNavigating || isPending} type="submit">
-          {isNavigating ? "Creating..." : "Configure fields"}
-        </Button>
+        <form.Subscribe selector={(state) => state.isDefaultValue}>
+          {(isDefaultValue) => (
+            <Button
+              disabled={isLoading || isPending || isDefaultValue}
+              type="submit"
+            >
+              {isLoading ? "Creating..." : "Configure fields"}
+            </Button>
+          )}
+        </form.Subscribe>
 
         {formError && <p className="text-xs mt-2 text-red-500">{formError}</p>}
       </form>
