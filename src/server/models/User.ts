@@ -17,7 +17,7 @@ export const userSchema = z.object({
   email: z.string().email().trim().toLowerCase(),
   name: z.string().trim(),
   avatarUrl: z.string().url().trim().nullish(),
-  passwordHash: passwordSchema,
+  passwordHash: z.string(),
 });
 
 export type User = z.infer<typeof userSchema>;
