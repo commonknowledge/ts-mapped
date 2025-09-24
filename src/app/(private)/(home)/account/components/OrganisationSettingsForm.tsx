@@ -1,11 +1,13 @@
 "use client";
 
+import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { toast } from "sonner";
 import { AvatarInput } from "@/components/forms/AvatarInput";
-import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
-import { useForm } from "@/components/forms/useForm";
+import FormFieldWrapper, {
+  FormFieldError,
+} from "@/components/forms/FormFieldWrapper";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -16,28 +18,18 @@ export default function OrganisationSettingsForm() {
     useContext(OrganisationsContext);
   const currentOrganisation = getOrganisation();
 
-  const { formState, setFormState, handleChange, resetForm, isDirty } =
-    useForm<{ name: string; avatarUrl: string }>(undefined, {
-      name: currentOrganisation?.name || "",
-      avatarUrl: currentOrganisation?.avatarUrl || "",
-    });
-
-  useEffect(() => {
-    if (currentOrganisation) {
-      setFormState({
-        name: currentOrganisation.name,
-        avatarUrl: currentOrganisation.avatarUrl || "",
-      });
-    }
-  }, [currentOrganisation, setFormState]);
-
   const trpc = useTRPC();
-  const { mutate: updateOrganisation, isPending } = useMutation(
+  const {
+    mutate: updateOrganisation,
+    error,
+    isPending,
+  } = useMutation(
     trpc.organisation.update.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (res) => {
         toast.success("Organisation settings updated!");
         if (currentOrganisation) {
-          updateLocalOrganisation(currentOrganisation.id, formState);
+          form.reset();
+          updateLocalOrganisation(currentOrganisation.id, res);
         }
       },
       onError: () => {
@@ -46,53 +38,79 @@ export default function OrganisationSettingsForm() {
     }),
   );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (currentOrganisation) {
-      updateOrganisation({
-        organisationId: currentOrganisation.id,
-        name: formState.name,
-        avatarUrl: formState.avatarUrl || undefined,
-      });
-    }
-  };
+  const form = useForm({
+    defaultValues: {
+      name: currentOrganisation?.name || "",
+      avatarUrl: currentOrganisation?.avatarUrl || null,
+    },
+    onSubmit: async ({ value }) => {
+      if (!currentOrganisation) return;
+      updateOrganisation({ organisationId: currentOrganisation?.id, ...value });
+    },
+  });
 
-  const onAvatarChange = (avatarUrl: string) => {
-    handleChange("avatarUrl")({ target: { value: avatarUrl } });
-  };
+  const fieldErrors = error?.data?.zodError?.fieldErrors;
+  const formError = error?.data?.formError;
 
   return (
     <form
       className="w-full max-w-[36ch] flex flex-col items-start gap-6"
-      onSubmit={handleSubmit}
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
     >
-      <AvatarInput
-        name={formState?.name}
-        src={formState.avatarUrl || ""}
-        onChange={onAvatarChange}
-      />
+      <form.Field name="avatarUrl">
+        {(field) => (
+          <div className="space-y-2">
+            <AvatarInput
+              name={currentOrganisation?.name || ""}
+              src={field.state.value}
+              onChange={field.handleChange}
+            />
+            <FormFieldError error={fieldErrors?.[field.name]} />
+          </div>
+        )}
+      </form.Field>
 
-      <FormFieldWrapper label="Organisation name" id="org-name">
-        <Input
-          name="name"
-          id="org-name"
-          type="text"
-          required
-          value={formState.name}
-          onChange={handleChange("name")}
-        />
-      </FormFieldWrapper>
+      <form.Field name="name">
+        {(field) => (
+          <FormFieldWrapper
+            label="Organisation name"
+            id={field.name}
+            error={fieldErrors?.[field.name]}
+          >
+            <Input
+              name={field.name}
+              id={field.name}
+              type="text"
+              required
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+            />
+          </FormFieldWrapper>
+        )}
+      </form.Field>
 
-      {isDirty && (
-        <div className="flex gap-4">
-          <Button type="submit" disabled={isPending}>
-            Save changes
-          </Button>
-          <Button type="button" variant="secondary" onClick={resetForm}>
-            Cancel
-          </Button>
-        </div>
-      )}
+      <form.Subscribe selector={(state) => state.isDefaultValue}>
+        {(isDefaultValue) => (
+          <div className="flex gap-4">
+            <Button type="submit" disabled={isPending || isDefaultValue}>
+              Save changes
+            </Button>
+            {!isDefaultValue && !isPending && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => form.reset()}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        )}
+      </form.Subscribe>
+      {formError && <p className="text-xs mt-2 text-red-500">{formError}</p>}
     </form>
   );
 }

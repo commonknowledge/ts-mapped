@@ -88,6 +88,6 @@ export async function updateUser(
     .updateTable("user")
     .where("id", "=", id)
     .set(update)
-    .returningAll()
+    .returning(["id", "email", "name", "avatarUrl", "createdAt"])
     .executeTakeFirstOrThrow();
 }

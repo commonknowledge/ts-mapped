@@ -3,10 +3,12 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { toast } from "sonner";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import FormFieldWrapper, {
+  FormFieldError,
+} from "@/components/forms/FormFieldWrapper";
 import PageHeader from "@/components/PageHeader";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
@@ -35,27 +37,29 @@ import type {
 } from "@/server/models/DataSource";
 
 export default function NewDataSourcePage() {
-  const firstInputRef = useRef<HTMLInputElement>(null);
-
   const { organisationId } = useContext(OrganisationsContext);
   const router = useRouter();
   const oAuthState = useOAuthState();
 
-  const trpc = useTRPC();
+  // Manually manage loading state to account for success redirect duration
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { mutate: createDataSource, error } = useMutation(
+  const trpc = useTRPC();
+  const {
+    mutate: createDataSource,
+    isPending,
+    error,
+  } = useMutation(
     trpc.dataSource.create.mutationOptions({
       onSuccess: (data) => {
         router.push(`/data-sources/${data.id}/config`);
       },
       onError: () => {
-        setLoading(false);
+        setIsLoading(false);
       },
     }),
   );
 
-  // Manually manage loading state to account for success redirect duration
-  const [loading, setLoading] = useState(false);
   const form = useForm({
     defaultValues: {
       name: oAuthState?.dataSourceName || "",
@@ -67,24 +71,14 @@ export default function NewDataSourcePage() {
     onSubmit: async ({ value }) => {
       if (!organisationId) return toast.error("No organisation selected");
       if (!value.config) return toast.error("No config added");
+      setIsLoading(true);
       const preparedConfig = await prepareDataSource(value.config);
-      setLoading(true);
       createDataSource({ ...value, config: preparedConfig, organisationId });
     },
   });
 
   const fieldErrors = error?.data?.zodError?.fieldErrors;
   const formError = error?.data?.formError;
-
-  const getFieldErrorMessage = (field: { name: string }) => {
-    return fieldErrors?.[field.name] ? fieldErrors[field.name]?.join(", ") : "";
-  };
-
-  useEffect(() => {
-    if (firstInputRef.current) {
-      firstInputRef.current.focus();
-    }
-  }, []);
 
   return (
     <div className="p-4 mx-auto max-w-5xl w-full">
@@ -104,11 +98,11 @@ export default function NewDataSourcePage() {
             <FormFieldWrapper
               label="Name"
               id={field.name}
-              error={getFieldErrorMessage(field)}
+              error={fieldErrors?.[field.name]}
             >
               <Input
-                ref={firstInputRef}
                 type="text"
+                autoFocus
                 id={field.name}
                 placeholder="Name"
                 value={field.state.value}
@@ -125,7 +119,7 @@ export default function NewDataSourcePage() {
             <FormFieldWrapper
               label="Data type"
               id={field.name}
-              error={getFieldErrorMessage(field)}
+              error={fieldErrors?.[field.name]}
             >
               <Select
                 required
@@ -154,7 +148,7 @@ export default function NewDataSourcePage() {
             <FormFieldWrapper
               label="Source type"
               id={field.name}
-              error={getFieldErrorMessage(field)}
+              error={fieldErrors?.[field.name]}
             >
               <Select
                 required
@@ -201,23 +195,20 @@ export default function NewDataSourcePage() {
                       } as NewDataSourceConfig)
                     }
                   />
-                  {fieldErrors?.config && (
-                    <div className="text-xs text-red-500 mt-1">
-                      {fieldErrors.config?.join(", ")}
-                    </div>
-                  )}
+                  <FormFieldError error={fieldErrors?.config} />
                 </div>
               )}
             </>
           )}
         </form.Subscribe>
 
-        <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isSubmitting]}
-        >
-          {([canSubmit, isSubmitting]) => (
-            <Button disabled={!canSubmit || loading} type="submit">
-              {isSubmitting || loading ? "Creating..." : "Configure fields"}
+        <form.Subscribe selector={(state) => state.isDefaultValue}>
+          {(isDefaultValue) => (
+            <Button
+              disabled={isLoading || isPending || isDefaultValue}
+              type="submit"
+            >
+              {isLoading ? "Creating..." : "Configure fields"}
             </Button>
           )}
         </form.Subscribe>
