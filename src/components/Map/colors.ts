@@ -141,6 +141,7 @@ export const useFillColor = (
   areaStats: AreaStats | null | undefined,
   scheme: ColorScheme,
   isCount: boolean,
+  isReversed: boolean,
 ): DataDrivenPropertyValueSpecification<string> => {
   const colorScheme = useColorScheme(areaStats, scheme, isCount);
   // useMemo to cache calculated fillColor
@@ -178,14 +179,21 @@ export const useFillColor = (
     }
 
     const numSteps = 30;
+
     const stepScale = scaleLinear()
       .domain([0, numSteps - 1])
       .range([colorScheme.minValue, colorScheme.maxValue]);
+
     const interpolateColorStops = new Array(numSteps)
       .fill(null)
       .flatMap((_, i) => {
         const step = stepScale(i);
-        return [step, colorScheme.colorScale(step)];
+        const color = isReversed
+          ? colorScheme.colorScale(
+              colorScheme.maxValue - (step - colorScheme.minValue),
+            )
+          : colorScheme.colorScale(step);
+        return [step, color];
       });
     return [
       "interpolate",
@@ -195,5 +203,5 @@ export const useFillColor = (
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [colorScheme, isCount]);
+  }, [colorScheme, isCount, isReversed]);
 };

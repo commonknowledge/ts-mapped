@@ -63,6 +63,7 @@ export default function Choropleth() {
     areaStatsQuery?.data?.areaStats,
     viewConfig.colorScheme || ColorScheme.RedBlue,
     viewConfig.calculationType === CalculationType.Count,
+    viewConfig.reverseColorScheme,
   );
 
   const choroplethTopLayerId = "choropleth-top";
