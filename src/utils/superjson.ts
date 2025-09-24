@@ -5,6 +5,11 @@ interface DataSource {
   };
 }
 
+interface HasPasswordHash {
+  // Making this field optional simplifies the serializer type definitions
+  passwordHash?: unknown;
+}
+
 const isDataSource = (v: unknown): v is DataSource => {
   // Simple (fast) duck typing of DataSource object
   return (
@@ -45,4 +50,16 @@ export const clientDataSourceSerializer = {
   // The `as` fixes typing in `superjson.registerCustom(...)`
   serialize: (v: DataSource) => v as { config: { type: string } },
   deserialize: (v: DataSource) => v,
+};
+
+export const hasPasswordHashSerializer = {
+  isApplicable: (v: unknown): v is HasPasswordHash => {
+    return v !== null && typeof v === "object" && "passwordHash" in v;
+  },
+  serialize: (v: HasPasswordHash) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash, ...rest } = v;
+    return rest;
+  },
+  deserialize: (v: HasPasswordHash) => v,
 };

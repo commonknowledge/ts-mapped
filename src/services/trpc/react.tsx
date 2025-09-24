@@ -4,7 +4,10 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
-import { clientDataSourceSerializer } from "@/utils/superjson";
+import {
+  clientDataSourceSerializer,
+  hasPasswordHashSerializer,
+} from "@/utils/superjson";
 import { makeQueryClient } from "./queryClient";
 import type { AppRouter } from "@/server/trpc/router";
 import type { QueryClient } from "@tanstack/react-query";
@@ -38,6 +41,7 @@ function getUrl() {
 }
 
 superjson.registerCustom(clientDataSourceSerializer, "DataSource");
+superjson.registerCustom(hasPasswordHashSerializer, "HasPasswordHash");
 
 export function TRPCReactProvider(
   props: Readonly<{ children: React.ReactNode }>,
