@@ -8,7 +8,11 @@ import {
   GeocodingType,
   dataSourceSchema,
 } from "@/server/models/DataSource";
-import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
+import { dataSourceViewSchema } from "@/server/models/MapView";
+import {
+  applyFilterAndSearch,
+  findDataRecordsByDataSource,
+} from "@/server/repositories/DataRecord";
 import {
   createDataSource,
   deleteDataSource,
@@ -88,12 +92,31 @@ export const dataSourceRouter = router({
   }),
 
   byIdWithRecords: dataSourceProcedure
-    .input(z.object({ search: z.string().trim().optional() }))
+    .input(
+      z
+        .object({ page: z.number().optional(), all: z.boolean().optional() })
+        .and(dataSourceViewSchema.partial()),
+    )
     .query(async ({ ctx, input }) => {
       const dataSource = await db
         .selectFrom("dataSource")
-        .where("id", "=", ctx.dataSource.id)
-        .selectAll()
+        .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
+        .where("dataSource.id", "=", ctx.dataSource.id)
+        .selectAll("dataSource")
+        .select(({ eb, fn }) => [
+          fn.countAll().as("count"),
+          fn
+            .count(
+              eb
+                .case()
+                .when(applyFilterAndSearch(eb, input.filter, input.search))
+                .then(1)
+                .else(null)
+                .end(),
+            )
+            .as("matched"),
+        ])
+        .groupBy("dataSource.id")
         .executeTakeFirst();
 
       if (!dataSource) {
@@ -105,14 +128,21 @@ export const dataSourceRouter = router({
 
       const records = await findDataRecordsByDataSource(
         ctx.dataSource.id,
-        null,
+        input.filter,
         input.search,
-        0,
-        [],
-        true,
+        input.page || 0,
+        input.sort || [],
+        input.all || false,
       );
 
-      return { ...dataSource, records };
+      return {
+        ...dataSource,
+        records,
+        count: {
+          total: Number(dataSource.count) || 0,
+          matched: Number(dataSource.matched) || 0,
+        },
+      };
     }),
 
   create: organisationProcedure

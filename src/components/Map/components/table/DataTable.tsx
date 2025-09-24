@@ -39,7 +39,10 @@ interface DataTableProps {
   loading: boolean;
   columns: ColumnDef[];
   data: DataRecord[];
-  recordCount?: { count: number; matched: number } | null | undefined;
+  recordCount?: {
+    total: number;
+    matched: number;
+  };
 
   pageIndex: number;
   setPageIndex: (page: number) => void;
@@ -118,8 +121,8 @@ export function DataTable({
             <div className="flex flex-row gap-2">
               <p className="font-bold whitespace-nowrap">{title}</p>
               {recordCount && <span>{recordCount?.matched}</span>}
-              {recordCount && recordCount.count !== recordCount.matched && (
-                <span>{`(${recordCount.count})`}</span>
+              {recordCount && recordCount.total !== recordCount.matched && (
+                <span>{`(${recordCount.total})`}</span>
               )}
             </div>
           )}

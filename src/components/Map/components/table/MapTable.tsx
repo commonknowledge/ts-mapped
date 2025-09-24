@@ -85,10 +85,10 @@ export default function MapTable() {
     <div className="h-full">
       <DataTable
         title={dataSource.name}
-        loading={dataRecordsQuery ? dataRecordsQuery.loading : true}
+        loading={dataRecordsQuery ? dataRecordsQuery.isPending : true}
         columns={dataSource.columnDefs}
-        data={dataRecordsQuery?.data?.dataSource?.records || []}
-        recordCount={dataRecordsQuery?.data?.dataSource?.recordCount}
+        data={dataRecordsQuery?.data?.records || []}
+        recordCount={dataRecordsQuery?.data?.count}
         filter={filter}
         search={dataSourceView?.search}
         setSearch={(s) => updateDataSourceView({ search: s })}

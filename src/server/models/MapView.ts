@@ -51,7 +51,7 @@ export const sortSchema = z.object({
   desc: z.boolean(),
 });
 
-const dataSourceViewSchema = z.object({
+export const dataSourceViewSchema = z.object({
   dataSourceId: z.string(),
   filter: recordFilterSchema,
   search: z.string(),

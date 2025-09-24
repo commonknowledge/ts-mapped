@@ -7,7 +7,7 @@ export const dataRecordSchema = z.object({
   id: z.string(),
   externalId: z.string(),
   dataSourceId: z.string(),
-  json: z.record(z.string(), z.union([z.string(), z.number()]).nullish()),
+  json: z.record(z.string(), z.unknown()),
   geocodeResult: geocodeResultSchema.nullable(),
   geocodePoint: pointSchema.nullable(),
   createdAt: z.date(),
