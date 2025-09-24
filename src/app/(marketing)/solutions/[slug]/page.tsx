@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { type SanityDocument } from "next-sanity";
 import React from "react";
-
+import Container from "@/components/layout/Container";
 import {
   TypographyH1,
   TypographyH2,
@@ -75,21 +75,27 @@ export default async function SolutionPage({
   }
 
   return (
-    <div>
-      <div className="flex flex-col p-6 gap-6 justify-between bg-brand-background relative overflow-hidden">
-        {/* Breadcrumb */}
-        <TypographyMuted className="mb-2 font-mono">
-          — Solutions
-        </TypographyMuted>
+    <>
+      {/* Hero */}
+      <div className="bg-brand-background relative overflow-hidden py-10 md:py-20">
+        <Container>
+          <div className="relative z-10 / flex flex-col gap-6">
+            {/* Breadcrumb */}
+            <TypographyMuted className="mb-2 font-mono">
+              — Solutions
+            </TypographyMuted>
 
-        <div className="z-10">
-          <TypographyH1>{solution.title}</TypographyH1>
-          {solution.subtitle && (
-            <TypographyLead className="mt-2 max-w-2xl">
-              {solution.subtitle}
-            </TypographyLead>
-          )}
-        </div>
+            <div>
+              <TypographyH1>{solution.title}</TypographyH1>
+              {solution.subtitle && (
+                <TypographyLead className="mt-2 max-w-2xl">
+                  {solution.subtitle}
+                </TypographyLead>
+              )}
+            </div>
+          </div>
+        </Container>
+
         <div className="absolute -top-2 -right-2 md:w-auto w-1/2">
           <Image
             src="/pattern.svg"
@@ -100,8 +106,9 @@ export default async function SolutionPage({
           />
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Content */}
+
+      {/* Content */}
+      <Container className="py-10 md:py-20">
         {solution.solutionsArray && solution.solutionsArray.length > 0 ? (
           solution.solutionsArray.map(
             (solution: SolutionArray, index: number) => (
@@ -120,8 +127,8 @@ export default async function SolutionPage({
             </TypographyP>
           </div>
         )}
-      </div>
-    </div>
+      </Container>
+    </>
   );
 }
 

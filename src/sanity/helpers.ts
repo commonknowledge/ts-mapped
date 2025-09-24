@@ -1,4 +1,4 @@
-import type { RichTextBlock } from "@/app/(marketing)/(info)/types";
+import type { RichTextBlock } from "@/app/(marketing)/types";
 
 // Helper function to extract plain text from rich text blocks
 export function getTextFromBlocks(blocks: RichTextBlock[]): string {

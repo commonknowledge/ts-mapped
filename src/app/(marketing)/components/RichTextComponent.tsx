@@ -3,7 +3,7 @@ import { PortableText } from "next-sanity";
 import React from "react";
 import Prose from "@/components/Prose";
 import { urlFor } from "@/sanity/lib/image";
-import type { RichTextBlock } from "@/app/(marketing)/(info)/types";
+import type { RichTextBlock } from "@/app/(marketing)/types";
 import type { PortableTextComponents } from "next-sanity";
 
 export default function RichTextComponent({

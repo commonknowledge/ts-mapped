@@ -4,7 +4,7 @@ import { Button } from "@/shadcn/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="h-full bg-white flex items-center justify-center">
       <div className="text-center">
         <TypographyH1>Feature Not Found</TypographyH1>
         <TypographyP className="mt-4 text-neutral-600">
