@@ -356,6 +356,7 @@ export type MapViewConfig = {
   colorScheme?: Maybe<ColorScheme>;
   excludeColumnsString: Scalars["String"]["output"];
   mapStyleName: MapStyleName;
+  reverseColorScheme?: Maybe<Scalars["Boolean"]["output"]>;
   showBoundaryOutline: Scalars["Boolean"]["output"];
   showLabels: Scalars["Boolean"]["output"];
   showLocations: Scalars["Boolean"]["output"];
@@ -372,6 +373,7 @@ export type MapViewConfigInput = {
   colorScheme?: InputMaybe<ColorScheme>;
   excludeColumnsString: Scalars["String"]["input"];
   mapStyleName: MapStyleName;
+  reverseColorScheme?: InputMaybe<Scalars["Boolean"]["input"]>;
   showBoundaryOutline: Scalars["Boolean"]["input"];
   showLabels: Scalars["Boolean"]["input"];
   showLocations: Scalars["Boolean"]["input"];
@@ -911,22 +913,6 @@ export type DataSourceEnrichmentQuery = {
   }> | null;
 };
 
-export type CreateDataSourceMutationVariables = Exact<{
-  name: Scalars["String"]["input"];
-  organisationId: Scalars["String"]["input"];
-  recordType: DataSourceRecordType;
-  rawConfig: Scalars["JSON"]["input"];
-}>;
-
-export type CreateDataSourceMutation = {
-  __typename?: "Mutation";
-  createDataSource?: {
-    __typename?: "CreateDataSourceResponse";
-    code: number;
-    result?: { __typename?: "DataSource"; id: string } | null;
-  } | null;
-};
-
 export type UpdateMapNameMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   mapInput: MapInput;
@@ -1232,6 +1218,7 @@ export type MapQuery = {
         visualisationType?: VisualisationType | null;
         calculationType?: CalculationType | null;
         colorScheme?: ColorScheme | null;
+        reverseColorScheme?: boolean | null;
       };
       dataSourceViews: Array<{
         __typename?: "DataSourceView";
@@ -2142,6 +2129,11 @@ export type MapViewConfigResolvers<
   >;
   mapStyleName?: Resolver<
     ResolversTypes["MapStyleName"],
+    ParentType,
+    ContextType
+  >;
+  reverseColorScheme?: Resolver<
+    Maybe<ResolversTypes["Boolean"]>,
     ParentType,
     ContextType
   >;

@@ -54,6 +54,7 @@ export const useColorScheme = (
   areaStats: AreaStats | null | undefined,
   scheme: ColorScheme,
   isCount: boolean,
+  isReversed = false,
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
@@ -96,11 +97,12 @@ export const useColorScheme = (
 
     // Handle case where all values are the same (e.g., all counts are 1)
     if (minValue === maxValue) {
+      const domain = isReversed ? [1, 0] : [0, 1];
       // For count records, create a simple color scheme
       // Use a small range to ensure valid interpolation
       const interpolator = getInterpolator(scheme);
       const colorScale = scaleSequential()
-        .domain([0, 1]) // Use 0-1 range for single values
+        .domain(domain) // Use 0-1 range for single values
         .interpolator(interpolator);
 
       return {
@@ -112,9 +114,11 @@ export const useColorScheme = (
       };
     }
 
+    const domain = isReversed ? [maxValue, minValue] : [minValue, maxValue];
+
     const interpolator = getInterpolator(scheme);
     const colorScale = scaleSequential()
-      .domain([minValue, maxValue])
+      .domain(domain)
       .interpolator(interpolator);
 
     return {
@@ -123,7 +127,7 @@ export const useColorScheme = (
       maxValue,
       colorScale,
     };
-  }, [areaStats, isCount, scheme]);
+  }, [areaStats, isCount, scheme, isReversed]);
 };
 
 const getCategoricalColor = (
@@ -137,6 +141,7 @@ export const useFillColor = (
   areaStats: AreaStats | null | undefined,
   scheme: ColorScheme,
   isCount: boolean,
+  isReversed: boolean,
 ): DataDrivenPropertyValueSpecification<string> => {
   const colorScheme = useColorScheme(areaStats, scheme, isCount);
   // useMemo to cache calculated fillColor
@@ -174,14 +179,21 @@ export const useFillColor = (
     }
 
     const numSteps = 30;
+
     const stepScale = scaleLinear()
       .domain([0, numSteps - 1])
       .range([colorScheme.minValue, colorScheme.maxValue]);
+
     const interpolateColorStops = new Array(numSteps)
       .fill(null)
       .flatMap((_, i) => {
         const step = stepScale(i);
-        return [step, colorScheme.colorScale(step)];
+        const color = isReversed
+          ? colorScheme.colorScale(
+              colorScheme.maxValue - (step - colorScheme.minValue),
+            )
+          : colorScheme.colorScale(step);
+        return [step, color];
       });
     return [
       "interpolate",
@@ -191,5 +203,5 @@ export const useFillColor = (
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [colorScheme, isCount]);
+  }, [colorScheme, isCount, isReversed]);
 };

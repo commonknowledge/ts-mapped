@@ -24,6 +24,7 @@ export default function Legend() {
     areaStats,
     viewConfig.colorScheme || ColorScheme.RedBlue,
     viewConfig.calculationType === CalculationType.Count,
+    Boolean(viewConfig.reverseColorScheme),
   );
   if (!colorScheme) {
     return null;

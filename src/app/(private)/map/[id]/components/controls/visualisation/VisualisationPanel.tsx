@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
+import { Switch } from "@/shadcn/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -510,6 +511,19 @@ export default function VisualisationPanel({
                 </SelectItem>
               </SelectContent>
             </Select>
+
+            <div className="flex items-center gap-2 py-2">
+              <Switch
+                id="color-scheme-switch"
+                checked={Boolean(viewConfig.reverseColorScheme)}
+                onCheckedChange={(v) =>
+                  updateViewConfig({ reverseColorScheme: v })
+                }
+              />
+              <label htmlFor="color-scheme-switch" className="text-sm">
+                Reversed color scheme
+              </label>
+            </div>
           </div>
         </>
       )}
