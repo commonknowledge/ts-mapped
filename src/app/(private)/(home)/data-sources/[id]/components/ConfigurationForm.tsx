@@ -1,6 +1,6 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,15 +10,11 @@ import {
   DataSourceType,
   geocodingConfigSchema,
 } from "@/server/models/DataSource";
+import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
 import { ColumnRoleFields } from "./ColumnRoleFields";
 import { GeocodingConfigFields } from "./GeocodingConfigFields";
-import type {
-  UpdateDataSourceConfigMutation,
-  UpdateDataSourceConfigMutationVariables,
-} from "@/__generated__/types";
-import type { RouterOutputs } from "@/services/trpc/react";
 import type { SyntheticEvent } from "react";
 
 export default function ConfigurationForm({
@@ -46,26 +42,24 @@ export default function ConfigurationForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [updateColumnRoles] = useMutation<
-    UpdateDataSourceConfigMutation,
-    UpdateDataSourceConfigMutationVariables
-  >(gql`
-    mutation UpdateDataSourceConfig(
-      $id: String!
-      $columnRoles: ColumnRolesInput!
-      $looseGeocodingConfig: LooseGeocodingConfigInput
-      $autoImport: Boolean!
-    ) {
-      updateDataSourceConfig(
-        id: $id
-        columnRoles: $columnRoles
-        looseGeocodingConfig: $looseGeocodingConfig
-        autoImport: $autoImport
-      ) {
-        code
-      }
-    }
-  `);
+  const trpc = useTRPC();
+  const { mutate: updateDataSourceConfig } = useMutation(
+    trpc.dataSource.updateConfig.mutationOptions({
+      onSuccess: () => {
+        if (redirectToParent) {
+          router.push(`/data-sources/${dataSource.id}`);
+        } else {
+          setLoading(false);
+          toast.success("Your changes have been saved.");
+        }
+      },
+      onError: (error) => {
+        console.log(error);
+        setLoading(false);
+        setError("Could not update data source.");
+      },
+    }),
+  );
 
   const columnRoles = { nameColumns };
 
@@ -77,32 +71,12 @@ export default function ConfigurationForm({
     setLoading(true);
     setError("");
 
-    try {
-      const result = await updateColumnRoles({
-        variables: {
-          id: dataSource.id,
-          columnRoles,
-          looseGeocodingConfig: validGeocodingConfig,
-          autoImport,
-        },
-      });
-      if (result.data?.updateDataSourceConfig?.code !== 200) {
-        throw new Error(String(result.errors || "Unknown error"));
-      } else {
-        setLoading(false);
-        if (redirectToParent) {
-          router.push(`/data-sources/${dataSource.id}`);
-        } else {
-          toast.success("Your changes have been saved.");
-        }
-        return;
-      }
-    } catch (e) {
-      console.error(`Could not update data source: ${e}`);
-      setError("Could not update data source.");
-    }
-
-    setLoading(false);
+    updateDataSourceConfig({
+      dataSourceId: dataSource.id,
+      columnRoles,
+      geocodingConfig: validGeocodingConfig,
+      autoImport,
+    });
   };
 
   const features = DataSourceFeatures[dataSource.config.type as DataSourceType];

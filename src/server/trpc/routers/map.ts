@@ -23,6 +23,7 @@ import {
 } from "@/server/repositories/MapView";
 import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
 import { findTurfsByMapId } from "@/server/repositories/Turf";
+import { deleteFile } from "@/server/services/minio";
 import { mapProcedure, organisationProcedure, router } from "../index";
 
 export const mapRouter = router({
@@ -98,7 +99,17 @@ export const mapRouter = router({
         .partial(),
     )
     .mutation(async ({ ctx: { map }, input }) => {
-      return updateMap(map.id, input);
+      const mapUpdate = await updateMap(map.id, input);
+
+      // Clean up old image
+      if (
+        map.imageUrl &&
+        mapUpdate.imageUrl &&
+        map.imageUrl !== mapUpdate.imageUrl
+      ) {
+        await deleteFile(map.imageUrl);
+      }
+      return mapUpdate;
     }),
 
   updateConfig: mapProcedure

@@ -1,3 +1,4 @@
+import { areaRouter } from "./routers/area";
 import { authRouter } from "./routers/auth";
 import { dataSourceRouter } from "./routers/data-source";
 import { folderRouter } from "./routers/folder";
@@ -13,6 +14,7 @@ import { router } from "./index";
 export const appRouter = router({
   auth: authRouter,
   dataSource: dataSourceRouter,
+  area: areaRouter,
   map: mapRouter,
   publicMap: publicMapRouter,
   folder: folderRouter,

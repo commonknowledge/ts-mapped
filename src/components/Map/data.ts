@@ -1,14 +1,12 @@
-import { gql, useQuery } from "@apollo/client";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalculationType, VisualisationType } from "@/__generated__/types";
+import { VisualisationType } from "@/__generated__/types";
+import { CalculationType } from "@/server/models/MapView";
+import { useTRPC } from "@/services/trpc/react";
 import type { ViewConfig } from "./context/MapContext";
 import type { DataSourceMarkers } from "./types";
-import type {
-  AreaSetCode,
-  AreaStatsQuery,
-  AreaStatsQueryVariables,
-  DataSourceView,
-} from "@/__generated__/types";
+import type { DataSourceView } from "@/__generated__/types";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 // Use API request instead of GraphQL to avoid server memory load
 // TODO: replace with gql @stream directive when Apollo client supports it
@@ -80,14 +78,21 @@ export const useMarkerQueries = ({
   return useMemo(() => ({ loading, data, error }), [data, error, loading]);
 };
 
+interface BoundingBox {
+  north: number;
+  east: number;
+  south: number;
+  west: number;
+}
+
 export const useAreaStatsQuery = ({
   viewConfig,
   areaSetCode,
-  useDummyBoundingBox,
+  boundingBox,
 }: {
   viewConfig: ViewConfig;
   areaSetCode: AreaSetCode;
-  useDummyBoundingBox: boolean;
+  boundingBox: BoundingBox;
 }) => {
   const {
     calculationType,
@@ -111,48 +116,18 @@ export const useAreaStatsQuery = ({
     !viewIsChoropleth ||
     isMissingDataColumn;
 
-  return useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
-    gql`
-      query AreaStats(
-        $areaSetCode: AreaSetCode!
-        $dataSourceId: String!
-        $column: String!
-        $excludeColumns: [String!]!
-        $boundingBox: BoundingBoxInput
-        $calculationType: CalculationType!
-      ) {
-        areaStats(
-          areaSetCode: $areaSetCode
-          dataSourceId: $dataSourceId
-          column: $column
-          excludeColumns: $excludeColumns
-          boundingBox: $boundingBox
-          calculationType: $calculationType
-        ) {
-          column
-          columnType
-          stats {
-            areaCode
-            value
-          }
-        }
-      }
-    `,
-    {
-      variables: {
+  const trpc = useTRPC();
+  return useQuery(
+    trpc.area.stats.queryOptions(
+      {
         areaSetCode,
         dataSourceId,
         column: columnOrCount,
         excludeColumns: viewConfig.getExcludeColumns(),
-        // Using a dummy boundingBox is required for fetchMore() to update this query's data.
-        // Note: this makes the first query return no data. Only fetchMore() returns data.
-        boundingBox: useDummyBoundingBox
-          ? { north: 0, east: 0, south: 0, west: 0 }
-          : null,
+        boundingBox,
         calculationType: calculationType || CalculationType.Value,
       },
-      skip: skipCondition,
-      notifyOnNetworkStatusChange: true,
-    },
+      { enabled: !skipCondition, placeholderData: keepPreviousData },
+    ),
   );
 };

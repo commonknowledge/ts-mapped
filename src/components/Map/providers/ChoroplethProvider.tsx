@@ -1,14 +1,16 @@
 "use client";
 
 import { useContext, useEffect, useMemo, useState } from "react";
-import "mapbox-gl/dist/mapbox-gl.css";
-import { VisualisationType } from "@/__generated__/types";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { useAreaStatsQuery } from "@/components/Map/data";
 import { getChoroplethLayerConfig } from "@/components/Map/sources";
 import { GeocodingType } from "@/server/models/DataSource";
+import { VisualisationType } from "@/server/models/MapView";
 import { ChoroplethContext } from "../context/ChoroplethContext";
 import { DataSourcesContext } from "../context/DataSourcesContext";
+import type { AreaStat } from "@/server/models/Area";
+import type { RouterOutputs } from "@/services/trpc/react";
+import "mapbox-gl/dist/mapbox-gl.css";
 import type { ReactNode } from "react";
 
 export default function ChoroplethProvider({
@@ -20,10 +22,6 @@ export default function ChoroplethProvider({
   const { getChoroplethDataSource } = useContext(DataSourcesContext);
 
   /* State */
-
-  // Manually keep track of fetchMore loading state as the first fetchMore
-  // doesn't trigger the query loading flag
-  const [areaStatsLoading, setAreaStatsLoading] = useState(false);
   // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
@@ -53,28 +51,32 @@ export default function ChoroplethProvider({
     zoom,
   ]);
 
-  /* GraphQL Data */
   const areaStatsQuery = useAreaStatsQuery({
     viewConfig,
     areaSetCode: choroplethLayerConfig.areaSetCode,
-    useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
+    boundingBox: boundingBox || { north: 0, east: 0, south: 0, west: 0 },
   });
 
-  const { fetchMore: areaStatsFetchMore } = areaStatsQuery;
+  const [areaStatsData, setAreaStatsData] = useState<
+    RouterOutputs["area"]["stats"] | undefined
+  >(undefined);
 
-  /* Effects */
-
-  /* Do fetchMore() (if layer needs it) when bounding box or config changes */
   useEffect(() => {
-    if (!choroplethLayerConfig.requiresBoundingBox || !areaStatsFetchMore) {
-      return;
-    }
-    (async () => {
-      setAreaStatsLoading(true);
-      await areaStatsFetchMore({ variables: { boundingBox } });
-      setAreaStatsLoading(false);
-    })();
-  }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, viewConfig]);
+    if (!areaStatsQuery.data) return;
+    setAreaStatsData((s) => {
+      const newStats = [
+        ...(s?.stats || []),
+        ...(areaStatsQuery.data?.stats || []),
+      ];
+      const deduped: Record<string, AreaStat> = {};
+      for (const d of newStats) {
+        deduped[d.areaCode] = d;
+      }
+      const stats = Object.values(deduped);
+
+      return { ...s, ...areaStatsQuery.data, stats };
+    });
+  }, [areaStatsQuery.data]);
 
   return (
     <ChoroplethContext
@@ -85,9 +87,10 @@ export default function ChoroplethProvider({
         lastLoadedSourceId,
         setLastLoadedSourceId,
 
-        areaStatsLoading,
-        areaStatsQuery,
-
+        areaStatsQuery: {
+          data: areaStatsData,
+          isPending: areaStatsQuery.isPending,
+        },
         choroplethLayerConfig,
       }}
     >

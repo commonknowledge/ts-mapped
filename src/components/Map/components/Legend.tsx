@@ -1,11 +1,8 @@
 import { Database } from "lucide-react";
 import { useContext } from "react";
-import {
-  CalculationType,
-  ColorScheme,
-  ColumnType,
-} from "@/__generated__/types";
 import { MAX_COLUMN_KEY } from "@/constants";
+import { ColumnType } from "@/server/models/DataSource";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import { useColorScheme } from "../colors";
 import { ChoroplethContext } from "../context/ChoroplethContext";
 import { DataSourcesContext } from "../context/DataSourcesContext";
@@ -16,7 +13,7 @@ export default function Legend() {
   const { getChoroplethDataSource } = useContext(DataSourcesContext);
   const { areaStatsQuery } = useContext(ChoroplethContext);
 
-  const areaStats = areaStatsQuery?.data?.areaStats;
+  const areaStats = areaStatsQuery?.data;
 
   const dataSource = getChoroplethDataSource();
 

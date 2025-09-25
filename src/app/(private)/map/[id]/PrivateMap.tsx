@@ -23,7 +23,7 @@ import PrivateMapNavbar from "./components/PrivateMapNavbar";
 
 export default function PrivateMap() {
   const { mapQuery, mapRef, showControls } = useContext(MapContext);
-  const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
+  const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
 
   const { dataSourcesLoading } = useContext(DataSourcesContext);
@@ -48,10 +48,7 @@ export default function PrivateMap() {
   }
 
   const loading =
-    areaStatsLoading ||
-    dataSourcesLoading ||
-    areaStatsQuery?.loading ||
-    markerQueries?.loading;
+    dataSourcesLoading || areaStatsQuery?.isPending || markerQueries?.loading;
 
   const paddedStyle = showControls
     ? { paddingLeft: `${CONTROL_PANEL_WIDTH}px` }

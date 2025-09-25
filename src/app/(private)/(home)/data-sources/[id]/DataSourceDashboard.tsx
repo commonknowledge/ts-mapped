@@ -1,7 +1,10 @@
 "use client";
 
-import { gql, useMutation, useSubscription } from "@apollo/client";
-import { useMutation as useTanstackMutation } from "@tanstack/react-query";
+import { gql, useSubscription } from "@apollo/client";
+import {
+  useMutation,
+  useMutation as useTanstackMutation,
+} from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { LoaderPinwheel, MapIcon, RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,8 +40,6 @@ import ConfigurationForm from "./components/ConfigurationForm";
 import type {
   DataSourceEventSubscription,
   DataSourceEventSubscriptionVariables,
-  EnqueueImportDataSourceJobMutation,
-  EnqueueImportDataSourceJobMutationVariables,
 } from "@/__generated__/types";
 import type { RouterOutputs } from "@/services/trpc/react";
 
@@ -62,16 +63,16 @@ export function DataSourceDashboard({
 
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
 
-  const [enqueueImportDataSourceJob] = useMutation<
-    EnqueueImportDataSourceJobMutation,
-    EnqueueImportDataSourceJobMutationVariables
-  >(gql`
-    mutation EnqueueImportDataSourceJob($dataSourceId: String!) {
-      enqueueImportDataSourceJob(dataSourceId: $dataSourceId) {
-        code
-      }
-    }
-  `);
+  const trpc = useTRPC();
+  const { mutate: enqueueImportDataSourceJob } = useMutation(
+    trpc.dataSource.enqueueImportJob.mutationOptions({
+      onError: (error) => {
+        console.error(`Could not schedule import job: ${error}`);
+        setImportError("Could not schedule import job.");
+        setImporting(false);
+      },
+    }),
+  );
 
   const { data: dataSourceEventData } = useSubscription<
     DataSourceEventSubscription,
@@ -125,18 +126,9 @@ export function DataSourceDashboard({
     setImportError("");
     setRecordCount(0);
 
-    try {
-      const result = await enqueueImportDataSourceJob({
-        variables: { dataSourceId: dataSource.id },
-      });
-      if (result.data?.enqueueImportDataSourceJob?.code !== 200) {
-        throw new Error(String(result.errors || "Unknown error"));
-      }
-    } catch (e) {
-      console.error(`Could not schedule import job: ${e}`);
-      setImportError("Could not schedule import job.");
-      setImporting(false);
-    }
+    enqueueImportDataSourceJob({
+      dataSourceId: dataSource.id,
+    });
   }, [dataSource.id, enqueueImportDataSourceJob]);
 
   const mappedInformation = Object.keys(dataSource.config).map((k) => ({
@@ -154,7 +146,6 @@ export function DataSourceDashboard({
         JSON.stringify(dataSource.config[k as keyof typeof dataSource.config])
       ),
   }));
-  const trpc = useTRPC();
   const router = useRouter();
 
   const [createMapLoading, setCreateMapLoading] = useState(false);

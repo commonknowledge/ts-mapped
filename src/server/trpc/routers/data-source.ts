@@ -241,6 +241,16 @@ export const dataSourceRouter = router({
       return true;
     }),
 
+  enqueueEnrichJob: dataSourceProcedure.mutation(async ({ input }) => {
+    await enqueue("enrichDataSource", { dataSourceId: input.dataSourceId });
+    return true;
+  }),
+
+  enqueueImportJob: dataSourceProcedure.mutation(async ({ input }) => {
+    await enqueue("importDataSource", { dataSourceId: input.dataSourceId });
+    return true;
+  }),
+
   delete: dataSourceProcedure.mutation(async ({ ctx }) => {
     await deleteDataSource(ctx.dataSource.id);
     return true;

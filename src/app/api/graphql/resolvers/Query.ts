@@ -11,42 +11,10 @@ import {
   findPublicMapByHost,
   findPublicMapByViewId,
 } from "@/server/repositories/PublicMap";
-import { getAreaStats } from "@/server/stats";
-import type {
-  BoundingBoxInput,
-  CalculationType,
-  QueryResolvers as QueryResolversType,
-} from "@/__generated__/types";
+import type { QueryResolvers as QueryResolversType } from "@/__generated__/types";
 import type { GraphQLContext } from "@/app/api/graphql/context";
 
 const QueryResolvers: QueryResolversType = {
-  areaStats: (
-    _: unknown,
-    {
-      areaSetCode,
-      dataSourceId,
-      column,
-      excludeColumns,
-      boundingBox,
-      calculationType,
-    }: {
-      areaSetCode: string;
-      dataSourceId: string;
-      calculationType: CalculationType;
-      column: string;
-      excludeColumns: string[];
-      boundingBox?: BoundingBoxInput | null;
-    },
-  ) =>
-    getAreaStats(
-      areaSetCode,
-      dataSourceId,
-      calculationType,
-      column,
-      excludeColumns,
-      boundingBox,
-    ),
-
   dataSource: async (_: unknown, { id }: { id: string }) => {
     const dataSource = await findDataSourceById(id);
     if (!dataSource) {

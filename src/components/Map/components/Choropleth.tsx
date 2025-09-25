@@ -34,7 +34,7 @@ export default function Choropleth() {
     }
 
     const nextAreaCodesToClean: Record<string, boolean> = {};
-    areaStatsQuery.data.areaStats?.stats.forEach((stat) => {
+    areaStatsQuery.data.stats?.forEach((stat) => {
       mapRef.current?.setFeatureState(
         {
           source: sourceId,
@@ -60,7 +60,7 @@ export default function Choropleth() {
   }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
 
   const fillColor = useFillColor(
-    areaStatsQuery?.data?.areaStats,
+    areaStatsQuery?.data,
     viewConfig.colorScheme || ColorScheme.RedBlue,
     viewConfig.calculationType === CalculationType.Count,
   );
