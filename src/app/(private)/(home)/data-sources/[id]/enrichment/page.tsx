@@ -1,7 +1,6 @@
-import { gql } from "@apollo/client";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import { query } from "@/services/apollo";
+import { createCaller } from "@/services/trpc/server";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,10 +8,6 @@ import {
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
 import DataSourceEnrichmentForm from "./DataSourceEnrichmentForm";
-import type {
-  DataSourceEnrichmentQuery,
-  DataSourceEnrichmentQueryVariables,
-} from "@/__generated__/types";
 
 export default async function DataSourceEnrichmentPage({
   params,
@@ -20,36 +15,13 @@ export default async function DataSourceEnrichmentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await query<
-    DataSourceEnrichmentQuery,
-    DataSourceEnrichmentQueryVariables
-  >({
-    query: gql`
-      query DataSourceEnrichment($id: String!) {
-        dataSource(id: $id) {
-          id
-          name
-          enrichments {
-            sourceType
-            areaSetCode
-            areaProperty
-            dataSourceId
-            dataSourceColumn
-          }
-        }
-        dataSources {
-          id
-          name
-          columnDefs {
-            name
-          }
-        }
-      }
-    `,
-    variables: { id },
-  });
+  const trpcServer = await createCaller();
+  const [dataSource, dataSources] = await Promise.all([
+    trpcServer.dataSource.byId({ dataSourceId: id }),
+    trpcServer.dataSource.mine(),
+  ]);
 
-  if (!result.data.dataSource) {
+  if (!dataSource) {
     return (
       <div className="container">
         <h1>Not found</h1>
@@ -66,8 +38,8 @@ export default async function DataSourceEnrichmentPage({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <Link href={`/data-sources/${result.data.dataSource.id}`}>
-              {result.data.dataSource.name}
+            <Link href={`/data-sources/${dataSource.id}`}>
+              {dataSource.name}
             </Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -75,12 +47,12 @@ export default async function DataSourceEnrichmentPage({
         </BreadcrumbList>
       </Breadcrumb>
       <PageHeader
-        title={`Enrich ${result.data.dataSource.name}`}
+        title={`Enrich ${dataSource.name}`}
         description="Add data to your CRM"
       />
       <DataSourceEnrichmentForm
-        dataSource={result.data.dataSource}
-        dataSources={result.data.dataSources || []}
+        dataSource={dataSource}
+        dataSources={dataSources}
       />
     </div>
   );

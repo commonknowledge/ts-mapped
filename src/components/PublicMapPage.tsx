@@ -1,4 +1,3 @@
-import { gql } from "@apollo/client";
 import ChoroplethProvider from "@/components/Map/providers/ChoroplethProvider";
 import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
 import DataSourcesProvider from "@/components/Map/providers/DataSourcesProvider";
@@ -7,52 +6,14 @@ import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvi
 import PublicFiltersProvider from "@/components/PublicMap/providers/PublicFiltersProvider";
 import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
-import { getClient } from "@/services/apollo";
+import { createCaller } from "@/services/trpc/server";
 import PublicMap from "./PublicMap/PublicMap";
-import type {
-  PublishedPublicMapQuery,
-  PublishedPublicMapQueryVariables,
-} from "@/__generated__/types";
 
 export default async function PublicMapPage({ host }: { host: string }) {
-  const apolloClient = await getClient();
-  const publicMapQuery = await apolloClient.query<
-    PublishedPublicMapQuery,
-    PublishedPublicMapQueryVariables
-  >({
-    query: gql`
-      query PublishedPublicMap($host: String!) {
-        publishedPublicMap(host: $host) {
-          id
-          mapId
-          viewId
-          host
-          name
-          description
-          descriptionLink
-          published
-          dataSourceConfigs {
-            allowUserEdit
-            allowUserSubmit
-            dataSourceId
-            dataSourceLabel
-            formUrl
-            nameLabel
-            nameColumns
-            descriptionLabel
-            descriptionColumn
-            additionalColumns {
-              label
-              sourceColumns
-              type
-            }
-          }
-        }
-      }
-    `,
-    variables: { host },
-  });
-  if (!publicMapQuery.data.publishedPublicMap) {
+  const trpcServer = await createCaller();
+  const publicMap = await trpcServer.publicMap.byHostWherePublished({ host });
+
+  if (!publicMap || !publicMap.published) {
     return (
       <div className="h-dvh w-full flex flex-col items-center gap-4 pt-40">
         <h1 className="font-bold text-2xl">Map not found</h1>
@@ -68,7 +29,6 @@ export default async function PublicMapPage({ host }: { host: string }) {
       </div>
     );
   }
-  const publicMap = publicMapQuery.data.publishedPublicMap;
 
   return (
     <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>

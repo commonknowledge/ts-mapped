@@ -8,7 +8,7 @@ import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfCont
 import { useMarkerQueries } from "@/components/Map/data";
 import { useFolders, usePlacedMarkers, useTurfs } from "@/components/Map/hooks";
 import { PublicMapContext } from "@/components/PublicMap/PublicMapContext";
-import type { Turf } from "@/__generated__/types";
+import type { Turf } from "@/server/models/Turf";
 import type { Feature } from "geojson";
 import type { ReactNode } from "react";
 
@@ -114,34 +114,33 @@ export default function MarkerAndTurfProvider({
 
   const handleDropPin = () => {
     const map = mapRef?.current;
-    if (map) {
-      setPinDropMode(true);
-      map.getCanvas().style.cursor = "crosshair";
+    if (!map || !mapId) return;
+    setPinDropMode(true);
+    map.getCanvas().style.cursor = "crosshair";
 
-      const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-        insertPlacedMarker({
-          id: uuidv4(),
-          label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
-          notes: "",
-          point: e.lngLat,
-          folderId: null,
-        });
+    const clickHandler = (e: mapboxgl.MapMouseEvent) => {
+      insertPlacedMarker({
+        id: uuidv4(),
+        label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
+        notes: "",
+        point: e.lngLat,
+        folderId: null,
+      });
 
-        // Reset cursor
-        map.getCanvas().style.cursor = "";
-        map.off("click", clickHandler);
+      // Reset cursor
+      map.getCanvas().style.cursor = "";
+      map.off("click", clickHandler);
 
-        setPinDropMode(false);
+      setPinDropMode(false);
 
-        // Fly to the new marker
-        map.flyTo({
-          center: e.lngLat,
-          zoom: 14,
-        });
-      };
+      // Fly to the new marker
+      map.flyTo({
+        center: e.lngLat,
+        zoom: 14,
+      });
+    };
 
-      map.once("click", clickHandler);
-    }
+    map.once("click", clickHandler);
   };
 
   return (

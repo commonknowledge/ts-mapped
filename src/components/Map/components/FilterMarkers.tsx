@@ -114,7 +114,7 @@ export default function FilterMarkers() {
       const dataSourceTurfs = getFilterTurfs(filter)
         .map((turfId) => turfs.find((t) => t.id === turfId)?.polygon)
         .filter((t) => t !== undefined);
-      filterTurfs = filterTurfs.concat(dataSourceTurfs);
+      filterTurfs = filterTurfs.concat(dataSourceTurfs as Polygon[]);
     }
     return filterTurfs;
   }, [turfs, view?.dataSourceViews]);

@@ -75,7 +75,7 @@ export default function PublishViewModal({
 
   const trpc = useTRPC();
   const { data, isPending } = useQuery(
-    trpc.map.publicByViewId.queryOptions({ viewId }),
+    trpc.publicMap.byViewId.queryOptions({ viewId }),
   );
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function PublishViewModal({
   }, [mapDataSources, data, viewId]);
 
   const { mutate: upsertPublicMap, isPending: loading } = useMutation(
-    trpc.map.updatePublicMap.mutationOptions({
+    trpc.publicMap.upsert.mutationOptions({
       onSuccess: (res) => {
         setPublishedHost(res.host);
       },

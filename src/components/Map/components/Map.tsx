@@ -30,6 +30,7 @@ import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
+import type { GeometryObject, Polygon } from "geojson";
 
 export default function Map({
   onSourceLoad,
@@ -84,7 +85,7 @@ export default function Map({
       draw.add({
         type: "Feature",
         properties: { ...turf },
-        geometry: turf.polygon,
+        geometry: turf.polygon as GeometryObject,
       });
     });
   }, [turfs, draw]);
@@ -332,8 +333,8 @@ export default function Map({
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
-                  polygon: feature.geometry,
-                  createdAt: new Date().toISOString(),
+                  polygon: feature.geometry as Polygon,
+                  createdAt: new Date(),
                 });
               }
             });
@@ -351,7 +352,7 @@ export default function Map({
                     notes: feature?.properties?.notes,
                     label: feature?.properties?.label,
                     area: roundedArea,
-                    polygon: feature.geometry,
+                    polygon: feature.geometry as Polygon,
                     createdAt: feature?.properties?.createdAt,
                   });
                 });

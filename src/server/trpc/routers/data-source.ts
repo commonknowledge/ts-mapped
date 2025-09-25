@@ -17,13 +17,26 @@ import {
   createDataSource,
   deleteDataSource,
   findDataSourcesByIds,
+  findReadableDataSources,
   getJobInfo,
+  updateDataSource,
 } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { dataSourceProcedure, organisationProcedure, router } from "../index";
+import { enqueue } from "@/server/services/queue";
+import {
+  dataSourceProcedure,
+  organisationProcedure,
+  protectedProcedure,
+  router,
+} from "../index";
+import type { DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
+  mine: protectedProcedure.query(async ({ ctx }) => {
+    const dataSources = await findReadableDataSources(ctx.user.id);
+    return dataSources;
+  }),
   byOrganisation: organisationProcedure.query(async ({ ctx }) => {
     const dataSources = await db
       .selectFrom("dataSource")
@@ -180,6 +193,52 @@ export const dataSourceRouter = router({
       logger.info(`Created ${input.config.type} data source: ${dataSource.id}`);
 
       return dataSource;
+    }),
+
+  updateConfig: dataSourceProcedure
+    .input(dataSourceSchema.partial())
+    .mutation(async ({ ctx, input }) => {
+      const adaptor = getDataSourceAdaptor(ctx.dataSource);
+
+      const update = {
+        columnRoles: input.columnRoles,
+        enrichments: input.enrichments,
+        geocodingConfig: input.geocodingConfig,
+      } as DataSourceUpdate;
+
+      // Keep track of whether webhooks need to be enabled/disabled
+      const nextAutoStatus = {
+        autoEnrich: input.autoEnrich,
+        autoImport: input.autoImport,
+        changed: false,
+      };
+
+      if (typeof input.autoEnrich === "boolean") {
+        update.autoEnrich = input.autoEnrich;
+        nextAutoStatus.changed = input.autoEnrich !== input.autoEnrich;
+        nextAutoStatus.autoEnrich = input.autoEnrich;
+      }
+
+      if (typeof input.autoImport === "boolean") {
+        update.autoImport = input.autoImport;
+        nextAutoStatus.changed = input.autoImport !== input.autoImport;
+        nextAutoStatus.autoImport = input.autoImport;
+      }
+
+      if (nextAutoStatus.changed) {
+        const enable =
+          nextAutoStatus.autoEnrich || nextAutoStatus.autoImport || false;
+        await adaptor?.toggleWebhook(enable);
+      }
+      await updateDataSource(ctx.dataSource.id, update);
+
+      logger.info(
+        `Updated ${ctx.dataSource.config.type} data source config: ${ctx.dataSource.id}`,
+      );
+
+      await enqueue("importDataSource", { dataSourceId: ctx.dataSource.id });
+
+      return true;
     }),
 
   delete: dataSourceProcedure.mutation(async ({ ctx }) => {

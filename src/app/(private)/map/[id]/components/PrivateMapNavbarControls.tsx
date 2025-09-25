@@ -1,8 +1,10 @@
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
+import { toast } from "sonner";
 import { MapContext } from "@/components/Map/context/MapContext";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -10,10 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import type {
-  DeleteMapMutation,
-  DeleteMapMutationVariables,
-} from "@/__generated__/types";
 
 export default function PrivateMapNavbarControls({
   setIsEditingName,
@@ -22,16 +20,17 @@ export default function PrivateMapNavbarControls({
 }) {
   const { mapId } = useContext(MapContext);
   const router = useRouter();
-  const [deleteMapMutation] = useMutation<
-    DeleteMapMutation,
-    DeleteMapMutationVariables
-  >(gql`
-    mutation DeleteMap($id: String!) {
-      deleteMap(id: $id) {
-        code
-      }
-    }
-  `);
+  const trpc = useTRPC();
+  const { mutate } = useMutation(
+    trpc.map.delete.mutationOptions({
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+      onError: () => {
+        toast.error("Failed to delete map.");
+      },
+    }),
+  );
 
   const handleDelete = async () => {
     if (!mapId) return;
@@ -41,16 +40,7 @@ export default function PrivateMapNavbarControls({
       )
     )
       return;
-    try {
-      const res = await deleteMapMutation({ variables: { id: mapId } });
-      if (res.data?.deleteMap?.code === 200) {
-        router.push("/dashboard");
-      } else {
-        alert("Failed to delete map.");
-      }
-    } catch {
-      alert("Error deleting map.");
-    }
+    mutate({ mapId });
   };
 
   return (

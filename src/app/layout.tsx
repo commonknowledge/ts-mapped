@@ -1,6 +1,3 @@
-import "nprogress/nprogress.css";
-import "./global.css";
-import { gql } from "@apollo/client";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { headers } from "next/headers";
 import { getServerSession } from "@/auth";
@@ -11,14 +8,12 @@ import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
-import { getClient } from "@/services/apollo";
 import { TRPCReactProvider } from "@/services/trpc/react";
+import { createCaller } from "@/services/trpc/server";
 import { Toaster } from "@/shadcn/ui/sonner";
-import type {
-  ListOrganisationsQuery,
-  ListOrganisationsQueryVariables,
-} from "@/__generated__/types";
 import type { Metadata } from "next";
+import "nprogress/nprogress.css";
+import "./global.css";
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -108,20 +103,6 @@ export default async function RootLayout({
 }
 
 const getOrganisations = async () => {
-  const apolloClient = await getClient();
-  const { data } = await apolloClient.query<
-    ListOrganisationsQuery,
-    ListOrganisationsQueryVariables
-  >({
-    query: gql`
-      query ListOrganisations {
-        organisations {
-          id
-          name
-          avatarUrl
-        }
-      }
-    `,
-  });
-  return data?.organisations || [];
+  const trpcServer = await createCaller();
+  return trpcServer.organisation.list();
 };

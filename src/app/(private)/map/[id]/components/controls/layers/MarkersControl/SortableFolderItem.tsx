@@ -25,7 +25,8 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
-import type { Folder, PlacedMarker } from "@/__generated__/types";
+import type { Folder } from "@/server/models/Folder";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { SyntheticEvent } from "react";
 
 // Folder component

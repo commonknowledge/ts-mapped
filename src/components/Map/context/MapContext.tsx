@@ -75,7 +75,7 @@ export const MapContext = createContext<{
   /* State */
   mapConfig: MapConfig;
   updateMapConfig: (config: Partial<MapConfig>) => void;
-  saveMapConfig: () => Promise<void>;
+  saveMapConfig: () => void;
 
   mapName: string | null;
   setMapName: (name: string | null) => void;

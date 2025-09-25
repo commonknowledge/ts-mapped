@@ -1,4 +1,3 @@
-import { gql } from "@apollo/client";
 import { v4 as uuidv4 } from "uuid";
 import ChoroplethProvider from "@/components/Map/providers/ChoroplethProvider";
 import DataRecordProvider from "@/components/Map/providers/DataRecordProvider";
@@ -8,11 +7,7 @@ import MarkerAndTurfProvider from "@/components/Map/providers/MarkerAndTurfProvi
 import PublicFiltersProvider from "@/components/PublicMap/providers/PublicFiltersProvider";
 import PublicMap from "@/components/PublicMap/PublicMap";
 import PublicMapProvider from "@/components/PublicMap/PublicMapProvider";
-import { getClient } from "@/services/apollo";
-import type {
-  PublicMapQuery,
-  PublicMapQueryVariables,
-} from "@/__generated__/types";
+import { createCaller } from "@/services/trpc/server";
 
 export default async function PublicMapAdminPage({
   params,
@@ -20,45 +15,10 @@ export default async function PublicMapAdminPage({
   params: Promise<{ id: string; viewId: string }>;
 }) {
   const { id: mapId, viewId } = await params;
-  const apolloClient = await getClient();
-  const publicMapQuery = await apolloClient.query<
-    PublicMapQuery,
-    PublicMapQueryVariables
-  >({
-    query: gql`
-      query PublicMap($viewId: String!) {
-        publicMap(viewId: $viewId) {
-          id
-          mapId
-          viewId
-          host
-          name
-          description
-          descriptionLink
-          published
-          dataSourceConfigs {
-            allowUserEdit
-            allowUserSubmit
-            dataSourceId
-            dataSourceLabel
-            formUrl
-            nameLabel
-            nameColumns
-            descriptionLabel
-            descriptionColumn
-            additionalColumns {
-              label
-              sourceColumns
-              type
-            }
-          }
-        }
-      }
-    `,
-    variables: { viewId },
-  });
-  let publicMap: PublicMapQuery["publicMap"];
-  if (!publicMapQuery.data.publicMap) {
+  const trpcServer = await createCaller();
+  let publicMap = await trpcServer.publicMap.byViewId({ viewId });
+
+  if (!publicMap) {
     publicMap = {
       id: uuidv4(),
       mapId,
@@ -69,9 +29,8 @@ export default async function PublicMapAdminPage({
       descriptionLink: "",
       published: false,
       dataSourceConfigs: [],
+      createdAt: new Date(),
     };
-  } else {
-    publicMap = publicMapQuery.data.publicMap;
   }
   return (
     <MapProvider mapId={mapId} viewId={viewId}>

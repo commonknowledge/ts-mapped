@@ -1,6 +1,6 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { Database, Settings } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { DataRecordContext } from "@/components/Map/context/DataRecordContext";
@@ -11,16 +11,13 @@ import {
   VerticalTabsList,
   VerticalTabsTrigger,
 } from "@/components/VerticalTabs";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
-import type {
-  UpsertPublicMapMutation,
-  UpsertPublicMapMutationVariables,
-} from "@/__generated__/types";
 import type { FormEvent } from "react";
 
 export default function PublishPublicMapSidebar() {
@@ -40,36 +37,18 @@ export default function PublishPublicMapSidebar() {
     publicMap?.published ? publicMap.host : "",
   );
 
-  const [upsertPublicMap, { loading }] = useMutation<
-    UpsertPublicMapMutation,
-    UpsertPublicMapMutationVariables
-  >(gql`
-    mutation UpsertPublicMap(
-      $viewId: String!
-      $host: String!
-      $name: String!
-      $description: String!
-      $descriptionLink: String!
-      $published: Boolean!
-      $dataSourceConfigs: [PublicMapDataSourceConfigInput!]!
-    ) {
-      upsertPublicMap(
-        viewId: $viewId
-        host: $host
-        name: $name
-        description: $description
-        descriptionLink: $descriptionLink
-        published: $published
-        dataSourceConfigs: $dataSourceConfigs
-      ) {
-        code
-        result {
-          host
-          published
-        }
-      }
-    }
-  `);
+  const trpc = useTRPC();
+  const { mutate: upsertPublicMap, isPending: loading } = useMutation(
+    trpc.publicMap.upsert.mutationOptions({
+      onSuccess: (res) => {
+        setPublishedHost(res.host);
+      },
+      onError: (e) => {
+        console.error("Failed to upsert public map", e);
+        setError(e.message);
+      },
+    }),
+  );
 
   // Auto-select first record when data source tab changes and data panel is open
   useEffect(() => {
@@ -101,24 +80,7 @@ export default function PublishPublicMapSidebar() {
     e.preventDefault();
     setError("");
 
-    try {
-      const result = await upsertPublicMap({
-        variables: publicMap,
-      });
-      if (result.data?.upsertPublicMap?.result) {
-        setPublishedHost(
-          result.data.upsertPublicMap.result.published
-            ? result.data.upsertPublicMap.result.host
-            : "",
-        );
-      }
-      if (result.data?.upsertPublicMap?.code === 409) {
-        setError("A public map already exists for this subdomain.");
-      }
-    } catch (e) {
-      console.error("Failed to upsert public map", e);
-      setError("Unknown error.");
-    }
+    upsertPublicMap(publicMap);
   };
 
   return (

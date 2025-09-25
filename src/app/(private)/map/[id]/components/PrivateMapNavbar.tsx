@@ -1,6 +1,6 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
@@ -10,15 +10,10 @@ import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
 import MapViews from "@/components/Map/components/MapViews";
 import { MapContext } from "@/components/Map/context/MapContext";
+import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
-import type {
-  SaveMapViewsToCrmMutation,
-  SaveMapViewsToCrmMutationVariables,
-  UpdateMapImageMutation,
-  UpdateMapImageMutationVariables,
-} from "@/__generated__/types";
 
 /**
  * TODO: Move complex logic into MapProvider
@@ -28,55 +23,38 @@ export default function PrivateMapNavbar() {
   const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
     useContext(MapContext);
   const showPublishButton = useFeatureFlagEnabled("public-maps");
-
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [crmSaveLoading, setCRMSaveLoading] = useState(false);
 
-  const [updateMapName] = useMutation(gql`
-    mutation UpdateMapName($id: String!, $mapInput: MapInput!) {
-      updateMap(id: $id, map: $mapInput) {
-        code
-        result {
-          id
-          name
-        }
-      }
-    }
-  `);
+  const trpc = useTRPC();
 
-  const [updateMapImage] = useMutation<
-    UpdateMapImageMutation,
-    UpdateMapImageMutationVariables
-  >(gql`
-    mutation UpdateMapImage($id: String!, $mapInput: MapInput!) {
-      updateMap(id: $id, map: $mapInput) {
-        code
-        result {
-          id
-          imageUrl
-        }
-      }
-    }
-  `);
+  const { mutate, isPending } = useMutation(
+    trpc.map.update.mutationOptions({
+      onSuccess: (data) => {
+        setMapName(data.name);
+        setIsEditingName(false);
+      },
+      onError: (error) => {
+        toast.error("Failed to update map");
+        console.error("Failed to update map name", error);
+      },
+    }),
+  );
 
-  const [saveMapViewsToCRM] = useMutation<
-    SaveMapViewsToCrmMutation,
-    SaveMapViewsToCrmMutationVariables
-  >(gql`
-    mutation SaveMapViewsToCRM($id: String!) {
-      saveMapViewsToCRM(id: $id) {
-        code
-      }
-    }
-  `);
+  const { mutate: saveToCrm, isPending: crmSaveLoading } = useMutation(
+    trpc.mapView.saveToCrm.mutationOptions({
+      onSuccess: () => {
+        toast.success("Map views saved to CRM");
+      },
+      onError: () => {
+        toast.error("Failed to save map views to CRM");
+      },
+    }),
+  );
 
   const onClickSave = async () => {
     // Should never happen, button is also hidden in this case
-    if (!mapId) {
-      return;
-    }
-
+    if (!mapId) return;
     setLoading(true);
     try {
       await saveMapConfig();
@@ -91,10 +69,7 @@ export default function PrivateMapNavbar() {
 
   const onClickPublish = async () => {
     // Should never happen, button is also hidden in this case
-    if (!mapId || !view) {
-      return;
-    }
-
+    if (!mapId || !view) return;
     // Need to save the map + view before trying to publish it
     setLoading(true);
     try {
@@ -109,23 +84,12 @@ export default function PrivateMapNavbar() {
 
   const onClickCRMSave = async () => {
     // Should never happen, button is also hidden in this case
-    if (!mapId) {
-      return;
-    }
-
-    setCRMSaveLoading(true);
-
-    const { data } = await saveMapViewsToCRM({ variables: { id: mapId } });
-    if (data?.saveMapViewsToCRM?.code !== 200) {
-      toast.error("Could not save to your CRM, please try again.");
-    }
-    setCRMSaveLoading(false);
+    if (!mapId) return;
+    saveToCrm({ mapId });
   };
 
   const regenerateMapImage = async () => {
-    if (!mapId) {
-      return;
-    }
+    if (!mapId) return;
 
     const imageDataUrl = await new Promise<string | undefined>(function (
       resolve,
@@ -137,9 +101,7 @@ export default function PrivateMapNavbar() {
       mapRef?.current?.triggerRepaint();
     });
 
-    if (!imageDataUrl) {
-      return;
-    }
+    if (!imageDataUrl) return;
 
     const response = await fetch(imageDataUrl);
     const imageBlob = await response.blob();
@@ -147,26 +109,12 @@ export default function PrivateMapNavbar() {
       type: "image/png",
     });
     const imageUrl = await uploadFile(imageFile);
-    await updateMapImage({
-      variables: { id: mapId, mapInput: { imageUrl } },
-    });
+    mutate({ mapId, imageUrl });
   };
 
   const onSubmitSaveName = async () => {
-    const queryResponse = await updateMapName({
-      variables: {
-        id: mapId,
-        mapInput: {
-          name: mapName,
-        },
-      },
-    });
-    const { data } = queryResponse;
-    setIsEditingName(false);
-    setMapName(data.updateMap.result.name);
-    if (data.updateMap.code !== 200) {
-      console.error("Failed to update map name");
-    }
+    if (!mapId || !mapName) return;
+    mutate({ mapId, name: mapName });
   };
 
   return (
@@ -193,6 +141,7 @@ export default function PrivateMapNavbar() {
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={isPending}
                     onClick={onSubmitSaveName}
                   >
                     Save
@@ -200,6 +149,7 @@ export default function PrivateMapNavbar() {
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={isPending}
                     onClick={() => setIsEditingName(false)}
                   >
                     Cancel
