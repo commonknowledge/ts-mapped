@@ -181,13 +181,12 @@ function makeClient(jwt: string | null, ignoreAuthErrors = false) {
 }
 
 export default function ApolloProvider({
-  ignoreAuthErrors,
   children,
 }: {
-  ignoreAuthErrors?: boolean;
   children: React.ReactNode;
 }) {
-  const { jwt } = useContext(ServerSessionContext);
+  const { jwt, currentUser } = useContext(ServerSessionContext);
+  const ignoreAuthErrors = !Boolean(currentUser);
   return (
     <ApolloNextAppProvider makeClient={() => makeClient(jwt, ignoreAuthErrors)}>
       {children}

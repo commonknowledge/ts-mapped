@@ -28,6 +28,22 @@ export function findPublicMapByViewId(viewId: string) {
     .executeTakeFirst();
 }
 
+export function findPublicMapByViewIdAndUserId(viewId: string, userId: string) {
+  return db
+    .selectFrom("publicMap")
+    .where("viewId", "=", viewId)
+    .innerJoin("map", "map.id", "publicMap.mapId")
+    .innerJoin("organisation", "organisation.id", "map.organisationId")
+    .innerJoin(
+      "organisationUser",
+      "organisationUser.organisationId",
+      "organisation.id",
+    )
+    .where("organisationUser.userId", "=", userId)
+    .selectAll("publicMap")
+    .executeTakeFirst();
+}
+
 export async function findPublishedPublicMapByDataSourceId(
   dataSourceId: string,
 ) {
