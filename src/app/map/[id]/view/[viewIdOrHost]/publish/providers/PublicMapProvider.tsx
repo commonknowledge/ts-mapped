@@ -246,7 +246,12 @@ const usePublicMapAndActiveTab = (
     if (dataSourceConfigs.length) {
       setActiveTabId(dataSourceConfigs[0].dataSourceId);
     }
-  }, [editable, getDataSourceById, initialPublicMap.dataSourceConfigs.length, mapConfig]);
+  }, [
+    editable,
+    getDataSourceById,
+    initialPublicMap.dataSourceConfigs.length,
+    mapConfig,
+  ]);
 
   return { publicMap, setPublicMap, activeTabId, setActiveTabId };
 };

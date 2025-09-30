@@ -88,14 +88,14 @@ export default function MarkerAndTurfProvider({
   } = useTurfs(mapId);
 
   useEffect(() => {
-    if (mapQuery?.data?.map?.folders) {
-      setFolders(mapQuery?.data?.map.folders);
+    if (mapQuery?.data?.folders) {
+      setFolders(mapQuery?.data?.folders);
     }
-    if (mapQuery?.data?.map?.placedMarkers) {
-      setPlacedMarkers(mapQuery?.data?.map.placedMarkers);
+    if (mapQuery?.data?.placedMarkers) {
+      setPlacedMarkers(mapQuery?.data?.placedMarkers);
     }
-    if (mapQuery?.data?.map?.turfs) {
-      setTurfs(mapQuery?.data.map.turfs);
+    if (mapQuery?.data?.turfs) {
+      setTurfs(mapQuery?.data.turfs);
     }
   }, [mapQuery, setFolders, setPlacedMarkers, setTurfs]);
 

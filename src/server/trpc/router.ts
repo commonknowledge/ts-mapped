@@ -1,5 +1,6 @@
 import { authRouter } from "./routers/auth";
-import { dataSourceRouter } from "./routers/data-source";
+import { dataRecordRouter } from "./routers/dataRecord";
+import { dataSourceRouter } from "./routers/dataSource";
 import { mapRouter } from "./routers/map";
 import { mapViewRouter } from "./routers/mapView";
 import { organisationRouter } from "./routers/organisation";
@@ -9,6 +10,7 @@ import { router } from "./index";
 
 export const appRouter = router({
   auth: authRouter,
+  dataRecord: dataRecordRouter,
   dataSource: dataSourceRouter,
   map: mapRouter,
   mapView: mapViewRouter,

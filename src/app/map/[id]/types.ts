@@ -1,4 +1,4 @@
-import type { MapView } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { PointFeature } from "@/types";
 
 export interface DataSourceMarkers {
@@ -13,4 +13,4 @@ export interface MarkerQueriesResult {
   error: string;
 }
 
-export type View = Omit<MapView, "mapId">;
+export type View = RouterOutputs["map"]["get"]["views"][number];

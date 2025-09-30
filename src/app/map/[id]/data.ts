@@ -10,20 +10,13 @@ import type {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
-  DataRecordsQuery,
-  DataRecordsQueryVariables,
   DataSourceView,
-  DataSourcesQuery,
   DeleteFolderMutationMutation,
   DeleteFolderMutationMutationVariables,
   DeletePlacedMarkerMutationMutation,
   DeletePlacedMarkerMutationMutationVariables,
   DeleteTurfMutation,
   DeleteTurfMutationVariables,
-  MapQuery,
-  MapQueryVariables,
-  RecordFilterInput,
-  SortInput,
   UpdateMapConfigMutation,
   UpdateMapConfigMutationVariables,
   UpsertFolderMutation,
@@ -33,166 +26,6 @@ import type {
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
 } from "@/__generated__/types";
-
-export const useDataSourcesQuery = () =>
-  useQuery<DataSourcesQuery>(gql`
-    query DataSources {
-      dataSources(includePublic: true) {
-        id
-        name
-        config
-        columnDefs {
-          name
-          type
-        }
-        columnRoles {
-          nameColumns
-        }
-        geocodingConfig {
-          areaSetCode
-          type
-          column
-        }
-        recordCount {
-          count
-        }
-        autoImport
-        public
-        config
-      }
-    }
-  `);
-
-export const useDataRecordsQuery = (variables: {
-  dataSourceId: string;
-  filter?: RecordFilterInput;
-  search?: string;
-  page: number;
-  sort?: SortInput[];
-}) =>
-  useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
-    gql`
-      query DataRecords(
-        $dataSourceId: String!
-        $filter: RecordFilterInput
-        $search: String
-        $page: Int!
-        $sort: [SortInput!]
-      ) {
-        dataSource(id: $dataSourceId) {
-          id
-          name
-          columnDefs {
-            name
-            type
-          }
-          records(filter: $filter, search: $search, page: $page, sort: $sort) {
-            id
-            externalId
-            geocodePoint {
-              lat
-              lng
-            }
-            json
-          }
-          recordCount(filter: $filter, search: $search) {
-            count
-            matched
-          }
-        }
-      }
-    `,
-    { variables, skip: !variables.dataSourceId },
-  );
-
-export const useMapQuery = (mapId: string | null) =>
-  useQuery<MapQuery, MapQueryVariables>(
-    gql`
-      query Map($id: String!) {
-        map(id: $id) {
-          name
-          config {
-            markerDataSourceIds
-            membersDataSourceId
-          }
-          folders {
-            id
-            name
-            notes
-            position
-          }
-          placedMarkers {
-            id
-            label
-            notes
-            point {
-              lat
-              lng
-            }
-            folderId
-            position
-          }
-          turfs {
-            id
-            label
-            notes
-            area
-            polygon
-            createdAt
-          }
-          views {
-            id
-            name
-            position
-            config {
-              areaDataSourceId
-              areaDataColumn
-              areaSetGroupCode
-              excludeColumnsString
-              mapStyleName
-              showBoundaryOutline
-              showLabels
-              showLocations
-              showMembers
-              showTurf
-              visualisationType
-              calculationType
-              colorScheme
-              reverseColorScheme
-            }
-            dataSourceViews {
-              dataSourceId
-              filter {
-                children {
-                  column
-                  dataSourceId
-                  dataRecordId
-                  distance
-                  label
-                  operator
-                  placedMarker
-                  search
-                  turf
-                  type
-                }
-                type
-              }
-              search
-              sort {
-                name
-                desc
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      variables: { id: mapId || "" },
-      skip: !mapId,
-      fetchPolicy: "network-only",
-    },
-  );
 
 // Use API request instead of GraphQL to avoid server memory load
 // TODO: replace with gql @stream directive when Apollo client supports it

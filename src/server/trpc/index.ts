@@ -9,6 +9,7 @@ import {
 import { findDataSourceById } from "../repositories/DataSource";
 import { findMapById } from "../repositories/Map";
 import { findOrganisationForUser } from "../repositories/Organisation";
+import { findPublishedPublicMapByMapId } from "../repositories/PublicMap";
 import { findUserById } from "../repositories/User";
 
 export async function createContext() {
@@ -110,7 +111,7 @@ export const dataSourceProcedure = protectedProcedure
     return next({ ctx: { organisation, dataSource } });
   });
 
-export const mapProcedure = protectedProcedure
+export const mapWriteProcedure = protectedProcedure
   .input(z.object({ mapId: z.string() }))
   .use(async ({ ctx, input, next }) => {
     const map = await findMapById(input.mapId);
@@ -125,11 +126,51 @@ export const mapProcedure = protectedProcedure
       map.organisationId,
       ctx.user.id,
     );
+
     if (!organisation)
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Organisation not found",
       });
+
+    return next({ ctx: { organisation, map } });
+  });
+
+export const mapReadProcedure = publicProcedure
+  .input(z.object({ mapId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const map = await findMapById(input.mapId);
+
+    if (!map) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Map not found",
+      });
+    }
+
+    const publicMap = await findPublishedPublicMapByMapId(map.id);
+    if (publicMap) {
+      return next({ ctx: { map } });
+    }
+
+    if (!ctx.user?.id) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Map not found",
+      });
+    }
+
+    const organisation = await findOrganisationForUser(
+      map.organisationId,
+      ctx.user.id,
+    );
+
+    if (!organisation) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organisation not found",
+      });
+    }
 
     return next({ ctx: { organisation, map } });
   });

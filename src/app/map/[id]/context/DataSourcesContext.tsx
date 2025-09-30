@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import type { RouterOutputs } from "@/services/trpc/react";
 
-type DataSource = RouterOutputs["dataSource"]["byOrganisation"][number];
+type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
 export const DataSourcesContext = createContext<{
   /* State */

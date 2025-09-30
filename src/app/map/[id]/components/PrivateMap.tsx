@@ -43,7 +43,7 @@ export default function PrivateMap() {
     }
   }, [mapRef, selectedDataSourceId]);
 
-  if (!mapQuery || mapQuery.loading) {
+  if (!mapQuery || mapQuery.isPending) {
     return <Loading />;
   }
 
