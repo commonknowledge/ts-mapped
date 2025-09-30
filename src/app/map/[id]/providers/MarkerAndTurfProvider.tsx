@@ -1,11 +1,12 @@
 "use client";
 
+import { useQueries } from "@tanstack/react-query";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { useMarkerQueries } from "../data";
+import { useTRPC } from "@/services/trpc/react";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/__generated__/types";
@@ -30,31 +31,41 @@ export default function MarkerAndTurfProvider({
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
   /* GraphQL Data */
-  const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {
-    let membersDataSourceId = mapConfig.membersDataSourceId || "";
-    let markerDataSourceIds = mapConfig.markerDataSourceIds;
-
+  const dataSourceIds = useMemo(() => {
+    if (!publicMap) {
+      return mapConfig.getDataSourceIds();
+    }
     // If a public map is being displayed, don't fetch markers that aren't included
-    if (publicMap) {
-      if (
-        !publicMap.dataSourceConfigs.some(
-          (dsc) => dsc.dataSourceId === membersDataSourceId,
-        )
-      ) {
-        membersDataSourceId = "";
-      }
-      markerDataSourceIds = markerDataSourceIds.filter((id) =>
+    return mapConfig
+      .getDataSourceIds()
+      .filter((id) =>
         publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
       );
-    }
+  }, [mapConfig, publicMap]);
 
-    return { membersDataSourceId, markerDataSourceIds };
-  }, [mapConfig.markerDataSourceIds, mapConfig.membersDataSourceId, publicMap]);
-
-  const markerQueries = useMarkerQueries({
-    membersDataSourceId,
-    markerDataSourceIds,
-    dataSourceViews: view?.dataSourceViews || [],
+  const trpc = useTRPC();
+  const markerQueries = useQueries({
+    queries: dataSourceIds.map((dataSourceId) => {
+      const dsv = view?.dataSourceViews.find(
+        (dsv) => dsv.dataSourceId === dataSourceId,
+      );
+      return trpc.dataRecord.markers.queryOptions(
+        {
+          dataSourceId,
+          filter: dsv?.filter,
+          search: dsv?.search,
+        },
+        { enabled: Boolean(dataSourceId) },
+      );
+    }),
+  });
+  const dataSourceMarkers = markerQueries.map((q, i) => {
+    const dataSourceId = dataSourceIds[i];
+    return {
+      dataSourceId,
+      markers: q.data || [],
+      isPending: q.isPending,
+    };
   });
 
   /* Persisted map features */
@@ -168,7 +179,7 @@ export default function MarkerAndTurfProvider({
         deleteTurf,
         insertTurf,
         updateTurf,
-        markerQueries,
+        dataSourceMarkers,
         searchMarker,
         setSearchMarker,
         handleAddArea,

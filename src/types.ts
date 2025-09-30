@@ -22,7 +22,7 @@ export interface ExternalRecord {
 
 export interface PointFeature {
   type: "Feature";
-  properties: Record<string, string | number>;
+  properties: Record<string, string | number | boolean>;
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 

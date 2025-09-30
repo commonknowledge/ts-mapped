@@ -1,16 +1,13 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useMutation as useTanstackMutation } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CalculationType, VisualisationType } from "@/__generated__/types";
 import { useTRPC } from "@/services/trpc/react";
 import type { ViewConfig } from "./context/MapContext";
-import type { DataSourceMarkers } from "./types";
 import type {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
-  DataSourceView,
   DeleteFolderMutationMutation,
   DeleteFolderMutationMutationVariables,
   DeletePlacedMarkerMutationMutation,
@@ -26,76 +23,6 @@ import type {
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
 } from "@/__generated__/types";
-
-// Use API request instead of GraphQL to avoid server memory load
-// TODO: replace with gql @stream directive when Apollo client supports it
-export const useMarkerQueries = ({
-  membersDataSourceId,
-  markerDataSourceIds,
-  dataSourceViews,
-}: {
-  membersDataSourceId: string;
-  markerDataSourceIds: string[];
-  dataSourceViews: DataSourceView[];
-}) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [data, setData] = useState<DataSourceMarkers[]>([]);
-  const cache = useRef<Record<string, DataSourceMarkers>>({});
-  const cacheKeyByDataSource = useRef<Record<string, string>>({});
-
-  useEffect(() => {
-    const fetchMarkers = async () => {
-      setLoading(true);
-      setData([]);
-      const dataSourceIds = [
-        membersDataSourceId,
-        ...markerDataSourceIds,
-      ].filter(Boolean);
-      try {
-        for (const id of dataSourceIds) {
-          const filter = JSON.stringify(
-            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.filter ||
-              null,
-          );
-          const search =
-            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.search ||
-            "";
-          const cacheId = `${id}:${filter}:${search}`;
-          if (!cache.current[cacheId]) {
-            const params = new URLSearchParams();
-            params.set("filter", filter);
-            params.set("search", search);
-            const response = await fetch(
-              `/api/data-sources/${id}/markers?${params.toString()}`,
-            );
-            if (!response.ok) {
-              throw new Error(`Bad response: ${response.status}`);
-            }
-            const dataSourceMarkers =
-              (await response.json()) as DataSourceMarkers;
-            cache.current[cacheId] = dataSourceMarkers;
-          }
-          cacheKeyByDataSource.current[id] = cacheId;
-          // For each active cache key, get the cached value
-          // which will be a DataSourceMarkers object
-          setData(
-            Object.values(cacheKeyByDataSource.current)
-              .map((k) => cache.current[k])
-              .filter(Boolean),
-          );
-        }
-      } catch (e) {
-        console.error("Fetch markers error", e);
-        setError("Failed");
-      }
-      setLoading(false);
-    };
-    fetchMarkers();
-  }, [dataSourceViews, markerDataSourceIds, membersDataSourceId]);
-
-  return useMemo(() => ({ loading, data, error }), [data, error, loading]);
-};
 
 export const useAreaStatsQuery = ({
   viewConfig,
