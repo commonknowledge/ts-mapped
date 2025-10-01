@@ -7,6 +7,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   Check,
+  EyeIcon,
+  EyeOffIcon,
   Folder as FolderClosed,
   FolderOpen,
   Pencil,
@@ -120,10 +122,12 @@ export default function SortableFolderItem({
             ref={isDraggingMarker ? setHeaderNodeRef : null}
             className={`flex items-center gap-2 hover:bg-neutral-100  transition-colors px-2 py-1 ${
               isHeaderOver ? "bg-blue-50" : ""
-            }`}
+            } ${folder.hideMarkers ? "opacity-70" : ""}`}
             onClick={onClickFolder}
           >
-            {isExpanded ? (
+            {folder.hideMarkers ? (
+              <EyeOffIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+            ) : isExpanded ? (
               <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
             ) : (
               <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -175,6 +179,26 @@ export default function SortableFolderItem({
           shouldFocusTarget={isEditing}
           targetRef={inputRef}
         >
+          <ContextMenuItem
+            onClick={() => {
+              // update when context menu no longer visible
+              setTimeout(() => {
+                updateFolder({ ...folder, hideMarkers: !folder.hideMarkers });
+              }, 200);
+            }}
+          >
+            {folder.hideMarkers ? (
+              <>
+                <EyeIcon className="h-4 w-4" />
+                Show
+              </>
+            ) : (
+              <>
+                <EyeOffIcon className="h-4 w-4" />
+                Hide
+              </>
+            )}
+          </ContextMenuItem>
           <ContextMenuItem
             onClick={() => {
               setEditText(folder.name);

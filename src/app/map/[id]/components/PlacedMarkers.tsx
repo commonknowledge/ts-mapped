@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
@@ -12,12 +12,24 @@ import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useContext(MapContext);
-  const { placedMarkers, selectedPlacedMarkerId } =
+  const { folders, placedMarkers, selectedPlacedMarkerId } =
     useContext(MarkerAndTurfContext);
+
+  const visiblePlacedMarkers = useMemo(() => {
+    return placedMarkers.filter((marker) => {
+      if (!marker.folderId) return true;
+
+      const parentFolder = folders.find(
+        (folder) => folder.id === marker.folderId,
+      );
+
+      return !parentFolder?.hideMarkers;
+    });
+  }, [placedMarkers, folders]);
 
   const features: FeatureCollection<Point> = {
     type: "FeatureCollection",
-    features: placedMarkers.map((marker) => ({
+    features: visiblePlacedMarkers.map((marker) => ({
       type: "Feature",
       properties: {
         [MARKER_ID_KEY]: marker.id,

@@ -230,6 +230,7 @@ export enum FilterType {
 
 export type Folder = {
   __typename?: "Folder";
+  hideMarkers?: Maybe<Scalars["Boolean"]["output"]>;
   id: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   notes: Scalars["String"]["output"];
@@ -913,6 +914,18 @@ export type DataSourceEnrichmentQuery = {
   }> | null;
 };
 
+export type ListOrganisationsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type ListOrganisationsQuery = {
+  __typename?: "Query";
+  organisations?: Array<{
+    __typename?: "Organisation";
+    id: string;
+    name: string;
+    avatarUrl?: string | null;
+  }> | null;
+};
+
 export type UpdateMapNameMutationVariables = Exact<{
   id: Scalars["String"]["input"];
   mapInput: MapInput;
@@ -961,55 +974,6 @@ export type DeleteMapMutationVariables = Exact<{
 export type DeleteMapMutation = {
   __typename?: "Mutation";
   deleteMap?: { __typename?: "MutationResponse"; code: number } | null;
-};
-
-export type PublicMapQueryVariables = Exact<{
-  viewId: Scalars["String"]["input"];
-}>;
-
-export type PublicMapQuery = {
-  __typename?: "Query";
-  publicMap?: {
-    __typename?: "PublicMap";
-    id: string;
-    mapId: string;
-    viewId: string;
-    host: string;
-    name: string;
-    description: string;
-    descriptionLink: string;
-    published: boolean;
-    dataSourceConfigs: Array<{
-      __typename?: "PublicMapDataSourceConfig";
-      allowUserEdit: boolean;
-      allowUserSubmit: boolean;
-      dataSourceId: string;
-      dataSourceLabel: string;
-      formUrl: string;
-      nameLabel: string;
-      nameColumns: Array<string>;
-      descriptionLabel: string;
-      descriptionColumn: string;
-      additionalColumns: Array<{
-        __typename?: "PublicMapColumn";
-        label: string;
-        sourceColumns: Array<string>;
-        type: PublicMapColumnType;
-      }>;
-    }>;
-  } | null;
-};
-
-export type ListOrganisationsQueryVariables = Exact<{ [key: string]: never }>;
-
-export type ListOrganisationsQuery = {
-  __typename?: "Query";
-  organisations?: Array<{
-    __typename?: "Organisation";
-    id: string;
-    name: string;
-    avatarUrl?: string | null;
-  }> | null;
 };
 
 export type PublicMapModalQueryVariables = Exact<{
@@ -1395,43 +1359,6 @@ export type PublicMapDataRecordsQuery = {
       count: number;
       matched: number;
     } | null;
-  } | null;
-};
-
-export type PublishedPublicMapQueryVariables = Exact<{
-  host: Scalars["String"]["input"];
-}>;
-
-export type PublishedPublicMapQuery = {
-  __typename?: "Query";
-  publishedPublicMap?: {
-    __typename?: "PublicMap";
-    id: string;
-    mapId: string;
-    viewId: string;
-    host: string;
-    name: string;
-    description: string;
-    descriptionLink: string;
-    published: boolean;
-    dataSourceConfigs: Array<{
-      __typename?: "PublicMapDataSourceConfig";
-      allowUserEdit: boolean;
-      allowUserSubmit: boolean;
-      dataSourceId: string;
-      dataSourceLabel: string;
-      formUrl: string;
-      nameLabel: string;
-      nameColumns: Array<string>;
-      descriptionLabel: string;
-      descriptionColumn: string;
-      additionalColumns: Array<{
-        __typename?: "PublicMapColumn";
-        label: string;
-        sourceColumns: Array<string>;
-        type: PublicMapColumnType;
-      }>;
-    }>;
   } | null;
 };
 
@@ -1936,6 +1863,11 @@ export type FolderResolvers<
   ParentType extends
     ResolversParentTypes["Folder"] = ResolversParentTypes["Folder"],
 > = {
+  hideMarkers?: Resolver<
+    Maybe<ResolversTypes["Boolean"]>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
