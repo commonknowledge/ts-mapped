@@ -3,9 +3,18 @@ import {
   findPublicMapByHost,
   findPublicMapByViewIdAndUserId,
 } from "@/server/repositories/PublicMap";
-import { protectedProcedure, publicProcedure, router } from "../index";
+import { findPublicMapsByOrganisationId } from "@/server/repositories/PublicMap";
+import {
+  organisationProcedure,
+  protectedProcedure,
+  publicProcedure,
+  router,
+} from "../index";
 
 export const publicMapRouter = router({
+  list: organisationProcedure.query(async ({ ctx }) => {
+    return findPublicMapsByOrganisationId(ctx.organisation.id);
+  }),
   getEditable: protectedProcedure
     .input(z.object({ viewId: z.string() }))
     .query(async ({ input, ctx }) => {

@@ -4,11 +4,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
+import { MapsList } from "@/components/MapsList";
 import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { MapCard } from "./components/MapCard";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -21,6 +21,13 @@ export default function DashboardPage() {
       { enabled: Boolean(organisationId) },
     ),
   );
+
+  const mappedData = data?.length
+    ? data.map((map) => ({
+        ...map,
+        href: `/map/${map.id}`,
+      }))
+    : [];
 
   const { mutate: createMap, isPending: createMapLoading } = useMutation(
     trpc.map.create.mutationOptions({
@@ -54,11 +61,7 @@ export default function DashboardPage() {
       {isPending ? (
         <LoaderPinwheel className="animate-spin" />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 w-full">
-          {data?.map((map) => (
-            <MapCard key={map.id} map={map} />
-          ))}
-        </div>
+        <MapsList maps={mappedData} />
       )}
     </div>
   );

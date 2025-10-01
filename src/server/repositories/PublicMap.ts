@@ -91,3 +91,12 @@ export function upsertPublicMap(publicMap: NewPublicMap) {
     .returningAll()
     .executeTakeFirstOrThrow();
 }
+
+export function findPublicMapsByOrganisationId(organisationId: string) {
+  return db
+    .selectFrom("publicMap")
+    .innerJoin("map", "map.id", "publicMap.mapId")
+    .where("map.organisationId", "=", organisationId)
+    .selectAll("publicMap")
+    .execute();
+}

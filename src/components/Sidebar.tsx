@@ -1,29 +1,49 @@
 "use client";
 
-import { Clock2, DatabaseIcon } from "lucide-react";
+import { Clock2, DatabaseIcon, LockIcon, MapIcon } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { Link } from "@/components/Link";
 import SidebarUserMenu from "@/components/SidebarUserMenu";
 import { cn } from "@/shadcn/utils";
 
 export default function Sidebar() {
   const slug = usePathname();
+  const showPublicMaps = useFeatureFlagEnabled("public-maps");
 
   const isActive = (href: string) => slug === href;
 
-  const navItems = [
-    {
-      label: "Recent maps",
-      href: "/dashboard",
-      icon: <Clock2 className="w-4 h-4" />,
-    },
-    {
-      label: "Data sources",
-      href: "/data-sources",
-      icon: <DatabaseIcon className="w-4 h-4" />,
-    },
-  ];
+  const navItems = showPublicMaps
+    ? [
+        {
+          label: "Private maps",
+          href: "/dashboard",
+          icon: <LockIcon className="w-4 h-4" />,
+        },
+        {
+          label: "Public maps",
+          href: "/public-maps",
+          icon: <MapIcon className="w-4 h-4" />,
+        },
+        {
+          label: "Data sources",
+          href: "/data-sources",
+          icon: <DatabaseIcon className="w-4 h-4" />,
+        },
+      ]
+    : [
+        {
+          label: "Recent maps",
+          href: "/dashboard",
+          icon: <Clock2 className="w-4 h-4" />,
+        },
+        {
+          label: "Data sources",
+          href: "/data-sources",
+          icon: <DatabaseIcon className="w-4 h-4" />,
+        },
+      ];
 
   return (
     <div className="w-64 h-screen bg-primary-foreground border-r border-neutral-200 flex flex-col">
