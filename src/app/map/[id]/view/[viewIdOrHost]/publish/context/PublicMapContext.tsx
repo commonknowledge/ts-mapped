@@ -5,13 +5,13 @@ import type {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
   PublicMapDataSourceConfig,
-  PublishedPublicMapQuery,
 } from "@/__generated__/types";
 import type { Point } from "@/server/models/shared";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { QueryResult } from "@apollo/client";
 
 export const PublicMapContext = createContext<{
-  publicMap: PublishedPublicMapQuery["publishedPublicMap"];
+  publicMap: RouterOutputs["publicMap"]["getPublished"];
   editable: boolean;
   dataRecordsQueries: Record<
     string,

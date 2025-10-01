@@ -13,7 +13,6 @@ import type {
   PublicMapDataRecordsQuery,
   PublicMapDataRecordsQueryVariables,
   PublicMapDataSourceConfig,
-  PublishedPublicMapQuery,
 } from "@/__generated__/types";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -219,7 +218,7 @@ function DataRecordsQueryComponent({
 // When loading an editable public map with no data sources,
 // update the public map to show all available data sources
 const usePublicMapAndActiveTab = (
-  initialPublicMap: NonNullable<PublishedPublicMapQuery["publishedPublicMap"]>,
+  initialPublicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
   editable: boolean,
 ) => {
   const { mapConfig } = useContext(MapContext);
@@ -246,7 +245,12 @@ const usePublicMapAndActiveTab = (
     if (dataSourceConfigs.length) {
       setActiveTabId(dataSourceConfigs[0].dataSourceId);
     }
-  }, [editable, getDataSourceById, initialPublicMap.dataSourceConfigs.length, mapConfig]);
+  }, [
+    editable,
+    getDataSourceById,
+    initialPublicMap.dataSourceConfigs.length,
+    mapConfig,
+  ]);
 
   return { publicMap, setPublicMap, activeTabId, setActiveTabId };
 };
