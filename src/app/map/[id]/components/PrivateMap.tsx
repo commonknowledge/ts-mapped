@@ -27,7 +27,7 @@ export default function PrivateMap() {
     useContext(ChoroplethContext);
 
   const { dataSourcesLoading } = useContext(DataSourcesContext);
-  const { dataSourceMarkers } = useContext(MarkerAndTurfContext);
+  const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
 
   // Resize map when UI changes
@@ -50,7 +50,7 @@ export default function PrivateMap() {
   const loading =
     dataSourcesLoading ||
     areaStatsQuery?.isFetching ||
-    dataSourceMarkers?.some((q) => q.isPending);
+    markerQueries?.isFetching;
 
   const paddedStyle = showControls
     ? { paddingLeft: `${CONTROL_PANEL_WIDTH}px` }
