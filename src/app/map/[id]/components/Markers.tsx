@@ -27,22 +27,22 @@ function rgbaString(hex: string, alpha: number) {
 
 export default function Markers() {
   const { mapConfig, viewConfig } = useContext(MapContext);
-  const { dataSourceMarkers } = useContext(MarkerAndTurfContext);
+  const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = useMemo(
     () =>
-      dataSourceMarkers?.find(
+      markerQueries?.data.find(
         (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
       ),
-    [dataSourceMarkers, mapConfig.membersDataSourceId],
+    [markerQueries, mapConfig.membersDataSourceId],
   );
 
   const otherMarkers = useMemo(
     () =>
       mapConfig.markerDataSourceIds.map((id) =>
-        dataSourceMarkers?.find((dsm) => dsm.dataSourceId === id),
+        markerQueries?.data.find((dsm) => dsm.dataSourceId === id),
       ),
-    [dataSourceMarkers, mapConfig.markerDataSourceIds],
+    [markerQueries, mapConfig.markerDataSourceIds],
   );
 
   return (

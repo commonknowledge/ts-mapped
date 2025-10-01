@@ -3,6 +3,7 @@ import { useContext, useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/__generated__/types";
@@ -16,23 +17,24 @@ import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
   const { mapRef, mapConfig, view } = useContext(MapContext);
-  const { dataSourceMarkers, placedMarkers, turfs } =
+  const { markerQueries, placedMarkers, turfs } =
     useContext(MarkerAndTurfContext);
+  const { selectedDataSourceId } = useContext(TableContext);
 
   const memberMarkers = useMemo(
     () =>
-      dataSourceMarkers?.find(
+      markerQueries?.data.find(
         (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
       ),
-    [dataSourceMarkers, mapConfig.membersDataSourceId],
+    [markerQueries, mapConfig.membersDataSourceId],
   );
 
   const otherMarkers = useMemo(
     () =>
       mapConfig.markerDataSourceIds.map((id) =>
-        dataSourceMarkers?.find((dsm) => dsm.dataSourceId === id),
+        markerQueries?.data.find((dsm) => dsm.dataSourceId === id),
       ),
-    [dataSourceMarkers, mapConfig.markerDataSourceIds],
+    [markerQueries, mapConfig.markerDataSourceIds],
   );
 
   const { memberFilterMarkers, otherFilterMarkers } = useMemo(() => {
@@ -121,6 +123,9 @@ export default function FilterMarkers() {
 
   // Pan to markers when the table view is opened / filters changed
   useEffect(() => {
+    if (!selectedDataSourceId) {
+      return;
+    }
     if (
       memberFilterMarkers.length ||
       otherFilterMarkers.length ||
@@ -138,7 +143,13 @@ export default function FilterMarkers() {
         });
       }
     }
-  }, [mapRef, memberFilterMarkers, otherFilterMarkers, filterTurfs]);
+  }, [
+    mapRef,
+    memberFilterMarkers,
+    otherFilterMarkers,
+    filterTurfs,
+    selectedDataSourceId,
+  ]);
 
   return (
     <>

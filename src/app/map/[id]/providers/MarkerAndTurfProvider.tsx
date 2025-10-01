@@ -44,6 +44,9 @@ export default function MarkerAndTurfProvider({
   }, [mapConfig, publicMap]);
 
   const trpc = useTRPC();
+  // Using the `combine` option in this useQueries call makes `markerQueries`
+  // only update when the data updates. This prevents infinite loops
+  // when `markerQueries` is used in useEffect hooks.
   const markerQueries = useQueries({
     queries: dataSourceIds.map((dataSourceId) => {
       const dsv = view?.dataSourceViews.find(
@@ -58,14 +61,15 @@ export default function MarkerAndTurfProvider({
         { enabled: Boolean(dataSourceId) },
       );
     }),
-  });
-  const dataSourceMarkers = markerQueries.map((q, i) => {
-    const dataSourceId = dataSourceIds[i];
-    return {
-      dataSourceId,
-      markers: q.data || [],
-      isPending: q.isPending,
-    };
+    combine: (results) => {
+      return {
+        data: results.map((result, i) => ({
+          dataSourceId: dataSourceIds[i],
+          markers: result.data || [],
+        })),
+        isFetching: results.some((result) => result.isFetching),
+      };
+    },
   });
 
   /* Persisted map features */
@@ -179,7 +183,7 @@ export default function MarkerAndTurfProvider({
         deleteTurf,
         insertTurf,
         updateTurf,
-        dataSourceMarkers,
+        markerQueries,
         searchMarker,
         setSearchMarker,
         handleAddArea,
