@@ -30,6 +30,7 @@ import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
+import type { FeatureCollection, Point } from "geojson";
 
 export default function Map({
   onSourceLoad,
@@ -49,8 +50,14 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
-  const { deleteTurf, insertTurf, updateTurf, turfs, searchMarker } =
-    useContext(MarkerAndTurfContext);
+  const {
+    deleteTurf,
+    insertTurf,
+    updateTurf,
+    turfs,
+    searchMarker,
+    placedMarkers,
+  } = useContext(MarkerAndTurfContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
@@ -199,11 +206,13 @@ export default function Map({
       top: 0,
       bottom: 0,
     };
+
     // Public map mobile padding
     if (window.innerWidth < 768) {
       padding.top = 96;
       padding.bottom = window.innerHeight * 0.5;
     }
+
     map.easeTo({
       padding,
       duration: 300,
@@ -253,6 +262,38 @@ export default function Map({
           if (!map) {
             return;
           }
+
+          setTimeout(() => {
+            const features = placedMarkers?.length
+              ? placedMarkers.map((m) => ({
+                  type: "Feature" as const,
+                  geometry: {
+                    type: "Point" as const,
+                    coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+                  },
+                  properties: {},
+                }))
+              : [];
+
+            const featureCollection: FeatureCollection<Point> = {
+              type: "FeatureCollection",
+              features,
+            };
+
+            const [minLng, minLat, maxLng, maxLat] =
+              turf?.bbox(featureCollection);
+
+            map.fitBounds(
+              [
+                [minLng, minLat],
+                [maxLng, maxLat],
+              ],
+              {
+                padding: 100,
+                duration: 1000,
+              },
+            );
+          }, 1000);
 
           toggleLabelVisibility(viewConfig.showLabels);
 
