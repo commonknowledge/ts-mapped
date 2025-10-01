@@ -142,6 +142,6 @@ export const MapContext = createContext<{
   setPinDropMode: () => null,
   ready: false,
   setReady: () => null,
-  showControls: false,
+  showControls: true,
   setShowControls: () => null,
 });

@@ -35,13 +35,13 @@ export const MarkerAndTurfContext = createContext<{
   updateTurf: (turf: Turf) => void;
 
   /* GraphQL Queries */
-  dataSourceMarkers:
-    | {
-        dataSourceId: string;
-        markers: PointFeature[];
-        isPending: boolean;
-      }[]
-    | null;
+  markerQueries: {
+    data: {
+      dataSourceId: string;
+      markers: PointFeature[];
+    }[];
+    isFetching: boolean;
+  } | null;
 
   /* helpers */
   handleAddArea: () => void;
@@ -70,7 +70,7 @@ export const MarkerAndTurfContext = createContext<{
   deleteTurf: () => null,
   insertTurf: () => null,
   updateTurf: () => null,
-  dataSourceMarkers: null,
+  markerQueries: null,
   handleAddArea: () => null,
   handleDropPin: () => null,
 });

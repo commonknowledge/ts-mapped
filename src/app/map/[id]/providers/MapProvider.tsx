@@ -40,7 +40,7 @@ export default function MapProvider({
   const [viewId, setViewId] = useState<string | null>(initialViewId || null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [pinDropMode, setPinDropMode] = useState(false);
-  const [showControls, setShowControls] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [ready, setReady] = useState(false);
   const [configDirty, setConfigDirty] = useState(false);
 
