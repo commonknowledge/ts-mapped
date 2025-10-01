@@ -230,6 +230,7 @@ export enum FilterType {
 
 export type Folder = {
   __typename?: "Folder";
+  hideMarkers?: Maybe<Scalars["Boolean"]["output"]>;
   id: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   notes: Scalars["String"]["output"];
@@ -484,6 +485,7 @@ export type MutationUpdateMapConfigArgs = {
 };
 
 export type MutationUpsertFolderArgs = {
+  hideMarkers?: InputMaybe<Scalars["Boolean"]["input"]>;
   id: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
   name: Scalars["String"]["input"];
@@ -1142,6 +1144,7 @@ export type MapQuery = {
       name: string;
       notes: string;
       position: number;
+      hideMarkers?: boolean | null;
     }> | null;
     placedMarkers?: Array<{
       __typename?: "PlacedMarker";
@@ -1261,6 +1264,7 @@ export type UpsertFolderMutationVariables = Exact<{
   notes: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
   position: Scalars["Float"]["input"];
+  hideMarkers?: InputMaybe<Scalars["Boolean"]["input"]>;
 }>;
 
 export type UpsertFolderMutation = {
@@ -1862,6 +1866,11 @@ export type FolderResolvers<
   ParentType extends
     ResolversParentTypes["Folder"] = ResolversParentTypes["Folder"],
 > = {
+  hideMarkers?: Resolver<
+    Maybe<ResolversTypes["Boolean"]>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   notes?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
