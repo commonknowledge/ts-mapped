@@ -1,13 +1,15 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { useMutation as useTanstackMutation } from "@tanstack/react-query";
+import { gql, useMutation } from "@apollo/client";
+import {
+  useMutation as useTanstackMutation,
+  useQuery as useTanstackQuery,
+} from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalculationType, VisualisationType } from "@/__generated__/types";
 import { useTRPC } from "@/services/trpc/react";
 import type { ViewConfig } from "./context/MapContext";
 import type {
   AreaSetCode,
-  AreaStatsQuery,
-  AreaStatsQueryVariables,
   DeleteFolderMutationMutation,
   DeleteFolderMutationMutationVariables,
   DeletePlacedMarkerMutationMutation,
@@ -23,15 +25,17 @@ import type {
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
 } from "@/__generated__/types";
+import type { ColumnType } from "@/server/models/DataSource";
+import type { AreaStat, BoundingBox } from "@/types";
 
-export const useAreaStatsQuery = ({
+export const useAreaStats = ({
   viewConfig,
   areaSetCode,
-  useDummyBoundingBox,
+  boundingBox,
 }: {
   viewConfig: ViewConfig;
   areaSetCode: AreaSetCode;
-  useDummyBoundingBox: boolean;
+  boundingBox?: BoundingBox | null;
 }) => {
   const {
     calculationType,
@@ -55,50 +59,86 @@ export const useAreaStatsQuery = ({
     !viewIsChoropleth ||
     isMissingDataColumn;
 
-  return useQuery<AreaStatsQuery, AreaStatsQueryVariables>(
-    gql`
-      query AreaStats(
-        $areaSetCode: AreaSetCode!
-        $dataSourceId: String!
-        $column: String!
-        $excludeColumns: [String!]!
-        $boundingBox: BoundingBoxInput
-        $calculationType: CalculationType!
-      ) {
-        areaStats(
-          areaSetCode: $areaSetCode
-          dataSourceId: $dataSourceId
-          column: $column
-          excludeColumns: $excludeColumns
-          boundingBox: $boundingBox
-          calculationType: $calculationType
-        ) {
-          column
-          columnType
-          stats {
-            areaCode
-            value
-          }
-        }
-      }
-    `,
-    {
-      variables: {
+  const trpc = useTRPC();
+
+  // Deduplicate stats by area code
+  const [dedupedAreaStats, setDedupedAreaStats] = useState<{
+    column: string;
+    columnType: ColumnType;
+    stats: Record<string, AreaStat>;
+  } | null>();
+
+  // The results of this query aren't used directly, as data for different
+  // bounding boxes needs to be added together. Instead, useEffect is used
+  // to add incoming data to the dedupedAreaStats state.
+  const areaStatsQuery = useTanstackQuery(
+    trpc.areaStats.list.queryOptions(
+      {
         areaSetCode,
+        calculationType: calculationType || CalculationType.Value,
         dataSourceId,
         column: columnOrCount,
         excludeColumns: viewConfig.getExcludeColumns(),
-        // Using a dummy boundingBox is required for fetchMore() to update this query's data.
-        // Note: this makes the first query return no data. Only fetchMore() returns data.
-        boundingBox: useDummyBoundingBox
-          ? { north: 0, east: 0, south: 0, west: 0 }
-          : null,
-        calculationType: calculationType || CalculationType.Value,
+        boundingBox,
       },
-      skip: skipCondition,
-      notifyOnNetworkStatusChange: true,
-    },
+      { enabled: !skipCondition },
+    ),
   );
+
+  const excludeColumns = useMemo(() => {
+    return viewConfig.getExcludeColumns();
+  }, [viewConfig]);
+
+  // Reset area stats when calculation changes
+  useEffect(() => {
+    setDedupedAreaStats(null);
+  }, [areaSetCode, calculationType, dataSourceId, column, excludeColumns]);
+
+  // Store area stats when queries complete, and aggregate data for different bounding boxes
+  useEffect(() => {
+    if (!areaStatsQuery.data) {
+      return;
+    }
+    setDedupedAreaStats((prev) => {
+      const nextStats = areaStatsQuery.data.stats.reduce(
+        (o, s) => {
+          o[s.areaCode] = s;
+          return o;
+        },
+        {} as Record<string, AreaStat>,
+      );
+
+      if (!prev) {
+        return {
+          column: areaStatsQuery.data.column,
+          columnType: areaStatsQuery.data.columnType,
+          stats: nextStats,
+        };
+      }
+      if (
+        prev.column === areaStatsQuery.data.column &&
+        prev.columnType === areaStatsQuery.data.columnType
+      ) {
+        return {
+          ...prev,
+          stats: { ...prev.stats, ...nextStats },
+        };
+      }
+    });
+  }, [areaStatsQuery.data]);
+
+  // Return an array of stats for use in components, instead of an object
+  const areaStats = useMemo(() => {
+    return dedupedAreaStats
+      ? {
+          column: dedupedAreaStats.column,
+          columnType: dedupedAreaStats.columnType,
+          stats: Object.values(dedupedAreaStats.stats),
+        }
+      : null;
+  }, [dedupedAreaStats]);
+
+  return { data: areaStats, isFetching: areaStatsQuery.isFetching };
 };
 
 export const useUpdateMapConfigMutation = () => {

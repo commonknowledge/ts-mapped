@@ -72,6 +72,7 @@ export enum CalculationType {
   Average = "Average",
 }
 export const calculationTypes = Object.values(CalculationType);
+export const calculationType = z.nativeEnum(CalculationType);
 
 export enum ColorScheme {
   RedBlue = "RedBlue",

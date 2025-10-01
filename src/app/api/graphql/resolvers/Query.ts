@@ -13,6 +13,7 @@ import {
 } from "@/server/repositories/PublicMap";
 import { getAreaStats } from "@/server/stats";
 import type {
+  AreaSetCode,
   BoundingBoxInput,
   CalculationType,
   QueryResolvers as QueryResolversType,
@@ -39,7 +40,7 @@ const QueryResolvers: QueryResolversType = {
     },
   ) =>
     getAreaStats(
-      areaSetCode,
+      areaSetCode as AreaSetCode,
       dataSourceId,
       calculationType,
       column,

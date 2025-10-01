@@ -9,6 +9,8 @@ export enum AreaSetCode {
 }
 export const areaSetCodes = Object.values(AreaSetCode);
 
+export const areaSetCode = z.nativeEnum(AreaSetCode);
+
 export enum AreaSetGroupCode {
   OA21 = "OA21",
   WMC24 = "WMC24",
@@ -19,7 +21,7 @@ export const areaSetGroupCode = z.nativeEnum(AreaSetGroupCode);
 
 export const areaSetSchema = z.object({
   id: z.number(),
-  code: z.nativeEnum(AreaSetCode),
+  code: areaSetCode,
   name: z.string(),
 });
 

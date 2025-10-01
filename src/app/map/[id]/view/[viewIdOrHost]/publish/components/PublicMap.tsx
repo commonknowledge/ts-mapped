@@ -18,7 +18,7 @@ import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 export default function PublicMap() {
   const { mapQuery } = useContext(MapContext);
   const { editable } = useContext(PublicMapContext);
-  const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
+  const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
   const { dataSourceMarkers } = useContext(MarkerAndTurfContext);
 
@@ -27,9 +27,7 @@ export default function PublicMap() {
   }
 
   const loading =
-    areaStatsLoading ||
-    areaStatsQuery?.loading ||
-    dataSourceMarkers?.some((q) => q.isPending);
+    areaStatsQuery?.isFetching || dataSourceMarkers?.some((q) => q.isPending);
 
   const showNavbar = editable;
 

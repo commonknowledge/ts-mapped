@@ -1,20 +1,22 @@
 import { sql } from "kysely";
-import { CalculationType, ColumnType } from "@/__generated__/types";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import type { AreaStat, BoundingBoxInput } from "@/__generated__/types";
+import { ColumnType } from "../models/DataSource";
+import { CalculationType } from "../models/MapView";
+import type { AreaSetCode } from "../models/AreaSet";
 import type { Database } from "@/server/services/database";
+import type { AreaStat, BoundingBox } from "@/types";
 import type { CaseBuilder, CaseWhenBuilder } from "kysely";
 
 export const getAreaStats = async (
-  areaSetCode: string,
+  areaSetCode: AreaSetCode,
   dataSourceId: string,
   calculationType: CalculationType,
   column: string,
   excludeColumns: string[],
-  boundingBox: BoundingBoxInput | null = null,
+  boundingBox: BoundingBox | null = null,
 ): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
   if (column === MAX_COLUMN_KEY) {
     const stats = await getMaxColumnByArea(
@@ -81,7 +83,7 @@ export const getMaxColumnByArea = async (
   areaSetCode: string,
   dataSourceId: string,
   excludeColumns: string[],
-  boundingBox: BoundingBoxInput | null = null,
+  boundingBox: BoundingBox | null = null,
 ) => {
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
@@ -168,7 +170,7 @@ export const getMaxColumnByArea = async (
 export const getRecordCountByArea = async (
   areaSetCode: string,
   dataSourceId: string,
-  boundingBox: BoundingBoxInput | null = null,
+  boundingBox: BoundingBox | null = null,
 ) => {
   try {
     const query = db
@@ -193,7 +195,7 @@ export const getRecordCountByArea = async (
   return [];
 };
 
-const getBoundingBoxSQL = (boundingBox: BoundingBoxInput | null) => {
+const getBoundingBoxSQL = (boundingBox: BoundingBox | null) => {
   // Returning a dummy WHERE statement if boundingBox is null makes for cleaner queries above
   if (!boundingBox) {
     return sql<boolean>`1 = 1`;
