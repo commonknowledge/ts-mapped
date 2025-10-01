@@ -16,7 +16,7 @@ export default function Legend() {
   const { getChoroplethDataSource } = useContext(DataSourcesContext);
   const { areaStatsQuery } = useContext(ChoroplethContext);
 
-  const areaStats = areaStatsQuery?.data?.areaStats;
+  const areaStats = areaStatsQuery?.data;
 
   const dataSource = getChoroplethDataSource();
 

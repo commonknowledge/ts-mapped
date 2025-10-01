@@ -6,7 +6,7 @@ import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
-import type { DataSourceMarkers as DataSourceMarkersType } from "../types";
+import type { PointFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
 
 const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";
@@ -27,14 +27,22 @@ function rgbaString(hex: string, alpha: number) {
 
 export default function Markers() {
   const { mapConfig, viewConfig } = useContext(MapContext);
-  const { markerQueries } = useContext(MarkerAndTurfContext);
+  const { dataSourceMarkers } = useContext(MarkerAndTurfContext);
 
-  const memberMarkers = markerQueries?.data?.find(
-    (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
+  const memberMarkers = useMemo(
+    () =>
+      dataSourceMarkers?.find(
+        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
+      ),
+    [dataSourceMarkers, mapConfig.membersDataSourceId],
   );
 
-  const dataSourceMarkers = mapConfig.markerDataSourceIds.map((id) =>
-    markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+  const otherMarkers = useMemo(
+    () =>
+      mapConfig.markerDataSourceIds.map((id) =>
+        dataSourceMarkers?.find((dsm) => dsm.dataSourceId === id),
+      ),
+    [dataSourceMarkers, mapConfig.markerDataSourceIds],
   );
 
   return (
@@ -46,14 +54,14 @@ export default function Markers() {
           isMembers
         />
       )}
-      {dataSourceMarkers.map((ds) => {
-        if (!ds || !viewConfig.showLocations) {
+      {otherMarkers.map((markers) => {
+        if (!markers || !viewConfig.showLocations) {
           return null;
         }
         return (
           <DataSourceMarkers
-            key={ds?.dataSourceId}
-            dataSourceMarkers={ds}
+            key={markers.dataSourceId}
+            dataSourceMarkers={markers}
             isMembers={false}
           />
         );
@@ -66,29 +74,25 @@ function DataSourceMarkers({
   dataSourceMarkers,
   isMembers,
 }: {
-  dataSourceMarkers: DataSourceMarkersType;
+  dataSourceMarkers: { dataSourceId: string; markers: PointFeature[] };
   isMembers: boolean;
 }) {
   const { records, publicFilters } = useContext(PublicFiltersContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
-    if (!dataSourceMarkers?.markers) {
-      return {
-        type: "FeatureCollection",
-        features: [],
-      };
-    }
-
     // Don't add MARKER_CLIENT_EXCLUDED_KEY property if no public filters exist
     if (Object.keys(publicFilters).length === 0) {
-      return dataSourceMarkers.markers;
+      return {
+        type: "FeatureCollection",
+        features: dataSourceMarkers.markers,
+      };
     }
 
     // Add MARKER_CLIENT_EXCLUDED_KEY if public filters are set and marker is not matched
     const recordIds = (records || []).map((r) => r.id).filter(Boolean);
     return {
-      ...dataSourceMarkers.markers,
-      features: dataSourceMarkers.markers.features.map((f) => ({
+      type: "FeatureCollection",
+      features: dataSourceMarkers.markers.map((f) => ({
         ...f,
         properties: {
           ...f.properties,

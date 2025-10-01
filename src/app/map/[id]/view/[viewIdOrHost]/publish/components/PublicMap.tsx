@@ -18,16 +18,16 @@ import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 export default function PublicMap() {
   const { mapQuery } = useContext(MapContext);
   const { editable } = useContext(PublicMapContext);
-  const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
+  const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
-  const { markerQueries } = useContext(MarkerAndTurfContext);
+  const { dataSourceMarkers } = useContext(MarkerAndTurfContext);
 
-  if (!mapQuery || mapQuery.loading) {
+  if (!mapQuery || mapQuery.isPending) {
     return <Loading />;
   }
 
   const loading =
-    areaStatsLoading || areaStatsQuery?.loading || markerQueries?.loading;
+    areaStatsQuery?.isFetching || dataSourceMarkers?.some((q) => q.isPending);
 
   const showNavbar = editable;
 

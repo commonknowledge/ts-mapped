@@ -33,15 +33,17 @@ export default function Choropleth() {
       return;
     }
 
+    // Overwrite previous feature states then remove any that weren't
+    // overwritten, to avoid flicker and a bug where gaps would appear
     const nextAreaCodesToClean: Record<string, boolean> = {};
-    areaStatsQuery.data.areaStats?.stats.forEach((stat) => {
+    areaStatsQuery.data.stats.forEach((stat) => {
       mapRef.current?.setFeatureState(
         {
           source: sourceId,
           sourceLayer: layerId,
           id: stat.areaCode,
         },
-        stat,
+        { value: stat.value },
       );
       nextAreaCodesToClean[stat.areaCode] = true;
     });
@@ -60,7 +62,7 @@ export default function Choropleth() {
   }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
 
   const fillColor = useFillColor(
-    areaStatsQuery?.data?.areaStats,
+    areaStatsQuery?.data,
     viewConfig.colorScheme || ColorScheme.RedBlue,
     viewConfig.calculationType === CalculationType.Count,
     Boolean(viewConfig.reverseColorScheme),

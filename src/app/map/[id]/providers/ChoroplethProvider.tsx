@@ -1,13 +1,13 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { VisualisationType } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { GeocodingType } from "@/server/models/DataSource";
-import { useAreaStatsQuery } from "../data";
+import { useAreaStats } from "../data";
 import { getChoroplethLayerConfig } from "../sources";
 import type { ReactNode } from "react";
 
@@ -21,9 +21,6 @@ export default function ChoroplethProvider({
 
   /* State */
 
-  // Manually keep track of fetchMore loading state as the first fetchMore
-  // doesn't trigger the query loading flag
-  const [areaStatsLoading, setAreaStatsLoading] = useState(false);
   // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
@@ -54,27 +51,11 @@ export default function ChoroplethProvider({
   ]);
 
   /* GraphQL Data */
-  const areaStatsQuery = useAreaStatsQuery({
+  const areaStatsQuery = useAreaStats({
     viewConfig,
     areaSetCode: choroplethLayerConfig.areaSetCode,
-    useDummyBoundingBox: choroplethLayerConfig.requiresBoundingBox,
+    boundingBox: choroplethLayerConfig.requiresBoundingBox ? boundingBox : null,
   });
-
-  const { fetchMore: areaStatsFetchMore } = areaStatsQuery;
-
-  /* Effects */
-
-  /* Do fetchMore() (if layer needs it) when bounding box or config changes */
-  useEffect(() => {
-    if (!choroplethLayerConfig.requiresBoundingBox || !areaStatsFetchMore) {
-      return;
-    }
-    (async () => {
-      setAreaStatsLoading(true);
-      await areaStatsFetchMore({ variables: { boundingBox } });
-      setAreaStatsLoading(false);
-    })();
-  }, [areaStatsFetchMore, boundingBox, choroplethLayerConfig, viewConfig]);
 
   return (
     <ChoroplethContext
@@ -85,7 +66,6 @@ export default function ChoroplethProvider({
         lastLoadedSourceId,
         setLastLoadedSourceId,
 
-        areaStatsLoading,
         areaStatsQuery,
 
         choroplethLayerConfig,

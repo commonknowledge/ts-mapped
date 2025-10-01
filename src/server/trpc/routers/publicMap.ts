@@ -8,8 +8,12 @@ import { protectedProcedure, publicProcedure, router } from "../index";
 export const publicMapRouter = router({
   getEditable: protectedProcedure
     .input(z.object({ viewId: z.string() }))
-    .query(({ input, ctx }) => {
-      return findPublicMapByViewIdAndUserId(input.viewId, ctx.user.id);
+    .query(async ({ input, ctx }) => {
+      const publicMap = await findPublicMapByViewIdAndUserId(
+        input.viewId,
+        ctx.user.id,
+      );
+      return publicMap || null;
     }),
   getPublished: publicProcedure
     .input(z.object({ host: z.string() }))

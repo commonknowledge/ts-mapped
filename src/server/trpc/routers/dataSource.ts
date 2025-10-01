@@ -15,9 +15,39 @@ import {
 } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { dataSourceProcedure, organisationProcedure, router } from "../index";
+import {
+  dataSourceProcedure,
+  organisationProcedure,
+  publicProcedure,
+  router,
+} from "../index";
+import type { DataSource } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
+  listReadable: publicProcedure.query(async ({ ctx }) => {
+    const dataSources = await db
+      .selectFrom("dataSource")
+      .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
+      .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
+      .innerJoin(
+        "organisationUser",
+        "organisation.id",
+        "organisationUser.organisationId",
+      )
+      .where((eb) => {
+        const filter = [eb("public", "=", true)];
+        if (ctx.user?.id) {
+          filter.push(eb("organisationUser.userId", "=", ctx.user.id));
+        }
+        return eb.or(filter);
+      })
+      .selectAll("dataSource")
+      .select(db.fn.count("dataRecord.id").as("recordCount"))
+      .groupBy("dataSource.id")
+      .execute();
+
+    return addImportInfo(dataSources);
+  }),
   byOrganisation: organisationProcedure.query(async ({ ctx }) => {
     const dataSources = await db
       .selectFrom("dataSource")
@@ -28,18 +58,7 @@ export const dataSourceRouter = router({
       .groupBy("dataSource.id")
       .execute();
 
-    // Get import info for all data sources
-    const importInfos = await Promise.all(
-      dataSources.map((dataSource) =>
-        getJobInfo(dataSource.id, "importDataSource"),
-      ),
-    );
-
-    return dataSources.map((dataSource, index) => ({
-      ...dataSource,
-      recordCount: Number(dataSource.recordCount) || 0,
-      importInfo: importInfos[index],
-    }));
+    return addImportInfo(dataSources);
   }),
   byId: dataSourceProcedure.query(async ({ ctx }) => {
     const dataSource = await db
@@ -127,3 +146,20 @@ export const dataSourceRouter = router({
     return true;
   }),
 });
+
+const addImportInfo = async (
+  dataSources: (DataSource & { recordCount: unknown })[],
+) => {
+  // Get import info for all data sources
+  const importInfos = await Promise.all(
+    dataSources.map((dataSource) =>
+      getJobInfo(dataSource.id, "importDataSource"),
+    ),
+  );
+
+  return dataSources.map((dataSource, index) => ({
+    ...dataSource,
+    recordCount: Number(dataSource.recordCount) || 0,
+    importInfo: importInfos[index],
+  }));
+};

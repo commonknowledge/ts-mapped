@@ -2,6 +2,18 @@
 import type { PublicMapColumnType } from "./__generated__/types";
 import type { Geometry } from "geojson";
 
+export interface AreaStat {
+  areaCode: string;
+  value: string | number;
+}
+
+export interface BoundingBox {
+  east: number;
+  north: number;
+  south: number;
+  west: number;
+}
+
 export interface DrawModeChangeEvent {
   mode: string;
 }
@@ -22,7 +34,7 @@ export interface ExternalRecord {
 
 export interface PointFeature {
   type: "Feature";
-  properties: Record<string, string | number>;
+  properties: Record<string, string | number | boolean>;
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 
