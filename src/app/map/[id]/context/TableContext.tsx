@@ -1,9 +1,5 @@
 import { createContext } from "react";
-import type {
-  DataRecordsQuery,
-  DataRecordsQueryVariables,
-} from "@/__generated__/types";
-import type { QueryResult } from "@apollo/client";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 export const TableContext = createContext<{
   /* State */
@@ -17,10 +13,10 @@ export const TableContext = createContext<{
   setTablePage: (page: number) => void;
 
   /* GraphQL Queries */
-  dataRecordsQuery: QueryResult<
-    DataRecordsQuery,
-    DataRecordsQueryVariables
-  > | null;
+  dataRecordsQuery: {
+    isPending: boolean;
+    data: RouterOutputs["dataRecord"]["list"] | undefined;
+  } | null;
 }>({
   selectedDataSourceId: "",
   handleDataSourceSelect: () => null,

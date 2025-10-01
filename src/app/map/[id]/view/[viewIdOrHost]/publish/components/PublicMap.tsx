@@ -20,14 +20,16 @@ export default function PublicMap() {
   const { editable } = useContext(PublicMapContext);
   const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
-  const { markerQueries } = useContext(MarkerAndTurfContext);
+  const { dataSourceMarkers } = useContext(MarkerAndTurfContext);
 
-  if (!mapQuery || mapQuery.loading) {
+  if (!mapQuery || mapQuery.isPending) {
     return <Loading />;
   }
 
   const loading =
-    areaStatsLoading || areaStatsQuery?.loading || markerQueries?.loading;
+    areaStatsLoading ||
+    areaStatsQuery?.loading ||
+    dataSourceMarkers?.some((q) => q.isPending);
 
   const showNavbar = editable;
 

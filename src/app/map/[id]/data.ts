@@ -1,29 +1,19 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useMutation as useTanstackMutation } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CalculationType, VisualisationType } from "@/__generated__/types";
 import { useTRPC } from "@/services/trpc/react";
 import type { ViewConfig } from "./context/MapContext";
-import type { DataSourceMarkers } from "./types";
 import type {
   AreaSetCode,
   AreaStatsQuery,
   AreaStatsQueryVariables,
-  DataRecordsQuery,
-  DataRecordsQueryVariables,
-  DataSourceView,
-  DataSourcesQuery,
   DeleteFolderMutationMutation,
   DeleteFolderMutationMutationVariables,
   DeletePlacedMarkerMutationMutation,
   DeletePlacedMarkerMutationMutationVariables,
   DeleteTurfMutation,
   DeleteTurfMutationVariables,
-  MapQuery,
-  MapQueryVariables,
-  RecordFilterInput,
-  SortInput,
   UpdateMapConfigMutation,
   UpdateMapConfigMutationVariables,
   UpsertFolderMutation,
@@ -33,237 +23,6 @@ import type {
   UpsertTurfMutation,
   UpsertTurfMutationVariables,
 } from "@/__generated__/types";
-
-export const useDataSourcesQuery = () =>
-  useQuery<DataSourcesQuery>(gql`
-    query DataSources {
-      dataSources(includePublic: true) {
-        id
-        name
-        config
-        columnDefs {
-          name
-          type
-        }
-        columnRoles {
-          nameColumns
-        }
-        geocodingConfig {
-          areaSetCode
-          type
-          column
-        }
-        recordCount {
-          count
-        }
-        autoImport
-        public
-        config
-      }
-    }
-  `);
-
-export const useDataRecordsQuery = (variables: {
-  dataSourceId: string;
-  filter?: RecordFilterInput;
-  search?: string;
-  page: number;
-  sort?: SortInput[];
-}) =>
-  useQuery<DataRecordsQuery, DataRecordsQueryVariables>(
-    gql`
-      query DataRecords(
-        $dataSourceId: String!
-        $filter: RecordFilterInput
-        $search: String
-        $page: Int!
-        $sort: [SortInput!]
-      ) {
-        dataSource(id: $dataSourceId) {
-          id
-          name
-          columnDefs {
-            name
-            type
-          }
-          records(filter: $filter, search: $search, page: $page, sort: $sort) {
-            id
-            externalId
-            geocodePoint {
-              lat
-              lng
-            }
-            json
-          }
-          recordCount(filter: $filter, search: $search) {
-            count
-            matched
-          }
-        }
-      }
-    `,
-    { variables, skip: !variables.dataSourceId },
-  );
-
-export const useMapQuery = (mapId: string | null) =>
-  useQuery<MapQuery, MapQueryVariables>(
-    gql`
-      query Map($id: String!) {
-        map(id: $id) {
-          name
-          config {
-            markerDataSourceIds
-            membersDataSourceId
-          }
-          folders {
-            id
-            name
-            notes
-            position
-            hideMarkers
-          }
-          placedMarkers {
-            id
-            label
-            notes
-            point {
-              lat
-              lng
-            }
-            folderId
-            position
-          }
-          turfs {
-            id
-            label
-            notes
-            area
-            polygon
-            createdAt
-          }
-          views {
-            id
-            name
-            position
-            config {
-              areaDataSourceId
-              areaDataColumn
-              areaSetGroupCode
-              excludeColumnsString
-              mapStyleName
-              showBoundaryOutline
-              showLabels
-              showLocations
-              showMembers
-              showTurf
-              visualisationType
-              calculationType
-              colorScheme
-              reverseColorScheme
-            }
-            dataSourceViews {
-              dataSourceId
-              filter {
-                children {
-                  column
-                  dataSourceId
-                  dataRecordId
-                  distance
-                  label
-                  operator
-                  placedMarker
-                  search
-                  turf
-                  type
-                }
-                type
-              }
-              search
-              sort {
-                name
-                desc
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      variables: { id: mapId || "" },
-      skip: !mapId,
-      fetchPolicy: "network-only",
-    },
-  );
-
-// Use API request instead of GraphQL to avoid server memory load
-// TODO: replace with gql @stream directive when Apollo client supports it
-export const useMarkerQueries = ({
-  membersDataSourceId,
-  markerDataSourceIds,
-  dataSourceViews,
-}: {
-  membersDataSourceId: string;
-  markerDataSourceIds: string[];
-  dataSourceViews: DataSourceView[];
-}) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [data, setData] = useState<DataSourceMarkers[]>([]);
-  const cache = useRef<Record<string, DataSourceMarkers>>({});
-  const cacheKeyByDataSource = useRef<Record<string, string>>({});
-
-  useEffect(() => {
-    const fetchMarkers = async () => {
-      setLoading(true);
-      setData([]);
-      const dataSourceIds = [
-        membersDataSourceId,
-        ...markerDataSourceIds,
-      ].filter(Boolean);
-      try {
-        for (const id of dataSourceIds) {
-          const filter = JSON.stringify(
-            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.filter ||
-              null,
-          );
-          const search =
-            dataSourceViews.find((dsv) => dsv.dataSourceId === id)?.search ||
-            "";
-          const cacheId = `${id}:${filter}:${search}`;
-          if (!cache.current[cacheId]) {
-            const params = new URLSearchParams();
-            params.set("filter", filter);
-            params.set("search", search);
-            const response = await fetch(
-              `/api/data-sources/${id}/markers?${params.toString()}`,
-            );
-            if (!response.ok) {
-              throw new Error(`Bad response: ${response.status}`);
-            }
-            const dataSourceMarkers =
-              (await response.json()) as DataSourceMarkers;
-            cache.current[cacheId] = dataSourceMarkers;
-          }
-          cacheKeyByDataSource.current[id] = cacheId;
-          // For each active cache key, get the cached value
-          // which will be a DataSourceMarkers object
-          setData(
-            Object.values(cacheKeyByDataSource.current)
-              .map((k) => cache.current[k])
-              .filter(Boolean),
-          );
-        }
-      } catch (e) {
-        console.error("Fetch markers error", e);
-        setError("Failed");
-      }
-      setLoading(false);
-    };
-    fetchMarkers();
-  }, [dataSourceViews, markerDataSourceIds, membersDataSourceId]);
-
-  return useMemo(() => ({ loading, data, error }), [data, error, loading]);
-};
 
 export const useAreaStatsQuery = ({
   viewConfig,

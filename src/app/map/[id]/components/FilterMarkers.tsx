@@ -16,23 +16,23 @@ import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
   const { mapRef, mapConfig, view } = useContext(MapContext);
-  const { markerQueries, placedMarkers, turfs } =
+  const { dataSourceMarkers, placedMarkers, turfs } =
     useContext(MarkerAndTurfContext);
 
   const memberMarkers = useMemo(
     () =>
-      markerQueries?.data?.find(
-        (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
+      dataSourceMarkers?.find(
+        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
       ),
-    [mapConfig.membersDataSourceId, markerQueries?.data],
+    [dataSourceMarkers, mapConfig.membersDataSourceId],
   );
 
-  const dataSourceMarkers = useMemo(
+  const otherMarkers = useMemo(
     () =>
       mapConfig.markerDataSourceIds.map((id) =>
-        markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+        dataSourceMarkers?.find((dsm) => dsm.dataSourceId === id),
       ),
-    [mapConfig.markerDataSourceIds, markerQueries?.data],
+    [dataSourceMarkers, mapConfig.markerDataSourceIds],
   );
 
   const { memberFilterMarkers, otherFilterMarkers } = useMemo(() => {
@@ -66,10 +66,10 @@ export default function FilterMarkers() {
             const allMarkers =
               filterMarker.dataSourceId === mapConfig.membersDataSourceId
                 ? memberMarkers
-                : dataSourceMarkers.find(
+                : otherMarkers.find(
                     (dsm) => dsm?.dataSourceId === filterMarker.dataSourceId,
                   );
-            const marker = allMarkers?.markers.features.find(
+            const marker = allMarkers?.markers?.find(
               (feature) =>
                 feature.properties[MARKER_ID_KEY] === filterMarker.dataRecordId,
             );
@@ -100,9 +100,9 @@ export default function FilterMarkers() {
       otherFilterMarkers,
     };
   }, [
-    dataSourceMarkers,
     mapConfig.membersDataSourceId,
     memberMarkers,
+    otherMarkers,
     placedMarkers,
     view?.dataSourceViews,
   ]);
