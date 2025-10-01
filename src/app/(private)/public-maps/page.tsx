@@ -19,8 +19,6 @@ export default function DashboardPage() {
     ),
   );
 
-  console.log("data", data);
-
   const mappedData = data?.length
     ? data.map((map) => ({
         ...map,

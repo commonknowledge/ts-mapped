@@ -4,13 +4,18 @@ import { Clock2, DatabaseIcon, LockIcon, MapIcon } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
+import { useEffect, useState } from "react";
 import { Link } from "@/components/Link";
 import SidebarUserMenu from "@/components/SidebarUserMenu";
 import { cn } from "@/shadcn/utils";
 
 export default function Sidebar() {
   const slug = usePathname();
+
+  const [mounted, setMounted] = useState(false);
   const showPublicMaps = useFeatureFlagEnabled("public-maps");
+
+  useEffect(() => setMounted(true), []);
 
   const isActive = (href: string) => slug === href;
 
@@ -65,24 +70,27 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {navItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={cn(
-                  "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
-                  isActive(item.href) && "bg-neutral-100 text-primary",
-                )}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      {/* Prevent hydration mismatch */}
+      {mounted && (
+        <nav className="flex-1 p-4">
+          <ul className="space-y-2">
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center font-medium gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded",
+                    isActive(item.href) && "bg-neutral-200 text-primary",
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
 
       <SidebarUserMenu />
     </div>

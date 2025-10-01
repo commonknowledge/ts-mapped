@@ -1,4 +1,4 @@
-import { DotIcon } from "lucide-react";
+import { DotIcon, MapIcon } from "lucide-react";
 import Image from "next/image";
 import NextLink from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
@@ -29,8 +29,8 @@ export default function MapCard({ map }: { map: MapCardInterface }) {
             </span>
           </CardTitle>
         </CardHeader>
-        {imageUrl ? (
-          <CardContent className="px-0">
+        <CardContent className="px-0">
+          {imageUrl ? (
             <Image
               src={imageUrl}
               alt={name}
@@ -39,12 +39,12 @@ export default function MapCard({ map }: { map: MapCardInterface }) {
               priority
               className="w-full h-40 object-cover"
             />
-          </CardContent>
-        ) : (
-          <CardContent className="px-0 h-full">
-            <div className="h-full w-full bg-muted" />
-          </CardContent>
-        )}
+          ) : (
+            <div className="flex justify-center items-center / w-full aspect-[280/125] bg-muted text-muted-foreground">
+              <MapIcon size={32} />
+            </div>
+          )}
+        </CardContent>
       </Card>
     </NextLink>
   );
