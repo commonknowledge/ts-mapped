@@ -17,6 +17,7 @@ export default function ActionNetworkFields({
       label="API Key"
       id="apiKey"
       hint="From the Start Organizing menu in Action Network, select&nbsp;Details&nbsp;>&nbsp;API & Sync."
+      helpComponent={<p>Help text</p>}
     >
       <Input
         type="text"
