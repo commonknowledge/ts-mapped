@@ -1,5 +1,5 @@
-import MapCard from "@/components/MapCard";
-import type { MapCardInterface } from "@/components/MapCard";
+import MapCard from "@/app/(private)/components/MapCard";
+import type { MapCardInterface } from "@/app/(private)/components/MapCard";
 
 export function MapsList({ maps }: { maps: MapCardInterface[] }) {
   return (

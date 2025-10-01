@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel } from "lucide-react";
 import { useContext } from "react";
-import { MapsList } from "@/components/MapsList";
+import { MapsList } from "@/app/(private)/components/MapsList";
 import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";

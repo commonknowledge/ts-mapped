@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
-import { MapsList } from "@/components/MapsList";
+import { MapsList } from "@/app/(private)/components/MapsList";
 import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";
