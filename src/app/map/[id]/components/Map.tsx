@@ -197,7 +197,7 @@ export default function Map({
     }
 
     const map = mapRef?.current;
-    if (!map || !ready) {
+    if (!map) {
       return;
     }
 
@@ -218,7 +218,7 @@ export default function Map({
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-  }, [mapRef, ready, showControls]);
+  }, [mapRef, showControls]);
 
   return (
     <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
@@ -227,6 +227,11 @@ export default function Map({
           longitude: -4.5481,
           latitude: 54.2361,
           zoom: DEFAULT_ZOOM,
+          padding: {
+            left: CONTROL_PANEL_WIDTH,
+            top: 0,
+            bottom: 0,
+          },
         }}
         ref={mapRef}
         style={{ flexGrow: 1 }}
@@ -263,37 +268,41 @@ export default function Map({
             return;
           }
 
-          setTimeout(() => {
-            const features = placedMarkers?.length
-              ? placedMarkers.map((m) => ({
-                  type: "Feature" as const,
-                  geometry: {
-                    type: "Point" as const,
-                    coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-                  },
-                  properties: {},
-                }))
-              : [];
+          // zoom into available markers by default
+          const features = placedMarkers?.length
+            ? placedMarkers.map((m) => ({
+                type: "Feature" as const,
+                geometry: {
+                  type: "Point" as const,
+                  coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+                },
+                properties: {},
+              }))
+            : [];
 
-            const featureCollection: FeatureCollection<Point> = {
-              type: "FeatureCollection",
-              features,
-            };
+          const featureCollection: FeatureCollection<Point> = {
+            type: "FeatureCollection",
+            features,
+          };
 
-            const [minLng, minLat, maxLng, maxLat] =
-              turf?.bbox(featureCollection);
+          const [minLng, minLat, maxLng, maxLat] =
+            turf?.bbox(featureCollection);
 
-            map.fitBounds(
-              [
-                [minLng, minLat],
-                [maxLng, maxLat],
-              ],
-              {
-                padding: 100,
-                duration: 1000,
+          map.fitBounds(
+            [
+              [minLng, minLat],
+              [maxLng, maxLat],
+            ],
+            {
+              padding: {
+                left: CONTROL_PANEL_WIDTH + 100,
+                right: 100,
+                top: 100,
+                bottom: 100,
               },
-            );
-          }, 1000);
+              duration: 1000,
+            },
+          );
 
           toggleLabelVisibility(viewConfig.showLabels);
 
