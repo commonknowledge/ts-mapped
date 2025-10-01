@@ -2,6 +2,18 @@
 import type { PublicMapColumnType } from "./__generated__/types";
 import type { Geometry } from "geojson";
 
+export interface AreaStat {
+  areaCode: string;
+  value: string | number;
+}
+
+export interface BoundingBox {
+  east: number;
+  north: number;
+  south: number;
+  west: number;
+}
+
 export interface DrawModeChangeEvent {
   mode: string;
 }
