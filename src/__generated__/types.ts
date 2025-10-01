@@ -485,6 +485,7 @@ export type MutationUpdateMapConfigArgs = {
 };
 
 export type MutationUpsertFolderArgs = {
+  hideMarkers?: InputMaybe<Scalars["Boolean"]["input"]>;
   id: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
   name: Scalars["String"]["input"];
@@ -1143,6 +1144,7 @@ export type MapQuery = {
       name: string;
       notes: string;
       position: number;
+      hideMarkers?: boolean | null;
     }> | null;
     placedMarkers?: Array<{
       __typename?: "PlacedMarker";
@@ -1262,6 +1264,7 @@ export type UpsertFolderMutationVariables = Exact<{
   notes: Scalars["String"]["input"];
   mapId: Scalars["String"]["input"];
   position: Scalars["Float"]["input"];
+  hideMarkers?: InputMaybe<Scalars["Boolean"]["input"]>;
 }>;
 
 export type UpsertFolderMutation = {

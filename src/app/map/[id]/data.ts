@@ -120,6 +120,7 @@ export const useMapQuery = (mapId: string | null) =>
             name
             notes
             position
+            hideMarkers
           }
           placedMarkers {
             id
