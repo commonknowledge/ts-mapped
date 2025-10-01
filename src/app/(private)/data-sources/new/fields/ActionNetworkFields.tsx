@@ -13,13 +13,16 @@ export default function ActionNetworkFields({
   if (config.type !== DataSourceType.ActionNetwork) return;
 
   return (
-    <FormFieldWrapper label="API Key" id="apiKey">
+    <FormFieldWrapper
+      label="API Key"
+      id="apiKey"
+      hint="From the Start Organizing menu in Action Network, select&nbsp;Details&nbsp;>&nbsp;API & Sync."
+    >
       <Input
         type="text"
         required
         className="w-full"
         id="apiKey"
-        placeholder="API Key"
         value={config.apiKey || ""}
         onChange={(e) => onChange({ apiKey: e.target.value })}
       />

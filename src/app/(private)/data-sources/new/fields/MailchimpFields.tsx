@@ -16,7 +16,11 @@ export default function MailchimpFields({
 
   return (
     <>
-      <FormFieldWrapper label="List ID" id="listId">
+      <FormFieldWrapper
+        label="Audience ID"
+        id="listId"
+        hint="In the Audience tab, select More&nbsp;options&nbsp;>&nbsp;Audience&nbsp;settings."
+      >
         <Input
           type="text"
           placeholder="5xxxxxxxx6"
@@ -26,7 +30,11 @@ export default function MailchimpFields({
           onChange={(e) => onChange({ listId: e.target.value })}
         />
       </FormFieldWrapper>
-      <FormFieldWrapper label="API Key" id="apiKey">
+      <FormFieldWrapper
+        label="API Key"
+        id="apiKey"
+        hint="Generate a new API key in Profile&nbsp;>&nbsp;Extras."
+      >
         <Input
           type="text"
           required
