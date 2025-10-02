@@ -1,4 +1,11 @@
-import { Boxes, CalendarDays, Database, MapPin, Users } from "lucide-react";
+import {
+  Boxes,
+  CalendarDays,
+  Database,
+  MapPin,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import { DataSourceRecordType } from "@/__generated__/types";
 
 export const dataSourceRecordTypeColors: Record<DataSourceRecordType, string> =
@@ -40,7 +47,7 @@ export const DataSourceRecordTypeIcon = ({
     DataSourceRecordType,
     React.ReactNode
   > = {
-    [DataSourceRecordType.Members]: <Users size={size} />,
+    [DataSourceRecordType.Members]: <UserCheck size={size} />,
     [DataSourceRecordType.Data]: <Database size={size} />,
     [DataSourceRecordType.Events]: <CalendarDays size={size} />,
     [DataSourceRecordType.Locations]: <MapPin size={size} />,

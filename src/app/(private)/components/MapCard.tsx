@@ -1,20 +1,21 @@
-import { DotIcon } from "lucide-react";
+import { DotIcon, MapIcon } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/components/Link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
-import type { RouterOutputs } from "@/services/trpc/react";
 
-export function MapCard({
-  map: { id, name, imageUrl, createdAt },
-}: {
-  map: RouterOutputs["map"]["list"][0];
-}) {
+export interface MapCardInterface {
+  createdAt: Date;
+  href: string;
+  name: string;
+  imageUrl?: string | null | undefined;
+}
+
+export default function MapCard({ map }: { map: MapCardInterface }) {
+  const { createdAt, href, name, imageUrl } = map;
+
   return (
-    <Link href={`/map/${id}`}>
-      <Card
-        className="flex flex-col h-full overflow-hidden py-0 gap-0 shadow-lg hover:shadow-xl  bg-transparent hover:bg-accent transition-all duration-300s group"
-        key={id}
-      >
+    <Link href={href}>
+      <Card className="flex flex-col h-full overflow-hidden py-0 gap-0 shadow-lg hover:shadow-xl  bg-transparent hover:bg-accent transition-all duration-300s group">
         <CardHeader className="px-0">
           <CardTitle className="flex items-centers p-4">
             {name}
@@ -28,8 +29,8 @@ export function MapCard({
             </span>
           </CardTitle>
         </CardHeader>
-        {imageUrl ? (
-          <CardContent className="px-0">
+        <CardContent className="px-0">
+          {imageUrl ? (
             <Image
               src={imageUrl}
               alt={name}
@@ -38,12 +39,12 @@ export function MapCard({
               priority
               className="w-full h-40 object-cover"
             />
-          </CardContent>
-        ) : (
-          <CardContent className="px-0 h-full">
-            <div className="h-full w-full bg-muted" />
-          </CardContent>
-        )}
+          ) : (
+            <div className="flex justify-center items-center / w-full aspect-[280/125] bg-muted text-muted-foreground">
+              <MapIcon size={32} />
+            </div>
+          )}
+        </CardContent>
       </Card>
     </Link>
   );
