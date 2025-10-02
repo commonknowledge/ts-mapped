@@ -188,6 +188,39 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
+  const toggleDrawVisibility = useCallback(
+    (visible: boolean) => {
+      const map = mapRef?.current;
+
+      // all draw layers
+      const drawLayerIds = [
+        "gl-draw-polygon-fill.cold",
+        "gl-draw-polygon-stroke.cold",
+        "gl-draw-polygon-and-line-vertex-halo-active.cold",
+        "gl-draw-polygon-and-line-vertex-active.cold",
+      ];
+
+      if (map && styleLoaded) {
+        // draw layers that actually exist on our map
+        const style = map.getStyle();
+        const layerIds = style.layers
+          .filter((layer) => drawLayerIds.includes(layer.id))
+          .map((layer) => layer.id);
+
+        layerIds.forEach((id) => {
+          map
+            .getMap()
+            .setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+        });
+      }
+    },
+    [mapRef, styleLoaded],
+  );
+
+  useEffect(() => {
+    toggleDrawVisibility(viewConfig.showTurf);
+  }, [viewConfig.showTurf, toggleDrawVisibility]);
+
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
