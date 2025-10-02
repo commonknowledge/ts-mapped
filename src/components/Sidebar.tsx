@@ -1,6 +1,12 @@
 "use client";
 
-import { Clock2, DatabaseIcon, LockIcon, MapIcon } from "lucide-react";
+import {
+  BookOpenIcon,
+  Clock2,
+  DatabaseIcon,
+  LockIcon,
+  MapIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
@@ -32,9 +38,14 @@ export default function Sidebar() {
           icon: <MapIcon className="w-4 h-4" />,
         },
         {
-          label: "Data sources",
+          label: "Your data sources",
           href: "/data-sources",
           icon: <DatabaseIcon className="w-4 h-4" />,
+        },
+        {
+          label: "Movement data library",
+          href: "/data-library",
+          icon: <BookOpenIcon className="w-4 h-4" />,
         },
       ]
     : [
@@ -44,9 +55,14 @@ export default function Sidebar() {
           icon: <Clock2 className="w-4 h-4" />,
         },
         {
-          label: "Data sources",
+          label: "Your data sources",
           href: "/data-sources",
           icon: <DatabaseIcon className="w-4 h-4" />,
+        },
+        {
+          label: "Movement data library",
+          href: "/data-library",
+          icon: <BookOpenIcon className="w-4 h-4" />,
         },
       ];
 
