@@ -3,7 +3,7 @@ export interface Feature {
   title: string;
   subtitle?: string;
   slug: { current: string };
-  description?: string;
+  explainer?: RichTextBlock[];
   icon?: string;
   order?: number;
   isActive?: boolean;
