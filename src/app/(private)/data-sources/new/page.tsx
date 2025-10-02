@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { toast } from "sonner";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import FormFieldWrapper, {
   FormFieldError,
 } from "@/components/forms/FormFieldWrapper";
@@ -134,6 +135,9 @@ export default function NewDataSourcePage() {
                 <SelectContent>
                   {Object.keys(DataSourceRecordTypeLabels).map((type) => (
                     <SelectItem key={type} value={type}>
+                      <DataSourceRecordTypeIcon
+                        type={type as DataSourceRecordType}
+                      />
                       {DataSourceRecordTypeLabels[type as DataSourceRecordType]}
                     </SelectItem>
                   ))}
