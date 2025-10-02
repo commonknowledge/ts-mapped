@@ -30,7 +30,7 @@ import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import type { FeatureCollection, Point } from "geojson";
+import type { Feature, FeatureCollection, Point } from "geojson";
 
 export default function Map({
   onSourceLoad,
@@ -221,7 +221,7 @@ export default function Map({
     });
   }, [mapRef, showControls]);
 
-  const getAllFeatures = () => {
+  const getAllFeatures = (): Feature<Point>[] => {
     const mappedPlacedMarkers = placedMarkers?.length
       ? placedMarkers.map((m) => ({
           type: "Feature" as const,
@@ -233,22 +233,17 @@ export default function Map({
         }))
       : [];
 
-    const memberMarkers = markerQueries?.data.find(
-      (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
+    const memberMarkers =
+      markerQueries?.data.find(
+        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
+      )?.markers ?? [];
+
+    const otherMarkers = mapConfig.markerDataSourceIds.flatMap(
+      (id) =>
+        markerQueries?.data.find((dsm) => dsm.dataSourceId === id)?.markers ??
+        [],
     );
-    const mappedMemberMarkers = memberMarkers ? memberMarkers.markers : [];
-
-    const otherMarkers = mapConfig.markerDataSourceIds.map((id) =>
-      markerQueries?.data.find((dsm) => dsm.dataSourceId === id),
-    );
-
-    const mappedOtherMarkers = otherMarkers.flatMap((i) => i?.markers || []);
-
-    return [
-      ...mappedPlacedMarkers,
-      ...mappedMemberMarkers,
-      ...mappedOtherMarkers,
-    ];
+    return [...mappedPlacedMarkers, ...memberMarkers, ...otherMarkers];
   };
 
   return (
