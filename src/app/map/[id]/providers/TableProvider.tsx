@@ -1,9 +1,10 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useContext, useMemo, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
-import { useDataRecordsQuery } from "../data";
+import { useTRPC } from "@/services/trpc/react";
 import type { ReactNode } from "react";
 
 const TableProvider = ({ children }: { children: ReactNode }) => {
@@ -21,13 +22,19 @@ const TableProvider = ({ children }: { children: ReactNode }) => {
     [selectedDataSourceId, view?.dataSourceViews],
   );
 
-  const dataRecordsQuery = useDataRecordsQuery({
-    dataSourceId: selectedDataSourceId,
-    page: tablePage,
-    search: dataSourceView?.search,
-    filter: dataSourceView?.filter,
-    sort: dataSourceView?.sort,
-  });
+  const trpc = useTRPC();
+  const dataRecordsQuery = useQuery(
+    trpc.dataRecord.list.queryOptions(
+      {
+        dataSourceId: selectedDataSourceId,
+        page: tablePage,
+        search: dataSourceView?.search,
+        filter: dataSourceView?.filter,
+        sort: dataSourceView?.sort,
+      },
+      { enabled: Boolean(selectedDataSourceId) },
+    ),
+  );
 
   const handleDataSourceSelect = (dataSourceId: string) => {
     if (selectedDataSourceId === dataSourceId) {

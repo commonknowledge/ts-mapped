@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { v4 as uuidv4 } from "uuid";
@@ -9,11 +10,8 @@ import {
   ViewConfig,
 } from "@/app/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
-import {
-  useDeleteMapViewMutation,
-  useMapQuery,
-  useUpdateMapConfigMutation,
-} from "../data";
+import { useTRPC } from "@/services/trpc/react";
+import { useDeleteMapViewMutation, useUpdateMapConfigMutation } from "../data";
 import { getNewLastPosition } from "../utils";
 import type { View } from "../types";
 import type { BoundingBoxInput } from "@/__generated__/types";
@@ -42,12 +40,15 @@ export default function MapProvider({
   const [viewId, setViewId] = useState<string | null>(initialViewId || null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [pinDropMode, setPinDropMode] = useState(false);
-  const [showControls, setShowControls] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [ready, setReady] = useState(false);
   const [configDirty, setConfigDirty] = useState(false);
 
-  /* GraphQL Data */
-  const mapQuery = useMapQuery(mapId);
+  /* Server Data */
+  const trpc = useTRPC();
+  const mapQuery = useQuery(
+    trpc.map.get.queryOptions({ mapId }, { refetchOnMount: "always" }),
+  );
 
   const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
     setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
@@ -89,7 +90,13 @@ export default function MapProvider({
 
   const [_saveMapConfig] = useUpdateMapConfigMutation();
   const saveMapConfig = useCallback(async () => {
-    await _saveMapConfig({ variables: { mapId, mapConfig, views } });
+    await _saveMapConfig({
+      variables: {
+        mapId,
+        mapConfig,
+        views,
+      },
+    });
     setDirtyViewIds([]);
     setConfigDirty(false);
   }, [_saveMapConfig, mapConfig, mapId, views]);
@@ -98,20 +105,18 @@ export default function MapProvider({
 
   /* Update local map state when saved views are loaded from the server */
   const { data: mapData } = mapQuery;
-
   useEffect(() => {
-    setMapName(mapData?.map?.name || "Untitled");
+    setMapName(mapData?.name || "Untitled");
 
-    if (mapData?.map?.config) {
-      setMapConfig(new MapConfig(mapData.map.config));
+    if (mapData?.config) {
+      setMapConfig(new MapConfig(mapData.config));
     }
 
-    if (mapData?.map?.views && mapData.map.views.length > 0) {
+    if (mapData?.views && mapData.views.length > 0) {
       const nextView =
-        mapData.map.views.find((v) => v.id === initialViewId) ||
-        mapData.map.views[0];
+        mapData.views.find((v) => v.id === initialViewId) || mapData.views[0];
       setViewId(nextView.id);
-      setViews(mapData.map.views);
+      setViews(mapData.views);
     } else {
       const newView = {
         id: uuidv4(),
@@ -193,7 +198,7 @@ export default function MapProvider({
         updateViewConfig,
         zoom,
         setZoom,
-        mapQuery,
+        mapQuery: mapQuery,
         pinDropMode,
         setPinDropMode,
         ready,

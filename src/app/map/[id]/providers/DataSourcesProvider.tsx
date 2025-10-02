@@ -5,7 +5,6 @@ import { useCallback, useContext } from "react";
 
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";
 import type { ReactNode } from "react";
 
@@ -15,15 +14,10 @@ export default function DataSourcesProvider({
   children: ReactNode;
 }) {
   const { mapConfig, viewConfig } = useContext(MapContext);
-  const { organisationId } = useContext(OrganisationsContext);
 
   const trpc = useTRPC();
-
   const { data: dataSources, isPending } = useQuery(
-    trpc.dataSource.byOrganisation.queryOptions(
-      { organisationId: organisationId || "" },
-      { enabled: Boolean(organisationId) },
-    ),
+    trpc.dataSource.listReadable.queryOptions(),
   );
 
   const getDataSources = useCallback(() => {

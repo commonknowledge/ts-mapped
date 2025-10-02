@@ -3,6 +3,7 @@ import { useContext, useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/__generated__/types";
@@ -18,21 +19,22 @@ export default function FilterMarkers() {
   const { mapRef, mapConfig, view } = useContext(MapContext);
   const { markerQueries, placedMarkers, turfs } =
     useContext(MarkerAndTurfContext);
+  const { selectedDataSourceId } = useContext(TableContext);
 
   const memberMarkers = useMemo(
     () =>
-      markerQueries?.data?.find(
-        (ds) => ds.dataSourceId === mapConfig.membersDataSourceId,
+      markerQueries?.data.find(
+        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
       ),
-    [mapConfig.membersDataSourceId, markerQueries?.data],
+    [markerQueries, mapConfig.membersDataSourceId],
   );
 
-  const dataSourceMarkers = useMemo(
+  const otherMarkers = useMemo(
     () =>
       mapConfig.markerDataSourceIds.map((id) =>
-        markerQueries?.data?.find((ds) => ds.dataSourceId === id),
+        markerQueries?.data.find((dsm) => dsm.dataSourceId === id),
       ),
-    [mapConfig.markerDataSourceIds, markerQueries?.data],
+    [markerQueries, mapConfig.markerDataSourceIds],
   );
 
   const { memberFilterMarkers, otherFilterMarkers } = useMemo(() => {
@@ -66,10 +68,10 @@ export default function FilterMarkers() {
             const allMarkers =
               filterMarker.dataSourceId === mapConfig.membersDataSourceId
                 ? memberMarkers
-                : dataSourceMarkers.find(
+                : otherMarkers.find(
                     (dsm) => dsm?.dataSourceId === filterMarker.dataSourceId,
                   );
-            const marker = allMarkers?.markers.features.find(
+            const marker = allMarkers?.markers?.find(
               (feature) =>
                 feature.properties[MARKER_ID_KEY] === filterMarker.dataRecordId,
             );
@@ -100,9 +102,9 @@ export default function FilterMarkers() {
       otherFilterMarkers,
     };
   }, [
-    dataSourceMarkers,
     mapConfig.membersDataSourceId,
     memberMarkers,
+    otherMarkers,
     placedMarkers,
     view?.dataSourceViews,
   ]);
@@ -121,6 +123,9 @@ export default function FilterMarkers() {
 
   // Pan to markers when the table view is opened / filters changed
   useEffect(() => {
+    if (!selectedDataSourceId) {
+      return;
+    }
     if (
       memberFilterMarkers.length ||
       otherFilterMarkers.length ||
@@ -138,7 +143,13 @@ export default function FilterMarkers() {
         });
       }
     }
-  }, [mapRef, memberFilterMarkers, otherFilterMarkers, filterTurfs]);
+  }, [
+    mapRef,
+    memberFilterMarkers,
+    otherFilterMarkers,
+    filterTurfs,
+    selectedDataSourceId,
+  ]);
 
   return (
     <>

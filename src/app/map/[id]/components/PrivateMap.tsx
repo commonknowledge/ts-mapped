@@ -23,7 +23,7 @@ import MapTable from "./table/MapTable";
 
 export default function PrivateMap() {
   const { mapQuery, mapRef, showControls } = useContext(MapContext);
-  const { areaStatsLoading, areaStatsQuery, setLastLoadedSourceId } =
+  const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
 
   const { dataSourcesLoading } = useContext(DataSourcesContext);
@@ -43,15 +43,14 @@ export default function PrivateMap() {
     }
   }, [mapRef, selectedDataSourceId]);
 
-  if (!mapQuery || mapQuery.loading) {
+  if (!mapQuery || mapQuery.isPending) {
     return <Loading />;
   }
 
   const loading =
-    areaStatsLoading ||
     dataSourcesLoading ||
-    areaStatsQuery?.loading ||
-    markerQueries?.loading;
+    areaStatsQuery?.isFetching ||
+    markerQueries?.isFetching;
 
   const paddedStyle = showControls
     ? { paddingLeft: `${CONTROL_PANEL_WIDTH}px` }

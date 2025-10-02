@@ -11,12 +11,13 @@ import type {
   AreaSetGroupCode,
   BoundingBoxInput,
   MapConfigInput,
-  MapQuery,
-  MapQueryVariables,
   MapViewConfigInput,
   VisualisationType,
 } from "@/__generated__/types";
-import type { QueryResult } from "@apollo/client";
+import type { AppRouter } from "@/server/trpc/router";
+import type { RouterOutputs } from "@/services/trpc/react";
+import type { UseQueryResult } from "@tanstack/react-query";
+import type { TRPCClientErrorLike } from "@trpc/client";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 
@@ -111,7 +112,10 @@ export const MapContext = createContext<{
   setShowControls: (showControls: boolean) => void;
 
   /* GraphQL Queries */
-  mapQuery: QueryResult<MapQuery, MapQueryVariables> | null;
+  mapQuery: UseQueryResult<
+    RouterOutputs["map"]["get"],
+    TRPCClientErrorLike<AppRouter>
+  > | null;
 }>({
   mapId: null,
   mapRef: null,
@@ -138,6 +142,6 @@ export const MapContext = createContext<{
   setPinDropMode: () => null,
   ready: false,
   setReady: () => null,
-  showControls: false,
+  showControls: true,
   setShowControls: () => null,
 });

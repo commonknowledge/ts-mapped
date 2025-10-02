@@ -1,11 +1,12 @@
 "use client";
 
+import { useQueries } from "@tanstack/react-query";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { useMarkerQueries } from "../data";
+import { useTRPC } from "@/services/trpc/react";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/__generated__/types";
@@ -30,31 +31,45 @@ export default function MarkerAndTurfProvider({
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
   /* GraphQL Data */
-  const { membersDataSourceId, markerDataSourceIds } = useMemo(() => {
-    let membersDataSourceId = mapConfig.membersDataSourceId || "";
-    let markerDataSourceIds = mapConfig.markerDataSourceIds;
-
+  const dataSourceIds = useMemo(() => {
+    if (!publicMap) {
+      return mapConfig.getDataSourceIds();
+    }
     // If a public map is being displayed, don't fetch markers that aren't included
-    if (publicMap) {
-      if (
-        !publicMap.dataSourceConfigs.some(
-          (dsc) => dsc.dataSourceId === membersDataSourceId,
-        )
-      ) {
-        membersDataSourceId = "";
-      }
-      markerDataSourceIds = markerDataSourceIds.filter((id) =>
+    return mapConfig
+      .getDataSourceIds()
+      .filter((id) =>
         publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
       );
-    }
+  }, [mapConfig, publicMap]);
 
-    return { membersDataSourceId, markerDataSourceIds };
-  }, [mapConfig.markerDataSourceIds, mapConfig.membersDataSourceId, publicMap]);
-
-  const markerQueries = useMarkerQueries({
-    membersDataSourceId,
-    markerDataSourceIds,
-    dataSourceViews: view?.dataSourceViews || [],
+  const trpc = useTRPC();
+  // Using the `combine` option in this useQueries call makes `markerQueries`
+  // only update when the data updates. This prevents infinite loops
+  // when `markerQueries` is used in useEffect hooks.
+  const markerQueries = useQueries({
+    queries: dataSourceIds.map((dataSourceId) => {
+      const dsv = view?.dataSourceViews.find(
+        (dsv) => dsv.dataSourceId === dataSourceId,
+      );
+      return trpc.dataRecord.markers.queryOptions(
+        {
+          dataSourceId,
+          filter: dsv?.filter,
+          search: dsv?.search,
+        },
+        { enabled: Boolean(dataSourceId) },
+      );
+    }),
+    combine: (results) => {
+      return {
+        data: results.map((result, i) => ({
+          dataSourceId: dataSourceIds[i],
+          markers: result.data || [],
+        })),
+        isFetching: results.some((result) => result.isFetching),
+      };
+    },
   });
 
   /* Persisted map features */
@@ -88,14 +103,14 @@ export default function MarkerAndTurfProvider({
   } = useTurfs(mapId);
 
   useEffect(() => {
-    if (mapQuery?.data?.map?.folders) {
-      setFolders(mapQuery?.data?.map.folders);
+    if (mapQuery?.data?.folders) {
+      setFolders(mapQuery?.data?.folders);
     }
-    if (mapQuery?.data?.map?.placedMarkers) {
-      setPlacedMarkers(mapQuery?.data?.map.placedMarkers);
+    if (mapQuery?.data?.placedMarkers) {
+      setPlacedMarkers(mapQuery?.data?.placedMarkers);
     }
-    if (mapQuery?.data?.map?.turfs) {
-      setTurfs(mapQuery?.data.map.turfs);
+    if (mapQuery?.data?.turfs) {
+      setTurfs(mapQuery?.data.turfs);
     }
   }, [mapQuery, setFolders, setPlacedMarkers, setTurfs]);
 

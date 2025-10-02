@@ -8,15 +8,43 @@ import {
   VisualisationType,
 } from "@/server/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {
   createMap,
   findMapsByOrganisationId,
   updateMap,
 } from "@/server/repositories/Map";
 import { upsertMapView } from "@/server/repositories/MapView";
-import { organisationProcedure, router } from "../index";
+import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
+import { findTurfsByMapId } from "@/server/repositories/Turf";
+import { db } from "@/server/services/database";
+import { mapReadProcedure, organisationProcedure, router } from "../index";
 
 export const mapRouter = router({
+  get: mapReadProcedure.query(async ({ ctx }) => {
+    // TODO: move this back into the repository after the apollo migration
+    // (in place of findMapViewsByMapId)
+    const mapViewQuery = db
+      .selectFrom("mapView")
+      .where("mapId", "=", ctx.map.id)
+      .select(["id", "config", "dataSourceViews", "name", "position"])
+      .orderBy("position asc")
+      .orderBy("id asc");
+
+    const [folders, placedMarkers, turfs, views] = await Promise.all([
+      findFoldersByMapId(ctx.map.id),
+      findPlacedMarkersByMapId(ctx.map.id),
+      findTurfsByMapId(ctx.map.id),
+      mapViewQuery.execute(),
+    ]);
+    return {
+      ...ctx.map,
+      folders,
+      placedMarkers,
+      turfs,
+      views,
+    };
+  }),
   list: organisationProcedure.query(async ({ ctx }) => {
     return findMapsByOrganisationId(ctx.organisation.id);
   }),

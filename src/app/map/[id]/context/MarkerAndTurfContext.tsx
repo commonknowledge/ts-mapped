@@ -1,6 +1,6 @@
 import { createContext } from "react";
-import type { MarkerQueriesResult } from "../types";
 import type { Folder, PlacedMarker, Turf } from "@/__generated__/types";
+import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
 
 export const MarkerAndTurfContext = createContext<{
@@ -35,7 +35,13 @@ export const MarkerAndTurfContext = createContext<{
   updateTurf: (turf: Turf) => void;
 
   /* GraphQL Queries */
-  markerQueries: MarkerQueriesResult | null;
+  markerQueries: {
+    data: {
+      dataSourceId: string;
+      markers: PointFeature[];
+    }[];
+    isFetching: boolean;
+  } | null;
 
   /* helpers */
   handleAddArea: () => void;

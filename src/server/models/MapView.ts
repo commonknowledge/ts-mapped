@@ -19,6 +19,7 @@ export enum FilterType {
   MULTI = "MULTI",
   TEXT = "TEXT",
 }
+
 export const filterTypes = Object.values(FilterType);
 
 const baseRecordFilterSchema = z.object({
@@ -38,7 +39,7 @@ type RecordFilterWithChildren = z.infer<typeof baseRecordFilterSchema> & {
   children?: RecordFilterWithChildren[] | null;
 };
 
-const recordFilterSchema: z.ZodType<RecordFilterWithChildren> =
+export const recordFilterSchema: z.ZodType<RecordFilterWithChildren> =
   baseRecordFilterSchema.extend({
     children: z
       .lazy(() => recordFilterSchema.array())
@@ -46,7 +47,7 @@ const recordFilterSchema: z.ZodType<RecordFilterWithChildren> =
       .nullable(),
   });
 
-export const sortSchema = z.object({
+export const recordSortSchema = z.object({
   name: z.string(),
   desc: z.boolean(),
 });
@@ -55,7 +56,7 @@ const dataSourceViewSchema = z.object({
   dataSourceId: z.string(),
   filter: recordFilterSchema,
   search: z.string(),
-  sort: z.array(sortSchema),
+  sort: z.array(recordSortSchema),
 });
 
 export enum VisualisationType {
@@ -71,6 +72,7 @@ export enum CalculationType {
   Average = "Average",
 }
 export const calculationTypes = Object.values(CalculationType);
+export const calculationType = z.nativeEnum(CalculationType);
 
 export enum ColorScheme {
   RedBlue = "RedBlue",
@@ -106,6 +108,7 @@ export const mapViewConfigSchema = z.object({
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
 });
+
 export const mapViewSchema = z.object({
   id: z.string(),
   name: z.string(),
