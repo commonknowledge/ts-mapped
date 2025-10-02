@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock2, DatabaseIcon } from "lucide-react";
+import { BookOpenIcon, Clock2, DatabaseIcon } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link } from "@/components/Link";
@@ -19,9 +19,14 @@ export default function Sidebar() {
       icon: <Clock2 className="w-4 h-4" />,
     },
     {
-      label: "Data sources",
+      label: "Your data sources",
       href: "/data-sources",
       icon: <DatabaseIcon className="w-4 h-4" />,
+    },
+    {
+      label: "Movement data library",
+      href: "/data-library",
+      icon: <BookOpenIcon className="w-4 h-4" />,
     },
   ];
 
