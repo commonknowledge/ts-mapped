@@ -5,7 +5,7 @@ export default function FormFieldWrapper({
   label,
   children,
   error,
-  helpComponent,
+  helpText,
   hint,
   id,
   isHorizontal = false,
@@ -13,8 +13,8 @@ export default function FormFieldWrapper({
   label: string;
   children: React.ReactNode;
   error?: string | string[] | null;
-  helpComponent?: React.ReactNode;
-  hint?: React.ReactNode;
+  helpText?: string | React.ReactNode;
+  hint?: string | React.ReactNode;
   id?: string;
   isHorizontal?: boolean;
 }) {
@@ -32,9 +32,9 @@ export default function FormFieldWrapper({
           error={typeof error === "string" ? error : error.join(", ")}
         />
       )}
-      {helpComponent && (
+      {helpText && (
         <div className="absolute top-0 right-0">
-          <HelpPopover>{helpComponent}</HelpPopover>
+          <HelpPopover>{helpText}</HelpPopover>
         </div>
       )}
     </div>
