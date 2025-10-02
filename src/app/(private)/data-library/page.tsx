@@ -47,7 +47,7 @@ export default function DataLibraryPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <PageHeader
-          title="Movement Data Library"
+          title="Movement data library"
           action={
             <Button variant="default" size="lg" asChild={true}>
               <Link href="mailto:mapped@commonknowledge.coop?subject=Movement Data Library request">
