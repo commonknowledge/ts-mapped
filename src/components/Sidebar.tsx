@@ -70,7 +70,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      {/* Prevent hydration mismatch */}
+      {/* Prevent hydration mismatch caused by the feature flag */}
       {mounted && (
         <nav className="flex-1 p-4">
           <ul className="space-y-2">

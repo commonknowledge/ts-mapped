@@ -1,6 +1,6 @@
 import { DotIcon, MapIcon } from "lucide-react";
 import Image from "next/image";
-import NextLink from "next/link";
+import { Link } from "@/components/Link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 
 export interface MapCardInterface {
@@ -14,7 +14,7 @@ export default function MapCard({ map }: { map: MapCardInterface }) {
   const { createdAt, href, name, imageUrl } = map;
 
   return (
-    <NextLink href={href}>
+    <Link href={href}>
       <Card className="flex flex-col h-full overflow-hidden py-0 gap-0 shadow-lg hover:shadow-xl  bg-transparent hover:bg-accent transition-all duration-300s group">
         <CardHeader className="px-0">
           <CardTitle className="flex items-centers p-4">
@@ -46,6 +46,6 @@ export default function MapCard({ map }: { map: MapCardInterface }) {
           )}
         </CardContent>
       </Card>
-    </NextLink>
+    </Link>
   );
 }
