@@ -20,6 +20,9 @@ export default function Sidebar() {
 
   const [mounted, setMounted] = useState(false);
   const showPublicMaps = useFeatureFlagEnabled("public-maps");
+  const showMovementDataLibrary = useFeatureFlagEnabled(
+    "movement-data-library",
+  );
 
   useEffect(() => setMounted(true), []);
 
@@ -42,11 +45,6 @@ export default function Sidebar() {
           href: "/data-sources",
           icon: <DatabaseIcon className="w-4 h-4" />,
         },
-        {
-          label: "Movement data library",
-          href: "/data-library",
-          icon: <BookOpenIcon className="w-4 h-4" />,
-        },
       ]
     : [
         {
@@ -59,12 +57,15 @@ export default function Sidebar() {
           href: "/data-sources",
           icon: <DatabaseIcon className="w-4 h-4" />,
         },
-        {
-          label: "Movement data library",
-          href: "/data-library",
-          icon: <BookOpenIcon className="w-4 h-4" />,
-        },
       ];
+
+  if (showMovementDataLibrary) {
+    navItems.push({
+      label: "Movement data library",
+      href: "/data-library",
+      icon: <BookOpenIcon className="w-4 h-4" />,
+    });
+  }
 
   return (
     <div className="w-64 h-screen bg-primary-foreground border-r border-neutral-200 flex flex-col">
