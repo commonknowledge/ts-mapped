@@ -152,7 +152,12 @@ function GoogleSheetsFieldsWithOAuth({
   if (!config.oAuthCredentials) {
     return (
       <div className="mt-4">
-        <Button type="button" onClick={onClickConnect} disabled={loading}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onClickConnect}
+          disabled={loading}
+        >
           Connect to Google Sheets
         </Button>
       </div>
