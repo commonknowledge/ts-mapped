@@ -4,11 +4,13 @@ import { gql, useMutation } from "@apollo/client";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
+import { DataSourceTypeLabels } from "@/labels";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import MapViews from "./MapViews";
@@ -19,19 +21,38 @@ import type {
   UpdateMapImageMutation,
   UpdateMapImageMutationVariables,
 } from "@/__generated__/types";
+import type { DataSourceType } from "@/server/models/DataSource";
 
 /**
  * TODO: Move complex logic into MapProvider
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
+  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view, mapConfig } =
     useContext(MapContext);
+  const { getDataSourceById } = useContext(DataSourcesContext);
+
   const showPublishButton = useFeatureFlagEnabled("public-maps");
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
   const [crmSaveLoading, setCRMSaveLoading] = useState(false);
+
+  const syncLabel = useMemo(() => {
+    const dataSourceIds = mapConfig.getDataSourceIds() ?? [];
+    if (dataSourceIds.length === 0) return "";
+
+    if (dataSourceIds.length === 1) {
+      const CRMType = getDataSourceById(dataSourceIds[0])?.config?.type as
+        | DataSourceType
+        | undefined;
+      return CRMType
+        ? `Sync with ${DataSourceTypeLabels[CRMType]}`
+        : "Sync with CRMs";
+    }
+
+    return "Sync with CRMs";
+  }, [getDataSourceById, mapConfig]);
 
   const [updateMapName] = useMutation(gql`
     mutation UpdateMapName($id: String!, $mapInput: MapInput!) {
@@ -225,14 +246,18 @@ export default function PrivateMapNavbar() {
               >
                 Save view
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onClickCRMSave()}
-                disabled={crmSaveLoading}
-              >
-                Save to CRM
-              </Button>
+
+              {syncLabel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onClickCRMSave()}
+                  disabled={crmSaveLoading}
+                >
+                  {syncLabel}
+                </Button>
+              )}
+
               {showPublishButton && view && (
                 <Button
                   type="button"
