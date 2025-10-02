@@ -1,5 +1,12 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/auth";
+import { DesktopOnly } from "@/components/layout/DesktopOnly";
+import Sidebar from "@/components/Sidebar";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mapped - Dashboard",
+};
 
 export default async function PrivateLayout({
   children,
@@ -13,14 +20,11 @@ export default async function PrivateLayout({
   }
 
   return (
-    <>
-      <div className="lg:hidden flex h-screen w-full justify-center items-center p-8 text-center">
-        <p className=" max-w-[40ch] font-medium text-base">
-          Your screen is too small to use this application. Please use a device
-          with a larger screen.
-        </p>
+    <DesktopOnly>
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 overflow-auto p-10  w-full">{children}</div>
       </div>
-      <div className="lg:block hidden">{children}</div>
-    </>
+    </DesktopOnly>
   );
 }

@@ -9,6 +9,7 @@ export const folderSchema = z.object({
   notes: z.string(),
   position: z.number(),
   mapId: z.string(),
+  hideMarkers: z.boolean().nullish(),
 });
 
 export type Folder = z.infer<typeof folderSchema>;

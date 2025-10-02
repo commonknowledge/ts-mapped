@@ -193,8 +193,8 @@ function applySort<T>(
 
 export function streamDataRecordsByDataSource(
   dataSourceId: string,
-  filter: RecordFilterInput | null,
-  search: string,
+  filter: RecordFilterInput | null | undefined,
+  search: string | undefined,
 ) {
   return db
     .selectFrom("dataRecord")
