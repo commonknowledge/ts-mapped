@@ -87,7 +87,7 @@ export default function SidebarUserMenu() {
                 {getOrganisation()?.name}
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent className="flex flex-col">
                   {organisations.map((o) => (
                     <button
                       type="button"
