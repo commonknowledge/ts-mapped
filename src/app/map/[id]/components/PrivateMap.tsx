@@ -15,7 +15,6 @@ import {
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
 import VisualisationPanel from "./controls/visualisation/VisualisationPanel";
-import Legend from "./Legend";
 import Loading from "./Loading";
 import Map from "./Map";
 import PrivateMapNavbar from "./PrivateMapNavbar";
@@ -70,7 +69,6 @@ export default function PrivateMap() {
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
-              <Legend />
             </ResizablePanel>
             {selectedDataSourceId && (
               <>
