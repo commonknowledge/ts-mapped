@@ -25,13 +25,15 @@ import type {
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
+  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view, mapConfig } =
     useContext(MapContext);
   const showPublishButton = useFeatureFlagEnabled("public-maps");
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
   const [crmSaveLoading, setCRMSaveLoading] = useState(false);
+
+  const hasConnectedCRM = Boolean(mapConfig.getDataSourceIds()?.length);
 
   const [updateMapName] = useMutation(gql`
     mutation UpdateMapName($id: String!, $mapInput: MapInput!) {
@@ -225,14 +227,18 @@ export default function PrivateMapNavbar() {
               >
                 Save view
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onClickCRMSave()}
-                disabled={crmSaveLoading}
-              >
-                Save to CRM
-              </Button>
+
+              {hasConnectedCRM && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onClickCRMSave()}
+                  disabled={crmSaveLoading}
+                >
+                  Save to CRM
+                </Button>
+              )}
+
               {showPublishButton && view && (
                 <Button
                   type="button"
