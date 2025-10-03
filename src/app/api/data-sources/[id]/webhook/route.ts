@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { findDataSourceById } from "@/server/repositories/DataSource";
+import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import { batchAsync } from "@/server/utils";
@@ -35,19 +36,27 @@ const handler = async (
   const batches = batchAsync(externalRecordIds, DATA_RECORDS_JOB_BATCH_SIZE);
 
   for await (const batch of batches) {
-    if (dataSource.autoImport) {
-      await enqueue("importDataRecords", {
-        dataSourceId,
-        externalRecordIds: batch,
-      });
-    }
+    await db
+      .updateTable("dataRecord")
+      .where("externalId", "in", batch)
+      .where("dataSourceId", "=", dataSourceId)
+      .set({
+        needsEnrich: dataSource.autoEnrich,
+        needsImport: dataSource.autoImport,
+      })
+      .execute();
+  }
 
-    if (dataSource.autoEnrich) {
-      await enqueue("enrichDataRecords", {
-        dataSourceId,
-        externalRecordIds: batch,
-      });
-    }
+  if (dataSource.autoImport) {
+    await enqueue("importDataRecords", dataSourceId, {
+      dataSourceId,
+    });
+  }
+
+  if (dataSource.autoEnrich) {
+    await enqueue("enrichDataRecords", dataSourceId, {
+      dataSourceId,
+    });
   }
 
   return new NextResponse("OK");

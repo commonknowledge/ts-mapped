@@ -1,21 +1,26 @@
+import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { findDataSourceById } from "@/server/repositories/DataSource";
+import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
+import { batch } from "../utils";
 import { enrichBatch } from "./enrichDataSource";
 
 const enrichDataRecords = async (args: object | null): Promise<boolean> => {
-  if (
-    !args ||
-    !("dataSourceId" in args) ||
-    !("externalRecordIds" in args) ||
-    !Array.isArray(args.externalRecordIds)
-  ) {
+  if (!args || !("dataSourceId" in args)) {
     return false;
   }
   const dataSourceId = String(args.dataSourceId);
 
+  const dataRecords = await db
+    .selectFrom("dataRecord")
+    .select(["id", "externalId"])
+    .where("dataSourceId", "=", dataSourceId)
+    .where("needsEnrich", "=", true)
+    .execute();
+
   logger.info(
-    `Enriching ${args.externalRecordIds.length} records for data source ${dataSourceId}`,
+    `Enriching ${dataRecords.length} records for data source ${dataSourceId}`,
   );
 
   const dataSource = await findDataSourceById(dataSourceId);
@@ -32,26 +37,41 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
     return false;
   }
 
-  try {
-    const records = await adaptor.fetchByExternalId(
-      args.externalRecordIds as string[],
-    );
+  const batches = batch(dataRecords, DATA_RECORDS_JOB_BATCH_SIZE);
 
-    const enrichedRecords = await enrichBatch(records, dataSource);
-    await adaptor.updateRecords(enrichedRecords);
+  for (const batch of batches) {
+    try {
+      const records = await adaptor.fetchByExternalId(
+        batch.map((r) => r.externalId),
+      );
 
-    logger.info(
-      `Enriched ${records.length} data source records for ${dataSource.id}: ${dataSource.name}`,
-    );
-    return true;
-  } catch (error) {
-    logger.error(
-      `Failed to enrich records for ${dataSource.config.type} ${dataSourceId}`,
-      { error },
-    );
+      const enrichedRecords = await enrichBatch(records, dataSource);
+      await adaptor.updateRecords(enrichedRecords);
+
+      await db
+        .updateTable("dataRecord")
+        .set({ needsEnrich: false })
+        .where(
+          "id",
+          "in",
+          batch.map((r) => r.id),
+        )
+        .where("dataSourceId", "=", dataSourceId)
+        .execute();
+
+      logger.info(
+        `Enriched ${records.length} data source records for ${dataSource.id}: ${dataSource.name}`,
+      );
+    } catch (error) {
+      logger.error(
+        `Failed to enrich records for ${dataSource.config.type} ${dataSourceId}`,
+        { error },
+      );
+      return false;
+    }
   }
 
-  return false;
+  return true;
 };
 
 export default enrichDataRecords;
