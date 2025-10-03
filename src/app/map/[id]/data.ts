@@ -68,6 +68,13 @@ export const useAreaStats = ({
     stats: Record<string, AreaStat>;
   } | null>();
 
+  const excludeColumns = useMemo(() => {
+    return viewConfig.excludeColumnsString
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }, [viewConfig.excludeColumnsString]);
+
   // The results of this query aren't used directly, as data for different
   // bounding boxes needs to be added together. Instead, useEffect is used
   // to add incoming data to the dedupedAreaStats state.
@@ -78,18 +85,15 @@ export const useAreaStats = ({
         calculationType: calculationType || CalculationType.Value,
         dataSourceId,
         column: columnOrCount,
-        excludeColumns: viewConfig.getExcludeColumns(),
+        excludeColumns,
         boundingBox,
       },
       { enabled: !skipCondition },
     ),
   );
 
-  const excludeColumns = useMemo(() => {
-    return viewConfig.getExcludeColumns();
-  }, [viewConfig]);
-
   // Reset area stats when calculation changes
+  // Note: this only works if all the useEffect dependencies trigger a change in areaStatsQuery.data
   useEffect(() => {
     setDedupedAreaStats(null);
   }, [areaSetCode, calculationType, dataSourceId, column, excludeColumns]);

@@ -7,24 +7,35 @@ import {
 } from "@/server/models/DataSource";
 import {
   createDataSource,
-  findCSVDataSourceByUrl,
+  findCSVDataSourceByUrlAndOrg,
 } from "@/server/repositories/DataSource";
-import { createMap, findMapsByOrganisationId } from "@/server/repositories/Map";
+import {
+  createMap,
+  findMapsByOrganisationId,
+  updateMap,
+} from "@/server/repositories/Map";
 import {
   findMapViewsByMapId,
   upsertMapView,
 } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { AreaSetCode, AreaSetGroupCode } from "../models/AreaSet";
-import { MapStyleName, VisualisationType } from "../models/MapView";
+import {
+  ColorScheme,
+  MapStyleName,
+  VisualisationType,
+} from "../models/MapView";
+import { countDataRecordsForDataSource } from "../repositories/DataRecord";
 import type { MapView } from "../models/MapView";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Map } from "@/server/models/Map";
 
-const MAP_AND_DATA_SOURCE_NAME = "2024 GE Results";
+const MAP_NAME = "Sample Map";
+const GE_DATA_SOURCE_NAME = "2024 GE Results";
+const MEMBERS_DATA_SOURCE_NAME = "Sample Members";
 
 /**
- * Ensures that a map called `MAP_AND_DATA_SOURCE_NAME` exists for
+ * Ensures that a map called "Sample Map" exists for
  * the provided organisation, with the choropleth visualisation set
  * to display the 2024 GE results.
  *
@@ -35,18 +46,33 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
   const maps = await findMapsByOrganisationId(orgId);
   let map = null;
   for (const m of maps) {
-    if (m.name === MAP_AND_DATA_SOURCE_NAME) {
+    if (m.name === MAP_NAME) {
       map = m;
       break;
     }
   }
   if (!map) {
-    map = await createMap(orgId, MAP_AND_DATA_SOURCE_NAME);
+    map = await createMap(orgId, MAP_NAME);
+  }
+
+  if (!map.config.membersDataSourceId) {
+    const membersDataSource = await ensureMembersDataSource(orgId);
+    await importDataSource({ dataSourceId: membersDataSource.id });
+    await updateMap(map.id, {
+      config: { ...map.config, membersDataSourceId: membersDataSource.id },
+    });
   }
 
   const views = await findMapViewsByMapId(map.id);
   const electionResultsDataSource = await ensureElectionResultsDataSource();
-  await importDataSource({ dataSourceId: electionResultsDataSource.id });
+  const electionResultsDataCount = await countDataRecordsForDataSource(
+    electionResultsDataSource.id,
+    null,
+    null,
+  );
+  if (!electionResultsDataCount.count) {
+    await importDataSource({ dataSourceId: electionResultsDataSource.id });
+  }
 
   let viewWithElectionResults: MapView | null = null;
   for (const view of views) {
@@ -62,11 +88,11 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
   await upsertMapView({
     name: "Example View",
     config: {
-      areaDataColumn: "First party",
+      areaDataColumn: "Lab",
       areaDataSourceId: electionResultsDataSource.id,
       areaSetGroupCode: AreaSetGroupCode.WMC24,
       calculationType: null,
-      colorScheme: null,
+      colorScheme: ColorScheme.GreenYellowRed,
       excludeColumnsString: "",
       mapStyleName: MapStyleName.Light,
       reverseColorScheme: false,
@@ -85,16 +111,44 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
   return map;
 };
 
+const ensureMembersDataSource = async (orgId: string): Promise<DataSource> => {
+  const url = "file://resources/dataSets/sampleMembers.csv?orgId=" + orgId;
+  let dataSource = await findCSVDataSourceByUrlAndOrg(url, orgId);
+  if (!dataSource) {
+    dataSource = await createDataSource({
+      name: MEMBERS_DATA_SOURCE_NAME,
+      organisationId: orgId,
+      autoEnrich: false,
+      autoImport: false,
+      config: { type: DataSourceType.CSV, url },
+      columnRoles: { nameColumns: ["First name", "Last name"] },
+      enrichments: [],
+      geocodingConfig: {
+        type: GeocodingType.Code,
+        areaSetCode: AreaSetCode.PC,
+        column: "Postcode",
+      },
+      columnDefs: [],
+      public: false,
+      recordType: DataSourceRecordType.Members,
+    });
+  }
+  return dataSource;
+};
+
 const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
   const commonKnowledgeOrg = await upsertOrganisation({
     name: ADMIN_ORGANISATION_NAME,
   });
 
   const url = "file://resources/dataSets/ge2024.csv";
-  let dataSource = await findCSVDataSourceByUrl(url);
+  let dataSource = await findCSVDataSourceByUrlAndOrg(
+    url,
+    commonKnowledgeOrg.id,
+  );
   if (!dataSource) {
     dataSource = await createDataSource({
-      name: MAP_AND_DATA_SOURCE_NAME,
+      name: GE_DATA_SOURCE_NAME,
       organisationId: commonKnowledgeOrg.id,
       autoEnrich: false,
       autoImport: false,

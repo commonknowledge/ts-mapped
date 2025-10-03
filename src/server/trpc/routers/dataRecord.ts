@@ -13,12 +13,12 @@ import {
   findDataRecordsByDataSource,
   streamDataRecordsByDataSource,
 } from "@/server/repositories/DataRecord";
-import { dataSourceProcedure, router } from "../index";
+import { dataSourceReadProcedure, router } from "../index";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { PointFeature } from "@/types";
 
 export const dataRecordRouter = router({
-  list: dataSourceProcedure
+  list: dataSourceReadProcedure
     .input(
       z.object({
         filter: recordFilterSchema.optional(),
@@ -46,7 +46,7 @@ export const dataRecordRouter = router({
         return { records, count };
       },
     ),
-  markers: dataSourceProcedure
+  markers: dataSourceReadProcedure
     .input(
       z.object({
         filter: recordFilterSchema.optional(),

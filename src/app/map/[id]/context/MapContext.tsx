@@ -57,13 +57,6 @@ export class ViewConfig implements MapViewConfigInput {
     Object.assign(this, params);
   }
 
-  getExcludeColumns() {
-    return this.excludeColumnsString
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean);
-  }
-
   getMapStyle() {
     return mapStyles[this.mapStyleName] || Object.values(mapStyles)[0];
   }

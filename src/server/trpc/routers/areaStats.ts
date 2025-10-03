@@ -2,10 +2,10 @@ import z from "zod";
 import { areaSetCode } from "@/server/models/AreaSet";
 import { calculationType } from "@/server/models/MapView";
 import { getAreaStats } from "@/server/stats";
-import { dataSourceProcedure, router } from "../index";
+import { dataSourceReadProcedure, router } from "../index";
 
 export const areaStatsRouter = router({
-  list: dataSourceProcedure
+  list: dataSourceReadProcedure
     .input(
       z.object({
         areaSetCode: areaSetCode,

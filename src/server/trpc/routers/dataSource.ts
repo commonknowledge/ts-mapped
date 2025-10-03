@@ -16,7 +16,7 @@ import {
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import {
-  dataSourceProcedure,
+  dataSourceOwnerProcedure,
   organisationProcedure,
   publicProcedure,
   router,
@@ -28,8 +28,8 @@ export const dataSourceRouter = router({
     const dataSources = await db
       .selectFrom("dataSource")
       .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
-      .innerJoin("organisation", "dataSource.organisationId", "organisation.id")
-      .innerJoin(
+      .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
+      .leftJoin(
         "organisationUser",
         "organisation.id",
         "organisationUser.organisationId",
@@ -60,7 +60,7 @@ export const dataSourceRouter = router({
 
     return addImportInfo(dataSources);
   }),
-  byId: dataSourceProcedure.query(async ({ ctx }) => {
+  byId: dataSourceOwnerProcedure.query(async ({ ctx }) => {
     const dataSource = await db
       .selectFrom("dataSource")
       .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
@@ -141,7 +141,7 @@ export const dataSourceRouter = router({
       return dataSource;
     }),
 
-  delete: dataSourceProcedure.mutation(async ({ ctx }) => {
+  delete: dataSourceOwnerProcedure.mutation(async ({ ctx }) => {
     await deleteDataSource(ctx.dataSource.id);
     return true;
   }),
