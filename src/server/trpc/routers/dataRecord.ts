@@ -11,6 +11,7 @@ import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
 import {
   countDataRecordsForDataSource,
   findDataRecordsByDataSource,
+  findPageForDataRecord,
   streamDataRecordsByDataSource,
 } from "@/server/repositories/DataRecord";
 import { dataSourceReadProcedure, router } from "../index";
@@ -18,6 +19,30 @@ import type { DataRecord } from "@/server/models/DataRecord";
 import type { PointFeature } from "@/types";
 
 export const dataRecordRouter = router({
+  findPage: dataSourceReadProcedure
+    .input(
+      z.object({
+        dataRecordId: z.string(),
+        filter: recordFilterSchema.optional(),
+        search: z.string().optional(),
+        sort: z.array(recordSortSchema).optional(),
+      }),
+    )
+    .query(
+      async ({
+        input: { dataRecordId, dataSourceId, filter, search, sort },
+      }) => {
+        const page = await findPageForDataRecord(
+          dataRecordId,
+          dataSourceId,
+          filter,
+          search,
+          sort || [],
+        );
+        return page || 0;
+      },
+    ),
+
   list: dataSourceReadProcedure
     .input(
       z.object({
@@ -46,6 +71,7 @@ export const dataRecordRouter = router({
         return { records, count };
       },
     ),
+
   markers: dataSourceReadProcedure
     .input(
       z.object({

@@ -78,8 +78,9 @@ export function DataTable({
 }: DataTableProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
-  const lastPageIndex = Math.floor(
-    (recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE,
+  const lastPageIndex = Math.max(
+    Math.ceil((recordCount?.matched || 0) / DATA_RECORDS_PAGE_SIZE) - 1,
+    0,
   );
 
   const getSortIcon = (columnName: string) => {

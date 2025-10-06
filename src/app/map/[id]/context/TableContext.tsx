@@ -11,15 +11,14 @@ export const TableContext = createContext<{
   setTablePage: (page: number) => void;
 
   /* GraphQL Queries */
-  dataRecordsQuery: {
-    isPending: boolean;
-    data: RouterOutputs["dataRecord"]["list"] | undefined;
-  } | null;
+  dataRecordsResult: RouterOutputs["dataRecord"]["list"] | null | undefined;
+  dataRecordsLoading: boolean;
 }>({
   selectedDataSourceId: "",
   setSelectedDataSourceId: () => null,
   handleDataSourceSelect: () => null,
   tablePage: 0,
   setTablePage: () => null,
-  dataRecordsQuery: null,
+  dataRecordsResult: null,
+  dataRecordsLoading: false,
 });

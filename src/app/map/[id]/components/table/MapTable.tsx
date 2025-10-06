@@ -23,9 +23,15 @@ export default function MapTable() {
     selectedDataSourceId,
     handleDataSourceSelect,
     tablePage,
-    setTablePage,
-    dataRecordsQuery,
+    setTablePage: _setTablePage,
+    dataRecordsResult,
+    dataRecordsLoading,
   } = useContext(TableContext);
+
+  const setTablePage = (p: number) => {
+    setSelectedDataRecord(null);
+    _setTablePage(p);
+  };
 
   if (!selectedDataSourceId) {
     return null;
@@ -78,7 +84,10 @@ export default function MapTable() {
   const filter = (
     <MapTableFilter
       filter={dataSourceView?.filter || { type: FilterType.MULTI }}
-      setFilter={(filter) => updateDataSourceView({ filter })}
+      setFilter={(filter) => {
+        setTablePage(0);
+        updateDataSourceView({ filter })}
+      }
     />
   );
 
@@ -86,10 +95,10 @@ export default function MapTable() {
     <div className="h-full">
       <DataTable
         title={dataSource.name}
-        loading={dataRecordsQuery ? dataRecordsQuery.isPending : true}
+        loading={dataRecordsLoading}
         columns={dataSource.columnDefs}
-        data={dataRecordsQuery?.data?.records || []}
-        recordCount={dataRecordsQuery?.data?.count}
+        data={dataRecordsResult?.records || []}
+        recordCount={dataRecordsResult?.count}
         filter={filter}
         search={dataSourceView?.search}
         setSearch={(s) => updateDataSourceView({ search: s })}

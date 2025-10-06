@@ -117,6 +117,52 @@ function applyFilterAndSearch(
   ]);
 }
 
+export async function findPageForDataRecord(
+  dataRecordId: string,
+  dataSourceId: string,
+  filter: RecordFilterInput | null | undefined,
+  search: string | null | undefined,
+  sort: SortInput[],
+) {
+  let q = db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .where((eb) => applyFilterAndSearch(eb, filter, search))
+    .select("id");
+
+  // Async work required for sorting has to be done here, as applySort()
+  // cannot return a query builder and be async (Kysely throws an error
+  // when awaiting an un-executed expression.)
+  let nameColumns: string[] = [];
+  const hasSortByName = sort.some((s) => s.name === SORT_BY_NAME_COLUMNS);
+  if (hasSortByName) {
+    const dataSource = await db
+      .selectFrom("dataSource")
+      .where("id", "=", dataSourceId)
+      .select("columnRoles")
+      .executeTakeFirstOrThrow();
+    nameColumns = dataSource.columnRoles.nameColumns || [];
+  }
+
+  for (const s of sort) {
+    q = applySort(q, s, nameColumns);
+  }
+
+  const rowNumQuery = db
+    .selectFrom(q.as("dataRecordIds"))
+    .select(["id", sql`ROW_NUMBER() OVER ()`.as("rowNum")]);
+
+  const rowNumForRecordQuery = await db
+    .selectFrom(rowNumQuery.as("dataRecordId"))
+    .select("rowNum")
+    .where("id", "=", dataRecordId).executeTakeFirst();
+
+  const rowIndex = Number(rowNumForRecordQuery?.rowNum || 1) - 1;
+  const pageIndex = Math.floor(rowIndex / DATA_RECORDS_PAGE_SIZE);
+
+  return pageIndex;
+}
+
 export async function findDataRecordsByDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,
