@@ -10,7 +10,6 @@ import type { ReactNode } from "react";
 const TableProvider = ({ children }: { children: ReactNode }) => {
   const { view } = useContext(MapContext);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<string>("");
-  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
   const [tablePage, setTablePage] = useState(0);
 
@@ -51,9 +50,8 @@ const TableProvider = ({ children }: { children: ReactNode }) => {
         setTablePage,
 
         selectedDataSourceId,
+        setSelectedDataSourceId,
         handleDataSourceSelect,
-        selectedRecordId,
-        setSelectedRecordId,
 
         dataRecordsQuery,
       }}

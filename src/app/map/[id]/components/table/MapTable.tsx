@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { FilterType } from "@/__generated__/types";
+import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
@@ -15,12 +16,12 @@ interface DataRecord {
 export default function MapTable() {
   const { mapRef, view, updateView } = useContext(MapContext);
   const { getDataSourceById } = useContext(DataSourcesContext);
+  const { selectedDataRecord, setSelectedDataRecord } =
+    useContext(DataRecordContext);
 
   const {
     selectedDataSourceId,
     handleDataSourceSelect,
-    selectedRecordId,
-    setSelectedRecordId,
     tablePage,
     setTablePage,
     dataRecordsQuery,
@@ -42,7 +43,7 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedRecordId(row.id);
+    setSelectedDataRecord({ id: row.id, dataSourceId: dataSource.id });
   };
 
   const dataSourceView = view?.dataSourceViews.find(
@@ -97,7 +98,7 @@ export default function MapTable() {
         sort={dataSourceView?.sort || []}
         setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
-        selectedRecordId={selectedRecordId || undefined}
+        selectedRecordId={selectedDataRecord?.id}
         onClose={() => handleDataSourceSelect("")}
       />
     </div>
