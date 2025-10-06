@@ -10,6 +10,8 @@ export const dataRecordSchema = z.object({
   json: z.record(z.string(), z.unknown()),
   geocodeResult: geocodeResultSchema.nullable(),
   geocodePoint: pointSchema.nullable(),
+  needsEnrich: z.boolean().optional(),
+  needsImport: z.boolean().optional(),
   createdAt: z.date(),
 });
 
