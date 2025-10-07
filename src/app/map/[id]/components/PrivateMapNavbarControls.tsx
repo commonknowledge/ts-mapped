@@ -2,6 +2,7 @@ import { gql, useMutation } from "@apollo/client";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
+import { toast } from "sonner";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -44,6 +45,7 @@ export default function PrivateMapNavbarControls({
     try {
       const res = await deleteMapMutation({ variables: { id: mapId } });
       if (res.data?.deleteMap?.code === 200) {
+        toast.success("Map deleted!");
         router.push("/dashboard");
       } else {
         alert("Failed to delete map.");

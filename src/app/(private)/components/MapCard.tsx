@@ -40,7 +40,7 @@ export default function MapCard({ map }: { map: MapCardInterface }) {
               className="w-full h-40 object-cover"
             />
           ) : (
-            <div className="flex justify-center items-center / w-full aspect-[280/125] bg-muted text-muted-foreground">
+            <div className="flex justify-center items-center / w-full h-40 bg-muted text-muted-foreground">
               <MapIcon size={32} />
             </div>
           )}
