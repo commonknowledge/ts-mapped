@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/auth";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
+import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import Sidebar from "@/components/Sidebar";
 import type { Metadata } from "next";
 
@@ -23,8 +24,9 @@ export default async function PrivateLayout({
     <DesktopOnly>
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 overflow-auto p-10  w-full">{children}</div>
+        <div className="flex-1 overflow-auto p-10 w-full">{children}</div>
       </div>
+      <SentryFeedbackWidget />
     </DesktopOnly>
   );
 }

@@ -82,7 +82,7 @@ export default async function SolutionPage({
           <div className="relative z-10 / flex flex-col gap-6">
             {/* Breadcrumb */}
             <TypographyMuted className="mb-2 font-mono">
-              — Solutions
+              Solutions
             </TypographyMuted>
 
             <div>
