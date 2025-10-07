@@ -166,17 +166,24 @@ export default function PrivateMapNavbar() {
       }
     };
 
+    let interval: NodeJS.Timeout | number | undefined;
+
     // if mapRef.current == null, come back in 5s and try again - until mapRef.current != null
     // mapRef as dependency doesn't trigger useEffect when current changes
     // 5s - cause it should be enough time for everything on the map to load (= avoiding incomplete thumbnails)
-    const interval = setInterval(() => {
-      if (checkMapReady()) {
-        regenerateMapImage();
-        clearInterval(interval);
-      }
-    }, 5000);
+    const timeout = setTimeout(() => {
+      interval = setInterval(() => {
+        if (checkMapReady()) {
+          regenerateMapImage();
+          clearInterval(interval);
+        }
+      }, 5000);
+    }, 10000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, [mapId, mapRef, regenerateMapImage]);
 
   const onSubmitSaveName = async () => {
