@@ -514,7 +514,7 @@ function buildDropdownItems({
         component: (
           <DataRecordCommand
             key={dataSourceId}
-            label={markerDataSource?.name || "unknown data source"}
+            label={markerDataSource?.name || "Unknown data source"}
             dataSourceId={dataSourceId}
             onSelectRecord={(id, label) => {
               addFilter({

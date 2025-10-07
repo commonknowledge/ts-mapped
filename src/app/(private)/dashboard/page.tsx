@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const { data, isPending } = useQuery(
     trpc.map.list.queryOptions(
       { organisationId: organisationId || "" },
-      { enabled: Boolean(organisationId) },
+      { enabled: Boolean(organisationId), refetchOnMount: "always" },
     ),
   );
 

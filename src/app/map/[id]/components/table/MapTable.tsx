@@ -23,15 +23,10 @@ export default function MapTable() {
     selectedDataSourceId,
     handleDataSourceSelect,
     tablePage,
-    setTablePage: _setTablePage,
+    setTablePage,
     dataRecordsResult,
     dataRecordsLoading,
   } = useContext(TableContext);
-
-  const setTablePage = (p: number) => {
-    setSelectedDataRecord(null);
-    _setTablePage(p);
-  };
 
   if (!selectedDataSourceId) {
     return null;
