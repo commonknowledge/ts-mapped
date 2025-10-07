@@ -56,6 +56,11 @@ export interface FeatureHowToUseSteps {
   order: number;
 }
 
+export interface FeatureHowToUseSection {
+  title?: string;
+  steps: FeatureHowToUseSteps[];
+}
+
 export interface NewsItem {
   _id: string;
   title: string;

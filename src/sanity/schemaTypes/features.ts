@@ -6,7 +6,6 @@ export const featureSetType = defineType({
   title: "Feature Set",
   type: "document",
   fields: [
-
     defineField({
       name: "title",
       type: "string",
@@ -28,7 +27,6 @@ export const featureSetType = defineType({
       type: "number",
       description: "Order for display",
     }),
-
   ],
   preview: {
     select: {
@@ -74,7 +72,6 @@ export const featureType = defineType({
     defineField({
       name: "explainer",
       type: "blockContent",
-
     }),
     defineField({
       name: "howToUse",
@@ -229,7 +226,6 @@ export const featureType = defineType({
       type: "number",
       description: "Order within the feature set",
     }),
-
   ],
   preview: {
     select: {

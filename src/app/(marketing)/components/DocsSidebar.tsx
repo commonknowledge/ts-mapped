@@ -12,7 +12,9 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  const activeFeatureSets = featureSets.filter((featureSet) => featureSet.features && featureSet.features.length > 0);
+  const activeFeatureSets = featureSets.filter(
+    (featureSet) => featureSet.features && featureSet.features.length > 0,
+  );
 
   const sidebarContent = (
     <nav className="space-y-6">
@@ -45,21 +47,21 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
           <div className="space-y-1">
             {featureSet.features && featureSet.features?.length > 0
               ? featureSet.features
-                .filter((feature) => feature.isActive !== false)
-                .map((feature) => (
-                  <Link
-                    key={feature._id}
-                    href={`/docs/${feature.slug.current}`}
-                    className={cn(
-                      "block px-3 py-2 text-sm rounded-md transition-colors ml-3",
-                      pathname === `/docs/${feature.slug.current}`
-                        ? "bg-neutral-100"
-                        : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
-                    )}
-                  >
-                    {feature.title}
-                  </Link>
-                ))
+                  .filter((feature) => feature.isActive !== false)
+                  .map((feature) => (
+                    <Link
+                      key={feature._id}
+                      href={`/docs/${feature.slug.current}`}
+                      className={cn(
+                        "block px-3 py-2 text-sm rounded-md transition-colors ml-3",
+                        pathname === `/docs/${feature.slug.current}`
+                          ? "bg-neutral-100"
+                          : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100",
+                      )}
+                    >
+                      {feature.title}
+                    </Link>
+                  ))
               : null}
           </div>
         </div>

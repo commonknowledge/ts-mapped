@@ -11,12 +11,13 @@ import {
 } from "@/components/typography";
 import { useFeatures } from "./FeaturesContext";
 import type { Feature, FeatureSet } from "@/app/(marketing)/types";
-import RichTextComponent from "../components/RichTextComponent";
 
 export default function FeaturesPage() {
   const { featureSetsWithFeatures } = useFeatures();
 
-  const activeFeatureSets = featureSetsWithFeatures.filter((featureSet) => featureSet.features && featureSet.features.length > 0);
+  const activeFeatureSets = featureSetsWithFeatures.filter(
+    (featureSet) => featureSet.features && featureSet.features.length > 0,
+  );
   return (
     <div className="max-w-4xl">
       {/* Header */}
@@ -41,18 +42,19 @@ export default function FeaturesPage() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              {featureSet.features && featureSet.features.length > 0 && featureSet.features
-                .filter((feature: Feature) => feature.isActive !== false)
-                .map((feature: Feature) => (
-                  <Link
-                    key={feature._id}
-                    href={`/docs/${feature.slug.current}`}
-                    className="flex flex-col p-4 font-medium gap-2 border hover:bg-neutral-50 transition-all duration-300 border-neutral-200 pb-4 rounded-md"
-                  >
-                    <p>{feature.title}</p>
-
-                  </Link>
-                ))}
+              {featureSet.features &&
+                featureSet.features.length > 0 &&
+                featureSet.features
+                  .filter((feature: Feature) => feature.isActive !== false)
+                  .map((feature: Feature) => (
+                    <Link
+                      key={feature._id}
+                      href={`/docs/${feature.slug.current}`}
+                      className="flex flex-col p-4 font-medium gap-2 border hover:bg-neutral-50 transition-all duration-300 border-neutral-200 pb-4 rounded-md"
+                    >
+                      <p>{feature.title}</p>
+                    </Link>
+                  ))}
             </div>
           </section>
         ))}

@@ -31,22 +31,22 @@ export const ALL_FEATURES_QUERY = `*[_type == "feature" && status == "active"] {
 const options = { next: { revalidate: 30 } };
 
 export async function fetchFeatureSetsAndFeatures() {
-    const [featureSets, allFeatures] = await Promise.all([
-        client.fetch(FEATURE_SETS_QUERY, {}, options),
-        client.fetch(ALL_FEATURES_QUERY, {}, options),
-    ]);
+  const [featureSets, allFeatures] = await Promise.all([
+    client.fetch(FEATURE_SETS_QUERY, {}, options),
+    client.fetch(ALL_FEATURES_QUERY, {}, options),
+  ]);
 
-    // Group features by their feature set
-    const featureSetsWithFeatures = featureSets.map((featureSet: FeatureSet) => ({
-        ...featureSet,
-        features: allFeatures.filter(
-            (feature: Feature) => feature.featureSet?._id === featureSet._id,
-        ),
-    }));
+  // Group features by their feature set
+  const featureSetsWithFeatures = featureSets.map((featureSet: FeatureSet) => ({
+    ...featureSet,
+    features: allFeatures.filter(
+      (feature: Feature) => feature.featureSet?._id === featureSet._id,
+    ),
+  }));
 
-    return {
-        featureSets,
-        allFeatures,
-        featureSetsWithFeatures,
-    };
+  return {
+    featureSets,
+    allFeatures,
+    featureSetsWithFeatures,
+  };
 }

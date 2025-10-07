@@ -20,13 +20,13 @@ const nextConfig: NextConfig = {
         hostname: "cdn.sanity.io",
         pathname: "/images/**",
       },
-      ...(["localhost", process.env.MINIO_DOMAIN]
+      ...["localhost", process.env.MINIO_DOMAIN]
         .filter((d) => d !== undefined)
         .map((d) => ({
           protocol: "https" as const,
           hostname: d,
           pathname: "/**",
-        }))),
+        })),
     ],
   },
   // Packages that can't be bundled in the NextJS build
