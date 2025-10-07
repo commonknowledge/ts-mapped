@@ -6,7 +6,11 @@ export function findTurfsByMapId(mapId: string) {
 }
 
 export async function deleteTurf(id: string) {
-  return db.deleteFrom("turf").where("id", "=", id).execute();
+  return db
+    .deleteFrom("turf")
+    .where("id", "=", id)
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }
 
 export async function insertTurf(turf: NewTurf) {

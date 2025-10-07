@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { getNewLastPosition } from "@/components/Map/utils";
 import { useTRPC } from "@/services/trpc/react";
@@ -174,71 +174,56 @@ export const usePlacedMarkers = (mapId: string | null) => {
 };
 
 export const useTurfs = (mapId: string | null) => {
-  const ref = useRef<Turf[]>([]);
-  const [turfs, _setTurfs] = useState<Turf[]>([]);
-
-  // Use a combination of ref and state, because Mapbox native components don't
-  // update on state changes - ref is needed for them to update the latest state,
-  // instead of the initial state.
-  const setTurfs = useCallback(
-    (turfs: Turf[]) => {
-      ref.current = turfs;
-      _setTurfs(turfs);
-    },
-    [_setTurfs],
-  );
-
   const trpc = useTRPC();
+  const client = useQueryClient();
+
   const { mutate: deleteTurfMutation } = useMutation(
-    trpc.turf.delete.mutationOptions(),
+    trpc.turf.delete.mutationOptions({
+      onSuccess: (_, { turfId }) => {
+        if (!mapId) return;
+        client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+          if (!old) return old;
+          return { ...old, turfs: old.turfs.filter((t) => t.id !== turfId) };
+        });
+      },
+    }),
   );
 
-  // const client = useQueryClient()
   const { mutate: upsertTurfMutation, isPending: upsertTurfLoading } =
     useMutation(
       trpc.turf.upsert.mutationOptions({
-        onSuccess: (newTurf) => {
-          setTurfs(ref.current.map((t) => (t.id === newTurf.id ? newTurf : t)));
-          // TODO: how was the old apollo query being invalided here? as i'm sure you need to provide the variables to apollo too?
-          // we would need the correct data source id
-          // client.invalidateQueries(trpc.dataSource.byIdWithRecords.queryOptions());
+        onSuccess: (res) => {
+          if (!mapId) return;
+          client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+            if (!old) return old;
+            if (old.turfs.find((t) => t.id === res.id)) {
+              return {
+                ...old,
+                turfs: old.turfs.map((t) => (t.id === res.id ? res : t)),
+              };
+            }
+            return { ...old, turfs: [...old.turfs, res] };
+          });
         },
       }),
     );
 
-  /* Complex actions */
   const deleteTurf = (id: string) => {
     if (!mapId) return;
-
     deleteTurfMutation({ turfId: id, mapId });
-    const newTurfs = ref.current.filter((m) => m.id !== id);
-    setTurfs(newTurfs);
   };
 
-  const insertTurf = async (newTurf: Omit<Turf, "mapId">) => {
+  const insertTurf = async (newTurf: Omit<Turf, "mapId" | "id">) => {
     if (!mapId) return;
-
-    const newTurfs = [...ref.current, newTurf];
-    setTurfs(newTurfs.map((t) => ({ ...t, mapId })));
-
     upsertTurfMutation({ ...newTurf, mapId });
   };
 
   const updateTurf = (updatedTurf: Omit<Turf, "mapId">) => {
     if (!mapId) return;
-
     upsertTurfMutation({ ...updatedTurf, mapId });
-
-    setTurfs(
-      ref.current
-        .map((t) => (t.id === updatedTurf.id ? updatedTurf : t))
-        .map((t) => ({ ...t, mapId })),
-    );
   };
 
   return {
-    turfs,
-    setTurfs,
     deleteTurf,
     insertTurf,
     updateTurf,

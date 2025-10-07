@@ -26,7 +26,7 @@ export default function PublicMap() {
     return <Loading />;
   }
 
-  const loading = areaStatsQuery?.isPending || markerQueries?.loading;
+  const loading = areaStatsQuery?.isFetching || markerQueries?.loading;
 
   const showNavbar = editable;
 

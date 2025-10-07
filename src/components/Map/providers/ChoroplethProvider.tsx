@@ -89,7 +89,7 @@ export default function ChoroplethProvider({
 
         areaStatsQuery: {
           data: areaStatsData,
-          isPending: areaStatsQuery.isPending,
+          isFetching: areaStatsQuery.isFetching,
         },
         choroplethLayerConfig,
       }}

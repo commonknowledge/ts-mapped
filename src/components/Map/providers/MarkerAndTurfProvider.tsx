@@ -78,14 +78,7 @@ export default function MarkerAndTurfProvider({
     loading: placedMarkersLoading,
   } = usePlacedMarkers(mapId);
 
-  const {
-    turfs,
-    setTurfs,
-    deleteTurf,
-    insertTurf,
-    updateTurf,
-    loading: turfsLoading,
-  } = useTurfs(mapId);
+  const { deleteTurf, insertTurf, updateTurf } = useTurfs(mapId);
 
   useEffect(() => {
     if (mapQuery?.data?.folders) {
@@ -94,10 +87,7 @@ export default function MarkerAndTurfProvider({
     if (mapQuery?.data?.placedMarkers) {
       setPlacedMarkers(mapQuery?.data.placedMarkers);
     }
-    if (mapQuery?.data?.turfs) {
-      setTurfs(mapQuery?.data.turfs);
-    }
-  }, [mapQuery, setFolders, setPlacedMarkers, setTurfs]);
+  }, [mapQuery, setFolders, setPlacedMarkers]);
 
   const handleAddArea = () => {
     const map = mapRef?.current;
@@ -160,8 +150,6 @@ export default function MarkerAndTurfProvider({
         preparePlacedMarkerUpdate,
         commitPlacedMarkerUpdates,
         updatePlacedMarker,
-        turfs,
-        turfsLoading,
         selectedPlacedMarkerId,
         setSelectedPlacedMarkerId,
         deleteTurf,

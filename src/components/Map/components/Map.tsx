@@ -1,5 +1,6 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import dynamic from "next/dynamic";
 import {
@@ -23,6 +24,7 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { useTRPC } from "@/services/trpc/react";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
@@ -48,9 +50,10 @@ export default function Map({
     pinDropMode,
     showControls,
     ready,
+    mapId,
     setReady,
   } = useContext(MapContext);
-  const { deleteTurf, insertTurf, updateTurf, turfs, searchMarker } =
+  const { deleteTurf, insertTurf, updateTurf, searchMarker } =
     useContext(MarkerAndTurfContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
@@ -72,23 +75,29 @@ export default function Map({
     [mapConfig],
   );
 
+  const trpc = useTRPC();
+  const { data: map } = useQuery(
+    trpc.map.byId.queryOptions(
+      { mapId: mapId || "" },
+      { enabled: Boolean(mapId) },
+    ),
+  );
+
   // draw existing turfs
   useEffect(() => {
-    if (!draw) {
-      return;
-    }
+    if (!map?.turfs || !draw) return;
 
     draw.deleteAll();
 
     // Add existing polygons from your array
-    turfs.forEach((turf) => {
+    map.turfs.forEach((turf) => {
       draw.add({
         type: "Feature",
         properties: { ...turf },
         geometry: turf.polygon as GeometryObject,
       });
     });
-  }, [turfs, draw]);
+  }, [map?.turfs, draw]);
 
   // Hover behavior
   useEffect(() => {
@@ -329,7 +338,6 @@ export default function Map({
                 const area = turf.area(feature);
                 const roundedArea = Math.round(area * 100) / 100;
                 insertTurf({
-                  id: `turf-temp-${new Date().getTime()}`,
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
@@ -353,7 +361,9 @@ export default function Map({
                     label: feature?.properties?.label,
                     area: roundedArea,
                     polygon: feature.geometry as Polygon,
-                    createdAt: feature?.properties?.createdAt,
+                    createdAt: new Date(
+                      feature?.properties?.createdAt as string,
+                    ),
                   });
                 });
               }

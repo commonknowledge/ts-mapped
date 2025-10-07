@@ -1,12 +1,13 @@
+import { useQuery } from "@tanstack/react-query";
 import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import Loading from "@/components/Map/components/Loading";
 import { MapContext } from "@/components/Map/context/MapContext";
 import { MarkerAndTurfContext } from "@/components/Map/context/MarkerAndTurfContext";
 import { CONTROL_PANEL_WIDTH, mapColors } from "@/components/Map/styles";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -19,29 +20,37 @@ import LayerHeader from "../LayerHeader";
 import type { Turf } from "@/__generated__/types";
 
 export default function AreasControl() {
-  const { viewConfig, updateViewConfig } = useContext(MapContext);
-  const { handleAddArea, turfs, turfsLoading } =
-    useContext(MarkerAndTurfContext);
-  const [, setFormattedDates] = useState<Record<string, string>>({});
+  const { viewConfig, updateViewConfig, mapId } = useContext(MapContext);
+  const { handleAddArea } = useContext(MarkerAndTurfContext);
+  // const [, setFormattedDates] = useState<Record<string, string>>({});
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
-  // TODO: display these dates somewhere
-  useEffect(() => {
-    // Format dates only on client-side
-    const dates = turfs.reduce(
-      (acc, t) => {
-        acc[t.id] = new Date(t.createdAt)
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " ");
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
+  const trpc = useTRPC();
+  const { data: map } = useQuery(
+    trpc.map.byId.queryOptions(
+      { mapId: mapId || "" },
+      { enabled: Boolean(mapId) },
+    ),
+  );
 
-    setFormattedDates(dates);
-  }, [turfs]);
+  // TODO: display these dates somewhere
+  // useEffect(() => {
+  //   if (!map?.turfs) return;
+  //   // Format dates only on client-side
+  //   const dates = map.turfs.reduce(
+  //     (acc, t) => {
+  //       acc[t.id] = new Date(t.createdAt)
+  //         .toISOString()
+  //         .slice(0, 19)
+  //         .replace("T", " ");
+  //       return acc;
+  //     },
+  //     {} as Record<string, string>,
+  //   );
+
+  //   setFormattedDates(dates);
+  // }, [map?.turfs]);
 
   const onAddArea = () => {
     handleAddArea();
@@ -76,13 +85,15 @@ export default function AreasControl() {
 
       {expanded && (
         <div className="relative">
-          {turfs.length === 0 && <EmptyLayer message="Add an Area Layer" />}
+          {map?.turfs && map?.turfs.length === 0 && (
+            <EmptyLayer message="Add an Area Layer" />
+          )}
           {/* Disable interactions while turfs are loading/updating in the background */}
-          {turfsLoading && <Loading blockInteraction />}
+          {/* {turfsLoading && <Loading blockInteraction />} */}
           <ul
             className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
           >
-            {turfs.map((turf) => (
+            {map?.turfs.map((turf) => (
               <TurfItem key={turf.id} turf={turf} />
             ))}
           </ul>

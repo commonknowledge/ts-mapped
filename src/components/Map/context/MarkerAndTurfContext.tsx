@@ -32,10 +32,8 @@ export const MarkerAndTurfContext = createContext<{
   searchMarker: Feature | null;
   setSearchMarker: (marker: Feature | null) => void;
 
-  turfs: Turf[];
-  turfsLoading: boolean;
   deleteTurf: (id: string) => void;
-  insertTurf: (turf: Omit<Turf, "mapId">) => void;
+  insertTurf: (turf: Omit<Turf, "mapId" | "id">) => void;
   updateTurf: (turf: Omit<Turf, "mapId">) => void;
 
   /* GraphQL Queries */
@@ -63,8 +61,6 @@ export const MarkerAndTurfContext = createContext<{
   setSelectedPlacedMarkerId: () => null,
   searchMarker: null,
   setSearchMarker: () => null,
-  turfs: [],
-  turfsLoading: false,
   deleteTurf: () => null,
   insertTurf: () => null,
   updateTurf: () => null,

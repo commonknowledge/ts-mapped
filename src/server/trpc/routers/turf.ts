@@ -10,13 +10,15 @@ export const turfRouter = router({
       return deleteTurf(input.turfId);
     }),
 
-  upsert: mapProcedure.input(turfSchema).mutation(async ({ input }) => {
-    let turf = null;
-    if (input.id) {
-      turf = await updateTurf(input.id, input);
-    } else {
-      turf = await insertTurf(input);
-    }
-    return turf;
-  }),
+  upsert: mapProcedure
+    .input(turfSchema.omit({ id: true }).extend({ id: z.string().optional() }))
+    .mutation(async ({ input }) => {
+      let turf = null;
+      if (input.id) {
+        turf = await updateTurf(input.id, input);
+      } else {
+        turf = await insertTurf(input);
+      }
+      return turf;
+    }),
 });

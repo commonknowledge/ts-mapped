@@ -48,7 +48,7 @@ export default function PrivateMap() {
   }
 
   const loading =
-    dataSourcesLoading || areaStatsQuery?.isPending || markerQueries?.loading;
+    dataSourcesLoading || areaStatsQuery?.isFetching || markerQueries?.loading;
 
   const paddedStyle = showControls
     ? { paddingLeft: `${CONTROL_PANEL_WIDTH}px` }
