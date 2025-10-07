@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Link } from "@/components/Link";
 import { useCurrentUser } from "@/hooks";
 import { urlFor } from "@/sanity/lib/image";
+import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import {
   NavigationMenu,
@@ -22,6 +23,7 @@ interface Solution {
   _id: string;
   title: string;
   subtitle: string;
+  status: "active" | "archived" | "coming-soon";
   slug: { current: string };
   position: number;
   icon: string;
@@ -102,7 +104,7 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
       <div
         className={cn(
           "md:hidden fixed inset-0 bg-black/50 z-40",
-          isMobileMenuOpen ? "" : "invisible",
+          isMobileMenuOpen ? "" : "invisible"
         )}
         onClick={() => setIsMobileMenuOpen(false)}
       >
@@ -144,7 +146,12 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
                             height={20}
                           />
                           <div className="flex flex-col">
-                            <div className="font-medium">{solution.title}</div>
+                            <div className="font-medium">
+                              {solution.title}&nbsp;
+                              {solution.status === "coming-soon" && (
+                                <Badge variant="secondary">Coming soon</Badge>
+                              )}
+                            </div>
                             <div className="text-sm text-neutral-500">
                               {solution.subtitle}
                             </div>
@@ -189,7 +196,7 @@ const DesktopNavbar = ({ solutions }: { solutions: Solution[] }) => {
         <NavigationMenuItem>
           <NavigationMenuTrigger>Solutions</NavigationMenuTrigger>
           <NavigationMenuContent className="border-0 shadow-lg">
-            <ul className="grid w-[400px] gap-2 p-2">
+            <ul className="grid w-[436px] gap-2 p-2">
               {solutions.length > 0 ? (
                 solutions
                   .sort((a, b) => a.position - b.position)
@@ -211,7 +218,12 @@ const DesktopNavbar = ({ solutions }: { solutions: Solution[] }) => {
                             height={20}
                           />
                           <div className="flex flex-col">
-                            <div className="font-medium">{solution.title}</div>
+                            <div className="font-medium">
+                              {solution.title}&nbsp;
+                              {solution.status === "coming-soon" && (
+                                <Badge variant="secondary">Coming soon</Badge>
+                              )}
+                            </div>
                             <div className="text-muted-foreground text-sm">
                               {solution.subtitle}
                             </div>
