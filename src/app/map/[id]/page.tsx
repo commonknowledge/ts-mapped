@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/auth";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
+import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
 import ChoroplethProvider from "./providers/ChoroplethProvider";
 import DataRecordProvider from "./providers/DataRecordProvider";
@@ -38,6 +39,7 @@ export default async function MapPage({
               <TableProvider>
                 <DesktopOnly>
                   <PrivateMap />
+                  <SentryFeedbackWidget />
                 </DesktopOnly>
               </TableProvider>
             </MarkerAndTurfProvider>
