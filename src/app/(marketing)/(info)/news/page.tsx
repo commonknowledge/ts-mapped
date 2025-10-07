@@ -9,6 +9,8 @@ import {
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import type { NewsItem } from "../../types";
+import type { Metadata } from "next";
+
 const newsQuery = `*[_type == "news"] | order(publishedAt desc) {
   _id,
   title,
@@ -18,6 +20,16 @@ const newsQuery = `*[_type == "news"] | order(publishedAt desc) {
   publishedAt,
   image,
 }`;
+
+// TODO: remove or update when you bring back news pages
+export const metadata: Metadata = {
+  title: "",
+  description: "",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function NewsPage() {
   const news = await client.fetch(newsQuery);

@@ -6,6 +6,20 @@ export const solutionsType = defineType({
   type: "document",
   fields: [
     defineField({
+      name: "status",
+      type: "string",
+      initialValue: "active",
+      options: {
+        list: [
+          { title: "Active", value: "active" },
+          { title: "Coming Soon", value: "coming-soon" },
+          { title: "Archived", value: "archived" },
+        ],
+        layout: "dropdown",
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
       name: "title",
       type: "string",
       validation: (rule) => rule.required(),
@@ -38,6 +52,7 @@ export const solutionsType = defineType({
       validation: (rule) => rule.required(),
       description: "Position in the list (lower numbers appear first)",
     }),
+
     defineField({
       name: "publishedAt",
       type: "datetime",

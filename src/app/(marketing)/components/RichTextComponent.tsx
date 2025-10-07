@@ -52,7 +52,13 @@ function RichTextImage({ value }: { value: SanityImage }) {
 
   return (
     <figure>
-      <Image src={url} alt={value.alt || ""} width={624} height={624} />
+      <Image
+        src={url}
+        alt={value.alt || ""}
+        width={624}
+        height={624}
+        className="border rounded-md border-neutral-200 shadow-md"
+      />
       {value.caption ? <figcaption>{value.caption} </figcaption> : <></>}
     </figure>
   );

@@ -12,6 +12,10 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
+  const activeFeatureSets = featureSets.filter(
+    (featureSet) => featureSet.features && featureSet.features.length > 0,
+  );
+
   const sidebarContent = (
     <nav className="space-y-6">
       {/* Overview Link */}
@@ -30,7 +34,7 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
       </div>
 
       {/* Feature Sets */}
-      {featureSets.map((featureSet) => (
+      {activeFeatureSets.map((featureSet) => (
         <div key={featureSet._id} className="space-y-2">
           {/* Feature Set Header */}
           <div className="px-3">
@@ -41,7 +45,7 @@ export default function DocsSidebar({ featureSets }: FeatureSetProps) {
 
           {/* Features in this set */}
           <div className="space-y-1">
-            {featureSet.features && featureSet.features.length > 0
+            {featureSet.features && featureSet.features?.length > 0
               ? featureSet.features
                   .filter((feature) => feature.isActive !== false)
                   .map((feature) => (
