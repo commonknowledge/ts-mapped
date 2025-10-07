@@ -39,12 +39,6 @@ const tagDataSource = async (args: object | null): Promise<boolean> => {
   const dataSourceView = view.dataSourceViews.find(
     (dsv) => dsv.dataSourceId === dataSourceId,
   );
-  if (!dataSourceView) {
-    logger.info(
-      `Data Source ${dataSource.name} (${dataSourceId}) is not filtered in view ${view.name} (${view.id}).`,
-    );
-    return true; // True because this is not a failure
-  }
 
   logger.info(
     `Tagging data source ${dataSourceId} with view ${view.name} (${view.id})`,
@@ -65,8 +59,8 @@ const tagDataSource = async (args: object | null): Promise<boolean> => {
     ).count;
     const records = streamDataRecordsByDataSource(
       dataSourceId,
-      dataSourceView.filter,
-      dataSourceView.search,
+      dataSourceView?.filter,
+      dataSourceView?.search,
     );
     const batches = batchAsync(records, DATA_SOURCE_JOB_BATCH_SIZE);
 

@@ -35,6 +35,7 @@ import type { ReactNode } from "react";
 
 interface DataTableProps {
   title?: string;
+  buttons: ReactNode;
 
   loading: boolean;
   columns: ColumnDef[];
@@ -57,6 +58,7 @@ interface DataTableProps {
 
 export function DataTable({
   title,
+  buttons,
 
   loading,
   columns,
@@ -112,9 +114,9 @@ export function DataTable({
   };
 
   return (
-    <div className="flex flex-col  h-full">
+    <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-3 py-2 border-b h-12">
-        <div className="flex items-center gap-4 flex-1">
+        <div className="flex items-center gap-4">
           {title && (
             <div className="flex flex-row gap-2">
               <p className="font-bold whitespace-nowrap">{title}</p>
@@ -126,14 +128,11 @@ export function DataTable({
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-2 ml-auto">
+          {buttons}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto shadow-none"
-              >
+              <Button variant="outline" size="sm">
                 <Settings2 className="text-muted-foreground" />
                 Display
               </Button>
