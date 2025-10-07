@@ -14,7 +14,6 @@ import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
@@ -61,7 +60,6 @@ export default function Map({
     markerQueries,
   } = useContext(MarkerAndTurfContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
-  const { setSelectedDataSourceId } = useContext(TableContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -348,14 +346,12 @@ export default function Map({
               id: dataRecordId,
               dataSourceId: dataSourceId,
             });
-            setSelectedDataSourceId(dataSourceId);
             map.flyTo({
               center: features[0].geometry.coordinates as [number, number],
               zoom: 12,
             });
           } else {
             setSelectedDataRecord(null);
-            setSelectedDataSourceId("");
           }
         }}
         onLoad={() => {
