@@ -104,7 +104,7 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
       <div
         className={cn(
           "md:hidden fixed inset-0 bg-black/50 z-40",
-          isMobileMenuOpen ? "" : "invisible"
+          isMobileMenuOpen ? "" : "invisible",
         )}
         onClick={() => setIsMobileMenuOpen(false)}
       >
