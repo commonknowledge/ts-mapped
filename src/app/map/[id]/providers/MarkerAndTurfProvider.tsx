@@ -112,7 +112,7 @@ export default function MarkerAndTurfProvider({
     if (mapQuery?.data?.turfs) {
       setTurfs(mapQuery?.data.turfs);
     }
-  }, [mapQuery, setFolders, setPlacedMarkers, setTurfs]);
+  }, [mapQuery?.data, setFolders, setPlacedMarkers, setTurfs]);
 
   const handleAddArea = () => {
     const map = mapRef?.current;

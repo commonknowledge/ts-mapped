@@ -166,14 +166,14 @@ const MutationResolvers: MutationResolversType = {
     _: unknown,
     { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
-    await enqueue("enrichDataSource", { dataSourceId });
+    await enqueue("enrichDataSource", dataSourceId, { dataSourceId });
     return { code: 200 };
   },
   enqueueImportDataSourceJob: async (
     _: unknown,
     { dataSourceId }: { dataSourceId: string },
   ): Promise<MutationResponse> => {
-    await enqueue("importDataSource", { dataSourceId });
+    await enqueue("importDataSource", dataSourceId, { dataSourceId });
     return { code: 200 };
   },
   saveMapViewsToCRM: async (
@@ -183,7 +183,7 @@ const MutationResolvers: MutationResolversType = {
     const views = await findMapViewsByMapId(id);
     for (const view of views) {
       for (const dsv of view.dataSourceViews) {
-        await enqueue("tagDataSource", {
+        await enqueue("tagDataSource", dsv.dataSourceId, {
           dataSourceId: dsv.dataSourceId,
           viewId: view.id,
         });
@@ -259,7 +259,7 @@ const MutationResolvers: MutationResolversType = {
         `Updated ${dataSource.config.type} data source config: ${dataSource.id}`,
       );
 
-      await enqueue("importDataSource", { dataSourceId: id });
+      await enqueue("importDataSource", id, { dataSourceId: id });
 
       return { code: 200 };
     } catch (error) {

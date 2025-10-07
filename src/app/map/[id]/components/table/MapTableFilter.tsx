@@ -298,7 +298,7 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
           style={{ backgroundColor: color }}
         />
         <span className="whitespace-nowrap max-w-[100px] truncate pr-2 font-medium">
-          {filter.label || "Unknown location"}
+          {filter.label || "Unnamed location"}
         </span>
       </div>
     );
@@ -548,7 +548,7 @@ function buildDropdownItems({
 
   const turfItems: DropdownMenuItemType[] = turfs.map((turf) => ({
     type: "item",
-    label: turf.label,
+    label: turf.label || `Area: ${turf.area?.toFixed(2)}m²`,
     onClick: () => {
       addFilter({
         type: FilterType.GEO,

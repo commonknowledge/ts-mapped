@@ -52,7 +52,7 @@ export class CSVAdaptor implements DataSourceAdaptor {
   }
 
   createFileReadStream(url: string) {
-    const relativePath = url.replace(/^file:\/\//, "");
+    const relativePath = url.replace(/^file:\/\//, "").split("?")[0];
     const absolutePath = join(getBaseDir(), relativePath);
     return fs.createReadStream(absolutePath);
   }

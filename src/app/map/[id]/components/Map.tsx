@@ -14,6 +14,7 @@ import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { TableContext } from "@/app/map/[id]/context/TableContext";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
@@ -30,7 +31,7 @@ import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import type { Feature, FeatureCollection, Point } from "geojson";
+import type { FeatureCollection, Point } from "geojson";
 
 export default function Map({
   onSourceLoad,
@@ -60,6 +61,7 @@ export default function Map({
     markerQueries,
   } = useContext(MarkerAndTurfContext);
   const { setSelectedDataRecord } = useContext(DataRecordContext);
+  const { setSelectedDataSourceId } = useContext(TableContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -69,6 +71,7 @@ export default function Map({
   } | null>(null);
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const prevPointer = useRef("");
+  const [didInitialFit, setDidInitialFit] = useState(false);
 
   const markerLayers = useMemo(
     () =>
@@ -188,6 +191,39 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
+  const toggleDrawVisibility = useCallback(
+    (visible: boolean) => {
+      const map = mapRef?.current;
+
+      // all draw layers
+      const drawLayerIds = [
+        "gl-draw-polygon-fill.cold",
+        "gl-draw-polygon-stroke.cold",
+        "gl-draw-polygon-and-line-vertex-halo-active.cold",
+        "gl-draw-polygon-and-line-vertex-active.cold",
+      ];
+
+      if (map && styleLoaded) {
+        // draw layers that actually exist on our map
+        const style = map.getStyle();
+        const layerIds = style.layers
+          .filter((layer) => drawLayerIds.includes(layer.id))
+          .map((layer) => layer.id);
+
+        layerIds.forEach((id) => {
+          map
+            .getMap()
+            .setLayoutProperty(id, "visibility", visible ? "visible" : "none");
+        });
+      }
+    },
+    [mapRef, styleLoaded],
+  );
+
+  useEffect(() => {
+    toggleDrawVisibility(viewConfig.showTurf);
+  }, [viewConfig.showTurf, toggleDrawVisibility]);
+
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
@@ -221,8 +257,13 @@ export default function Map({
     });
   }, [mapRef, showControls]);
 
-  const getAllFeatures = (): Feature<Point>[] => {
-    const mappedPlacedMarkers = placedMarkers?.length
+  useEffect(() => {
+    const map = mapRef?.current;
+    if (!map || didInitialFit) {
+      return;
+    }
+
+    const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
           type: "Feature" as const,
           geometry: {
@@ -233,18 +274,45 @@ export default function Map({
         }))
       : [];
 
-    const memberMarkers =
-      markerQueries?.data.find(
-        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
-      )?.markers ?? [];
+    const dataSourceMarkerFeatures =
+      markerQueries?.data.flatMap((d) => d.markers) || [];
 
-    const otherMarkers = mapConfig.markerDataSourceIds.flatMap(
-      (id) =>
-        markerQueries?.data.find((dsm) => dsm.dataSourceId === id)?.markers ??
-        [],
-    );
-    return [...mappedPlacedMarkers, ...memberMarkers, ...otherMarkers];
-  };
+    const features = [...placedMarkerFeatures, ...dataSourceMarkerFeatures];
+
+    if (features?.length) {
+      const featureCollection: FeatureCollection<Point> = {
+        type: "FeatureCollection",
+        features,
+      };
+
+      const [minLng, minLat, maxLng, maxLat] = turf?.bbox(featureCollection);
+
+      map.fitBounds(
+        [
+          [minLng, minLat],
+          [maxLng, maxLat],
+        ],
+        {
+          padding: {
+            left: CONTROL_PANEL_WIDTH + 100,
+            right: 100,
+            top: 100,
+            bottom: 100,
+          },
+          duration: 1000,
+        },
+      );
+    }
+
+    setDidInitialFit(true);
+  }, [
+    didInitialFit,
+    mapConfig.markerDataSourceIds,
+    mapConfig.membersDataSourceId,
+    mapRef,
+    markerQueries?.data,
+    placedMarkers,
+  ]);
 
   return (
     <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
@@ -280,46 +348,20 @@ export default function Map({
               id: dataRecordId,
               dataSourceId: dataSourceId,
             });
+            setSelectedDataSourceId(dataSourceId);
             map.flyTo({
               center: features[0].geometry.coordinates as [number, number],
               zoom: 12,
             });
           } else {
             setSelectedDataRecord(null);
+            setSelectedDataSourceId("");
           }
         }}
         onLoad={() => {
           const map = mapRef?.current;
           if (!map) {
             return;
-          }
-
-          const features = getAllFeatures();
-
-          if (features?.length) {
-            const featureCollection: FeatureCollection<Point> = {
-              type: "FeatureCollection",
-              features,
-            };
-
-            const [minLng, minLat, maxLng, maxLat] =
-              turf?.bbox(featureCollection);
-
-            map.fitBounds(
-              [
-                [minLng, minLat],
-                [maxLng, maxLat],
-              ],
-              {
-                padding: {
-                  left: CONTROL_PANEL_WIDTH + 100,
-                  right: 100,
-                  top: 100,
-                  bottom: 100,
-                },
-                duration: 1000,
-              },
-            );
           }
 
           toggleLabelVisibility(viewConfig.showLabels);
