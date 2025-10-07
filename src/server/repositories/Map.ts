@@ -37,6 +37,7 @@ export function findMapsByOrganisationId(organisationId: string) {
   return db
     .selectFrom("map")
     .where("organisationId", "=", organisationId)
+    .orderBy("createdAt", "desc")
     .selectAll()
     .execute();
 }

@@ -29,19 +29,30 @@ const ensureQueue = async (queue: string) => {
     startedQueues = {};
   }
   if (!startedQueues[queue]) {
-    await boss.createQueue(queue);
+    await boss.createQueue(queue, { name: queue, policy: "stately" });
     startedQueues[queue] = true;
   }
 };
 
 export const enqueue = async (
   task: string,
+  key: string,
   args: object,
   queue: string = defaultQueue,
 ) => {
   await ensureQueue(queue);
-  await boss.send(queue, { task, args }, { expireInHours: 8 });
-  logger.info(`Enqueued job: ${task}, ${JSON.stringify(args)}`);
+  const jobId = await boss.send(
+    queue,
+    { task, args },
+    { expireInHours: 8, singletonKey: `${task}-${key}` },
+  );
+  if (jobId) {
+    logger.info(`Enqueued job ${jobId}: ${task}, ${JSON.stringify(args)}`);
+  } else {
+    logger.info(
+      `Did not enqueue duplicate job: ${task}, ${JSON.stringify(args)}`,
+    );
+  }
 };
 
 export const runWorker = async (queue: string = defaultQueue) => {

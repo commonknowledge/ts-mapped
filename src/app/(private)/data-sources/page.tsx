@@ -1,67 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-  BookOpen,
-  Database,
-  LoaderPinwheel,
-  Mail,
-  Pentagon,
-  PlusIcon,
-} from "lucide-react";
-import { useContext, useState } from "react";
-import { AreaSetGroupCode } from "@/__generated__/types";
+import { Database, LoaderPinwheel, PlusIcon } from "lucide-react";
+import { useContext } from "react";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import { AreaSetGroupCodeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import UserDataSourcesList from "./components/UserDataSourcesList";
-
-// Define mapped data library items grouped by category
-const mappedDataLibrary = {
-  localityShapes: [
-    {
-      id: "boundaries-wmc24",
-      name: AreaSetGroupCodeLabels[AreaSetGroupCode.WMC24],
-      description: "Westminster Parliamentary Constituencies for UK mapping",
-      type: "boundary",
-      category: "Locality shapes",
-    },
-    {
-      id: "boundaries-oa21",
-      name: AreaSetGroupCodeLabels[AreaSetGroupCode.OA21],
-      description: "Census Output Areas for detailed area mapping",
-      type: "boundary",
-      category: "Locality shapes",
-    },
-  ],
-  referenceData: [
-    {
-      id: "ge-2024",
-      name: "General Election 2024",
-      description: "Elecectoral results for the 2024 General Election",
-      type: "dataset",
-      category: "Reference data",
-    },
-    {
-      id: "deprivation-2021",
-      name: "Deprivation 2021",
-      description:
-        "Deprivation data for the 2021 Index of Multiple Deprivation",
-      type: "dataset",
-      category: "Reference data",
-    },
-  ],
-};
 
 export default function DataSourcesPage() {
   const { organisationId } = useContext(OrganisationsContext);
-  const [activeTab, setActiveTab] = useState<"your-data" | "mapped-library">(
-    "your-data",
-  );
 
   const trpc = useTRPC();
   const { data: dataSources, isPending } = useQuery(
@@ -72,25 +22,25 @@ export default function DataSourcesPage() {
   );
 
   return (
-    <div className="">
+    <div className="space-y-8">
+      <PageHeader
+        title="Your data sources"
+        action={
+          <Button variant="default" size="lg" asChild={true}>
+            <Link href="/data-sources/new">
+              <PlusIcon className="w-4 h-4" />
+              Add new
+            </Link>
+          </Button>
+        }
+      />
+
       {isPending ? (
         <div className="flex justify-center py-8">
           <LoaderPinwheel className="animate-spin" />
         </div>
       ) : (
-        <div className="space-y-8">
-          <PageHeader
-            title="Your data sources"
-            action={
-              <Button variant="default" size="lg" asChild={true}>
-                <Link href="/data-sources/new">
-                  <PlusIcon className="w-4 h-4" />
-                  Add new
-                </Link>
-              </Button>
-            }
-          />
-
+        <>
           {/* Show message if no data sources at all */}
           {dataSources && dataSources.length === 0 && (
             <div className="text-center py-12 text-gray-500">
@@ -111,7 +61,7 @@ export default function DataSourcesPage() {
           {dataSources && dataSources.length > 0 && (
             <UserDataSourcesList dataSources={dataSources} />
           )}
-        </div>
+        </>
       )}
     </div>
   );

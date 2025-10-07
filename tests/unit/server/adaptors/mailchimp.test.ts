@@ -29,11 +29,9 @@ describe("Mailchimp adaptor tests", () => {
     const body = {
       type: "subscribe",
       fired_at: new Date().toISOString(),
-      data: {
-        id: "55502f40dc8b7c769880b10874abc9d0", // MD5 hash format
-        email: "test@example.com",
-        list_id: credentials.mailchimp.listId,
-      },
+      "data[id]": "55502f40dc8b7c769880b10874abc9d0", // MD5 hash format
+      "data[email]": "test@example.com",
+      "data[list_id]": credentials.mailchimp.listId,
     };
 
     const ids = [];
@@ -317,11 +315,9 @@ describe("Mailchimp adaptor tests", () => {
     const bodyWithWrongListId = {
       type: "subscribe",
       fired_at: new Date().toISOString(),
-      data: {
-        id: "test123456789abcdef",
-        email: "test@example.com",
-        list_id: "wrong-list-id",
-      },
+      "data[id]": "test123456789abcdef",
+      "data[email]": "test@example.com",
+      "data[list_id]": "wrong-list-id",
     };
 
     const ids = [];

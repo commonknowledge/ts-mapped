@@ -53,8 +53,8 @@ export default async function RootLayout({
       className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} `}
     >
       <body className={ibmPlexSans.className + " antialiased"}>
-        <PostHogProvider>
-          <ServerSessionProvider serverSession={serverSession}>
+        <ServerSessionProvider serverSession={serverSession}>
+          <PostHogProvider>
             <OrganisationsProvider organisations={organisations}>
               <TRPCReactProvider>
                 <ApolloProvider>
@@ -67,8 +67,8 @@ export default async function RootLayout({
                 </ApolloProvider>
               </TRPCReactProvider>
             </OrganisationsProvider>
-          </ServerSessionProvider>
-        </PostHogProvider>
+          </PostHogProvider>
+        </ServerSessionProvider>
       </body>
     </html>
   );

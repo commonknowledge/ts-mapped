@@ -87,7 +87,35 @@ export const organisationProcedure = protectedProcedure
     return next({ ctx: { organisation } });
   });
 
-export const dataSourceProcedure = protectedProcedure
+export const dataSourceReadProcedure = protectedProcedure
+  .input(z.object({ dataSourceId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const dataSource = await findDataSourceById(input.dataSourceId);
+
+    if (!dataSource)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Data source not found",
+      });
+
+    if (dataSource.public) {
+      return next({ ctx: { dataSource } });
+    }
+
+    const organisation = await findOrganisationForUser(
+      dataSource.organisationId,
+      ctx.user.id,
+    );
+    if (!organisation)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organisation not found",
+      });
+
+    return next({ ctx: { organisation, dataSource } });
+  });
+
+export const dataSourceOwnerProcedure = protectedProcedure
   .input(z.object({ dataSourceId: z.string() }))
   .use(async ({ ctx, input, next }) => {
     const dataSource = await findDataSourceById(input.dataSourceId);

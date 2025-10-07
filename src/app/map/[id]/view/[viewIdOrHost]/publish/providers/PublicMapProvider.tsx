@@ -124,8 +124,6 @@ export default function PublicMapProvider({
         setRecordSidebarVisible,
         colourScheme,
         setColourScheme,
-        selectedRecordId: null,
-        setSelectedRecordId: () => null,
       }}
     >
       {publicMap?.dataSourceConfigs.map((dsc) => (

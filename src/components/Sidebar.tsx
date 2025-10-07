@@ -1,6 +1,12 @@
 "use client";
 
-import { Clock2, DatabaseIcon, LockIcon, MapIcon } from "lucide-react";
+import {
+  BookOpenIcon,
+  Clock2,
+  DatabaseIcon,
+  LockIcon,
+  MapIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
@@ -14,6 +20,9 @@ export default function Sidebar() {
 
   const [mounted, setMounted] = useState(false);
   const showPublicMaps = useFeatureFlagEnabled("public-maps");
+  const showMovementDataLibrary = useFeatureFlagEnabled(
+    "movement-data-library",
+  );
 
   useEffect(() => setMounted(true), []);
 
@@ -32,7 +41,7 @@ export default function Sidebar() {
           icon: <MapIcon className="w-4 h-4" />,
         },
         {
-          label: "Data sources",
+          label: "Your data sources",
           href: "/data-sources",
           icon: <DatabaseIcon className="w-4 h-4" />,
         },
@@ -44,11 +53,19 @@ export default function Sidebar() {
           icon: <Clock2 className="w-4 h-4" />,
         },
         {
-          label: "Data sources",
+          label: "Your data sources",
           href: "/data-sources",
           icon: <DatabaseIcon className="w-4 h-4" />,
         },
       ];
+
+  if (showMovementDataLibrary) {
+    navItems.push({
+      label: "Movement data library",
+      href: "/data-library",
+      icon: <BookOpenIcon className="w-4 h-4" />,
+    });
+  }
 
   return (
     <div className="w-64 h-screen bg-primary-foreground border-r border-neutral-200 flex flex-col">
