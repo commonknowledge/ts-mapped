@@ -257,7 +257,7 @@ export default function Map({
 
   useEffect(() => {
     const map = mapRef?.current;
-    if (!map || didInitialFit) {
+    if (!map || didInitialFit || markerQueries?.isFetching) {
       return;
     }
 
@@ -309,6 +309,7 @@ export default function Map({
     mapConfig.membersDataSourceId,
     mapRef,
     markerQueries?.data,
+    markerQueries?.isFetching,
     placedMarkers,
   ]);
 
