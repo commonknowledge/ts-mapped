@@ -155,7 +155,8 @@ export async function findPageForDataRecord(
   const rowNumForRecordQuery = await db
     .selectFrom(rowNumQuery.as("dataRecordId"))
     .select("rowNum")
-    .where("id", "=", dataRecordId).executeTakeFirst();
+    .where("id", "=", dataRecordId)
+    .executeTakeFirst();
 
   const rowIndex = Number(rowNumForRecordQuery?.rowNum || 1) - 1;
   const pageIndex = Math.floor(rowIndex / DATA_RECORDS_PAGE_SIZE);

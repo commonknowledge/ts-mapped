@@ -86,8 +86,8 @@ export default function MapTable() {
       filter={dataSourceView?.filter || { type: FilterType.MULTI }}
       setFilter={(filter) => {
         setTablePage(0);
-        updateDataSourceView({ filter })}
-      }
+        updateDataSourceView({ filter });
+      }}
     />
   );
 
