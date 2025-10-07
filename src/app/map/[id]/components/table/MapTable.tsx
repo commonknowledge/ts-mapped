@@ -93,7 +93,7 @@ export default function MapTable() {
         loading={dataRecordsLoading}
         columns={dataSource.columnDefs}
         data={dataRecordsResult?.records || []}
-        recordCount={dataRecordsResult?.count}
+        recordCount={dataRecordsResult?.counts}
         filter={filter}
         search={dataSourceView?.search}
         setSearch={(s) => updateDataSourceView({ search: s })}

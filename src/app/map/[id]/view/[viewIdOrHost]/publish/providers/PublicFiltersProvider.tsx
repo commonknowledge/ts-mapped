@@ -56,15 +56,14 @@ export default function PublicFiltersProvider({
       const fields = typedColumns.map((col) => {
         if (col.type === PublicMapColumnType.CommaSeparatedList) {
           const records =
-            dataRecordsQueries?.[dataSourceConfig?.dataSourceId]?.data
-              ?.dataSource?.records;
+            dataRecordsQueries?.[dataSourceConfig?.dataSourceId]?.data?.records;
 
           if (!records?.length) {
             return col;
           }
 
           const allValues = records
-            .map((record) => record.json[col.name])
+            .map((record) => String(record.json[col.name] || ""))
             .filter(Boolean) // remove null
             .flatMap((item: string) =>
               item.split(",").map((s: string) => s.trim()),

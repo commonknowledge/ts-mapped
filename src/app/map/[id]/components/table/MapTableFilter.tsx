@@ -1,4 +1,4 @@
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@tanstack/react-query";
 import { ListFilter, XIcon } from "lucide-react";
 import {
   useCallback,
@@ -14,6 +14,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
   Command,
@@ -29,8 +30,6 @@ import { Toggle } from "@/shadcn/ui/toggle";
 import { mapColors } from "../../styles";
 import type {
   ColumnDef,
-  FilterDataRecordsQuery,
-  FilterDataRecordsQueryVariables,
   MapConfig,
   PlacedMarker,
   RecordFilterInput,
@@ -350,64 +349,50 @@ function DistanceInput({
 // Extracted data record command component
 function DataRecordCommand({
   label,
-  dataSourceId,
+  dataSource,
   onSelectRecord,
 }: {
   label: string;
-  dataSourceId: string;
+  dataSource: { id: string; columnRoles: { nameColumns: string[] } };
   onSelectRecord: (id: string, label: string) => void;
 }) {
   const [search, setSearch] = useState("");
 
-  const { data, loading } = useQuery<
-    FilterDataRecordsQuery,
-    FilterDataRecordsQueryVariables
-  >(
-    gql`
-      query FilterDataRecords($dataSourceId: String!, $search: String) {
-        dataSource(id: $dataSourceId) {
-          id
-          columnRoles {
-            nameColumns
-          }
-          records(search: $search) {
-            id
-            externalId
-            json
-          }
-        }
-      }
-    `,
-    { variables: { dataSourceId, search } },
+  const trpc = useTRPC();
+  const dataRecordsQuery = useQuery(
+    trpc.dataRecord.list.queryOptions({
+      dataSourceId: dataSource.id,
+      search,
+    }),
   );
 
   // Client-side filtering: show only 5 records when no search, all when searching
   const displayedRecords = useMemo(() => {
-    if (!data?.dataSource?.records) return [];
+    if (!dataRecordsQuery.data?.records) return [];
 
     if (!search) {
       // Show only first 5 records when no search
-      return data.dataSource.records.slice(0, 5);
+      return dataRecordsQuery.data.records.slice(0, 5);
     }
 
     // Show all records when searching
-    return data.dataSource.records;
-  }, [data?.dataSource?.records, search]);
+    return dataRecordsQuery.data.records;
+  }, [dataRecordsQuery.data?.records, search]);
 
   const getItemLabel = useCallback(
-    (record: { externalId: string; json: Record<string, string> }) => {
-      const nameColumns = data?.dataSource?.columnRoles.nameColumns;
+    (record: { externalId: string; json: Record<string, unknown> }) => {
+      const nameColumns = dataSource.columnRoles.nameColumns;
       if (!nameColumns?.length) return record.externalId;
 
       const label = nameColumns
-        .map((column) => record.json[column])
-        .map((name) => name.trim())
+        .map((column) => record.json[column] || "")
+        .map((name) => String(name).trim())
         .filter(Boolean)
         .join(" ");
 
       return label || record.externalId;
     },
-    [data?.dataSource?.columnRoles.nameColumns],
+    [dataSource.columnRoles.nameColumns],
   );
 
   return (
@@ -419,7 +404,7 @@ function DataRecordCommand({
       />
       <CommandList>
         <CommandEmpty>
-          {loading
+          {dataRecordsQuery.isFetching
             ? "Loading"
             : search
               ? "No results found."
@@ -444,10 +429,11 @@ function DataRecordCommand({
               </CommandItem>
             ))}
             {!search &&
-              data?.dataSource?.records &&
-              data.dataSource.records.length > 5 && (
+              dataRecordsQuery.data?.records &&
+              dataRecordsQuery.data?.records.length > 5 && (
                 <div className="px-2 py-1 text-xs text-muted-foreground text-center">
-                  Type to search all {data.dataSource.records.length} records
+                  Type to search all {dataRecordsQuery.data.counts.count}{" "}
+                  records
                 </div>
               )}
           </CommandGroup>
@@ -484,16 +470,21 @@ function buildDropdownItems({
   addFilter,
 }: {
   mapConfig: MapConfig;
-  getDataSourceById: (id: string) => { id: string; name: string } | null;
+  getDataSourceById: (id: string | null | undefined) => {
+    id: string;
+    name: string;
+    columnRoles: { nameColumns: string[] };
+  } | null;
   placedMarkers: PlacedMarker[];
   turfs: Turf[];
   columns: ColumnDef[];
   addFilter: (filter: RecordFilterInput) => void;
 }): DropdownMenuItemType[] {
-  const memberCommand = mapConfig.membersDataSourceId ? (
+  const memberDataSource = getDataSourceById(mapConfig.membersDataSourceId);
+  const memberCommand = memberDataSource ? (
     <DataRecordCommand
       label="Members"
-      dataSourceId={mapConfig.membersDataSourceId}
+      dataSource={memberDataSource}
       onSelectRecord={(id, label) => {
         addFilter({
           type: FilterType.GEO,
@@ -509,13 +500,16 @@ function buildDropdownItems({
   const markerCommands = mapConfig.markerDataSourceIds.map(
     (dataSourceId: string) => {
       const markerDataSource = getDataSourceById(dataSourceId);
+      if (!markerDataSource) {
+        return null;
+      }
       return {
-        label: markerDataSource?.name || "Unknown data source",
+        label: markerDataSource.name,
         component: (
           <DataRecordCommand
             key={dataSourceId}
-            label={markerDataSource?.name || "Unknown data source"}
-            dataSourceId={dataSourceId}
+            label={markerDataSource.name}
+            dataSource={markerDataSource}
             onSelectRecord={(id, label) => {
               addFilter({
                 type: FilterType.GEO,
@@ -621,20 +615,22 @@ function buildDropdownItems({
 
               //if theres is marker collection data, show the markers in a submenu
               ...(markerCommands.length > 0
-                ? markerCommands.map(
-                    ({
-                      label,
-                      component,
-                    }: {
-                      label: string;
-                      component: React.ReactNode;
-                    }) =>
+                ? markerCommands
+                    .filter((mc) => mc !== null)
+                    .map(
                       ({
-                        type: "subcomponent",
                         label,
                         component,
-                      }) as DropdownSubComponent,
-                  )
+                      }: {
+                        label: string;
+                        component: React.ReactNode;
+                      }) =>
+                        ({
+                          type: "subcomponent",
+                          label,
+                          component,
+                        }) as DropdownSubComponent,
+                    )
                 : []),
             ],
           } as DropdownSubMenu,

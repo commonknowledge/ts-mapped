@@ -1,22 +1,19 @@
 "use client";
 
-import { gql, useQuery } from "@apollo/client";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
+import { useContext, useEffect, useState } from "react";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
+import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
 import { PublicMapContext } from "../context/PublicMapContext";
 import type {
   PublicMap,
   PublicMapColumn,
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
   PublicMapDataSourceConfig,
 } from "@/__generated__/types";
 import type { Point } from "@/server/models/shared";
-import type { RouterOutputs } from "@/services/trpc/react";
-import type { QueryResult } from "@apollo/client";
 import type { ReactNode } from "react";
 
 export default function PublicMapProvider({
@@ -28,6 +25,7 @@ export default function PublicMapProvider({
   editable?: boolean;
   children: ReactNode;
 }) {
+  const { view } = useContext(MapContext);
   const { publicMap, setPublicMap, activeTabId, setActiveTabId } =
     usePublicMapAndActiveTab(initialPublicMap, editable);
   const [searchLocation, setSearchLocation] = useState<Point | null>(null);
@@ -36,25 +34,44 @@ export default function PublicMapProvider({
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);
   const [colourScheme, setColourScheme] = useState<string>("red");
-  const [dataRecordsQueries, setDataRecordsQueries] = useState<
-    Record<
-      string,
-      QueryResult<PublicMapDataRecordsQuery, PublicMapDataRecordsQueryVariables>
-    >
-  >({});
 
-  const onLoadDataRecords = useCallback(
-    (
-      dataSourceId: string,
-      q: QueryResult<
-        PublicMapDataRecordsQuery,
-        PublicMapDataRecordsQueryVariables
-      >,
-    ) => {
-      setDataRecordsQueries((prev) => ({ ...prev, [dataSourceId]: q }));
+  const dataSourceConfigs = publicMap?.dataSourceConfigs || [];
+  const trpc = useTRPC();
+
+  const dataRecordsQueryOptions = dataSourceConfigs.map(({ dataSourceId }) => {
+    const filter = view?.dataSourceViews.find(
+      (dsv) => dsv.dataSourceId === dataSourceId,
+    )?.filter;
+    const sort = searchLocation
+      ? [{ name: SORT_BY_LOCATION, location: searchLocation, desc: false }]
+      : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
+    return trpc.dataRecord.list.queryOptions({
+      dataSourceId,
+      filter,
+      sort,
+      all: true,
+    });
+  });
+
+  const dataRecordsQueries = useQueries({
+    queries: dataRecordsQueryOptions,
+    combine: (results) => {
+      return results.reduce(
+        (o, result, i) => {
+          const dataSourceId = dataSourceConfigs[i].dataSourceId;
+          o[dataSourceId] = result;
+          return o;
+        },
+        {} as Record<
+          string,
+          {
+            data: RouterOutputs["dataRecord"]["list"] | undefined;
+            isFetching: boolean;
+          }
+        >,
+      );
     },
-    [],
-  );
+  });
 
   const updatePublicMap = (updates: Partial<PublicMap>) => {
     if (publicMap) {
@@ -126,91 +143,9 @@ export default function PublicMapProvider({
         setColourScheme,
       }}
     >
-      {publicMap?.dataSourceConfigs.map((dsc) => (
-        <DataRecordsQueryComponent
-          key={dsc.dataSourceId}
-          dataSourceId={dsc.dataSourceId}
-          location={searchLocation}
-          onLoadDataRecords={onLoadDataRecords}
-        />
-      ))}
       {children}
     </PublicMapContext>
   );
-}
-
-// Use a component for each query, as can't put hooks in a loop
-function DataRecordsQueryComponent({
-  dataSourceId,
-  location,
-  onLoadDataRecords,
-}: {
-  dataSourceId: string;
-  location: Point | null;
-  onLoadDataRecords: (
-    dataSourceId: string,
-    q: QueryResult<
-      PublicMapDataRecordsQuery,
-      PublicMapDataRecordsQueryVariables
-    >,
-  ) => void;
-}) {
-  const { view } = useContext(MapContext);
-
-  const filter = view?.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === dataSourceId,
-  )?.filter;
-
-  const sort = location
-    ? [{ name: SORT_BY_LOCATION, location, desc: false }]
-    : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
-
-  const dataRecordsQuery = useQuery<
-    PublicMapDataRecordsQuery,
-    PublicMapDataRecordsQueryVariables
-  >(
-    gql`
-      query PublicMapDataRecords(
-        $dataSourceId: String!
-        $filter: RecordFilterInput
-        $sort: [SortInput!]
-      ) {
-        dataSource(id: $dataSourceId) {
-          id
-          name
-          columnRoles {
-            nameColumns
-          }
-          records(filter: $filter, sort: $sort, all: true) {
-            id
-            externalId
-            geocodePoint {
-              lat
-              lng
-            }
-            json
-          }
-          recordCount(filter: $filter) {
-            count
-            matched
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        dataSourceId,
-        filter,
-        sort,
-      },
-    },
-  );
-
-  useEffect(() => {
-    onLoadDataRecords(dataSourceId, dataRecordsQuery);
-  }, [dataRecordsQuery, dataSourceId, onLoadDataRecords]);
-
-  return null;
 }
 
 // When loading an editable public map with no data sources,

@@ -12,18 +12,17 @@ import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
 import { getActiveFilters } from "./filtersHelpers";
 import FiltersList from "./FiltersList";
-import type {
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
-} from "@/__generated__/types";
-import type { QueryResult } from "@apollo/client";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };
   editable: boolean;
   dataRecordsQueries: Record<
     string,
-    QueryResult<PublicMapDataRecordsQuery, PublicMapDataRecordsQueryVariables>
+    {
+      data: RouterOutputs["dataRecord"]["list"] | undefined;
+      isFetching: boolean;
+    }
   >;
 }
 
@@ -52,6 +51,7 @@ export default function DataSourceTabs({
           {editable && <DataSourcesSelect />}
 
           <SingleDataSourceContent
+            dataSourceId={dsc.dataSourceId}
             dataRecordsQuery={dataRecordsQuery}
             editable={editable}
             colourScheme={colourScheme}
@@ -103,6 +103,7 @@ export default function DataSourceTabs({
               className="flex flex-col min-h-0"
             >
               <SingleDataSourceContent
+                dataSourceId={dsc.dataSourceId}
                 dataRecordsQuery={dataRecordsQuery}
                 editable={editable}
                 colourScheme={colourScheme}
@@ -117,16 +118,18 @@ export default function DataSourceTabs({
 }
 
 interface SingleDataSourceContentProps {
-  dataRecordsQuery: QueryResult<
-    PublicMapDataRecordsQuery,
-    PublicMapDataRecordsQueryVariables
-  >;
+  dataSourceId: string;
+  dataRecordsQuery: {
+    data: RouterOutputs["dataRecord"]["list"] | undefined;
+    isFetching: boolean;
+  };
   editable: boolean;
   colourScheme: { primary: string; muted: string };
   onSelect: (r: { id: string; dataSourceId: string }) => void;
 }
 
 function SingleDataSourceContent({
+  dataSourceId,
   dataRecordsQuery,
   editable,
   colourScheme,
@@ -136,7 +139,6 @@ function SingleDataSourceContent({
     useContext(PublicFiltersContext);
   const { publicMap } = useContext(PublicMapContext);
 
-  const dataSourceId = dataRecordsQuery.data?.dataSource?.id;
   const activeFilters = getActiveFilters(
     dataSourceId ? publicFilters[dataSourceId] : [],
   );
@@ -187,6 +189,7 @@ function SingleDataSourceContent({
       <h2 className="px-4 mt-2 text-xs">{getListingsLabel()}</h2>
 
       <DataRecordsList
+        dataSourceId={dataSourceId}
         dataRecordsQuery={dataRecordsQuery}
         onSelect={onSelect}
         colourScheme={colourScheme}

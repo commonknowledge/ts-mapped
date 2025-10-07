@@ -63,12 +63,12 @@ export const dataRecordRouter = router({
           sort || [],
           all,
         );
-        const count = await countDataRecordsForDataSource(
+        const counts = await countDataRecordsForDataSource(
           dataSourceId,
           filter,
           search,
         );
-        return { records, count };
+        return { records, counts };
       },
     ),
 

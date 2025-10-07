@@ -18,7 +18,7 @@ export default function DataRecordSidebar() {
     }
     const dataRecordsQuery =
       dataRecordsQueries[selectedDataRecord.dataSourceId];
-    return dataRecordsQuery.data?.dataSource?.records?.find(
+    return dataRecordsQuery.data?.records.find(
       (r) => r.id === selectedDataRecord.id,
     );
   }, [dataRecordsQueries, selectedDataRecord]);
@@ -35,8 +35,10 @@ export default function DataRecordSidebar() {
     dataSourceConfig?.nameColumns || [],
     selectedDataRecordDetails.json,
   );
-  const description =
-    selectedDataRecordDetails.json[dataSourceConfig?.descriptionColumn || ""];
+  const description = String(
+    selectedDataRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] ||
+      "",
+  );
 
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
