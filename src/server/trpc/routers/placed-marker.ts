@@ -4,16 +4,18 @@ import {
   deletePlacedMarker,
   upsertPlacedMarker,
 } from "@/server/repositories/PlacedMarker";
-import { mapProcedure, router } from "..";
+import { mapWriteProcedure, router } from "..";
 
 export const placedMarkerRouter = router({
-  delete: mapProcedure
+  delete: mapWriteProcedure
     .input(z.object({ placedMarkerId: z.string() }))
     .mutation(async ({ input }) => {
       return deletePlacedMarker(input.placedMarkerId);
     }),
 
-  upsert: mapProcedure.input(placedMarkerSchema).mutation(async ({ input }) => {
-    return upsertPlacedMarker(input);
-  }),
+  upsert: mapWriteProcedure
+    .input(placedMarkerSchema)
+    .mutation(async ({ input }) => {
+      return upsertPlacedMarker(input);
+    }),
 });

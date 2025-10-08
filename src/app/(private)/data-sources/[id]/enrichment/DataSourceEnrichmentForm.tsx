@@ -17,7 +17,7 @@ export default function DataSourceEnrichmentForm({
   dataSources,
 }: {
   dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
-  dataSources: NonNullable<RouterOutputs["dataSource"]["mine"]>;
+  dataSources: NonNullable<RouterOutputs["dataSource"]["listReadable"]>;
 }) {
   const [enrichments, setEnrichments] = useState<NewEnrichment[]>(
     // Add a blank enrichment config if the initial enrichments are empty

@@ -16,9 +16,9 @@ import type {
 import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
-  const { mapRef, mapConfig, view } = useContext(MapContext);
-  const { markerQueries, placedMarkers, turfs } =
-    useContext(MarkerAndTurfContext);
+  const { mapRef, mapConfig, view, mapQuery } = useContext(MapContext);
+  const { markerQueries, placedMarkers } = useContext(MarkerAndTurfContext);
+  const turfs = mapQuery?.data?.turfs;
   const { selectedDataSourceId } = useContext(TableContext);
 
   const memberMarkers = useMemo(
@@ -114,7 +114,7 @@ export default function FilterMarkers() {
     for (const dataSourceView of view?.dataSourceViews || []) {
       const filter = dataSourceView.filter;
       const dataSourceTurfs = getFilterTurfs(filter)
-        .map((turfId) => turfs.find((t) => t.id === turfId)?.polygon)
+        .map((turfId) => turfs?.find((t) => t.id === turfId)?.polygon)
         .filter((t) => t !== undefined);
       filterTurfs = filterTurfs.concat(dataSourceTurfs as Polygon[]);
     }

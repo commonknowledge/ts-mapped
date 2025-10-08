@@ -1,16 +1,16 @@
 import z from "zod";
 import { turfSchema } from "@/server/models/Turf";
 import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
-import { mapProcedure, router } from "..";
+import { mapWriteProcedure, router } from "..";
 
 export const turfRouter = router({
-  delete: mapProcedure
+  delete: mapWriteProcedure
     .input(z.object({ turfId: z.string() }))
     .mutation(async ({ input }) => {
       return deleteTurf(input.turfId);
     }),
 
-  upsert: mapProcedure
+  upsert: mapWriteProcedure
     .input(turfSchema.omit({ id: true }).extend({ id: z.string().optional() }))
     .mutation(async ({ input }) => {
       let turf = null;

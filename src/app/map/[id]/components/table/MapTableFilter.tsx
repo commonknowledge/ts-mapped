@@ -58,11 +58,11 @@ export default function MapTableFilter({
 }
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
-  const { mapConfig } = useContext(MapContext);
-  const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
+  const { mapConfig, mapQuery } = useContext(MapContext);
+  const { placedMarkers } = useContext(MarkerAndTurfContext);
   const { getDataSourceById } = useContext(DataSourcesContext);
   const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
-
+  const turfs = mapQuery?.data?.turfs;
   const tableDataSource = getDataSourceById(tableDataSourceId);
   const columns = useMemo(
     () => tableDataSource?.columnDefs || [],
@@ -102,7 +102,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         }
 
         // Check if turf still exists
-        if (child.turf && !turfs.find((t) => t.id === child.turf)) {
+        if (child.turf && !turfs?.find((t) => t.id === child.turf)) {
           return false;
         }
 
@@ -166,7 +166,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         mapConfig,
         getDataSourceById,
         placedMarkers,
-        turfs,
+        turfs: turfs || [],
         columns,
         addFilter,
       }),

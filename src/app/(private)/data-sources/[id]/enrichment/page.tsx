@@ -18,7 +18,7 @@ export default async function DataSourceEnrichmentPage({
   const trpcServer = await createCaller();
   const [dataSource, dataSources] = await Promise.all([
     trpcServer.dataSource.byId({ dataSourceId: id }),
-    trpcServer.dataSource.mine(),
+    trpcServer.dataSource.listReadable(),
   ]);
 
   if (!dataSource) {

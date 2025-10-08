@@ -45,6 +45,7 @@ export default function MapViews() {
   const {
     views,
     insertView,
+    mapId,
     updateView,
     setViewId: setSelectedViewId,
   } = useContext(MapContext);
@@ -84,12 +85,17 @@ export default function MapViews() {
     if (!newViewName.trim()) {
       return;
     }
+    if (!mapId) {
+      return;
+    }
 
     const newView = {
       id: uuidv4(),
       name: newViewName.trim(),
       config: new ViewConfig(),
       dataSourceViews: [],
+      mapId,
+      createdAt: new Date(),
     };
 
     insertView(newView);

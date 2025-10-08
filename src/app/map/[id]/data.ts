@@ -79,14 +79,14 @@ export const useAreaStats = ({
   // bounding boxes needs to be added together. Instead, useEffect is used
   // to add incoming data to the dedupedAreaStats state.
   const areaStatsQuery = useTanstackQuery(
-    trpc.areaStats.list.queryOptions(
+    trpc.area.stats.queryOptions(
       {
         areaSetCode,
         calculationType: calculationType || CalculationType.Value,
         dataSourceId,
         column: columnOrCount,
         excludeColumns,
-        boundingBox,
+        boundingBox: boundingBox || { north: 0, east: 0, south: 0, west: 0 },
       },
       { enabled: !skipCondition },
     ),
@@ -106,7 +106,7 @@ export const useAreaStats = ({
     setDedupedAreaStats((prev) => {
       const nextStats = areaStatsQuery.data.stats.reduce(
         (o, s) => {
-          o[s.areaCode] = s;
+          o[s.areaCode] = s as AreaStat;
           return o;
         },
         {} as Record<string, AreaStat>,
