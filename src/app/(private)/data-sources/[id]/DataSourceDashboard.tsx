@@ -1,11 +1,11 @@
 "use client";
 
-import { gql, useSubscription } from "@apollo/client";
 import { useMutation } from "@tanstack/react-query";
+import { useSubscription } from "@trpc/tanstack-react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { LoaderPinwheel, MapIcon, RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
@@ -34,10 +34,6 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import ConfigurationForm from "./components/ConfigurationForm";
-import type {
-  DataSourceEventSubscription,
-  DataSourceEventSubscriptionVariables,
-} from "@/__generated__/types";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function DataSourceDashboard({
@@ -52,10 +48,10 @@ export function DataSourceDashboard({
   );
 
   const lastImportedDateReadable = lastImported
-    ? format(new Date(lastImported), "d MMMM yyyy, h:mm a")
+    ? format(lastImported, "d MMMM yyyy, h:mm a")
     : null;
   const lastImportedFormattedFromNow = lastImported
-    ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
+    ? formatDistanceToNow(lastImported, { addSuffix: true })
     : null;
 
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
@@ -71,52 +67,29 @@ export function DataSourceDashboard({
     }),
   );
 
-  const { data: dataSourceEventData } = useSubscription<
-    DataSourceEventSubscription,
-    DataSourceEventSubscriptionVariables
-  >(
-    gql`
-      subscription DataSourceEvent($dataSourceId: String!) {
-        dataSourceEvent(dataSourceId: $dataSourceId) {
-          importStarted {
-            at
+  useSubscription(
+    trpc.dataSource.events.subscriptionOptions(
+      { dataSourceId: dataSource.id },
+      {
+        onData: (dataSourceEvent) => {
+          if (dataSourceEvent.event === "ImportStarted") {
+            setImporting(true);
           }
-          importComplete {
-            at
+          if (dataSourceEvent.event === "RecordsImported") {
+            setRecordCount(dataSourceEvent.count);
           }
-          importFailed {
-            at
+          if (dataSourceEvent.event === "ImportFailed") {
+            setImporting(false);
+            setImportError("Failed to import this data source.");
           }
-          recordsImported {
-            count
+          if (dataSourceEvent.event === "ImportComplete") {
+            setImporting(false);
+            setLastImported(dataSourceEvent.at);
           }
-        }
-      }
-    `,
-    { variables: { dataSourceId: dataSource.id } },
+        },
+      },
+    ),
   );
-
-  const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
-
-  useEffect(() => {
-    if (!dataSourceEvent) {
-      return;
-    }
-    if (dataSourceEvent.importStarted) {
-      setImporting(true);
-    }
-    if (dataSourceEvent.recordsImported?.count) {
-      setRecordCount(dataSourceEvent.recordsImported?.count);
-    }
-    if (dataSourceEvent.importFailed) {
-      setImporting(false);
-      setImportError("Failed to import this data source.");
-    }
-    if (dataSourceEvent.importComplete) {
-      setImporting(false);
-      setLastImported(dataSourceEvent.importComplete.at);
-    }
-  }, [dataSourceEvent]);
 
   const onClickImportRecords = useCallback(async () => {
     setImporting(true);

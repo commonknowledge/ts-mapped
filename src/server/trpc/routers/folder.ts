@@ -9,7 +9,8 @@ export const folderRouter = router({
     .input(z.object({ folderId: z.string() }))
     .mutation(async ({ input }) => {
       await deletePlacedMarkersByFolderId(input.folderId);
-      return deleteFolder(input.folderId);
+      await deleteFolder(input.folderId);
+      return true;
     }),
 
   upsert: mapWriteProcedure.input(folderSchema).mutation(async ({ input }) => {

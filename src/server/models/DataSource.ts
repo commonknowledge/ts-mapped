@@ -15,6 +15,11 @@ export enum JobStatus {
   Pending = "Pending",
 }
 
+export interface JobInfo {
+  status: JobStatus;
+  lastCompleted?: Date;
+}
+
 export enum DataSourceType {
   ActionNetwork = "actionnetwork",
   Airtable = "airtable",

@@ -10,7 +10,8 @@ export const placedMarkerRouter = router({
   delete: mapWriteProcedure
     .input(z.object({ placedMarkerId: z.string() }))
     .mutation(async ({ input }) => {
-      return deletePlacedMarker(input.placedMarkerId);
+      await deletePlacedMarker(input.placedMarkerId);
+      return true;
     }),
 
   upsert: mapWriteProcedure

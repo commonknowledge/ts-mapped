@@ -3,7 +3,7 @@ import { getDataSourceAdaptor } from "@/server/adaptors";
 import { enrichRecord } from "@/server/mapping/enrich";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import pubSub from "@/server/services/pubsub";
+import { pubsub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
 import type { DataSource } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
@@ -31,13 +31,10 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
   }
 
   try {
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        enrichmentStarted: {
-          at: new Date().toISOString(),
-        },
-      },
+    pubsub.publish("dataSourceEvent", {
+      event: "EnrichmentStarted",
+      dataSourceId: dataSource.id,
+      at: new Date(),
     });
 
     let count = 0;
@@ -57,36 +54,27 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
       } else {
         logger.info(`Enriched ${count} records`);
       }
-      pubSub.publish("dataSourceEvent", {
-        dataSourceEvent: {
-          dataSourceId: dataSource.id,
-          recordsEnriched: {
-            at: new Date().toISOString(),
-            count,
-          },
-        },
+      pubsub.publish("dataSourceEvent", {
+        event: "RecordsEnriched",
+        dataSourceId: dataSource.id,
+        at: new Date(),
+        count,
       });
     }
 
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        enrichmentComplete: {
-          at: new Date().toISOString(),
-        },
-      },
+    pubsub.publish("dataSourceEvent", {
+      event: "EnrichmentComplete",
+      dataSourceId: dataSource.id,
+      at: new Date(),
     });
 
     logger.info(`Enriched data source ${dataSource.id}: ${dataSource.name}`);
     return true;
   } catch (error) {
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        enrichmentComplete: {
-          at: new Date().toISOString(),
-        },
-      },
+    pubsub.publish("dataSourceEvent", {
+      event: "EnrichmentFailed",
+      dataSourceId: dataSource.id,
+      at: new Date(),
     });
 
     logger.error(
