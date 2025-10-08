@@ -25,6 +25,7 @@ import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
+import InspectorPanel from "./inspector/InspectorPanel";
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -59,10 +60,8 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
-  const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
+  const { setSelectedRecord } = useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
-
-  console.log("sel", selectedRecord);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [hoverMarker, setHoverMarker] = useState<{
@@ -349,7 +348,9 @@ export default function Map({
             setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
+              properties: properties,
             });
+
             map.flyTo({
               center: features[0].geometry.coordinates as [number, number],
               zoom: 12,
@@ -541,11 +542,7 @@ export default function Map({
                 </p>
               </Popup>
             )}
-            {Boolean(selectedRecord) && (
-              <div className="fixed top-40 right-6 p-4 rounded shadow-lg  bg-white">
-                Selected {selectedRecord?.dataSourceId} {selectedRecord?.id}
-              </div>
-            )}
+            <InspectorPanel />
           </>
         )}
       </MapGL>
