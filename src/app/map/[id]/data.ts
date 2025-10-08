@@ -66,7 +66,7 @@ export const useAreaStats = ({
         dataSourceId,
         column: columnOrCount,
         excludeColumns,
-        boundingBox: boundingBox || { north: 0, east: 0, south: 0, west: 0 },
+        boundingBox,
       },
       { enabled: !skipCondition },
     ),

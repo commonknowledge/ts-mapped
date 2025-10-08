@@ -13,7 +13,7 @@ export const areaRouter = router({
         calculationType: z.nativeEnum(CalculationType),
         column: z.string(),
         excludeColumns: z.array(z.string()),
-        boundingBox: boundingBoxSchema.nullable(),
+        boundingBox: boundingBoxSchema.nullish(),
       }),
     )
     .query(({ input }) => {

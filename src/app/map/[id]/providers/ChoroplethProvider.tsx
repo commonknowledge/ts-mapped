@@ -52,7 +52,7 @@ export default function ChoroplethProvider({
   const areaStatsQuery = useAreaStats({
     viewConfig,
     areaSetCode: choroplethLayerConfig.areaSetCode,
-    boundingBox,
+    boundingBox: choroplethLayerConfig.requiresBoundingBox ? boundingBox : null,
   });
 
   return (
