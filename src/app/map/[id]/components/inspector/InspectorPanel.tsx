@@ -1,12 +1,15 @@
-import { XIcon } from "lucide-react";
+import { TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { TableContext } from "@/app/map/[id]/context/TableContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { Button } from "@/shadcn/ui/button";
 import { mapColors } from "../../styles";
 import PropertiesList from "./PropertiesList";
 
 export default function InspectorPanel() {
   const { inspectorContent, resetInspector } = useContext(InspectorContext);
+  const { setSelectedDataSourceId } = useContext(TableContext);
 
   if (!Boolean(inspectorContent)) {
     return <></>;
@@ -39,23 +42,35 @@ export default function InspectorPanel() {
           </button>
         </div>
 
-        <div className="grow overflow-auto [&:not(:empty)]:border-t [&:not(:empty)]:p-4">
-          {Boolean(dataSource) && (
+        <div className="grow overflow-auto flex flex-col gap-4 [&:not(:empty)]:border-t [&:not(:empty)]:p-4">
+          {dataSource && (
             <div className="bg-muted py-1 px-2 rounded">
               <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
                 Data source
               </h3>
               <div className="flex items-center gap-2">
                 <div className="shrink-0">
-                  <DataSourceIcon type={dataSource?.config?.type as string} />
+                  <DataSourceIcon type={dataSource.config?.type as string} />
                 </div>
 
-                <p className="truncate">{dataSource?.name}</p>
+                <p className="truncate">{dataSource.name}</p>
               </div>
             </div>
           )}
 
           <PropertiesList properties={properties} />
+
+          {dataSource && (
+            <div className="border-t pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => setSelectedDataSourceId(dataSource.id)}
+              >
+                <TableIcon />
+                View row in data source
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

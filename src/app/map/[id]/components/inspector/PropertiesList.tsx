@@ -10,7 +10,7 @@ export default function PropertiesList({
   }
 
   return (
-    <dl className="flex flex-col gap-2">
+    <dl className="flex flex-col gap-3">
       {Object.keys(properties as object).map((label) => {
         const value = properties?.[label] as string;
 
@@ -18,7 +18,7 @@ export default function PropertiesList({
 
         return (
           <div key={label}>
-            <dt className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
+            <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono">
               {label}
             </dt>
             <dd className="font-medium">{value}</dd>

@@ -12,7 +12,7 @@ import {
   Settings2,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -76,6 +76,7 @@ export function DataTable({
   search,
   setSearch,
 }: DataTableProps) {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.max(
@@ -110,9 +111,34 @@ export function DataTable({
       );
     }
   };
+  useEffect(() => {
+    if (!selectedRecordId || !tableContainerRef.current) return;
+
+    const container = tableContainerRef.current;
+    const row = container.querySelector<HTMLTableRowElement>(
+      `tr[data-state="selected"]`,
+    );
+
+    if (!row) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+
+    const isInView =
+      rowRect.top >= containerRect.top &&
+      rowRect.bottom <= containerRect.bottom;
+
+    // check if the row is in view to avoid scrolling to it on user click on table row
+    if (!isInView) {
+      row.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedRecordId]);
 
   return (
-    <div className="flex flex-col  h-full">
+    <div className="flex flex-col  h-full" ref={tableContainerRef}>
       <div className="flex items-center justify-between px-3 py-2 border-b h-12">
         <div className="flex items-center gap-4 flex-1">
           {title && (
@@ -252,7 +278,7 @@ export function DataTable({
                     data-state={row.id === selectedRecordId && "selected"}
                     onClick={() => onRowClick?.(row)}
                     //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
-                    className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id ? "bg-blue-50" : ""}`}
+                    className={`cursor-pointer hover:bg-neutral-50 data-[state=selected]:bg-blue-50`}
                   >
                     {columns
                       .filter((c) => !hiddenColumns.includes(c.name))
