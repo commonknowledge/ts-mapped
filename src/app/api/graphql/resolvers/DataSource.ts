@@ -5,7 +5,6 @@ import {
 import {
   findDataSourceByIdAndOwnerId,
   findDataSourcesByIds,
-  getJobInfo,
 } from "@/server/repositories/DataSource";
 import type {
   DataSource,
@@ -25,8 +24,6 @@ const DataSourceResolvers: DataSourceResolversType = {
     }
     return config;
   },
-  enrichmentInfo: ({ id }: DataSource) => getJobInfo(id, "enrichDataSource"),
-  importInfo: ({ id }: DataSource) => getJobInfo(id, "importDataSource"),
   enrichmentDataSources: async (dataSource: DataSource) => {
     const dataSourceIds = dataSource.enrichments
       .map((e) => e.dataSourceId)

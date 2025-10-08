@@ -31,6 +31,7 @@ import {
   publicProcedure,
   router,
 } from "../index";
+import type { DataSourceEvent } from "@/server/events";
 import type { DataSource, DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
@@ -272,15 +273,27 @@ export const dataSourceRouter = router({
     return true;
   }),
 
-  events: dataSourceOwnerProcedure.subscription(async function* ({ ctx }) {
-    const sub = pubsub.subscribe("dataSourceEvent");
-    for await (const event of sub) {
-      if (!event) {
-        return;
+  events: dataSourceOwnerProcedure.subscription(async function* ({
+    ctx,
+    signal,
+  }) {
+    let sub: AsyncIterableIterator<DataSourceEvent> | null = null;
+    try {
+      signal?.addEventListener("abort", () => {
+        sub?.return?.();
+      });
+
+      sub = pubsub.subscribe("dataSourceEvent");
+      for await (const event of sub) {
+        if (!event) {
+          return;
+        }
+        if (event.dataSourceId === ctx.dataSource.id) {
+          yield event;
+        }
       }
-      if (event.dataSourceId === ctx.dataSource.id) {
-        yield event;
-      }
+    } finally {
+      sub?.return?.();
     }
   }),
 });

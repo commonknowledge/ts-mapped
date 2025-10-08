@@ -48,10 +48,10 @@ export function DataSourceDashboard({
   );
 
   const lastImportedDateReadable = lastImported
-    ? format(new Date(lastImported), "d MMMM yyyy, h:mm a")
+    ? format(lastImported, "d MMMM yyyy, h:mm a")
     : null;
   const lastImportedFormattedFromNow = lastImported
-    ? formatDistanceToNow(new Date(lastImported), { addSuffix: true })
+    ? formatDistanceToNow(lastImported, { addSuffix: true })
     : null;
 
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
@@ -72,19 +72,19 @@ export function DataSourceDashboard({
       { dataSourceId: dataSource.id },
       {
         onData: (dataSourceEvent) => {
-          if (dataSourceEvent.importStarted) {
+          if (dataSourceEvent.event === "ImportStarted") {
             setImporting(true);
           }
-          if (dataSourceEvent.recordsImported?.count) {
-            setRecordCount(dataSourceEvent.recordsImported?.count);
+          if (dataSourceEvent.event === "RecordsImported") {
+            setRecordCount(dataSourceEvent.count);
           }
-          if (dataSourceEvent.importFailed) {
+          if (dataSourceEvent.event === "ImportFailed") {
             setImporting(false);
             setImportError("Failed to import this data source.");
           }
-          if (dataSourceEvent.importComplete) {
+          if (dataSourceEvent.event === "ImportComplete") {
             setImporting(false);
-            setLastImported(dataSourceEvent.importComplete.at);
+            setLastImported(dataSourceEvent.at);
           }
         },
       },

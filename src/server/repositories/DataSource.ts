@@ -1,9 +1,9 @@
 import { sql } from "kysely";
 import { DataSourceType, JobStatus } from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
-import type { JobInfo } from "@/__generated__/types";
 import type {
   DataSourceUpdate,
+  JobInfo,
   NewDataSource,
 } from "@/server/models/DataSource";
 
@@ -61,7 +61,7 @@ export async function getJobInfo(
   }
 
   return {
-    lastCompleted: latestJob.completedOn.toISOString(),
+    lastCompleted: latestJob.completedOn,
     status: JobStatus.Complete,
   };
 }

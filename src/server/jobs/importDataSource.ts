@@ -39,9 +39,8 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   try {
     pubsub.publish("dataSourceEvent", {
       dataSourceId: dataSource.id,
-      importStarted: {
-        at: new Date().toISOString(),
-      },
+      event: "ImportStarted",
+      at: new Date(),
     });
 
     let count = 0;
@@ -63,10 +62,9 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       }
       pubsub.publish("dataSourceEvent", {
         dataSourceId: dataSource.id,
-        recordsImported: {
-          at: new Date().toISOString(),
-          count,
-        },
+        event: "RecordsImported",
+        at: new Date(),
+        count,
       });
     }
 
@@ -76,9 +74,8 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
 
     pubsub.publish("dataSourceEvent", {
       dataSourceId: dataSource.id,
-      importComplete: {
-        at: new Date().toISOString(),
-      },
+      event: "ImportComplete",
+      at: new Date(),
     });
 
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);
@@ -86,9 +83,8 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   } catch (error) {
     pubsub.publish("dataSourceEvent", {
       dataSourceId: dataSource.id,
-      importFailed: {
-        at: new Date().toISOString(),
-      },
+      event: "ImportFailed",
+      at: new Date(),
     });
 
     logger.error(

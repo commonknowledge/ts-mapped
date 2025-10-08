@@ -42,16 +42,16 @@ export function DataSourceEnrichmentDashboard({
       { dataSourceId: dataSource.id },
       {
         onData: (dataSourceEvent) => {
-          if (dataSourceEvent.enrichmentStarted) {
+          if (dataSourceEvent.event === "EnrichmentStarted") {
             setEnriching(true);
           }
-          if (dataSourceEvent.enrichmentFailed) {
+          if (dataSourceEvent.event === "EnrichmentFailed") {
             setEnriching(false);
             setEnrichmentError("Failed to enrich this data source.");
           }
-          if (dataSourceEvent.enrichmentComplete) {
+          if (dataSourceEvent.event === "EnrichmentComplete") {
             setEnriching(false);
-            setLastEnriched(dataSourceEvent.enrichmentComplete.at);
+            setLastEnriched(dataSourceEvent.at);
           }
         },
       },

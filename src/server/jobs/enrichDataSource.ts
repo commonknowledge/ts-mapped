@@ -32,10 +32,9 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
 
   try {
     pubsub.publish("dataSourceEvent", {
+      event: "EnrichmentStarted",
       dataSourceId: dataSource.id,
-      enrichmentStarted: {
-        at: new Date().toISOString(),
-      },
+      at: new Date(),
     });
 
     let count = 0;
@@ -56,29 +55,26 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
         logger.info(`Enriched ${count} records`);
       }
       pubsub.publish("dataSourceEvent", {
+        event: "RecordsEnriched",
         dataSourceId: dataSource.id,
-        recordsEnriched: {
-          at: new Date().toISOString(),
-          count,
-        },
+        at: new Date(),
+        count,
       });
     }
 
     pubsub.publish("dataSourceEvent", {
+      event: "EnrichmentComplete",
       dataSourceId: dataSource.id,
-      enrichmentComplete: {
-        at: new Date().toISOString(),
-      },
+      at: new Date(),
     });
 
     logger.info(`Enriched data source ${dataSource.id}: ${dataSource.name}`);
     return true;
   } catch (error) {
     pubsub.publish("dataSourceEvent", {
+      event: "EnrichmentFailed",
       dataSourceId: dataSource.id,
-      enrichmentComplete: {
-        at: new Date().toISOString(),
-      },
+      at: new Date(),
     });
 
     logger.error(
