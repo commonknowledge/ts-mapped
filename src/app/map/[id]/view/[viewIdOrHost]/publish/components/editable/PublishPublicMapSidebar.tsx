@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { Database, Settings } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
   VerticalTabs,
   VerticalTabsContent,
@@ -30,7 +30,7 @@ export default function PublishPublicMapSidebar() {
     recordSidebarVisible,
     setRecordSidebarVisible,
   } = useContext(PublicMapContext);
-  const { setSelectedDataRecord } = useContext(DataRecordContext);
+  const { setSelectedRecord } = useContext(InspectorContext);
   const [hideSidebar] = useState(false);
   const [, setError] = useState("");
   const [publishedHost, setPublishedHost] = useState(
@@ -57,7 +57,7 @@ export default function PublishPublicMapSidebar() {
       const records = dataRecordsQuery?.data?.records;
       if (records && records.length > 0) {
         const firstRecord = records[0];
-        setSelectedDataRecord({
+        setSelectedRecord({
           id: firstRecord.id,
           dataSourceId: activeTabId,
         });
@@ -68,7 +68,7 @@ export default function PublishPublicMapSidebar() {
     activePublishTab,
     recordSidebarVisible,
     dataRecordsQueries,
-    setSelectedDataRecord,
+    setSelectedRecord,
   ]);
 
   // Should never happen
@@ -115,7 +115,7 @@ export default function PublishPublicMapSidebar() {
                       dataRecordsQueries[currentDataSourceId]?.data
                         ?.records?.[0];
                     if (firstRecord) {
-                      setSelectedDataRecord({
+                      setSelectedRecord({
                         id: firstRecord.id,
                         dataSourceId: currentDataSourceId,
                       });

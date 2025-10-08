@@ -12,7 +12,7 @@ import {
   Settings2,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -35,6 +35,7 @@ import type { ReactNode } from "react";
 
 interface DataTableProps {
   title?: string;
+  buttons: ReactNode;
 
   loading: boolean;
   columns: ColumnDef[];
@@ -60,6 +61,7 @@ interface DataTableProps {
 
 export function DataTable({
   title,
+  buttons,
 
   loading,
   columns,
@@ -79,6 +81,7 @@ export function DataTable({
   search,
   setSearch,
 }: DataTableProps) {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const lastPageIndex = Math.max(
@@ -113,11 +116,37 @@ export function DataTable({
       );
     }
   };
+  useEffect(() => {
+    if (!selectedRecordId || !tableContainerRef.current || !data?.length)
+      return;
+
+    const container = tableContainerRef.current;
+    const row = container.querySelector<HTMLTableRowElement>(
+      `tr[data-state="selected"]`,
+    );
+
+    if (!row) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+
+    const isInView =
+      rowRect.top >= containerRect.top &&
+      rowRect.bottom <= containerRect.bottom;
+
+    // check if the row is in view to avoid scrolling to it on user click on table row
+    if (!isInView) {
+      row.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedRecordId, data]);
 
   return (
-    <div className="flex flex-col  h-full">
+    <div className="flex flex-col h-full" ref={tableContainerRef}>
       <div className="flex items-center justify-between px-3 py-2 border-b h-12">
-        <div className="flex items-center gap-4 flex-1">
+        <div className="flex items-center gap-4">
           {title && (
             <div className="flex flex-row gap-2">
               <p className="font-bold whitespace-nowrap">{title}</p>
@@ -129,14 +158,11 @@ export function DataTable({
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-2 ml-auto">
+          {buttons}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto shadow-none"
-              >
+              <Button variant="outline" size="sm">
                 <Settings2 className="text-muted-foreground" />
                 Display
               </Button>
@@ -255,7 +281,7 @@ export function DataTable({
                     data-state={row.id === selectedRecordId && "selected"}
                     onClick={() => onRowClick?.(row)}
                     //this feels wrong also it needs to be blue if its a selected member, but in the future, red if its a selected markers
-                    className={`cursor-pointer hover:bg-neutral-50 ${selectedRecordId === row.id ? "bg-blue-50" : ""}`}
+                    className={`cursor-pointer hover:bg-neutral-50 data-[state=selected]:bg-blue-50`}
                   >
                     {columns
                       .filter((c) => !hiddenColumns.includes(c.name))

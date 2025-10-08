@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
@@ -21,7 +21,7 @@ export default function FiltersForm({
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
-  const { setSelectedDataRecord } = useContext(DataRecordContext);
+  const { setSelectedRecord } = useContext(InspectorContext);
 
   // setting default values
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function FiltersForm({
       setPublicFilters({ ...publicFilters, [activeTabId]: values });
     }
     // closing the data record sidebar when applying filters - to avoid showing details of a record that is filtered out
-    setSelectedDataRecord(null);
+    setSelectedRecord(null);
     // closing filters dialog
     closeDialog();
   };

@@ -4,48 +4,28 @@ import { useMutation } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
-import { DataSourceTypeLabels } from "@/labels";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
-import type { DataSourceType } from "@/server/models/DataSource";
 
 /**
  * TODO: Move complex logic into MapProvider
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view, mapConfig } =
+  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
     useContext(MapContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
 
   const showPublishButton = useFeatureFlagEnabled("public-maps");
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const syncLabel = useMemo(() => {
-    const dataSourceIds = mapConfig.getDataSourceIds() ?? [];
-    if (dataSourceIds.length === 0) return "";
-
-    if (dataSourceIds.length === 1) {
-      const CRMType = getDataSourceById(dataSourceIds[0])?.config?.type as
-        | DataSourceType
-        | undefined;
-      return CRMType
-        ? `Sync with ${DataSourceTypeLabels[CRMType]}`
-        : "Sync with CRMs";
-    }
-
-    return "Sync with CRMs";
-  }, [getDataSourceById, mapConfig]);
 
   const trpc = useTRPC();
 
@@ -57,17 +37,6 @@ export default function PrivateMapNavbar() {
       onError: (error) => {
         toast.error("Failed to update map");
         console.error("Failed to update map name", error);
-      },
-    }),
-  );
-
-  const { mutate: saveToCrm, isPending: crmSaveLoading } = useMutation(
-    trpc.mapView.saveToCrm.mutationOptions({
-      onSuccess: () => {
-        toast.success("Map views saved to CRM");
-      },
-      onError: () => {
-        toast.error("Failed to save map views to CRM");
       },
     }),
   );
@@ -85,12 +54,6 @@ export default function PrivateMapNavbar() {
       toast.error("Could not publish this map view, please try again.");
       setLoading(false);
     }
-  };
-
-  const onClickCRMSave = async () => {
-    // Should never happen, button is also hidden in this case
-    if (!mapId) return;
-    saveToCrm({ mapId });
   };
 
   const regenerateMapImage = useCallback(async () => {
@@ -208,17 +171,6 @@ export default function PrivateMapNavbar() {
         <div className="flex items-center gap-4">
           {mapId && (
             <div className="flex items-center gap-4">
-              {syncLabel && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onClickCRMSave()}
-                  disabled={crmSaveLoading}
-                >
-                  {syncLabel}
-                </Button>
-              )}
-
               {showPublishButton && view && (
                 <Button
                   type="button"

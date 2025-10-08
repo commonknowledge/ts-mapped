@@ -1,7 +1,7 @@
 import { Check, X } from "lucide-react";
 import { useContext, useMemo } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
@@ -10,35 +10,33 @@ import { buildName, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
-  const { selectedDataRecord } = useContext(DataRecordContext);
+  const { selectedRecord } = useContext(InspectorContext);
   const { dataRecordsQueries, publicMap } = useContext(PublicMapContext);
-  const selectedDataRecordDetails = useMemo(() => {
-    if (!selectedDataRecord) {
+  const selectedRecordDetails = useMemo(() => {
+    if (!selectedRecord) {
       return null;
     }
-    const dataRecordsQuery =
-      dataRecordsQueries[selectedDataRecord.dataSourceId];
+    const dataRecordsQuery = dataRecordsQueries[selectedRecord.dataSourceId];
     return dataRecordsQuery.data?.records?.find(
-      (r) => r.id === selectedDataRecord.id,
+      (r) => r.id === selectedRecord.id,
     );
-  }, [dataRecordsQueries, selectedDataRecord]);
+  }, [dataRecordsQueries, selectedRecord]);
 
-  if (!selectedDataRecord || !selectedDataRecordDetails || !publicMap) {
+  if (!selectedRecord || !selectedRecordDetails || !publicMap) {
     return null;
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === selectedDataRecord?.dataSourceId,
+    (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId,
   );
 
   const name = buildName(
     dataSourceConfig?.nameColumns || [],
-    selectedDataRecordDetails.json,
+    selectedRecordDetails.json,
   );
-  const description = selectedDataRecordDetails.json[
-    dataSourceConfig?.descriptionColumn || ""
-  ] as string;
-
+  const description = String(
+    selectedRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] || "",
+  );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
@@ -49,7 +47,7 @@ export default function DataRecordSidebar() {
           <div className="flex flex-col">
             <EditablePublicMapProperty
               dataSourceProperty={{
-                dataSourceId: selectedDataRecord.dataSourceId,
+                dataSourceId: selectedRecord.dataSourceId,
                 property: "nameLabel",
               }}
               placeholder="Name label"
@@ -65,7 +63,7 @@ export default function DataRecordSidebar() {
               <div className="flex flex-col ">
                 <EditablePublicMapProperty
                   dataSourceProperty={{
-                    dataSourceId: selectedDataRecord.dataSourceId,
+                    dataSourceId: selectedRecord.dataSourceId,
                     property: "descriptionLabel",
                   }}
                   placeholder="Description label"
@@ -89,7 +87,7 @@ export default function DataRecordSidebar() {
               <EditablePublicMapProperty
                 additionalColumnProperty={{
                   columnIndex: i,
-                  dataSourceId: selectedDataRecord.dataSourceId,
+                  dataSourceId: selectedRecord.dataSourceId,
                   property: "label",
                 }}
                 placeholder="Label"
@@ -100,17 +98,17 @@ export default function DataRecordSidebar() {
             {columnConfig.type === PublicMapColumnType.Boolean ? (
               <CheckList
                 sourceColumns={columnConfig.sourceColumns}
-                json={selectedDataRecordDetails.json}
+                json={selectedRecordDetails.json}
               />
             ) : columnConfig.type === PublicMapColumnType.CommaSeparatedList ? (
               <CommaSeparatedList
                 sourceColumns={columnConfig.sourceColumns}
-                json={selectedDataRecordDetails.json}
+                json={selectedRecordDetails.json}
               />
             ) : (
               <span className="text-lg">
                 {columnConfig.sourceColumns
-                  .map((c) => selectedDataRecordDetails.json[c])
+                  .map((c) => selectedRecordDetails.json[c])
                   .filter(Boolean)
                   .join(", ")}
               </span>
@@ -125,7 +123,7 @@ export default function DataRecordSidebar() {
             <a
               target="_blank"
               href={`${dataSourceConfig.formUrl}${jsonToAirtablePrefill(
-                selectedDataRecordDetails.json as Record<string, string>,
+                selectedRecordDetails.json,
               )}`}
             >
               Submit an edit

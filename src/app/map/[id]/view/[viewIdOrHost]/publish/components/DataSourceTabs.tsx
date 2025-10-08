@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
@@ -33,7 +33,7 @@ export default function DataSourceTabs({
 }: DataSourceTabsProps) {
   const { publicMap, activeTabId, setActiveTabId } =
     useContext(PublicMapContext);
-  const { setSelectedDataRecord } = useContext(DataRecordContext);
+  const { setSelectedRecord } = useContext(InspectorContext);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
 
   if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
@@ -54,7 +54,7 @@ export default function DataSourceTabs({
             dataRecordsQuery={dataRecordsQuery}
             editable={editable}
             colourScheme={colourScheme}
-            onSelect={setSelectedDataRecord}
+            onSelect={setSelectedRecord}
           />
         </>
       )
@@ -105,7 +105,7 @@ export default function DataSourceTabs({
                 dataRecordsQuery={dataRecordsQuery}
                 editable={editable}
                 colourScheme={colourScheme}
-                onSelect={setSelectedDataRecord}
+                onSelect={setSelectedRecord}
               />
             </TabsContent>
           )
