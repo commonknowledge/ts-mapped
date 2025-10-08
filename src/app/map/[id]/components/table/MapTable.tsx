@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { FilterType } from "@/__generated__/types";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { DataTable } from "./DataTable";
@@ -16,8 +16,7 @@ interface DataRecord {
 export default function MapTable() {
   const { mapRef, view, updateView } = useContext(MapContext);
   const { getDataSourceById } = useContext(DataSourcesContext);
-  const { selectedDataRecord, setSelectedDataRecord } =
-    useContext(DataRecordContext);
+  const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
 
   const {
     selectedDataSourceId,
@@ -44,7 +43,7 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedDataRecord({ id: row.id, dataSourceId: dataSource.id });
+    setSelectedRecord({ id: row.id, dataSourceId: dataSource.id });
   };
 
   const dataSourceView = view?.dataSourceViews.find(
@@ -102,7 +101,7 @@ export default function MapTable() {
         sort={dataSourceView?.sort || []}
         setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
-        selectedRecordId={selectedDataRecord?.id}
+        selectedRecordId={selectedRecord?.id}
         onClose={() => handleDataSourceSelect("")}
       />
     </div>

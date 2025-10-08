@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import {
@@ -25,6 +25,7 @@ import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
+
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -59,7 +60,7 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
-  const { setSelectedDataRecord } = useContext(DataRecordContext);
+  const { setSelectedRecord } = useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -339,20 +340,23 @@ export default function Map({
           });
           if (features.length && features[0].geometry.type === "Point") {
             const properties = features[0].properties;
+
             const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
             const dataSourceId = properties
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
-            setSelectedDataRecord({
+            setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
+              properties: properties,
             });
+
             map.flyTo({
               center: features[0].geometry.coordinates as [number, number],
               zoom: 12,
             });
           } else {
-            setSelectedDataRecord(null);
+            setSelectedRecord(null);
           }
         }}
         onLoad={() => {

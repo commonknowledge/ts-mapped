@@ -3,7 +3,7 @@
 import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
@@ -35,7 +35,7 @@ export default function DataRecordsList({
 }: DataRecordsListProps) {
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
-  const { selectedDataRecord } = useContext(DataRecordContext);
+  const { selectedRecord } = useContext(InspectorContext);
   const { publicFilters, records, setRecords } =
     useContext(PublicFiltersContext);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
@@ -119,7 +119,7 @@ export default function DataRecordsList({
     <ul className="flex flex-col">
       {records.map((r) => {
         const isExpanded = expandedRecordId === r.id;
-        const isSelected = selectedDataRecord?.id === r.id;
+        const isSelected = selectedRecord?.id === r.id;
 
         return (
           <li
