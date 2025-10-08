@@ -40,7 +40,10 @@ interface DataTableProps {
   loading: boolean;
   columns: ColumnDef[];
   data: DataRecord[];
-  recordCount?: { count: number; matched: number } | null | undefined;
+  recordCount?: {
+    count: number;
+    matched: number;
+  };
 
   pageIndex: number;
   setPageIndex: (page: number) => void;

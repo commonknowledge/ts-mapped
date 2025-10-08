@@ -1,8 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapConfig,
@@ -11,10 +12,10 @@ import {
 } from "@/app/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
-import { useDeleteMapViewMutation, useUpdateMapConfigMutation } from "../data";
+import { useMapQuery } from "../queries";
 import { getNewLastPosition } from "../utils";
 import type { View } from "../types";
-import type { BoundingBoxInput } from "@/__generated__/types";
+import type { BoundingBox } from "@/server/models/Area";
 import type { ReactNode } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 
@@ -33,7 +34,7 @@ export default function MapProvider({
 
   /* Map State */
 
-  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
+  const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const [mapConfig, setMapConfig] = useState(new MapConfig());
   const [dirtyViewIds, setDirtyViewIds] = useState<string[]>([]);
   const [views, setViews] = useState<View[]>([]);
@@ -46,9 +47,7 @@ export default function MapProvider({
 
   /* Server Data */
   const trpc = useTRPC();
-  const mapQuery = useQuery(
-    trpc.map.get.queryOptions({ mapId }, { refetchOnMount: "always" }),
-  );
+  const mapQuery = useMapQuery(mapId);
 
   const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
     setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
@@ -72,7 +71,16 @@ export default function MapProvider({
     setDirtyViewIds([...dirtyViewIds, view.id]);
   };
 
-  const { mutate: deleteViewMutate } = useDeleteMapViewMutation();
+  const { mutate: deleteViewMutate } = useMutation(
+    trpc.mapView.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success("View deleted successfully");
+      },
+      onError: () => {
+        toast.error("Failed to delete view");
+      },
+    }),
+  );
   const deleteView = (viewId: string) => {
     setViews(views.filter((v) => v.id !== viewId));
     deleteViewMutate({ mapId, viewId });
@@ -88,18 +96,24 @@ export default function MapProvider({
     setDirtyViewIds([...dirtyViewIds, view.id]);
   };
 
-  const [_saveMapConfig] = useUpdateMapConfigMutation();
-  const saveMapConfig = useCallback(async () => {
-    await _saveMapConfig({
-      variables: {
-        mapId,
-        mapConfig,
-        views,
+  // const client = useQueryClient();
+
+  const { mutate: saveMapConfigMutate } = useMutation(
+    trpc.map.updateConfig.mutationOptions({
+      onSuccess: () => {
+        // client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+        //   if (!old) return old;
+        //   return { ...old, config: { ...old.config, ...config } };
+        // });
+        setDirtyViewIds([]);
+        setConfigDirty(false);
       },
-    });
-    setDirtyViewIds([]);
-    setConfigDirty(false);
-  }, [_saveMapConfig, mapConfig, mapId, views]);
+    }),
+  );
+
+  const saveMapConfig = useCallback(() => {
+    saveMapConfigMutate({ mapId, config: mapConfig, views });
+  }, [saveMapConfigMutate, mapConfig, mapId, views]);
 
   /* Effects */
 
@@ -123,34 +137,28 @@ export default function MapProvider({
         name: "Default View",
         config: new ViewConfig(),
         dataSourceViews: [],
+        mapId: mapId,
+        createdAt: new Date(),
         position: 0,
       };
       setViewId(newView.id);
       setViews([newView]);
     }
-  }, [initialViewId, mapData]);
+  }, [initialViewId, mapData, mapId]);
 
   const viewConfig = useMemo(() => {
     return new ViewConfig({ ...view?.config });
   }, [view]);
 
-  const autoSave = useCallback(async () => {
-    if (!mapId || !mapConfig) {
-      return;
-    }
-
-    try {
-      await saveMapConfig();
-    } catch (e) {
-      console.error("UpdateMapConfig failed", e);
-    }
+  const autoSave = useCallback(() => {
+    if (!mapId || !mapConfig) return;
+    saveMapConfig();
   }, [mapConfig, mapId, saveMapConfig]);
 
   // auto save map config
   useEffect(() => {
-    if (!configDirty) {
-      return;
-    }
+    if (!configDirty) return;
+
     const handler = setTimeout(() => {
       autoSave();
     }, 1000); // debounce 1s
@@ -162,9 +170,7 @@ export default function MapProvider({
 
   // auto save map view
   useEffect(() => {
-    if (!dirtyViewIds?.length) {
-      return;
-    }
+    if (!dirtyViewIds?.length) return;
 
     const handler = setTimeout(() => {
       autoSave();
@@ -198,7 +204,6 @@ export default function MapProvider({
         updateViewConfig,
         zoom,
         setZoom,
-        mapQuery: mapQuery,
         pinDropMode,
         setPinDropMode,
         ready,

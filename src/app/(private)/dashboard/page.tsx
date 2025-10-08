@@ -1,9 +1,9 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { MapsList } from "@/app/(private)/components/MapsList";
 import PageHeader from "@/components/PageHeader";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
@@ -29,16 +29,27 @@ export default function DashboardPage() {
       }))
     : [];
 
-  const { mutate: createMap, isPending: createMapLoading } = useMutation(
+  const [isLoading, setIsLoading] = useState(false);
+
+  const client = useQueryClient();
+
+  const { mutate: createMap } = useMutation(
     trpc.map.create.mutationOptions({
       onSuccess: (data) => {
+        client.invalidateQueries({
+          queryKey: trpc.map.byId.queryKey({ mapId: data.id }),
+        });
         router.push(`/map/${data.id}`);
+      },
+      onError: () => {
+        setIsLoading(false);
       },
     }),
   );
 
   const onClickNew = () => {
     if (!organisationId) return;
+    setIsLoading(true);
     createMap({ organisationId });
   };
 
@@ -51,7 +62,7 @@ export default function DashboardPage() {
             type="button"
             size="lg"
             onClick={() => onClickNew()}
-            disabled={createMapLoading}
+            disabled={isLoading}
           >
             <PlusIcon /> Add new
           </Button>

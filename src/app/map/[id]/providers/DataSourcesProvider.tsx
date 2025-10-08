@@ -17,7 +17,9 @@ export default function DataSourcesProvider({
 
   const trpc = useTRPC();
   const { data: dataSources, isPending } = useQuery(
-    trpc.dataSource.listReadable.queryOptions(),
+    trpc.dataSource.listReadable.queryOptions(undefined, {
+      refetchOnMount: "always",
+    }),
   );
 
   const getDataSources = useCallback(() => {

@@ -1,12 +1,14 @@
 "use client";
 
-import { gql, useMutation, useSubscription } from "@apollo/client";
+import { gql, useSubscription } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { LoaderPinwheel } from "lucide-react";
 import { useEffect, useState } from "react";
-import { EnrichmentSourceType, JobStatus } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
 import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
+import { EnrichmentSourceType, JobStatus } from "@/server/models/DataSource";
+import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
@@ -14,10 +16,7 @@ import type {
   AreaSetCode,
   DataSourceEnrichmentEventSubscription,
   DataSourceEnrichmentEventSubscriptionVariables,
-  EnqueueEnrichDataSourceJobMutation,
-  EnqueueEnrichDataSourceJobMutationVariables,
 } from "@/__generated__/types";
-import type { RouterOutputs } from "@/services/trpc/react";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,
@@ -31,16 +30,16 @@ export function DataSourceEnrichmentDashboard({
   );
   const [enrichmentCount, setEnrichmentCount] = useState(0);
 
-  const [enqueueEnrichDataSourceJob] = useMutation<
-    EnqueueEnrichDataSourceJobMutation,
-    EnqueueEnrichDataSourceJobMutationVariables
-  >(gql`
-    mutation EnqueueEnrichDataSourceJob($dataSourceId: String!) {
-      enqueueEnrichDataSourceJob(dataSourceId: $dataSourceId) {
-        code
-      }
-    }
-  `);
+  const trpc = useTRPC();
+  const { mutate: enqueueEnrichDataSourceJob } = useMutation(
+    trpc.dataSource.enqueueEnrichJob.mutationOptions({
+      onError: (error) => {
+        console.error(`Could not schedule enrichment job: ${error}`);
+        setEnrichmentError("Could not schedule enrichment job.");
+        setEnriching(false);
+      },
+    }),
+  );
 
   const { data: dataSourceEventData } = useSubscription<
     DataSourceEnrichmentEventSubscription,
@@ -87,19 +86,7 @@ export function DataSourceEnrichmentDashboard({
     setEnriching(true);
     setEnrichmentError("");
     setEnrichmentCount(0);
-
-    try {
-      const result = await enqueueEnrichDataSourceJob({
-        variables: { dataSourceId: dataSource.id },
-      });
-      if (result.data?.enqueueEnrichDataSourceJob?.code !== 200) {
-        throw new Error(String(result.errors || "Unknown error"));
-      }
-    } catch (e) {
-      console.error(`Could not schedule enrichment job: ${e}`);
-      setEnrichmentError("Could not schedule enrichment job.");
-      setEnriching(false);
-    }
+    enqueueEnrichDataSourceJob({ dataSourceId: dataSource.id });
   };
 
   const displayEnrichmentProgress = enrichmentCount > 0 || enriching;

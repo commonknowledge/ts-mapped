@@ -1,14 +1,11 @@
 import { Database } from "lucide-react";
 import { useContext } from "react";
-import {
-  CalculationType,
-  ColorScheme,
-  ColumnType,
-} from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MAX_COLUMN_KEY } from "@/constants";
+import { ColumnType } from "@/server/models/DataSource";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import { useColorScheme } from "../colors";
 
 export default function Legend() {

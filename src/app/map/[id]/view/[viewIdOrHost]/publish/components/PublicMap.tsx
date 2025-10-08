@@ -7,6 +7,7 @@ import Map from "@/app/map/[id]/components/Map";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMapQuery } from "@/app/map/[id]/queries";
 import { Link } from "@/components/Link";
 import { PublicMapContext } from "../context/PublicMapContext";
 import EditorNavbar from "./editable/EditorNavbar";
@@ -16,13 +17,15 @@ import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 
 export default function PublicMap() {
-  const { mapQuery } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
   const { editable } = useContext(PublicMapContext);
   const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
-  if (!mapQuery || mapQuery.isPending) {
+  const { data: map, isPending } = useMapQuery(mapId);
+
+  if (!map || isPending) {
     return <Loading />;
   }
 

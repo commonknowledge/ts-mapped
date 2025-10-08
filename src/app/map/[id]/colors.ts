@@ -10,9 +10,10 @@ import {
   schemeCategory10,
 } from "d3-scale-chromatic";
 import { useMemo } from "react";
-import { ColorScheme, ColumnType } from "@/__generated__/types";
+import { ColumnType } from "@/server/models/DataSource";
+import { ColorScheme } from "@/server/models/MapView";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
-import type { AreaStats } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
 import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
@@ -51,7 +52,7 @@ const getInterpolator = (scheme: ColorScheme | undefined) => {
 };
 
 export const useColorScheme = (
-  areaStats: AreaStats | null | undefined,
+  areaStats: RouterOutputs["area"]["stats"] | null | undefined,
   scheme: ColorScheme,
   isCount: boolean,
   isReversed = false,
@@ -62,15 +63,17 @@ export const useColorScheme = (
       return null;
     }
 
-    const values = areaStats.stats.map((stat) => stat.value);
+    const values = areaStats.stats.map((stat) => stat.value) as number[];
 
     // ColumnType.String and others
     if (areaStats.columnType !== ColumnType.Number) {
       const distinctValues = new Set(values);
-      const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
+      const colorScale = scaleOrdinal(schemeCategory10).domain(
+        distinctValues as Iterable<string>,
+      );
       const colorMap: Record<string, string> = {};
       distinctValues.forEach((v) => {
-        colorMap[v] = getCategoricalColor(v, colorScale);
+        colorMap[v] = getCategoricalColor(v.toString(), colorScale);
       });
       return {
         columnType: ColumnType.String,
@@ -114,7 +117,9 @@ export const useColorScheme = (
       };
     }
 
-    const domain = isReversed ? [maxValue, minValue] : [minValue, maxValue];
+    const domain = (
+      isReversed ? [maxValue, minValue] : [minValue, maxValue]
+    ) as [number, number];
 
     const interpolator = getInterpolator(scheme);
     const colorScale = scaleSequential()
@@ -123,8 +128,8 @@ export const useColorScheme = (
 
     return {
       columnType: ColumnType.Number,
-      minValue,
-      maxValue,
+      minValue: minValue ?? 0,
+      maxValue: maxValue ?? 0,
       colorScale,
     };
   }, [areaStats, isCount, scheme, isReversed]);
@@ -138,7 +143,7 @@ const getCategoricalColor = (
 };
 
 export const useFillColor = (
-  areaStats: AreaStats | null | undefined,
+  areaStats: RouterOutputs["area"]["stats"] | null | undefined,
   scheme: ColorScheme,
   isCount: boolean,
   isReversed: boolean,

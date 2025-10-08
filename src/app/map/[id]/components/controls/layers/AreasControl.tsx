@@ -1,6 +1,6 @@
 import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
@@ -13,35 +13,15 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
-import Loading from "../../Loading";
 import EmptyLayer from "../Emptylayer";
 import LayerHeader from "../LayerHeader";
-import type { Turf } from "@/__generated__/types";
+import type { Turf } from "@/server/models/Turf";
 
 export default function AreasControl() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
-  const { handleAddArea, turfs, turfsLoading } =
-    useContext(MarkerAndTurfContext);
-  const [, setFormattedDates] = useState<Record<string, string>>({});
+  const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
-
-  // TODO: display these dates somewhere
-  useEffect(() => {
-    // Format dates only on client-side
-    const dates = turfs.reduce(
-      (acc, t) => {
-        acc[t.id] = new Date(t.createdAt)
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " ");
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
-
-    setFormattedDates(dates);
-  }, [turfs]);
 
   const onAddArea = () => {
     handleAddArea();
@@ -76,9 +56,11 @@ export default function AreasControl() {
 
       {expanded && (
         <div className="relative">
-          {turfs.length === 0 && <EmptyLayer message="Add an Area Layer" />}
+          {turfs && turfs.length === 0 && (
+            <EmptyLayer message="Add an Area Layer" />
+          )}
           {/* Disable interactions while turfs are loading/updating in the background */}
-          {turfsLoading && <Loading blockInteraction />}
+          {/* {turfsLoading && <Loading blockInteraction />} */}
           <ul
             className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
           >

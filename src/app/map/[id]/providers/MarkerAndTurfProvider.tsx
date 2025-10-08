@@ -1,15 +1,16 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
+import { useMapQuery } from "../queries";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
-import type { Turf } from "@/__generated__/types";
+import type { Turf } from "@/server/models/Turf";
 import type { Feature } from "geojson";
 import type { ReactNode } from "react";
 
@@ -18,8 +19,11 @@ export default function MarkerAndTurfProvider({
 }: {
   children: ReactNode;
 }) {
-  const { mapRef, mapId, mapQuery, mapConfig, view, setPinDropMode } =
+  const { mapRef, mapId, mapConfig, view, setPinDropMode } =
     useContext(MapContext);
+
+  const trpc = useTRPC();
+  const { data: map } = useMapQuery(mapId);
   const { publicMap } = useContext(PublicMapContext);
   /* State */
 
@@ -43,7 +47,6 @@ export default function MarkerAndTurfProvider({
       );
   }, [mapConfig, publicMap]);
 
-  const trpc = useTRPC();
   // Using the `combine` option in this useQueries call makes `markerQueries`
   // only update when the data updates. This prevents infinite loops
   // when `markerQueries` is used in useEffect hooks.
@@ -93,26 +96,20 @@ export default function MarkerAndTurfProvider({
     loading: placedMarkersLoading,
   } = usePlacedMarkers(mapId);
 
-  const {
-    turfs,
-    setTurfs,
-    deleteTurf,
-    insertTurf,
-    updateTurf,
-    loading: turfsLoading,
-  } = useTurfs(mapId);
+  const { deleteTurf, insertTurf, updateTurf, turfs, setTurfs } =
+    useTurfs(mapId);
 
   useEffect(() => {
-    if (mapQuery?.data?.folders) {
-      setFolders(mapQuery?.data?.folders);
+    if (map?.folders) {
+      setFolders(map?.folders);
     }
-    if (mapQuery?.data?.placedMarkers) {
-      setPlacedMarkers(mapQuery?.data?.placedMarkers);
+    if (map?.placedMarkers) {
+      setPlacedMarkers(map?.placedMarkers);
     }
-    if (mapQuery?.data?.turfs) {
-      setTurfs(mapQuery?.data.turfs);
+    if (map?.turfs) {
+      setTurfs(map?.turfs);
     }
-  }, [mapQuery?.data, setFolders, setPlacedMarkers, setTurfs]);
+  }, [map, setFolders, setPlacedMarkers, setTurfs]);
 
   const handleAddArea = () => {
     const map = mapRef?.current;
@@ -129,34 +126,33 @@ export default function MarkerAndTurfProvider({
 
   const handleDropPin = () => {
     const map = mapRef?.current;
-    if (map) {
-      setPinDropMode(true);
-      map.getCanvas().style.cursor = "crosshair";
+    if (!map || !mapId) return;
+    setPinDropMode(true);
+    map.getCanvas().style.cursor = "crosshair";
 
-      const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-        insertPlacedMarker({
-          id: uuidv4(),
-          label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
-          notes: "",
-          point: e.lngLat,
-          folderId: null,
-        });
+    const clickHandler = (e: mapboxgl.MapMouseEvent) => {
+      insertPlacedMarker({
+        id: uuidv4(),
+        label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
+        notes: "",
+        point: e.lngLat,
+        folderId: null,
+      });
 
-        // Reset cursor
-        map.getCanvas().style.cursor = "";
-        map.off("click", clickHandler);
+      // Reset cursor
+      map.getCanvas().style.cursor = "";
+      map.off("click", clickHandler);
 
-        setPinDropMode(false);
+      setPinDropMode(false);
 
-        // Fly to the new marker
-        map.flyTo({
-          center: e.lngLat,
-          zoom: 14,
-        });
-      };
+      // Fly to the new marker
+      map.flyTo({
+        center: e.lngLat,
+        zoom: 14,
+      });
+    };
 
-      map.once("click", clickHandler);
-    }
+    map.once("click", clickHandler);
   };
 
   return (
@@ -176,12 +172,11 @@ export default function MarkerAndTurfProvider({
         preparePlacedMarkerUpdate,
         commitPlacedMarkerUpdates,
         updatePlacedMarker,
-        turfs,
-        turfsLoading,
         selectedPlacedMarkerId,
         setSelectedPlacedMarkerId,
         deleteTurf,
         insertTurf,
+        turfs,
         updateTurf,
         markerQueries,
         searchMarker,

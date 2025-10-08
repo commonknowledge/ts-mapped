@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useContext, useMemo, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useTRPC } from "@/services/trpc/react";
@@ -22,6 +22,7 @@ const TableProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const trpc = useTRPC();
+
   const dataRecordsQuery = useQuery(
     trpc.dataRecord.list.queryOptions(
       {
@@ -31,35 +32,44 @@ const TableProvider = ({ children }: { children: ReactNode }) => {
         filter: dataSourceView?.filter,
         sort: dataSourceView?.sort,
       },
-      { enabled: Boolean(selectedDataSourceId) },
+      {
+        enabled: Boolean(selectedDataSourceId),
+        placeholderData: keepPreviousData,
+      },
     ),
   );
 
-  const handleDataSourceSelect = (dataSourceId: string) => {
-    if (selectedDataSourceId === dataSourceId) {
-      setSelectedDataSourceId("");
-      return;
-    }
-    setSelectedDataSourceId(dataSourceId);
-  };
-
-  return (
-    <TableContext
-      value={{
-        tablePage,
-        setTablePage,
-
-        selectedDataSourceId,
-        setSelectedDataSourceId,
-        handleDataSourceSelect,
-
-        dataRecordsResult: dataRecordsQuery.data,
-        dataRecordsLoading: dataRecordsQuery.isPending,
-      }}
-    >
-      {children}
-    </TableContext>
+  const handleDataSourceSelect = useCallback(
+    (dataSourceId: string) => {
+      if (selectedDataSourceId === dataSourceId) {
+        setSelectedDataSourceId("");
+        return;
+      }
+      setSelectedDataSourceId(dataSourceId);
+    },
+    [selectedDataSourceId],
   );
+
+  const value = useMemo(() => {
+    return {
+      tablePage,
+      setTablePage,
+      selectedDataSourceId,
+      setSelectedDataSourceId,
+      handleDataSourceSelect,
+      dataRecordsResult: dataRecordsQuery.data,
+      dataRecordsLoading: dataRecordsQuery.isPending,
+    };
+  }, [
+    tablePage,
+    setTablePage,
+    selectedDataSourceId,
+    setSelectedDataSourceId,
+    handleDataSourceSelect,
+    dataRecordsQuery.data,
+    dataRecordsQuery.isPending,
+  ]);
+  return <TableContext value={value}>{children}</TableContext>;
 };
 
 export default TableProvider;

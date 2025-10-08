@@ -1,12 +1,12 @@
 "use client";
 
 import { useContext, useMemo, useState } from "react";
-import "mapbox-gl/dist/mapbox-gl.css";
-import { VisualisationType } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { GeocodingType } from "@/server/models/DataSource";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { VisualisationType } from "@/server/models/MapView";
 import { useAreaStats } from "../data";
 import { getChoroplethLayerConfig } from "../sources";
 import type { ReactNode } from "react";
@@ -20,7 +20,6 @@ export default function ChoroplethProvider({
   const { getChoroplethDataSource } = useContext(DataSourcesContext);
 
   /* State */
-
   // Storing the last loaded source triggers re-render when Mapbox layers load
   const [lastLoadedSourceId, setLastLoadedSourceId] = useState<
     string | undefined
@@ -50,7 +49,6 @@ export default function ChoroplethProvider({
     zoom,
   ]);
 
-  /* GraphQL Data */
   const areaStatsQuery = useAreaStats({
     viewConfig,
     areaSetCode: choroplethLayerConfig.areaSetCode,
@@ -67,7 +65,6 @@ export default function ChoroplethProvider({
         setLastLoadedSourceId,
 
         areaStatsQuery,
-
         choroplethLayerConfig,
       }}
     >

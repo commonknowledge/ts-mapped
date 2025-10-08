@@ -1,32 +1,12 @@
-import { gql, useMutation } from "@apollo/client";
-import {
-  useMutation as useTanstackMutation,
-  useQuery as useTanstackQuery,
-} from "@tanstack/react-query";
+import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+
 import { CalculationType, VisualisationType } from "@/__generated__/types";
 import { useTRPC } from "@/services/trpc/react";
 import type { ViewConfig } from "./context/MapContext";
-import type {
-  AreaSetCode,
-  DeleteFolderMutationMutation,
-  DeleteFolderMutationMutationVariables,
-  DeletePlacedMarkerMutationMutation,
-  DeletePlacedMarkerMutationMutationVariables,
-  DeleteTurfMutation,
-  DeleteTurfMutationVariables,
-  UpdateMapConfigMutation,
-  UpdateMapConfigMutationVariables,
-  UpsertFolderMutation,
-  UpsertFolderMutationVariables,
-  UpsertPlacedMarkerMutation,
-  UpsertPlacedMarkerMutationVariables,
-  UpsertTurfMutation,
-  UpsertTurfMutationVariables,
-} from "@/__generated__/types";
+import type { AreaStat, BoundingBox } from "@/server/models/Area";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { ColumnType } from "@/server/models/DataSource";
-import type { AreaStat, BoundingBox } from "@/types";
 
 export const useAreaStats = ({
   viewConfig,
@@ -79,7 +59,7 @@ export const useAreaStats = ({
   // bounding boxes needs to be added together. Instead, useEffect is used
   // to add incoming data to the dedupedAreaStats state.
   const areaStatsQuery = useTanstackQuery(
-    trpc.areaStats.list.queryOptions(
+    trpc.area.stats.queryOptions(
       {
         areaSetCode,
         calculationType: calculationType || CalculationType.Value,
@@ -143,159 +123,4 @@ export const useAreaStats = ({
   }, [dedupedAreaStats]);
 
   return { data: areaStats, isFetching: areaStatsQuery.isFetching };
-};
-
-export const useUpdateMapConfigMutation = () => {
-  return useMutation<UpdateMapConfigMutation, UpdateMapConfigMutationVariables>(
-    gql`
-      mutation UpdateMapConfig(
-        $mapId: String!
-        $mapConfig: MapConfigInput!
-        $views: [MapViewInput!]!
-      ) {
-        updateMapConfig(mapId: $mapId, mapConfig: $mapConfig, views: $views) {
-          code
-        }
-      }
-    `,
-  );
-};
-
-export const useDeleteMapViewMutation = () => {
-  const trpc = useTRPC();
-
-  return useTanstackMutation(
-    trpc.mapView.delete.mutationOptions({
-      onSuccess: () => {
-        toast.success("View deleted successfully");
-      },
-      onError: () => {
-        toast.error("Failed to delete view");
-      },
-    }),
-  );
-};
-
-export const useDeleteFolderMutation = () => {
-  return useMutation<
-    DeleteFolderMutationMutation,
-    DeleteFolderMutationMutationVariables
-  >(gql`
-    mutation DeleteFolderMutation($id: String!, $mapId: String!) {
-      deleteFolder(id: $id, mapId: $mapId) {
-        code
-      }
-    }
-  `);
-};
-
-export const useUpsertFolderMutation = () => {
-  return useMutation<UpsertFolderMutation, UpsertFolderMutationVariables>(gql`
-    mutation UpsertFolder(
-      $id: String!
-      $name: String!
-      $notes: String!
-      $mapId: String!
-      $position: Float!
-      $hideMarkers: Boolean
-    ) {
-      upsertFolder(
-        id: $id
-        name: $name
-        notes: $notes
-        position: $position
-        mapId: $mapId
-        hideMarkers: $hideMarkers
-      ) {
-        code
-        result {
-          id
-        }
-      }
-    }
-  `);
-};
-
-export const useDeletePlacedMarkerMutation = () => {
-  return useMutation<
-    DeletePlacedMarkerMutationMutation,
-    DeletePlacedMarkerMutationMutationVariables
-  >(gql`
-    mutation DeletePlacedMarkerMutation($id: String!, $mapId: String!) {
-      deletePlacedMarker(id: $id, mapId: $mapId) {
-        code
-      }
-    }
-  `);
-};
-
-export const useUpsertPlacedMarkerMutation = () => {
-  return useMutation<
-    UpsertPlacedMarkerMutation,
-    UpsertPlacedMarkerMutationVariables
-  >(gql`
-    mutation UpsertPlacedMarker(
-      $id: String!
-      $label: String!
-      $notes: String!
-      $point: PointInput!
-      $mapId: String!
-      $folderId: String
-      $position: Float!
-    ) {
-      upsertPlacedMarker(
-        id: $id
-        label: $label
-        notes: $notes
-        point: $point
-        mapId: $mapId
-        folderId: $folderId
-        position: $position
-      ) {
-        code
-        result {
-          id
-        }
-      }
-    }
-  `);
-};
-
-export const useDeleteTurfMutation = () => {
-  return useMutation<DeleteTurfMutation, DeleteTurfMutationVariables>(gql`
-    mutation DeleteTurf($id: String!, $mapId: String!) {
-      deleteTurf(id: $id, mapId: $mapId) {
-        code
-      }
-    }
-  `);
-};
-
-export const useUpsertTurfMutation = () => {
-  return useMutation<UpsertTurfMutation, UpsertTurfMutationVariables>(gql`
-    mutation UpsertTurf(
-      $id: String
-      $label: String!
-      $notes: String!
-      $area: Float!
-      $polygon: JSON!
-      $createdAt: Date!
-      $mapId: String!
-    ) {
-      upsertTurf(
-        id: $id
-        label: $label
-        notes: $notes
-        area: $area
-        polygon: $polygon
-        createdAt: $createdAt
-        mapId: $mapId
-      ) {
-        code
-        result {
-          id
-        }
-      }
-    }
-  `);
 };

@@ -8,7 +8,7 @@ export const placedMarkerSchema = z.object({
   label: z.string(),
   notes: z.string(),
   point: pointSchema,
-  folderId: z.string().nullable(),
+  folderId: z.string().nullish(),
   position: z.number(),
 });
 

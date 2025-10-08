@@ -1,18 +1,14 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { enrichmentSchema } from "@/server/models/DataSource";
+import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import EnrichmentFields from "./EnrichmentFields";
 import type { NewEnrichment } from "./EnrichmentFields";
-import type {
-  DataSourceEnrichmentQuery,
-  UpdateDataSourceEnrichmentMutation,
-  UpdateDataSourceEnrichmentMutationVariables,
-} from "@/__generated__/types";
 import type { Enrichment } from "@/server/models/DataSource";
 import type { SyntheticEvent } from "react";
 
@@ -20,15 +16,8 @@ export default function DataSourceEnrichmentForm({
   dataSource,
   dataSources,
 }: {
-  // Exclude<...> marks dataSource as not null or undefined (this is checked in the parent page)
-  dataSource: Exclude<
-    DataSourceEnrichmentQuery["dataSource"],
-    null | undefined
-  >;
-  dataSources: Exclude<
-    DataSourceEnrichmentQuery["dataSources"],
-    null | undefined
-  >;
+  dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
+  dataSources: NonNullable<RouterOutputs["dataSource"]["listReadable"]>;
 }) {
   const [enrichments, setEnrichments] = useState<NewEnrichment[]>(
     // Add a blank enrichment config if the initial enrichments are empty
@@ -43,55 +32,47 @@ export default function DataSourceEnrichmentForm({
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const [updateEnrichments] = useMutation<
-    UpdateDataSourceEnrichmentMutation,
-    UpdateDataSourceEnrichmentMutationVariables
-  >(gql`
-    mutation UpdateDataSourceEnrichment(
-      $id: String!
-      $looseEnrichments: [LooseEnrichmentInput!]
-    ) {
-      updateDataSourceConfig(id: $id, looseEnrichments: $looseEnrichments) {
-        code
+  const trpc = useTRPC();
+  const { mutate: updateEnrichments } = useMutation(
+    trpc.dataSource.updateConfig.mutationOptions({
+      onSuccess: () => {
+        router.push(`/data-sources/${dataSource.id}`);
+      },
+      onError: (error) => {
+        console.log(error);
+        setLoading(false);
+        setError("Could not update data source.");
+      },
+    }),
+  );
+
+  const validEnrichments = useMemo(() => {
+    let formValid = true;
+    const validEnrichments: Enrichment[] = [];
+    for (const enrichment of enrichments) {
+      const { data: validEnrichment } = enrichmentSchema.safeParse(enrichment);
+      if (validEnrichment) {
+        validEnrichments.push(validEnrichment);
+      } else {
+        formValid = false;
       }
     }
-  `);
-
-  let formValid = true;
-  const validEnrichments: Enrichment[] = [];
-  for (const enrichment of enrichments) {
-    const { data: validEnrichment } = enrichmentSchema.safeParse(enrichment);
-    if (validEnrichment) {
-      validEnrichments.push(validEnrichment);
-    } else {
-      formValid = false;
-    }
-  }
+    return {
+      enrichments: validEnrichments,
+      formValid,
+    };
+  }, [enrichments]);
 
   const onSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!validEnrichments.formValid) return;
     setLoading(true);
     setError("");
 
-    try {
-      const result = await updateEnrichments({
-        variables: {
-          id: dataSource.id,
-          looseEnrichments: validEnrichments,
-        },
-      });
-      if (result.data?.updateDataSourceConfig?.code !== 200) {
-        throw new Error(String(result.errors || "Unknown error"));
-      } else {
-        router.push(`/data-sources/${dataSource.id}`);
-        return;
-      }
-    } catch (e) {
-      console.error(`Could not update data source: ${e}`);
-      setError("Could not update data source.");
-    }
-
-    setLoading(false);
+    updateEnrichments({
+      dataSourceId: dataSource.id,
+      enrichments: validEnrichments.enrichments,
+    });
   };
 
   const setEnrichmentConfig = (i: number, config: Partial<NewEnrichment>) => {
@@ -136,7 +117,7 @@ export default function DataSourceEnrichmentForm({
         </Button>
       </div>
       <Separator className="my-4" />
-      <Button disabled={!formValid || loading}>Submit</Button>
+      <Button disabled={!validEnrichments.formValid || loading}>Submit</Button>
       {error && (
         <div>
           <span className="text-xs text-red-500">{error}</span>

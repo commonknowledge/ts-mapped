@@ -2,53 +2,40 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
+import { mapConfigSchema, mapSchema } from "@/server/models/Map";
 import {
   CalculationType,
   MapStyleName,
   VisualisationType,
+  mapViewSchema,
 } from "@/server/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findFoldersByMapId } from "@/server/repositories/Folder";
 import {
   createMap,
+  deleteMap,
   findMapsByOrganisationId,
   updateMap,
 } from "@/server/repositories/Map";
-import { upsertMapView } from "@/server/repositories/MapView";
+import {
+  findMapViewsByMapId,
+  upsertMapView,
+} from "@/server/repositories/MapView";
 import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
 import { findTurfsByMapId } from "@/server/repositories/Turf";
-import { db } from "@/server/services/database";
-import { mapReadProcedure, organisationProcedure, router } from "../index";
+import { deleteFile } from "@/server/services/minio";
+import {
+  mapReadProcedure,
+  mapWriteProcedure,
+  organisationProcedure,
+  router,
+} from "../index";
 
 export const mapRouter = router({
-  get: mapReadProcedure.query(async ({ ctx }) => {
-    // TODO: move this back into the repository after the apollo migration
-    // (in place of findMapViewsByMapId)
-    const mapViewQuery = db
-      .selectFrom("mapView")
-      .where("mapId", "=", ctx.map.id)
-      .select(["id", "config", "dataSourceViews", "name", "position"])
-      .orderBy("position asc")
-      .orderBy("id asc");
-
-    const [folders, placedMarkers, turfs, views] = await Promise.all([
-      findFoldersByMapId(ctx.map.id),
-      findPlacedMarkersByMapId(ctx.map.id),
-      findTurfsByMapId(ctx.map.id),
-      mapViewQuery.execute(),
-    ]);
-    return {
-      ...ctx.map,
-      folders,
-      placedMarkers,
-      turfs,
-      views,
-    };
-  }),
   list: organisationProcedure.query(async ({ ctx }) => {
     return findMapsByOrganisationId(ctx.organisation.id);
   }),
-  create: organisationProcedure.mutation(async ({ ctx }) => {
+  create: organisationProcedure.mutation(({ ctx }) => {
     return createMap(ctx.organisation.id);
   }),
   createFromDataSource: organisationProcedure
@@ -101,4 +88,65 @@ export const mapRouter = router({
       }
       return map;
     }),
+  byId: mapReadProcedure.query(async ({ ctx: { map } }) => {
+    const [folders, placedMarkers, turfs, views] = await Promise.all([
+      findFoldersByMapId(map.id),
+      findPlacedMarkersByMapId(map.id),
+      findTurfsByMapId(map.id),
+      findMapViewsByMapId(map.id),
+    ]);
+    return { ...map, folders, placedMarkers, turfs, views };
+  }),
+
+  update: mapWriteProcedure
+    .input(
+      mapSchema
+        .omit({ createdAt: true, id: true, organisationId: true })
+        .partial(),
+    )
+    .mutation(async ({ ctx: { map }, input: { mapId, ...data } }) => {
+      const mapUpdate = await updateMap(mapId, data);
+
+      // Clean up old image
+      if (
+        map.imageUrl &&
+        mapUpdate.imageUrl &&
+        map.imageUrl !== mapUpdate.imageUrl
+      ) {
+        await deleteFile(map.imageUrl);
+      }
+      return mapUpdate;
+    }),
+
+  updateConfig: mapWriteProcedure
+    .input(
+      z.object({
+        config: mapConfigSchema.partial(),
+        views: z.array(mapViewSchema.omit({ createdAt: true, mapId: true })),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { mapId, config: mapConfig, views } = input;
+
+      const config = {
+        markerDataSourceIds: mapConfig.markerDataSourceIds?.filter(Boolean),
+        membersDataSourceId: mapConfig.membersDataSourceId,
+      } as z.infer<typeof mapConfigSchema>;
+
+      await updateMap(mapId, { config });
+
+      for (const view of views) {
+        await upsertMapView({
+          ...view,
+          config: view.config,
+          dataSourceViews: view.dataSourceViews,
+          mapId,
+        });
+      }
+    }),
+
+  delete: mapWriteProcedure.mutation(async ({ ctx: { map } }) => {
+    await deleteMap(map.id);
+    return true;
+  }),
 });

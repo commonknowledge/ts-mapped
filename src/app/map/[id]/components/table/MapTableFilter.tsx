@@ -1,4 +1,4 @@
-import { gql, useQuery } from "@apollo/client";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ListFilter, XIcon } from "lucide-react";
 import {
   useCallback,
@@ -14,6 +14,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
   Command,
@@ -23,14 +24,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/shadcn/ui/command";
-import { DropdownMenuItem } from "@/shadcn/ui/dropdown-menu";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { mapColors } from "../../styles";
 import type {
   ColumnDef,
-  FilterDataRecordsQuery,
-  FilterDataRecordsQueryVariables,
   MapConfig,
   PlacedMarker,
   RecordFilterInput,
@@ -41,6 +39,7 @@ import type {
   DropdownSubComponent,
   DropdownSubMenu,
 } from "@/components/MultiDropdownMenu";
+import type { DataRecord } from "@/server/models/DataRecord";
 
 interface TableFilterProps {
   filter: RecordFilterInput;
@@ -103,7 +102,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         }
 
         // Check if turf still exists
-        if (child.turf && !turfs.find((t) => t.id === child.turf)) {
+        if (child.turf && !turfs?.find((t) => t.id === child.turf)) {
           return false;
         }
 
@@ -167,7 +166,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
         mapConfig,
         getDataSourceById,
         placedMarkers,
-        turfs,
+        turfs: turfs || [],
         columns,
         addFilter,
       }),
@@ -359,55 +358,27 @@ function DataRecordCommand({
 }) {
   const [search, setSearch] = useState("");
 
-  const { data, loading } = useQuery<
-    FilterDataRecordsQuery,
-    FilterDataRecordsQueryVariables
-  >(
-    gql`
-      query FilterDataRecords($dataSourceId: String!, $search: String) {
-        dataSource(id: $dataSourceId) {
-          id
-          columnRoles {
-            nameColumns
-          }
-          records(search: $search) {
-            id
-            externalId
-            json
-          }
-        }
-      }
-    `,
-    { variables: { dataSourceId, search } },
+  const trpc = useTRPC();
+  const { data: dataSource, isPending } = useQuery(
+    trpc.dataSource.byIdWithRecords.queryOptions(
+      { dataSourceId, search },
+      { placeholderData: keepPreviousData },
+    ),
   );
-
-  // Client-side filtering: show only 5 records when no search, all when searching
-  const displayedRecords = useMemo(() => {
-    if (!data?.dataSource?.records) return [];
-
-    if (!search) {
-      // Show only first 5 records when no search
-      return data.dataSource.records.slice(0, 5);
-    }
-
-    // Show all records when searching
-    return data.dataSource.records;
-  }, [data?.dataSource?.records, search]);
-
   const getItemLabel = useCallback(
-    (record: { externalId: string; json: Record<string, string> }) => {
-      const nameColumns = data?.dataSource?.columnRoles.nameColumns;
+    (record: DataRecord) => {
+      const nameColumns = dataSource?.columnRoles.nameColumns;
       if (!nameColumns?.length) return record.externalId;
 
       const label = nameColumns
         .map((column) => record.json[column])
-        .map((name) => name.trim())
+        .map((name) => (typeof name === "string" ? name.trim() : null))
         .filter(Boolean)
         .join(" ");
 
       return label || record.externalId;
     },
-    [data?.dataSource?.columnRoles.nameColumns],
+    [dataSource?.columnRoles.nameColumns],
   );
 
   return (
@@ -419,39 +390,39 @@ function DataRecordCommand({
       />
       <CommandList>
         <CommandEmpty>
-          {loading
+          {isPending
             ? "Loading"
             : search
               ? "No results found."
               : "Type to search..."}
         </CommandEmpty>
-        {displayedRecords.length > 0 ? (
-          <CommandGroup heading={search ? "Search Results" : "Recent Records"}>
-            {displayedRecords.map((record) => (
+        {!search && dataSource?.count && dataSource.records.length > 5 && (
+          <div className="px-2 pt-1 text-[10px] text-muted-foreground text-center">
+            Type to search all {dataSource.count.total} records
+          </div>
+        )}
+
+        {dataSource?.records && dataSource?.records.length > 0 && (
+          <CommandGroup
+            heading={
+              dataSource?.records && dataSource?.records.length > 0
+                ? search
+                  ? "Search Results"
+                  : "Recent Records"
+                : ""
+            }
+          >
+            {dataSource?.records.map((record) => (
               <CommandItem
                 key={record.id}
-                value={record.id}
-                className="p-0 w-full"
+                className="cursor-pointer"
+                onSelect={() => onSelectRecord(record.id, getItemLabel(record))}
               >
-                <DropdownMenuItem
-                  onClick={() =>
-                    onSelectRecord(record.id, getItemLabel(record))
-                  }
-                  className="w-full cursor-pointer"
-                >
-                  {getItemLabel(record)}
-                </DropdownMenuItem>
+                {getItemLabel(record)}
               </CommandItem>
             ))}
-            {!search &&
-              data?.dataSource?.records &&
-              data.dataSource.records.length > 5 && (
-                <div className="px-2 py-1 text-xs text-muted-foreground text-center">
-                  Type to search all {data.dataSource.records.length} records
-                </div>
-              )}
           </CommandGroup>
-        ) : null}
+        )}
       </CommandList>
     </Command>
   );

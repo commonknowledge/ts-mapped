@@ -4,7 +4,7 @@ import {
 } from "@tanstack/react-query";
 import superjson from "superjson";
 
-export function makeQueryClient() {
+export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
@@ -18,6 +18,19 @@ export function makeQueryClient() {
       },
       hydrate: {
         deserializeData: superjson.deserialize,
+      },
+      mutations: {
+        onError: (error) => {
+          if (
+            error.message.includes(
+              "You must be logged in to perform this action",
+            )
+          ) {
+            if (typeof window !== "undefined") {
+              window.location.reload();
+            }
+          }
+        },
       },
     },
   });

@@ -1,7 +1,6 @@
 "use client";
 
 import { useContext, useEffect } from "react";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
@@ -12,6 +11,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { useMapQuery } from "../queries";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
 import VisualisationPanel from "./controls/visualisation/VisualisationPanel";
@@ -21,7 +22,7 @@ import PrivateMapNavbar from "./PrivateMapNavbar";
 import MapTable from "./table/MapTable";
 
 export default function PrivateMap() {
-  const { mapQuery, mapRef, showControls } = useContext(MapContext);
+  const { mapRef, showControls, mapId } = useContext(MapContext);
   const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
 
@@ -29,6 +30,7 @@ export default function PrivateMap() {
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
 
+  const { data: map, isPending } = useMapQuery(mapId);
   // Resize map when UI changes
   useEffect(() => {
     if (mapRef?.current) {
@@ -42,7 +44,7 @@ export default function PrivateMap() {
     }
   }, [mapRef, selectedDataSourceId]);
 
-  if (!mapQuery || mapQuery.isPending) {
+  if (!map || isPending) {
     return <Loading />;
   }
 

@@ -1,5 +1,7 @@
 import { createContext } from "react";
-import type { Folder, PlacedMarker, Turf } from "@/__generated__/types";
+import type { Folder } from "@/server/models/Folder";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { Turf } from "@/server/models/Turf";
 import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
 
@@ -11,16 +13,18 @@ export const MarkerAndTurfContext = createContext<{
   folders: Folder[];
   foldersLoading: boolean;
   deleteFolder: (id: string) => void;
-  insertFolder: (folder: Omit<Folder, "position">) => void;
-  updateFolder: (folder: Folder) => void;
+  insertFolder: (folder: Omit<Folder, "position" | "mapId">) => void;
+  updateFolder: (folder: Omit<Folder, "mapId">) => void;
 
   placedMarkers: PlacedMarker[];
   placedMarkersLoading: boolean;
   deletePlacedMarker: (id: string) => void;
-  insertPlacedMarker: (placedMarker: Omit<PlacedMarker, "position">) => void;
+  insertPlacedMarker: (
+    placedMarker: Omit<PlacedMarker, "position" | "mapId">,
+  ) => void;
   preparePlacedMarkerUpdate: (placedMarker: PlacedMarker) => void;
   commitPlacedMarkerUpdates: () => void;
-  updatePlacedMarker: (placedMarker: PlacedMarker) => void;
+  updatePlacedMarker: (placedMarker: Omit<PlacedMarker, "mapId">) => void;
 
   selectedPlacedMarkerId: string | null;
   setSelectedPlacedMarkerId: (id: string | null) => void;
@@ -29,10 +33,9 @@ export const MarkerAndTurfContext = createContext<{
   setSearchMarker: (marker: Feature | null) => void;
 
   turfs: Turf[];
-  turfsLoading: boolean;
   deleteTurf: (id: string) => void;
-  insertTurf: (turf: Turf) => void;
-  updateTurf: (turf: Turf) => void;
+  insertTurf: (turf: Omit<Turf, "mapId" | "id" | "createdAt">) => void;
+  updateTurf: (turf: Omit<Turf, "mapId">) => void;
 
   /* GraphQL Queries */
   markerQueries: {
@@ -66,7 +69,6 @@ export const MarkerAndTurfContext = createContext<{
   searchMarker: null,
   setSearchMarker: () => null,
   turfs: [],
-  turfsLoading: false,
   deleteTurf: () => null,
   insertTurf: () => null,
   updateTurf: () => null,

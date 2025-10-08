@@ -14,10 +14,6 @@ import type {
   MapViewConfigInput,
   VisualisationType,
 } from "@/__generated__/types";
-import type { AppRouter } from "@/server/trpc/router";
-import type { RouterOutputs } from "@/services/trpc/react";
-import type { UseQueryResult } from "@tanstack/react-query";
-import type { TRPCClientErrorLike } from "@trpc/client";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 
@@ -72,7 +68,7 @@ export const MapContext = createContext<{
   /* State */
   mapConfig: MapConfig;
   updateMapConfig: (config: Partial<MapConfig>) => void;
-  saveMapConfig: () => Promise<void>;
+  saveMapConfig: () => void;
 
   mapName: string | null;
   setMapName: (name: string | null) => void;
@@ -104,11 +100,10 @@ export const MapContext = createContext<{
   showControls: boolean;
   setShowControls: (showControls: boolean) => void;
 
-  /* GraphQL Queries */
-  mapQuery: UseQueryResult<
-    RouterOutputs["map"]["get"],
-    TRPCClientErrorLike<AppRouter>
-  > | null;
+  // mapQuery: UseQueryResult<
+  //   RouterOutputs["map"]["byId"],
+  //   TRPCClientErrorLike<AppRouter>
+  // > | null;
 }>({
   mapId: null,
   mapRef: null,
@@ -130,7 +125,7 @@ export const MapContext = createContext<{
   setViewId: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
-  mapQuery: null,
+  // mapQuery: null,
   pinDropMode: false,
   setPinDropMode: () => null,
   ready: false,

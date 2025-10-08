@@ -55,7 +55,7 @@ export function getFirstDataRecord(dataSourceId: string) {
     .executeTakeFirst();
 }
 
-function applyFilterAndSearch(
+export function applyFilterAndSearch(
   eb: ExpressionBuilder<Database, "dataRecord">,
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,

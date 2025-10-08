@@ -13,7 +13,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
-import type { PlacedMarker } from "@/__generated__/types";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { SyntheticEvent } from "react";
 
 export default function SortableMarkerItem({
@@ -90,7 +90,10 @@ export default function SortableMarkerItem({
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                updatePlacedMarker({ ...marker, label: editText });
+                updatePlacedMarker({
+                  ...marker,
+                  label: editText,
+                });
                 setEditing(false);
                 setKeyboardCapture(false);
               }}

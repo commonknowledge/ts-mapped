@@ -1,8 +1,14 @@
 import { organisationSchema } from "@/server/models/Organisation";
-import { updateOrganisation } from "@/server/repositories/Organisation";
-import { organisationProcedure, router } from "../index";
+import {
+  findOrganisationsByUserId,
+  updateOrganisation,
+} from "@/server/repositories/Organisation";
+import { organisationProcedure, protectedProcedure, router } from "../index";
 
 export const organisationRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return findOrganisationsByUserId(ctx.user.id);
+  }),
   update: organisationProcedure
     .input(organisationSchema.pick({ name: true, avatarUrl: true }).partial())
     .mutation(async ({ input, ctx }) => {

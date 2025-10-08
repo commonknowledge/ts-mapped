@@ -9,7 +9,10 @@ import {
 import { findDataSourceById } from "../repositories/DataSource";
 import { findMapById } from "../repositories/Map";
 import { findOrganisationForUser } from "../repositories/Organisation";
-import { findPublishedPublicMapByMapId } from "../repositories/PublicMap";
+import {
+  findPublishedPublicMapByDataSourceId,
+  findPublishedPublicMapByMapId,
+} from "../repositories/PublicMap";
 import { findUserById } from "../repositories/User";
 
 export async function createContext() {
@@ -87,7 +90,7 @@ export const organisationProcedure = protectedProcedure
     return next({ ctx: { organisation } });
   });
 
-export const dataSourceReadProcedure = protectedProcedure
+export const dataSourceReadProcedure = publicProcedure
   .input(z.object({ dataSourceId: z.string() }))
   .use(async ({ ctx, input, next }) => {
     const dataSource = await findDataSourceById(input.dataSourceId);
@@ -100,6 +103,18 @@ export const dataSourceReadProcedure = protectedProcedure
 
     if (dataSource.public) {
       return next({ ctx: { dataSource } });
+    }
+
+    const publicMap = await findPublishedPublicMapByDataSourceId(dataSource.id);
+    if (publicMap) {
+      return next({ ctx: { dataSource } });
+    }
+
+    if (!ctx.user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Data source not found",
+      });
     }
 
     const organisation = await findOrganisationForUser(

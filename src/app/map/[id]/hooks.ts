@@ -1,77 +1,57 @@
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
-import {
-  useDeleteFolderMutation,
-  useDeletePlacedMarkerMutation,
-  useDeleteTurfMutation,
-  useUpsertFolderMutation,
-  useUpsertPlacedMarkerMutation,
-  useUpsertTurfMutation,
-} from "./data";
+import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "./utils";
-import type { Folder, PlacedMarker, Turf } from "@/__generated__/types";
+import type { Folder } from "@/server/models/Folder";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { Turf } from "@/server/models/Turf";
 
 export const useFolders = (mapId: string | null) => {
   const [folders, setFolders] = useState<Folder[]>([]);
 
-  const [deleteFolderMutation] = useDeleteFolderMutation();
-  const [upsertFolderMutation, { loading }] = useUpsertFolderMutation();
+  const trpc = useTRPC();
+  const { mutate: deleteFolderMutation } = useMutation(
+    trpc.folder.delete.mutationOptions(),
+  );
 
   /* Complex actions */
   const deleteFolder = useCallback(
     (id: string) => {
-      if (!mapId) {
-        return;
-      }
-
-      deleteFolderMutation({
-        variables: {
-          id,
-          mapId,
-        },
-      });
+      if (!mapId) return;
+      deleteFolderMutation({ folderId: id, mapId });
       const newFolders = folders.filter((m) => m.id !== id);
       setFolders(newFolders);
     },
     [deleteFolderMutation, folders, mapId],
   );
 
-  const insertFolder = useCallback(
-    (newFolder: Omit<Folder, "position">) => {
-      if (!mapId) {
-        return;
-      }
+  const { mutate: upsertFolderMutation, isPending: upsertFolderLoading } =
+    useMutation(trpc.folder.upsert.mutationOptions());
 
+  const insertFolder = useCallback(
+    (newFolder: Omit<Folder, "position" | "mapId">) => {
+      if (!mapId) return;
       const newPosition = getNewLastPosition(folders);
       const positionedFolder = { ...newFolder, position: newPosition };
 
       const newFolders = [...folders, positionedFolder];
-      setFolders(newFolders);
+      setFolders(newFolders.map((f) => ({ ...f, mapId })));
 
-      upsertFolderMutation({
-        variables: {
-          ...positionedFolder,
-          mapId,
-        },
-      });
+      upsertFolderMutation({ ...positionedFolder, mapId });
     },
     [folders, mapId, upsertFolderMutation],
   );
 
   const updateFolder = useCallback(
-    (updatedFolder: Folder) => {
-      if (!mapId) {
-        return;
-      }
+    (updatedFolder: Omit<Folder, "mapId">) => {
+      if (!mapId) return;
 
-      upsertFolderMutation({
-        variables: {
-          ...updatedFolder,
-          mapId,
-        },
-      });
+      upsertFolderMutation({ ...updatedFolder, mapId });
 
       setFolders(
-        folders.map((f) => (f.id === updatedFolder.id ? updatedFolder : f)),
+        folders
+          .map((f) => (f.id === updatedFolder.id ? updatedFolder : f))
+          .map((f) => ({ ...f, mapId })),
       );
     },
     [folders, mapId, upsertFolderMutation],
@@ -83,7 +63,7 @@ export const useFolders = (mapId: string | null) => {
     deleteFolder,
     insertFolder,
     updateFolder,
-    loading,
+    loading: upsertFolderLoading,
   };
 };
 
@@ -105,63 +85,52 @@ export const usePlacedMarkers = (mapId: string | null) => {
     [_setPlacedMarkers],
   );
 
-  const [deletePlacedMarkerMutation] = useDeletePlacedMarkerMutation();
-  const [upsertPlacedMarkerMutation, { loading }] =
-    useUpsertPlacedMarkerMutation();
+  const trpc = useTRPC();
+  const { mutate: deletePlacedMarkerMutation } = useMutation(
+    trpc.placedMarker.delete.mutationOptions({}),
+  );
+
+  const {
+    mutate: upsertPlacedMarkerMutation,
+    isPending: upsertPlacedMarkerLoading,
+  } = useMutation(trpc.placedMarker.upsert.mutationOptions());
 
   /* Complex actions */
   const deletePlacedMarker = (id: string) => {
-    if (!mapId) {
-      return;
-    }
-
+    if (!mapId) return;
     deletePlacedMarkerMutation({
-      variables: {
-        id,
-        mapId,
-      },
+      placedMarkerId: id,
+      mapId,
     });
     const newMarkers = ref.current.filter((m) => m.id !== id);
     setPlacedMarkers(newMarkers);
   };
 
   const insertPlacedMarker = useCallback(
-    (newMarker: Omit<PlacedMarker, "position">) => {
-      if (!mapId) {
-        return;
-      }
+    (newMarker: Omit<PlacedMarker, "position" | "mapId">) => {
+      if (!mapId) return;
 
       const newPosition = getNewLastPosition(ref.current);
       const positionedMarker = { ...newMarker, position: newPosition };
 
       const newMarkers = [...ref.current, positionedMarker];
-      setPlacedMarkers(newMarkers);
+      setPlacedMarkers(newMarkers.map((m) => ({ ...m, mapId })));
 
-      upsertPlacedMarkerMutation({
-        variables: {
-          ...positionedMarker,
-          mapId,
-        },
-      });
+      upsertPlacedMarkerMutation({ ...positionedMarker, mapId });
     },
     [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
   );
 
   const updatePlacedMarker = useCallback(
-    (placedMarker: PlacedMarker) => {
-      if (!mapId) {
-        return;
-      }
+    (placedMarker: Omit<PlacedMarker, "mapId">) => {
+      if (!mapId) return;
 
-      upsertPlacedMarkerMutation({
-        variables: {
-          ...placedMarker,
-          mapId,
-        },
-      });
+      upsertPlacedMarkerMutation({ ...placedMarker, mapId });
 
       setPlacedMarkers(
-        ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
+        ref.current
+          .map((m) => (m.id === placedMarker.id ? placedMarker : m))
+          .map((m) => ({ ...m, mapId })),
       );
     },
     [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
@@ -183,18 +152,11 @@ export const usePlacedMarkers = (mapId: string | null) => {
   );
 
   const commitPlacedMarkerUpdates = useCallback(() => {
-    if (!mapId) {
-      return;
-    }
+    if (!mapId) return;
 
     for (const placedMarker of Object.values(dirty.current)) {
       if (placedMarker) {
-        upsertPlacedMarkerMutation({
-          variables: {
-            ...placedMarker,
-            mapId,
-          },
-        });
+        upsertPlacedMarkerMutation({ ...placedMarker, mapId });
         dirty.current[placedMarker.id] = null;
       }
     }
@@ -208,17 +170,16 @@ export const usePlacedMarkers = (mapId: string | null) => {
     preparePlacedMarkerUpdate,
     commitPlacedMarkerUpdates,
     updatePlacedMarker,
-    loading,
+    loading: upsertPlacedMarkerLoading,
   };
 };
 
 export const useTurfs = (mapId: string | null) => {
+  const trpc = useTRPC();
   const ref = useRef<Turf[]>([]);
+
   const [turfs, _setTurfs] = useState<Turf[]>([]);
 
-  // Use a combination of ref and state, because Mapbox native components don't
-  // update on state changes - ref is needed for them to update the latest state,
-  // instead of the initial state.
   const setTurfs = useCallback(
     (turfs: Turf[]) => {
       ref.current = turfs;
@@ -227,80 +188,58 @@ export const useTurfs = (mapId: string | null) => {
     [_setTurfs],
   );
 
-  const [deleteTurfMutation] = useDeleteTurfMutation();
-  const [upsertTurfMutation, { loading }] = useUpsertTurfMutation();
-
-  /* Complex actions */
-  const deleteTurf = (id: string) => {
-    if (!mapId) {
-      return;
-    }
-
-    deleteTurfMutation({
-      variables: {
-        id,
-        mapId,
+  const { mutate: deleteTurfMutation } = useMutation(
+    trpc.turf.delete.mutationOptions({
+      onSuccess: () => {
+        if (!mapId) return;
       },
-    });
+    }),
+  );
+
+  const { mutate: upsertTurfMutation, isPending: upsertTurfLoading } =
+    useMutation(
+      trpc.turf.upsert.mutationOptions({
+        onSuccess: (res) => {
+          if (!mapId) return;
+          const existingTurf = ref.current.find((t) => t.id === res.id);
+          if (!existingTurf) {
+            const newTurfs = [...ref.current, res];
+            setTurfs(newTurfs);
+          }
+        },
+      }),
+    );
+
+  const deleteTurf = (id: string) => {
+    if (!mapId) return;
+    deleteTurfMutation({ turfId: id, mapId });
     const newTurfs = ref.current.filter((m) => m.id !== id);
     setTurfs(newTurfs);
   };
 
-  const insertTurf = async (newTurf: Turf) => {
-    if (!mapId) {
-      return;
-    }
-
-    const newTurfs = [...ref.current, newTurf];
-    setTurfs(newTurfs);
-
-    const { data } = await upsertTurfMutation({
-      variables: {
-        label: newTurf.label,
-        notes: newTurf.notes,
-        polygon: newTurf.polygon,
-        createdAt: newTurf.createdAt,
-        area: newTurf.area,
-        mapId,
-      },
-    });
-    const newId = data?.upsertTurf?.result?.id;
-    if (newId) {
-      setTurfs(
-        newTurfs.map((t) => (t.id === newTurf.id ? { ...t, id: newId } : t)),
-      );
-    }
+  const insertTurf = async (
+    newTurf: Omit<Turf, "mapId" | "id" | "createdAt">,
+  ) => {
+    if (!mapId) return;
+    upsertTurfMutation({ ...newTurf, mapId });
   };
 
-  const updateTurf = (updatedTurf: Turf) => {
-    if (!mapId) {
-      return;
-    }
-
-    upsertTurfMutation({
-      variables: {
-        id: updatedTurf.id,
-        label: updatedTurf.label,
-        notes: updatedTurf.notes,
-        polygon: updatedTurf.polygon,
-        createdAt: updatedTurf.createdAt,
-        area: updatedTurf.area,
-        mapId,
-      },
-      refetchQueries: ["DataRecords"],
-    });
-
+  const updateTurf = (updatedTurf: Omit<Turf, "mapId">) => {
+    if (!mapId) return;
+    upsertTurfMutation({ ...updatedTurf, mapId });
     setTurfs(
-      ref.current.map((t) => (t.id === updatedTurf.id ? updatedTurf : t)),
+      ref.current.map((t) =>
+        t.id === updatedTurf.id ? { ...updatedTurf, mapId } : t,
+      ),
     );
   };
 
   return {
     turfs,
-    setTurfs,
     deleteTurf,
     insertTurf,
+    setTurfs,
     updateTurf,
-    loading,
+    loading: upsertTurfLoading,
   };
 };

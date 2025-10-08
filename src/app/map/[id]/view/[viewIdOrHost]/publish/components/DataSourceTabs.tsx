@@ -12,18 +12,17 @@ import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
 import { getActiveFilters } from "./filtersHelpers";
 import FiltersList from "./FiltersList";
-import type {
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
-} from "@/__generated__/types";
-import type { QueryResult } from "@apollo/client";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 interface DataSourceTabsProps {
   colourScheme: { primary: string; muted: string };
   editable: boolean;
   dataRecordsQueries: Record<
     string,
-    QueryResult<PublicMapDataRecordsQuery, PublicMapDataRecordsQueryVariables>
+    {
+      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+      isPending: boolean;
+    }
   >;
 }
 
@@ -117,10 +116,10 @@ export default function DataSourceTabs({
 }
 
 interface SingleDataSourceContentProps {
-  dataRecordsQuery: QueryResult<
-    PublicMapDataRecordsQuery,
-    PublicMapDataRecordsQueryVariables
-  >;
+  dataRecordsQuery: {
+    data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+    isPending: boolean;
+  };
   editable: boolean;
   colourScheme: { primary: string; muted: string };
   onSelect: (r: { id: string; dataSourceId: string }) => void;
@@ -136,7 +135,7 @@ function SingleDataSourceContent({
     useContext(PublicFiltersContext);
   const { publicMap } = useContext(PublicMapContext);
 
-  const dataSourceId = dataRecordsQuery.data?.dataSource?.id;
+  const dataSourceId = dataRecordsQuery.data?.id;
   const activeFilters = getActiveFilters(
     dataSourceId ? publicFilters[dataSourceId] : [],
   );

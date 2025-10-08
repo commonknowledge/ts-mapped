@@ -1,6 +1,6 @@
 "use client";
 
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
@@ -9,14 +9,11 @@ import { toast } from "sonner";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
+import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
-import type {
-  UpdateMapImageMutation,
-  UpdateMapImageMutationVariables,
-} from "@/__generated__/types";
 
 /**
  * TODO: Move complex logic into MapProvider
@@ -27,47 +24,30 @@ export default function PrivateMapNavbar() {
     useContext(MapContext);
 
   const showPublishButton = useFeatureFlagEnabled("public-maps");
-
   const [isEditingName, setIsEditingName] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [updateMapName] = useMutation(gql`
-    mutation UpdateMapName($id: String!, $mapInput: MapInput!) {
-      updateMap(id: $id, map: $mapInput) {
-        code
-        result {
-          id
-          name
-        }
-      }
-    }
-  `);
+  const trpc = useTRPC();
 
-  const [updateMapImage] = useMutation<
-    UpdateMapImageMutation,
-    UpdateMapImageMutationVariables
-  >(gql`
-    mutation UpdateMapImage($id: String!, $mapInput: MapInput!) {
-      updateMap(id: $id, map: $mapInput) {
-        code
-        result {
-          id
-          imageUrl
-        }
-      }
-    }
-  `);
+  const { mutate: updateMap, isPending } = useMutation(
+    trpc.map.update.mutationOptions({
+      onSuccess: () => {
+        setIsEditingName(false);
+      },
+      onError: (error) => {
+        toast.error("Failed to update map");
+        console.error("Failed to update map name", error);
+      },
+    }),
+  );
 
   const onClickPublish = async () => {
     // Should never happen, button is also hidden in this case
-    if (!mapId || !view) {
-      return;
-    }
-
+    if (!mapId || !view) return;
     // Need to save the map + view before trying to publish it
     setLoading(true);
     try {
-      await saveMapConfig();
+      saveMapConfig();
       router.push(`/map/${mapId}/view/${view.id}/publish`);
     } catch (e) {
       console.error("UpdateMapConfig failed", e);
@@ -99,10 +79,8 @@ export default function PrivateMapNavbar() {
     });
 
     const imageUrl = await uploadFile(imageFile);
-    await updateMapImage({
-      variables: { id: mapId, mapInput: { imageUrl } },
-    });
-  }, [mapId, mapRef, updateMapImage]);
+    updateMap({ mapId, imageUrl });
+  }, [mapId, mapRef, updateMap]);
 
   useEffect(() => {
     if (!mapId) return;
@@ -138,20 +116,8 @@ export default function PrivateMapNavbar() {
   }, [mapId, mapRef, regenerateMapImage]);
 
   const onSubmitSaveName = async () => {
-    const queryResponse = await updateMapName({
-      variables: {
-        id: mapId,
-        mapInput: {
-          name: mapName,
-        },
-      },
-    });
-    const { data } = queryResponse;
-    setIsEditingName(false);
-    setMapName(data.updateMap.result.name);
-    if (data.updateMap.code !== 200) {
-      console.error("Failed to update map name");
-    }
+    if (!mapId || !mapName) return;
+    updateMap({ mapId, name: mapName });
   };
 
   return (
@@ -178,6 +144,7 @@ export default function PrivateMapNavbar() {
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={isPending}
                     onClick={onSubmitSaveName}
                   >
                     Save
@@ -185,6 +152,7 @@ export default function PrivateMapNavbar() {
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={isPending}
                     onClick={() => setIsEditingName(false)}
                   >
                     Cancel

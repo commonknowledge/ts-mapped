@@ -19,6 +19,7 @@ export default function FilterMarkers() {
   const { mapRef, mapConfig, view } = useContext(MapContext);
   const { markerQueries, placedMarkers, turfs } =
     useContext(MarkerAndTurfContext);
+
   const { selectedDataSourceId } = useContext(TableContext);
 
   const memberMarkers = useMemo(
@@ -114,9 +115,9 @@ export default function FilterMarkers() {
     for (const dataSourceView of view?.dataSourceViews || []) {
       const filter = dataSourceView.filter;
       const dataSourceTurfs = getFilterTurfs(filter)
-        .map((turfId) => turfs.find((t) => t.id === turfId)?.polygon)
+        .map((turfId) => turfs?.find((t) => t.id === turfId)?.polygon)
         .filter((t) => t !== undefined);
-      filterTurfs = filterTurfs.concat(dataSourceTurfs);
+      filterTurfs = filterTurfs.concat(dataSourceTurfs as Polygon[]);
     }
     return filterTurfs;
   }, [turfs, view?.dataSourceViews]);

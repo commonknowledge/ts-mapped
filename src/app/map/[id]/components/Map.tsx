@@ -32,14 +32,9 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import type {
-  Feature,
-  FeatureCollection,
-  MultiPolygon,
-  Point,
-  Polygon,
-} from "geojson";
+import type { Feature, MultiPolygon, Point } from "geojson";
 
 export default function Map({
   onSourceLoad,
@@ -92,9 +87,7 @@ export default function Map({
 
   // draw existing turfs
   useEffect(() => {
-    if (!draw) {
-      return;
-    }
+    if (!turfs || !draw) return;
 
     draw.deleteAll();
 
@@ -242,9 +235,7 @@ export default function Map({
     }
 
     const map = mapRef?.current;
-    if (!map) {
-      return;
-    }
+    if (!map) return;
 
     const padding = {
       left: showControls ? CONTROL_PANEL_WIDTH : 0,
@@ -288,12 +279,10 @@ export default function Map({
     const features = [...placedMarkerFeatures, ...dataSourceMarkerFeatures];
 
     if (features?.length) {
-      const featureCollection: FeatureCollection<Point> = {
+      const [minLng, minLat, maxLng, maxLat] = turf?.bbox({
         type: "FeatureCollection",
         features,
-      };
-
-      const [minLng, minLat, maxLng, maxLat] = turf?.bbox(featureCollection);
+      });
 
       map.fitBounds(
         [
@@ -493,12 +482,10 @@ export default function Map({
                 const area = turf.area(feature);
                 const roundedArea = Math.round(area * 100) / 100;
                 insertTurf({
-                  id: `turf-temp-${new Date().getTime()}`,
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
-                  polygon: feature.geometry,
-                  createdAt: new Date().toISOString(),
+                  polygon: feature.geometry as Polygon,
                 });
               }
             });
@@ -516,8 +503,10 @@ export default function Map({
                     notes: feature?.properties?.notes,
                     label: feature?.properties?.label,
                     area: roundedArea,
-                    polygon: feature.geometry,
-                    createdAt: feature?.properties?.createdAt,
+                    polygon: feature.geometry as Polygon,
+                    createdAt: new Date(
+                      feature?.properties?.createdAt as string,
+                    ),
                   });
                 });
               }

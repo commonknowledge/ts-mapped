@@ -5,9 +5,9 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { ColumnType } from "../models/DataSource";
 import { CalculationType } from "../models/MapView";
+import type { AreaStat, BoundingBox } from "../models/Area";
 import type { AreaSetCode } from "../models/AreaSet";
 import type { Database } from "@/server/services/database";
-import type { AreaStat, BoundingBox } from "@/types";
 import type { CaseBuilder, CaseWhenBuilder } from "kysely";
 
 export const getAreaStats = async (
@@ -17,7 +17,7 @@ export const getAreaStats = async (
   column: string,
   excludeColumns: string[],
   boundingBox: BoundingBox | null = null,
-): Promise<{ column: string; columnType: ColumnType; stats: AreaStat[] }> => {
+) => {
   if (column === MAX_COLUMN_KEY) {
     const stats = await getMaxColumnByArea(
       areaSetCode,
@@ -86,9 +86,8 @@ export const getMaxColumnByArea = async (
   boundingBox: BoundingBox | null = null,
 ) => {
   const dataSource = await findDataSourceById(dataSourceId);
-  if (!dataSource) {
-    return [];
-  }
+  if (!dataSource) return [];
+
   const columnNames = dataSource.columnDefs
     .filter(
       ({ name, type }) =>

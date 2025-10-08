@@ -13,7 +13,7 @@ export function PublicMapListings() {
     publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red;
 
   const loadingSources = Object.values(dataRecordsQueries).some(
-    (q) => q.loading,
+    (q) => q.isPending,
   );
   return (
     <div className="py-4 flex flex-col min-h-0">

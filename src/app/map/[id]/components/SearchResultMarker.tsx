@@ -17,9 +17,7 @@ export default function SearchResultMarker() {
     "Unknown location";
 
   const addMarker = () => {
-    if (!searchMarker || !center) {
-      return;
-    }
+    if (!searchMarker || !center) return;
 
     insertPlacedMarker({
       id: uuidv4(),

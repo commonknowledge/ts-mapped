@@ -7,6 +7,14 @@ import type {
   Updateable,
 } from "kysely";
 
+export enum JobStatus {
+  None = "None",
+  Failed = "Failed",
+  Running = "Running",
+  Complete = "Complete",
+  Pending = "Pending",
+}
+
 export enum DataSourceType {
   ActionNetwork = "actionnetwork",
   Airtable = "airtable",

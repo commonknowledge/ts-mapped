@@ -11,19 +11,15 @@ import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { buildName } from "../utils";
 import { filterRecords, getActiveFilters } from "./filtersHelpers";
-import type {
-  PublicMapDataRecordsQuery,
-  PublicMapDataRecordsQueryVariables,
-  PublicMapDataSourceConfig,
-} from "@/__generated__/types";
+import type { PublicMapDataSourceConfig } from "@/__generated__/types";
 import type { Point } from "@/server/models/shared";
-import type { QueryResult } from "@apollo/client";
+import type { RouterOutputs } from "@/services/trpc/react";
 
 interface DataRecordsListProps {
-  dataRecordsQuery: QueryResult<
-    PublicMapDataRecordsQuery,
-    PublicMapDataRecordsQueryVariables
-  >;
+  dataRecordsQuery: {
+    data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+    isPending: boolean;
+  };
   onSelect: (r: { id: string; dataSourceId: string }) => void;
   colourScheme: { primary: string; muted: string };
 }
@@ -41,8 +37,8 @@ export default function DataRecordsList({
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
 
   useEffect(() => {
-    const allRecords = dataRecordsQuery?.data?.dataSource?.records || [];
-    const dataSourceId = dataRecordsQuery.data?.dataSource?.id;
+    const allRecords = dataRecordsQuery?.data?.records || [];
+    const dataSourceId = dataRecordsQuery.data?.id;
     const activeFilters = getActiveFilters(
       dataSourceId ? publicFilters[dataSourceId] : undefined,
     );
@@ -59,12 +55,12 @@ export default function DataRecordsList({
   }, [
     publicFilters,
     setRecords,
-    dataRecordsQuery.data?.dataSource?.records,
-    dataRecordsQuery.data?.dataSource?.id,
+    dataRecordsQuery.data?.records,
+    dataRecordsQuery.data?.id,
   ]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.dataSource?.id,
+    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
 
   const getName = (record: {
@@ -88,10 +84,10 @@ export default function DataRecordsList({
     id: string;
     geocodePoint?: Point | null;
   }) => {
-    if (dataRecordsQuery.data?.dataSource?.id) {
+    if (dataRecordsQuery.data?.id) {
       onSelect({
         id: record.id,
-        dataSourceId: dataRecordsQuery.data?.dataSource?.id,
+        dataSourceId: dataRecordsQuery.data?.id,
       });
 
       // On mobile: toggle accordion expansion

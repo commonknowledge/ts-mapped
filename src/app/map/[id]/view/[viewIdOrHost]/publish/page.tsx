@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
-import { getQueryClient, trpc } from "@/services/trpc/server";
+import { createCaller } from "@/services/trpc/server";
 import ChoroplethProvider from "../../../providers/ChoroplethProvider";
 import DataSourcesProvider from "../../../providers/DataSourcesProvider";
 import InspectorProvider from "../../../providers/InspectorProvider";
@@ -17,20 +17,17 @@ export default async function PublicMapAdminPage({
 }) {
   const { id: mapIdOrPublic, viewIdOrHost } = await params;
   const isPublicRoute = mapIdOrPublic === "public";
-  const queryClient = getQueryClient();
+  const queryClient = await createCaller();
+
   let publicMap = null;
   if (isPublicRoute) {
-    publicMap = await queryClient.fetchQuery(
-      trpc.publicMap.getPublished.queryOptions({
-        host: decodeURIComponent(viewIdOrHost),
-      }),
-    );
+    publicMap = await queryClient.publicMap.getPublished({
+      host: decodeURIComponent(viewIdOrHost),
+    });
   } else {
-    publicMap = await queryClient.fetchQuery(
-      trpc.publicMap.getEditable.queryOptions({
-        viewId: viewIdOrHost,
-      }),
-    );
+    publicMap = await queryClient.publicMap.getEditable({
+      viewId: viewIdOrHost,
+    });
   }
 
   if (!publicMap) {

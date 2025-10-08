@@ -14,7 +14,7 @@ export const ChoroplethContext = createContext<{
 
   /* Queries */
   areaStatsQuery: {
-    data: RouterOutputs["areaStats"]["list"] | null | undefined;
+    data: RouterOutputs["area"]["stats"] | null | undefined;
     isFetching: boolean;
   } | null;
 
