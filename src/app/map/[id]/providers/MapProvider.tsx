@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import type { View } from "../types";
-import type { BoundingBoxInput } from "@/__generated__/types";
+import type { BoundingBox } from "@/server/models/Area";
 import type { ReactNode } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 
@@ -33,7 +33,7 @@ export default function MapProvider({
 
   /* Map State */
 
-  const [boundingBox, setBoundingBox] = useState<BoundingBoxInput | null>(null);
+  const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const [mapConfig, setMapConfig] = useState(new MapConfig());
   const [dirtyViewIds, setDirtyViewIds] = useState<string[]>([]);
   const [views, setViews] = useState<View[]>([]);
@@ -95,15 +95,15 @@ export default function MapProvider({
     setDirtyViewIds([...dirtyViewIds, view.id]);
   };
 
-  const client = useQueryClient();
+  // const client = useQueryClient();
 
   const { mutate: saveMapConfigMutate } = useMutation(
     trpc.map.updateConfig.mutationOptions({
-      onSuccess: (_, { config }) => {
-        client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-          if (!old) return old;
-          return { ...old, config: { ...old.config, ...config } };
-        });
+      onSuccess: () => {
+        // client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+        //   if (!old) return old;
+        //   return { ...old, config: { ...old.config, ...config } };
+        // });
         setDirtyViewIds([]);
         setConfigDirty(false);
       },

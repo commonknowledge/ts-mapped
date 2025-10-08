@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { circle } from "@turf/turf";
 import { useContext, useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
@@ -6,7 +5,6 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { MARKER_ID_KEY } from "@/constants";
-import { useTRPC } from "@/services/trpc/react";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/__generated__/types";
 import type {
@@ -18,17 +16,10 @@ import type {
 import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
-  const { mapRef, mapConfig, view, mapId } = useContext(MapContext);
-  const { markerQueries, placedMarkers } = useContext(MarkerAndTurfContext);
+  const { mapRef, mapConfig, view } = useContext(MapContext);
+  const { markerQueries, placedMarkers, turfs } =
+    useContext(MarkerAndTurfContext);
 
-  const trpc = useTRPC();
-  const { data: map } = useQuery(
-    trpc.map.byId.queryOptions(
-      { mapId: mapId || "" },
-      { enabled: Boolean(mapId) },
-    ),
-  );
-  const turfs = map?.turfs;
   const { selectedDataSourceId } = useContext(TableContext);
 
   const memberMarkers = useMemo(

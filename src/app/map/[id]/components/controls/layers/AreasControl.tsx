@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import * as turfLib from "@turf/turf";
 import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
@@ -6,7 +5,6 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -20,19 +18,11 @@ import LayerHeader from "../LayerHeader";
 import type { Turf } from "@/server/models/Turf";
 
 export default function AreasControl() {
-  const { viewConfig, updateViewConfig, mapId } = useContext(MapContext);
-  const { handleAddArea } = useContext(MarkerAndTurfContext);
+  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
   // const [, setFormattedDates] = useState<Record<string, string>>({});
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
-
-  const trpc = useTRPC();
-  const { data: map } = useQuery(
-    trpc.map.byId.queryOptions(
-      { mapId: mapId || "" },
-      { enabled: Boolean(mapId) },
-    ),
-  );
 
   // TODO: display these dates somewhere
   // useEffect(() => {
@@ -85,7 +75,7 @@ export default function AreasControl() {
 
       {expanded && (
         <div className="relative">
-          {map?.turfs && map?.turfs.length === 0 && (
+          {turfs && turfs.length === 0 && (
             <EmptyLayer message="Add an Area Layer" />
           )}
           {/* Disable interactions while turfs are loading/updating in the background */}
@@ -93,7 +83,7 @@ export default function AreasControl() {
           <ul
             className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
           >
-            {map?.turfs.map((turf) => (
+            {turfs.map((turf) => (
               <TurfItem key={turf.id} turf={turf} />
             ))}
           </ul>

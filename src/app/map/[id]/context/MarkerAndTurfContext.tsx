@@ -32,7 +32,7 @@ export const MarkerAndTurfContext = createContext<{
   searchMarker: Feature | null;
   setSearchMarker: (marker: Feature | null) => void;
 
-  // turfs: Turf[];
+  turfs: Turf[];
   deleteTurf: (id: string) => void;
   insertTurf: (turf: Omit<Turf, "mapId" | "id">) => void;
   updateTurf: (turf: Omit<Turf, "mapId">) => void;
@@ -68,7 +68,7 @@ export const MarkerAndTurfContext = createContext<{
   setSelectedPlacedMarkerId: () => null,
   searchMarker: null,
   setSearchMarker: () => null,
-  // turfs: [],
+  turfs: [],
   deleteTurf: () => null,
   insertTurf: () => null,
   updateTurf: () => null,

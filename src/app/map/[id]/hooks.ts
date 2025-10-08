@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "./utils";
@@ -86,43 +86,14 @@ export const usePlacedMarkers = (mapId: string | null) => {
   );
 
   const trpc = useTRPC();
-  const client = useQueryClient();
   const { mutate: deletePlacedMarkerMutation } = useMutation(
-    trpc.placedMarker.delete.mutationOptions({
-      onSuccess: (_, { placedMarkerId }) => {
-        if (!mapId) return;
-        client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            placedMarkers: old.placedMarkers.filter(
-              (m) => m.id !== placedMarkerId,
-            ),
-          };
-        });
-      },
-    }),
+    trpc.placedMarker.delete.mutationOptions({}),
   );
 
   const {
     mutate: upsertPlacedMarkerMutation,
     isPending: upsertPlacedMarkerLoading,
-  } = useMutation(
-    trpc.placedMarker.upsert.mutationOptions({
-      onSuccess: (res) => {
-        if (!mapId) return;
-        client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            placedMarkers: old.placedMarkers.map((m) =>
-              m.id === res.id ? res : m,
-            ),
-          };
-        });
-      },
-    }),
-  );
+  } = useMutation(trpc.placedMarker.upsert.mutationOptions());
 
   /* Complex actions */
   const deletePlacedMarker = (id: string) => {
@@ -205,16 +176,22 @@ export const usePlacedMarkers = (mapId: string | null) => {
 
 export const useTurfs = (mapId: string | null) => {
   const trpc = useTRPC();
-  const client = useQueryClient();
+  const ref = useRef<Turf[]>([]);
+
+  const [turfs, _setTurfs] = useState<Turf[]>([]);
+
+  const setTurfs = useCallback(
+    (turfs: Turf[]) => {
+      ref.current = turfs;
+      _setTurfs(turfs);
+    },
+    [_setTurfs],
+  );
 
   const { mutate: deleteTurfMutation } = useMutation(
     trpc.turf.delete.mutationOptions({
-      onSuccess: (_, { turfId }) => {
+      onSuccess: () => {
         if (!mapId) return;
-        client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-          if (!old) return old;
-          return { ...old, turfs: old.turfs.filter((t) => t.id !== turfId) };
-        });
       },
     }),
   );
@@ -224,16 +201,11 @@ export const useTurfs = (mapId: string | null) => {
       trpc.turf.upsert.mutationOptions({
         onSuccess: (res) => {
           if (!mapId) return;
-          client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-            if (!old) return old;
-            if (old.turfs.find((t) => t.id === res.id)) {
-              return {
-                ...old,
-                turfs: old.turfs.map((t) => (t.id === res.id ? res : t)),
-              };
-            }
-            return { ...old, turfs: [...old.turfs, res] };
-          });
+          const existingTurf = ref.current.find((t) => t.id === res.id);
+          if (!existingTurf) {
+            const newTurfs = [...ref.current, res];
+            setTurfs(newTurfs);
+          }
         },
       }),
     );
@@ -241,6 +213,8 @@ export const useTurfs = (mapId: string | null) => {
   const deleteTurf = (id: string) => {
     if (!mapId) return;
     deleteTurfMutation({ turfId: id, mapId });
+    const newTurfs = ref.current.filter((m) => m.id !== id);
+    setTurfs(newTurfs);
   };
 
   const insertTurf = async (newTurf: Omit<Turf, "mapId" | "id">) => {
@@ -251,11 +225,18 @@ export const useTurfs = (mapId: string | null) => {
   const updateTurf = (updatedTurf: Omit<Turf, "mapId">) => {
     if (!mapId) return;
     upsertTurfMutation({ ...updatedTurf, mapId });
+    setTurfs(
+      ref.current.map((t) =>
+        t.id === updatedTurf.id ? { ...updatedTurf, mapId } : t,
+      ),
+    );
   };
 
   return {
+    turfs,
     deleteTurf,
     insertTurf,
+    setTurfs,
     updateTurf,
     loading: upsertTurfLoading,
   };

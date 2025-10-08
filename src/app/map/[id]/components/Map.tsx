@@ -1,6 +1,5 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
-import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import dynamic from "next/dynamic";
 import {
@@ -22,7 +21,6 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
-import { useTRPC } from "@/services/trpc/react";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
@@ -55,13 +53,13 @@ export default function Map({
     pinDropMode,
     showControls,
     ready,
-    mapId,
     setReady,
   } = useContext(MapContext);
   const {
     deleteTurf,
     insertTurf,
     updateTurf,
+    turfs,
     searchMarker,
     placedMarkers,
     markerQueries,
@@ -87,29 +85,21 @@ export default function Map({
     [mapConfig],
   );
 
-  const trpc = useTRPC();
-  const { data: map } = useQuery(
-    trpc.map.byId.queryOptions(
-      { mapId: mapId || "" },
-      { enabled: Boolean(mapId) },
-    ),
-  );
-
   // draw existing turfs
   useEffect(() => {
-    if (!map?.turfs || !draw) return;
+    if (!turfs || !draw) return;
 
     draw.deleteAll();
 
     // Add existing polygons from your array
-    map.turfs.forEach((turf) => {
+    turfs.forEach((turf) => {
       draw.add({
         type: "Feature",
         properties: { ...turf },
         geometry: turf.polygon as GeometryObject,
       });
     });
-  }, [map?.turfs, draw]);
+  }, [turfs, draw]);
 
   // Hover behavior
   useEffect(() => {
