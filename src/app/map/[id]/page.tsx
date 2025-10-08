@@ -4,8 +4,8 @@ import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
 import ChoroplethProvider from "./providers/ChoroplethProvider";
-import DataRecordProvider from "./providers/DataRecordProvider";
 import DataSourcesProvider from "./providers/DataSourcesProvider";
+import InspectorProvider from "./providers/InspectorProvider";
 import MapProvider from "./providers/MapProvider";
 import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
 import TableProvider from "./providers/TableProvider";
@@ -33,7 +33,7 @@ export default async function MapPage({
   return (
     <MapProvider mapId={id} viewId={viewId}>
       <DataSourcesProvider>
-        <DataRecordProvider>
+        <InspectorProvider>
           <ChoroplethProvider>
             <MarkerAndTurfProvider>
               <TableProvider>
@@ -44,7 +44,7 @@ export default async function MapPage({
               </TableProvider>
             </MarkerAndTurfProvider>
           </ChoroplethProvider>
-        </DataRecordProvider>
+        </InspectorProvider>
       </DataSourcesProvider>
     </MapProvider>
   );

@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 
@@ -81,6 +82,8 @@ export default function MapWrapper({
           </p>
         </div>
       )}
+
+      <InspectorPanel />
     </div>
   );
 }
