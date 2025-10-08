@@ -1,13 +1,14 @@
 "use client";
 
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
+import { useMapQuery } from "../queries";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
 import type { Feature } from "geojson";
@@ -22,12 +23,7 @@ export default function MarkerAndTurfProvider({
     useContext(MapContext);
 
   const trpc = useTRPC();
-  const { data: map } = useQuery(
-    trpc.map.byId.queryOptions(
-      { mapId: mapId || "" },
-      { enabled: Boolean(mapId) },
-    ),
-  );
+  const { data: map } = useMapQuery(mapId);
   const { publicMap } = useContext(PublicMapContext);
   /* State */
 

@@ -29,13 +29,8 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import type {
-  FeatureCollection,
-  GeometryObject,
-  Point,
-  Polygon,
-} from "geojson";
 
 export default function Map({
   onSourceLoad,
@@ -96,7 +91,7 @@ export default function Map({
       draw.add({
         type: "Feature",
         properties: { ...turf },
-        geometry: turf.polygon as GeometryObject,
+        geometry: turf.polygon,
       });
     });
   }, [turfs, draw]);
@@ -279,14 +274,10 @@ export default function Map({
     const features = [...placedMarkerFeatures, ...dataSourceMarkerFeatures];
 
     if (features?.length) {
-      const featureCollection: FeatureCollection<Point> = {
+      const [minLng, minLat, maxLng, maxLat] = turf?.bbox({
         type: "FeatureCollection",
         features,
-      };
-
-      const [minLng, minLat, maxLng, maxLat] = turf?.bbox(featureCollection);
-
-      console.log("hello");
+      });
 
       map.fitBounds(
         [
@@ -442,7 +433,6 @@ export default function Map({
                   notes: "",
                   area: roundedArea,
                   polygon: feature.geometry as Polygon,
-                  createdAt: new Date(),
                 });
               }
             });

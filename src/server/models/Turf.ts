@@ -2,7 +2,7 @@ import z from "zod";
 import type { Generated, Insertable, Updateable } from "kysely";
 
 export const polygonSchema = z.object({
-  bbox: z.array(z.number()).optional(),
+  bbox: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
   type: z.literal("Polygon"),
   coordinates: z.array(z.array(z.array(z.number()))),
 });

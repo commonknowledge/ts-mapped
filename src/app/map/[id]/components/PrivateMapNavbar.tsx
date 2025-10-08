@@ -78,7 +78,7 @@ export default function PrivateMapNavbar() {
     if (!mapId) return;
     setLoading(true);
     try {
-      await saveMapConfig();
+      saveMapConfig();
       await regenerateMapImage();
       toast.success("Map view saved!");
     } catch (e) {

@@ -1,6 +1,5 @@
 import { sql } from "kysely";
-import { JobStatus } from "@/__generated__/types";
-import { DataSourceType } from "@/server/models/DataSource";
+import { DataSourceType, JobStatus } from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
 import type { JobInfo } from "@/__generated__/types";
 import type {

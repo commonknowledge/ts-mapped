@@ -217,7 +217,9 @@ export const useTurfs = (mapId: string | null) => {
     setTurfs(newTurfs);
   };
 
-  const insertTurf = async (newTurf: Omit<Turf, "mapId" | "id">) => {
+  const insertTurf = async (
+    newTurf: Omit<Turf, "mapId" | "id" | "createdAt">,
+  ) => {
     if (!mapId) return;
     upsertTurfMutation({ ...newTurf, mapId });
   };

@@ -20,27 +20,8 @@ import type { Turf } from "@/server/models/Turf";
 export default function AreasControl() {
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
-  // const [, setFormattedDates] = useState<Record<string, string>>({});
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
-
-  // TODO: display these dates somewhere
-  // useEffect(() => {
-  //   if (!map?.turfs) return;
-  //   // Format dates only on client-side
-  //   const dates = map.turfs.reduce(
-  //     (acc, t) => {
-  //       acc[t.id] = new Date(t.createdAt)
-  //         .toISOString()
-  //         .slice(0, 19)
-  //         .replace("T", " ");
-  //       return acc;
-  //     },
-  //     {} as Record<string, string>,
-  //   );
-
-  //   setFormattedDates(dates);
-  // }, [map?.turfs]);
 
   const onAddArea = () => {
     handleAddArea();
@@ -105,7 +86,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
     if (!map) return;
 
     // the bounding box of the polygon
-    const bbox = turfLib.bbox(turf.polygon as turfLib.AllGeoJSON);
+    const bbox = turfLib.bbox(turf.polygon);
     const padding = 20;
 
     map.fitBounds(

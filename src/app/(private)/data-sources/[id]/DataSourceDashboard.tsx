@@ -1,21 +1,18 @@
 "use client";
 
 import { gql, useSubscription } from "@apollo/client";
-import {
-  useMutation,
-  useMutation as useTanstackMutation,
-} from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { LoaderPinwheel, MapIcon, RefreshCw, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { JobStatus } from "@/__generated__/types";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import DefinitionList from "@/components/DefinitionList";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
+import { JobStatus } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
@@ -149,7 +146,7 @@ export function DataSourceDashboard({
   const router = useRouter();
 
   const [createMapLoading, setCreateMapLoading] = useState(false);
-  const { mutate: createMap } = useTanstackMutation(
+  const { mutate: createMap } = useMutation(
     trpc.map.createFromDataSource.mutationOptions({
       onSuccess: (data) => {
         router.push(`/map/${data.id}`);
@@ -282,7 +279,7 @@ function DeleteDataSourceButton({
 }) {
   const router = useRouter();
   const trpc = useTRPC();
-  const { mutate, isPending } = useTanstackMutation(
+  const { mutate, isPending } = useMutation(
     trpc.dataSource.delete.mutationOptions({
       onSuccess: () => {
         router.replace("/data-sources");

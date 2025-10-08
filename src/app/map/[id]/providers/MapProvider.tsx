@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
 } from "@/app/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
+import { useMapQuery } from "../queries";
 import { getNewLastPosition } from "../utils";
 import type { View } from "../types";
 import type { BoundingBox } from "@/server/models/Area";
@@ -46,7 +47,7 @@ export default function MapProvider({
 
   /* Server Data */
   const trpc = useTRPC();
-  const mapQuery = useQuery(trpc.map.byId.queryOptions({ mapId }));
+  const mapQuery = useMapQuery(mapId);
 
   const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
     setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));

@@ -18,6 +18,7 @@ export default async function PublicMapAdminPage({
   const { id: mapIdOrPublic, viewIdOrHost } = await params;
   const isPublicRoute = mapIdOrPublic === "public";
   const queryClient = await createCaller();
+
   let publicMap = null;
   if (isPublicRoute) {
     publicMap = await queryClient.publicMap.getPublished({

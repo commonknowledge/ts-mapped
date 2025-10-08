@@ -34,7 +34,7 @@ export const MarkerAndTurfContext = createContext<{
 
   turfs: Turf[];
   deleteTurf: (id: string) => void;
-  insertTurf: (turf: Omit<Turf, "mapId" | "id">) => void;
+  insertTurf: (turf: Omit<Turf, "mapId" | "id" | "createdAt">) => void;
   updateTurf: (turf: Omit<Turf, "mapId">) => void;
 
   /* GraphQL Queries */

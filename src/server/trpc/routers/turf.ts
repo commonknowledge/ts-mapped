@@ -11,13 +11,17 @@ export const turfRouter = router({
     }),
 
   upsert: mapWriteProcedure
-    .input(turfSchema.omit({ id: true }).extend({ id: z.string().optional() }))
+    .input(
+      turfSchema
+        .omit({ id: true, createdAt: true })
+        .extend({ id: z.string().optional() }),
+    )
     .mutation(async ({ input }) => {
       let turf = null;
       if (input.id) {
         turf = await updateTurf(input.id, input);
       } else {
-        turf = await insertTurf(input);
+        turf = await insertTurf({ ...input, createdAt: new Date() });
       }
       return turf;
     }),
