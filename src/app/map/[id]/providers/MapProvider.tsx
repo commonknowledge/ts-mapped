@@ -12,7 +12,7 @@ import {
 } from "@/app/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
-import { useMapQuery } from "../queries";
+import { useMapQuery } from "../hooks/useMapQuery";
 import { getNewLastPosition } from "../utils";
 import type { View } from "../types";
 import type { BoundingBox } from "@/server/models/Area";

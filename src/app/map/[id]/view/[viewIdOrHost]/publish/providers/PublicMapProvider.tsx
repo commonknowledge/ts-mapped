@@ -2,8 +2,8 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
@@ -188,7 +188,7 @@ const usePublicMapAndActiveTab = (
   editable: boolean,
 ) => {
   const { mapConfig } = useContext(MapContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { getDataSourceById } = useDataSources();
 
   const [publicMap, setPublicMap] = useState(initialPublicMap);
   const [activeTabId, setActiveTabId] = useState<string | null>(

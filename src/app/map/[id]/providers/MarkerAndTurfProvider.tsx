@@ -8,7 +8,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
-import { useMapQuery } from "../queries";
+import { useMapQuery } from "../hooks/useMapQuery";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
 import type { Feature } from "geojson";

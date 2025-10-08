@@ -1,7 +1,6 @@
 import { Plus, X } from "lucide-react";
-import { useContext } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
@@ -41,7 +40,7 @@ export default function ColumnCard({
   additionalColumns,
   onAdditionalColumnsChange,
 }: ColumnCardProps) {
-  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { getDataSourceById } = useDataSources();
 
   const dataSource = getDataSourceById(dataSourceId);
   const selectedColumns = value || [];

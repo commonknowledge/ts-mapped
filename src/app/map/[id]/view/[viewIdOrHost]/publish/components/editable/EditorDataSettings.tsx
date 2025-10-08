@@ -1,7 +1,7 @@
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -23,7 +23,7 @@ import ColumnCard from "./ColumnCard";
 export default function EditorDataSettings() {
   const { publicMap, updateDataSourceConfig, activeTabId, setActiveTabId } =
     useContext(PublicMapContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { getDataSourceById } = useDataSources();
   const [expandedColumns, setExpandedColumns] = useState<
     Record<string, boolean>
   >({});

@@ -7,7 +7,7 @@ import Map from "@/app/map/[id]/components/Map";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { useMapQuery } from "@/app/map/[id]/queries";
+import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { Link } from "@/components/Link";
 import { PublicMapContext } from "../context/PublicMapContext";
 import EditorNavbar from "./editable/EditorNavbar";

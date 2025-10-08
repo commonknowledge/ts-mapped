@@ -3,9 +3,9 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { DataSourceRecordType } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { CollectionIcon } from "../../../Icons";
@@ -24,7 +24,7 @@ export default function MarkersControl() {
     insertFolder,
     handleDropPin,
   } = useContext(MarkerAndTurfContext);
-  const { getDataSources } = useContext(DataSourcesContext);
+  const { dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
@@ -56,7 +56,7 @@ export default function MarkersControl() {
   };
 
   const getDataSourceDropdownItems = () => {
-    const markerDataSources = getDataSources().filter((dataSource) => {
+    const markerDataSources = dataSources.filter((dataSource) => {
       return dataSource.recordType !== DataSourceRecordType.Members;
     });
 

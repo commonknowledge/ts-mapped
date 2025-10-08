@@ -1,9 +1,12 @@
 import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import {
+  useDataSources,
+  useMembersDataSource,
+} from "@/app/map/[id]/hooks/useDataSources";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { mapColors } from "../../../styles";
@@ -17,18 +20,17 @@ export default function MembersControl() {
   const router = useRouter();
   const { updateMapConfig, viewConfig, updateViewConfig } =
     useContext(MapContext);
-  const { getMembersDataSource, getDataSources } =
-    useContext(DataSourcesContext);
+  const dataSource = useMembersDataSource();
+  const { dataSources: allDataSources } = useDataSources();
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
   const [expanded, setExpanded] = useState(true);
 
-  const dataSource = getMembersDataSource();
   const isSelected = dataSource
     ? selectedDataSourceId === dataSource.id
     : false;
 
-  const dataSources = getDataSources().filter((dataSource) => {
+  const dataSources = allDataSources.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Members;
   });
 

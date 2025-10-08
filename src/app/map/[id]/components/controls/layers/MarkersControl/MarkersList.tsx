@@ -15,10 +15,10 @@ import {
 } from "@dnd-kit/sortable";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -50,8 +50,7 @@ export default function MarkersList() {
   } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
-  const { getMarkerDataSources } = useContext(DataSourcesContext);
-  const markerDataSources = getMarkerDataSources();
+  const markerDataSources = useMarkerDataSources();
 
   const [activeId, setActiveId] = useState<string | null>(null);
 

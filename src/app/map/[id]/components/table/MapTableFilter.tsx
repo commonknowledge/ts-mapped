@@ -9,10 +9,10 @@ import {
   useState,
 } from "react";
 import { FilterOperator, FilterType } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -60,7 +60,7 @@ export default function MapTableFilter({
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const { mapConfig } = useContext(MapContext);
   const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { getDataSourceById } = useDataSources();
   const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
 
   const tableDataSource = getDataSourceById(tableDataSourceId);

@@ -16,8 +16,11 @@ import {
   VisualisationType,
 } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import {
+  useChoroplethDataSource,
+  useDataSources,
+} from "@/app/map/[id]/hooks/useDataSources";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
@@ -58,17 +61,14 @@ export default function VisualisationPanel({
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { boundariesPanelOpen, setBoundariesPanelOpen } =
     useContext(ChoroplethContext);
-  const { getDataSources, getChoroplethDataSource } =
-    useContext(DataSourcesContext);
+  const { dataSources } = useDataSources();
+  const dataSource = useChoroplethDataSource();
 
   // Add this state
   const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
   // Add these states
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const dataSources = getDataSources();
-  const dataSource = getChoroplethDataSource();
 
   // Update the filtering logic to include search
   const filteredAndSearchedDataSources = useMemo(() => {

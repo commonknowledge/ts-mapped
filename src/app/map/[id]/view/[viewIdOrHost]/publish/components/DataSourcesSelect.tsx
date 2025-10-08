@@ -1,7 +1,7 @@
 import { Database } from "lucide-react";
 import { useContext } from "react";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -25,7 +25,7 @@ interface DataSource {
 
 export default function DataSourcesSelect() {
   const { mapConfig } = useContext(MapContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { getDataSourceById } = useDataSources();
   const { publicMap, updatePublicMap } = useContext(PublicMapContext);
 
   const dataSources = mapConfig
