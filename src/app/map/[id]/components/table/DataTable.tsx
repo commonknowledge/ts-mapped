@@ -112,7 +112,8 @@ export function DataTable({
     }
   };
   useEffect(() => {
-    if (!selectedRecordId || !tableContainerRef.current) return;
+    if (!selectedRecordId || !tableContainerRef.current || !data?.length)
+      return;
 
     const container = tableContainerRef.current;
     const row = container.querySelector<HTMLTableRowElement>(
@@ -135,7 +136,7 @@ export function DataTable({
         block: "center",
       });
     }
-  }, [selectedRecordId]);
+  }, [selectedRecordId, data]);
 
   return (
     <div className="flex flex-col  h-full" ref={tableContainerRef}>
