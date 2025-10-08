@@ -300,11 +300,13 @@ export default function MarkersList() {
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           <ol>
-            {markerDataSources.length === 0 && placedMarkers.length === 0 && (
-              <EmptyLayer message="Add a Marker Layer" />
-            )}
+            {markerDataSources &&
+              markerDataSources.length === 0 &&
+              placedMarkers.length === 0 && (
+                <EmptyLayer message="Add a Marker Layer" />
+              )}
             {/* Data sources */}
-            {markerDataSources.length > 0 && (
+            {markerDataSources && markerDataSources.length > 0 && (
               <ul>
                 {markerDataSources.map((dataSource) => (
                   <li key={dataSource.id} className="mb-2">
