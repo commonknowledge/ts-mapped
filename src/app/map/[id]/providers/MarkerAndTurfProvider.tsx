@@ -1,6 +1,6 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -18,8 +18,16 @@ export default function MarkerAndTurfProvider({
 }: {
   children: ReactNode;
 }) {
-  const { mapRef, mapId, mapQuery, mapConfig, view, setPinDropMode } =
+  const { mapRef, mapId, mapConfig, view, setPinDropMode } =
     useContext(MapContext);
+
+  const trpc = useTRPC();
+  const { data: map } = useQuery(
+    trpc.map.byId.queryOptions(
+      { mapId: mapId || "" },
+      { enabled: Boolean(mapId) },
+    ),
+  );
   const { publicMap } = useContext(PublicMapContext);
   /* State */
 
@@ -43,7 +51,6 @@ export default function MarkerAndTurfProvider({
       );
   }, [mapConfig, publicMap]);
 
-  const trpc = useTRPC();
   // Using the `combine` option in this useQueries call makes `markerQueries`
   // only update when the data updates. This prevents infinite loops
   // when `markerQueries` is used in useEffect hooks.
@@ -96,13 +103,13 @@ export default function MarkerAndTurfProvider({
   const { deleteTurf, insertTurf, updateTurf } = useTurfs(mapId);
 
   useEffect(() => {
-    if (mapQuery?.data?.folders) {
-      setFolders(mapQuery?.data?.folders);
+    if (map?.folders) {
+      setFolders(map?.folders);
     }
-    if (mapQuery?.data?.placedMarkers) {
-      setPlacedMarkers(mapQuery?.data?.placedMarkers);
+    if (map?.placedMarkers) {
+      setPlacedMarkers(map?.placedMarkers);
     }
-  }, [mapQuery?.data, setFolders, setPlacedMarkers]);
+  }, [map, setFolders, setPlacedMarkers]);
 
   const handleAddArea = () => {
     const map = mapRef?.current;

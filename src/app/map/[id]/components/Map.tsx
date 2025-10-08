@@ -245,9 +245,7 @@ export default function Map({
     }
 
     const map = mapRef?.current;
-    if (!map) {
-      return;
-    }
+    if (!map) return;
 
     const padding = {
       left: showControls ? CONTROL_PANEL_WIDTH : 0,
@@ -297,6 +295,8 @@ export default function Map({
       };
 
       const [minLng, minLat, maxLng, maxLat] = turf?.bbox(featureCollection);
+
+      console.log("hello");
 
       map.fitBounds(
         [

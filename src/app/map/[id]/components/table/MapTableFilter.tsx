@@ -58,11 +58,19 @@ export default function MapTableFilter({
 }
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
-  const { mapConfig, mapQuery } = useContext(MapContext);
+  const { mapConfig, mapId } = useContext(MapContext);
   const { placedMarkers } = useContext(MarkerAndTurfContext);
   const { getDataSourceById } = useContext(DataSourcesContext);
   const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
-  const turfs = mapQuery?.data?.turfs;
+
+  const trpc = useTRPC();
+  const { data: map } = useQuery(
+    trpc.map.byId.queryOptions(
+      { mapId: mapId || "" },
+      { enabled: Boolean(mapId) },
+    ),
+  );
+  const turfs = map?.turfs;
   const tableDataSource = getDataSourceById(tableDataSourceId);
   const columns = useMemo(
     () => tableDataSource?.columnDefs || [],

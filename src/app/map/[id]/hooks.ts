@@ -86,13 +86,43 @@ export const usePlacedMarkers = (mapId: string | null) => {
   );
 
   const trpc = useTRPC();
+  const client = useQueryClient();
   const { mutate: deletePlacedMarkerMutation } = useMutation(
-    trpc.placedMarker.delete.mutationOptions(),
+    trpc.placedMarker.delete.mutationOptions({
+      onSuccess: (_, { placedMarkerId }) => {
+        if (!mapId) return;
+        client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            placedMarkers: old.placedMarkers.filter(
+              (m) => m.id !== placedMarkerId,
+            ),
+          };
+        });
+      },
+    }),
   );
+
   const {
     mutate: upsertPlacedMarkerMutation,
     isPending: upsertPlacedMarkerLoading,
-  } = useMutation(trpc.placedMarker.upsert.mutationOptions());
+  } = useMutation(
+    trpc.placedMarker.upsert.mutationOptions({
+      onSuccess: (res) => {
+        if (!mapId) return;
+        client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            placedMarkers: old.placedMarkers.map((m) =>
+              m.id === res.id ? res : m,
+            ),
+          };
+        });
+      },
+    }),
+  );
 
   /* Complex actions */
   const deletePlacedMarker = (id: string) => {

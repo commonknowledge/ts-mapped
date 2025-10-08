@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useContext } from "react";
 import Loading from "@/app/map/[id]/components/Loading";
@@ -8,6 +9,7 @@ import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { Link } from "@/components/Link";
+import { useTRPC } from "@/services/trpc/react";
 import { PublicMapContext } from "../context/PublicMapContext";
 import EditorNavbar from "./editable/EditorNavbar";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
@@ -16,13 +18,20 @@ import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 
 export default function PublicMap() {
-  const { mapQuery } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
   const { editable } = useContext(PublicMapContext);
   const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
-  if (!mapQuery || mapQuery.isPending) {
+  const trpc = useTRPC();
+  const { data: map, isPending } = useQuery(
+    trpc.map.byId.queryOptions(
+      { mapId: mapId || "" },
+      { enabled: Boolean(mapId) },
+    ),
+  );
+  if (!map || isPending) {
     return <Loading />;
   }
 

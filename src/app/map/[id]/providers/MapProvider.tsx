@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -95,9 +95,14 @@ export default function MapProvider({
     setDirtyViewIds([...dirtyViewIds, view.id]);
   };
 
+  const client = useQueryClient();
+
   const { mutate: saveMapConfigMutate } = useMutation(
     trpc.map.updateConfig.mutationOptions({
       onSuccess: () => {
+        client.invalidateQueries({
+          queryKey: trpc.map.byId.queryKey({ mapId }),
+        });
         setDirtyViewIds([]);
         setConfigDirty(false);
       },
@@ -197,7 +202,6 @@ export default function MapProvider({
         updateViewConfig,
         zoom,
         setZoom,
-        mapQuery,
         pinDropMode,
         setPinDropMode,
         ready,
