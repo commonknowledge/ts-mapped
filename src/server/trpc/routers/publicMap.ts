@@ -9,6 +9,7 @@ import {
 } from "@/server/repositories/PublicMap";
 import { findPublicMapsByOrganisationId } from "@/server/repositories/PublicMap";
 import {
+  mapWriteProcedure,
   organisationProcedure,
   protectedProcedure,
   publicProcedure,
@@ -34,8 +35,7 @@ export const publicMapRouter = router({
       const publicMap = await findPublicMapByHost(input.host);
       return publicMap?.published ? publicMap : null;
     }),
-  // TODO: what procedure should this be?
-  upsert: publicProcedure
+  upsert: mapWriteProcedure
     .input(publicMapSchema.omit({ createdAt: true, mapId: true, id: true }))
     .mutation(async ({ input }) => {
       const publicMap = await findPublicMapByViewId(input.viewId);
