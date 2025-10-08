@@ -51,8 +51,8 @@ export default function ChoroplethProvider({
 
   const areaStatsData = useAreaStats({
     viewConfig,
-    areaSetCode: choroplethLayerConfig.areaSetCode || "",
-    boundingBox: boundingBox || { north: 0, east: 0, south: 0, west: 0 },
+    areaSetCode: choroplethLayerConfig.areaSetCode,
+    boundingBox,
   });
 
   return (
