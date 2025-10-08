@@ -1,9 +1,13 @@
 import { createContext } from "react";
+import type { RouterOutputs } from "@/services/trpc/react";
+
+type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
 export interface InspectorContent {
   type: "member" | "marker" | "turf";
   name: string | unknown;
   properties: Record<string, unknown> | null;
+  dataSource: DataSource | null;
 }
 
 export interface SelectedRecord {
