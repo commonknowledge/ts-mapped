@@ -104,8 +104,8 @@ export const mapRouter = router({
         .omit({ createdAt: true, id: true, organisationId: true })
         .partial(),
     )
-    .mutation(async ({ ctx: { map }, input }) => {
-      const mapUpdate = await updateMap(map.id, input);
+    .mutation(async ({ ctx: { map }, input: { mapId, ...data } }) => {
+      const mapUpdate = await updateMap(mapId, data);
 
       // Clean up old image
       if (
