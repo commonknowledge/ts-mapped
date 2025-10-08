@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
-import { DataRecordContext } from "@/app/map/[id]/context/DataRecordContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import {
@@ -59,8 +59,10 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
-  const { setSelectedDataRecord } = useContext(DataRecordContext);
+  const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
+
+  console.log("sel", selectedRecord);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
   const [hoverMarker, setHoverMarker] = useState<{
@@ -339,11 +341,12 @@ export default function Map({
           });
           if (features.length && features[0].geometry.type === "Point") {
             const properties = features[0].properties;
+
             const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
             const dataSourceId = properties
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
-            setSelectedDataRecord({
+            setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
             });
@@ -352,7 +355,7 @@ export default function Map({
               zoom: 12,
             });
           } else {
-            setSelectedDataRecord(null);
+            setSelectedRecord(null);
           }
         }}
         onLoad={() => {
@@ -537,6 +540,11 @@ export default function Map({
                     `ID: ${hoverMarker.properties[MARKER_EXTERNAL_ID_KEY]}`}
                 </p>
               </Popup>
+            )}
+            {Boolean(selectedRecord) && (
+              <div className="fixed top-40 right-6 p-4 rounded shadow-lg  bg-white">
+                Selected {selectedRecord?.dataSourceId} {selectedRecord?.id}
+              </div>
             )}
           </>
         )}
