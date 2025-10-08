@@ -1,8 +1,5 @@
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
-import { headers } from "next/headers";
 import { getServerSession } from "@/auth";
-import PublicMapPage from "@/components/PublicMapPage";
-import { DEV_NEXT_PUBLIC_BASE_URL } from "@/constants";
 import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
@@ -40,36 +37,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const host = headersList.get("x-forwarded-host") || headersList.get("host");
-
-  const mainHost = new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || DEV_NEXT_PUBLIC_BASE_URL,
-  );
-
-  if (host && host !== mainHost.host) {
-    return (
-      <html
-        lang="en"
-        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
-      >
-        <body className={ibmPlexSans.className}>
-          <PostHogProvider>
-            <TRPCReactProvider>
-              <ApolloProvider ignoreAuthErrors>
-                <NProgressProvider>
-                  <main className="min-h-screen relative z-10">
-                    <PublicMapPage host={host} />
-                  </main>
-                </NProgressProvider>
-              </ApolloProvider>
-            </TRPCReactProvider>
-          </PostHogProvider>
-        </body>
-      </html>
-    );
-  }
-
   const serverSession = await getServerSession();
   const organisations = serverSession.currentUser
     ? await getOrganisations()
@@ -81,8 +48,8 @@ export default async function RootLayout({
       className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} `}
     >
       <body className={ibmPlexSans.className + " antialiased"}>
-        <PostHogProvider>
-          <ServerSessionProvider serverSession={serverSession}>
+        <ServerSessionProvider serverSession={serverSession}>
+          <PostHogProvider>
             <OrganisationsProvider organisations={organisations}>
               <TRPCReactProvider>
                 <ApolloProvider>
@@ -95,8 +62,8 @@ export default async function RootLayout({
                 </ApolloProvider>
               </TRPCReactProvider>
             </OrganisationsProvider>
-          </ServerSessionProvider>
-        </PostHogProvider>
+          </PostHogProvider>
+        </ServerSessionProvider>
       </body>
     </html>
   );

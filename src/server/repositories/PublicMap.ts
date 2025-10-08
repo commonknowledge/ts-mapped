@@ -28,6 +28,22 @@ export function findPublicMapByViewId(viewId: string) {
     .executeTakeFirst();
 }
 
+export function findPublicMapByViewIdAndUserId(viewId: string, userId: string) {
+  return db
+    .selectFrom("publicMap")
+    .where("viewId", "=", viewId)
+    .innerJoin("map", "map.id", "publicMap.mapId")
+    .innerJoin("organisation", "organisation.id", "map.organisationId")
+    .innerJoin(
+      "organisationUser",
+      "organisationUser.organisationId",
+      "organisation.id",
+    )
+    .where("organisationUser.userId", "=", userId)
+    .selectAll("publicMap")
+    .executeTakeFirst();
+}
+
 export async function findPublishedPublicMapByDataSourceId(
   dataSourceId: string,
 ) {
@@ -74,4 +90,13 @@ export function upsertPublicMap(publicMap: NewPublicMap) {
     .onConflict((oc) => oc.columns(["viewId"]).doUpdateSet(publicMap))
     .returningAll()
     .executeTakeFirstOrThrow();
+}
+
+export function findPublicMapsByOrganisationId(organisationId: string) {
+  return db
+    .selectFrom("publicMap")
+    .innerJoin("map", "map.id", "publicMap.mapId")
+    .where("map.organisationId", "=", organisationId)
+    .selectAll("publicMap")
+    .execute();
 }

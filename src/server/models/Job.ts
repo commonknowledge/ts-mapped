@@ -1,5 +1,4 @@
 import z from "zod";
-import type { JSONColumnType } from "kysely";
 
 const jobDataSchema = z.object({
   args: z.record(z.string(), z.unknown()),
@@ -16,15 +15,13 @@ const jobStates = [
 ] as const;
 
 export const jobSchema = z.object({
+  id: z.string(),
   data: jobDataSchema,
   completedOn: z.date().nullable(),
+  createdOn: z.date(),
+  startAfter: z.date(),
   startedOn: z.date().nullable(),
   state: z.enum(jobStates),
 });
 
-export interface JobTable {
-  data: JSONColumnType<{ args: Record<string, unknown>; task: string }>;
-  completedOn: Date | null;
-  startedOn: Date | null;
-  state: "created" | "retry" | "active" | "completed" | "cancelled" | "failed";
-}
+export type JobTable = z.infer<typeof jobSchema>;

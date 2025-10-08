@@ -131,9 +131,10 @@ export function findReadableDataSources(userId: string | null | undefined) {
     .execute();
 }
 
-export async function findCSVDataSourceByUrl(url: string) {
+export async function findCSVDataSourceByUrlAndOrg(url: string, orgId: string) {
   return await db
     .selectFrom("dataSource")
+    .where("organisationId", "=", orgId)
     .where(({ eb, ref }) => {
       return eb(ref("config", "->>").key("type"), "=", DataSourceType.CSV);
     })

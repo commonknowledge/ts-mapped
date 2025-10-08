@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import Container from "@/components/layout/Container";
+import { Link } from "@/components/Link";
 import {
   TypographyH1,
   TypographyH3,
@@ -8,7 +8,7 @@ import {
 } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
-import type { NewsItem } from "../types";
+import type { NewsItem } from "../../types";
 const newsQuery = `*[_type == "news"] | order(publishedAt desc) {
   _id,
   title,

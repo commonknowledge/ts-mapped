@@ -171,6 +171,7 @@ const typeDefs = `
     visualisationType: VisualisationType
     calculationType: CalculationType
     colorScheme: ColorScheme
+    reverseColorScheme: Boolean
   }
 
   input PointInput {
@@ -299,6 +300,7 @@ const typeDefs = `
     name: String!
     notes: String!
     position: Float!
+    hideMarkers: Boolean
   }
 
   type JobInfo {
@@ -366,6 +368,7 @@ const typeDefs = `
     visualisationType: VisualisationType
     calculationType: CalculationType
     colorScheme: ColorScheme
+    reverseColorScheme: Boolean
   }
 
   type Organisation {
@@ -558,6 +561,7 @@ const typeDefs = `
       notes: String!
       position: Float!
       mapId: String!
+      hideMarkers: Boolean
     ): UpsertFolderResponse @auth(write: { mapIdArg: "mapId" })
     upsertPlacedMarker(
       id: String!

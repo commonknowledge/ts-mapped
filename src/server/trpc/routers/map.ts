@@ -24,10 +24,15 @@ import {
 import { findPlacedMarkersByMapId } from "@/server/repositories/PlacedMarker";
 import { findTurfsByMapId } from "@/server/repositories/Turf";
 import { deleteFile } from "@/server/services/minio";
-import { mapProcedure, organisationProcedure, router } from "../index";
+import {
+  mapReadProcedure,
+  mapWriteProcedure,
+  organisationProcedure,
+  router,
+} from "../index";
 
 export const mapRouter = router({
-  list: organisationProcedure.query(({ ctx }) => {
+  list: organisationProcedure.query(async ({ ctx }) => {
     return findMapsByOrganisationId(ctx.organisation.id);
   }),
   create: organisationProcedure.mutation(({ ctx }) => {
@@ -71,6 +76,7 @@ export const mapRouter = router({
             colorScheme: null,
             excludeColumnsString: "",
             mapStyleName: MapStyleName.Light,
+            reverseColorScheme: false,
             showBoundaryOutline: true,
             showLabels: true,
             showLocations: true,
@@ -82,7 +88,7 @@ export const mapRouter = router({
       }
       return map;
     }),
-  byId: mapProcedure.query(async ({ ctx: { map } }) => {
+  byId: mapReadProcedure.query(async ({ ctx: { map } }) => {
     const [folders, placedMarkers, turfs, views] = await Promise.all([
       findFoldersByMapId(map.id),
       findPlacedMarkersByMapId(map.id),
@@ -92,7 +98,7 @@ export const mapRouter = router({
     return { ...map, folders, placedMarkers, turfs, views };
   }),
 
-  update: mapProcedure
+  update: mapWriteProcedure
     .input(
       mapSchema
         .omit({ createdAt: true, id: true, organisationId: true })
@@ -112,7 +118,7 @@ export const mapRouter = router({
       return mapUpdate;
     }),
 
-  updateConfig: mapProcedure
+  updateConfig: mapWriteProcedure
     .input(
       z.object({
         config: mapConfigSchema.partial(),
@@ -139,7 +145,7 @@ export const mapRouter = router({
       }
     }),
 
-  delete: mapProcedure.mutation(async ({ ctx: { map } }) => {
+  delete: mapWriteProcedure.mutation(async ({ ctx: { map } }) => {
     return deleteMap(map.id);
   }),
 });

@@ -8,7 +8,7 @@ import Prose from "@/components/Prose";
 import { client } from "@/sanity/lib/client";
 import { MarketingNavbar } from "./components/MarketingNavbar";
 
-export default async function MarketingLayout({
+export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
@@ -19,7 +19,9 @@ export default async function MarketingLayout({
   return (
     <>
       <MarketingNavbar solutions={solutions} />
+
       {children}
+
       <MarketingFooter />
     </>
   );

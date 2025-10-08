@@ -2,11 +2,14 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
-import { serverDataSourceSerializer } from "@/utils/superjson";
+import {
+  hasPasswordHashSerializer,
+  serverDataSourceSerializer,
+} from "@/utils/superjson";
 import { findDataSourceById } from "../repositories/DataSource";
 import { findMapById } from "../repositories/Map";
-import { findMapViewById } from "../repositories/MapView";
 import { findOrganisationForUser } from "../repositories/Organisation";
+import { findPublishedPublicMapByMapId } from "../repositories/PublicMap";
 import { findUserById } from "../repositories/User";
 
 export async function createContext() {
@@ -20,8 +23,9 @@ export async function createContext() {
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
 
-// Prevent sensitive DataSource config being sent to the client
+// Prevent sensitive fields being sent to the client
 superjson.registerCustom(serverDataSourceSerializer, "DataSource");
+superjson.registerCustom(hasPasswordHashSerializer, "HasPasswordHash");
 
 /**
  * Initialization of tRPC backend
@@ -83,7 +87,35 @@ export const organisationProcedure = protectedProcedure
     return next({ ctx: { organisation } });
   });
 
-export const dataSourceProcedure = protectedProcedure
+export const dataSourceReadProcedure = protectedProcedure
+  .input(z.object({ dataSourceId: z.string() }))
+  .use(async ({ ctx, input, next }) => {
+    const dataSource = await findDataSourceById(input.dataSourceId);
+
+    if (!dataSource)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Data source not found",
+      });
+
+    if (dataSource.public) {
+      return next({ ctx: { dataSource } });
+    }
+
+    const organisation = await findOrganisationForUser(
+      dataSource.organisationId,
+      ctx.user.id,
+    );
+    if (!organisation)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Organisation not found",
+      });
+
+    return next({ ctx: { organisation, dataSource } });
+  });
+
+export const dataSourceOwnerProcedure = protectedProcedure
   .input(z.object({ dataSourceId: z.string() }))
   .use(async ({ ctx, input, next }) => {
     const dataSource = await findDataSourceById(input.dataSourceId);
@@ -107,7 +139,7 @@ export const dataSourceProcedure = protectedProcedure
     return next({ ctx: { organisation, dataSource } });
   });
 
-export const mapProcedure = protectedProcedure
+export const mapWriteProcedure = protectedProcedure
   .input(z.object({ mapId: z.string() }))
   .use(async ({ ctx, input, next }) => {
     const map = await findMapById(input.mapId);
@@ -122,6 +154,7 @@ export const mapProcedure = protectedProcedure
       map.organisationId,
       ctx.user.id,
     );
+
     if (!organisation)
       throw new TRPCError({
         code: "NOT_FOUND",
@@ -131,22 +164,29 @@ export const mapProcedure = protectedProcedure
     return next({ ctx: { organisation, map } });
   });
 
-export const publicMapViewProcedure = protectedProcedure
-  .input(z.object({ viewId: z.string() }))
+export const mapReadProcedure = publicProcedure
+  .input(z.object({ mapId: z.string() }))
   .use(async ({ ctx, input, next }) => {
-    const view = await findMapViewById(input.viewId);
-    if (!view)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "View not found",
-      });
+    const map = await findMapById(input.mapId);
 
-    const map = await findMapById(view.mapId);
-    if (!map)
+    if (!map) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Map not found",
       });
+    }
+
+    const publicMap = await findPublishedPublicMapByMapId(map.id);
+    if (publicMap) {
+      return next({ ctx: { map } });
+    }
+
+    if (!ctx.user?.id) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Map not found",
+      });
+    }
 
     const organisation = await findOrganisationForUser(
       map.organisationId,
@@ -155,11 +195,10 @@ export const publicMapViewProcedure = protectedProcedure
 
     if (!organisation) {
       throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message:
-          "You must be a member of the organisation to perform this action.",
+        code: "NOT_FOUND",
+        message: "Organisation not found",
       });
     }
 
-    return next({ ctx: { view, map, organisation } });
+    return next({ ctx: { organisation, map } });
   });
