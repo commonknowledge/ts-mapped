@@ -8,7 +8,7 @@ import {
   clientDataSourceSerializer,
   hasPasswordHashSerializer,
 } from "@/utils/superjson";
-import { createQueryClient } from "./query-client";
+import { createQueryClient } from "./queryClient";
 import type { AppRouter } from "@/server/trpc/router";
 import type { QueryClient } from "@tanstack/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
