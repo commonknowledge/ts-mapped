@@ -49,7 +49,7 @@ export default function ChoroplethProvider({
     zoom,
   ]);
 
-  const areaStatsData = useAreaStats({
+  const areaStatsQuery = useAreaStats({
     viewConfig,
     areaSetCode: choroplethLayerConfig.areaSetCode,
     boundingBox,
@@ -64,10 +64,7 @@ export default function ChoroplethProvider({
         lastLoadedSourceId,
         setLastLoadedSourceId,
 
-        areaStatsQuery: {
-          data: areaStatsData.data,
-          isFetching: areaStatsData.isFetching,
-        },
+        areaStatsQuery,
         choroplethLayerConfig,
       }}
     >
