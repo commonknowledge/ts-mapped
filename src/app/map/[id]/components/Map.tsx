@@ -25,7 +25,7 @@ import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
-import InspectorPanel from "./inspector/InspectorPanel";
+
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -542,7 +542,6 @@ export default function Map({
                 </p>
               </Popup>
             )}
-            <InspectorPanel />
           </>
         )}
       </MapGL>
