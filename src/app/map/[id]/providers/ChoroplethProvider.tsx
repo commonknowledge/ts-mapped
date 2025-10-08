@@ -1,18 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useContext, useEffect, useMemo, useState } from "react";
-import { VisualisationType } from "@/__generated__/types";
+import { useContext, useMemo, useState } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { GeocodingType } from "@/server/models/DataSource";
-import { CalculationType } from "@/server/models/MapView";
-import { useTRPC } from "@/services/trpc/react";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { VisualisationType } from "@/server/models/MapView";
+import { useAreaStats } from "../data";
 import { getChoroplethLayerConfig } from "../sources";
-import type { AreaStat } from "@/server/models/Area";
-import type { RouterOutputs } from "@/services/trpc/react";
 import type { ReactNode } from "react";
 
 export default function ChoroplethProvider({
@@ -53,50 +49,11 @@ export default function ChoroplethProvider({
     zoom,
   ]);
 
-  const trpc = useTRPC();
-  const areaStatsQuery = useQuery(
-    trpc.area.stats.queryOptions(
-      {
-        areaSetCode: choroplethLayerConfig.areaSetCode || "",
-        dataSourceId: viewConfig.areaDataSourceId,
-        column: viewConfig.areaDataColumn,
-        excludeColumns: viewConfig.excludeColumnsString
-          .split(",")
-          .filter(Boolean)
-          .map((v) => v.trim()),
-        calculationType: viewConfig.calculationType || CalculationType.Count,
-        boundingBox: boundingBox || { north: 0, east: 0, south: 0, west: 0 },
-      },
-      {
-        enabled: Boolean(
-          choroplethLayerConfig.areaSetCode &&
-            viewConfig.areaDataSourceId &&
-            viewConfig.areaDataColumn,
-        ),
-      },
-    ),
-  );
-
-  const [areaStatsData, setAreaStatsData] = useState<
-    RouterOutputs["area"]["stats"] | undefined
-  >(undefined);
-
-  useEffect(() => {
-    if (!areaStatsQuery.data) return;
-    setAreaStatsData((s) => {
-      const newStats = [
-        ...(s?.stats || []),
-        ...(areaStatsQuery.data?.stats || []),
-      ];
-      const deduped: Record<string, AreaStat> = {};
-      for (const d of newStats) {
-        deduped[d.areaCode] = d;
-      }
-      const stats = Object.values(deduped);
-
-      return { ...s, ...areaStatsQuery.data, stats };
-    });
-  }, [areaStatsQuery.data]);
+  const areaStatsData = useAreaStats({
+    viewConfig,
+    areaSetCode: choroplethLayerConfig.areaSetCode || "",
+    boundingBox: boundingBox || { north: 0, east: 0, south: 0, west: 0 },
+  });
 
   return (
     <ChoroplethContext
@@ -108,8 +65,8 @@ export default function ChoroplethProvider({
         setLastLoadedSourceId,
 
         areaStatsQuery: {
-          data: areaStatsData,
-          isFetching: areaStatsQuery.isFetching,
+          data: areaStatsData.data,
+          isFetching: areaStatsData.isFetching,
         },
         choroplethLayerConfig,
       }}
