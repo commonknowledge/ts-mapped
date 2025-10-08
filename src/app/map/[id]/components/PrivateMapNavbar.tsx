@@ -51,7 +51,7 @@ export default function PrivateMapNavbar() {
 
   const { mutate: updateMap, isPending } = useMutation(
     trpc.map.update.mutationOptions({
-      onMutate: () => {
+      onSuccess: () => {
         setIsEditingName(false);
       },
       onError: (error) => {
