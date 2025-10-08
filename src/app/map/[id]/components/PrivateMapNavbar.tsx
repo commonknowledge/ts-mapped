@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
@@ -49,10 +49,9 @@ export default function PrivateMapNavbar() {
 
   const trpc = useTRPC();
 
-  const { mutate, isPending } = useMutation(
+  const { mutate: updateMap, isPending } = useMutation(
     trpc.map.update.mutationOptions({
-      onSuccess: (data) => {
-        setMapName(data.name);
+      onMutate: () => {
         setIsEditingName(false);
       },
       onError: (error) => {
@@ -73,28 +72,13 @@ export default function PrivateMapNavbar() {
     }),
   );
 
-  const onClickSave = async () => {
-    // Should never happen, button is also hidden in this case
-    if (!mapId) return;
-    setLoading(true);
-    try {
-      saveMapConfig();
-      await regenerateMapImage();
-      toast.success("Map view saved!");
-    } catch (e) {
-      console.error("UpdateMapConfig failed", e);
-      toast.error("Could not save this map view, please try again.");
-    }
-    setLoading(false);
-  };
-
   const onClickPublish = async () => {
     // Should never happen, button is also hidden in this case
     if (!mapId || !view) return;
     // Need to save the map + view before trying to publish it
     setLoading(true);
     try {
-      await saveMapConfig();
+      saveMapConfig();
       router.push(`/map/${mapId}/view/${view.id}/publish`);
     } catch (e) {
       console.error("UpdateMapConfig failed", e);
@@ -109,17 +93,18 @@ export default function PrivateMapNavbar() {
     saveToCrm({ mapId });
   };
 
-  const regenerateMapImage = async () => {
+  const regenerateMapImage = useCallback(async () => {
     if (!mapId) return;
+    if (!mapRef?.current) return;
 
-    const imageDataUrl = await new Promise<string | undefined>(function (
-      resolve,
-    ) {
-      mapRef?.current?.once("render", function () {
+    const map = mapRef.current;
+
+    const imageDataUrl = await new Promise<string | undefined>((resolve) => {
+      map.once("render", () => {
         resolve(mapRef.current?.getCanvas().toDataURL());
       });
-      /* trigger render */
-      mapRef?.current?.triggerRepaint();
+      // trigger render once
+      map.triggerRepaint();
     });
 
     if (!imageDataUrl) return;
@@ -129,13 +114,47 @@ export default function PrivateMapNavbar() {
     const imageFile = new File([imageBlob], `map_${mapId}.png`, {
       type: "image/png",
     });
+
     const imageUrl = await uploadFile(imageFile);
-    mutate({ mapId, imageUrl });
-  };
+    updateMap({ mapId, imageUrl });
+  }, [mapId, mapRef, updateMap]);
+
+  useEffect(() => {
+    if (!mapId) return;
+
+    const checkMapReady = () => {
+      const map = mapRef?.current;
+
+      if (!map) {
+        return false;
+      } else {
+        return true;
+      }
+    };
+
+    let interval: NodeJS.Timeout | number | undefined;
+
+    // if mapRef.current == null, come back in 5s and try again - until mapRef.current != null
+    // mapRef as dependency doesn't trigger useEffect when current changes
+    // 5s - cause it should be enough time for everything on the map to load (= avoiding incomplete thumbnails)
+    const timeout = setTimeout(() => {
+      interval = setInterval(() => {
+        if (checkMapReady()) {
+          regenerateMapImage();
+          clearInterval(interval);
+        }
+      }, 5000);
+    }, 10000);
+
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [mapId, mapRef, regenerateMapImage]);
 
   const onSubmitSaveName = async () => {
     if (!mapId || !mapName) return;
-    mutate({ mapId, name: mapName });
+    updateMap({ mapId, name: mapName });
   };
 
   return (
@@ -189,14 +208,6 @@ export default function PrivateMapNavbar() {
         <div className="flex items-center gap-4">
           {mapId && (
             <div className="flex items-center gap-4">
-              <Button
-                type="button"
-                onClick={() => onClickSave()}
-                disabled={loading}
-              >
-                Save view
-              </Button>
-
               {syncLabel && (
                 <Button
                   type="button"

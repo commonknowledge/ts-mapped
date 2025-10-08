@@ -5,9 +5,20 @@ import Container from "@/components/layout/Container";
 import { TypographyH1, TypographyP } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
+import type { Metadata } from "next";
 
 const newsQuery = `*[_type == "news" && slug.current == $slug][0]`;
 const options = { next: { revalidate: 30 } };
+
+// TODO: remove or update when you bring back news pages
+export const metadata: Metadata = {
+  title: "",
+  description: "",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function NewsPage({
   params,

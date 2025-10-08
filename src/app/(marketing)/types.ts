@@ -3,7 +3,7 @@ export interface Feature {
   title: string;
   subtitle?: string;
   slug: { current: string };
-  description?: string;
+  explainer?: RichTextBlock[];
   icon?: string;
   order?: number;
   isActive?: boolean;
@@ -54,6 +54,11 @@ export interface FeatureHowToUseSteps {
   description: RichTextBlock[];
   images: ImageAsset[];
   order: number;
+}
+
+export interface FeatureHowToUseSection {
+  title?: string;
+  steps: FeatureHowToUseSteps[];
 }
 
 export interface NewsItem {
