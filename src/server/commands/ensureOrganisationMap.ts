@@ -153,7 +153,7 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
       autoEnrich: false,
       autoImport: false,
       config: { type: DataSourceType.CSV, url },
-      columnRoles: { nameColumns: [] },
+      columnRoles: { nameColumns: ["Constituency name"] },
       enrichments: [],
       geocodingConfig: {
         type: GeocodingType.Code,
