@@ -7,6 +7,7 @@ import {
   useDataSources,
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { mapColors } from "../../../styles";
@@ -18,8 +19,8 @@ import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
   const router = useRouter();
-  const { updateMapConfig, viewConfig, updateViewConfig } =
-    useContext(MapContext);
+  const { mapId, viewConfig, updateViewConfig } = useContext(MapContext);
+  const { updateMapConfig } = useMapConfig(mapId);
   const dataSource = useMembersDataSource();
   const { dataSources: allDataSources } = useDataSources();
   const { selectedDataSourceId, handleDataSourceSelect } =

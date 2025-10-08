@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useContext, useMemo } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useTRPC } from "@/services/trpc/react";
 
 export function useDataSources() {
@@ -41,8 +42,9 @@ export function useChoroplethDataSource() {
 }
 
 export function useMarkerDataSources() {
-  const { mapConfig } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
   const { dataSources } = useDataSources();
+  const { mapConfig } = useMapConfig(mapId);
 
   return useMemo(() => {
     return dataSources.filter((ds) =>
@@ -52,8 +54,9 @@ export function useMarkerDataSources() {
 }
 
 export function useMembersDataSource() {
-  const { mapConfig } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
   const { getDataSourceById } = useDataSources();
+  const { mapConfig } = useMapConfig(mapId);
 
   return useMemo(() => {
     return getDataSourceById(mapConfig.membersDataSourceId);

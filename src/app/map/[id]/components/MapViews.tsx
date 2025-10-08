@@ -226,7 +226,6 @@ function SortableViewItem({
     views,
     deleteView,
     updateView,
-    saveMapConfig,
   } = useContext(MapContext);
   const [editName, setEditName] = useState(view.name);
   const isSelected = selectedView?.id === view.id;
@@ -262,7 +261,7 @@ function SortableViewItem({
   };
 
   const handleViewSelect = () => {
-    saveMapConfig(); // save current config in the background when changing view (to not lose the changes)
+    // Auto-save handles persisting any changes automatically
     setSelectedViewId(view.id);
   };
 

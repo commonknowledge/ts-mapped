@@ -1,6 +1,7 @@
 import { Lock, Map } from "lucide-react";
 import { useContext } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import {
   Breadcrumb,
@@ -13,7 +14,8 @@ import {
 import { PublicMapContext } from "../../context/PublicMapContext";
 
 export default function EditorNavbar() {
-  const { mapId, mapName } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
+  const { data: map } = useMapQuery(mapId);
   const { publicMap } = useContext(PublicMapContext);
 
   return (
@@ -26,7 +28,9 @@ export default function EditorNavbar() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <Lock size={16} />
-            <BreadcrumbLink href={`/map/${mapId}`}>{mapName}</BreadcrumbLink>
+            <BreadcrumbLink href={`/map/${mapId}`}>
+              {map ? map.name : ""}
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

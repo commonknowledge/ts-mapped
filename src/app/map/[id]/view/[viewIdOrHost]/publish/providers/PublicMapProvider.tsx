@@ -4,6 +4,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
@@ -187,7 +188,8 @@ const usePublicMapAndActiveTab = (
   initialPublicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
   editable: boolean,
 ) => {
-  const { mapConfig } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
+  const { mapConfig } = useMapConfig(mapId);
   const { getDataSourceById } = useDataSources();
 
   const [publicMap, setPublicMap] = useState(initialPublicMap);
