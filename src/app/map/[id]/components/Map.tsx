@@ -1,5 +1,7 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+import { point as turfPoint } from "@turf/helpers";
 import * as turf from "@turf/turf";
 import dynamic from "next/dynamic";
 import {
@@ -31,7 +33,13 @@ import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import type { FeatureCollection, Point } from "geojson";
+import type {
+  Feature,
+  FeatureCollection,
+  MultiPolygon,
+  Point,
+  Polygon,
+} from "geojson";
 
 export default function Map({
   onSourceLoad,
@@ -60,7 +68,8 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { resetInspector, setSelectedRecord, setSelectedTurf } =
+    useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -338,6 +347,7 @@ export default function Map({
           const features = map.queryRenderedFeatures(e.point, {
             layers: validMarkerLayers,
           });
+
           if (features.length && features[0].geometry.type === "Point") {
             const properties = features[0].properties;
 
@@ -355,8 +365,52 @@ export default function Map({
               center: features[0].geometry.coordinates as [number, number],
               zoom: 12,
             });
+
+            return;
           } else {
             setSelectedRecord(null);
+          }
+
+          /* inside your click handler */
+          if (draw) {
+            const drawData = draw.getAll();
+            if (drawData.features.length > 0) {
+              const point: Feature<Point> = turfPoint([
+                e.lngLat.lng,
+                e.lngLat.lat,
+              ]);
+
+              const isPolygonFeature = (
+                f: unknown,
+              ): f is Feature<Polygon | MultiPolygon> => {
+                return (
+                  typeof f === "object" &&
+                  f !== null &&
+                  "geometry" in f &&
+                  typeof f.geometry === "object" &&
+                  ((f as Feature).geometry.type === "Polygon" ||
+                    (f as Feature).geometry.type === "MultiPolygon")
+                );
+              };
+
+              const polygonFeature = drawData.features.find(
+                (feature): feature is Feature<Polygon | MultiPolygon> => {
+                  if (!isPolygonFeature(feature)) return false;
+                  return booleanPointInPolygon(point, feature);
+                },
+              );
+
+              if (polygonFeature) {
+                setSelectedTurf({
+                  id: polygonFeature.properties?.id,
+                  name: polygonFeature.properties?.label,
+                });
+
+                return;
+              } else {
+                resetInspector();
+              }
+            }
           }
         }}
         onLoad={() => {

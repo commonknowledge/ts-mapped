@@ -18,8 +18,8 @@ export default function InspectorPanel() {
   const { dataSource, properties, type } = inspectorContent ?? {};
 
   return (
-    <div className="absolute top-0 bottom-0 right-4 z-10 / flex flex-col gap-6 w-60 pt-20 pb-5">
-      <div className="w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
+    <div className="absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 pt-20 pb-5">
+      <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
         <div className="flex justify-between items-start gap-4 p-4">
           <h2 className="grow flex gap-2 / text-sm font-semibold">
             <div
@@ -28,7 +28,9 @@ export default function InspectorPanel() {
                 backgroundColor:
                   type === "member"
                     ? mapColors.member.color
-                    : mapColors.markers.color,
+                    : type === "marker"
+                      ? mapColors.markers.color
+                      : mapColors.areas.color,
               }}
             ></div>
             {inspectorContent?.name as string}

@@ -19,6 +19,7 @@ import {
 import type {
   InspectorContent,
   SelectedRecord,
+  SelectedTurf,
 } from "@/app/map/[id]/context/InspectorContext";
 import type { ReactNode } from "react";
 
@@ -40,6 +41,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
     null,
   );
+  const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
+
   const [inspectorContent, setInspectorContent] =
     useState<InspectorContent | null>(null);
 
@@ -70,6 +73,19 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [getDataSourceById, selectedRecord, mapConfig.membersDataSourceId]);
 
+  useEffect(() => {
+    if (!selectedTurf?.id) {
+      return;
+    }
+
+    setInspectorContent({
+      type: "turf",
+      name: selectedTurf.name,
+      properties: null,
+      dataSource: null,
+    });
+  }, [selectedTurf]);
+
   const resetInspector = () => {
     setSelectedRecord(null);
     setInspectorContent(null);
@@ -82,6 +98,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         setInspectorContent,
         selectedRecord,
         setSelectedRecord,
+        selectedTurf,
+        setSelectedTurf,
         resetInspector,
       }}
     >

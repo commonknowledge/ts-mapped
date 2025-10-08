@@ -16,16 +16,26 @@ export interface SelectedRecord {
   properties?: Record<string, unknown> | null;
 }
 
+export interface SelectedTurf {
+  id: string;
+  name: string;
+}
+
 export const InspectorContext = createContext<{
   inspectorContent: InspectorContent | null;
+  resetInspector: () => void;
   setInspectorContent: (r: InspectorContent) => void;
   selectedRecord: SelectedRecord | null;
   setSelectedRecord: (r: SelectedRecord | null) => void;
-  resetInspector: () => void;
+
+  selectedTurf: SelectedTurf | null;
+  setSelectedTurf: (r: SelectedTurf | null) => void;
 }>({
   inspectorContent: null,
+  resetInspector: () => null,
   setInspectorContent: () => null,
   selectedRecord: null,
   setSelectedRecord: () => null,
-  resetInspector: () => null,
+  selectedTurf: null,
+  setSelectedTurf: () => null,
 });
