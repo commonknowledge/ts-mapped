@@ -204,7 +204,7 @@ export const dataSourceRouter = router({
       return dataSource;
     }),
 
-  updateConfig: dataSourceReadProcedure
+  updateConfig: dataSourceOwnerProcedure
     .input(dataSourceSchema.partial())
     .mutation(async ({ ctx, input }) => {
       const adaptor = getDataSourceAdaptor(ctx.dataSource);
@@ -252,14 +252,14 @@ export const dataSourceRouter = router({
       return true;
     }),
 
-  enqueueEnrichJob: dataSourceReadProcedure.mutation(async ({ input }) => {
+  enqueueEnrichJob: dataSourceOwnerProcedure.mutation(async ({ input }) => {
     await enqueue("enrichDataSource", input.dataSourceId, {
       dataSourceId: input.dataSourceId,
     });
     return true;
   }),
 
-  enqueueImportJob: dataSourceReadProcedure.mutation(async ({ input }) => {
+  enqueueImportJob: dataSourceOwnerProcedure.mutation(async ({ input }) => {
     await enqueue("importDataSource", input.dataSourceId, {
       dataSourceId: input.dataSourceId,
     });
