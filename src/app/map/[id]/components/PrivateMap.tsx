@@ -26,7 +26,7 @@ export default function PrivateMap() {
   const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
 
-  const { dataSourcesLoading } = useDataSources();
+  const { isPending: dataSourcesLoading } = useDataSources();
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
 

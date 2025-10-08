@@ -22,7 +22,8 @@ export default function MembersControl() {
   const { mapId, viewConfig, updateViewConfig } = useContext(MapContext);
   const { updateMapConfig } = useMapConfig(mapId);
   const dataSource = useMembersDataSource();
-  const { dataSources: allDataSources } = useDataSources();
+  const { data: allDataSources, isPending: allDataSourcesLoading } =
+    useDataSources();
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
   const [expanded, setExpanded] = useState(true);
@@ -31,19 +32,20 @@ export default function MembersControl() {
     ? selectedDataSourceId === dataSource.id
     : false;
 
-  const dataSources = allDataSources.filter((dataSource) => {
+  const dataSources = allDataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Members;
   });
 
   const getDropdownItems = () => {
-    const items = dataSources.map((ds) => ({
-      type: "item" as const,
-      label: ds.name,
-      onClick: () => {
-        handleDataSourceSelect(ds.id);
-        updateMapConfig({ membersDataSourceId: ds.id });
-      },
-    }));
+    const items =
+      dataSources?.map((ds) => ({
+        type: "item" as const,
+        label: ds.name,
+        onClick: () => {
+          handleDataSourceSelect(ds.id);
+          updateMapConfig({ membersDataSourceId: ds.id });
+        },
+      })) || [];
     return [
       ...items,
       ...(items.length > 0 ? [{ type: "separator" as const }] : []),
@@ -80,7 +82,7 @@ export default function MembersControl() {
         <ul
           className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
         >
-          {dataSource ? (
+          {allDataSourcesLoading ? null : dataSource ? (
             <CollectionLayer
               dataSource={dataSource}
               isSelected={isSelected}

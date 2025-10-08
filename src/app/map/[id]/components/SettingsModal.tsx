@@ -28,7 +28,8 @@ import { Separator } from "@/shadcn/ui/separator";
 export default function SettingsModal() {
   const { mapId } = useContext(MapContext);
   const { mapConfig, updateMapConfig } = useMapConfig(mapId);
-  const { dataSources } = useDataSources();
+
+  const { data: dataSources } = useDataSources();
 
   return (
     <Dialog>

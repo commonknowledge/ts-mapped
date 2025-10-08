@@ -8,7 +8,7 @@ import { useTRPC } from "@/services/trpc/react";
 
 export function useDataSources() {
   const trpc = useTRPC();
-  const { data: dataSources = [], isPending } = useQuery(
+  const query = useQuery(
     trpc.dataSource.listReadable.queryOptions(undefined, {
       refetchOnMount: "always",
     }),
@@ -17,37 +17,34 @@ export function useDataSources() {
   const getDataSourceById = useCallback(
     (id: string | null | undefined) => {
       if (!id) return null;
-      return dataSources.find((ds) => ds.id === id) || null;
+      return query.data?.find((ds) => ds.id === id) || null;
     },
-    [dataSources],
+    [query.data],
   );
 
   return {
-    dataSources,
-    dataSourcesLoading: isPending,
+    ...query,
     getDataSourceById,
   };
 }
 
 export function useChoroplethDataSource() {
   const { viewConfig } = useContext(MapContext);
-  const { dataSources } = useDataSources();
+  const { data: dataSources } = useDataSources();
 
   return useMemo(() => {
     if (!viewConfig.areaDataSourceId) return null;
-    return (
-      dataSources.find((ds) => ds.id === viewConfig.areaDataSourceId) || null
-    );
+    return dataSources?.find((ds) => ds.id === viewConfig.areaDataSourceId);
   }, [dataSources, viewConfig.areaDataSourceId]);
 }
 
 export function useMarkerDataSources() {
   const { mapId } = useContext(MapContext);
-  const { dataSources } = useDataSources();
   const { mapConfig } = useMapConfig(mapId);
+  const { data: dataSources } = useDataSources();
 
   return useMemo(() => {
-    return dataSources.filter((ds) =>
+    return dataSources?.filter((ds) =>
       mapConfig.markerDataSourceIds.includes(ds.id),
     );
   }, [dataSources, mapConfig.markerDataSourceIds]);

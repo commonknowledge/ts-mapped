@@ -25,7 +25,7 @@ export default function MarkersControl() {
     insertFolder,
     handleDropPin,
   } = useContext(MarkerAndTurfContext);
-  const { dataSources } = useDataSources();
+  const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
@@ -57,9 +57,10 @@ export default function MarkersControl() {
   };
 
   const getDataSourceDropdownItems = () => {
-    const markerDataSources = dataSources.filter((dataSource) => {
-      return dataSource.recordType !== DataSourceRecordType.Members;
-    });
+    const markerDataSources =
+      dataSources?.filter((dataSource) => {
+        return dataSource.recordType !== DataSourceRecordType.Members;
+      }) || [];
 
     return markerDataSources.map((dataSource) => {
       const selected = mapConfig.markerDataSourceIds.includes(dataSource.id);
