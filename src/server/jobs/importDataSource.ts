@@ -8,7 +8,7 @@ import {
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import pubSub from "@/server/services/pubsub";
+import { pubsub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
 import type { ColumnDef } from "@/__generated__/types";
 import type { DataSource } from "@/server/models/DataSource";
@@ -37,12 +37,10 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   }
 
   try {
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        importStarted: {
-          at: new Date().toISOString(),
-        },
+    pubsub.publish("dataSourceEvent", {
+      dataSourceId: dataSource.id,
+      importStarted: {
+        at: new Date().toISOString(),
       },
     });
 
@@ -63,13 +61,11 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       } else {
         logger.info(`Inserted ${count} records`);
       }
-      pubSub.publish("dataSourceEvent", {
-        dataSourceEvent: {
-          dataSourceId: dataSource.id,
-          recordsImported: {
-            at: new Date().toISOString(),
-            count,
-          },
+      pubsub.publish("dataSourceEvent", {
+        dataSourceId: dataSource.id,
+        recordsImported: {
+          at: new Date().toISOString(),
+          count,
         },
       });
     }
@@ -78,24 +74,20 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       columnDefs: columnDefsAccumulator,
     });
 
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        importComplete: {
-          at: new Date().toISOString(),
-        },
+    pubsub.publish("dataSourceEvent", {
+      dataSourceId: dataSource.id,
+      importComplete: {
+        at: new Date().toISOString(),
       },
     });
 
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);
     return true;
   } catch (error) {
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        importFailed: {
-          at: new Date().toISOString(),
-        },
+    pubsub.publish("dataSourceEvent", {
+      dataSourceId: dataSource.id,
+      importFailed: {
+        at: new Date().toISOString(),
       },
     });
 

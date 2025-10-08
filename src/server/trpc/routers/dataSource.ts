@@ -1,5 +1,4 @@
 import { TRPCError } from "@trpc/server";
-import { filter, pipe } from "graphql-yoga";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { getDataSourceAdaptor } from "@/server/adaptors";
@@ -23,7 +22,7 @@ import {
 } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import pubSub from "@/server/services/pubsub";
+import { pubsub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
 import {
   dataSourceOwnerProcedure,
@@ -273,13 +272,16 @@ export const dataSourceRouter = router({
     return true;
   }),
 
-  events: dataSourceOwnerProcedure.subscription(async ({ ctx }) => {
-    return pipe(
-      pubSub.subscribe("dataSourceEvent"),
-      filter(
-        (event) => event.dataSourceEvent.dataSourceId === ctx.dataSource.id,
-      ),
-    );
+  events: dataSourceOwnerProcedure.subscription(async function* ({ ctx }) {
+    const sub = pubsub.subscribe("dataSourceEvent");
+    for await (const event of sub) {
+      if (!event) {
+        return;
+      }
+      if (event.dataSourceId === ctx.dataSource.id) {
+        yield event;
+      }
+    }
   }),
 });
 

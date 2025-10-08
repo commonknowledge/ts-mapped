@@ -15,7 +15,7 @@ import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { quit as quitPubSub } from "@/server/services/pubsub";
+import { pubsub } from "@/server/services/pubsub";
 import { runWorker } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
 import { stopPublicTunnel } from "@/server/services/urls";
@@ -131,7 +131,7 @@ program
 program.hook("postAction", async () => {
   logger.info("Done.");
   await db.destroy();
-  await quitPubSub();
+  await pubsub.quit();
   await getRedisClient().quit();
   await stopPublicTunnel();
 });

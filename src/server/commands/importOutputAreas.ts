@@ -54,7 +54,7 @@ const importOutputAreas = async () => {
         ${code},
         ST_Transform(
           ST_SetSRID(
-            ST_GeomFromGeoJSON(${feature.geometry}),
+            ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}),
             27700  -- Set the original EPSG:27700 (British National Grid)
           ),
           4326  -- Convert to WGS 84

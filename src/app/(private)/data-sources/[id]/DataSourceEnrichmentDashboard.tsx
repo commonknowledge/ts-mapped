@@ -41,7 +41,7 @@ export function DataSourceEnrichmentDashboard({
     trpc.dataSource.events.subscriptionOptions(
       { dataSourceId: dataSource.id },
       {
-        onData: ({ dataSourceEvent }) => {
+        onData: (dataSourceEvent) => {
           if (dataSourceEvent.enrichmentStarted) {
             setEnriching(true);
           }

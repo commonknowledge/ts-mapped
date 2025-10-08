@@ -71,7 +71,7 @@ export function DataSourceDashboard({
     trpc.dataSource.events.subscriptionOptions(
       { dataSourceId: dataSource.id },
       {
-        onData: ({ dataSourceEvent }) => {
+        onData: (dataSourceEvent) => {
           if (dataSourceEvent.importStarted) {
             setImporting(true);
           }
