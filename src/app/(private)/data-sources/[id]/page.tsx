@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { LoaderPinwheel } from "lucide-react";
 import { use } from "react";
 import { DataSourceFeatures } from "@/features";
 import { useTRPC } from "@/services/trpc/react";
@@ -24,8 +25,8 @@ export default function DataSourcePage({
 
   if (isFetching) {
     return (
-      <div className="container">
-        <h1>Loading</h1>
+      <div className="flex justify-center py-8">
+        <LoaderPinwheel className="animate-spin" />
       </div>
     );
   }

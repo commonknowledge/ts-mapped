@@ -1,9 +1,9 @@
 "use client";
 
-import { gql, useSubscription } from "@apollo/client";
 import { useMutation } from "@tanstack/react-query";
+import { useSubscription } from "@trpc/tanstack-react-query";
 import { LoaderPinwheel } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DataListRow from "@/components/DataListRow";
 import { Link } from "@/components/Link";
 import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
@@ -12,11 +12,7 @@ import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
-import type {
-  AreaSetCode,
-  DataSourceEnrichmentEventSubscription,
-  DataSourceEnrichmentEventSubscriptionVariables,
-} from "@/__generated__/types";
+import type { AreaSetCode } from "@/__generated__/types";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,
@@ -41,46 +37,26 @@ export function DataSourceEnrichmentDashboard({
     }),
   );
 
-  const { data: dataSourceEventData } = useSubscription<
-    DataSourceEnrichmentEventSubscription,
-    DataSourceEnrichmentEventSubscriptionVariables
-  >(
-    gql`
-      subscription DataSourceEnrichmentEvent($dataSourceId: String!) {
-        dataSourceEvent(dataSourceId: $dataSourceId) {
-          enrichmentComplete {
-            at
+  useSubscription(
+    trpc.dataSource.events.subscriptionOptions(
+      { dataSourceId: dataSource.id },
+      {
+        onData: ({ dataSourceEvent }) => {
+          if (dataSourceEvent.enrichmentStarted) {
+            setEnriching(true);
           }
-          enrichmentFailed {
-            at
+          if (dataSourceEvent.enrichmentFailed) {
+            setEnriching(false);
+            setEnrichmentError("Failed to enrich this data source.");
           }
-          recordsEnriched {
-            count
+          if (dataSourceEvent.enrichmentComplete) {
+            setEnriching(false);
+            setLastEnriched(dataSourceEvent.enrichmentComplete.at);
           }
-        }
-      }
-    `,
-    { variables: { dataSourceId: dataSource.id } },
+        },
+      },
+    ),
   );
-
-  const dataSourceEvent = dataSourceEventData?.dataSourceEvent;
-
-  useEffect(() => {
-    if (!dataSourceEvent) {
-      return;
-    }
-    if (dataSourceEvent.recordsEnriched?.count) {
-      setEnrichmentCount(dataSourceEvent.recordsEnriched?.count);
-    }
-    if (dataSourceEvent.enrichmentFailed) {
-      setEnriching(false);
-      setEnrichmentError("Failed to enrich this data source.");
-    }
-    if (dataSourceEvent.enrichmentComplete) {
-      setEnriching(false);
-      setLastEnriched(dataSourceEvent.enrichmentComplete.at);
-    }
-  }, [dataSourceEvent]);
 
   const onClickEnrichRecords = async () => {
     setEnriching(true);
