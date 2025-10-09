@@ -3,6 +3,7 @@ import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
@@ -18,7 +19,7 @@ import LayerHeader from "../LayerHeader";
 import type { Turf } from "@/server/models/Turf";
 
 export default function AreasControl() {
-  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { viewConfig, updateViewConfig } = useMapViews();
   const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);

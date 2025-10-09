@@ -9,10 +9,10 @@ import {
   useState,
 } from "react";
 import { FilterOperator, FilterType } from "@/__generated__/types";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -58,7 +58,7 @@ export default function MapTableFilter({
 }
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
-  const { mapConfig } = useContext(MapContext);
+  const { mapConfig } = useMapConfig();
   const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
   const { getDataSourceById } = useDataSources();
   const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
@@ -260,7 +260,7 @@ function OperatorToggle({
 
 // Extracted child filter component
 function ChildFilter({ filter, setFilter }: TableFilterProps) {
-  const { mapConfig } = useContext(MapContext);
+  const { mapConfig } = useMapConfig();
   const color = getFilterColor(filter, mapConfig);
   const hasDistance = filter.placedMarker || filter.dataRecordId;
   const inputRef = useRef<HTMLInputElement>(null);

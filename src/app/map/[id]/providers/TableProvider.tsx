@@ -1,14 +1,14 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useContext, useMemo, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useCallback, useMemo, useState } from "react";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useTRPC } from "@/services/trpc/react";
+import { useMapViews } from "../hooks/useMapViews";
 import type { ReactNode } from "react";
 
 const TableProvider = ({ children }: { children: ReactNode }) => {
-  const { view } = useContext(MapContext);
+  const { view } = useMapViews();
 
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<string>("");
   const [tablePage, setTablePage] = useState(0);

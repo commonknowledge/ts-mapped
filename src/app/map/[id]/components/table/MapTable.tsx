@@ -6,6 +6,7 @@ import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { DataSourceTypeLabels } from "@/labels";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -19,7 +20,8 @@ interface DataRecord {
 }
 
 export default function MapTable() {
-  const { mapRef, view, updateView } = useContext(MapContext);
+  const { mapRef } = useContext(MapContext);
+  const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
 
