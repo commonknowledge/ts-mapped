@@ -61,6 +61,9 @@ export const MapContext = createContext<{
   viewConfig: ViewConfig;
   updateViewConfig: (config: Partial<ViewConfig>) => void;
 
+  configDirty: boolean;
+  setConfigDirty: (dirty: boolean) => void;
+
   zoom: number;
   setZoom: (zoom: number) => void;
 
@@ -86,6 +89,8 @@ export const MapContext = createContext<{
   updateViewConfig: () => null,
   view: null,
   setViewId: () => null,
+  configDirty: false,
+  setConfigDirty: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
   pinDropMode: false,
