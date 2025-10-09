@@ -22,7 +22,11 @@ export async function createMap(organisationId: string, name = "Untitled Map") {
 }
 
 export async function deleteMap(id: string) {
-  return db.deleteFrom("map").where("id", "=", id).executeTakeFirstOrThrow();
+  return db
+    .deleteFrom("map")
+    .where("id", "=", id)
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }
 
 export function findMapById(id: string) {

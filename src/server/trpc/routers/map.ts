@@ -119,11 +119,7 @@ export const mapRouter = router({
     }),
 
   updateConfig: mapWriteProcedure
-    .input(
-      z.object({
-        config: mapConfigSchema.partial(),
-      }),
-    )
+    .input(z.object({ config: mapConfigSchema.partial() }))
     .mutation(async ({ input }) => {
       const { mapId, config: mapConfig } = input;
 
@@ -132,7 +128,7 @@ export const mapRouter = router({
         membersDataSourceId: mapConfig.membersDataSourceId,
       } as z.infer<typeof mapConfigSchema>;
 
-      await updateMap(mapId, { config });
+      return updateMap(mapId, { config });
     }),
 
   updateViews: mapWriteProcedure
@@ -145,12 +141,7 @@ export const mapRouter = router({
       const { mapId, views } = input;
 
       for (const view of views) {
-        await upsertMapView({
-          ...view,
-          config: view.config,
-          dataSourceViews: view.dataSourceViews,
-          mapId,
-        });
+        await upsertMapView({ ...view, mapId });
       }
       return true;
     }),

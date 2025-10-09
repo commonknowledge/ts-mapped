@@ -79,8 +79,3 @@ export function useMapConfig(mapId: string | null | undefined) {
     saveMapConfig,
   };
 }
-
-export function useMapName(mapId: string | null | undefined) {
-  const { data: mapData } = useMapQuery(mapId);
-  return mapData?.name || "Untitled";
-}
