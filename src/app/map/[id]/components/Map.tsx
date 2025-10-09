@@ -408,6 +408,7 @@ export default function Map({
               setSelectedTurf({
                 id: polygonFeature.properties?.id,
                 name: polygonFeature.properties?.label,
+                geometry: polygonFeature.geometry as Polygon,
               });
 
               return;

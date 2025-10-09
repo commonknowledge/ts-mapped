@@ -1,12 +1,16 @@
 import { useQueries } from "@tanstack/react-query";
+import * as turf from "@turf/turf";
 import { useContext, useMemo } from "react";
 import { FilterType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
+import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
 import type { DataSource } from "@/server/models/DataSource";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 interface RecordData {
   id: string;
@@ -18,9 +22,26 @@ interface RecordsResponse {
   records: RecordData[];
 }
 
+function getMarkersInsideTurf(
+  markers: PlacedMarker[],
+  selectedTurf: SelectedTurf | null,
+) {
+  if (!selectedTurf) {
+    return [];
+  }
+
+  const turfPolygon = turf.polygon(selectedTurf.geometry.coordinates);
+
+  return markers.filter((marker) => {
+    const point = turf.point([marker.point.lng, marker.point.lat]);
+    return turf.booleanPointInPolygon(point, turfPolygon);
+  });
+}
+
 export default function TurfMarkersList() {
   const { getDataSourceById } = useContext(DataSourcesContext);
   const { mapConfig } = useContext(MapContext);
+  const { placedMarkers } = useContext(MarkerAndTurfContext);
   const { selectedTurf } = useContext(InspectorContext);
 
   const trpc = useTRPC();
@@ -33,9 +54,10 @@ export default function TurfMarkersList() {
         {
           dataSourceId,
           filter: { type: FilterType.GEO, turf: selectedTurf?.id },
+          page: 0,
         },
-        { refetchOnMount: "always" }
-      )
+        { refetchOnMount: "always" },
+      ),
     ),
     combine: (results) => ({
       data: results.map((result, i) => ({
@@ -52,18 +74,25 @@ export default function TurfMarkersList() {
   const members = useMemo(
     () =>
       data.find(
-        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members
+        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
       ),
-    [data]
+    [data],
   );
 
   const markers = useMemo(
     () =>
       data.filter(
-        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members
+        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
       ),
-    [data]
+    [data],
   );
+
+  const activePlacedMarkers = useMemo(
+    () => getMarkersInsideTurf(placedMarkers, selectedTurf),
+    [placedMarkers, selectedTurf],
+  );
+
+  console.log("MARKERS", activePlacedMarkers);
 
   if (isFetching) {
     return <p>Loading...</p>;
@@ -103,9 +132,19 @@ const MembersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
+  const { setSelectedRecord } = useContext(InspectorContext);
+
   const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const memberRecords = records.records ?? [];
   const total = records.count.matched ?? 0;
+
+  const onRecordClick = (record: RecordData) => {
+    setSelectedRecord({
+      id: record.id,
+      dataSourceId: dataSource?.id as string,
+      properties: {}, // TODO: get marker properties
+    });
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -122,7 +161,16 @@ const MembersList = ({
               const displayName = nameColumn
                 ? String(record.json[nameColumn] ?? "")
                 : `Id: ${record.id}`;
-              return <li key={record.id}>{displayName}</li>;
+              return (
+                <li key={record.id}>
+                  <button
+                    className="cursor-pointer"
+                    onClick={() => onRecordClick(record)}
+                  >
+                    {displayName}
+                  </button>
+                </li>
+              );
             })}
           </ul>
         </>

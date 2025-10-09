@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import type { RouterOutputs } from "@/services/trpc/react";
+import type { Polygon } from "geojson";
 
 type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
@@ -19,6 +20,7 @@ export interface SelectedRecord {
 export interface SelectedTurf {
   id: string;
   name: string;
+  geometry: Polygon;
 }
 
 export const InspectorContext = createContext<{
