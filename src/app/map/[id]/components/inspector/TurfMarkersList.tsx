@@ -6,6 +6,7 @@ import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
+import type { DataSource } from "@/server/models/DataSource";
 
 interface RecordData {
   id: string;
@@ -56,13 +57,55 @@ export default function TurfMarkersList() {
     [data],
   );
 
-  const nameColumn = members?.dataSource?.columnRoles?.nameColumns?.[0];
-  const memberRecords = members?.records.records ?? [];
-  const total = members?.records.count.matched ?? 0;
+  const markers = useMemo(
+    () =>
+      data.filter(
+        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
+      ),
+    [data],
+  );
 
   if (isFetching) {
     return <p>Loading...</p>;
   }
+
+  return (
+    <div className="flex flex-col gap-6">
+      {members && (
+        <MembersList
+          dataSource={members.dataSource}
+          records={members.records}
+        />
+      )}
+
+      {markers?.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-xs font-mono uppercase text-muted-foreground">
+            Markers in this area
+          </h3>
+          {markers.map((markersGroup, index) => (
+            <MarkersList
+              key={index}
+              dataSource={markersGroup.dataSource}
+              records={markersGroup.records}
+            ></MarkersList>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const MembersList = ({
+  records,
+  dataSource,
+}: {
+  records: RecordsResponse;
+  dataSource: DataSource | null;
+}) => {
+  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
+  const memberRecords = records.records ?? [];
+  const total = records.count.matched ?? 0;
 
   return (
     <div className="flex flex-col gap-2">
@@ -70,8 +113,8 @@ export default function TurfMarkersList() {
         Members in this area {total > 0 && <>({total})</>}
       </h3>
 
-      {!members ? (
-        <p>No member data source found.</p>
+      {!dataSource ? (
+        <p>No members data source found.</p>
       ) : memberRecords.length > 0 ? (
         <>
           <ul className="flex flex-col gap-1">
@@ -88,4 +131,41 @@ export default function TurfMarkersList() {
       )}
     </div>
   );
-}
+};
+
+const MarkersList = ({
+  records,
+  dataSource,
+}: {
+  records: RecordsResponse;
+  dataSource: DataSource | null;
+}) => {
+  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
+  const recordsList = records.records ?? [];
+  const total = records.count.matched ?? 0;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="font-semibold">
+        {dataSource?.name} {total > 0 && <>({total})</>}
+      </h3>
+
+      {!dataSource ? (
+        <p>No members data source found.</p>
+      ) : recordsList.length > 0 ? (
+        <>
+          <ul className="flex flex-col gap-1">
+            {recordsList.map((record) => {
+              const displayName = nameColumn
+                ? String(record.json[nameColumn] ?? "")
+                : `Id: ${record.id}`;
+              return <li key={record.id}>{displayName}</li>;
+            })}
+          </ul>
+        </>
+      ) : (
+        <p>No markers in this area.</p>
+      )}
+    </div>
+  );
+};

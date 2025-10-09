@@ -88,6 +88,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
   const resetInspector = () => {
     setSelectedRecord(null);
+    setSelectedTurf(null);
     setInspectorContent(null);
   };
 
