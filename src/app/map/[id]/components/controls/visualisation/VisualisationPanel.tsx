@@ -61,7 +61,7 @@ export default function VisualisationPanel({
   const { viewConfig, updateViewConfig } = useContext(MapContext);
   const { boundariesPanelOpen, setBoundariesPanelOpen } =
     useContext(ChoroplethContext);
-  const { dataSources } = useDataSources();
+  const { data: dataSources } = useDataSources();
   const dataSource = useChoroplethDataSource();
 
   // Add this state
@@ -72,7 +72,7 @@ export default function VisualisationPanel({
 
   // Update the filtering logic to include search
   const filteredAndSearchedDataSources = useMemo(() => {
-    let sources = dataSources;
+    let sources = dataSources || [];
 
     if (searchQuery) {
       sources = sources.filter(
@@ -328,7 +328,7 @@ export default function VisualisationPanel({
                         Highest-value column (String)
                       </SelectItem>
                       {dataSources
-                        .find((ds) => ds.id === viewConfig.areaDataSourceId)
+                        ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
                         ?.columnDefs.map((col) => (
                           <SelectItem key={col.name} value={col.name}>
                             {col.name} ({col.type})

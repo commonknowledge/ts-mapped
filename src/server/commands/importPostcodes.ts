@@ -56,7 +56,7 @@ const importPostcodes = async () => {
         ${name},
         ${code},
         ST_SetSRID(
-          ST_GeomFromGeoJSON(${feature.geometry}),
+          ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}),
           4326
         )::geography,
         ${areaSet.id}

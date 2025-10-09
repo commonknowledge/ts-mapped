@@ -47,13 +47,12 @@ const importConstituencies = async () => {
     const feature = areas.features[i];
     const code = feature.properties.PCON24CD;
     const name = feature.properties.PCON24NM;
-    await sql`
-      INSERT INTO area (name, code, geography, area_set_id)
+    await sql`INSERT INTO area (name, code, geography, area_set_id)
       VALUES (
         ${name},
         ${code},
         ST_SetSRID(
-          ST_GeomFromGeoJSON(${feature.geometry}),
+          ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}),
           4326
         )::geography,
         ${areaSet.id}

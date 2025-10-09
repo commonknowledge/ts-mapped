@@ -152,6 +152,7 @@ export const mapRouter = router({
           mapId,
         });
       }
+      return true;
     }),
 
   delete: mapWriteProcedure.mutation(async ({ ctx: { map } }) => {

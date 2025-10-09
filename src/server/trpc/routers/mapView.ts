@@ -17,5 +17,6 @@ export const mapViewRouter = router({
         dataSourceId: ctx.dataSource.id,
         viewId: input.viewId,
       });
+      return true;
     }),
 });

@@ -22,6 +22,7 @@ import {
 } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
+import { pubsub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
 import {
   dataSourceOwnerProcedure,
@@ -30,6 +31,7 @@ import {
   publicProcedure,
   router,
 } from "../index";
+import type { DataSourceEvent } from "@/server/events";
 import type { DataSource, DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
@@ -269,6 +271,30 @@ export const dataSourceRouter = router({
   delete: dataSourceOwnerProcedure.mutation(async ({ ctx }) => {
     await deleteDataSource(ctx.dataSource.id);
     return true;
+  }),
+
+  events: dataSourceOwnerProcedure.subscription(async function* ({
+    ctx,
+    signal,
+  }) {
+    let sub: AsyncIterableIterator<DataSourceEvent> | null = null;
+    try {
+      signal?.addEventListener("abort", () => {
+        sub?.return?.();
+      });
+
+      sub = pubsub.subscribe("dataSourceEvent");
+      for await (const event of sub) {
+        if (!event) {
+          return;
+        }
+        if (event.dataSourceId === ctx.dataSource.id) {
+          yield event;
+        }
+      }
+    } finally {
+      sub?.return?.();
+    }
   }),
 });
 
