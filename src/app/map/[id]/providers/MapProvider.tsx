@@ -101,10 +101,6 @@ export default function MapProvider({
   const { mutate: saveMapConfigMutate } = useMutation(
     trpc.map.updateConfig.mutationOptions({
       onSuccess: () => {
-        // client.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-        //   if (!old) return old;
-        //   return { ...old, config: { ...old.config, ...config } };
-        // });
         setDirtyViewIds([]);
         setConfigDirty(false);
       },
