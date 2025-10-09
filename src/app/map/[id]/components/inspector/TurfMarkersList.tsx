@@ -34,8 +34,8 @@ export default function TurfMarkersList() {
           dataSourceId,
           filter: { type: FilterType.GEO, turf: selectedTurf?.id },
         },
-        { refetchOnMount: "always" },
-      ),
+        { refetchOnMount: "always" }
+      )
     ),
     combine: (results) => ({
       data: results.map((result, i) => ({
@@ -52,17 +52,17 @@ export default function TurfMarkersList() {
   const members = useMemo(
     () =>
       data.find(
-        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
+        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members
       ),
-    [data],
+    [data]
   );
 
   const markers = useMemo(
     () =>
       data.filter(
-        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
+        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members
       ),
-    [data],
+    [data]
   );
 
   if (isFetching) {
@@ -79,7 +79,7 @@ export default function TurfMarkersList() {
       )}
 
       {markers?.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <h3 className="text-xs font-mono uppercase text-muted-foreground">
             Markers in this area
           </h3>
@@ -144,28 +144,24 @@ const MarkersList = ({
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
 
+  if (recordsList.length === 0) {
+    return <></>;
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <h3 className="font-semibold">
         {dataSource?.name} {total > 0 && <>({total})</>}
       </h3>
 
-      {!dataSource ? (
-        <p>No members data source found.</p>
-      ) : recordsList.length > 0 ? (
-        <>
-          <ul className="flex flex-col gap-1">
-            {recordsList.map((record) => {
-              const displayName = nameColumn
-                ? String(record.json[nameColumn] ?? "")
-                : `Id: ${record.id}`;
-              return <li key={record.id}>{displayName}</li>;
-            })}
-          </ul>
-        </>
-      ) : (
-        <p>No markers in this area.</p>
-      )}
+      <ul className="flex flex-col gap-1">
+        {recordsList.map((record) => {
+          const displayName = nameColumn
+            ? String(record.json[nameColumn] ?? "")
+            : `Id: ${record.id}`;
+          return <li key={record.id}>{displayName}</li>;
+        })}
+      </ul>
     </div>
   );
 };
