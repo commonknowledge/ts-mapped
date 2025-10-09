@@ -6,6 +6,7 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
 import { mapColors } from "../../styles";
 import PropertiesList from "./PropertiesList";
+import TurfMarkersList from "./TurfMarkersList";
 
 export default function InspectorPanel() {
   const { inspectorContent, resetInspector } = useContext(InspectorContext);
@@ -61,6 +62,8 @@ export default function InspectorPanel() {
           )}
 
           <PropertiesList properties={properties} />
+
+          {type === "turf" && <TurfMarkersList />}
 
           {dataSource && (
             <div className="border-t pt-4">
