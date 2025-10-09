@@ -67,10 +67,9 @@ export async function GET(
           const feature: PointFeature = {
             type: "Feature",
             properties: {
-              //...dr.json,
+              ...dr.json,
               [MARKER_ID_KEY]: dr.id,
               [MARKER_DATA_SOURCE_ID_KEY]: dr.dataSourceId,
-              // [MARKER_EXTERNAL_ID_KEY]: dr.externalId,
               // If no name column is specified, show the ID as the marker name instead
               [MARKER_NAME_KEY]: nameColumns?.length
                 ? nameColumns
