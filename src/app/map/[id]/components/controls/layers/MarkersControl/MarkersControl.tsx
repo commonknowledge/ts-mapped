@@ -6,6 +6,7 @@ import { DataSourceRecordType } from "@/__generated__/types";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { CollectionIcon } from "../../../Icons";
@@ -15,8 +16,8 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { mapConfig, updateMapConfig, viewConfig, updateViewConfig } =
-    useContext(MapContext);
+  const { mapId, viewConfig, updateViewConfig } = useContext(MapContext);
+  const { mapConfig, updateMapConfig } = useMapConfig(mapId);
   const {
     placedMarkersLoading,
     folders,

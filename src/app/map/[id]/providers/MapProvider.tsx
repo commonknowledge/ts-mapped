@@ -5,11 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import {
-  MapConfig,
-  MapContext,
-  ViewConfig,
-} from "@/app/map/[id]/context/MapContext";
+import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "../hooks/useMapQuery";
@@ -30,29 +26,21 @@ export default function MapProvider({
 }) {
   /* Map Ref */
   const mapRef = useRef<MapRef>(null);
-  const [mapName, setMapName] = useState<string | null>(null);
 
   /* Map State */
-
   const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
-  const [mapConfig, setMapConfig] = useState(new MapConfig());
   const [dirtyViewIds, setDirtyViewIds] = useState<string[]>([]);
+  const [configDirty, setConfigDirty] = useState(false);
   const [views, setViews] = useState<View[]>([]);
   const [viewId, setViewId] = useState<string | null>(initialViewId || null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [pinDropMode, setPinDropMode] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [ready, setReady] = useState(false);
-  const [configDirty, setConfigDirty] = useState(false);
 
   /* Server Data */
   const trpc = useTRPC();
   const mapQuery = useMapQuery(mapId);
-
-  const updateMapConfig = (nextMapConfig: Partial<MapConfig>) => {
-    setMapConfig(new MapConfig({ ...mapConfig, ...nextMapConfig }));
-    setConfigDirty(true);
-  };
 
   const view = useMemo(
     () => views.find((v) => v.id === viewId) || null,
@@ -96,31 +84,44 @@ export default function MapProvider({
     setDirtyViewIds([...dirtyViewIds, view.id]);
   };
 
-  // const client = useQueryClient();
-
-  const { mutate: saveMapConfigMutate } = useMutation(
-    trpc.map.updateConfig.mutationOptions({
+  const { mutate: saveViewsMutate } = useMutation(
+    trpc.map.updateViews.mutationOptions({
       onSuccess: () => {
         setDirtyViewIds([]);
-        setConfigDirty(false);
       },
     }),
   );
 
-  const saveMapConfig = useCallback(() => {
-    saveMapConfigMutate({ mapId, config: mapConfig, views });
-  }, [saveMapConfigMutate, mapConfig, mapId, views]);
+  const saveViews = useCallback(() => {
+    if (!mapId) return;
+    saveViewsMutate({ mapId, views });
+  }, [saveViewsMutate, mapId, views]);
 
   /* Effects */
 
   /* Update local map state when saved views are loaded from the server */
   const { data: mapData } = mapQuery;
-  useEffect(() => {
-    setMapName(mapData?.name || "Untitled");
 
-    if (mapData?.config) {
-      setMapConfig(new MapConfig(mapData.config));
-    }
+  const { mutate: saveConfigMutate } = useMutation(
+    trpc.map.updateConfig.mutationOptions({
+      onSuccess: () => {
+        setConfigDirty(false);
+      },
+    }),
+  );
+
+  const saveConfig = useCallback(() => {
+    if (!mapId || !mapData?.config) return;
+    saveConfigMutate({ mapId, config: mapData.config });
+  }, [saveConfigMutate, mapId, mapData?.config]);
+  const viewsInitialized = useRef(false);
+
+  useEffect(() => {
+    // Only initialize views once when data first loads
+    if (viewsInitialized.current) return;
+    if (!mapData) return;
+
+    viewsInitialized.current = true;
 
     if (mapData?.views && mapData.views.length > 0) {
       const nextView =
@@ -146,47 +147,37 @@ export default function MapProvider({
     return new ViewConfig({ ...view?.config });
   }, [view]);
 
-  const autoSave = useCallback(() => {
-    if (!mapId || !mapConfig) return;
-    saveMapConfig();
-  }, [mapConfig, mapId, saveMapConfig]);
-
-  // auto save map config
-  useEffect(() => {
-    if (!configDirty) return;
-
-    const handler = setTimeout(() => {
-      autoSave();
-    }, 1000); // debounce 1s
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [autoSave, configDirty]);
-
-  // auto save map view
+  // auto save map views when dirty
   useEffect(() => {
     if (!dirtyViewIds?.length) return;
 
     const handler = setTimeout(() => {
-      autoSave();
+      saveViews();
     }, 1000); // debounce 1s
 
     return () => {
       clearTimeout(handler);
     };
-  }, [autoSave, dirtyViewIds]);
+  }, [dirtyViewIds, saveViews]);
+
+  // auto save map config when dirty
+  useEffect(() => {
+    if (!configDirty) return;
+
+    const handler = setTimeout(() => {
+      saveConfig();
+    }, 1000); // debounce 1s
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [configDirty, saveConfig]);
 
   return (
     <MapContext
       value={{
         mapId,
         mapRef,
-        mapConfig,
-        updateMapConfig,
-        saveMapConfig,
-        mapName,
-        setMapName,
         boundingBox,
         setBoundingBox,
         dirtyViewIds,
@@ -198,6 +189,8 @@ export default function MapProvider({
         setViewId,
         viewConfig,
         updateViewConfig,
+        configDirty,
+        setConfigDirty,
         zoom,
         setZoom,
         pinDropMode,

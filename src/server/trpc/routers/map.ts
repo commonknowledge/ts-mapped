@@ -119,29 +119,29 @@ export const mapRouter = router({
     }),
 
   updateConfig: mapWriteProcedure
-    .input(
-      z.object({
-        config: mapConfigSchema.partial(),
-        views: z.array(mapViewSchema.omit({ createdAt: true, mapId: true })),
-      }),
-    )
+    .input(z.object({ config: mapConfigSchema.partial() }))
     .mutation(async ({ input }) => {
-      const { mapId, config: mapConfig, views } = input;
+      const { mapId, config: mapConfig } = input;
 
       const config = {
         markerDataSourceIds: mapConfig.markerDataSourceIds?.filter(Boolean),
         membersDataSourceId: mapConfig.membersDataSourceId,
       } as z.infer<typeof mapConfigSchema>;
 
-      await updateMap(mapId, { config });
+      return updateMap(mapId, { config });
+    }),
+
+  updateViews: mapWriteProcedure
+    .input(
+      z.object({
+        views: z.array(mapViewSchema.omit({ createdAt: true, mapId: true })),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { mapId, views } = input;
 
       for (const view of views) {
-        await upsertMapView({
-          ...view,
-          config: view.config,
-          dataSourceViews: view.dataSourceViews,
-          mapId,
-        });
+        await upsertMapView({ ...view, mapId });
       }
       return true;
     }),
