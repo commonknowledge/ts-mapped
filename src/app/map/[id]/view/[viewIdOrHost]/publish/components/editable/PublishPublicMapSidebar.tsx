@@ -80,6 +80,8 @@ export default function PublishPublicMapSidebar() {
     e.preventDefault();
     setError("");
 
+    console.log(publicMap);
+
     upsertPublicMap(publicMap);
   };
 
