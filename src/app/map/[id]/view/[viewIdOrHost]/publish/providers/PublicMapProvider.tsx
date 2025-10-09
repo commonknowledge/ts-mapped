@@ -175,8 +175,16 @@ function DataRecordsQueryComponent({
   );
 
   useEffect(() => {
-    onLoadDataRecords(dataSourceId, dataRecordsQuery);
-  }, [dataRecordsQuery, dataSourceId, onLoadDataRecords]);
+    onLoadDataRecords(dataSourceId, {
+      data: dataRecordsQuery.data,
+      isPending: dataRecordsQuery.isPending,
+    });
+  }, [
+    dataRecordsQuery.data,
+    dataRecordsQuery.isPending,
+    dataSourceId,
+    onLoadDataRecords,
+  ]);
 
   return null;
 }
