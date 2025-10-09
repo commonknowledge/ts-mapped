@@ -34,7 +34,14 @@ import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import type { Feature, MultiPolygon, Point } from "geojson";
+import type {
+  Feature,
+  FeatureCollection,
+  Geometry,
+  MultiPolygon,
+  Point,
+} from "geojson";
+import type { MapMouseEvent } from "mapbox-gl";
 
 export default function Map({
   onSourceLoad,
@@ -82,7 +89,7 @@ export default function Map({
         .getDataSourceIds()
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig],
+    [mapConfig]
   );
 
   // draw existing turfs
@@ -178,7 +185,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
           )
           .map((layer) => layer.id);
 
@@ -189,7 +196,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded],
+    [mapRef, styleLoaded]
   );
 
   const toggleDrawVisibility = useCallback(
@@ -218,8 +225,40 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded],
+    [mapRef, styleLoaded]
   );
+
+  const getClickedPolygonFeature = (
+    draw: MapboxDraw,
+    e: MapMouseEvent
+  ): Feature<Polygon | MultiPolygon> | null => {
+    const drawData: FeatureCollection = draw.getAll();
+
+    if (drawData.features.length === 0) return null;
+
+    const point: Feature<Point> = turfPoint([e.lngLat.lng, e.lngLat.lat]);
+
+    // Type guard — no `any` or unsafe casts
+    const isPolygonFeature = (
+      f: unknown
+    ): f is Feature<Polygon | MultiPolygon> => {
+      if (typeof f !== "object" || f === null) return false;
+
+      if (!("geometry" in f)) return false;
+
+      const geometry = (f as { geometry?: Geometry }).geometry;
+      if (!geometry) return false;
+
+      return geometry.type === "Polygon" || geometry.type === "MultiPolygon";
+    };
+
+    const polygonFeature = drawData.features.find(
+      (feature: Feature): feature is Feature<Polygon | MultiPolygon> =>
+        isPolygonFeature(feature) && booleanPointInPolygon(point, feature)
+    );
+
+    return polygonFeature ?? null;
+  };
 
   useEffect(() => {
     toggleDrawVisibility(viewConfig.showTurf);
@@ -297,7 +336,7 @@ export default function Map({
             bottom: 100,
           },
           duration: 1000,
-        },
+        }
       );
     }
 
@@ -360,45 +399,38 @@ export default function Map({
             setSelectedRecord(null);
           }
 
-          /* inside your click handler */
           if (draw) {
-            const drawData = draw.getAll();
-            if (drawData.features.length > 0) {
-              const point: Feature<Point> = turfPoint([
-                e.lngLat.lng,
-                e.lngLat.lat,
-              ]);
+            draw.changeMode("simple_select", { featureIds: [] });
 
-              const isPolygonFeature = (
-                f: unknown,
-              ): f is Feature<Polygon | MultiPolygon> => {
-                return (
-                  typeof f === "object" &&
-                  f !== null &&
-                  "geometry" in f &&
-                  typeof f.geometry === "object" &&
-                  ((f as Feature).geometry.type === "Polygon" ||
-                    (f as Feature).geometry.type === "MultiPolygon")
-                );
-              };
+            const polygonFeature = getClickedPolygonFeature(draw, e);
 
-              const polygonFeature = drawData.features.find(
-                (feature): feature is Feature<Polygon | MultiPolygon> => {
-                  if (!isPolygonFeature(feature)) return false;
-                  return booleanPointInPolygon(point, feature);
-                },
+            if (polygonFeature) {
+              setSelectedTurf({
+                id: polygonFeature.properties?.id,
+                name: polygonFeature.properties?.label,
+              });
+
+              return;
+            } else {
+              resetInspector();
+            }
+          }
+        }}
+        onDblClick={(e) => {
+          if (draw) {
+            const polygonFeature = getClickedPolygonFeature(draw, e);
+
+            if (polygonFeature) {
+              // enter edit mode
+
+              (draw.changeMode as (mode: string, options?: object) => void)(
+                "direct_select",
+                {
+                  featureId: polygonFeature.id,
+                }
               );
 
-              if (polygonFeature) {
-                setSelectedTurf({
-                  id: polygonFeature.properties?.id,
-                  name: polygonFeature.properties?.label,
-                });
-
-                return;
-              } else {
-                resetInspector();
-              }
+              return;
             }
           }
         }}
@@ -417,6 +449,7 @@ export default function Map({
               controls: {
                 polygon: true,
               },
+              // defaultMode: "simple-select",
               userProperties: true,
               styles: [
                 {
@@ -505,7 +538,7 @@ export default function Map({
                     area: roundedArea,
                     polygon: feature.geometry as Polygon,
                     createdAt: new Date(
-                      feature?.properties?.createdAt as string,
+                      feature?.properties?.createdAt as string
                     ),
                   });
                 });
@@ -600,5 +633,5 @@ const SearchBox = dynamic(
   {
     ssr: false,
     loading: () => null,
-  },
+  }
 );
