@@ -76,6 +76,5 @@ export function useMapConfig(mapId: string | null | undefined) {
   return {
     mapConfig: localConfig,
     updateMapConfig,
-    saveMapConfig,
   };
 }
