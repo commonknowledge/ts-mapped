@@ -3,12 +3,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
