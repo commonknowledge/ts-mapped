@@ -141,7 +141,8 @@ export default function PublicMapProvider({
   );
 }
 
-// Use a component for each query, as can't put hooks in a loop
+// TODO: use useQueries instead
+
 function DataRecordsQueryComponent({
   dataSourceId,
   location,
