@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import { useEffect, useState } from "react";
 import { Link } from "@/components/Link";
 import SidebarUserMenu from "@/components/SidebarUserMenu";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { cn } from "@/shadcn/utils";
 
 export default function Sidebar() {
