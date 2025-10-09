@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTRPC } from "@/services/trpc/react";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
@@ -20,8 +21,9 @@ export default function MarkerAndTurfProvider({
 }: {
   children: ReactNode;
 }) {
-  const { mapRef, mapId, view, setPinDropMode } = useContext(MapContext);
-  const { mapConfig } = useMapConfig(mapId);
+  const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
+  const { mapConfig } = useMapConfig();
+  const { view } = useMapViews();
 
   const trpc = useTRPC();
   const { data: map } = useMapQuery(mapId);

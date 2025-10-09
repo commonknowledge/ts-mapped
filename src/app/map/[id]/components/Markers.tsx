@@ -1,8 +1,8 @@
 import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
@@ -27,8 +27,8 @@ function rgbaString(hex: string, alpha: number) {
 }
 
 export default function Markers() {
-  const { mapId, viewConfig } = useContext(MapContext);
-  const { mapConfig } = useMapConfig(mapId);
+  const { viewConfig } = useMapViews();
+  const { mapConfig } = useMapConfig();
   const { markerQueries } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = useMemo(

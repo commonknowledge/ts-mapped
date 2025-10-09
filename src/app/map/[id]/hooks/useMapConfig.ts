@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "./useMapQuery";
-import type { MapConfig as DbMapConfig } from "@/server/models/Map";
 
-export class MapConfig implements DbMapConfig {
+export class MapConfig {
   public markerDataSourceIds: string[] = [];
   public membersDataSourceId: string | null = null;
 
@@ -22,7 +22,8 @@ export class MapConfig implements DbMapConfig {
   }
 }
 
-export function useMapConfig(mapId: string | null | undefined) {
+export function useMapConfig() {
+  const { mapId } = use(MapContext);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);

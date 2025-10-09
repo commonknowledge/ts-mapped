@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useContext, useMemo } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useCallback, useMemo } from "react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTRPC } from "@/services/trpc/react";
 
 export function useDataSources() {
@@ -29,8 +29,9 @@ export function useDataSources() {
 }
 
 export function useChoroplethDataSource() {
-  const { viewConfig } = useContext(MapContext);
   const { data: dataSources } = useDataSources();
+
+  const { viewConfig } = useMapViews();
 
   return useMemo(() => {
     if (!viewConfig.areaDataSourceId) return null;
@@ -39,8 +40,7 @@ export function useChoroplethDataSource() {
 }
 
 export function useMarkerDataSources() {
-  const { mapId } = useContext(MapContext);
-  const { mapConfig } = useMapConfig(mapId);
+  const { mapConfig } = useMapConfig();
   const { data: dataSources } = useDataSources();
 
   return useMemo(() => {
@@ -51,9 +51,8 @@ export function useMarkerDataSources() {
 }
 
 export function useMembersDataSource() {
-  const { mapId } = useContext(MapContext);
   const { getDataSourceById } = useDataSources();
-  const { mapConfig } = useMapConfig(mapId);
+  const { mapConfig } = useMapConfig();
 
   return useMemo(() => {
     return getDataSourceById(mapConfig.membersDataSourceId);

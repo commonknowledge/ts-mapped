@@ -7,12 +7,14 @@ import {
 } from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useFillColor } from "../colors";
 
 export default function Choropleth() {
   // Keep track of area codes that have feature state, to clean if necessary
   const areaCodesToClean = useRef<Record<string, boolean>>({});
-  const { mapRef, viewConfig } = useContext(MapContext);
+  const { mapRef } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
   const {
     areaStatsQuery,
     lastLoadedSourceId,

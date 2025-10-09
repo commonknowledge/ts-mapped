@@ -9,7 +9,7 @@ import mapStyles from "../styles";
 import type { MapViewConfigInput } from "@/__generated__/types";
 import type { BoundingBox } from "@/server/models/Area";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
-import type { MapView, VisualisationType } from "@/server/models/MapView";
+import type { VisualisationType } from "@/server/models/MapView";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 
@@ -49,17 +49,13 @@ export const MapContext = createContext<{
   boundingBox: BoundingBox | null;
   setBoundingBox: (boundingBox: BoundingBox | null) => void;
 
-  views: MapView[];
-  deleteView: (viewId: string) => void;
-  insertView: (view: Omit<MapView, "position">) => void;
-  updateView: (view: MapView) => void;
-  dirtyViewIds: string[];
-
-  view: MapView | null;
+  /* Active View ID */
+  viewId: string | null;
   setViewId: (id: string) => void;
 
-  viewConfig: ViewConfig;
-  updateViewConfig: (config: Partial<ViewConfig>) => void;
+  /* Dirty Views Tracking */
+  dirtyViewIds: string[];
+  setDirtyViewIds: (ids: string[] | ((prev: string[]) => string[])) => void;
 
   zoom: number;
   setZoom: (zoom: number) => void;
@@ -77,15 +73,10 @@ export const MapContext = createContext<{
   mapRef: null,
   boundingBox: null,
   setBoundingBox: () => null,
-  views: [],
-  deleteView: () => null,
-  insertView: () => null,
-  updateView: () => null,
-  dirtyViewIds: [],
-  viewConfig: new ViewConfig(),
-  updateViewConfig: () => null,
-  view: null,
+  viewId: null,
   setViewId: () => null,
+  dirtyViewIds: [],
+  setDirtyViewIds: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
   pinDropMode: false,

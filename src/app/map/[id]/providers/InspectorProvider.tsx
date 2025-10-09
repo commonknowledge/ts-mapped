@@ -1,8 +1,7 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import {
@@ -36,9 +35,8 @@ const HIDDEN_PROPERTIES = [
 ];
 
 const InspectorProvider = ({ children }: { children: ReactNode }) => {
-  const { mapId } = useContext(MapContext);
   const { getDataSourceById } = useDataSources();
-  const { mapConfig } = useMapConfig(mapId);
+  const { mapConfig } = useMapConfig();
   const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
     null,
   );

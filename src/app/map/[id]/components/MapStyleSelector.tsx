@@ -1,7 +1,7 @@
 import { Layers, X } from "lucide-react";
 import Image from "next/image";
-import { useContext, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useState } from "react";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { Switch } from "@/shadcn/ui/switch";
@@ -11,7 +11,7 @@ import type { MapStyleName } from "@/__generated__/types";
 
 export default function MapStyleSelector() {
   const [open, setOpen] = useState(false);
-  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { viewConfig, updateViewConfig } = useMapViews();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

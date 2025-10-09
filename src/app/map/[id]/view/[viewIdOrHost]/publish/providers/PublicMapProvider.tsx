@@ -1,10 +1,10 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useCallback, useEffect, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
@@ -158,7 +158,7 @@ function DataRecordsQueryComponent({
     },
   ) => void;
 }) {
-  const { view } = useContext(MapContext);
+  const { view } = useMapViews();
 
   const filter = view?.dataSourceViews.find(
     (dsv) => dsv.dataSourceId === dataSourceId,
@@ -197,8 +197,7 @@ const usePublicMapAndActiveTab = (
   initialPublicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
   editable: boolean,
 ) => {
-  const { mapId } = useContext(MapContext);
-  const { mapConfig } = useMapConfig(mapId);
+  const { mapConfig } = useMapConfig();
   const { getDataSourceById } = useDataSources();
 
   const [publicMap, setPublicMap] = useState(initialPublicMap);

@@ -4,6 +4,7 @@ import { useContext, useMemo, useState } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { GeocodingType } from "@/server/models/DataSource";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { VisualisationType } from "@/server/models/MapView";
@@ -16,7 +17,8 @@ export default function ChoroplethProvider({
 }: {
   children: ReactNode;
 }) {
-  const { boundingBox, viewConfig, zoom } = useContext(MapContext);
+  const { boundingBox, zoom } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 
   /* State */
