@@ -29,7 +29,7 @@ import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapId, mapRef } = useContext(MapContext);
+  const { mapId, mapRef, dirtyViewIds, configDirty } = useContext(MapContext);
   const { data: map } = useMapQuery(mapId);
   const { view } = useMapViews();
 
@@ -201,7 +201,7 @@ export default function PrivateMapNavbar() {
               {showPublishButton && view && (
                 <Button
                   type="button"
-                  disabled={loading}
+                  disabled={loading || dirtyViewIds.length > 0 || configDirty}
                   variant="outline"
                   onClick={onClickPublish}
                 >
