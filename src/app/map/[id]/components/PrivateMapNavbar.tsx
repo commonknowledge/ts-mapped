@@ -35,7 +35,7 @@ export default function PrivateMapNavbar() {
 
   const showPublishButton = useFeatureFlagEnabled("public-maps");
   const [isEditingName, setIsEditingName] = useState(false);
-  const [editedName, setEditedName] = useState(map ? map.name : "");
+  const [editedName, setEditedName] = useState(map?.name || "");
   const [loading, setLoading] = useState(false);
 
   const trpc = useTRPC();
@@ -44,8 +44,9 @@ export default function PrivateMapNavbar() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setEditedName(map ? map.name : "");
-  }, [map]);
+    // keep edited name in sync with cache map name
+    setEditedName(map?.name || "");
+  }, [map?.name]);
 
   const { mutate: updateMap, isPending } = useMutation(
     trpc.map.update.mutationOptions({
@@ -113,12 +114,7 @@ export default function PrivateMapNavbar() {
 
     const checkMapReady = () => {
       const map = mapRef?.current;
-
-      if (!map) {
-        return false;
-      } else {
-        return true;
-      }
+      return Boolean(map);
     };
 
     let interval: NodeJS.Timeout | number | undefined;
