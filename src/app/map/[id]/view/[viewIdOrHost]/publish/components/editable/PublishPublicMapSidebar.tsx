@@ -79,9 +79,6 @@ export default function PublishPublicMapSidebar() {
   const onSubmitForm = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-
-    console.log(publicMap);
-
     upsertPublicMap(publicMap);
   };
 
