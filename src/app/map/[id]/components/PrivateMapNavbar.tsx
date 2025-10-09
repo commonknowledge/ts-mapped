@@ -4,7 +4,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFeatureFlagEnabled } from "posthog-js/react";
-import { useCallback, useContext, useEffect, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
@@ -27,9 +34,12 @@ export default function PrivateMapNavbar() {
   const showPublishButton = useFeatureFlagEnabled("public-maps");
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(map ? map.name : "");
+  const [loading, setLoading] = useState(false);
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setEditedName(map ? map.name : "");
@@ -53,9 +63,18 @@ export default function PrivateMapNavbar() {
     }),
   );
 
+  useLayoutEffect(() => {
+    if (!isEditingName) return;
+    // input isnt rendered immediately, so we need to wait for it to be ready
+    const timeout = setTimeout(() => {
+      inputRef.current?.select();
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [isEditingName]);
+
   const onClickPublish = async () => {
-    // Should never happen, button is also hidden in this case
     if (!mapId || !view) return;
+    setLoading(true);
     // Auto-save handles saving map config and views automatically
     // Just navigate to the publish page
     router.push(`/map/${mapId}/view/${view.id}/publish`);
@@ -143,6 +162,8 @@ export default function PrivateMapNavbar() {
                   <input
                     type="text"
                     value={editedName || ""}
+                    autoFocus
+                    ref={inputRef}
                     className="px-3 py-1 border border-neutral-300 rounded text-sm"
                     onChange={(e) => setEditedName(e.target.value)}
                   />
@@ -182,8 +203,9 @@ export default function PrivateMapNavbar() {
               {showPublishButton && view && (
                 <Button
                   type="button"
+                  disabled={loading}
                   variant="outline"
-                  onClick={() => onClickPublish()}
+                  onClick={onClickPublish}
                 >
                   Publish
                 </Button>
