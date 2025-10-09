@@ -422,7 +422,6 @@ export default function Map({
 
             if (polygonFeature) {
               // enter edit mode
-
               (draw.changeMode as (mode: string, options?: object) => void)(
                 "direct_select",
                 {
@@ -430,6 +429,8 @@ export default function Map({
                 },
               );
 
+              // Prevent default map zoom on double-click
+              e.originalEvent.preventDefault();
               return;
             }
           }
@@ -449,7 +450,6 @@ export default function Map({
               controls: {
                 polygon: true,
               },
-              // defaultMode: "simple-select",
               userProperties: true,
               styles: [
                 {
