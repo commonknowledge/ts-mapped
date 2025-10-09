@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 import {
   useCallback,
   useContext,
@@ -17,6 +16,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
