@@ -63,3 +63,13 @@ export interface FilterField {
   type: PublicMapColumnType;
   options?: string[];
 }
+
+export interface RecordData {
+  id: string;
+  json: Record<string, unknown>;
+}
+
+export interface RecordsResponse {
+  count: { matched: number };
+  records: RecordData[];
+}

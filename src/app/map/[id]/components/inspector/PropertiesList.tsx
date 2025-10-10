@@ -5,7 +5,7 @@ export default function PropertiesList({
 }: {
   properties: Record<string, unknown> | null | undefined;
 }) {
-  if (!Object.keys(properties as object)?.length) {
+  if (!properties || !Object.keys(properties as object)?.length) {
     return <></>;
   }
 

@@ -68,6 +68,7 @@ export default function MapTable() {
   );
   const updateDataSourceView = (update: Partial<DataSourceView>) => {
     let dataSourceViews = view.dataSourceViews;
+
     if (dataSourceView) {
       dataSourceViews = view.dataSourceViews.map((dsv) => {
         if (dsv.dataSourceId === dataSource.id) {
