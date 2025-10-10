@@ -1,5 +1,5 @@
 import { useQueries } from "@tanstack/react-query";
-import * as turf from "@turf/turf";
+
 import { useContext, useMemo } from "react";
 import { FilterType } from "@/__generated__/types";
 import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
@@ -8,40 +8,18 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
-import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
+import {
+  getMarkersInsideTurf,
+  mapPlacedMarkersToRecordsResponse,
+} from "./helpers";
 import type { DataSource } from "@/server/models/DataSource";
-import type { PlacedMarker } from "@/server/models/PlacedMarker";
-
-interface RecordData {
-  id: string;
-  json: Record<string, unknown>;
-}
-
-interface RecordsResponse {
-  count: { matched: number };
-  records: RecordData[];
-}
-
-function getMarkersInsideTurf(
-  markers: PlacedMarker[],
-  selectedTurf: SelectedTurf | null,
-) {
-  if (!selectedTurf) {
-    return [];
-  }
-
-  const turfPolygon = turf.polygon(selectedTurf.geometry.coordinates);
-
-  return markers.filter((marker) => {
-    const point = turf.point([marker.point.lng, marker.point.lat]);
-    return turf.booleanPointInPolygon(point, turfPolygon);
-  });
-}
+import type { Folder } from "@/server/models/Folder";
+import type { RecordData, RecordsResponse } from "@/types";
 
 export default function TurfMarkersList() {
   const { getDataSourceById } = useContext(DataSourcesContext);
   const { mapConfig } = useContext(MapContext);
-  const { placedMarkers } = useContext(MarkerAndTurfContext);
+  const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
   const { selectedTurf } = useContext(InspectorContext);
 
   const trpc = useTRPC();
@@ -87,12 +65,13 @@ export default function TurfMarkersList() {
     [data],
   );
 
-  const activePlacedMarkers = useMemo(
-    () => getMarkersInsideTurf(placedMarkers, selectedTurf),
-    [placedMarkers, selectedTurf],
-  );
-
-  console.log("MARKERS", activePlacedMarkers);
+  const mappedPlacedMarkers = useMemo(() => {
+    const activePlacedMarkers = getMarkersInsideTurf(
+      placedMarkers,
+      selectedTurf,
+    );
+    return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
+  }, [folders, placedMarkers, selectedTurf]);
 
   if (isFetching) {
     return <p>Loading...</p>;
@@ -107,18 +86,29 @@ export default function TurfMarkersList() {
         />
       )}
 
-      {markers?.length > 0 && (
+      {(markers?.length > 0 || mappedPlacedMarkers.length > 0) && (
         <div className="flex flex-col gap-3">
-          <h3 className="text-xs font-mono uppercase text-muted-foreground">
+          <h2 className="text-xs font-mono uppercase text-muted-foreground">
             Markers in this area
-          </h3>
-          {markers.map((markersGroup, index) => (
-            <MarkersList
-              key={index}
-              dataSource={markersGroup.dataSource}
-              records={markersGroup.records}
-            ></MarkersList>
-          ))}
+          </h2>
+
+          {mappedPlacedMarkers.length > 0 &&
+            mappedPlacedMarkers.map((markersGroup, index) => (
+              <PlacedMarkersList
+                key={index}
+                folder={markersGroup.folder}
+                records={markersGroup.records}
+              ></PlacedMarkersList>
+            ))}
+
+          {markers?.length > 0 &&
+            markers.map((markersGroup, index) => (
+              <MarkersList
+                key={index}
+                dataSource={markersGroup.dataSource}
+                records={markersGroup.records}
+              ></MarkersList>
+            ))}
         </div>
       )}
     </div>
@@ -148,9 +138,9 @@ const MembersList = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-xs font-mono uppercase text-muted-foreground">
+      <h2 className="text-xs font-mono uppercase text-muted-foreground">
         Members in this area {total > 0 && <>({total})</>}
-      </h3>
+      </h2>
 
       {!dataSource ? (
         <p>No members data source found.</p>
@@ -208,6 +198,38 @@ const MarkersList = ({
             ? String(record.json[nameColumn] ?? "")
             : `Id: ${record.id}`;
           return <li key={record.id}>{displayName}</li>;
+        })}
+      </ul>
+    </div>
+  );
+};
+
+const PlacedMarkersList = ({
+  folder,
+  records,
+}: {
+  folder: Folder | null;
+  records: RecordsResponse;
+}) => {
+  const recordsList = records.records ?? [];
+  const total = records.count.matched ?? 0;
+  const name = folder?.name;
+
+  if (recordsList.length === 0) {
+    return <></>;
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {name && (
+        <h3 className="font-semibold">
+          {name} ({total})
+        </h3>
+      )}
+
+      <ul className="flex flex-col gap-1">
+        {recordsList.map((record) => {
+          return <li key={record.id}>{record.json?.name as string}</li>;
         })}
       </ul>
     </div>

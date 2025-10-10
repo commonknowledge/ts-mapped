@@ -30,7 +30,7 @@ export default function InspectorPanel() {
     >
       <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
         <div className="flex justify-between items-start gap-4 p-4">
-          <h2 className="grow flex gap-2 / text-sm font-semibold">
+          <h1 className="grow flex gap-2 / text-sm font-semibold">
             <div
               className="shrink-0 mt-1 w-3 h-3 rounded-full"
               style={{
@@ -43,7 +43,7 @@ export default function InspectorPanel() {
               }}
             ></div>
             {inspectorContent?.name as string}
-          </h2>
+          </h1>
           <button
             className="cursor-pointer"
             aria-label="Close inspector panel"
