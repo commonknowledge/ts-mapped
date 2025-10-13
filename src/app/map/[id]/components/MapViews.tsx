@@ -43,7 +43,7 @@ import type { View } from "../types";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function MapViews() {
-  const { mapId, setViewId: setSelectedViewId } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
 
   const { views, insertView, updateView } = useMapViews();
 
@@ -95,7 +95,6 @@ export default function MapViews() {
     };
 
     insertView(newView);
-    setSelectedViewId(newView.id);
     setNewViewName("");
     setIsCreating(false);
   };

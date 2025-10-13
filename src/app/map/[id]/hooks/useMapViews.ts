@@ -10,7 +10,7 @@ import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
 
 export function useMapViews() {
-  const { viewId, mapId, setDirtyViewIds } = use(MapContext);
+  const { viewId, mapId, setDirtyViewIds, setViewId } = use(MapContext);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
@@ -53,41 +53,126 @@ export function useMapViews() {
     [viewId, mapId, queryClient, trpc.map.byId, setDirtyViewIds],
   );
 
+  const { mutate: insertViewMutate } = useMutation(
+    trpc.map.updateViews.mutationOptions({
+      onMutate: async ({ views: newViews }) => {
+        if (!mapId) return;
+
+        // Cancel outgoing refetches
+        await queryClient.cancelQueries({
+          queryKey: trpc.map.byId.queryKey({ mapId }),
+        });
+
+        // Snapshot previous value
+        const previousData = queryClient.getQueryData(
+          trpc.map.byId.queryKey({ mapId }),
+        );
+
+        // Optimistically update the cache
+        queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            views: newViews.map((v) => ({
+              ...v,
+              mapId,
+              createdAt: new Date(),
+            })),
+          };
+        });
+
+        return { previousData };
+      },
+      onError: (_err, _variables, context) => {
+        // Rollback on error
+        if (mapId && context?.previousData) {
+          queryClient.setQueryData(
+            trpc.map.byId.queryKey({ mapId }),
+            context.previousData,
+          );
+        }
+        toast.error("Failed to create view");
+      },
+    }),
+  );
+
   const insertView = useCallback(
     (view: Omit<View, "position">) => {
       if (!mapId) return;
 
-      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          views: [
-            ...old.views,
-            { ...view, position: getNewLastPosition(old.views) },
-          ],
-        };
-      });
+      const newView = {
+        ...view,
+        position: getNewLastPosition(views || []),
+      };
 
-      setDirtyViewIds((prev) => [...prev, view.id]);
+      const newViews = [...(views || []), newView];
+
+      setViewId(newView.id);
+
+      insertViewMutate({
+        mapId,
+        views: newViews,
+      });
     },
-    [mapId, queryClient, trpc.map.byId, setDirtyViewIds],
+    [mapId, views, insertViewMutate, setViewId],
+  );
+
+  const { mutate: updateViewMutate } = useMutation(
+    trpc.map.updateViews.mutationOptions({
+      onMutate: async ({ views: updatedViews }) => {
+        if (!mapId) return;
+
+        // Cancel outgoing refetches
+        await queryClient.cancelQueries({
+          queryKey: trpc.map.byId.queryKey({ mapId }),
+        });
+
+        // Snapshot previous value
+        const previousData = queryClient.getQueryData(
+          trpc.map.byId.queryKey({ mapId }),
+        );
+
+        // Optimistically update the cache
+        queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            views: updatedViews.map((v) => ({
+              ...v,
+              mapId,
+              createdAt:
+                old.views.find((ov) => ov.id === v.id)?.createdAt || new Date(),
+            })),
+          };
+        });
+
+        return { previousData };
+      },
+      onError: (_err, _variables, context) => {
+        // Rollback on error
+        if (mapId && context?.previousData) {
+          queryClient.setQueryData(
+            trpc.map.byId.queryKey({ mapId }),
+            context.previousData,
+          );
+        }
+        toast.error("Failed to update view");
+      },
+    }),
   );
 
   const updateView = useCallback(
     (view: View) => {
       if (!mapId) return;
 
-      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          views: old.views.map((v) => (v.id === view.id ? view : v)),
-        };
-      });
+      const updatedViews = views.map((v) => (v.id === view.id ? view : v));
 
-      setDirtyViewIds((prev) => [...prev, view.id]);
+      updateViewMutate({
+        mapId,
+        views: updatedViews,
+      });
     },
-    [mapId, queryClient, trpc.map.byId, setDirtyViewIds],
+    [mapId, updateViewMutate, views],
   );
 
   const { mutate: deleteViewMutate } = useMutation(
@@ -114,9 +199,6 @@ export function useMapViews() {
         });
 
         return { previousData };
-      },
-      onSuccess: () => {
-        toast.success("View deleted successfully");
       },
       onError: (_err, _variables, context) => {
         // Rollback on error

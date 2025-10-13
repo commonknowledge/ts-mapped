@@ -6,7 +6,7 @@ export function useMapQuery(mapId: string | null | undefined) {
   return useQuery(
     trpc.map.byId.queryOptions(
       { mapId: mapId || "" },
-      { enabled: Boolean(mapId), refetchOnMount: "always" },
+      { enabled: Boolean(mapId), refetchOnMount: true },
     ),
   );
 }

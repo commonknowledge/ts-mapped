@@ -56,6 +56,10 @@ export default function MapProvider({
 
   const queryClient = useQueryClient();
 
+  const { mutate: createDefaultViewMutate } = useMutation(
+    trpc.map.updateViews.mutationOptions(),
+  );
+
   /* Views initialization */
   useEffect(() => {
     // Only initialize views once when data first loads
@@ -83,8 +87,17 @@ export default function MapProvider({
         return { ...old, views: [...old.views, newView] };
       });
       setViewId(newView.id);
+      // Save the default view to the server
+      createDefaultViewMutate({ mapId, views: [newView] });
     }
-  }, [initialViewId, mapData?.views, mapId, queryClient, trpc.map.byId]);
+  }, [
+    initialViewId,
+    mapData?.views,
+    mapId,
+    queryClient,
+    trpc.map.byId,
+    createDefaultViewMutate,
+  ]);
 
   /* Auto-save views when dirty */
   const { mutate: saveViewsMutate } = useMutation(
