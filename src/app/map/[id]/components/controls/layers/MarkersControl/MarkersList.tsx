@@ -32,7 +32,7 @@ import EmptyLayer from "../../Emptylayer";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
-import type { PlacedMarker } from "@/__generated__/types";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type {
   DragEndEvent,
   DragOverEvent,

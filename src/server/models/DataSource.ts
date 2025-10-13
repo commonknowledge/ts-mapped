@@ -195,6 +195,8 @@ export const columnDefSchema = z.object({
   type: z.nativeEnum(ColumnType),
 });
 
+export type ColumnDef = z.infer<typeof columnDefSchema>;
+
 export const columnRolesSchema = z.object({
   nameColumns: z.array(z.string()),
 });

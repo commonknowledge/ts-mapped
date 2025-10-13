@@ -1,6 +1,6 @@
 import z from "zod";
-import { ColumnType } from "@/__generated__/types";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
+import { ColumnType } from "@/server/models/DataSource";
 import {
   findAirtableWebhookById,
   upsertAirtableWebhook,

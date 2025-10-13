@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import mapStyles from "../styles";
-import type { MapStyleName } from "@/__generated__/types";
+import type { MapStyleName } from "@/server/models/MapView";
 
 export default function MapStyleSelector() {
   const [open, setOpen] = useState(false);

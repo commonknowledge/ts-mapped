@@ -1,15 +1,15 @@
 import { sql } from "kysely";
-import { FilterOperator, FilterType } from "@/__generated__/types";
 import {
   DATA_RECORDS_PAGE_SIZE,
   MARKER_MATCHED_COLUMN,
   SORT_BY_LOCATION,
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
+import { FilterOperator, FilterType } from "@/server/models/MapView";
 import { db } from "@/server/services/database";
 import type { Point } from "../models/shared";
-import type { RecordFilterInput, SortInput } from "@/__generated__/types";
 import type { NewDataRecord } from "@/server/models/DataRecord";
+import type { RecordFilterInput, SortInput } from "@/server/models/MapView";
 import type { Database } from "@/server/services/database";
 import type {
   AliasableExpression,

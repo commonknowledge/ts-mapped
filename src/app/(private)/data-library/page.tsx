@@ -1,8 +1,8 @@
 import { Database, Mail, Pentagon } from "lucide-react";
-import { AreaSetGroupCode } from "@/__generated__/types";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
 import { AreaSetGroupCodeLabels } from "@/labels";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { Button } from "@/shadcn/ui/button";
 
 // Define mapped data library items grouped by category

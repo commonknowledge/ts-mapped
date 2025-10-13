@@ -1,6 +1,6 @@
-import { EnrichmentSourceType } from "@/__generated__/types";
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
+import { EnrichmentSourceType } from "@/server/models/DataSource";
 import {
   Select,
   SelectContent,
@@ -8,14 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import type {
-  AreaSetCode,
-  DataSourceEnrichmentQuery,
-  LooseEnrichment,
-} from "@/__generated__/types";
+import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { AreaPropertyType, Enrichment } from "@/server/models/DataSource";
+import type { RouterOutputs } from "@/services/trpc/react";
 
-// Extend the GraphQL type with a placeholder for new enrichments
-export type NewEnrichment = LooseEnrichment | { sourceType: "" };
+// Extend the type with a placeholder for new enrichments
+export type NewEnrichment = Enrichment | { sourceType: "" };
 
 export default function EnrichmentFields({
   enrichment,
@@ -23,16 +21,13 @@ export default function EnrichmentFields({
   onChange,
 }: {
   enrichment: NewEnrichment;
-  dataSources: Exclude<
-    DataSourceEnrichmentQuery["dataSources"],
-    null | undefined
-  >;
+  dataSources: NonNullable<RouterOutputs["dataSource"]["listReadable"]>;
   onChange: (enrichment: Partial<NewEnrichment>) => void;
 }) {
   const dataSource = dataSources.find(
-    (dataSource) =>
+    (ds: { id: string }) =>
       enrichment.sourceType === EnrichmentSourceType.DataSource &&
-      dataSource.id === enrichment.dataSourceId,
+      ds.id === enrichment.dataSourceId,
   );
   const dataSourceColumns = dataSource?.columnDefs || [];
 
@@ -88,7 +83,7 @@ export default function EnrichmentFields({
             <Select
               value={enrichment.areaProperty || ""}
               onValueChange={(areaProperty) =>
-                onChange({ areaProperty } as { areaProperty: "code" | "name" })
+                onChange({ areaProperty: areaProperty as AreaPropertyType })
               }
             >
               <SelectTrigger className="w-[360px]">

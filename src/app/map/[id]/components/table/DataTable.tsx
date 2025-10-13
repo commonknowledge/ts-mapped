@@ -30,7 +30,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
-import type { ColumnDef, DataRecord, SortInput } from "@/__generated__/types";
+import type { DataRecord } from "@/server/models/DataRecord";
+import type { ColumnDef } from "@/server/models/DataSource";
+import type { SortInput } from "@/server/models/MapView";
 import type { ReactNode } from "react";
 
 interface DataTableProps {

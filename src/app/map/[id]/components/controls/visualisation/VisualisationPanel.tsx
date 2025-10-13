@@ -10,11 +10,6 @@ import {
   X,
 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
-import {
-  CalculationType,
-  ColorScheme,
-  VisualisationType,
-} from "@/__generated__/types";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import {
   useChoroplethDataSource,
@@ -24,6 +19,11 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
+import {
+  CalculationType,
+  ColorScheme,
+  VisualisationType,
+} from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -51,7 +51,7 @@ import {
 import { cn } from "@/shadcn/utils";
 import { getValidAreaSetGroupCodes } from "../../../sources";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
-import type { AreaSetGroupCode } from "@/__generated__/types";
+import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function VisualisationPanel({
   positionLeft,

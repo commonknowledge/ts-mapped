@@ -1,9 +1,9 @@
 import { Pentagon } from "lucide-react";
 import React, { useMemo } from "react";
 import { useState } from "react";
-import { AreaSetGroupCode } from "@/__generated__/types";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { AreaSetGroupCodeLabels } from "@/labels";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { Label } from "@/shadcn/ui/label";
 
 interface LocalityShapeItem {

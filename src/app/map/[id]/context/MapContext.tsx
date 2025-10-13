@@ -1,15 +1,17 @@
 import { createContext } from "react";
+import { DEFAULT_ZOOM } from "@/constants";
 import {
   CalculationType,
   ColorScheme,
   MapStyleName,
-} from "@/__generated__/types";
-import { DEFAULT_ZOOM } from "@/constants";
+} from "@/server/models/MapView";
 import mapStyles from "../styles";
-import type { MapViewConfigInput } from "@/__generated__/types";
 import type { BoundingBox } from "@/server/models/Area";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
-import type { VisualisationType } from "@/server/models/MapView";
+import type {
+  MapViewConfigInput,
+  VisualisationType,
+} from "@/server/models/MapView";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 

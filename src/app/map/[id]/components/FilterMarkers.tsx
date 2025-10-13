@@ -8,7 +8,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
-import type { RecordFilterInput } from "@/__generated__/types";
+import type { RecordFilterInput } from "@/server/models/MapView";
 import type {
   Feature,
   FeatureCollection,

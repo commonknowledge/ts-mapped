@@ -11,10 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { PublicMapContext } from "../context/PublicMapContext";
-import type {
-  ColumnDef,
-  PublicMapDataSourceConfig,
-} from "@/__generated__/types";
+import type { ColumnDef } from "@/server/models/DataSource";
+import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 
 interface DataSource {
   id: string;

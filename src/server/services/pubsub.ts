@@ -25,7 +25,7 @@ interface PubSubOptions {
  *
  * Key design decisions:
  * - Uses separate Redis clients for publish and subscribe operations (Redis requirement)
- * - Implements AsyncIterableIterator pattern for GraphQL/tRPC subscriptions
+ * - Implements AsyncIterableIterator pattern for tRPC subscriptions
  * - Manages multiple listeners per channel efficiently
  * - Handles automatic cleanup when subscriptions are closed
  */
@@ -92,7 +92,7 @@ export class RedisPubSub {
 
   /**
    * Creates an async iterator for subscribing to a Redis channel.
-   * This implements the AsyncIterableIterator pattern required by GraphQL/tRPC subscriptions.
+   * This implements the AsyncIterableIterator pattern required by tRPC subscriptions.
    *
    * How it works:
    * 1. Creates a queue to buffer incoming messages

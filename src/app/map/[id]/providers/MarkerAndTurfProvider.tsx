@@ -37,7 +37,6 @@ export default function MarkerAndTurfProvider({
 
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
-  /* GraphQL Data */
   const dataSourceIds = useMemo(() => {
     if (!publicMap) {
       return mapConfig.getDataSourceIds();

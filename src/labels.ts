@@ -1,13 +1,10 @@
 // Human friendly labels for enums
 
+import type { AreaSetCode, AreaSetGroupCode } from "./server/models/AreaSet";
 import type {
-  AreaSetCode,
-  AreaSetGroupCode,
   DataSourceRecordType,
   EnrichmentSourceType,
   GeocodingType,
-} from "./__generated__/types";
-import type {
   actionNetworkConfigSchema,
   airtableConfigSchema,
   csvConfigSchema,

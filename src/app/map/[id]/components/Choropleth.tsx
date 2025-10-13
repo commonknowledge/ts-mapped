@@ -1,13 +1,13 @@
 import { useContext, useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
+import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
   CalculationType,
   ColorScheme,
   VisualisationType,
-} from "@/__generated__/types";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+} from "@/server/models/MapView";
 import { useFillColor } from "../colors";
 
 export default function Choropleth() {
