@@ -8,11 +8,7 @@ import { useTRPC } from "@/services/trpc/react";
 
 export function useDataSources() {
   const trpc = useTRPC();
-  const query = useQuery(
-    trpc.dataSource.listReadable.queryOptions(undefined, {
-      refetchOnMount: "always",
-    }),
-  );
+  const query = useQuery(trpc.dataSource.listReadable.queryOptions());
 
   const getDataSourceById = useCallback(
     (id: string | null | undefined) => {
