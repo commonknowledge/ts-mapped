@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useContext } from "react";
+import { use, useCallback, useContext, useMemo } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "./useMapQuery";
@@ -48,8 +48,12 @@ export function useMapConfig() {
     [mapId, queryClient, trpc.map.byId, setConfigDirty],
   );
 
+  const mapConfig = useMemo(
+    () => new MapConfig(mapData?.config),
+    [mapData?.config],
+  );
   return {
-    mapConfig: new MapConfig(mapData?.config),
+    mapConfig,
     updateMapConfig,
   };
 }

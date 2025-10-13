@@ -212,7 +212,7 @@ const usePublicMapAndActiveTab = (
 
     const dataSources = mapConfig
       .getDataSourceIds()
-      .map((id) => getDataSourceById(id))
+      .map(getDataSourceById)
       .filter((ds) => ds !== undefined && ds !== null);
 
     const dataSourceConfigs = dataSources.map(createDataSourceConfig);
