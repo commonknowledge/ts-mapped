@@ -4,7 +4,6 @@ import { Check, CornerDownRight, Pencil, Trash2 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { mapColors } from "@/app/map/[id]/styles";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -42,7 +41,6 @@ export default function SortableMarkerItem({
   const {
     updatePlacedMarker,
     deletePlacedMarker,
-    selectedPlacedMarkerId,
     setSelectedPlacedMarkerId,
     getMarkerVisibility,
     setMarkerVisibilityState,

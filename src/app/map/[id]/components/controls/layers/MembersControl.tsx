@@ -7,7 +7,6 @@ import {
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -20,7 +19,6 @@ import { defaultLayerStyles } from "../LayerStyles";
 
 export default function MembersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig } = useMapViews();
   const { updateMapConfig } = useMapConfig();
   const dataSource = useMembersDataSource();
   const { data: allDataSources, isPending: allDataSourcesLoading } =

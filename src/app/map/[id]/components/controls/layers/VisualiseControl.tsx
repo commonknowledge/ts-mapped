@@ -1,15 +1,10 @@
 import { ChevronDown, Eye, Grid3X3, Hexagon, Palette } from "lucide-react";
-import { useContext } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { VisualisationType } from "@/server/models/MapView";
-import Legend from "../../Legend";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function VisualiseControl() {
-  const { boundariesPanelOpen, setBoundariesPanelOpen } =
-    useContext(ChoroplethContext);
   const { viewConfig } = useMapViews();
 
   return (

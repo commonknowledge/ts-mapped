@@ -11,7 +11,6 @@ import {
 import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
@@ -29,7 +28,6 @@ import { defaultLayerStyles } from "../LayerStyles";
 import type { Turf } from "@/server/models/Turf";
 
 export default function AreasControl() {
-  const { viewConfig, updateViewConfig } = useMapViews();
   const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -94,7 +92,6 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   const { mapRef, showControls } = useContext(MapContext);
   const { updateTurf, deleteTurf, getTurfVisibility, setTurfVisibilityState } =
     useContext(MarkerAndTurfContext);
-  const { viewConfig, updateViewConfig } = useMapViews();
   const inputRef = useRef<HTMLInputElement>(null);
   const isVisible = getTurfVisibility(turf.id); // Get visibility from context
 

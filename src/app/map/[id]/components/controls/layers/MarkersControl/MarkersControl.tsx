@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -23,8 +22,9 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { viewConfig } = useMapViews();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const { data: dataSources } = useDataSources();
   const {
     placedMarkersLoading,
     folders,
@@ -32,7 +32,6 @@ export default function MarkersControl() {
     insertFolder,
     handleDropPin,
   } = useContext(MarkerAndTurfContext);
-  const { handleDataSourceSelect } = useContext(TableContext);
   const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
@@ -64,7 +63,6 @@ export default function MarkersControl() {
   };
 
   const getDataSourceDropdownItems = () => {
-    const { data: dataSources } = useDataSources();
     const markerDataSources =
       dataSources?.filter((dataSource) => {
         return dataSource.recordType !== DataSourceRecordType.Members;

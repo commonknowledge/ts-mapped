@@ -1,4 +1,3 @@
-import { Database } from "lucide-react";
 import { useContext } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";

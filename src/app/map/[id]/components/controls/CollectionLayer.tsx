@@ -1,7 +1,6 @@
 import { Table } from "lucide-react";
 import React from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { mapColors } from "../../styles";
 import LayerItem from "./LayerItem";
 import type { DataSourceType } from "@/server/models/DataSource";
 
@@ -23,9 +22,6 @@ export default function CollectionLayer({
   handleDataSourceSelect: (id: string) => void;
   layerType: string;
 }) {
-  const layerColor =
-    layerType === "member" ? mapColors.member.color : mapColors.markers.color;
-
   return (
     <LayerItem
       onClick={() => handleDataSourceSelect(dataSource.id)}
