@@ -8,7 +8,7 @@ import {
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { pubsub } from "@/server/services/pubsub";
+import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSource } from "@/server/models/DataSource";
@@ -35,6 +35,8 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     );
     return false;
   }
+
+  const pubsub = getPubSub();
 
   try {
     pubsub.publish("dataSourceEvent", {

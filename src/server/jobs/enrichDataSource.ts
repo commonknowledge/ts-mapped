@@ -3,7 +3,7 @@ import { getDataSourceAdaptor } from "@/server/adaptors";
 import { enrichRecord } from "@/server/mapping/enrich";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { pubsub } from "@/server/services/pubsub";
+import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
 import type { DataSource } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
@@ -29,6 +29,8 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
     );
     return false;
   }
+
+  const pubsub = getPubSub();
 
   try {
     pubsub.publish("dataSourceEvent", {

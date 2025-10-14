@@ -247,15 +247,20 @@ export class RedisPubSub {
   }
 }
 
-// Create two separate Redis clients from the environment variable
-// Redis requires separate connections for publish and subscribe operations
-// because subscribing puts the connection in a special mode
-const publishClient = new Redis(process.env.REDIS_URL || "");
-const subscribeClient = new Redis(process.env.REDIS_URL || "");
-
 // Export a singleton instance that can be used throughout the application
 // This ensures all parts of the app use the same Redis connections
-export const pubsub = new RedisPubSub({
-  publishClient,
-  subscribeClient,
-});
+let pubsub: RedisPubSub | null = null;
+
+// Export a function that is called when the pubsub is required, to avoid
+// connecting to redis when importing this file (e.g. when building the app)
+export const getPubSub = () => {
+  if (!pubsub) {
+    // Create two separate Redis clients from the environment variable
+    // Redis requires separate connections for publish and subscribe operations
+    // because subscribing puts the connection in a special mode
+    const publishClient = new Redis(process.env.REDIS_URL || "");
+    const subscribeClient = new Redis(process.env.REDIS_URL || "");
+    pubsub = new RedisPubSub({ publishClient, subscribeClient });
+  }
+  return pubsub;
+};
