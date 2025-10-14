@@ -401,7 +401,7 @@ export default function Map({
             setSelectedRecord(null);
           }
 
-          if (draw && currentMode !== "draw_polygon") {
+          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
             const polygonFeature = getClickedPolygonFeature(draw, e);
 
             if (polygonFeature) {
@@ -420,7 +420,7 @@ export default function Map({
           }
         }}
         onDblClick={(e) => {
-          if (draw && currentMode !== "draw_polygon") {
+          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
             const polygonFeature = getClickedPolygonFeature(draw, e);
 
             if (polygonFeature) {

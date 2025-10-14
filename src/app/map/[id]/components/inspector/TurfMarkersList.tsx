@@ -241,7 +241,7 @@ const PlacedMarkersList = ({
 
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
-  const name = folder?.name;
+  const name = folder?.name || "No folder";
 
   const onRecordClick = (record: RecordData) => {
     setSelectedRecord({
@@ -259,11 +259,9 @@ const PlacedMarkersList = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {name && (
-        <h3 className="font-semibold">
-          {name} ({total})
-        </h3>
-      )}
+      <h3 className="font-semibold">
+        {name} ({total})
+      </h3>
 
       <ul>
         {recordsList.map((record) => {
