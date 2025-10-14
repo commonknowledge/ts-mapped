@@ -134,9 +134,11 @@ const MembersList = ({
   const total = records.count.matched ?? 0;
 
   const onRecordClick = (record: RecordData) => {
+    console.log(record);
     setSelectedRecord({
       id: record.id,
       dataSourceId: dataSource?.id as string,
+      point: record.geocodePoint,
       properties: {
         ...record.json,
         __name: nameColumn ? record.json[nameColumn] : "",
@@ -193,6 +195,7 @@ const MarkersList = ({
     setSelectedRecord({
       id: record.id,
       dataSourceId: dataSource?.id as string,
+      point: record.geocodePoint,
       properties: {
         ...record.json,
         __name: nameColumn ? record.json[nameColumn] : "",
@@ -250,6 +253,7 @@ const PlacedMarkersList = ({
     setSelectedRecord({
       id: record.id,
       dataSourceId: "",
+      point: record.geocodePoint,
       properties: {
         __name: record.json?.name || "",
       },

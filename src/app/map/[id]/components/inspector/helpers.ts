@@ -31,6 +31,7 @@ export const checkIfAnyRecords = (markers: { records: RecordsResponse }[]) => {
 const placedMarkerToRecord = (marker: PlacedMarker): RecordData => {
   return {
     id: marker.id,
+    geocodePoint: marker.point,
     json: {
       name: marker.label || "Placed marker",
       notes: marker.notes || "",

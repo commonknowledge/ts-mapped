@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { LayerType } from "@/types";
 import type { Polygon } from "geojson";
@@ -15,6 +16,7 @@ export interface InspectorContent {
 export interface SelectedRecord {
   id: string;
   dataSourceId: string;
+  point?: Point | null;
   properties?: Record<string, unknown> | null;
 }
 

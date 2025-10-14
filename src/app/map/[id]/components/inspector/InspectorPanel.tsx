@@ -1,6 +1,7 @@
-import { ArrowLeftIcon, TableIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
@@ -11,10 +12,18 @@ import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
 
 export default function InspectorPanel() {
-  const { inspectorContent, resetInspector, selectedTurf, setSelectedRecord } =
-    useContext(InspectorContext);
+  const {
+    inspectorContent,
+    resetInspector,
+    selectedTurf,
+    selectedRecord,
+    setSelectedRecord,
+  } = useContext(InspectorContext);
+  const { mapRef } = useContext(MapContext);
   const { setSelectedDataSourceId, selectedDataSourceId } =
     useContext(TableContext);
+
+  console.log(inspectorContent);
 
   if (!Boolean(inspectorContent)) {
     return <></>;
@@ -22,9 +31,18 @@ export default function InspectorPanel() {
 
   const { dataSource, properties, type } = inspectorContent ?? {};
   const tableOpen = Boolean(selectedDataSourceId);
+  const detailsViewInTurfInspector = selectedTurf && type !== LayerType.Turf;
 
   const onBackToTurfClick = () => {
     setSelectedRecord(null);
+  };
+
+  const flyToMarker = () => {
+    const map = mapRef?.current;
+
+    if (map && selectedRecord?.point) {
+      map.flyTo({ center: selectedRecord.point, zoom: 12 });
+    }
   };
 
   return (
@@ -49,7 +67,7 @@ export default function InspectorPanel() {
           </button>
         </div>
 
-        {selectedTurf && type !== LayerType.Turf && (
+        {detailsViewInTurfInspector && (
           <div className="px-4 pb-2">
             <button
               onClick={() => onBackToTurfClick()}
@@ -85,15 +103,23 @@ export default function InspectorPanel() {
 
           {type === LayerType.Turf && <TurfMarkersList />}
 
-          {dataSource && (
-            <div className="border-t pt-4">
-              <Button
-                variant="secondary"
-                onClick={() => setSelectedDataSourceId(dataSource.id)}
-              >
-                <TableIcon />
-                View row in data source
-              </Button>
+          {(detailsViewInTurfInspector || dataSource) && (
+            <div className="flex flex-col gap-3 border-t pt-4">
+              {detailsViewInTurfInspector && selectedRecord?.point && (
+                <Button onClick={() => flyToMarker()}>
+                  <MapPinIcon />
+                  View on map
+                </Button>
+              )}
+              {dataSource && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setSelectedDataSourceId(dataSource.id)}
+                >
+                  <TableIcon />
+                  View in table
+                </Button>
+              )}
             </div>
           )}
         </div>
