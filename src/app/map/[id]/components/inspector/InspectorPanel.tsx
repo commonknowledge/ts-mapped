@@ -23,8 +23,6 @@ export default function InspectorPanel() {
   const { setSelectedDataSourceId, selectedDataSourceId } =
     useContext(TableContext);
 
-  console.log(inspectorContent);
-
   if (!Boolean(inspectorContent)) {
     return <></>;
   }

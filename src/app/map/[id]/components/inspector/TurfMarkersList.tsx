@@ -134,7 +134,6 @@ const MembersList = ({
   const total = records.count.matched ?? 0;
 
   const onRecordClick = (record: RecordData) => {
-    console.log(record);
     setSelectedRecord({
       id: record.id,
       dataSourceId: dataSource?.id as string,
