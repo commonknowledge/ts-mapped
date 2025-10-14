@@ -1,7 +1,7 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
-import { CalculationType, VisualisationType } from "@/__generated__/types";
+import { CalculationType, VisualisationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import type { ViewConfig } from "./context/MapContext";
 import type { AreaStat, BoundingBox } from "@/server/models/Area";

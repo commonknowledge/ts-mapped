@@ -20,6 +20,8 @@ export const publicMapColumnSchema = z.object({
   type: z.nativeEnum(PublicMapColumnType),
 });
 
+export type PublicMapColumn = z.infer<typeof publicMapColumnSchema>;
+
 export const publicMapDataSourceConfigSchema = z.object({
   allowUserEdit: z.boolean(),
   allowUserSubmit: z.boolean(),
@@ -32,6 +34,10 @@ export const publicMapDataSourceConfigSchema = z.object({
   descriptionLabel: z.string(),
   additionalColumns: z.array(publicMapColumnSchema),
 });
+
+export type PublicMapDataSourceConfig = z.infer<
+  typeof publicMapDataSourceConfigSchema
+>;
 
 export const publicMapSchema = z.object({
   id: z.string(),

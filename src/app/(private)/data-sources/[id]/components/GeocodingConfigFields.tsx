@@ -1,9 +1,12 @@
-import { AreaSetCode, GeocodingType } from "@/__generated__/types";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
 import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
-import { AreaGeocodingType } from "@/server/models/DataSource";
-import type { LooseGeocodingConfig } from "@/__generated__/types";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import {
+  AreaGeocodingType,
+  type GeocodingConfig,
+  GeocodingType,
+} from "@/server/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 /**
@@ -21,26 +24,32 @@ export function GeocodingConfigFields({
   onChange,
 }: {
   dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
-  geocodingConfig: LooseGeocodingConfig;
-  onChange: (config: Partial<LooseGeocodingConfig>) => void;
+  geocodingConfig: GeocodingConfig;
+  onChange: (config: Partial<GeocodingConfig>) => void;
 }) {
-  const column = geocodingConfig.column || "";
-  const columns = geocodingConfig.columns || [];
-  const areaSetCode = geocodingConfig.areaSetCode || "";
+  const column = "column" in geocodingConfig ? geocodingConfig.column : "";
+  const columns = "columns" in geocodingConfig ? geocodingConfig.columns : [];
+  const areaSetCode =
+    "areaSetCode" in geocodingConfig ? geocodingConfig.areaSetCode : "";
 
   // Convert "Postcode" type to a valid geocoding config
   const onTypeChange = (type: FriendlyGeocodingType) => {
     if (type === "Postcode") {
       onChange({ type: GeocodingType.Code, areaSetCode: AreaSetCode.PC });
-    } else if (geocodingConfig.areaSetCode === AreaSetCode.PC) {
+    } else if (
+      "areaSetCode" in geocodingConfig &&
+      geocodingConfig.areaSetCode === AreaSetCode.PC
+    ) {
       // Reset the areaSetCode if changing from postcode to other type
-      const prevType =
+      const prevCode =
         "areaSetCode" in dataSource.geocodingConfig
           ? dataSource.geocodingConfig.areaSetCode
-          : null;
+          : undefined;
       onChange({
         type,
-        areaSetCode: prevType === AreaSetCode.PC ? null : prevType,
+        ...(prevCode && prevCode !== AreaSetCode.PC
+          ? { areaSetCode: prevCode }
+          : { areaSetCode: undefined }),
       });
     } else {
       onChange({ type });
@@ -69,10 +78,10 @@ export function GeocodingConfigFields({
     })) || [];
 
   const areaTypeOptions =
-    Object.keys(AreaSetCodeLabels)
+    (Object.keys(AreaSetCodeLabels) as AreaSetCode[])
       .filter((type) => type !== AreaSetCode.PC)
       .map((type) => ({
-        label: AreaSetCodeLabels[type as AreaSetCode],
+        label: AreaSetCodeLabels[type],
         value: type,
       })) || [];
 

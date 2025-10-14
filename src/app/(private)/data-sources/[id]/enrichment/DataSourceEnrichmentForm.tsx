@@ -39,7 +39,7 @@ export default function DataSourceEnrichmentForm({
         router.push(`/data-sources/${dataSource.id}`);
       },
       onError: (error) => {
-        console.log(error);
+        console.error(error);
         setLoading(false);
         setError("Could not update data source.");
       },

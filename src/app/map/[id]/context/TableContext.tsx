@@ -10,7 +10,6 @@ export const TableContext = createContext<{
   tablePage: number;
   setTablePage: (page: number) => void;
 
-  /* GraphQL Queries */
   dataRecordsResult: RouterOutputs["dataRecord"]["list"] | null | undefined;
   dataRecordsLoading: boolean;
 }>({

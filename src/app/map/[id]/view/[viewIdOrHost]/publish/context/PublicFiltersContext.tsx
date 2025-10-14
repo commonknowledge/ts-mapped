@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { PublicMapDataRecordsQuery } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 export const PublicFiltersContext = createContext<{
@@ -9,10 +9,12 @@ export const PublicFiltersContext = createContext<{
   setFilterFields: React.Dispatch<React.SetStateAction<FilterField[]>>;
   publicFilters: Record<string, PublicFiltersFormValue[]>;
   setPublicFilters: (r: Record<string, PublicFiltersFormValue[]>) => void;
-  records: NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"];
+  records: NonNullable<
+    RouterOutputs["dataSource"]["byIdWithRecords"]
+  >["records"];
   setRecords: React.Dispatch<
     React.SetStateAction<
-      NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
+      NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"]
     >
   >;
 }>({

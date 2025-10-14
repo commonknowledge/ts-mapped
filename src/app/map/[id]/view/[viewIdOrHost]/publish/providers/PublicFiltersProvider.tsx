@@ -1,10 +1,10 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
-import { PublicMapColumnType } from "@/__generated__/types";
+import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
-import type { PublicMapDataRecordsQuery } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 import type { ReactNode } from "react";
 
@@ -21,7 +21,7 @@ export default function PublicFiltersProvider({
     Record<string, PublicFiltersFormValue[]>
   >({});
   const [records, setRecords] = useState<
-    NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"]
+    NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"]
   >([]);
 
   useEffect(() => {

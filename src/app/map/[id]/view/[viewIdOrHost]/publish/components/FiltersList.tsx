@@ -2,7 +2,7 @@
 
 import { CircleX } from "lucide-react";
 import { Fragment, useContext } from "react";
-import { PublicMapColumnType } from "@/__generated__/types";
+import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Badge } from "@/shadcn/ui/badge";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";

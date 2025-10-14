@@ -1,5 +1,5 @@
-import { AreaSetCode, AreaSetGroupCode } from "@/__generated__/types";
-import type { LooseGeocodingConfig } from "@/__generated__/types";
+import { AreaSetCode, AreaSetGroupCode } from "@/server/models/AreaSet";
+import type { GeocodingConfig } from "@/server/models/DataSource";
 
 export interface ChoroplethLayerConfig {
   areaSetCode: AreaSetCode;
@@ -98,17 +98,21 @@ export const getChoroplethLayerConfig = (
 // Return the area set groups that are valid as visualisation options
 // for a given data source geocoding config
 export const getValidAreaSetGroupCodes = (
-  dataSourceGeocodingConfig: LooseGeocodingConfig | null | undefined,
+  dataSourceGeocodingConfig: GeocodingConfig | null | undefined,
 ): AreaSetGroupCode[] => {
   if (!dataSourceGeocodingConfig) {
     return [];
   }
 
-  if (dataSourceGeocodingConfig.areaSetCode) {
+  const areaSetCode =
+    "areaSetCode" in dataSourceGeocodingConfig
+      ? dataSourceGeocodingConfig.areaSetCode
+      : null;
+
+  if (areaSetCode) {
     // Get a list of area sets that are smaller or equal in size
     // to the data source area set
-    const dataSourceAreaSize =
-      AREA_SET_SIZES[dataSourceGeocodingConfig.areaSetCode];
+    const dataSourceAreaSize = AREA_SET_SIZES[areaSetCode];
     const validAreaSets = Object.keys(AREA_SET_SIZES).filter(
       (code) => AREA_SET_SIZES[code as AreaSetCode] >= dataSourceAreaSize,
     );

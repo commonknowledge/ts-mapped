@@ -3,7 +3,7 @@ import type {
   PublicMap,
   PublicMapColumn,
   PublicMapDataSourceConfig,
-} from "@/__generated__/types";
+} from "@/server/models/PublicMap";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 

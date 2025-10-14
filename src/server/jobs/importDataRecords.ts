@@ -8,7 +8,7 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { batchAsync } from "../utils";
 import { importBatch } from "./importDataSource";
-import type { ColumnDef } from "@/__generated__/types";
+import type { ColumnDef } from "@/server/models/DataSource";
 
 const importDataRecords = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {

@@ -54,7 +54,7 @@ export default function ConfigurationForm({
         }
       },
       onError: (error) => {
-        console.log(error);
+        console.error(error);
         setLoading(false);
         setError("Could not update data source.");
       },

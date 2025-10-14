@@ -1,5 +1,6 @@
 import z from "zod";
 import { areaSetGroupCode } from "./AreaSet";
+import { pointSchema } from "./shared";
 import type {
   Generated,
   Insertable,
@@ -7,7 +8,7 @@ import type {
   Updateable,
 } from "kysely";
 
-enum FilterOperator {
+export enum FilterOperator {
   AND = "AND",
   OR = "OR",
 }
@@ -47,10 +48,15 @@ export const recordFilterSchema: z.ZodType<RecordFilterWithChildren> =
       .nullable(),
   });
 
+export type RecordFilterInput = z.infer<typeof recordFilterSchema>;
+
 export const recordSortSchema = z.object({
   name: z.string(),
   desc: z.boolean(),
+  location: pointSchema.nullish(),
 });
+
+export type SortInput = z.infer<typeof recordSortSchema>;
 
 export const dataSourceViewSchema = z.object({
   dataSourceId: z.string(),
@@ -58,6 +64,8 @@ export const dataSourceViewSchema = z.object({
   search: z.string(),
   sort: z.array(recordSortSchema),
 });
+
+export type DataSourceView = z.infer<typeof dataSourceViewSchema>;
 
 export enum VisualisationType {
   BoundaryOnly = "BoundaryOnly",
@@ -108,6 +116,8 @@ export const mapViewConfigSchema = z.object({
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
 });
+
+export type MapViewConfigInput = z.infer<typeof mapViewConfigSchema>;
 
 export const mapViewSchema = z.object({
   id: z.string(),

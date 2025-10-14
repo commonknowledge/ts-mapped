@@ -2,7 +2,7 @@ import ThumbDark from "@/assets/map/dark.png";
 import ThumbLight from "@/assets/map/light.png";
 import ThumbSatellite from "@/assets/map/satellite.png";
 import ThumbStreets from "@/assets/map/streets.png";
-import type { MapStyleName } from "@/__generated__/types";
+import type { MapStyleName } from "@/server/models/MapView";
 import type { StaticImageData } from "next/image";
 
 export interface MapStyleConfig {
