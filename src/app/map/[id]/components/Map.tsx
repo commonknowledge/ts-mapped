@@ -401,12 +401,12 @@ export default function Map({
             setSelectedRecord(null);
           }
 
-          if (draw) {
-            draw.changeMode("simple_select", { featureIds: [] });
-
+          if (draw && currentMode !== "draw_polygon") {
             const polygonFeature = getClickedPolygonFeature(draw, e);
 
             if (polygonFeature) {
+              draw.changeMode("simple_select", { featureIds: [] });
+
               setSelectedTurf({
                 id: polygonFeature.properties?.id,
                 name: polygonFeature.properties?.label,
@@ -420,7 +420,7 @@ export default function Map({
           }
         }}
         onDblClick={(e) => {
-          if (draw) {
+          if (draw && currentMode !== "draw_polygon") {
             const polygonFeature = getClickedPolygonFeature(draw, e);
 
             if (polygonFeature) {

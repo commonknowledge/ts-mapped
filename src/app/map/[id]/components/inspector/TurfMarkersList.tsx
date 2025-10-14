@@ -10,6 +10,7 @@ import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType, type RecordData, type RecordsResponse } from "@/types";
 import {
+  checkIfAnyRecords,
   getMarkersInsideTurf,
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
@@ -91,6 +92,10 @@ export default function TurfMarkersList() {
           <h2 className="text-xs font-mono uppercase text-muted-foreground">
             Markers in this area
           </h2>
+
+          {!checkIfAnyRecords([...mappedPlacedMarkers, ...markers]) && (
+            <p>No markers in this area</p>
+          )}
 
           {mappedPlacedMarkers.length > 0 &&
             mappedPlacedMarkers.map((markersGroup, index) => (

@@ -20,6 +20,14 @@ export function getMarkersInsideTurf(
   });
 }
 
+export const checkIfAnyRecords = (markers: { records: RecordsResponse }[]) => {
+  const allRecords = markers
+    .flatMap((marker) => marker.records.records)
+    .filter((r) => Boolean(r));
+
+  return allRecords?.length > 0;
+};
+
 const placedMarkerToRecord = (marker: PlacedMarker): RecordData => {
   return {
     id: marker.id,

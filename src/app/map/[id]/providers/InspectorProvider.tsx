@@ -52,7 +52,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
       if (selectedTurf?.id) {
         setInspectorContent({
           type: LayerType.Turf,
-          name: selectedTurf.name,
+          name: selectedTurf.name || "Area",
           properties: null,
           dataSource: null,
         });
