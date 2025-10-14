@@ -68,6 +68,7 @@ export const mapRouter = router({
           name: "Default View",
           dataSourceViews: [],
           position: 0,
+          isTag: false,
           config: {
             areaDataColumn: "",
             areaDataSourceId: input.dataSourceId,

@@ -71,7 +71,7 @@ export default function VisualisationShapeLibrarySelector() {
       <div
         key={item.id}
         className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${
-          isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200"
+          isSelected ? "border-blue-500 bg-blue-50" : "border-neutral-200"
         }`}
         onClick={() => onSelect(item.code)}
       >
@@ -80,7 +80,7 @@ export default function VisualisationShapeLibrarySelector() {
           <div
             className={`w-10 h-10 bg-gradient-to-br ${
               item.code === null
-                ? "from-gray-400 to-gray-600"
+                ? "from-neutral-400 to-neutral-600"
                 : "from-blue-400 to-purple-500"
             } rounded-lg flex items-center justify-center text-white`}
           >
@@ -98,13 +98,13 @@ export default function VisualisationShapeLibrarySelector() {
               )}
             </div>
 
-            <p className="text-xs text-gray-600 mb-1">{item.description}</p>
+            <p className="text-xs text-neutral-600 mb-1">{item.description}</p>
 
             {/* Additional info for boundary types */}
             {item.code && (
               <div className="flex items-center gap-2">
-                <Pentagon className="w-3 h-3 text-gray-400" />
-                <span className="text-xs text-gray-500">
+                <Pentagon className="w-3 h-3 text-neutral-400" />
+                <span className="text-xs text-neutral-500">
                   Geographic boundary data
                 </span>
               </div>

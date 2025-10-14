@@ -106,6 +106,7 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
     mapId: map.id,
     position: 0,
     dataSourceViews: [],
+    isTag: false,
   });
 
   return map;

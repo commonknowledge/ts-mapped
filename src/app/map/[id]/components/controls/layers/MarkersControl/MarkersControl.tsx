@@ -1,4 +1,12 @@
-import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  DatabaseIcon,
+  FolderPlusIcon,
+  LoaderPinwheel,
+  Plus,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -9,15 +17,14 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import { CollectionIcon } from "../../../Icons";
-import ControlItemWrapper from "../../ControlItemWrapper";
-import LayerHeader from "../../LayerHeader";
+import { defaultLayerStyles } from "../../LayerStyles";
 import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { viewConfig } = useMapViews();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const { data: dataSources } = useDataSources();
   const {
     placedMarkersLoading,
     folders,
@@ -25,7 +32,6 @@ export default function MarkersControl() {
     insertFolder,
     handleDropPin,
   } = useContext(MarkerAndTurfContext);
-  const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
@@ -106,8 +112,8 @@ export default function MarkersControl() {
     },
     {
       type: "submenu" as const,
-      label: "Add Marker Collection",
-      icon: <CollectionIcon color={mapColors.markers.color} />,
+      label: "Add Data Source",
+      icon: <DatabaseIcon className="w-4 h-4 text-muted-foreground" />,
       items: [
         ...getDataSourceDropdownItems(),
         {
@@ -132,27 +138,46 @@ export default function MarkersControl() {
   const loading = foldersLoading || placedMarkersLoading;
 
   return (
-    <ControlItemWrapper className="markers-control">
-      <LayerHeader
-        label="Markers"
-        color={mapColors.markers.color}
-        showLayer={viewConfig.showLocations}
-        setLayer={(show) => updateViewConfig({ showLocations: show })}
-        expanded={expanded}
-        setExpanded={setExpanded}
-      >
-        {loading && <LoaderPinwheel className="animate-spin" size={16} />}
-        <IconButtonWithTooltip
-          align="start"
-          side="right"
-          tooltip="Marker options"
-          dropdownLabel="Marker options"
-          dropdownItems={getDropdownItems()}
+    <div className={defaultLayerStyles.container}>
+      {/* Header */}
+      <div className={defaultLayerStyles.header}>
+        <button
+          className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
+          onClick={() => setExpanded(!expanded)}
         >
-          <Ellipsis className="w-4 h-4" />
-        </IconButtonWithTooltip>
-      </LayerHeader>
-      {expanded && <MarkersList />}
-    </ControlItemWrapper>
+          {expanded ? (
+            <ChevronDown className="w-4 h-4 text-neutral-600" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-neutral-600" />
+          )}
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: mapColors.markers.color }}
+          />
+          <span className="text-sm font-medium">Markers</span>
+        </button>
+        <div className="flex items-center gap-1">
+          {loading && <LoaderPinwheel className="animate-spin w-4 h-4" />}
+          <IconButtonWithTooltip
+            align="start"
+            side="right"
+            tooltip="Add markers"
+            dropdownLabel="Marker options"
+            dropdownItems={getDropdownItems()}
+          >
+            <Plus className="w-4 h-4" />
+          </IconButtonWithTooltip>
+        </div>
+      </div>
+
+      {/* Layer Items */}
+      {expanded && (
+        <div
+          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"}`}
+        >
+          <MarkersList />
+        </div>
+      )}
+    </div>
   );
 }

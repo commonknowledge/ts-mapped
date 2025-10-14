@@ -1,4 +1,3 @@
-import { Database } from "lucide-react";
 import { useContext } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
@@ -103,11 +102,7 @@ export default function Legend() {
   }
 
   return (
-    <div className="flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200">
-      <p className=" flex  gap-2 items-center text-xs font-mono p-2">
-        <Database className="w-4 h-4 text-muted-foreground" />
-        Locality Data Legend
-      </p>
+    <div className="flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 pt-2 w-full">
       <div className="flex flex-col ">
         <p className="flex items-center font-medium px-2 ">
           {dataSource?.name}

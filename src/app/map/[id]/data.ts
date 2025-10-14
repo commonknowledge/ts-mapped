@@ -1,19 +1,18 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-
 import { CalculationType, VisualisationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import type { ViewConfig } from "./context/MapContext";
 import type { AreaStat, BoundingBox } from "@/server/models/Area";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { ColumnType } from "@/server/models/DataSource";
+import type { MapViewConfig } from "@/server/models/MapView";
 
 export const useAreaStats = ({
   viewConfig,
   areaSetCode,
   boundingBox,
 }: {
-  viewConfig: ViewConfig;
+  viewConfig: MapViewConfig;
   areaSetCode: AreaSetCode;
   boundingBox?: BoundingBox | null;
 }) => {

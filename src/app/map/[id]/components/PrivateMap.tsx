@@ -5,7 +5,10 @@ import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
-import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useDataSources,
+  useMarkerDataSources,
+} from "@/app/map/[id]/hooks/useDataSources";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -26,11 +29,42 @@ export default function PrivateMap() {
   const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
 
-  const { isPending: dataSourcesLoading } = useDataSources();
+  const { isPending: dataSourcesLoading, data: allDataSources } =
+    useDataSources();
+  const markerDataSources = useMarkerDataSources();
   const { markerQueries } = useContext(MarkerAndTurfContext);
-  const { selectedDataSourceId } = useContext(TableContext);
+  const { selectedDataSourceId, handleDataSourceSelect } =
+    useContext(TableContext);
 
   const { data: map, isPending } = useMapQuery(mapId);
+
+  // Handle configure tag callback
+  const handleConfigureTag = () => {
+    console.log("handleConfigureTag called");
+    console.log("All data sources:", allDataSources);
+    console.log("Marker data sources:", markerDataSources);
+
+    // Try to get data source IDs from the hooks
+    const availableDataSourceIds = allDataSources?.map((ds) => ds.id) || [];
+    const markerDataSourceIds = markerDataSources?.map((ds) => ds.id) || [];
+
+    console.log("Available data source IDs:", availableDataSourceIds);
+    console.log("Marker data source IDs:", markerDataSourceIds);
+
+    // Prefer marker data sources, fallback to any data source
+    const dataSourceIdsToUse =
+      markerDataSourceIds.length > 0
+        ? markerDataSourceIds
+        : availableDataSourceIds;
+
+    if (dataSourceIdsToUse.length > 0) {
+      console.log("Selecting data source:", dataSourceIdsToUse[0]);
+      handleDataSourceSelect(dataSourceIdsToUse[0]);
+    } else {
+      console.log("No data source IDs available");
+    }
+  };
+
   // Resize map when UI changes
   useEffect(() => {
     if (mapRef?.current) {
@@ -70,6 +104,8 @@ export default function PrivateMap() {
             <ResizablePanel className="relative" id="map" order={0}>
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+                onConfigureTag={handleConfigureTag}
+                isTableOpen={!!selectedDataSourceId}
               />
             </ResizablePanel>
             {selectedDataSourceId && (

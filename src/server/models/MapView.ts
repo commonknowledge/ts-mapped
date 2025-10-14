@@ -117,7 +117,7 @@ export const mapViewConfigSchema = z.object({
   reverseColorScheme: z.boolean().nullish(),
 });
 
-export type MapViewConfigInput = z.infer<typeof mapViewConfigSchema>;
+export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 
 export const mapViewSchema = z.object({
   id: z.string(),
@@ -126,6 +126,7 @@ export const mapViewSchema = z.object({
   dataSourceViews: z.array(dataSourceViewSchema),
   position: z.number(),
   mapId: z.string(),
+  isTag: z.boolean(),
   createdAt: z.date(),
 });
 

@@ -20,6 +20,7 @@ import { useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
+import { useMapConfig } from "../hooks/useMapConfig";
 import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
@@ -29,8 +30,9 @@ import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapId, mapRef, dirtyViewIds, configDirty } = useContext(MapContext);
+  const { mapId, mapRef, dirtyViewIds } = useContext(MapContext);
   const { data: map } = useMapQuery(mapId);
+  const { isDirty: configDirty } = useMapConfig();
   const { view } = useMapViews();
 
   const showPublishButton = useFeatureFlagEnabled("public-maps");

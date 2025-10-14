@@ -4,6 +4,7 @@ import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { getDataSourceIds } from "@/app/map/[id]/utils";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
@@ -25,7 +26,7 @@ export default function TurfMarkersList() {
   const { selectedTurf } = useContext(InspectorContext);
   const trpc = useTRPC();
 
-  const dataSourceIds = mapConfig.getDataSourceIds();
+  const dataSourceIds = getDataSourceIds(mapConfig);
 
   const { data, isFetching } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>

@@ -29,6 +29,7 @@ import {
 } from "@/app/map/[id]/utils";
 import CollectionLayer from "../../CollectionLayer";
 import EmptyLayer from "../../Emptylayer";
+import { defaultLayerStyles } from "../../LayerStyles";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
@@ -286,7 +287,7 @@ export default function MarkersList() {
   };
 
   return (
-    <div className="relative">
+    <div className={defaultLayerStyles.content}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

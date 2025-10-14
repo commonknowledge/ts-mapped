@@ -117,7 +117,7 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
             <div>
               <button
                 onClick={() => setIsSolutionsOpen(!isSolutionsOpen)}
-                className="flex items-center justify-between w-full text-lg font-medium py-2 border-b border-gray-100"
+                className="flex items-center justify-between w-full text-lg font-medium py-2 border-b border-neutral-100"
               >
                 Solutions
                 {isSolutionsOpen ? (
@@ -135,7 +135,7 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
                         <Link
                           key={solution._id}
                           href={`/solutions/${solution.slug?.current || solution._id}`}
-                          className="text-base py-2 pl-2 border-b border-gray-100 flex gap-1"
+                          className="text-base py-2 pl-2 border-b border-neutral-100 flex gap-1"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           <Image
@@ -172,7 +172,7 @@ export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-lg font-medium py-2 border-b border-gray-100"
+                className="text-lg font-medium py-2 border-b border-neutral-100"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.label}

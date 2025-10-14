@@ -9,6 +9,7 @@ import {
   VisualisationType,
 } from "@/server/models/MapView";
 import { useFillColor } from "../colors";
+import { getMapStyle } from "../utils";
 
 export default function Choropleth() {
   // Keep track of area codes that have feature state, to clean if necessary
@@ -120,7 +121,16 @@ export default function Choropleth() {
               type="line"
               paint={{
                 "line-color": "#999",
-                "line-width": 1,
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  // At zoom 15, line width is 1
+                  10,
+                  0.5, // At zoom 20, line width is 0.5
+                  20,
+                  4, // At zoom 0, line width is 2
+                ],
               }}
             />
           )}
@@ -146,7 +156,7 @@ export default function Choropleth() {
                 "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
               }}
               paint={{
-                "text-color": viewConfig.getMapStyle().textColor,
+                "text-color": getMapStyle(viewConfig).textColor,
                 "text-opacity": [
                   "interpolate",
                   ["linear"],
@@ -156,7 +166,7 @@ export default function Choropleth() {
                   10,
                   0.8,
                 ],
-                "text-halo-color": viewConfig.getMapStyle().textHaloColor,
+                "text-halo-color": getMapStyle(viewConfig).textHaloColor,
                 "text-halo-width": 1.5,
               }}
             />

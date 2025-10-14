@@ -1,9 +1,16 @@
 import * as turfLib from "@turf/turf";
-import { ArrowRight, Check, Pencil, PlusIcon, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
@@ -13,16 +20,20 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { cn } from "@/shadcn/utils";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
 import EmptyLayer from "../Emptylayer";
-import LayerHeader from "../LayerHeader";
+import LayerItem from "../LayerItem";
+import { defaultLayerStyles } from "../LayerStyles";
 import type { Turf } from "@/server/models/Turf";
 
 export default function AreasControl() {
-  const { viewConfig, updateViewConfig } = useMapViews();
   const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
+
+  const strokeColor = mapColors.areas.color;
+  const fillColor = mapColors.areas.color + "50";
 
   const onAddArea = () => {
     handleAddArea();
@@ -34,18 +45,30 @@ export default function AreasControl() {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-3">
-      <LayerHeader
-        label="Areas"
-        color={mapColors.areas.color}
-        showLayer={viewConfig.showTurf}
-        setLayer={(show) => updateViewConfig({ showTurf: show })}
-        expanded={expanded}
-        setExpanded={setExpanded}
-      >
+    <div className={defaultLayerStyles.container}>
+      {/* Header */}
+      <div className={defaultLayerStyles.header}>
+        <button
+          className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? (
+            <ChevronDown className="w-4 h-4 text-neutral-600" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-neutral-600" />
+          )}
+          <div
+            className="w-3.5 h-3.5 rounded-xs"
+            style={{
+              border: `2px solid ${strokeColor}`,
+              backgroundColor: fillColor,
+            }}
+          />
+          <span className="text-sm font-medium">Areas</span>
+        </button>
         {!isAddingArea ? (
           <IconButtonWithTooltip tooltip="Add Area" onClick={() => onAddArea()}>
-            <PlusIcon className="w-4 h-4" />
+            <Plus className="w-4 h-4" />
           </IconButtonWithTooltip>
         ) : (
           <div className="flex text-xs items-center text-muted-foreground gap-0.5">
@@ -53,22 +76,16 @@ export default function AreasControl() {
             <ArrowRight className="w-4 h-4" />
           </div>
         )}
-      </LayerHeader>
+      </div>
 
+      {/* Layer Items */}
       {expanded && (
-        <div className="relative">
-          {turfs && turfs.length === 0 && (
+        <div className={cn(defaultLayerStyles.content, "space-y-1")}>
+          {turfs && turfs.length > 0 ? (
+            turfs.map((turf) => <TurfItem key={turf.id} turf={turf} />)
+          ) : (
             <EmptyLayer message="Add an Area Layer" />
           )}
-          {/* Disable interactions while turfs are loading/updating in the background */}
-          {/* {turfsLoading && <Loading blockInteraction />} */}
-          <ul
-            className={`ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
-          >
-            {turfs.map((turf) => (
-              <TurfItem key={turf.id} turf={turf} />
-            ))}
-          </ul>
         </div>
       )}
     </div>
@@ -79,8 +96,10 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
   const { mapRef, showControls } = useContext(MapContext);
-  const { updateTurf, deleteTurf } = useContext(MarkerAndTurfContext);
+  const { updateTurf, deleteTurf, getTurfVisibility, setTurfVisibilityState } =
+    useContext(MarkerAndTurfContext);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isVisible = getTurfVisibility(turf.id); // Get visibility from context
 
   const handleFlyTo = (turf: Turf) => {
     const map = mapRef?.current;
@@ -110,7 +129,13 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div className="flex justify-between items-center p-0.5 hover:bg-neutral-100 rounded cursor-pointer text-sm">
+        <LayerItem
+          onClick={() => handleFlyTo(turf)}
+          layerType="areas"
+          individualVisibility={true}
+          isVisible={isVisible}
+          onVisibilityToggle={() => setTurfVisibilityState(turf.id, !isVisible)}
+        >
           {isEditing ? (
             <form
               onSubmit={(e) => {
@@ -118,55 +143,48 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
                 updateTurf({ ...turf, label: editText });
                 setEditing(false);
               }}
-              className="w-full flex items-center p-0"
+              className="w-full flex items-center gap-2"
             >
               <Input
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
                 ref={inputRef}
+                className="flex-1"
               />
-              <Button type="submit" variant="link">
+              <Button type="submit" variant="ghost" size="sm">
                 <Check className="h-3 w-3" />
               </Button>
             </form>
           ) : (
             <>
-              <div className="group flex items-center gap-2 w-full">
-                <button
-                  className="w-full overflow-hidden / flex items-center gap-2 / text-sm text-left / cursor-pointer"
-                  onClick={() => handleFlyTo(turf)}
-                >
-                  <div
-                    style={{ backgroundColor: mapColors.areas.color }}
-                    className="w-2 h-2 rounded-full shrink-0"
-                  />
-                  <span className="truncate">
-                    {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
-                  </span>
-                </button>
-
-                <div className="hidden group-hover:flex gap-2 text-muted-foreground">
-                  <button
-                    className="cursor-pointer hover:text-primary"
-                    onClick={() => {
-                      setEditing(true);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    className="cursor-pointer hover:text-primary"
-                    onClick={() => {
-                      deleteTurf(turf.id);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+              <div className="flex-1">
+                <div className="text-sm">
+                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
                 </div>
+              </div>
+              <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white">
+                <button
+                  className="cursor-pointer hover:text-primary p-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditing(true);
+                  }}
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+                <button
+                  className="cursor-pointer hover:text-primary p-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTurf(turf.id);
+                  }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
               </div>
             </>
           )}
-        </div>
+        </LayerItem>
       </ContextMenuTrigger>
       <ContextMenuContentWithFocus
         targetRef={inputRef}

@@ -1,5 +1,6 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { useMutation } from "@tanstack/react-query";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point as turfPoint } from "@turf/helpers";
 import * as turf from "@turf/turf";
@@ -13,9 +14,11 @@ import {
   useState,
 } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
+import { toast } from "sonner";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
@@ -24,8 +27,10 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { useTRPC } from "@/services/trpc/react";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import { getDataSourceIds, getMapStyle } from "../utils";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
 
@@ -33,6 +38,8 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import TagExplainerCard from "./table/TagExplainerCard";
+import TurfVisibilityManager from "./TurfVisibilityManager";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 import type {
@@ -47,9 +54,13 @@ import type { MapMouseEvent } from "mapbox-gl";
 export default function Map({
   onSourceLoad,
   hideDrawControls,
+  onConfigureTag,
+  isTableOpen,
 }: {
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
+  onConfigureTag?: () => void;
+  isTableOpen?: boolean;
 }) {
   const {
     mapRef,
@@ -60,17 +71,48 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
-  const { viewConfig } = useMapViews();
+  const { viewConfig, view } = useMapViews();
   const { mapConfig } = useMapConfig();
+  const { getDataSourceById } = useDataSources();
+
+  // Tag resending functionality
+  const trpc = useTRPC();
+  const { mutate: tagRecords } = useMutation(
+    trpc.mapView.tagRecordsWithViewName.mutationOptions({
+      onSuccess: () => {
+        toast.success("Tagging records in the background");
+      },
+      onError: () => {
+        toast.error("Failed to tag records with view name");
+      },
+    }),
+  );
   const {
     deleteTurf,
     insertTurf,
     updateTurf,
-    turfs,
     searchMarker,
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
+
+  // Get the first data source and its view for tag preview
+  const firstDataSourceId = getDataSourceIds(mapConfig)[0];
+  const firstDataSource = firstDataSourceId
+    ? getDataSourceById(firstDataSourceId) || undefined
+    : undefined;
+  const firstDataSourceView = view?.dataSourceViews.find(
+    (dsv) => dsv.dataSourceId === firstDataSourceId,
+  );
+
+  // Handle resend tags
+  const handleResendTags = () => {
+    if (!firstDataSource || !view) {
+      toast.error("No data source or view available for tagging");
+      return;
+    }
+    tagRecords({ dataSourceId: firstDataSource.id, viewId: view.id });
+  };
   const { resetInspector, setSelectedRecord, setSelectedTurf } =
     useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
@@ -86,28 +128,25 @@ export default function Map({
 
   const markerLayers = useMemo(
     () =>
-      mapConfig
-        .getDataSourceIds()
+      getDataSourceIds(mapConfig)
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );
 
-  // draw existing turfs
-  useEffect(() => {
-    if (!turfs || !draw) return;
-
-    draw.deleteAll();
-
-    // Add existing polygons from your array
-    turfs.forEach((turf) => {
-      draw.add({
-        type: "Feature",
-        properties: { ...turf },
-        geometry: turf.polygon,
-      });
-    });
-  }, [turfs, draw]);
+  // Note: Turf rendering is now handled by TurfVisibilityManager component
+  // MapboxDraw is only used for drawing/editing new polygons
+  // useEffect(() => {
+  //   if (!turfs || !draw) return;
+  //   draw.deleteAll();
+  //   turfs.forEach((turf) => {
+  //     draw.add({
+  //       type: "Feature",
+  //       properties: { ...turf },
+  //       geometry: turf.polygon,
+  //     });
+  //   });
+  // }, [turfs, draw]);
 
   // Hover behavior
   useEffect(() => {
@@ -200,34 +239,9 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
-  const toggleDrawVisibility = useCallback(
-    (visible: boolean) => {
-      const map = mapRef?.current;
-
-      // all draw layers
-      const drawLayerIds = [
-        "gl-draw-polygon-fill.cold",
-        "gl-draw-polygon-stroke.cold",
-        "gl-draw-polygon-and-line-vertex-halo-active.cold",
-        "gl-draw-polygon-and-line-vertex-active.cold",
-      ];
-
-      if (map && styleLoaded) {
-        // draw layers that actually exist on our map
-        const style = map.getStyle();
-        const layerIds = style.layers
-          .filter((layer) => drawLayerIds.includes(layer.id))
-          .map((layer) => layer.id);
-
-        layerIds.forEach((id) => {
-          map
-            .getMap()
-            .setLayoutProperty(id, "visibility", visible ? "visible" : "none");
-        });
-      }
-    },
-    [mapRef, styleLoaded],
-  );
+  // Note: Turf rendering is now handled by TurfVisibilityManager component
+  // MapboxDraw is only used for drawing/editing new polygons
+  // The toggleDrawVisibility function is kept for MapboxDraw controls only
 
   const getClickedPolygonFeature = (
     draw: MapboxDraw,
@@ -261,9 +275,8 @@ export default function Map({
     return polygonFeature ?? null;
   };
 
-  useEffect(() => {
-    toggleDrawVisibility(viewConfig.showTurf);
-  }, [viewConfig.showTurf, toggleDrawVisibility]);
+  // Note: Area visibility is now handled by TurfVisibilityManager component
+  // The toggleDrawVisibility function is kept for MapboxDraw controls only
 
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
@@ -368,7 +381,7 @@ export default function Map({
         ref={mapRef}
         style={{ flexGrow: 1 }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-        mapStyle={`mapbox://styles/mapbox/${viewConfig.getMapStyle().slug}`}
+        mapStyle={`mapbox://styles/mapbox/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
         onClick={(e) => {
           const map = e.target;
@@ -462,7 +475,7 @@ export default function Map({
                   filter: [
                     "all",
                     ["==", "$type", "Polygon"],
-                    ["!=", "mode", "draw_polygon"],
+                    ["in", "mode", "simple_select", "direct_select"],
                   ],
                   paint: {
                     "fill-color": mapColors.areas.color,
@@ -619,6 +632,7 @@ export default function Map({
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
+            <TurfVisibilityManager />
             {searchMarker && <SearchResultMarker />}
             {hoverMarker && (
               <Popup
@@ -637,6 +651,23 @@ export default function Map({
       <div className="absolute top-4 right-4 z-20">
         <SearchBox />
       </div>
+      {view && view.isTag && !isTableOpen && (
+        <div
+          className="absolute top-4 z-20 transition-transform duration-300 w-full"
+          style={{
+            left: showControls ? `${CONTROL_PANEL_WIDTH + 16}px` : "40px",
+          }}
+        >
+          <TagExplainerCard
+            onConfigureTag={onConfigureTag || (() => undefined)}
+            onResendTags={handleResendTags}
+            dataSource={firstDataSource}
+            dataSourceView={firstDataSourceView}
+            viewName={view?.name}
+            placedMarkers={placedMarkers}
+          />
+        </div>
+      )}
     </MapWrapper>
   );
 }

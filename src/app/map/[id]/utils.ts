@@ -1,3 +1,7 @@
+import mapStyles from "./styles";
+import type { MapConfig } from "@/server/models/Map";
+import type { MapViewConfig } from "@/server/models/MapView";
+
 export const sortByPositionAndId = <T extends { id: string; position: number }>(
   items: T[],
 ) => {
@@ -72,4 +76,18 @@ export const getNewPositionAfter = (
     return from + 1;
   }
   return (afterFrom + from) / 2;
+};
+
+export const getDataSourceIds = (mapConfig: MapConfig) => {
+  return new Set(
+    [mapConfig.membersDataSourceId]
+      .concat(mapConfig.markerDataSourceIds)
+      .filter(Boolean),
+  )
+    .values()
+    .toArray();
+};
+
+export const getMapStyle = (viewConfig: MapViewConfig) => {
+  return mapStyles[viewConfig.mapStyleName] || Object.values(mapStyles)[0];
 };
