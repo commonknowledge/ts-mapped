@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { getDataSourceIds } from "@/app/map/[id]/utils";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
@@ -210,8 +211,7 @@ const usePublicMapAndActiveTab = (
       return;
     }
 
-    const dataSources = mapConfig
-      .getDataSourceIds()
+    const dataSources = getDataSourceIds(mapConfig)
       .map(getDataSourceById)
       .filter((ds) => ds !== undefined && ds !== null);
 

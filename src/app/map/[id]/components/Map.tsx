@@ -26,6 +26,7 @@ import {
 } from "@/constants";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import { getDataSourceIds } from "../utils";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
 
@@ -86,8 +87,7 @@ export default function Map({
 
   const markerLayers = useMemo(
     () =>
-      mapConfig
-        .getDataSourceIds()
+      getDataSourceIds(mapConfig)
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],

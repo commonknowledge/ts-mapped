@@ -5,22 +5,7 @@ import { use, useCallback, useContext, useMemo } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "./useMapQuery";
-
-export class MapConfig {
-  public markerDataSourceIds: string[] = [];
-  public membersDataSourceId: string | null = null;
-
-  constructor(params: Partial<MapConfig> = {}) {
-    Object.assign(this, params);
-  }
-
-  getDataSourceIds() {
-    return new Set([this.membersDataSourceId].concat(this.markerDataSourceIds))
-      .values()
-      .toArray()
-      .filter(Boolean);
-  }
-}
+import type { MapConfig } from "@/server/models/Map";
 
 export function useMapConfig() {
   const { mapId } = use(MapContext);
@@ -36,10 +21,10 @@ export function useMapConfig() {
       // Optimistically update the cache immediately
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
         if (!old) return old;
-        const updatedConfig = new MapConfig({
+        const updatedConfig = {
           ...old.config,
           ...nextMapConfig,
-        });
+        };
         return { ...old, config: updatedConfig };
       });
 
@@ -49,7 +34,8 @@ export function useMapConfig() {
   );
 
   const mapConfig = useMemo(
-    () => new MapConfig(mapData?.config),
+    () =>
+      mapData?.config || { markerDataSourceIds: [], membersDataSourceId: null },
     [mapData?.config],
   );
   return {

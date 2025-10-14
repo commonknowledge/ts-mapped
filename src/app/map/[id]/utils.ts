@@ -1,3 +1,5 @@
+import type { MapConfig } from "@/server/models/Map";
+
 export const sortByPositionAndId = <T extends { id: string; position: number }>(
   items: T[],
 ) => {
@@ -72,4 +74,14 @@ export const getNewPositionAfter = (
     return from + 1;
   }
   return (afterFrom + from) / 2;
+};
+
+export const getDataSourceIds = (mapConfig: MapConfig) => {
+  return new Set(
+    [mapConfig.membersDataSourceId]
+      .concat(mapConfig.markerDataSourceIds)
+      .filter(Boolean),
+  )
+    .values()
+    .toArray();
 };

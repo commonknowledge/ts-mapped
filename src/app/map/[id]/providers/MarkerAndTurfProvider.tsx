@@ -10,6 +10,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
+import { getDataSourceIds } from "../utils";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
 import type { PointFeature } from "@/types";
@@ -38,14 +39,12 @@ export default function MarkerAndTurfProvider({
 
   const dataSourceIds = useMemo(() => {
     if (!publicMap) {
-      return mapConfig.getDataSourceIds();
+      return getDataSourceIds(mapConfig);
     }
     // If a public map is being displayed, don't fetch markers that aren't included
-    return mapConfig
-      .getDataSourceIds()
-      .filter((id) =>
-        publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
-      );
+    return getDataSourceIds(mapConfig).filter((id) =>
+      publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
+    );
   }, [mapConfig, publicMap]);
 
   // Using the `combine` option in this useQueries call makes `markerQueries`
