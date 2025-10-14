@@ -41,15 +41,15 @@ export function GeocodingConfigFields({
       geocodingConfig.areaSetCode === AreaSetCode.PC
     ) {
       // Reset the areaSetCode if changing from postcode to other type
-      const prevType =
+      const prevCode =
         "areaSetCode" in dataSource.geocodingConfig
           ? dataSource.geocodingConfig.areaSetCode
           : undefined;
       onChange({
         type,
-        ...(prevType && prevType !== AreaSetCode.PC
-          ? { areaSetCode: prevType }
-          : {}),
+        ...(prevCode && prevCode !== AreaSetCode.PC
+          ? { areaSetCode: prevCode }
+          : { areaSetCode: undefined }),
       });
     } else {
       onChange({ type });
