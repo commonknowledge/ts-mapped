@@ -1,16 +1,16 @@
-import { ColumnType } from "@/__generated__/types";
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { geocodeRecord } from "@/server/mapping/geocode";
+import { ColumnType } from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { pubsub } from "@/server/services/pubsub";
+import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import type { ColumnDef } from "@/__generated__/types";
+import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSource } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
@@ -35,6 +35,8 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     );
     return false;
   }
+
+  const pubsub = getPubSub();
 
   try {
     pubsub.publish("dataSourceEvent", {

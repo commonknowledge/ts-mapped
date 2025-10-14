@@ -1,37 +1,19 @@
 import { createContext } from "react";
+import { DEFAULT_ZOOM } from "@/constants";
 import {
   CalculationType,
   ColorScheme,
   MapStyleName,
-} from "@/__generated__/types";
-import { DEFAULT_ZOOM } from "@/constants";
+} from "@/server/models/MapView";
 import mapStyles from "../styles";
-import type { View } from "../types";
+import type { BoundingBox } from "@/server/models/Area";
+import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 import type {
-  AreaSetGroupCode,
-  BoundingBoxInput,
-  MapConfigInput,
   MapViewConfigInput,
   VisualisationType,
-} from "@/__generated__/types";
+} from "@/server/models/MapView";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
-
-export class MapConfig implements MapConfigInput {
-  public markerDataSourceIds: string[] = [];
-  public membersDataSourceId: string | null = null;
-
-  constructor(params: Partial<MapConfig> = {}) {
-    Object.assign(this, params);
-  }
-
-  getDataSourceIds() {
-    return new Set([this.membersDataSourceId].concat(this.markerDataSourceIds))
-      .values()
-      .toArray()
-      .filter(Boolean);
-  }
-}
 
 export class ViewConfig implements MapViewConfigInput {
   public areaDataSourceId = "";
@@ -66,27 +48,19 @@ export const MapContext = createContext<{
   mapRef: RefObject<MapRef | null> | null;
 
   /* State */
-  mapConfig: MapConfig;
-  updateMapConfig: (config: Partial<MapConfig>) => void;
-  saveMapConfig: () => void;
+  boundingBox: BoundingBox | null;
+  setBoundingBox: (boundingBox: BoundingBox | null) => void;
 
-  mapName: string | null;
-  setMapName: (name: string | null) => void;
-
-  boundingBox: BoundingBoxInput | null;
-  setBoundingBox: (boundingBox: BoundingBoxInput | null) => void;
-
-  views: View[];
-  deleteView: (viewId: string) => void;
-  insertView: (view: Omit<View, "position">) => void;
-  updateView: (view: View) => void;
-  dirtyViewIds: string[];
-
-  view: View | null;
+  /* Active View ID */
+  viewId: string | null;
   setViewId: (id: string) => void;
 
-  viewConfig: ViewConfig;
-  updateViewConfig: (config: Partial<ViewConfig>) => void;
+  /* Dirty Views Tracking */
+  dirtyViewIds: string[];
+  setDirtyViewIds: (ids: string[] | ((prev: string[]) => string[])) => void;
+
+  configDirty: boolean;
+  setConfigDirty: (dirty: boolean) => void;
 
   zoom: number;
   setZoom: (zoom: number) => void;
@@ -99,33 +73,19 @@ export const MapContext = createContext<{
 
   showControls: boolean;
   setShowControls: (showControls: boolean) => void;
-
-  // mapQuery: UseQueryResult<
-  //   RouterOutputs["map"]["byId"],
-  //   TRPCClientErrorLike<AppRouter>
-  // > | null;
 }>({
   mapId: null,
   mapRef: null,
-  mapConfig: new MapConfig(),
-  updateMapConfig: () => null,
-  saveMapConfig: () => Promise.resolve(),
-  mapName: null,
-  setMapName: () => null,
   boundingBox: null,
   setBoundingBox: () => null,
-  views: [],
-  deleteView: () => null,
-  insertView: () => null,
-  updateView: () => null,
-  dirtyViewIds: [],
-  viewConfig: new ViewConfig(),
-  updateViewConfig: () => null,
-  view: null,
+  viewId: null,
   setViewId: () => null,
+  dirtyViewIds: [],
+  setDirtyViewIds: () => null,
+  configDirty: false,
+  setConfigDirty: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
-  // mapQuery: null,
   pinDropMode: false,
   setPinDropMode: () => null,
   ready: false,

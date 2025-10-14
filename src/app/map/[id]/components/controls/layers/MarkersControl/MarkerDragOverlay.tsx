@@ -1,5 +1,5 @@
 import { mapColors } from "@/app/map/[id]/styles";
-import type { PlacedMarker } from "@/__generated__/types";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function MarkerDragOverlay({
   marker,

@@ -14,6 +14,8 @@ import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
@@ -41,8 +43,6 @@ export default function Map({
 }) {
   const {
     mapRef,
-    mapConfig,
-    viewConfig,
     setBoundingBox,
     setZoom,
     pinDropMode,
@@ -50,6 +50,8 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
+  const { mapConfig } = useMapConfig();
   const {
     deleteTurf,
     insertTurf,

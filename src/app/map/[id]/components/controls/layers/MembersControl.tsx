@@ -1,12 +1,13 @@
 import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import {
   useDataSources,
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { mapColors } from "../../../styles";
@@ -18,8 +19,8 @@ import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
   const router = useRouter();
-  const { updateMapConfig, viewConfig, updateViewConfig } =
-    useContext(MapContext);
+  const { viewConfig, updateViewConfig } = useMapViews();
+  const { updateMapConfig } = useMapConfig();
   const dataSource = useMembersDataSource();
   const { data: allDataSources, isPending: allDataSourcesLoading } =
     useDataSources();

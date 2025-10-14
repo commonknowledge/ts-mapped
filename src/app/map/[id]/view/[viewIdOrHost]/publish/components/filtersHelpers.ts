@@ -1,6 +1,6 @@
-import { PublicMapColumnType } from "@/__generated__/types";
+import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { toBoolean } from "../utils";
-import type { PublicMapDataRecordsQuery } from "@/__generated__/types";
+import type { RouterOutputs } from "@/services/trpc/react";
 import type { PublicFiltersFormValue } from "@/types";
 
 export const getActiveFilters = (
@@ -15,8 +15,10 @@ export const getActiveFilters = (
 
 export const filterRecords = (
   activeFilters: PublicFiltersFormValue[],
-  allRecords: NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"],
-): NonNullable<PublicMapDataRecordsQuery["dataSource"]>["records"] => {
+  allRecords: NonNullable<
+    RouterOutputs["dataSource"]["byIdWithRecords"]
+  >["records"],
+): NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"] => {
   if (!activeFilters?.length || !allRecords?.length) {
     return [];
   }
@@ -39,9 +41,11 @@ export const filterRecords = (
         filter.type === PublicMapColumnType.CommaSeparatedList &&
         filter?.selectedOptions?.length
       ) {
-        const recordArr = record.json[filter.name]
-          ? record.json[filter.name].split(", ")
-          : [];
+        const recordValue = record.json[filter.name];
+        const recordArr =
+          recordValue && typeof recordValue === "string"
+            ? recordValue.split(", ")
+            : [];
 
         return recordArr.some((val: string) =>
           filter?.selectedOptions?.includes(val),

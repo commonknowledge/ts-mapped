@@ -25,7 +25,7 @@ interface PubSubOptions {
  *
  * Key design decisions:
  * - Uses separate Redis clients for publish and subscribe operations (Redis requirement)
- * - Implements AsyncIterableIterator pattern for GraphQL/tRPC subscriptions
+ * - Implements AsyncIterableIterator pattern for tRPC subscriptions
  * - Manages multiple listeners per channel efficiently
  * - Handles automatic cleanup when subscriptions are closed
  */
@@ -92,7 +92,7 @@ export class RedisPubSub {
 
   /**
    * Creates an async iterator for subscribing to a Redis channel.
-   * This implements the AsyncIterableIterator pattern required by GraphQL/tRPC subscriptions.
+   * This implements the AsyncIterableIterator pattern required by tRPC subscriptions.
    *
    * How it works:
    * 1. Creates a queue to buffer incoming messages
@@ -247,15 +247,20 @@ export class RedisPubSub {
   }
 }
 
-// Create two separate Redis clients from the environment variable
-// Redis requires separate connections for publish and subscribe operations
-// because subscribing puts the connection in a special mode
-const publishClient = new Redis(process.env.REDIS_URL || "");
-const subscribeClient = new Redis(process.env.REDIS_URL || "");
-
 // Export a singleton instance that can be used throughout the application
 // This ensures all parts of the app use the same Redis connections
-export const pubsub = new RedisPubSub({
-  publishClient,
-  subscribeClient,
-});
+let pubsub: RedisPubSub | null = null;
+
+// Export a function that is called when the pubsub is required, to avoid
+// connecting to redis when importing this file (e.g. when building the app)
+export const getPubSub = () => {
+  if (!pubsub) {
+    // Create two separate Redis clients from the environment variable
+    // Redis requires separate connections for publish and subscribe operations
+    // because subscribing puts the connection in a special mode
+    const publishClient = new Redis(process.env.REDIS_URL || "");
+    const subscribeClient = new Redis(process.env.REDIS_URL || "");
+    pubsub = new RedisPubSub({ publishClient, subscribeClient });
+  }
+  return pubsub;
+};

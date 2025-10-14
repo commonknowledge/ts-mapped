@@ -1,8 +1,8 @@
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { PublicMapColumnType } from "@/__generated__/types";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";

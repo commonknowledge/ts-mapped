@@ -1,17 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
 import { useContext } from "react";
 import { toast } from "sonner";
-import { FilterType } from "@/__generated__/types";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { DataSourceTypeLabels } from "@/labels";
+import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
-import type { DataSourceView } from "@/__generated__/types";
+import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {
   id: string;
@@ -19,7 +20,8 @@ interface DataRecord {
 }
 
 export default function MapTable() {
-  const { mapRef, view, updateView } = useContext(MapContext);
+  const { mapRef } = useContext(MapContext);
+  const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
 

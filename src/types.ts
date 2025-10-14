@@ -1,5 +1,6 @@
 // Only import library types and generated types into this file
-import type { PublicMapColumnType } from "./__generated__/types";
+
+import type { PublicMapColumnType } from "./server/models/PublicMap";
 import type { Geometry } from "geojson";
 
 export interface AreaStat {

@@ -1,5 +1,5 @@
 import { db } from "@/server/services/database";
-import type { MapConfig } from "@/__generated__/types";
+import type { MapConfig } from "@/server/models/Map";
 import type { MapUpdate } from "@/server/models/Map";
 
 const createBlankConfig = (): MapConfig => {
@@ -22,7 +22,11 @@ export async function createMap(organisationId: string, name = "Untitled Map") {
 }
 
 export async function deleteMap(id: string) {
-  return db.deleteFrom("map").where("id", "=", id).executeTakeFirstOrThrow();
+  return db
+    .deleteFrom("map")
+    .where("id", "=", id)
+    .returningAll()
+    .executeTakeFirstOrThrow();
 }
 
 export function findMapById(id: string) {

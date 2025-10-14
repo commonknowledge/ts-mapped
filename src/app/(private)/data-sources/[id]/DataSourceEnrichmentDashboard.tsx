@@ -12,7 +12,7 @@ import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
-import type { AreaSetCode } from "@/__generated__/types";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,

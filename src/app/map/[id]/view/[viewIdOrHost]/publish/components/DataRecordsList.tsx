@@ -2,16 +2,16 @@
 
 import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { PublicMapColumnType } from "@/__generated__/types";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { buildName } from "../utils";
 import { filterRecords, getActiveFilters } from "./filtersHelpers";
-import type { PublicMapDataSourceConfig } from "@/__generated__/types";
+import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 

@@ -8,12 +8,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { FilterOperator, FilterType } from "@/__generated__/types";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
+import { FilterOperator, FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -28,18 +28,16 @@ import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { mapColors } from "../../styles";
 import type {
-  ColumnDef,
-  MapConfig,
-  PlacedMarker,
-  RecordFilterInput,
-  Turf,
-} from "@/__generated__/types";
-import type {
   DropdownMenuItemType,
   DropdownSubComponent,
   DropdownSubMenu,
 } from "@/components/MultiDropdownMenu";
 import type { DataRecord } from "@/server/models/DataRecord";
+import type { ColumnDef } from "@/server/models/DataSource";
+import type { MapConfig } from "@/server/models/Map";
+import type { RecordFilterInput } from "@/server/models/MapView";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { Turf } from "@/server/models/Turf";
 
 interface TableFilterProps {
   filter: RecordFilterInput;
@@ -58,7 +56,7 @@ export default function MapTableFilter({
 }
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
-  const { mapConfig } = useContext(MapContext);
+  const { mapConfig } = useMapConfig();
   const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
   const { getDataSourceById } = useDataSources();
   const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
@@ -260,7 +258,7 @@ function OperatorToggle({
 
 // Extracted child filter component
 function ChildFilter({ filter, setFilter }: TableFilterProps) {
-  const { mapConfig } = useContext(MapContext);
+  const { mapConfig } = useMapConfig();
   const color = getFilterColor(filter, mapConfig);
   const hasDistance = filter.placedMarker || filter.dataRecordId;
   const inputRef = useRef<HTMLInputElement>(null);

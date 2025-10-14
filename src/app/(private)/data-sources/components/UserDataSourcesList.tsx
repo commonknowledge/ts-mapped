@@ -2,7 +2,6 @@
 
 import { Boxes, Database, PlusIcon, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import { DataSourceRecordType } from "@/__generated__/types";
 import { CollectionIcon } from "@/app/map/[id]/components/Icons";
 import { mapColors } from "@/app/map/[id]/styles";
 import { DataSourceItem } from "@/components/DataSourceItem";
@@ -11,6 +10,7 @@ import DataSourceRecordTypeIcon, {
   dataSourceRecordTypeLabels,
 } from "@/components/DataSourceRecordTypeIcon";
 import { Link } from "@/components/Link";
+import { DataSourceRecordType } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import type { RouterOutputs } from "@/services/trpc/react";

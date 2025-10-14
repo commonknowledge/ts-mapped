@@ -1,8 +1,7 @@
 import { PlusIcon } from "lucide-react";
-import React, { useContext } from "react";
 
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
@@ -15,8 +14,8 @@ import {
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
 import { Label } from "@/shadcn/ui/label";
-import { Select } from "@/shadcn/ui/select";
 import {
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -25,7 +24,8 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 
 export default function SettingsModal() {
-  const { mapConfig, updateMapConfig } = useContext(MapContext);
+  const { mapConfig, updateMapConfig } = useMapConfig();
+
   const { data: dataSources } = useDataSources();
 
   return (

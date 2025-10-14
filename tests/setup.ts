@@ -1,7 +1,7 @@
 import fs from "fs";
 import http from "http";
 import { db, pool } from "@/server/services/database";
-import { pubsub } from "@/server/services/pubsub";
+import { getPubSub } from "@/server/services/pubsub";
 import { getClient as getRedisClient } from "@/server/services/redis";
 import { startPublicTunnel, stopPublicTunnel } from "@/server/services/urls";
 
@@ -29,7 +29,7 @@ export async function setup() {
 
   return async () => {
     await db.destroy();
-    await pubsub.quit();
+    await getPubSub().quit();
     await stopPublicTunnel();
     await getRedisClient().quit();
     server.close();

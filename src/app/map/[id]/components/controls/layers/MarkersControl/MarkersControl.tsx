@@ -2,12 +2,13 @@ import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { DataSourceRecordType } from "@/__generated__/types";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { DataSourceRecordType } from "@/server/models/DataSource";
 import { CollectionIcon } from "../../../Icons";
 import ControlItemWrapper from "../../ControlItemWrapper";
 import LayerHeader from "../../LayerHeader";
@@ -15,8 +16,8 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { mapConfig, updateMapConfig, viewConfig, updateViewConfig } =
-    useContext(MapContext);
+  const { viewConfig, updateViewConfig } = useMapViews();
+  const { mapConfig, updateMapConfig } = useMapConfig();
   const {
     placedMarkersLoading,
     folders,

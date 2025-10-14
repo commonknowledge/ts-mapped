@@ -21,6 +21,7 @@ import { Check, Layers, Plus, X } from "lucide-react";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -42,13 +43,9 @@ import type { View } from "../types";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function MapViews() {
-  const {
-    views,
-    insertView,
-    mapId,
-    updateView,
-    setViewId: setSelectedViewId,
-  } = useContext(MapContext);
+  const { mapId } = useContext(MapContext);
+
+  const { views, insertView, updateView } = useMapViews();
 
   const [isCreating, setIsCreating] = useState(false);
   const [newViewName, setNewViewName] = useState("");
@@ -56,11 +53,10 @@ export default function MapViews() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isCreating) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 10);
-    }
+    if (!isCreating) return;
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 10);
   }, [isCreating]);
 
   // DnD sensors
@@ -99,7 +95,6 @@ export default function MapViews() {
     };
 
     insertView(newView);
-    setSelectedViewId(newView.id);
     setNewViewName("");
     setIsCreating(false);
   };
@@ -219,15 +214,9 @@ function SortableViewItem({
   setRenamingViewId: (id: string | null) => void;
   view: View;
 }) {
-  const {
-    dirtyViewIds,
-    view: selectedView,
-    setViewId: setSelectedViewId,
-    views,
-    deleteView,
-    updateView,
-    saveMapConfig,
-  } = useContext(MapContext);
+  const { setViewId: setSelectedViewId, dirtyViewIds } = useContext(MapContext);
+
+  const { views, deleteView, updateView, view: selectedView } = useMapViews();
   const [editName, setEditName] = useState(view.name);
   const isSelected = selectedView?.id === view.id;
   const isRenaming = renamingViewId === view.id;
@@ -262,7 +251,7 @@ function SortableViewItem({
   };
 
   const handleViewSelect = () => {
-    saveMapConfig(); // save current config in the background when changing view (to not lose the changes)
+    // Auto-save handles persisting any changes automatically
     setSelectedViewId(view.id);
   };
 

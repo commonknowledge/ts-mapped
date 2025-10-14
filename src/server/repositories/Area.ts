@@ -1,6 +1,6 @@
 import { sql } from "kysely";
 import { db } from "@/server/services/database";
-import type { AreaSetCode } from "@/__generated__/types";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Database } from "@/server/services/database";
 import type { SelectQueryBuilder } from "kysely";
 

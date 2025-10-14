@@ -1,5 +1,5 @@
 import { db } from "@/server/services/database";
-import type { MapConfig } from "@/__generated__/types";
+import type { MapConfig } from "@/server/models/Map";
 import type { NewPublicMap } from "@/server/models/PublicMap";
 import type { TraversedJSONPathBuilder } from "kysely";
 

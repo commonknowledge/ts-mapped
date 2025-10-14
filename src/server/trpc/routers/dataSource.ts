@@ -22,7 +22,7 @@ import {
 } from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { pubsub } from "@/server/services/pubsub";
+import { getPubSub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
 import {
   dataSourceOwnerProcedure,
@@ -283,7 +283,7 @@ export const dataSourceRouter = router({
         sub?.return?.();
       });
 
-      sub = pubsub.subscribe("dataSourceEvent");
+      sub = getPubSub().subscribe("dataSourceEvent");
       for await (const event of sub) {
         if (!event) {
           return;

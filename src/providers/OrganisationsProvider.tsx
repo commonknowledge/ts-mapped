@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useState } from "react";
-import type { Organisation } from "@/__generated__/types";
+import type { Organisation } from "@/server/models/Organisation";
 
 export const OrganisationsContext = createContext<{
   organisations: Organisation[];

@@ -4,9 +4,11 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
-import type { RecordFilterInput } from "@/__generated__/types";
+import type { RecordFilterInput } from "@/server/models/MapView";
 import type {
   Feature,
   FeatureCollection,
@@ -16,7 +18,9 @@ import type {
 import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
-  const { mapRef, mapConfig, view } = useContext(MapContext);
+  const { mapRef } = useContext(MapContext);
+  const { mapConfig } = useMapConfig();
+  const { view } = useMapViews();
   const { markerQueries, placedMarkers, turfs } =
     useContext(MarkerAndTurfContext);
 

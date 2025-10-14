@@ -1,7 +1,7 @@
 import { Check, X } from "lucide-react";
 import { useContext, useMemo } from "react";
-import { PublicMapColumnType } from "@/__generated__/types";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";

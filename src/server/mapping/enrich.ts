@@ -1,4 +1,4 @@
-import { ColumnType } from "@/__generated__/types";
+import { ColumnType } from "@/server/models/DataSource";
 import { findAreaByCode } from "@/server/repositories/Area";
 import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/DataRecord";
@@ -6,7 +6,7 @@ import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { geocodeRecord } from "./geocode";
 import type { GeocodeResult } from "../models/shared";
-import type { ColumnDef } from "@/__generated__/types";
+import type { ColumnDef } from "@/server/models/DataSource";
 import type {
   AreaEnrichment,
   DataSource,
