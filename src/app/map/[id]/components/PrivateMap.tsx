@@ -28,9 +28,19 @@ export default function PrivateMap() {
 
   const { isPending: dataSourcesLoading } = useDataSources();
   const { markerQueries } = useContext(MarkerAndTurfContext);
-  const { selectedDataSourceId } = useContext(TableContext);
+  const { selectedDataSourceId, handleDataSourceSelect } = useContext(TableContext);
 
   const { data: map, isPending } = useMapQuery(mapId);
+
+  // Handle configure tag callback
+  const handleConfigureTag = () => {
+    // Get the first data source ID from the map config to open the table
+    const dataSourceIds = map?.config?.markerDataSourceIds || [];
+    if (dataSourceIds.length > 0) {
+      handleDataSourceSelect(dataSourceIds[0]);
+    }
+  };
+
   // Resize map when UI changes
   useEffect(() => {
     if (mapRef?.current) {
@@ -70,6 +80,8 @@ export default function PrivateMap() {
             <ResizablePanel className="relative" id="map" order={0}>
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
+                onConfigureTag={handleConfigureTag}
+                isTableOpen={!!selectedDataSourceId}
               />
             </ResizablePanel>
             {selectedDataSourceId && (

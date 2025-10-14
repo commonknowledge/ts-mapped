@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Check, Layers, Plus, X } from "lucide-react";
+import { Check, Layers, Plus, X, Tag } from "lucide-react";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
@@ -286,15 +286,17 @@ function SortableViewItem({
           style={style}
           {...attributes}
           {...listeners}
-          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${
-            isRenaming ? "cursor-default" : "cursor-pointer"
-          } ${
-            isSelected ? "bg-muted" : "bg-transparent hover:border-action-hover"
-          } ${isDragging ? "opacity-50" : "opacity-100"}`}
+          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${isRenaming ? "cursor-default" : "cursor-pointer"
+            } ${isSelected ? "bg-muted" : "bg-transparent hover:border-action-hover"
+            } ${isDragging ? "opacity-50" : "opacity-100"}`}
           onClick={() => !isRenaming && handleViewSelect()}
           onDoubleClick={() => !isRenaming && handleDoubleClick()}
         >
-          <Layers className="w-4 h-4 text-muted-foreground" />
+          {(view.config as any).isTagView ? (
+            <Tag className="w-4 h-4 text-purple-600" />
+          ) : (
+            <Layers className="w-4 h-4 text-muted-foreground" />
+          )}
           {isRenaming ? (
             <input
               type="text"
