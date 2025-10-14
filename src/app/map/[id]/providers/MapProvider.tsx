@@ -69,6 +69,7 @@ export default function MapProvider({
         dataSourceViews: [],
         mapId: mapId,
         position: getNewLastPosition(mapData.views),
+        isTag: false,
         createdAt: new Date(),
       };
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {

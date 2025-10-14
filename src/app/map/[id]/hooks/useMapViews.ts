@@ -19,8 +19,14 @@ export function useMapViews() {
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
 
-  // Get views directly from cache
-  const views = useMemo(() => mapData?.views || [], [mapData?.views]);
+  // Get views directly from cache and ensure they have isTag field
+  const views = useMemo(() => {
+    const rawViews = mapData?.views || [];
+    return rawViews.map((v) => ({
+      ...v,
+      isTag: v.isTag ?? false, // Ensure isTag is always a boolean
+    }));
+  }, [mapData?.views]);
 
   const view = useMemo(
     () => views.find((v) => v.id === viewId) || null,
@@ -61,7 +67,8 @@ export function useMapViews() {
 
         return { previousData };
       },
-      onError: (_err, _variables, context) => {
+      onError: (err, _variables, context) => {
+        console.error("insertView mutation error:", err);
         // Rollback on error
         if (mapId && context?.previousData) {
           queryClient.setQueryData(
@@ -69,7 +76,7 @@ export function useMapViews() {
             context.previousData,
           );
         }
-        toast.error("Failed to create view");
+        toast.error(`Failed to create view: ${err.message || "Unknown error"}`);
       },
       onSuccess: (_data, _variables) => {
         setDirtyViewIds((ids) =>
@@ -88,7 +95,13 @@ export function useMapViews() {
         position: getNewLastPosition(views || []),
       };
 
-      const newViews = [...(views || []), newView];
+      // Ensure all existing views have the isTag field
+      const existingViews = (views || []).map((v) => ({
+        ...v,
+        isTag: v.isTag ?? false, // Default to false if undefined
+      }));
+
+      const newViews = [...existingViews, newView];
 
       setViewId(newView.id);
 
@@ -155,7 +168,11 @@ export function useMapViews() {
     (view: View) => {
       if (!mapId) return;
 
-      const updatedViews = views.map((v) => (v.id === view.id ? view : v));
+      // Ensure all views have the isTag field
+      const updatedViews = views.map((v) => ({
+        ...(v.id === view.id ? view : v),
+        isTag: (v.id === view.id ? view.isTag : v.isTag) ?? false,
+      }));
 
       setDirtyViewIds((ids) => ids.concat([view.id]));
 

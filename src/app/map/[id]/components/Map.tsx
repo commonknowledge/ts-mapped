@@ -2,6 +2,7 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point as turfPoint } from "@turf/helpers";
+import { useMutation } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import dynamic from "next/dynamic";
 import {
@@ -13,9 +14,11 @@ import {
   useState,
 } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
+import { toast } from "sonner";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
@@ -24,6 +27,7 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { useTRPC } from "@/services/trpc/react";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import { getDataSourceIds, getMapStyle } from "../utils";
@@ -50,9 +54,13 @@ import type { MapMouseEvent } from "mapbox-gl";
 export default function Map({
   onSourceLoad,
   hideDrawControls,
+  onConfigureTag,
+  isTableOpen,
 }: {
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
+  onConfigureTag?: () => void;
+  isTableOpen?: boolean;
 }) {
   const {
     mapRef,
@@ -63,8 +71,22 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
-  const { viewConfig } = useMapViews();
+  const { viewConfig, view } = useMapViews();
   const { mapConfig } = useMapConfig();
+  const { getDataSourceById } = useDataSources();
+
+  // Tag resending functionality
+  const trpc = useTRPC();
+  const { mutate: tagRecords } = useMutation(
+    trpc.mapView.tagRecordsWithViewName.mutationOptions({
+      onSuccess: () => {
+        toast.success("Tagging records in the background");
+      },
+      onError: () => {
+        toast.error("Failed to tag records with view name");
+      },
+    }),
+  );
   const {
     deleteTurf,
     insertTurf,
@@ -74,6 +96,24 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
+
+  // Get the first data source and its view for tag preview
+  const firstDataSourceId = getDataSourceIds(mapConfig)[0];
+  const firstDataSource = firstDataSourceId
+    ? getDataSourceById(firstDataSourceId) || undefined
+    : undefined;
+  const firstDataSourceView = view?.dataSourceViews.find(
+    (dsv) => dsv.dataSourceId === firstDataSourceId,
+  );
+
+  // Handle resend tags
+  const handleResendTags = () => {
+    if (!firstDataSource || !view) {
+      toast.error("No data source or view available for tagging");
+      return;
+    }
+    tagRecords({ dataSourceId: firstDataSource.id, viewId: view.id });
+  };
   const { resetInspector, setSelectedRecord, setSelectedTurf } =
     useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
@@ -640,6 +680,23 @@ export default function Map({
       <div className="absolute top-4 right-4 z-20">
         <SearchBox />
       </div>
+      {view && view.isTag && !isTableOpen && (
+        <div
+          className="absolute top-4 z-20 transition-transform duration-300 w-full"
+          style={{
+            left: showControls ? `${CONTROL_PANEL_WIDTH + 16}px` : "40px",
+          }}
+        >
+          <TagExplainerCard
+            onConfigureTag={onConfigureTag || (() => undefined)}
+            onResendTags={handleResendTags}
+            dataSource={firstDataSource}
+            dataSourceView={firstDataSourceView}
+            viewName={view?.name}
+            placedMarkers={placedMarkers}
+          />
+        </div>
+      )}
     </MapWrapper>
   );
 }

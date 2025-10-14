@@ -113,6 +113,25 @@ export default function VisualisationPanel({
 
         <div className="grid grid-cols-1 gap-2">
           <button
+            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualisationType === VisualisationType.BoundaryOnly
+              ? "border-blue-500 bg-blue-50"
+              : "border-neutral-200 hover:border-neutral-300"
+              }`}
+            onClick={() =>
+              updateViewConfig({
+                visualisationType:
+                  viewConfig.visualisationType ===
+                    VisualisationType.BoundaryOnly
+                    ? undefined
+                    : VisualisationType.BoundaryOnly,
+              })
+            }
+          >
+            <div className="w-8 h-8 mx-auto mb-2 bg-neutral-200 rounded"></div>
+            <span className="text-xs">Boundary outline</span>
+          </button>
+
+          <button
             className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualisationType === VisualisationType.Choropleth
               ? "border-blue-500 bg-blue-50"
               : "border-neutral-200 hover:border-neutral-300"
@@ -171,7 +190,7 @@ export default function VisualisationPanel({
                       areaDataColumn: undefined,
                     })
                   }
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="text-xs text-neutral-500 hover:text-neutral-700"
                 >
                   Change data source
                 </Button>
@@ -222,7 +241,7 @@ export default function VisualisationPanel({
               !viewConfig.areaDataSourceId && (
                 <div className="flex items-center gap-2">
                   <CircleAlert className="w-4 h-4 text-yellow-500" />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-neutral-500">
                     No data source selected. Please select a data source to
                     create a choropleth.
                   </p>
@@ -234,7 +253,7 @@ export default function VisualisationPanel({
               !viewConfig.areaSetGroupCode && (
                 <div className="flex items-center gap-2">
                   <CircleAlert className="w-4 h-4 text-yellow-500" />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-neutral-500">
                     No locality shapes selected. Please select a locality set to
                     render the filled map.
                   </p>
@@ -476,7 +495,7 @@ export default function VisualisationPanel({
                 </SelectItem>
                 <SelectItem value={ColorScheme.Sequential}>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-gray-200 to-blue-600 rounded"></div>
+                    <div className="w-4 h-4 bg-gradient-to-r from-neutral-200 to-blue-600 rounded"></div>
                     Sequential
                   </div>
                 </SelectItem>

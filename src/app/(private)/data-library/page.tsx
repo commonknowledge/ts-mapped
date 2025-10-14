@@ -68,7 +68,7 @@ export default function DataLibraryPage() {
           {mappedDataLibrary.localityShapes.map((item) => (
             <div
               key={item.id}
-              className="p-4 border border-gray-200 rounded-lg transition-all cursor-pointer"
+              className="p-4 border border-neutral-200 rounded-lg transition-all cursor-pointer"
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center text-white">
@@ -83,10 +83,12 @@ export default function DataLibraryPage() {
                       Boundary
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 mb-2">
+                  <p className="text-xs text-neutral-600 mb-2">
                     {item.description}
                   </p>
-                  <span className="text-xs text-gray-500">{item.category}</span>
+                  <span className="text-xs text-neutral-500">
+                    {item.category}
+                  </span>
                 </div>
               </div>
             </div>
@@ -104,7 +106,7 @@ export default function DataLibraryPage() {
           {mappedDataLibrary.referenceData.map((item) => (
             <div
               key={item.id}
-              className="p-4 border border-gray-200 rounded-lg transition-all cursor-pointer"
+              className="p-4 border border-neutral-200 rounded-lg transition-all cursor-pointer"
             >
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg flex items-center justify-center text-white">
@@ -119,10 +121,12 @@ export default function DataLibraryPage() {
                       Dataset
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 mb-2">
+                  <p className="text-xs text-neutral-600 mb-2">
                     {item.description}
                   </p>
-                  <span className="text-xs text-gray-500">{item.category}</span>
+                  <span className="text-xs text-neutral-500">
+                    {item.category}
+                  </span>
                 </div>
               </div>
             </div>

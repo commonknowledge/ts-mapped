@@ -3,6 +3,7 @@ import { describe, expect, inject, test } from "vitest";
 import { GoogleSheetsAdaptor } from "@/server/adaptors/googlesheets";
 import { ColumnType } from "@/server/models/DataSource";
 import { getPublicUrl } from "@/server/services/urls";
+import { ColumnType } from "@/server/models/DataSource";
 
 const credentials = inject("credentials");
 

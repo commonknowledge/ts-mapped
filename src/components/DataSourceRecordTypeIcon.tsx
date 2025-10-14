@@ -15,7 +15,7 @@ export const dataSourceRecordTypeColors: Record<DataSourceRecordType, string> =
     [DataSourceRecordType.Events]: "var(--brandPurple)",
     [DataSourceRecordType.Locations]: "var(--brandRed)",
     [DataSourceRecordType.People]: "var(--brandRoyalBlue)",
-    [DataSourceRecordType.Other]: "var(--brandGray)",
+    [DataSourceRecordType.Other]: "var(--brandneutral)",
   };
 
 export const dataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =
@@ -73,7 +73,7 @@ export const DataSourceRecordTypeIcon = ({
       <div
         className={`shrink-0 aspect-square rounded flex items-center justify-center text-white ${className}`}
         style={{
-          background: color || "var(--brandGray)",
+          background: color || "var(--brandneutral)",
         }}
       >
         <span>{icon}</span>
