@@ -26,6 +26,7 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
+import LayerItem from "../../LayerItem";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -80,6 +81,7 @@ export default function SortableFolderItem({
   const [isExpanded, setExpanded] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(folder.name);
+  const isVisible = !folder.hideMarkers; // Use folder's hideMarkers property
 
   const sortedMarkers = useMemo(() => {
     return sortByPositionAndId(markers);
@@ -115,66 +117,92 @@ export default function SortableFolderItem({
       style={style}
       {...attributes}
       {...listeners}
-      className="border border-neutral-200 rounded-sm mb-2"
+      className="mb-2"
     >
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div
-            ref={isDraggingMarker ? setHeaderNodeRef : null}
-            className={`flex items-center gap-2 hover:bg-neutral-100  transition-colors px-2 py-1 ${
-              isHeaderOver ? "bg-blue-50" : ""
-            } ${folder.hideMarkers ? "opacity-70" : ""}`}
+          <LayerItem
             onClick={onClickFolder}
+            layerType="locations"
+            isVisible={isVisible}
+            onVisibilityToggle={() => {
+              updateFolder({ ...folder, hideMarkers: !folder.hideMarkers });
+            }}
+            className={`${isHeaderOver ? "bg-blue-50" : ""} ${!isVisible ? "opacity-70" : ""}`}
           >
-            {folder.hideMarkers ? (
-              <EyeOffIcon className="w-4 h-4 text-muted-foreground shrink-0" />
-            ) : isExpanded ? (
-              <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
-            ) : (
-              <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
-            )}
-            {isEditing ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  updateFolder({ ...folder, name: editText });
-                  setEditing(false);
-                  setKeyboardCapture(false);
-                }}
-                className="w-full flex items-center gap-1"
-              >
-                <Input
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  ref={inputRef}
-                  className="flex-1 h-7 px-1"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  variant="ghost"
-                  className="p-0 h-7"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </form>
-            ) : (
-              <span className="text-sm font-medium flex-1 break-all py-1">
-                {folder.name}
-              </span>
-            )}
-            <span
-              className={cn(
-                "text-xs text-muted-foreground  transition-transform duration-30 rounded-full bg-neutral-50 px-1",
-                isPulsing ? "animate-pulse  transform scale-110" : "",
+            <div ref={isDraggingMarker ? setHeaderNodeRef : null} className="contents">
+              {isExpanded ? (
+                <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
+              ) : (
+                <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
               )}
-              style={{
-                color: isPulsing ? "green" : "",
-              }}
-            >
-              {sortedMarkers.length}
-            </span>
-          </div>
+              {isEditing ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    updateFolder({ ...folder, name: editText });
+                    setEditing(false);
+                    setKeyboardCapture(false);
+                  }}
+                  className="w-full flex items-center gap-1"
+                >
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    ref={inputRef}
+                    className="flex-1 h-7 px-1"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant="ghost"
+                    className="p-0 h-7"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </form>
+              ) : (
+                <>
+                  <span className="text-sm flex-1 break-all py-1">
+                    {folder.name}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1",
+                      isPulsing ? "animate-pulse transform scale-110" : "",
+                    )}
+                    style={{
+                      color: isPulsing ? "green" : "",
+                    }}
+                  >
+                    {sortedMarkers.length}
+                  </span>
+                  <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0">
+                    <button
+                      className="cursor-pointer hover:text-primary p-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditText(folder.name);
+                        setEditing(true);
+                        setKeyboardCapture(true);
+                      }}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                    <button
+                      className="cursor-pointer hover:text-primary p-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onClickDelete();
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </LayerItem>
         </ContextMenuTrigger>
         <ContextMenuContentWithFocus
           shouldFocusTarget={isEditing}
@@ -219,7 +247,7 @@ export default function SortableFolderItem({
       {isExpanded && (
         <>
           {sortedMarkers.length > 0 ? (
-            <ol className="ml-3 mt-1 space-y-0.5">
+            <div className="space-y-1 py-1 pr-1 pl-4">
               <SortableContext
                 items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
                 strategy={verticalListSortingStrategy}
@@ -230,12 +258,13 @@ export default function SortableFolderItem({
                     marker={marker}
                     activeId={activeId}
                     setKeyboardCapture={setKeyboardCapture}
+                    isInFolder={true}
                   />
                 ))}
               </SortableContext>
-            </ol>
+            </div>
           ) : (
-            <div className="ml-3 mt-1 text-sm text-muted-foreground">
+            <div className="px-2 pb-2 text-sm text-muted-foreground">
               No markers in this folder
             </div>
           )}

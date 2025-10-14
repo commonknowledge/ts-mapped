@@ -31,24 +31,22 @@ export default function UnassignedFolder({
   }, [markers]);
 
   return (
-    <div className="mb-3">
+    <div className="space-y-1">
       {folders.length > 0 && <div ref={setNodeRef} className="px-1 py-1" />}
 
-      <div className={cn("mt-1 space-y-0.5 ml-1")}>
-        <SortableContext
-          items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
-          strategy={verticalListSortingStrategy}
-        >
-          {sortedMarkers.map((marker, index) => (
-            <SortableMarkerItem
-              key={`${marker.id}-${index}`}
-              marker={marker}
-              activeId={activeId}
-              setKeyboardCapture={setKeyboardCapture}
-            />
-          ))}
-        </SortableContext>
-      </div>
+      <SortableContext
+        items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
+        strategy={verticalListSortingStrategy}
+      >
+        {sortedMarkers.map((marker, index) => (
+          <SortableMarkerItem
+            key={`${marker.id}-${index}`}
+            marker={marker}
+            activeId={activeId}
+            setKeyboardCapture={setKeyboardCapture}
+          />
+        ))}
+      </SortableContext>
     </div>
   );
 }

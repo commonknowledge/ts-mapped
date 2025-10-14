@@ -34,6 +34,7 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import TurfVisibilityManager from "./TurfVisibilityManager";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 import type {
@@ -304,13 +305,13 @@ export default function Map({
 
     const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
-          type: "Feature" as const,
-          geometry: {
-            type: "Point" as const,
-            coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-          },
-          properties: {},
-        }))
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+        },
+        properties: {},
+      }))
       : [];
 
     const dataSourceMarkerFeatures =
@@ -563,11 +564,11 @@ export default function Map({
           const bounds = e.target.getBounds();
           const boundingBox = bounds
             ? {
-                north: bounds.getNorth(),
-                east: bounds.getEast(),
-                south: bounds.getSouth(),
-                west: bounds.getWest(),
-              }
+              north: bounds.getNorth(),
+              east: bounds.getEast(),
+              south: bounds.getSouth(),
+              west: bounds.getWest(),
+            }
             : null;
           setBoundingBox(boundingBox);
           setZoom(e.viewState.zoom);
@@ -619,6 +620,7 @@ export default function Map({
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
+            <TurfVisibilityManager />
             {searchMarker && <SearchResultMarker />}
             {hoverMarker && (
               <Popup

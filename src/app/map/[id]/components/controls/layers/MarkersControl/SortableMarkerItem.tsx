@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Check, Pencil, Trash2 } from "lucide-react";
+import { Check, CornerDownRight, Pencil, Trash2 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
@@ -13,6 +13,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import LayerItem from "../../LayerItem";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { SyntheticEvent } from "react";
 
@@ -20,10 +21,12 @@ export default function SortableMarkerItem({
   marker,
   activeId,
   setKeyboardCapture,
+  isInFolder = false,
 }: {
   marker: PlacedMarker;
   activeId: string | null;
   setKeyboardCapture: (captured: boolean) => void;
+  isInFolder?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const {
@@ -41,10 +44,13 @@ export default function SortableMarkerItem({
     deletePlacedMarker,
     selectedPlacedMarkerId,
     setSelectedPlacedMarkerId,
+    getMarkerVisibility,
+    setMarkerVisibilityState,
   } = useContext(MarkerAndTurfContext);
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
+  const isVisible = getMarkerVisibility(marker.id); // Get visibility from context
 
   // Check if this marker is the one being dragged (even outside its container)
   const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
@@ -78,71 +84,141 @@ export default function SortableMarkerItem({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <li
+        <div
           ref={setNodeRef}
           style={style}
           {...attributes}
           {...listeners}
-          className="flex items-center gap-2 px-1 hover:bg-neutral-100 rounded cursor-grab active:cursor-grabbing"
-          onClick={flyToMarker}
         >
-          {isEditing ? (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                updatePlacedMarker({
-                  ...marker,
-                  label: editText,
-                });
-                setEditing(false);
-                setKeyboardCapture(false);
-              }}
-              className="w-full flex items-center gap-1"
-            >
-              <Input
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                className="flex-1"
-                ref={inputRef}
-              />
-              <Button type="submit" size="sm" variant="ghost">
-                <Check className="h-3 w-3" />
-              </Button>
-            </form>
-          ) : (
-            <div className="group flex items-start gap-1.5 flex-grow text-sm p-0.5 overflow-hidden">
-              <div
-                className="w-2 h-2 rounded-full aspect-square mt-[0.425em]"
-                style={{
-                  backgroundColor: mapColors.markers.color,
-                  border:
-                    marker.id === selectedPlacedMarkerId
-                      ? `2px solid ${mapColors.markers.color}`
-                      : "none",
-                }}
-              />
-              <span className="truncate">{marker.label}</span>
-              <div className="hidden group-hover:flex gap-2 text-muted-foreground">
-                <button
-                  className="cursor-pointer hover:text-primary"
-                  onClick={() => {
-                    setEditText(marker.label);
-                    setEditing(true);
-                    setKeyboardCapture(true);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button
-                  className="cursor-pointer hover:text-primary"
-                  onClick={() => deletePlacedMarker(marker.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+          {isInFolder ? (
+            <div className="flex items-center gap-1">
+              <CornerDownRight className="w-4 h-4 text-neutral-400" />
+              <LayerItem
+                onClick={flyToMarker}
+                layerType="locations"
+                individualVisibility={true}
+                isVisible={isVisible}
+                onVisibilityToggle={() => setMarkerVisibilityState(marker.id, !isVisible)}
+              >
+                {isEditing ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      updatePlacedMarker({
+                        ...marker,
+                        label: editText,
+                      });
+                      setEditing(false);
+                      setKeyboardCapture(false);
+                    }}
+                    className="w-full flex items-center gap-2"
+                  >
+                    <Input
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="flex-1"
+                      ref={inputRef}
+                    />
+                    <Button type="submit" size="sm" variant="ghost">
+                      <Check className="h-3 w-3" />
+                    </Button>
+                  </form>
+                ) : (
+                  <>
+
+                    <div className="flex-1">
+                      <div className="text-sm">{marker.label}</div>
+                    </div>
+                    <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white">
+                      <button
+                        className="cursor-pointer hover:text-primary p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditText(marker.label);
+                          setEditing(true);
+                          setKeyboardCapture(true);
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button
+                        className="cursor-pointer hover:text-primary p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePlacedMarker(marker.id);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </LayerItem>
             </div>
+          ) : (
+            <LayerItem
+              onClick={flyToMarker}
+              layerType="locations"
+              individualVisibility={true}
+              isVisible={isVisible}
+              onVisibilityToggle={() => setMarkerVisibilityState(marker.id, !isVisible)}
+            >
+              {isEditing ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    updatePlacedMarker({
+                      ...marker,
+                      label: editText,
+                    });
+                    setEditing(false);
+                    setKeyboardCapture(false);
+                  }}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className="flex-1"
+                    ref={inputRef}
+                  />
+                  <Button type="submit" size="sm" variant="ghost">
+                    <Check className="h-3 w-3" />
+                  </Button>
+                </form>
+              ) : (
+                <>
+
+                  <div className="flex-1">
+                    <div className="text-sm">{marker.label}</div>
+                  </div>
+                  <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white">
+                    <button
+                      className="cursor-pointer hover:text-primary p-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditText(marker.label);
+                        setEditing(true);
+                        setKeyboardCapture(true);
+                      }}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                    <button
+                      className="cursor-pointer hover:text-primary p-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deletePlacedMarker(marker.id);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </LayerItem>
           )}
-        </li>
+        </div>
       </ContextMenuTrigger>
       <ContextMenuContentWithFocus
         targetRef={inputRef}

@@ -50,7 +50,6 @@ import {
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { getValidAreaSetGroupCodes } from "../../../sources";
-import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function VisualisationPanel({
@@ -112,8 +111,9 @@ export default function VisualisationPanel({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <button
+<<<<<<< Updated upstream
             className={`p-3 rounded-lg border-2 text-center transition-all ${
               viewConfig.visualisationType === VisualisationType.BoundaryOnly
                 ? "border-blue-500 bg-blue-50"
@@ -139,6 +139,12 @@ export default function VisualisationPanel({
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-200 hover:border-gray-300"
             }`}
+=======
+            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualisationType === VisualisationType.Choropleth
+              ? "border-blue-500 bg-blue-50"
+              : "border-neutral-200 hover:border-neutral-300"
+              }`}
+>>>>>>> Stashed changes
             onClick={() =>
               updateViewConfig({
                 visualisationType:
@@ -149,14 +155,12 @@ export default function VisualisationPanel({
             }
           >
             <div className="w-8 h-8 mx-auto mb-2 bg-gradient-to-br from-red-400 to-blue-400 rounded"></div>
-            <span className="text-xs">Filled map</span>
+            <span className="text-xs">Data visualization</span>
           </button>
         </div>
       </div>
 
-      {viewConfig.visualisationType === VisualisationType.BoundaryOnly && (
-        <VisualisationShapeLibrarySelector />
-      )}
+      {/* Shape selector is now handled in simple controls */}
 
       {/* Choropleth */}
       {viewConfig.visualisationType === VisualisationType.Choropleth && (
@@ -275,12 +279,17 @@ export default function VisualisationPanel({
 
             <div className="grid grid-cols-2 gap-2">
               <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  viewConfig.calculationType === CalculationType.Value ||
+                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === CalculationType.Value ||
                   !viewConfig.calculationType
+<<<<<<< Updated upstream
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
+=======
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-neutral-200 hover:border-neutral-300"
+                  }`}
+>>>>>>> Stashed changes
                 onClick={() =>
                   updateViewConfig({ calculationType: CalculationType.Value })
                 }
@@ -290,11 +299,18 @@ export default function VisualisationPanel({
               </button>
 
               <button
+<<<<<<< Updated upstream
                 className={`p-3 rounded-lg border-2 text-center transition-all ${
                   viewConfig.calculationType === CalculationType.Count
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
+=======
+                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === CalculationType.Count
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-neutral-200 hover:border-neutral-300"
+                  }`}
+>>>>>>> Stashed changes
                 onClick={() =>
                   updateViewConfig({ calculationType: CalculationType.Count })
                 }

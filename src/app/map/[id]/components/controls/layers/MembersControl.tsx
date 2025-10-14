@@ -1,4 +1,4 @@
-import { Ellipsis } from "lucide-react";
+import { ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
@@ -12,12 +12,12 @@ import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { mapColors } from "../../../styles";
 import { CollectionIcon } from "../../Icons";
-import CollectionLayer from "../CollectionLayer";
-import ControlItemWrapper from "../ControlItemWrapper";
 import EmptyLayer from "../Emptylayer";
-import LayerHeader from "../LayerHeader";
+import LayerItem from "../LayerItem";
+import { LayerStyles } from "../PrivateMapControls";
+import DataSourceIcon from "@/components/DataSourceIcon";
 
-export default function MembersControl() {
+export default function MembersControl({ LayerStyles }: { LayerStyles: LayerStyles }) {
   const router = useRouter();
   const { viewConfig, updateViewConfig } = useMapViews();
   const { updateMapConfig } = useMapConfig();
@@ -58,44 +58,66 @@ export default function MembersControl() {
   };
 
   return (
-    <ControlItemWrapper>
-      <LayerHeader
-        label="Members"
-        color={mapColors.member.color}
-        showLayer={viewConfig.showMembers}
-        setLayer={(show) => updateViewConfig({ showMembers: show })}
-        expanded={expanded}
-        setExpanded={setExpanded}
-      >
-        <IconButtonWithTooltip
-          align="start"
-          side="right"
-          tooltip="Member lists"
-          dropdownLabel="Select a member collection"
-          dropdownItems={getDropdownItems()}
+    <div className={LayerStyles.container}>
+      {/* Header */}
+      <div className={LayerStyles.header}>
+        <button
+          className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
+          onClick={() => setExpanded(!expanded)}
         >
-          <Ellipsis className="w-4 h-4" />
-        </IconButtonWithTooltip>
-      </LayerHeader>
+          {expanded ? (
+            <ChevronDown className="w-4 h-4 text-neutral-600" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-neutral-600" />
+          )}
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: mapColors.member.color }}
+          />
+          <span className="text-sm font-medium">Members</span>
+        </button>
+        <div className="flex items-center gap-1">
+          <IconButtonWithTooltip
+            align="start"
+            side="right"
+            tooltip="Refresh members"
+            dropdownLabel="Select a member collection"
+            dropdownItems={getDropdownItems()}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </IconButtonWithTooltip>
+        </div>
+      </div>
 
+      {/* Layer Items */}
       {expanded && (
-        <ul
-          className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
-        >
-          {allDataSourcesLoading ? null : dataSource ? (
-            <CollectionLayer
-              dataSource={dataSource}
-              isSelected={isSelected}
+        <div className="space-y-1">
+          {allDataSourcesLoading ? (
+            <div className="flex items-center gap-2 p-2 bg-white rounded border">
+              <div className="text-sm text-neutral-500">Loading...</div>
+            </div>
+          ) : dataSource ? (
+            <LayerItem
               onClick={() => handleDataSourceSelect(dataSource.id)}
-              handleDataSourceSelect={handleDataSourceSelect}
-              layerType="member"
-            />
+              layerType="members"
+              className={isSelected ? 'ring-2 ring-blue-500' : ''}
+              isDataSource={true}
+            >
+              <DataSourceIcon type={dataSource.config.type} />
+              <div className="flex-1">
+                <div className="text-sm font-medium">{dataSource.name}</div>
+                <div className="text-xs text-neutral-500">
+                  {dataSource.recordCount?.toLocaleString() || '0'} records
+                  {dataSource.createdAt && ` • Created ${new Date(dataSource.createdAt).toLocaleDateString()}`}
+                </div>
+              </div>
+            </LayerItem>
           ) : (
             <EmptyLayer
               message={
-                <p className="flex  items-center gap-2">
+                <p className="flex items-center gap-2">
                   Add a{" "}
-                  <span className="text-sm  flex items-center gap-1">
+                  <span className="text-sm flex items-center gap-1">
                     <CollectionIcon color={mapColors.member.color} /> Member
                     Collection
                   </span>
@@ -103,8 +125,8 @@ export default function MembersControl() {
               }
             />
           )}
-        </ul>
+        </div>
       )}
-    </ControlItemWrapper>
+    </div>
   );
 }

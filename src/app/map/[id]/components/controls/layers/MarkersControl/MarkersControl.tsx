@@ -1,8 +1,9 @@
-import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, FolderPlusIcon, LoaderPinwheel, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -10,11 +11,11 @@ import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { CollectionIcon } from "../../../Icons";
-import ControlItemWrapper from "../../ControlItemWrapper";
-import LayerHeader from "../../LayerHeader";
 import MarkersList from "./MarkersList";
+import { LayerStyles } from "../../PrivateMapControls";
 
-export default function MarkersControl() {
+
+export default function MarkersControl({ LayerStyles }: { LayerStyles: LayerStyles }) {
   const router = useRouter();
   const { viewConfig, updateViewConfig } = useMapViews();
   const { mapConfig, updateMapConfig } = useMapConfig();
@@ -25,7 +26,7 @@ export default function MarkersControl() {
     insertFolder,
     handleDropPin,
   } = useContext(MarkerAndTurfContext);
-  const { data: dataSources } = useDataSources();
+  const { handleDataSourceSelect } = useContext(TableContext);
   const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
@@ -57,6 +58,7 @@ export default function MarkersControl() {
   };
 
   const getDataSourceDropdownItems = () => {
+    const { data: dataSources } = useDataSources();
     const markerDataSources =
       dataSources?.filter((dataSource) => {
         return dataSource.recordType !== DataSourceRecordType.Members;
@@ -72,8 +74,8 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id,
-                )
+                (id) => id !== dataSource.id,
+              )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
         },
@@ -132,27 +134,44 @@ export default function MarkersControl() {
   const loading = foldersLoading || placedMarkersLoading;
 
   return (
-    <ControlItemWrapper className="markers-control">
-      <LayerHeader
-        label="Markers"
-        color={mapColors.markers.color}
-        showLayer={viewConfig.showLocations}
-        setLayer={(show) => updateViewConfig({ showLocations: show })}
-        expanded={expanded}
-        setExpanded={setExpanded}
-      >
-        {loading && <LoaderPinwheel className="animate-spin" size={16} />}
-        <IconButtonWithTooltip
-          align="start"
-          side="right"
-          tooltip="Marker options"
-          dropdownLabel="Marker options"
-          dropdownItems={getDropdownItems()}
+    <div className={LayerStyles.container}>
+      {/* Header */}
+      <div className={LayerStyles.header}>
+        <button
+          className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
+          onClick={() => setExpanded(!expanded)}
         >
-          <Ellipsis className="w-4 h-4" />
-        </IconButtonWithTooltip>
-      </LayerHeader>
-      {expanded && <MarkersList />}
-    </ControlItemWrapper>
+          {expanded ? (
+            <ChevronDown className="w-4 h-4 text-neutral-600" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-neutral-600" />
+          )}
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: mapColors.markers.color }}
+          />
+          <span className="text-sm font-medium">Markers</span>
+        </button>
+        <div className="flex items-center gap-1">
+          {loading && <LoaderPinwheel className="animate-spin w-4 h-4" />}
+          <IconButtonWithTooltip
+            align="start"
+            side="right"
+            tooltip="Add markers"
+            dropdownLabel="Marker options"
+            dropdownItems={getDropdownItems()}
+          >
+            <Plus className="w-4 h-4" />
+          </IconButtonWithTooltip>
+        </div>
+      </div>
+
+      {/* Layer Items */}
+      {expanded && (
+        <div className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"}`}>
+          <MarkersList />
+        </div>
+      )}
+    </div>
   );
 }
