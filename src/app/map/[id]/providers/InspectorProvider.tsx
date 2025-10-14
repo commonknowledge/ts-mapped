@@ -48,7 +48,16 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!selectedRecord || !selectedRecord?.properties) {
-      setInspectorContent(null);
+      if (selectedTurf?.id) {
+        setInspectorContent({
+          type: "turf",
+          name: selectedTurf.name,
+          properties: null,
+          dataSource: null,
+        });
+      } else {
+        setInspectorContent(null);
+      }
 
       return;
     }
@@ -71,20 +80,25 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
       properties: filteredProperties,
       dataSource: dataSource,
     });
-  }, [getDataSourceById, selectedRecord, mapConfig.membersDataSourceId]);
+  }, [
+    getDataSourceById,
+    selectedRecord,
+    selectedTurf,
+    mapConfig.membersDataSourceId,
+  ]);
 
-  useEffect(() => {
-    if (!selectedTurf?.id) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!selectedTurf?.id) {
+  //     return;
+  //   }
 
-    setInspectorContent({
-      type: "turf",
-      name: selectedTurf.name,
-      properties: null,
-      dataSource: null,
-    });
-  }, [selectedTurf]);
+  //   setInspectorContent({
+  //     type: "turf",
+  //     name: selectedTurf.name,
+  //     properties: null,
+  //     dataSource: null,
+  //   });
+  // }, [selectedTurf]);
 
   const resetInspector = () => {
     setSelectedRecord(null);

@@ -132,7 +132,10 @@ const MembersList = ({
     setSelectedRecord({
       id: record.id,
       dataSourceId: dataSource?.id as string,
-      properties: {}, // TODO: get marker properties
+      properties: {
+        ...record.json,
+        __name: nameColumn ? record.json[nameColumn] : "",
+      },
     });
   };
 
@@ -154,7 +157,7 @@ const MembersList = ({
               return (
                 <li key={record.id}>
                   <button
-                    className="cursor-pointer"
+                    className="cursor-pointer text-left"
                     onClick={() => onRecordClick(record)}
                   >
                     {displayName}
@@ -178,6 +181,8 @@ const MarkersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
+  const { setSelectedRecord } = useContext(InspectorContext);
+
   const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
@@ -185,6 +190,17 @@ const MarkersList = ({
   if (recordsList.length === 0) {
     return <></>;
   }
+
+  const onRecordClick = (record: RecordData) => {
+    setSelectedRecord({
+      id: record.id,
+      dataSourceId: dataSource?.id as string,
+      properties: {
+        ...record.json,
+        __name: nameColumn ? record.json[nameColumn] : "",
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -197,7 +213,16 @@ const MarkersList = ({
           const displayName = nameColumn
             ? String(record.json[nameColumn] ?? "")
             : `Id: ${record.id}`;
-          return <li key={record.id}>{displayName}</li>;
+          return (
+            <li key={record.id}>
+              <button
+                className="cursor-pointer text-left"
+                onClick={() => onRecordClick(record)}
+              >
+                {displayName}
+              </button>
+            </li>
+          );
         })}
       </ul>
     </div>
@@ -211,6 +236,8 @@ const PlacedMarkersList = ({
   folder: Folder | null;
   records: RecordsResponse;
 }) => {
+  const { setSelectedRecord } = useContext(InspectorContext);
+
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
   const name = folder?.name;
@@ -218,6 +245,16 @@ const PlacedMarkersList = ({
   if (recordsList.length === 0) {
     return <></>;
   }
+
+  const onRecordClick = (record: RecordData) => {
+    setSelectedRecord({
+      id: record.id,
+      dataSourceId: "",
+      properties: {
+        __name: record.json?.name || "",
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -229,7 +266,16 @@ const PlacedMarkersList = ({
 
       <ul className="flex flex-col gap-1">
         {recordsList.map((record) => {
-          return <li key={record.id}>{record.json?.name as string}</li>;
+          return (
+            <li key={record.id}>
+              <button
+                className="cursor-pointer text-left"
+                onClick={() => onRecordClick(record)}
+              >
+                {record.json?.name as string}
+              </button>
+            </li>
+          );
         })}
       </ul>
     </div>

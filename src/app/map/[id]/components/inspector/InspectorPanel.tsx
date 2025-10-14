@@ -1,4 +1,4 @@
-import { TableIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
@@ -10,7 +10,8 @@ import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
 
 export default function InspectorPanel() {
-  const { inspectorContent, resetInspector } = useContext(InspectorContext);
+  const { inspectorContent, resetInspector, selectedTurf, setSelectedRecord } =
+    useContext(InspectorContext);
   const { setSelectedDataSourceId, selectedDataSourceId } =
     useContext(TableContext);
 
@@ -20,6 +21,10 @@ export default function InspectorPanel() {
 
   const { dataSource, properties, type } = inspectorContent ?? {};
   const tableOpen = Boolean(selectedDataSourceId);
+
+  const onBackToTurfClick = () => {
+    setSelectedRecord(null);
+  };
 
   return (
     <div
@@ -52,6 +57,18 @@ export default function InspectorPanel() {
             <XIcon size={16} />
           </button>
         </div>
+
+        {selectedTurf && type !== "turf" && (
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => onBackToTurfClick()}
+              className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer"
+            >
+              <ArrowLeftIcon size={12} />
+              Back to {selectedTurf.name}
+            </button>
+          </div>
+        )}
 
         <div className="grow overflow-auto flex flex-col gap-4 [&:not(:empty)]:border-t [&:not(:empty)]:p-4">
           {dataSource && (

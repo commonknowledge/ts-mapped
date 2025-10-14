@@ -383,6 +383,8 @@ export default function Map({
             const dataSourceId = properties
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
+
+            setSelectedTurf(null); // resets the turf context for the selected marker
             setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
