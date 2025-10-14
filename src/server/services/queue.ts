@@ -13,14 +13,14 @@ const boss = new PgBoss(process.env.DATABASE_URL ?? "");
 boss.on("error", logger.error);
 
 const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
-{
-  enrichDataSource,
-  enrichDataRecords,
-  importDataSource,
-  importDataRecords,
-  refreshWebhooks,
-  tagDataSource,
-};
+  {
+    enrichDataSource,
+    enrichDataRecords,
+    importDataSource,
+    importDataRecords,
+    refreshWebhooks,
+    tagDataSource,
+  };
 
 let startedQueues: Record<string, boolean> | null = null;
 const ensureQueue = async (queue: string) => {

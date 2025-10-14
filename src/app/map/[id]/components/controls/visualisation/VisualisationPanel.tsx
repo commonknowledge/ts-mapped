@@ -114,15 +114,16 @@ export default function VisualisationPanel({
 
         <div className="grid grid-cols-2 gap-2">
           <button
-            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualisationType === VisualisationType.BoundaryOnly
+            className={`p-3 rounded-lg border-2 text-center transition-all ${
+              viewConfig.visualisationType === VisualisationType.BoundaryOnly
                 ? "border-blue-500 bg-blue-50"
                 : "border-neutral-200 hover:border-neutral-300"
-              }`}
+            }`}
             onClick={() =>
               updateViewConfig({
                 visualisationType:
                   viewConfig.visualisationType ===
-                    VisualisationType.BoundaryOnly
+                  VisualisationType.BoundaryOnly
                     ? undefined
                     : VisualisationType.BoundaryOnly,
               })
@@ -133,10 +134,11 @@ export default function VisualisationPanel({
           </button>
 
           <button
-            className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualisationType === VisualisationType.Choropleth
+            className={`p-3 rounded-lg border-2 text-center transition-all ${
+              viewConfig.visualisationType === VisualisationType.Choropleth
                 ? "border-blue-500 bg-blue-50"
                 : "border-neutral-200 hover:border-neutral-300"
-              }`}
+            }`}
             onClick={() =>
               updateViewConfig({
                 visualisationType:
@@ -273,11 +275,12 @@ export default function VisualisationPanel({
 
             <div className="grid grid-cols-2 gap-2">
               <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === CalculationType.Value ||
-                    !viewConfig.calculationType
+                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                  viewConfig.calculationType === CalculationType.Value ||
+                  !viewConfig.calculationType
                     ? "border-blue-500 bg-blue-50"
                     : "border-neutral-200 hover:border-neutral-300"
-                  }`}
+                }`}
                 onClick={() =>
                   updateViewConfig({ calculationType: CalculationType.Value })
                 }
@@ -287,10 +290,11 @@ export default function VisualisationPanel({
               </button>
 
               <button
-                className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === CalculationType.Count
+                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                  viewConfig.calculationType === CalculationType.Count
                     ? "border-blue-500 bg-blue-50"
                     : "border-neutral-200 hover:border-neutral-300"
-                  }`}
+                }`}
                 onClick={() =>
                   updateViewConfig({ calculationType: CalculationType.Count })
                 }

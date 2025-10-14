@@ -86,7 +86,9 @@ export default function DataLibraryPage() {
                   <p className="text-xs text-neutral-600 mb-2">
                     {item.description}
                   </p>
-                  <span className="text-xs text-neutral-500">{item.category}</span>
+                  <span className="text-xs text-neutral-500">
+                    {item.category}
+                  </span>
                 </div>
               </div>
             </div>
@@ -122,7 +124,9 @@ export default function DataLibraryPage() {
                   <p className="text-xs text-neutral-600 mb-2">
                     {item.description}
                   </p>
-                  <span className="text-xs text-neutral-500">{item.category}</span>
+                  <span className="text-xs text-neutral-500">
+                    {item.category}
+                  </span>
                 </div>
               </div>
             </div>

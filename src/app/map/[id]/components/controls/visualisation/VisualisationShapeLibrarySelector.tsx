@@ -70,17 +70,19 @@ export default function VisualisationShapeLibrarySelector() {
     return (
       <div
         key={item.id}
-        className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${isSelected ? "border-blue-500 bg-blue-50" : "border-neutral-200"
-          }`}
+        className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${
+          isSelected ? "border-blue-500 bg-blue-50" : "border-neutral-200"
+        }`}
         onClick={() => onSelect(item.code)}
       >
         <div className="flex items-start gap-3">
           {/* Icon */}
           <div
-            className={`w-10 h-10 bg-gradient-to-br ${item.code === null
+            className={`w-10 h-10 bg-gradient-to-br ${
+              item.code === null
                 ? "from-neutral-400 to-neutral-600"
                 : "from-blue-400 to-purple-500"
-              } rounded-lg flex items-center justify-center text-white`}
+            } rounded-lg flex items-center justify-center text-white`}
           >
             {item.icon}
           </div>

@@ -1,8 +1,8 @@
 import { describe, expect, inject, test } from "vitest";
 import { vi } from "vitest";
-import { ColumnType } from "@/__generated__/types";
 import { AirtableAdaptor } from "@/server/adaptors/airtable";
 import { getPublicUrl } from "@/server/services/urls";
+import { ColumnType } from "@/server/models/DataSource";
 
 const credentials = inject("credentials");
 

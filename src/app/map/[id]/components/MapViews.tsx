@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Check, Layers, Plus, X, Tag } from "lucide-react";
+import { Check, Layers, Plus, Tag, X } from "lucide-react";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
@@ -91,6 +91,7 @@ export default function MapViews() {
       config: new ViewConfig(),
       dataSourceViews: [],
       mapId,
+      isTag: false,
       createdAt: new Date(),
     };
 
@@ -256,6 +257,10 @@ function SortableViewItem({
   };
 
   const handleDoubleClick = () => {
+    // Disable renaming for tag views
+    if (view.isTag) {
+      return;
+    }
     setRenamingViewId(view.id);
   };
 
@@ -286,13 +291,15 @@ function SortableViewItem({
           style={style}
           {...attributes}
           {...listeners}
-          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${isRenaming ? "cursor-default" : "cursor-pointer"
-            } ${isSelected ? "bg-muted" : "bg-transparent hover:border-action-hover"
-            } ${isDragging ? "opacity-50" : "opacity-100"}`}
+          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${
+            isRenaming ? "cursor-default" : "cursor-pointer"
+          } ${
+            isSelected ? "bg-muted" : "bg-transparent hover:border-action-hover"
+          } ${isDragging ? "opacity-50" : "opacity-100"}`}
           onClick={() => !isRenaming && handleViewSelect()}
           onDoubleClick={() => !isRenaming && handleDoubleClick()}
         >
-          {(view.config as any).isTagView ? (
+          {view.isTag ? (
             <Tag className="w-4 h-4 text-purple-600" />
           ) : (
             <Layers className="w-4 h-4 text-muted-foreground" />
@@ -325,9 +332,11 @@ function SortableViewItem({
         shouldFocusTarget={isRenaming}
         targetRef={inputRef}
       >
-        <ContextMenuItem onClick={() => setRenamingViewId(view.id)}>
-          Rename
-        </ContextMenuItem>
+        {!view.isTag && (
+          <ContextMenuItem onClick={() => setRenamingViewId(view.id)}>
+            Rename
+          </ContextMenuItem>
+        )}
         {views.length > 1 && (
           <>
             <ContextMenuSeparator />

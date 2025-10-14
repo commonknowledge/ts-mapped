@@ -126,6 +126,7 @@ export const mapViewSchema = z.object({
   dataSourceViews: z.array(dataSourceViewSchema),
   position: z.number(),
   mapId: z.string(),
+  isTag: z.boolean(),
   createdAt: z.date(),
 });
 

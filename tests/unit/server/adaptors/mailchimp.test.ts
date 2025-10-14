@@ -1,9 +1,9 @@
 import { describe, expect, inject, test } from "vitest";
-import { ColumnType } from "@/__generated__/types";
 import { MailchimpAdaptor } from "@/server/adaptors/mailchimp";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { sleep } from "../../../utils";
+import { ColumnType } from "@/server/models/DataSource";
 
 const credentials = inject("credentials");
 

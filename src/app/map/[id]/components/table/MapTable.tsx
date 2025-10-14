@@ -1,19 +1,20 @@
 import { useMutation } from "@tanstack/react-query";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
+import TagButton from "../TagButton";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import TagConfigSidebar from "./TagConfigSidebar";
+import TagViewCreationModal from "./TagViewCreationModal";
 import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {
@@ -26,8 +27,9 @@ export default function MapTable() {
   const { view, updateView, insertView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
+  const { placedMarkers } = useContext(MarkerAndTurfContext);
   const [tagLabel, setTagLabel] = useState("");
-  const [showTable, setShowTable] = useState(true);
+  const [isTagCreationModalOpen, setIsTagCreationModalOpen] = useState(false);
 
   const {
     selectedDataSourceId,
@@ -113,50 +115,52 @@ export default function MapTable() {
     />
   );
 
-  const handleCreateTagView = () => {
+  const handleCreateTagView = (label: string) => {
     if (!view) return;
 
     // Create a duplicate view with tag metadata
     const tagView = {
-      ...view,
       id: uuidv4(),
-      name: `${view.name} (Tag)`,
-      config: {
-        ...view.config,
-        isTagView: true,
-        tagLabel: tagLabel,
-        originalViewId: view.id,
-      },
+      name: label, // Use the provided label as the view name
+      config: view.config,
+      dataSourceViews: view.dataSourceViews,
+      mapId: view.mapId,
+      isTag: true,
       createdAt: new Date(),
     };
 
-    insertView(tagView);
-    toast.success("Created tag view");
+    console.log("Creating tag view:", tagView);
+
+    try {
+      insertView(tagView);
+      setTagLabel(label); // Set the tag label for the sidebar
+      console.log("insertView called successfully");
+    } catch (error) {
+      console.error("Error calling insertView:", error);
+      toast.error(
+        `Failed to create tag view: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
   };
 
-  const handleConfigureTag = () => {
-    // This will be handled by the map component
+  const handleOpenTagCreationModal = () => {
+    setIsTagCreationModalOpen(true);
   };
 
   const handleSendTag = () => {
     tagRecords({ dataSourceId: dataSource.id, viewId: view.id });
   };
 
-  const isTagView = (view.config as any).isTagView === true;
+  const isTagView = view.isTag === true;
 
   const syncToCRMButton = (
-    <Button
-      key="sync-to-crm"
-      type="button"
-      variant="outline"
-      onClick={handleCreateTagView}
-    >
-      {isTagView ? "Duplicate Tag Configuration" : `Tag records in ${DataSourceTypeLabels[dataSource.config.type]}`}
-    </Button>
+    <TagButton key="sync-to-crm" onClick={handleOpenTagCreationModal}>
+      {isTagView ? "Duplicate Tag" : "Create Tag View"}
+    </TagButton>
   );
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex flex-col lg:flex-row">
       {isTagView && (
         <TagConfigSidebar
           tagLabel={tagLabel}
@@ -164,9 +168,11 @@ export default function MapTable() {
           dataSource={dataSource}
           dataSourceView={dataSourceView}
           onSendTag={handleSendTag}
+          isReadOnly={true}
+          placedMarkers={placedMarkers}
         />
       )}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <DataTable
           title={dataSource.name}
           buttons={[syncToCRMButton]}
@@ -186,6 +192,15 @@ export default function MapTable() {
           onClose={() => handleDataSourceSelect("")}
         />
       </div>
+
+      <TagViewCreationModal
+        isOpen={isTagCreationModalOpen}
+        onClose={() => setIsTagCreationModalOpen(false)}
+        onCreateTagView={handleCreateTagView}
+        dataSource={dataSource}
+        dataSourceView={dataSourceView}
+        defaultLabel={`${view?.name || "Untitled"} Tag`}
+      />
     </div>
   );
 }
