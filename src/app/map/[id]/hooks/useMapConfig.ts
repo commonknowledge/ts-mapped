@@ -1,7 +1,7 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useContext, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { use, useCallback, useMemo } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "./useMapQuery";
@@ -12,25 +12,20 @@ export function useMapConfig() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
-  const { setConfigDirty } = useContext(MapContext);
 
-  const updateMapConfig = useCallback(
-    (nextMapConfig: Partial<MapConfig>) => {
-      if (!mapId) return;
-
-      // Optimistically update the cache immediately
-      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-        if (!old) return old;
-        const updatedConfig = {
-          ...old.config,
-          ...nextMapConfig,
-        };
-        return { ...old, config: updatedConfig };
-      });
-
-      setConfigDirty(true);
-    },
-    [mapId, queryClient, trpc.map.byId, setConfigDirty],
+  const { mutate, isPending } = useMutation(
+    trpc.map.updateConfig.mutationOptions({
+      onMutate: ({ config, mapId }) => {
+        queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+          if (!old) return old;
+          const updatedConfig = {
+            ...old.config,
+            ...config,
+          };
+          return { ...old, config: updatedConfig };
+        });
+      },
+    }),
   );
 
   const mapConfig = useMemo(
@@ -38,8 +33,20 @@ export function useMapConfig() {
       mapData?.config || { markerDataSourceIds: [], membersDataSourceId: null },
     [mapData?.config],
   );
+
+  const updateMapConfig = useCallback(
+    (newMapConfig: Partial<MapConfig>) => {
+      if (!mapId) {
+        return;
+      }
+      return mutate({ mapId, config: { ...mapConfig, ...newMapConfig } });
+    },
+    [mapConfig, mapId, mutate],
+  );
+
   return {
     mapConfig,
     updateMapConfig,
+    isDirty: isPending
   };
 }

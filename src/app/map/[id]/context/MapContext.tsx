@@ -59,9 +59,6 @@ export const MapContext = createContext<{
   dirtyViewIds: string[];
   setDirtyViewIds: (ids: string[] | ((prev: string[]) => string[])) => void;
 
-  configDirty: boolean;
-  setConfigDirty: (dirty: boolean) => void;
-
   zoom: number;
   setZoom: (zoom: number) => void;
 
@@ -82,8 +79,6 @@ export const MapContext = createContext<{
   setViewId: () => null,
   dirtyViewIds: [],
   setDirtyViewIds: () => null,
-  configDirty: false,
-  setConfigDirty: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
   pinDropMode: false,
