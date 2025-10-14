@@ -32,15 +32,20 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import TagExplainerCard from "./table/TagExplainerCard";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
 export default function Map({
   onSourceLoad,
   hideDrawControls,
+  onConfigureTag,
+  isTableOpen,
 }: {
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
+  onConfigureTag?: () => void;
+  isTableOpen?: boolean;
 }) {
   const {
     mapRef,
@@ -51,7 +56,7 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
-  const { viewConfig } = useMapViews();
+  const { viewConfig, view } = useMapViews();
   const { mapConfig } = useMapConfig();
   const {
     deleteTurf,
@@ -262,13 +267,13 @@ export default function Map({
 
     const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
-          type: "Feature" as const,
-          geometry: {
-            type: "Point" as const,
-            coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-          },
-          properties: {},
-        }))
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+        },
+        properties: {},
+      }))
       : [];
 
     const dataSourceMarkerFeatures =
@@ -479,11 +484,11 @@ export default function Map({
           const bounds = e.target.getBounds();
           const boundingBox = bounds
             ? {
-                north: bounds.getNorth(),
-                east: bounds.getEast(),
-                south: bounds.getSouth(),
-                west: bounds.getWest(),
-              }
+              north: bounds.getNorth(),
+              east: bounds.getEast(),
+              south: bounds.getSouth(),
+              west: bounds.getWest(),
+            }
             : null;
           setBoundingBox(boundingBox);
           setZoom(e.viewState.zoom);
@@ -544,6 +549,16 @@ export default function Map({
       <div className="absolute top-4 right-4 z-20">
         <SearchBox />
       </div>
+      {view && (view.config as any).isTagView && !isTableOpen && (
+        <div
+          className="absolute top-4 z-20 transition-transform duration-300 w-full"
+          style={{
+            left: showControls ? `${CONTROL_PANEL_WIDTH + 16}px` : '40px'
+          }}
+        >
+          <TagExplainerCard onConfigureTag={onConfigureTag || (() => { })} />
+        </div>
+      )}
     </MapWrapper>
   );
 }
