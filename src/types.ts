@@ -1,6 +1,6 @@
 // Only import library types and generated types into this file
-
 import type { PublicMapColumnType } from "./server/models/PublicMap";
+import type { Point } from "@/server/models/shared";
 import type { Geometry } from "geojson";
 
 export interface AreaStat {
@@ -63,4 +63,21 @@ export interface FilterField {
   name: string;
   type: PublicMapColumnType;
   options?: string[];
+}
+
+export interface RecordData {
+  id: string;
+  json: Record<string, unknown>;
+  geocodePoint: Point;
+}
+
+export interface RecordsResponse {
+  count: { matched: number };
+  records: RecordData[];
+}
+
+export enum LayerType {
+  Member = "Member",
+  Marker = "Marker",
+  Turf = "Turf",
 }

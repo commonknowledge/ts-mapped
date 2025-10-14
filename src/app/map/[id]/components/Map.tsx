@@ -1,5 +1,7 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+import { point as turfPoint } from "@turf/helpers";
 import * as turf from "@turf/turf";
 import dynamic from "next/dynamic";
 import {
@@ -33,6 +35,14 @@ import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
+import type {
+  Feature,
+  FeatureCollection,
+  Geometry,
+  MultiPolygon,
+  Point,
+} from "geojson";
+import type { MapMouseEvent } from "mapbox-gl";
 
 export default function Map({
   onSourceLoad,
@@ -61,7 +71,8 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { resetInspector, setSelectedRecord, setSelectedTurf } =
+    useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -218,6 +229,38 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
+  const getClickedPolygonFeature = (
+    draw: MapboxDraw,
+    e: MapMouseEvent,
+  ): Feature<Polygon | MultiPolygon> | null => {
+    const drawData: FeatureCollection = draw.getAll();
+
+    if (drawData.features.length === 0) return null;
+
+    const point: Feature<Point> = turfPoint([e.lngLat.lng, e.lngLat.lat]);
+
+    // Type guard — no `any` or unsafe casts
+    const isPolygonFeature = (
+      f: unknown,
+    ): f is Feature<Polygon | MultiPolygon> => {
+      if (typeof f !== "object" || f === null) return false;
+
+      if (!("geometry" in f)) return false;
+
+      const geometry = (f as { geometry?: Geometry }).geometry;
+      if (!geometry) return false;
+
+      return geometry.type === "Polygon" || geometry.type === "MultiPolygon";
+    };
+
+    const polygonFeature = drawData.features.find(
+      (feature: Feature): feature is Feature<Polygon | MultiPolygon> =>
+        isPolygonFeature(feature) && booleanPointInPolygon(point, feature),
+    );
+
+    return polygonFeature ?? null;
+  };
+
   useEffect(() => {
     toggleDrawVisibility(viewConfig.showTurf);
   }, [viewConfig.showTurf, toggleDrawVisibility]);
@@ -333,6 +376,7 @@ export default function Map({
           const features = map.queryRenderedFeatures(e.point, {
             layers: validMarkerLayers,
           });
+
           if (features.length && features[0].geometry.type === "Point") {
             const properties = features[0].properties;
 
@@ -340,6 +384,8 @@ export default function Map({
             const dataSourceId = properties
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
+
+            setSelectedTurf(null); // resets the turf context for the selected marker
             setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
@@ -350,8 +396,47 @@ export default function Map({
               center: features[0].geometry.coordinates as [number, number],
               zoom: 12,
             });
+
+            return;
           } else {
             setSelectedRecord(null);
+          }
+
+          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
+            const polygonFeature = getClickedPolygonFeature(draw, e);
+
+            if (polygonFeature) {
+              draw.changeMode("simple_select", { featureIds: [] });
+
+              setSelectedTurf({
+                id: polygonFeature.properties?.id,
+                name: polygonFeature.properties?.label,
+                geometry: polygonFeature.geometry as Polygon,
+              });
+
+              return;
+            } else {
+              resetInspector();
+            }
+          }
+        }}
+        onDblClick={(e) => {
+          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
+            const polygonFeature = getClickedPolygonFeature(draw, e);
+
+            if (polygonFeature) {
+              // enter edit mode
+              (draw.changeMode as (mode: string, options?: object) => void)(
+                "direct_select",
+                {
+                  featureId: polygonFeature.id,
+                },
+              );
+
+              // Prevent default map zoom on double-click
+              e.originalEvent.preventDefault();
+              return;
+            }
           }
         }}
         onLoad={() => {

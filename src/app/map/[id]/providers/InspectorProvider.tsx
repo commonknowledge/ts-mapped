@@ -14,10 +14,12 @@ import {
   SORT_BY_LOCATION,
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
+import { LayerType } from "@/types";
 
 import type {
   InspectorContent,
   SelectedRecord,
+  SelectedTurf,
 } from "@/app/map/[id]/context/InspectorContext";
 import type { ReactNode } from "react";
 
@@ -38,12 +40,23 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
     null,
   );
+  const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
+
   const [inspectorContent, setInspectorContent] =
     useState<InspectorContent | null>(null);
 
   useEffect(() => {
     if (!selectedRecord || !selectedRecord?.properties) {
-      setInspectorContent(null);
+      if (selectedTurf?.id) {
+        setInspectorContent({
+          type: LayerType.Turf,
+          name: selectedTurf.name || "Area",
+          properties: null,
+          dataSource: null,
+        });
+      } else {
+        setInspectorContent(null);
+      }
 
       return;
     }
@@ -52,7 +65,9 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
     const dataSource = dataSourceId ? getDataSourceById(dataSourceId) : null;
     const type =
-      dataSourceId === mapConfig.membersDataSourceId ? "member" : "marker";
+      dataSourceId === mapConfig.membersDataSourceId
+        ? LayerType.Member
+        : LayerType.Marker;
 
     const filteredProperties = Object.fromEntries(
       Object.entries(selectedRecord.properties).filter(
@@ -66,10 +81,16 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
       properties: filteredProperties,
       dataSource: dataSource,
     });
-  }, [getDataSourceById, selectedRecord, mapConfig.membersDataSourceId]);
+  }, [
+    getDataSourceById,
+    selectedRecord,
+    selectedTurf,
+    mapConfig.membersDataSourceId,
+  ]);
 
   const resetInspector = () => {
     setSelectedRecord(null);
+    setSelectedTurf(null);
     setInspectorContent(null);
   };
 
@@ -80,6 +101,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         setInspectorContent,
         selectedRecord,
         setSelectedRecord,
+        selectedTurf,
+        setSelectedTurf,
         resetInspector,
       }}
     >

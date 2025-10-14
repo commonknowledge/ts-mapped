@@ -5,14 +5,14 @@ export default function PropertiesList({
 }: {
   properties: Record<string, unknown> | null | undefined;
 }) {
-  if (!Object.keys(properties as object)?.length) {
+  if (!properties || !Object.keys(properties as object)?.length) {
     return <></>;
   }
 
   return (
     <dl className="flex flex-col gap-3">
       {Object.keys(properties as object).map((label) => {
-        const value = properties?.[label] as string;
+        const value = `${properties?.[label]}`;
 
         if (!value) return <Fragment key={label}></Fragment>;
 

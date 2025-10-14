@@ -1,38 +1,61 @@
-import { TableIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
-import { mapColors } from "../../styles";
+import { cn } from "@/shadcn/utils";
+import { LayerType } from "@/types";
+import LayerTypeIcon from "../LayerTypeIcon";
 import PropertiesList from "./PropertiesList";
+import TurfMarkersList from "./TurfMarkersList";
 
 export default function InspectorPanel() {
-  const { inspectorContent, resetInspector } = useContext(InspectorContext);
-  const { setSelectedDataSourceId } = useContext(TableContext);
+  const {
+    inspectorContent,
+    resetInspector,
+    selectedTurf,
+    selectedRecord,
+    setSelectedRecord,
+  } = useContext(InspectorContext);
+  const { mapRef } = useContext(MapContext);
+  const { setSelectedDataSourceId, selectedDataSourceId } =
+    useContext(TableContext);
 
   if (!Boolean(inspectorContent)) {
     return <></>;
   }
 
   const { dataSource, properties, type } = inspectorContent ?? {};
+  const tableOpen = Boolean(selectedDataSourceId);
+  const detailsViewInTurfInspector = selectedTurf && type !== LayerType.Turf;
+
+  const onBackToTurfClick = () => {
+    setSelectedRecord(null);
+  };
+
+  const flyToMarker = () => {
+    const map = mapRef?.current;
+
+    if (map && selectedRecord?.point) {
+      map.flyTo({ center: selectedRecord.point, zoom: 12 });
+    }
+  };
 
   return (
-    <div className="absolute top-0 bottom-0 right-4 z-10 / flex flex-col gap-6 w-60 pt-20 pb-5">
-      <div className="w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
+    <div
+      className={cn(
+        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 pt-20 pb-5",
+        tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
+      )}
+    >
+      <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
         <div className="flex justify-between items-start gap-4 p-4">
-          <h2 className="grow flex gap-2 / text-sm font-semibold">
-            <div
-              className="shrink-0 mt-1 w-3 h-3 rounded-full"
-              style={{
-                backgroundColor:
-                  type === "member"
-                    ? mapColors.member.color
-                    : mapColors.markers.color,
-              }}
-            ></div>
+          <h1 className="grow flex gap-2 / text-sm font-semibold">
+            <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
             {inspectorContent?.name as string}
-          </h2>
+          </h1>
           <button
             className="cursor-pointer"
             aria-label="Close inspector panel"
@@ -41,6 +64,22 @@ export default function InspectorPanel() {
             <XIcon size={16} />
           </button>
         </div>
+
+        {detailsViewInTurfInspector && (
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => onBackToTurfClick()}
+              className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 cursor-pointer"
+            >
+              <ArrowLeftIcon size={12} />
+              Back to
+              <span className="inline-flex items-center gap-1 font-semibold">
+                <LayerTypeIcon type={LayerType.Turf} size={2} />
+                {selectedTurf.name}
+              </span>
+            </button>
+          </div>
+        )}
 
         <div className="grow overflow-auto flex flex-col gap-4 [&:not(:empty)]:border-t [&:not(:empty)]:p-4">
           {dataSource && (
@@ -60,15 +99,25 @@ export default function InspectorPanel() {
 
           <PropertiesList properties={properties} />
 
-          {dataSource && (
-            <div className="border-t pt-4">
-              <Button
-                variant="secondary"
-                onClick={() => setSelectedDataSourceId(dataSource.id)}
-              >
-                <TableIcon />
-                View row in data source
-              </Button>
+          {type === LayerType.Turf && <TurfMarkersList />}
+
+          {(detailsViewInTurfInspector || dataSource) && (
+            <div className="flex flex-col gap-3 border-t pt-4">
+              {detailsViewInTurfInspector && selectedRecord?.point && (
+                <Button onClick={() => flyToMarker()}>
+                  <MapPinIcon />
+                  View on map
+                </Button>
+              )}
+              {dataSource && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setSelectedDataSourceId(dataSource.id)}
+                >
+                  <TableIcon />
+                  View in table
+                </Button>
+              )}
             </div>
           )}
         </div>

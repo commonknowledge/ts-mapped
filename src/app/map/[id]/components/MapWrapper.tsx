@@ -49,6 +49,8 @@ export default function MapWrapper({
 
   return (
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
+      <InspectorPanel />
+
       {children}
 
       <div
@@ -82,8 +84,6 @@ export default function MapWrapper({
           </p>
         </div>
       )}
-
-      <InspectorPanel />
     </div>
   );
 }
