@@ -6,7 +6,6 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import {
   MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_EXTERNAL_ID_KEY,
   MARKER_ID_KEY,
   MARKER_MATCHED_KEY,
   MARKER_NAME_KEY,
@@ -25,7 +24,6 @@ import type { ReactNode } from "react";
 const HIDDEN_PROPERTIES = [
   MARKER_ID_KEY,
   MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_EXTERNAL_ID_KEY,
   MARKER_NAME_KEY,
   MARKER_MATCHED_KEY,
   MARKER_RADIUS_KEY,

@@ -8,11 +8,11 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useTRPC } from "@/services/trpc/react";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
+import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
 import type { ReactNode } from "react";
 
@@ -25,7 +25,6 @@ export default function MarkerAndTurfProvider({
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
 
-  const trpc = useTRPC();
   const { data: map } = useMapQuery(mapId);
   const { publicMap } = useContext(PublicMapContext);
   /* State */
@@ -57,14 +56,24 @@ export default function MarkerAndTurfProvider({
       const dsv = view?.dataSourceViews.find(
         (dsv) => dsv.dataSourceId === dataSourceId,
       );
-      return trpc.dataRecord.markers.queryOptions(
-        {
-          dataSourceId,
-          filter: dsv?.filter,
-          search: dsv?.search,
+      const filter = JSON.stringify(dsv?.filter || null);
+      const search = dsv?.search || "";
+      return {
+        queryKey: ["markers", dataSourceId, filter, search],
+        queryFn: async () => {
+          const params = new URLSearchParams();
+          params.set("filter", filter);
+          params.set("search", search);
+          const response = await fetch(
+            `/api/data-sources/${dataSourceId}/markers?${params.toString()}`,
+          );
+          if (!response.ok) {
+            throw new Error(`Bad response: ${response.status}`);
+          }
+          const data = await response.json();
+          return data as PointFeature[];
         },
-        { enabled: Boolean(dataSourceId) },
-      );
+      };
     }),
     combine: (results) => {
       return {
