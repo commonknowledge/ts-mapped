@@ -34,6 +34,7 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import TagExplainerCard from "./table/TagExplainerCard";
 import TurfVisibilityManager from "./TurfVisibilityManager";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";

@@ -113,38 +113,10 @@ export default function VisualisationPanel({
 
         <div className="grid grid-cols-1 gap-2">
           <button
-<<<<<<< Updated upstream
-            className={`p-3 rounded-lg border-2 text-center transition-all ${
-              viewConfig.visualisationType === VisualisationType.BoundaryOnly
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-            onClick={() =>
-              updateViewConfig({
-                visualisationType:
-                  viewConfig.visualisationType ===
-                  VisualisationType.BoundaryOnly
-                    ? undefined
-                    : VisualisationType.BoundaryOnly,
-              })
-            }
-          >
-            <div className="w-8 h-8 mx-auto mb-2 bg-gray-200 rounded"></div>
-            <span className="text-xs">Boundary outline</span>
-          </button>
-
-          <button
-            className={`p-3 rounded-lg border-2 text-center transition-all ${
-              viewConfig.visualisationType === VisualisationType.Choropleth
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-=======
             className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.visualisationType === VisualisationType.Choropleth
               ? "border-blue-500 bg-blue-50"
               : "border-neutral-200 hover:border-neutral-300"
               }`}
->>>>>>> Stashed changes
             onClick={() =>
               updateViewConfig({
                 visualisationType:
@@ -281,36 +253,22 @@ export default function VisualisationPanel({
               <button
                 className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === CalculationType.Value ||
                   !viewConfig.calculationType
-<<<<<<< Updated upstream
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-=======
                   ? "border-blue-500 bg-blue-50"
                   : "border-neutral-200 hover:border-neutral-300"
                   }`}
->>>>>>> Stashed changes
                 onClick={() =>
                   updateViewConfig({ calculationType: CalculationType.Value })
                 }
               >
-                <div className="w-6 h-6 mx-auto mb-2 bg-gray-300 rounded"></div>
+                <div className="w-6 h-6 mx-auto mb-2 bg-neutral-300 rounded"></div>
                 <span className="text-xs">Use existing values</span>
               </button>
 
               <button
-<<<<<<< Updated upstream
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  viewConfig.calculationType === CalculationType.Count
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-=======
                 className={`p-3 rounded-lg border-2 text-center transition-all ${viewConfig.calculationType === CalculationType.Count
                   ? "border-blue-500 bg-blue-50"
                   : "border-neutral-200 hover:border-neutral-300"
                   }`}
->>>>>>> Stashed changes
                 onClick={() =>
                   updateViewConfig({ calculationType: CalculationType.Count })
                 }

@@ -121,16 +121,7 @@ function DataSourceMarkers({
       key={sourceId}
       type="geojson"
       data={safeMarkers}
-<<<<<<< Updated upstream
-      cluster={true}
-      clusterMaxZoom={14}
-      clusterRadius={50}
-      clusterProperties={{
-        matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
-      }}
-=======
     // Disable clustering; use heatmap for density instead
->>>>>>> Stashed changes
     >
       <Layer
         id={`${sourceId}-heatmap`}
