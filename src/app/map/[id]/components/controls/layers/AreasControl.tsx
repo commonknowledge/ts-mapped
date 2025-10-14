@@ -32,6 +32,10 @@ export default function AreasControl() {
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
+
+  const strokeColor = mapColors.areas.color;
+  const fillColor = mapColors.areas.color + "50";
+
   const onAddArea = () => {
     handleAddArea();
     setAddingArea(true);
@@ -55,8 +59,8 @@ export default function AreasControl() {
             <ChevronRight className="w-4 h-4 text-neutral-600" />
           )}
           <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: mapColors.areas.color }}
+            className="w-3.5 h-3.5 rounded-xs"
+            style={{ border: `2px solid ${strokeColor}`, backgroundColor: fillColor }}
           />
           <span className="text-sm font-medium">Areas</span>
         </button>

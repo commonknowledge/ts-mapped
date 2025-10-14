@@ -5,6 +5,7 @@ import {
   FolderPlusIcon,
   LoaderPinwheel,
   Plus,
+  DatabaseIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
@@ -16,7 +17,6 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import { CollectionIcon } from "../../../Icons";
 import { defaultLayerStyles } from "../../LayerStyles";
 import MarkersList from "./MarkersList";
 
@@ -112,8 +112,8 @@ export default function MarkersControl() {
     },
     {
       type: "submenu" as const,
-      label: "Add Marker Collection",
-      icon: <CollectionIcon color={mapColors.markers.color} />,
+      label: "Add Data Source",
+      icon: <DatabaseIcon className="w-4 h-4 text-muted-foreground" />,
       items: [
         ...getDataSourceDropdownItems(),
         {
