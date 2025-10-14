@@ -113,25 +113,27 @@ export default function Choropleth() {
           {/* Line Layer - show for both boundary-only and choropleth */}
           {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
             viewConfig.visualisationType === VisualisationType.Choropleth) && (
-              <Layer
-                id={`${sourceId}-line`}
-                beforeId={choroplethTopLayerId}
-                source={sourceId}
-                source-layer={layerId}
-                type="line"
-                paint={{
-                  "line-color": "#999",
-                  "line-width": [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    // At zoom 15, line width is 1
-                    10, 0.5,  // At zoom 20, line width is 0.5
-                    20, 4,    // At zoom 0, line width is 2
-                  ],
-                }}
-              />
-            )}
+            <Layer
+              id={`${sourceId}-line`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="line"
+              paint={{
+                "line-color": "#999",
+                "line-width": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  // At zoom 15, line width is 1
+                  10,
+                  0.5, // At zoom 20, line width is 0.5
+                  20,
+                  4, // At zoom 0, line width is 2
+                ],
+              }}
+            />
+          )}
 
           {/* Symbol Layer (Labels) */}
           {viewConfig.showLabels && (

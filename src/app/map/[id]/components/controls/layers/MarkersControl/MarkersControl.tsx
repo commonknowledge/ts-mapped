@@ -2,10 +2,10 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  DatabaseIcon,
   FolderPlusIcon,
   LoaderPinwheel,
   Plus,
-  DatabaseIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
@@ -78,8 +78,8 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                (id) => id !== dataSource.id,
-              )
+                  (id) => id !== dataSource.id,
+                )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
         },

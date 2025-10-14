@@ -32,7 +32,6 @@ export default function AreasControl() {
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
-
   const strokeColor = mapColors.areas.color;
   const fillColor = mapColors.areas.color + "50";
 
@@ -60,7 +59,10 @@ export default function AreasControl() {
           )}
           <div
             className="w-3.5 h-3.5 rounded-xs"
-            style={{ border: `2px solid ${strokeColor}`, backgroundColor: fillColor }}
+            style={{
+              border: `2px solid ${strokeColor}`,
+              backgroundColor: fillColor,
+            }}
           />
           <span className="text-sm font-medium">Areas</span>
         </button>
