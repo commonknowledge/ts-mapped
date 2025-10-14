@@ -1,10 +1,10 @@
 import { useQueries } from "@tanstack/react-query";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { getDataSourceIds } from "@/app/map/[id]/utils";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";

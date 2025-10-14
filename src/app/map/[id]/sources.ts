@@ -71,7 +71,7 @@ export const MAPBOX_SOURCE_IDS = Object.values(
 
 export const getChoroplethLayerConfig = (
   dataSourceAreaSetCode: AreaSetCode | null | undefined,
-  areaSetGroupCode: AreaSetGroupCode | null,
+  areaSetGroupCode: AreaSetGroupCode | null | undefined,
   zoom: number,
 ) => {
   if (areaSetGroupCode) {

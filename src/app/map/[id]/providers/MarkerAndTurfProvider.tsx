@@ -4,13 +4,15 @@ import { useQueries } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import {
+  MapContext,
+  getDataSourceIds,
+} from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
-import { getDataSourceIds } from "../utils";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
 import type { PointFeature } from "@/types";

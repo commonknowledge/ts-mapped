@@ -1,9 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
+import {
+  MapContext,
+  createNewViewConfig,
+} from "@/app/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "../hooks/useMapQuery";
@@ -62,7 +65,7 @@ export default function MapProvider({
       const newView = {
         id: uuidv4(),
         name: "Default View",
-        config: new ViewConfig(),
+        config: createNewViewConfig(),
         dataSourceViews: [],
         mapId: mapId,
         position: getNewLastPosition(mapData.views),
@@ -84,35 +87,6 @@ export default function MapProvider({
     trpc.map.byId,
     createDefaultViewMutate,
   ]);
-
-  /* Auto-save views when dirty */
-  const { mutate: saveViewsMutate } = useMutation(
-    trpc.map.updateViews.mutationOptions({
-      onSuccess: () => {
-        setDirtyViewIds([]);
-      },
-    }),
-  );
-  const saveViews = useCallback(() => {
-    if (!mapId) return;
-
-    const currentData = queryClient.getQueryData(
-      trpc.map.byId.queryKey({ mapId }),
-    );
-    if (!currentData?.views) return;
-
-    saveViewsMutate({ mapId, views: currentData.views });
-  }, [mapId, saveViewsMutate, queryClient, trpc.map.byId]);
-
-  useEffect(() => {
-    if (!dirtyViewIds.length) return;
-
-    const handler = setTimeout(() => {
-      saveViews();
-    }, 1000); // debounce 1s
-
-    return () => clearTimeout(handler);
-  }, [dirtyViewIds, saveViews]);
 
   return (
     <MapContext
