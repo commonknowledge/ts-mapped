@@ -8,20 +8,20 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
+import { LayerType, type RecordData, type RecordsResponse } from "@/types";
 import {
   getMarkersInsideTurf,
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
+import TurfMarkerButton from "./TurfMarkerButton";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
-import type { RecordData, RecordsResponse } from "@/types";
 
 export default function TurfMarkersList() {
   const { getDataSourceById } = useContext(DataSourcesContext);
   const { mapConfig } = useContext(MapContext);
   const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
   const { selectedTurf } = useContext(InspectorContext);
-
   const trpc = useTRPC();
 
   const dataSourceIds = mapConfig.getDataSourceIds();
@@ -148,25 +148,22 @@ const MembersList = ({
       {!dataSource ? (
         <p>No members data source found.</p>
       ) : memberRecords.length > 0 ? (
-        <>
-          <ul className="flex flex-col gap-1">
-            {memberRecords.map((record) => {
-              const displayName = nameColumn
-                ? String(record.json[nameColumn] ?? "")
-                : `Id: ${record.id}`;
-              return (
-                <li key={record.id}>
-                  <button
-                    className="cursor-pointer text-left"
-                    onClick={() => onRecordClick(record)}
-                  >
-                    {displayName}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </>
+        <ul>
+          {memberRecords.map((record) => {
+            const displayName = nameColumn
+              ? String(record.json[nameColumn] ?? "")
+              : `Id: ${record.id}`;
+            return (
+              <li key={record.id}>
+                <TurfMarkerButton
+                  label={displayName}
+                  type={LayerType.Member}
+                  onClick={() => onRecordClick(record)}
+                />
+              </li>
+            );
+          })}
+        </ul>
       ) : (
         <p>No members in this area.</p>
       )}
@@ -187,10 +184,6 @@ const MarkersList = ({
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
 
-  if (recordsList.length === 0) {
-    return <></>;
-  }
-
   const onRecordClick = (record: RecordData) => {
     setSelectedRecord({
       id: record.id,
@@ -202,25 +195,28 @@ const MarkersList = ({
     });
   };
 
+  if (recordsList.length === 0) {
+    return <></>;
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <h3 className="font-semibold">
         {dataSource?.name} {total > 0 && <>({total})</>}
       </h3>
 
-      <ul className="flex flex-col gap-1">
+      <ul>
         {recordsList.map((record) => {
           const displayName = nameColumn
             ? String(record.json[nameColumn] ?? "")
             : `Id: ${record.id}`;
           return (
             <li key={record.id}>
-              <button
-                className="cursor-pointer text-left"
+              <TurfMarkerButton
+                label={displayName}
+                type={LayerType.Marker}
                 onClick={() => onRecordClick(record)}
-              >
-                {displayName}
-              </button>
+              />
             </li>
           );
         })}
@@ -242,10 +238,6 @@ const PlacedMarkersList = ({
   const total = records.count.matched ?? 0;
   const name = folder?.name;
 
-  if (recordsList.length === 0) {
-    return <></>;
-  }
-
   const onRecordClick = (record: RecordData) => {
     setSelectedRecord({
       id: record.id,
@@ -256,6 +248,10 @@ const PlacedMarkersList = ({
     });
   };
 
+  if (recordsList.length === 0) {
+    return <></>;
+  }
+
   return (
     <div className="flex flex-col gap-2">
       {name && (
@@ -264,16 +260,15 @@ const PlacedMarkersList = ({
         </h3>
       )}
 
-      <ul className="flex flex-col gap-1">
+      <ul>
         {recordsList.map((record) => {
           return (
             <li key={record.id}>
-              <button
-                className="cursor-pointer text-left"
+              <TurfMarkerButton
+                label={record.json?.name as string}
+                type={LayerType.Marker}
                 onClick={() => onRecordClick(record)}
-              >
-                {record.json?.name as string}
-              </button>
+              />
             </li>
           );
         })}

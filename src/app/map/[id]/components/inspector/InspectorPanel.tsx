@@ -5,7 +5,8 @@ import { TableContext } from "@/app/map/[id]/context/TableContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
-import { mapColors } from "../../styles";
+import { LayerType } from "@/types";
+import LayerTypeIcon from "../LayerTypeIcon";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
 
@@ -36,17 +37,7 @@ export default function InspectorPanel() {
       <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
         <div className="flex justify-between items-start gap-4 p-4">
           <h1 className="grow flex gap-2 / text-sm font-semibold">
-            <div
-              className="shrink-0 mt-1 w-3 h-3 rounded-full"
-              style={{
-                backgroundColor:
-                  type === "member"
-                    ? mapColors.member.color
-                    : type === "marker"
-                      ? mapColors.markers.color
-                      : mapColors.areas.color,
-              }}
-            ></div>
+            <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
             {inspectorContent?.name as string}
           </h1>
           <button
@@ -58,14 +49,18 @@ export default function InspectorPanel() {
           </button>
         </div>
 
-        {selectedTurf && type !== "turf" && (
+        {selectedTurf && type !== LayerType.Turf && (
           <div className="px-4 pb-2">
             <button
               onClick={() => onBackToTurfClick()}
-              className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer"
+              className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 cursor-pointer"
             >
               <ArrowLeftIcon size={12} />
-              Back to {selectedTurf.name}
+              Back to
+              <span className="inline-flex items-center gap-1 font-semibold">
+                <LayerTypeIcon type={LayerType.Turf} size={2} />
+                {selectedTurf.name}
+              </span>
             </button>
           </div>
         )}
@@ -88,7 +83,7 @@ export default function InspectorPanel() {
 
           <PropertiesList properties={properties} />
 
-          {type === "turf" && <TurfMarkersList />}
+          {type === LayerType.Turf && <TurfMarkersList />}
 
           {dataSource && (
             <div className="border-t pt-4">

@@ -12,7 +12,7 @@ export default function PropertiesList({
   return (
     <dl className="flex flex-col gap-3">
       {Object.keys(properties as object).map((label) => {
-        const value = properties?.[label] as string;
+        const value = `${properties?.[label]}`;
 
         if (!value) return <Fragment key={label}></Fragment>;
 

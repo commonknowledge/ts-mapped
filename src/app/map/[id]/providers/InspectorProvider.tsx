@@ -15,6 +15,7 @@ import {
   SORT_BY_LOCATION,
   SORT_BY_NAME_COLUMNS,
 } from "@/constants";
+import { LayerType } from "@/types";
 
 import type {
   InspectorContent,
@@ -50,7 +51,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     if (!selectedRecord || !selectedRecord?.properties) {
       if (selectedTurf?.id) {
         setInspectorContent({
-          type: "turf",
+          type: LayerType.Turf,
           name: selectedTurf.name,
           properties: null,
           dataSource: null,
@@ -66,7 +67,9 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
     const dataSource = dataSourceId ? getDataSourceById(dataSourceId) : null;
     const type =
-      dataSourceId === mapConfig.membersDataSourceId ? "member" : "marker";
+      dataSourceId === mapConfig.membersDataSourceId
+        ? LayerType.Member
+        : LayerType.Marker;
 
     const filteredProperties = Object.fromEntries(
       Object.entries(selectedRecord.properties).filter(
@@ -86,19 +89,6 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     selectedTurf,
     mapConfig.membersDataSourceId,
   ]);
-
-  // useEffect(() => {
-  //   if (!selectedTurf?.id) {
-  //     return;
-  //   }
-
-  //   setInspectorContent({
-  //     type: "turf",
-  //     name: selectedTurf.name,
-  //     properties: null,
-  //     dataSource: null,
-  //   });
-  // }, [selectedTurf]);
 
   const resetInspector = () => {
     setSelectedRecord(null);

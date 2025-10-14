@@ -73,3 +73,9 @@ export interface RecordsResponse {
   count: { matched: number };
   records: RecordData[];
 }
+
+export enum LayerType {
+  Member = "MEMBER",
+  Marker = "MARKER",
+  Turf = "TURF",
+}

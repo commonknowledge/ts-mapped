@@ -1,11 +1,12 @@
 import { createContext } from "react";
 import type { RouterOutputs } from "@/services/trpc/react";
+import type { LayerType } from "@/types";
 import type { Polygon } from "geojson";
 
 type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
 export interface InspectorContent {
-  type: "member" | "marker" | "turf";
+  type: LayerType | undefined;
   name: string | unknown;
   properties: Record<string, unknown> | null;
   dataSource: DataSource | null;
