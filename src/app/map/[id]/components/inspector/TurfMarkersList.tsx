@@ -6,6 +6,7 @@ import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import DataSourceIcon from "@/components/DataSourceIcon";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType, type RecordData, type RecordsResponse } from "@/types";
@@ -206,7 +207,10 @@ const MarkersList = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="font-semibold">
+      <h3 className="flex items-center gap-2 font-semibold">
+        <div className="shrink-0">
+          <DataSourceIcon type={dataSource?.config.type}></DataSourceIcon>
+        </div>
         {dataSource?.name} {total > 0 && <>({total})</>}
       </h3>
 

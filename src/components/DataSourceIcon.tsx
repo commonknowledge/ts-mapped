@@ -301,7 +301,11 @@ const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.Mailchimp]: <MailchimpIconSVG />,
 };
 
-const DataSourceIcon = ({ type }: { type: string }) => {
+const DataSourceIcon = ({
+  type,
+}: {
+  type: DataSourceType | string | undefined;
+}) => {
   return dataSourceIcons[type as DataSourceType];
 };
 
