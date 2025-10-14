@@ -49,8 +49,8 @@ export class CSVAdaptor implements DataSourceAdaptor {
       throw new Error(`Could not read URL ${this.url}`);
     }
 
-    // @ts-expect-error TODO: web fetch stream to node stream potential incompatibility?
-    return Readable.from(response.body);
+    // @ts-expect-error Fix type argument mismatch (https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/65542)
+    return Readable.fromWeb(response.body);
   }
 
   createFileReadStream(url: string) {
