@@ -1,12 +1,11 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
+import { useEffect, useState } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import {
   MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_EXTERNAL_ID_KEY,
   MARKER_ID_KEY,
   MARKER_MATCHED_KEY,
   MARKER_NAME_KEY,
@@ -27,7 +26,6 @@ import type { ReactNode } from "react";
 const HIDDEN_PROPERTIES = [
   MARKER_ID_KEY,
   MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_EXTERNAL_ID_KEY,
   MARKER_NAME_KEY,
   MARKER_MATCHED_KEY,
   MARKER_RADIUS_KEY,
@@ -37,8 +35,8 @@ const HIDDEN_PROPERTIES = [
 ];
 
 const InspectorProvider = ({ children }: { children: ReactNode }) => {
-  const { getDataSourceById } = useContext(DataSourcesContext);
-  const { mapConfig } = useContext(MapContext);
+  const { getDataSourceById } = useDataSources();
+  const { mapConfig } = useMapConfig();
   const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
     null,
   );

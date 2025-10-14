@@ -7,7 +7,8 @@ export const turfRouter = router({
   delete: mapWriteProcedure
     .input(z.object({ turfId: z.string() }))
     .mutation(async ({ input }) => {
-      return deleteTurf(input.turfId);
+      await deleteTurf(input.turfId);
+      return true;
     }),
 
   upsert: mapWriteProcedure

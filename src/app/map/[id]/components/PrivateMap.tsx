@@ -2,17 +2,17 @@
 
 import { useContext, useEffect } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useMapQuery } from "../queries";
+import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
 import VisualisationPanel from "./controls/visualisation/VisualisationPanel";
@@ -26,7 +26,7 @@ export default function PrivateMap() {
   const { areaStatsQuery, setLastLoadedSourceId } =
     useContext(ChoroplethContext);
 
-  const { dataSourcesLoading } = useContext(DataSourcesContext);
+  const { isPending: dataSourcesLoading } = useDataSources();
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId } = useContext(TableContext);
 

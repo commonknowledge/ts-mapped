@@ -1,9 +1,9 @@
 import { Pentagon } from "lucide-react";
 import React, { useMemo } from "react";
-import { useContext, useState } from "react";
-import { AreaSetGroupCode } from "@/__generated__/types";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useState } from "react";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { AreaSetGroupCodeLabels } from "@/labels";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { Label } from "@/shadcn/ui/label";
 
 interface LocalityShapeItem {
@@ -15,7 +15,7 @@ interface LocalityShapeItem {
 }
 
 export default function VisualisationShapeLibrarySelector() {
-  const { viewConfig, updateViewConfig } = useContext(MapContext);
+  const { viewConfig, updateViewConfig } = useMapViews();
   const [selectedValue, setSelectedValue] = useState<AreaSetGroupCode | null>(
     viewConfig.areaSetGroupCode || null,
   );

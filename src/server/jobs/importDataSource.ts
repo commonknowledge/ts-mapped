@@ -1,16 +1,16 @@
-import { ColumnType } from "@/__generated__/types";
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { geocodeRecord } from "@/server/mapping/geocode";
+import { ColumnType } from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import pubSub from "@/server/services/pubsub";
+import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
-import type { ColumnDef } from "@/__generated__/types";
+import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSource } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
@@ -36,14 +36,13 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     return false;
   }
 
+  const pubsub = getPubSub();
+
   try {
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        importStarted: {
-          at: new Date().toISOString(),
-        },
-      },
+    pubsub.publish("dataSourceEvent", {
+      dataSourceId: dataSource.id,
+      event: "ImportStarted",
+      at: new Date(),
     });
 
     let count = 0;
@@ -63,14 +62,11 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       } else {
         logger.info(`Inserted ${count} records`);
       }
-      pubSub.publish("dataSourceEvent", {
-        dataSourceEvent: {
-          dataSourceId: dataSource.id,
-          recordsImported: {
-            at: new Date().toISOString(),
-            count,
-          },
-        },
+      pubsub.publish("dataSourceEvent", {
+        dataSourceId: dataSource.id,
+        event: "RecordsImported",
+        at: new Date(),
+        count,
       });
     }
 
@@ -78,25 +74,19 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
       columnDefs: columnDefsAccumulator,
     });
 
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        importComplete: {
-          at: new Date().toISOString(),
-        },
-      },
+    pubsub.publish("dataSourceEvent", {
+      dataSourceId: dataSource.id,
+      event: "ImportComplete",
+      at: new Date(),
     });
 
     logger.info(`Imported data source ${dataSource.id}: ${dataSource.name}`);
     return true;
   } catch (error) {
-    pubSub.publish("dataSourceEvent", {
-      dataSourceEvent: {
-        dataSourceId: dataSource.id,
-        importFailed: {
-          at: new Date().toISOString(),
-        },
-      },
+    pubsub.publish("dataSourceEvent", {
+      dataSourceId: dataSource.id,
+      event: "ImportFailed",
+      at: new Date(),
     });
 
     logger.error(

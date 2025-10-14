@@ -37,12 +37,8 @@ export const MarkerAndTurfContext = createContext<{
   insertTurf: (turf: Omit<Turf, "mapId" | "id" | "createdAt">) => void;
   updateTurf: (turf: Omit<Turf, "mapId">) => void;
 
-  /* GraphQL Queries */
   markerQueries: {
-    data: {
-      dataSourceId: string;
-      markers: PointFeature[];
-    }[];
+    data: { dataSourceId: string; markers: PointFeature[] }[];
     isFetching: boolean;
   } | null;
 

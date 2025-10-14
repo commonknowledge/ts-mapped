@@ -6,6 +6,8 @@ export const mapConfigSchema = z.object({
   membersDataSourceId: z.string().nullish(),
 });
 
+export type MapConfig = z.infer<typeof mapConfigSchema>;
+
 export const mapSchema = z.object({
   id: z.string(),
   name: z.string(),

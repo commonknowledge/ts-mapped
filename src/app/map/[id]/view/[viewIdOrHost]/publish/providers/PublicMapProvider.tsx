@@ -1,9 +1,10 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useCallback, useEffect, useState } from "react";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
@@ -12,7 +13,7 @@ import type {
   PublicMap,
   PublicMapColumn,
   PublicMapDataSourceConfig,
-} from "@/__generated__/types";
+} from "@/server/models/PublicMap";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { ReactNode } from "react";
@@ -140,7 +141,8 @@ export default function PublicMapProvider({
   );
 }
 
-// Use a component for each query, as can't put hooks in a loop
+// TODO: use useQueries instead
+
 function DataRecordsQueryComponent({
   dataSourceId,
   location,
@@ -156,7 +158,7 @@ function DataRecordsQueryComponent({
     },
   ) => void;
 }) {
-  const { view } = useContext(MapContext);
+  const { view } = useMapViews();
 
   const filter = view?.dataSourceViews.find(
     (dsv) => dsv.dataSourceId === dataSourceId,
@@ -175,8 +177,16 @@ function DataRecordsQueryComponent({
   );
 
   useEffect(() => {
-    onLoadDataRecords(dataSourceId, dataRecordsQuery);
-  }, [dataRecordsQuery, dataSourceId, onLoadDataRecords]);
+    onLoadDataRecords(dataSourceId, {
+      data: dataRecordsQuery.data,
+      isPending: dataRecordsQuery.isPending,
+    });
+  }, [
+    dataRecordsQuery.data,
+    dataRecordsQuery.isPending,
+    dataSourceId,
+    onLoadDataRecords,
+  ]);
 
   return null;
 }
@@ -187,8 +197,8 @@ const usePublicMapAndActiveTab = (
   initialPublicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
   editable: boolean,
 ) => {
-  const { mapConfig } = useContext(MapContext);
-  const { getDataSourceById } = useContext(DataSourcesContext);
+  const { mapConfig } = useMapConfig();
+  const { getDataSourceById } = useDataSources();
 
   const [publicMap, setPublicMap] = useState(initialPublicMap);
   const [activeTabId, setActiveTabId] = useState<string | null>(
@@ -202,7 +212,7 @@ const usePublicMapAndActiveTab = (
 
     const dataSources = mapConfig
       .getDataSourceIds()
-      .map((id) => getDataSourceById(id))
+      .map(getDataSourceById)
       .filter((ds) => ds !== undefined && ds !== null);
 
     const dataSourceConfigs = dataSources.map(createDataSourceConfig);

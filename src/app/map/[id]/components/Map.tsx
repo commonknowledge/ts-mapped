@@ -16,10 +16,11 @@ import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_EXTERNAL_ID_KEY,
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
@@ -52,8 +53,6 @@ export default function Map({
 }) {
   const {
     mapRef,
-    mapConfig,
-    viewConfig,
     setBoundingBox,
     setZoom,
     pinDropMode,
@@ -61,6 +60,8 @@ export default function Map({
     ready,
     setReady,
   } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
+  const { mapConfig } = useMapConfig();
   const {
     deleteTurf,
     insertTurf,
@@ -587,10 +588,20 @@ export default function Map({
             if (!layers) return;
 
             layers.forEach((layer) => {
-              if (layer.type === "symbol" && layer.layout?.["text-field"]) {
+              // Filter to find built-in label layers (all have layout["text-field] = ["coalesce", ["get", "name"]])
+              if (
+                layer.type === "symbol" &&
+                layer.layout?.["text-field"] &&
+                Array.isArray(layer.layout["text-field"]) &&
+                layer.layout["text-field"][0] === "coalesce" &&
+                layer.layout["text-field"].find(
+                  (i) => Array.isArray(i) && i.includes("name"),
+                )
+              ) {
                 map.setLayoutProperty(layer.id, "text-field", [
-                  "get",
-                  "name_en",
+                  "coalesce",
+                  ["get", "name_en"],
+                  ["get", "name"], // Fallback if English name doesn't exist
                 ]);
               }
             });
@@ -616,8 +627,7 @@ export default function Map({
                 closeButton={false}
               >
                 <p className="font-sans font-semibold text-sm">
-                  {String(hoverMarker.properties[MARKER_NAME_KEY]) ||
-                    `ID: ${hoverMarker.properties[MARKER_EXTERNAL_ID_KEY]}`}
+                  {String(hoverMarker.properties[MARKER_NAME_KEY])}
                 </p>
               </Popup>
             )}

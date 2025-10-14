@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from "react";
-import { PublicMapColumnType } from "@/__generated__/types";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Switch } from "@/shadcn/ui/switch";

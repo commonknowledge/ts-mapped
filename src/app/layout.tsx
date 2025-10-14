@@ -1,6 +1,5 @@
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { getServerSession } from "@/auth";
-import ApolloProvider from "@/providers/ApolloProvider";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import { PostHogProvider } from "@/providers/PostHogProvider";
@@ -52,14 +51,10 @@ export default async function RootLayout({
           <PostHogProvider>
             <OrganisationsProvider organisations={organisations}>
               <TRPCReactProvider>
-                <ApolloProvider>
-                  <NProgressProvider>
-                    <main className="min-h-screen relative z-10">
-                      {children}
-                    </main>
-                    <Toaster position="top-center" />
-                  </NProgressProvider>
-                </ApolloProvider>
+                <NProgressProvider>
+                  <main className="min-h-screen relative z-10">{children}</main>
+                  <Toaster position="top-center" />
+                </NProgressProvider>
               </TRPCReactProvider>
             </OrganisationsProvider>
           </PostHogProvider>

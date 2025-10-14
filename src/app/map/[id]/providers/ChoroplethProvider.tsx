@@ -2,8 +2,9 @@
 
 import { useContext, useMemo, useState } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { GeocodingType } from "@/server/models/DataSource";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { VisualisationType } from "@/server/models/MapView";
@@ -16,8 +17,9 @@ export default function ChoroplethProvider({
 }: {
   children: ReactNode;
 }) {
-  const { boundingBox, viewConfig, zoom } = useContext(MapContext);
-  const { getChoroplethDataSource } = useContext(DataSourcesContext);
+  const { boundingBox, zoom } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
+  const choroplethDataSource = useChoroplethDataSource();
 
   /* State */
   // Storing the last loaded source triggers re-render when Mapbox layers load
@@ -29,10 +31,9 @@ export default function ChoroplethProvider({
   /* Derived State */
 
   const choroplethLayerConfig = useMemo(() => {
-    const dataSource = getChoroplethDataSource();
     const areaSetCode =
-      dataSource?.geocodingConfig?.type === GeocodingType.Code
-        ? dataSource?.geocodingConfig?.areaSetCode
+      choroplethDataSource?.geocodingConfig?.type === GeocodingType.Code
+        ? choroplethDataSource?.geocodingConfig?.areaSetCode
         : undefined;
 
     return getChoroplethLayerConfig(
@@ -43,7 +44,7 @@ export default function ChoroplethProvider({
       zoom,
     );
   }, [
-    getChoroplethDataSource,
+    choroplethDataSource,
     viewConfig.areaSetGroupCode,
     viewConfig.visualisationType,
     zoom,

@@ -15,10 +15,10 @@ import {
 } from "@dnd-kit/sortable";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -32,7 +32,7 @@ import EmptyLayer from "../../Emptylayer";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
-import type { PlacedMarker } from "@/__generated__/types";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type {
   DragEndEvent,
   DragOverEvent,
@@ -40,7 +40,7 @@ import type {
 } from "@dnd-kit/core";
 
 export default function MarkersList() {
-  const { viewConfig } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
   const {
     folders,
     updateFolder,
@@ -50,8 +50,7 @@ export default function MarkersList() {
   } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
-  const { getMarkerDataSources } = useContext(DataSourcesContext);
-  const markerDataSources = getMarkerDataSources();
+  const markerDataSources = useMarkerDataSources();
 
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -301,11 +300,13 @@ export default function MarkersList() {
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           <ol>
-            {markerDataSources.length === 0 && placedMarkers.length === 0 && (
-              <EmptyLayer message="Add a Marker Layer" />
-            )}
+            {markerDataSources &&
+              markerDataSources.length === 0 &&
+              placedMarkers.length === 0 && (
+                <EmptyLayer message="Add a Marker Layer" />
+              )}
             {/* Data sources */}
-            {markerDataSources.length > 0 && (
+            {markerDataSources && markerDataSources.length > 0 && (
               <ul>
                 {markerDataSources.map((dataSource) => (
                   <li key={dataSource.id} className="mb-2">

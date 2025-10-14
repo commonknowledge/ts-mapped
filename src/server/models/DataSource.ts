@@ -15,6 +15,11 @@ export enum JobStatus {
   Pending = "Pending",
 }
 
+export interface JobInfo {
+  status: JobStatus;
+  lastCompleted?: Date;
+}
+
 export enum DataSourceType {
   ActionNetwork = "actionnetwork",
   Airtable = "airtable",
@@ -189,6 +194,8 @@ export const columnDefSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(ColumnType),
 });
+
+export type ColumnDef = z.infer<typeof columnDefSchema>;
 
 export const columnRolesSchema = z.object({
   nameColumns: z.array(z.string()),

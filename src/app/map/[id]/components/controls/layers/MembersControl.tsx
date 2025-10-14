@@ -1,9 +1,13 @@
 import { Ellipsis } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import {
+  useDataSources,
+  useMembersDataSource,
+} from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { mapColors } from "../../../styles";
@@ -15,32 +19,33 @@ import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
   const router = useRouter();
-  const { updateMapConfig, viewConfig, updateViewConfig } =
-    useContext(MapContext);
-  const { getMembersDataSource, getDataSources } =
-    useContext(DataSourcesContext);
+  const { viewConfig, updateViewConfig } = useMapViews();
+  const { updateMapConfig } = useMapConfig();
+  const dataSource = useMembersDataSource();
+  const { data: allDataSources, isPending: allDataSourcesLoading } =
+    useDataSources();
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
   const [expanded, setExpanded] = useState(true);
 
-  const dataSource = getMembersDataSource();
   const isSelected = dataSource
     ? selectedDataSourceId === dataSource.id
     : false;
 
-  const dataSources = getDataSources().filter((dataSource) => {
+  const dataSources = allDataSources?.filter((dataSource) => {
     return dataSource.recordType === DataSourceRecordType.Members;
   });
 
   const getDropdownItems = () => {
-    const items = dataSources.map((ds) => ({
-      type: "item" as const,
-      label: ds.name,
-      onClick: () => {
-        handleDataSourceSelect(ds.id);
-        updateMapConfig({ membersDataSourceId: ds.id });
-      },
-    }));
+    const items =
+      dataSources?.map((ds) => ({
+        type: "item" as const,
+        label: ds.name,
+        onClick: () => {
+          handleDataSourceSelect(ds.id);
+          updateMapConfig({ membersDataSourceId: ds.id });
+        },
+      })) || [];
     return [
       ...items,
       ...(items.length > 0 ? [{ type: "separator" as const }] : []),
@@ -77,7 +82,7 @@ export default function MembersControl() {
         <ul
           className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
         >
-          {dataSource ? (
+          {allDataSourcesLoading ? null : dataSource ? (
             <CollectionLayer
               dataSource={dataSource}
               isSelected={isSelected}

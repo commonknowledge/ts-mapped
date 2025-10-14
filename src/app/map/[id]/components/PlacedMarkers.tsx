@@ -1,17 +1,13 @@
 import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import {
-  MARKER_EXTERNAL_ID_KEY,
-  MARKER_ID_KEY,
-  MARKER_NAME_KEY,
-} from "@/constants";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
-  const { viewConfig } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
   const { folders, placedMarkers, selectedPlacedMarkerId } =
     useContext(MarkerAndTurfContext);
 
@@ -33,7 +29,6 @@ export default function PlacedMarkers() {
       type: "Feature",
       properties: {
         [MARKER_ID_KEY]: marker.id,
-        [MARKER_EXTERNAL_ID_KEY]: marker.id,
         [MARKER_NAME_KEY]: marker.label,
       },
       geometry: {

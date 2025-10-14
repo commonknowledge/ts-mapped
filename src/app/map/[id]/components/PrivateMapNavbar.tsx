@@ -1,17 +1,26 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useFeatureFlagEnabled } from "posthog-js/react";
-import { useCallback, useContext, useEffect, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
+import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
 
@@ -20,19 +29,35 @@ import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapName, setMapName, mapId, saveMapConfig, mapRef, view } =
-    useContext(MapContext);
+  const { mapId, mapRef, dirtyViewIds, configDirty } = useContext(MapContext);
+  const { data: map } = useMapQuery(mapId);
+  const { view } = useMapViews();
 
   const showPublishButton = useFeatureFlagEnabled("public-maps");
   const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(map?.name || "");
   const [loading, setLoading] = useState(false);
 
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // keep edited name in sync with cache map name
+    setEditedName(map?.name || "");
+  }, [map?.name]);
 
   const { mutate: updateMap, isPending } = useMutation(
     trpc.map.update.mutationOptions({
       onSuccess: () => {
         setIsEditingName(false);
+        if (mapId) {
+          queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+            if (!old) return old;
+            return { ...old, name: editedName };
+          });
+        }
       },
       onError: (error) => {
         toast.error("Failed to update map");
@@ -41,19 +66,21 @@ export default function PrivateMapNavbar() {
     }),
   );
 
+  useLayoutEffect(() => {
+    if (!isEditingName) return;
+    // input isnt rendered immediately, so we need to wait for it to be ready
+    const timeout = setTimeout(() => {
+      inputRef.current?.select();
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [isEditingName]);
+
   const onClickPublish = async () => {
-    // Should never happen, button is also hidden in this case
     if (!mapId || !view) return;
-    // Need to save the map + view before trying to publish it
     setLoading(true);
-    try {
-      saveMapConfig();
-      router.push(`/map/${mapId}/view/${view.id}/publish`);
-    } catch (e) {
-      console.error("UpdateMapConfig failed", e);
-      toast.error("Could not publish this map view, please try again.");
-      setLoading(false);
-    }
+    // Auto-save handles saving map config and views automatically
+    // Just navigate to the publish page
+    router.push(`/map/${mapId}/view/${view.id}/publish`);
   };
 
   const regenerateMapImage = useCallback(async () => {
@@ -87,12 +114,7 @@ export default function PrivateMapNavbar() {
 
     const checkMapReady = () => {
       const map = mapRef?.current;
-
-      if (!map) {
-        return false;
-      } else {
-        return true;
-      }
+      return Boolean(map);
     };
 
     let interval: NodeJS.Timeout | number | undefined;
@@ -116,8 +138,8 @@ export default function PrivateMapNavbar() {
   }, [mapId, mapRef, regenerateMapImage]);
 
   const onSubmitSaveName = async () => {
-    if (!mapId || !mapName) return;
-    updateMap({ mapId, name: mapName });
+    if (!mapId || !editedName) return;
+    updateMap({ mapId, name: editedName });
   };
 
   return (
@@ -137,9 +159,11 @@ export default function PrivateMapNavbar() {
                 <>
                   <input
                     type="text"
-                    value={mapName || ""}
+                    value={editedName || ""}
+                    autoFocus
+                    ref={inputRef}
                     className="px-3 py-1 border border-neutral-300 rounded text-sm"
-                    onChange={(e) => setMapName(e.target.value)}
+                    onChange={(e) => setEditedName(e.target.value)}
                   />
                   <Button
                     variant="outline"
@@ -153,14 +177,17 @@ export default function PrivateMapNavbar() {
                     variant="outline"
                     size="sm"
                     disabled={isPending}
-                    onClick={() => setIsEditingName(false)}
+                    onClick={() => {
+                      setIsEditingName(false);
+                      setEditedName(map ? map.name : "");
+                    }}
                   >
                     Cancel
                   </Button>
                 </>
               ) : (
                 <p className="truncate max-w-[300px]">
-                  {mapName || "Loading..."}
+                  {map ? map.name : "Loading..."}
                 </p>
               )}
             </div>
@@ -174,9 +201,9 @@ export default function PrivateMapNavbar() {
               {showPublishButton && view && (
                 <Button
                   type="button"
+                  disabled={loading || dirtyViewIds.length > 0 || configDirty}
                   variant="outline"
-                  onClick={() => onClickPublish()}
-                  disabled={loading}
+                  onClick={onClickPublish}
                 >
                   Publish
                 </Button>
