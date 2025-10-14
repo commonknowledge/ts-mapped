@@ -8,7 +8,6 @@ export default function MarkerDragOverlay({
 }) {
   return (
     <div className="flex items-center gap-2 p-0.5 bg-white border border-blue-300 rounded shadow-lg pointer-events-none">
-
       <span className="text-sm leading-relaxed flex-1 break-all">
         {marker.label}
       </span>

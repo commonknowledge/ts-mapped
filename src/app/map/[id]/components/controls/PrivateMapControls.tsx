@@ -1,4 +1,4 @@
-import { PanelLeft, Pause } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import { useContext } from "react";
 
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
@@ -10,11 +10,6 @@ import BoundariesControl from "./layers/BoundariesControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
 
-export interface LayerStyles {
-  container: string;
-  header: string;
-}
-
 export default function PrivateMapControls() {
   const { showControls, setShowControls } = useContext(MapContext);
   const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
@@ -24,11 +19,6 @@ export default function PrivateMapControls() {
     if (showControls === true) {
       setBoundariesPanelOpen(false);
     }
-  };
-
-  const LayerStyles = {
-    container: "rounded-lg p-1 mb-3 border border-neutral-200",
-    header: "flex items-center justify-between px-1 py-1"
   };
 
   return (
@@ -43,10 +33,11 @@ export default function PrivateMapControls() {
 
       {/* Control panel with transition */}
       <div
-        className={`absolute top-0 left-0 z-20 h-full overflow-hidden transition-all duration-300 ease-in-out ${showControls
-          ? "translate-x-0 opacity-100"
-          : "-translate-x-full opacity-0"
-          }`}
+        className={`absolute top-0 left-0 z-20 h-full overflow-hidden transition-all duration-300 ease-in-out ${
+          showControls
+            ? "translate-x-0 opacity-100"
+            : "-translate-x-full opacity-0"
+        }`}
         style={{
           width: `${CONTROL_PANEL_WIDTH}px`,
           minWidth: `${CONTROL_PANEL_WIDTH}px`,
@@ -72,10 +63,10 @@ export default function PrivateMapControls() {
             className="flex-1 overflow-y-auto px-3 py-2"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
-            <MembersControl LayerStyles={LayerStyles} />
-            <MarkersControl LayerStyles={LayerStyles} />
-            <AreasControl LayerStyles={LayerStyles} />
-            <BoundariesControl LayerStyles={LayerStyles} />
+            <MembersControl />
+            <MarkersControl />
+            <AreasControl />
+            <BoundariesControl />
           </div>
         </div>
       </div>

@@ -1,8 +1,8 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { useMutation } from "@tanstack/react-query";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point as turfPoint } from "@turf/helpers";
-import { useMutation } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import dynamic from "next/dynamic";
 import {
@@ -91,7 +91,6 @@ export default function Map({
     deleteTurf,
     insertTurf,
     updateTurf,
-    turfs,
     searchMarker,
     placedMarkers,
     markerQueries,
@@ -135,21 +134,19 @@ export default function Map({
     [mapConfig],
   );
 
-  // draw existing turfs
-  useEffect(() => {
-    if (!turfs || !draw) return;
-
-    draw.deleteAll();
-
-    // Add existing polygons from your array
-    turfs.forEach((turf) => {
-      draw.add({
-        type: "Feature",
-        properties: { ...turf },
-        geometry: turf.polygon,
-      });
-    });
-  }, [turfs, draw]);
+  // Note: Turf rendering is now handled by TurfVisibilityManager component
+  // MapboxDraw is only used for drawing/editing new polygons
+  // useEffect(() => {
+  //   if (!turfs || !draw) return;
+  //   draw.deleteAll();
+  //   turfs.forEach((turf) => {
+  //     draw.add({
+  //       type: "Feature",
+  //       properties: { ...turf },
+  //       geometry: turf.polygon,
+  //     });
+  //   });
+  // }, [turfs, draw]);
 
   // Hover behavior
   useEffect(() => {
@@ -242,34 +239,9 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
-  const toggleDrawVisibility = useCallback(
-    (visible: boolean) => {
-      const map = mapRef?.current;
-
-      // all draw layers
-      const drawLayerIds = [
-        "gl-draw-polygon-fill.cold",
-        "gl-draw-polygon-stroke.cold",
-        "gl-draw-polygon-and-line-vertex-halo-active.cold",
-        "gl-draw-polygon-and-line-vertex-active.cold",
-      ];
-
-      if (map && styleLoaded) {
-        // draw layers that actually exist on our map
-        const style = map.getStyle();
-        const layerIds = style.layers
-          .filter((layer) => drawLayerIds.includes(layer.id))
-          .map((layer) => layer.id);
-
-        layerIds.forEach((id) => {
-          map
-            .getMap()
-            .setLayoutProperty(id, "visibility", visible ? "visible" : "none");
-        });
-      }
-    },
-    [mapRef, styleLoaded],
-  );
+  // Note: Turf rendering is now handled by TurfVisibilityManager component
+  // MapboxDraw is only used for drawing/editing new polygons
+  // The toggleDrawVisibility function is kept for MapboxDraw controls only
 
   const getClickedPolygonFeature = (
     draw: MapboxDraw,
@@ -303,9 +275,8 @@ export default function Map({
     return polygonFeature ?? null;
   };
 
-  useEffect(() => {
-    toggleDrawVisibility(viewConfig.showTurf);
-  }, [viewConfig.showTurf, toggleDrawVisibility]);
+  // Note: Area visibility is now handled by TurfVisibilityManager component
+  // The toggleDrawVisibility function is kept for MapboxDraw controls only
 
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
@@ -346,13 +317,13 @@ export default function Map({
 
     const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
-        type: "Feature" as const,
-        geometry: {
-          type: "Point" as const,
-          coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-        },
-        properties: {},
-      }))
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+          },
+          properties: {},
+        }))
       : [];
 
     const dataSourceMarkerFeatures =
@@ -504,7 +475,7 @@ export default function Map({
                   filter: [
                     "all",
                     ["==", "$type", "Polygon"],
-                    ["!=", "mode", "draw_polygon"],
+                    ["in", "mode", "simple_select", "direct_select"],
                   ],
                   paint: {
                     "fill-color": mapColors.areas.color,
@@ -605,11 +576,11 @@ export default function Map({
           const bounds = e.target.getBounds();
           const boundingBox = bounds
             ? {
-              north: bounds.getNorth(),
-              east: bounds.getEast(),
-              south: bounds.getSouth(),
-              west: bounds.getWest(),
-            }
+                north: bounds.getNorth(),
+                east: bounds.getEast(),
+                south: bounds.getSouth(),
+                west: bounds.getWest(),
+              }
             : null;
           setBoundingBox(boundingBox);
           setZoom(e.viewState.zoom);

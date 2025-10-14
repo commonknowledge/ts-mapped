@@ -1,4 +1,11 @@
-import { Check, ChevronDown, ChevronRight, FolderPlusIcon, LoaderPinwheel, Plus } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  FolderPlusIcon,
+  LoaderPinwheel,
+  Plus,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -11,11 +18,10 @@ import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { CollectionIcon } from "../../../Icons";
+import { defaultLayerStyles } from "../../LayerStyles";
 import MarkersList from "./MarkersList";
-import { LayerStyles } from "../../PrivateMapControls";
 
-
-export default function MarkersControl({ LayerStyles }: { LayerStyles: LayerStyles }) {
+export default function MarkersControl() {
   const router = useRouter();
   const { viewConfig, updateViewConfig } = useMapViews();
   const { mapConfig, updateMapConfig } = useMapConfig();
@@ -74,8 +80,8 @@ export default function MarkersControl({ LayerStyles }: { LayerStyles: LayerStyl
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                (id) => id !== dataSource.id,
-              )
+                  (id) => id !== dataSource.id,
+                )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
         },
@@ -134,9 +140,9 @@ export default function MarkersControl({ LayerStyles }: { LayerStyles: LayerStyl
   const loading = foldersLoading || placedMarkersLoading;
 
   return (
-    <div className={LayerStyles.container}>
+    <div className={defaultLayerStyles.container}>
       {/* Header */}
-      <div className={LayerStyles.header}>
+      <div className={defaultLayerStyles.header}>
         <button
           className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
           onClick={() => setExpanded(!expanded)}
@@ -168,7 +174,9 @@ export default function MarkersControl({ LayerStyles }: { LayerStyles: LayerStyl
 
       {/* Layer Items */}
       {expanded && (
-        <div className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"}`}>
+        <div
+          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"}`}
+        >
           <MarkersList />
         </div>
       )}

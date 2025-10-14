@@ -130,7 +130,10 @@ export default function SortableFolderItem({
             }}
             className={`${isHeaderOver ? "bg-blue-50" : ""} ${!isVisible ? "opacity-70" : ""}`}
           >
-            <div ref={isDraggingMarker ? setHeaderNodeRef : null} className="contents">
+            <div
+              ref={isDraggingMarker ? setHeaderNodeRef : null}
+              className="contents"
+            >
               {isExpanded ? (
                 <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
               ) : (

@@ -29,7 +29,8 @@ function rgbaString(hex: string, alpha: number) {
 export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
-  const { markerQueries, getDataSourceVisibility } = useContext(MarkerAndTurfContext);
+  const { markerQueries, getDataSourceVisibility } =
+    useContext(MarkerAndTurfContext);
 
   const memberMarkers = useMemo(
     () =>
@@ -49,15 +50,21 @@ export default function Markers() {
 
   return (
     <>
-      {memberMarkers && viewConfig.showMembers && getDataSourceVisibility(memberMarkers.dataSourceId) && (
-        <DataSourceMarkers
-          key={memberMarkers.dataSourceId}
-          dataSourceMarkers={memberMarkers}
-          isMembers
-        />
-      )}
+      {memberMarkers &&
+        viewConfig.showMembers &&
+        getDataSourceVisibility(memberMarkers.dataSourceId) && (
+          <DataSourceMarkers
+            key={memberMarkers.dataSourceId}
+            dataSourceMarkers={memberMarkers}
+            isMembers
+          />
+        )}
       {otherMarkers.map((markers) => {
-        if (!markers || !viewConfig.showLocations || !getDataSourceVisibility(markers.dataSourceId)) {
+        if (
+          !markers ||
+          !viewConfig.showLocations ||
+          !getDataSourceVisibility(markers.dataSourceId)
+        ) {
           return null;
         }
         return (
@@ -121,7 +128,7 @@ function DataSourceMarkers({
       key={sourceId}
       type="geojson"
       data={safeMarkers}
-    // Disable clustering; use heatmap for density instead
+      // Disable clustering; use heatmap for density instead
     >
       <Layer
         id={`${sourceId}-heatmap`}

@@ -8,8 +8,12 @@ import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
-  const { folders, placedMarkers, selectedPlacedMarkerId, getMarkerVisibility } =
-    useContext(MarkerAndTurfContext);
+  const {
+    folders,
+    placedMarkers,
+    selectedPlacedMarkerId,
+    getMarkerVisibility,
+  } = useContext(MarkerAndTurfContext);
 
   const visiblePlacedMarkers = useMemo(() => {
     return placedMarkers.filter((marker) => {

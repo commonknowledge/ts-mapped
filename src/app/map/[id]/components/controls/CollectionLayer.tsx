@@ -11,7 +11,13 @@ export default function CollectionLayer({
   handleDataSourceSelect,
   layerType,
 }: {
-  dataSource: { id: string; name: string; config: { type: DataSourceType }; recordCount?: number; createdAt?: Date };
+  dataSource: {
+    id: string;
+    name: string;
+    config: { type: DataSourceType };
+    recordCount?: number;
+    createdAt?: Date;
+  };
   isSelected: boolean;
   onClick: () => void;
   handleDataSourceSelect: (id: string) => void;
@@ -24,7 +30,7 @@ export default function CollectionLayer({
     <LayerItem
       onClick={() => handleDataSourceSelect(dataSource.id)}
       layerType={layerType === "member" ? "members" : "locations"}
-      className={isSelected ? 'ring-2 ring-blue-500' : ''}
+      className={isSelected ? "ring-2 ring-blue-500" : ""}
       isDataSource={true}
       dataSourceId={dataSource.id}
     >
@@ -32,8 +38,9 @@ export default function CollectionLayer({
       <div className="flex-1">
         <div className="text-sm font-medium">{dataSource.name}</div>
         <div className="text-xs text-neutral-500">
-          {dataSource.recordCount?.toLocaleString() || '0'} records
-          {dataSource.createdAt && ` • Created ${new Date(dataSource.createdAt).toLocaleDateString()}`}
+          {dataSource.recordCount?.toLocaleString() || "0"} records
+          {dataSource.createdAt &&
+            ` • Created ${new Date(dataSource.createdAt).toLocaleDateString()}`}
         </div>
       </div>
       {isSelected && <Table className="w-4 h-4 text-neutral-500" />}

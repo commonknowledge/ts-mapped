@@ -31,7 +31,9 @@ export default function VisualiseControl() {
           <div className="flex-1">
             <div className="text-sm">
               {viewConfig.areaSetGroupCode
-                ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode as AreaSetGroupCode]
+                ? AreaSetGroupCodeLabels[
+                    viewConfig.areaSetGroupCode as AreaSetGroupCode
+                  ]
                 : "No Locality"}
             </div>
           </div>
@@ -49,7 +51,8 @@ export default function VisualiseControl() {
           <Eye className="w-4 h-4 text-neutral-600" />
           <div className="flex-1">
             <div className="text-sm">
-              {viewConfig.visualisationType === VisualisationType.Choropleth && viewConfig.areaDataSourceId
+              {viewConfig.visualisationType === VisualisationType.Choropleth &&
+              viewConfig.areaDataSourceId
                 ? "Data Visualization"
                 : "No Fill"}
             </div>
@@ -58,19 +61,20 @@ export default function VisualiseControl() {
         </div>
 
         {/* Color gradient bar - only show if there's actual visualization data */}
-        {viewConfig.visualisationType === VisualisationType.Choropleth && viewConfig.areaDataSourceId && (
-          <div className="bg-white rounded border p-2">
-            <div className="h-2 bg-gradient-to-r from-orange-400 to-purple-600 rounded mb-1"></div>
-            <div className="flex justify-between text-xs text-neutral-500">
-              <span>0</span>
-              <span>3%</span>
-              <span>6%</span>
-              <span>8%</span>
-              <span>11%</span>
-              <span>14%</span>
+        {viewConfig.visualisationType === VisualisationType.Choropleth &&
+          viewConfig.areaDataSourceId && (
+            <div className="bg-white rounded border p-2">
+              <div className="h-2 bg-gradient-to-r from-orange-400 to-purple-600 rounded mb-1"></div>
+              <div className="flex justify-between text-xs text-neutral-500">
+                <span>0</span>
+                <span>3%</span>
+                <span>6%</span>
+                <span>8%</span>
+                <span>11%</span>
+                <span>14%</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

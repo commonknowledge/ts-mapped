@@ -1,5 +1,13 @@
 import * as turfLib from "@turf/turf";
-import { ArrowRight, Check, ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
@@ -13,13 +21,14 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { cn } from "@/shadcn/utils";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
 import EmptyLayer from "../Emptylayer";
 import LayerItem from "../LayerItem";
+import { defaultLayerStyles } from "../LayerStyles";
 import type { Turf } from "@/server/models/Turf";
-import { LayerStyles } from "../PrivateMapControls";
 
-export default function AreasControl({ LayerStyles }: { LayerStyles: LayerStyles }) {
+export default function AreasControl() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
   const [isAddingArea, setAddingArea] = useState(false);
@@ -35,9 +44,9 @@ export default function AreasControl({ LayerStyles }: { LayerStyles: LayerStyles
   };
 
   return (
-    <div className={LayerStyles.container}>
+    <div className={defaultLayerStyles.container}>
       {/* Header */}
-      <div className={LayerStyles.header}>
+      <div className={defaultLayerStyles.header}>
         <button
           className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
           onClick={() => setExpanded(!expanded)}
@@ -67,11 +76,9 @@ export default function AreasControl({ LayerStyles }: { LayerStyles: LayerStyles
 
       {/* Layer Items */}
       {expanded && (
-        <div className="space-y-1">
+        <div className={cn(defaultLayerStyles.content, "space-y-1")}>
           {turfs && turfs.length > 0 ? (
-            turfs.map((turf) => (
-              <TurfItem key={turf.id} turf={turf} />
-            ))
+            turfs.map((turf) => <TurfItem key={turf.id} turf={turf} />)
           ) : (
             <EmptyLayer message="Add an Area Layer" />
           )}
@@ -85,7 +92,8 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
   const { mapRef, showControls } = useContext(MapContext);
-  const { updateTurf, deleteTurf, getTurfVisibility, setTurfVisibilityState } = useContext(MarkerAndTurfContext);
+  const { updateTurf, deleteTurf, getTurfVisibility, setTurfVisibilityState } =
+    useContext(MarkerAndTurfContext);
   const { viewConfig, updateViewConfig } = useMapViews();
   const inputRef = useRef<HTMLInputElement>(null);
   const isVisible = getTurfVisibility(turf.id); // Get visibility from context
@@ -146,7 +154,6 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
             </form>
           ) : (
             <>
-
               <div className="flex-1">
                 <div className="text-sm">
                   {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
@@ -200,4 +207,3 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
     </ContextMenu>
   );
 };
-

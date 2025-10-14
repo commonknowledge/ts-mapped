@@ -37,9 +37,15 @@ export default function MarkerAndTurfProvider({
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
   // Individual visibility states
-  const [markerVisibility, setMarkerVisibility] = useState<Record<string, boolean>>({});
-  const [turfVisibility, setTurfVisibility] = useState<Record<string, boolean>>({});
-  const [dataSourceVisibility, setDataSourceVisibility] = useState<Record<string, boolean>>({});
+  const [markerVisibility, setMarkerVisibility] = useState<
+    Record<string, boolean>
+  >({});
+  const [turfVisibility, setTurfVisibility] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [dataSourceVisibility, setDataSourceVisibility] = useState<
+    Record<string, boolean>
+  >({});
 
   const dataSourceIds = useMemo(() => {
     if (!publicMap) {
@@ -121,7 +127,7 @@ export default function MarkerAndTurfProvider({
       setPlacedMarkers(map?.placedMarkers);
       // Initialize visibility for existing markers
       const initialMarkerVisibility: Record<string, boolean> = {};
-      map.placedMarkers.forEach(marker => {
+      map.placedMarkers.forEach((marker) => {
         initialMarkerVisibility[marker.id] = true;
       });
       setMarkerVisibility(initialMarkerVisibility);
@@ -130,7 +136,7 @@ export default function MarkerAndTurfProvider({
       setTurfs(map?.turfs);
       // Initialize visibility for existing turfs
       const initialTurfVisibility: Record<string, boolean> = {};
-      map.turfs.forEach(turf => {
+      map.turfs.forEach((turf) => {
         initialTurfVisibility[turf.id] = true;
       });
       setTurfVisibility(initialTurfVisibility);
@@ -167,7 +173,7 @@ export default function MarkerAndTurfProvider({
       });
 
       // Set initial visibility to true
-      setMarkerVisibility(prev => ({ ...prev, [markerId]: true }));
+      setMarkerVisibility((prev) => ({ ...prev, [markerId]: true }));
 
       // Reset cursor
       map.getCanvas().style.cursor = "";
@@ -187,11 +193,11 @@ export default function MarkerAndTurfProvider({
 
   // Visibility management functions
   const setMarkerVisibilityState = (markerId: string, isVisible: boolean) => {
-    setMarkerVisibility(prev => ({ ...prev, [markerId]: isVisible }));
+    setMarkerVisibility((prev) => ({ ...prev, [markerId]: isVisible }));
   };
 
   const setTurfVisibilityState = (turfId: string, isVisible: boolean) => {
-    setTurfVisibility(prev => ({ ...prev, [turfId]: isVisible }));
+    setTurfVisibility((prev) => ({ ...prev, [turfId]: isVisible }));
   };
 
   const getMarkerVisibility = (markerId: string) => {
@@ -202,8 +208,11 @@ export default function MarkerAndTurfProvider({
     return turfVisibility[turfId] ?? true; // Default to visible
   };
 
-  const setDataSourceVisibilityState = (dataSourceId: string, isVisible: boolean) => {
-    setDataSourceVisibility(prev => ({ ...prev, [dataSourceId]: isVisible }));
+  const setDataSourceVisibilityState = (
+    dataSourceId: string,
+    isVisible: boolean,
+  ) => {
+    setDataSourceVisibility((prev) => ({ ...prev, [dataSourceId]: isVisible }));
   };
 
   const getDataSourceVisibility = (dataSourceId: string) => {
@@ -212,27 +221,27 @@ export default function MarkerAndTurfProvider({
 
   // Initialize visibility for new turfs when they're added
   useEffect(() => {
-    turfs.forEach(turf => {
+    turfs.forEach((turf) => {
       if (!(turf.id in turfVisibility)) {
-        setTurfVisibility(prev => ({ ...prev, [turf.id]: true }));
+        setTurfVisibility((prev) => ({ ...prev, [turf.id]: true }));
       }
     });
   }, [turfs, turfVisibility]);
 
   // Initialize visibility for new markers when they're added
   useEffect(() => {
-    placedMarkers.forEach(marker => {
+    placedMarkers.forEach((marker) => {
       if (!(marker.id in markerVisibility)) {
-        setMarkerVisibility(prev => ({ ...prev, [marker.id]: true }));
+        setMarkerVisibility((prev) => ({ ...prev, [marker.id]: true }));
       }
     });
   }, [placedMarkers, markerVisibility]);
 
   // Initialize visibility for data sources when they're added
   useEffect(() => {
-    dataSourceIds.forEach(dataSourceId => {
+    dataSourceIds.forEach((dataSourceId) => {
       if (!(dataSourceId in dataSourceVisibility)) {
-        setDataSourceVisibility(prev => ({ ...prev, [dataSourceId]: true }));
+        setDataSourceVisibility((prev) => ({ ...prev, [dataSourceId]: true }));
       }
     });
   }, [dataSourceIds, dataSourceVisibility]);

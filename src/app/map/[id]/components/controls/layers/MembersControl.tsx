@@ -8,16 +8,17 @@ import {
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import DataSourceIcon from "@/components/DataSourceIcon";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
+import { cn } from "@/shadcn/utils";
 import { mapColors } from "../../../styles";
 import { CollectionIcon } from "../../Icons";
 import EmptyLayer from "../Emptylayer";
 import LayerItem from "../LayerItem";
-import { LayerStyles } from "../PrivateMapControls";
-import DataSourceIcon from "@/components/DataSourceIcon";
+import { defaultLayerStyles } from "../LayerStyles";
 
-export default function MembersControl({ LayerStyles }: { LayerStyles: LayerStyles }) {
+export default function MembersControl() {
   const router = useRouter();
   const { viewConfig, updateViewConfig } = useMapViews();
   const { updateMapConfig } = useMapConfig();
@@ -58,9 +59,9 @@ export default function MembersControl({ LayerStyles }: { LayerStyles: LayerStyl
   };
 
   return (
-    <div className={LayerStyles.container}>
+    <div className={defaultLayerStyles.container}>
       {/* Header */}
-      <div className={LayerStyles.header}>
+      <div className={defaultLayerStyles.header}>
         <button
           className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
           onClick={() => setExpanded(!expanded)}
@@ -91,7 +92,7 @@ export default function MembersControl({ LayerStyles }: { LayerStyles: LayerStyl
 
       {/* Layer Items */}
       {expanded && (
-        <div className="space-y-1">
+        <div className={cn(defaultLayerStyles.content, "space-y-1")}>
           {allDataSourcesLoading ? (
             <div className="flex items-center gap-2 p-2 bg-white rounded border">
               <div className="text-sm text-neutral-500">Loading...</div>
@@ -100,15 +101,16 @@ export default function MembersControl({ LayerStyles }: { LayerStyles: LayerStyl
             <LayerItem
               onClick={() => handleDataSourceSelect(dataSource.id)}
               layerType="members"
-              className={isSelected ? 'ring-2 ring-blue-500' : ''}
+              className={isSelected ? "ring-2 ring-blue-500" : ""}
               isDataSource={true}
             >
               <DataSourceIcon type={dataSource.config.type} />
               <div className="flex-1">
                 <div className="text-sm font-medium">{dataSource.name}</div>
                 <div className="text-xs text-neutral-500">
-                  {dataSource.recordCount?.toLocaleString() || '0'} records
-                  {dataSource.createdAt && ` • Created ${new Date(dataSource.createdAt).toLocaleDateString()}`}
+                  {dataSource.recordCount?.toLocaleString() || "0"} records
+                  {dataSource.createdAt &&
+                    ` • Created ${new Date(dataSource.createdAt).toLocaleDateString()}`}
                 </div>
               </div>
             </LayerItem>

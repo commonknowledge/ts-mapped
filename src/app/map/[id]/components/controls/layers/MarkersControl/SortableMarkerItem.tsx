@@ -84,12 +84,7 @@ export default function SortableMarkerItem({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <div
-          ref={setNodeRef}
-          style={style}
-          {...attributes}
-          {...listeners}
-        >
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
           {isInFolder ? (
             <div className="flex items-center gap-1">
               <CornerDownRight className="w-4 h-4 text-neutral-400" />
@@ -98,7 +93,9 @@ export default function SortableMarkerItem({
                 layerType="locations"
                 individualVisibility={true}
                 isVisible={isVisible}
-                onVisibilityToggle={() => setMarkerVisibilityState(marker.id, !isVisible)}
+                onVisibilityToggle={() =>
+                  setMarkerVisibilityState(marker.id, !isVisible)
+                }
               >
                 {isEditing ? (
                   <form
@@ -125,7 +122,6 @@ export default function SortableMarkerItem({
                   </form>
                 ) : (
                   <>
-
                     <div className="flex-1">
                       <div className="text-sm">{marker.label}</div>
                     </div>
@@ -161,7 +157,9 @@ export default function SortableMarkerItem({
               layerType="locations"
               individualVisibility={true}
               isVisible={isVisible}
-              onVisibilityToggle={() => setMarkerVisibilityState(marker.id, !isVisible)}
+              onVisibilityToggle={() =>
+                setMarkerVisibilityState(marker.id, !isVisible)
+              }
             >
               {isEditing ? (
                 <form
@@ -188,7 +186,6 @@ export default function SortableMarkerItem({
                 </form>
               ) : (
                 <>
-
                   <div className="flex-1">
                     <div className="text-sm">{marker.label}</div>
                   </div>

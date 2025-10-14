@@ -1,10 +1,10 @@
 import { describe, expect, inject, test } from "vitest";
 import { MailchimpAdaptor } from "@/server/adaptors/mailchimp";
 import { ColumnType } from "@/server/models/DataSource";
+import { ColumnType } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { sleep } from "../../../utils";
-import { ColumnType } from "@/server/models/DataSource";
 
 const credentials = inject("credentials");
 

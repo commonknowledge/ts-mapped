@@ -52,7 +52,10 @@ export const MarkerAndTurfContext = createContext<{
   dataSourceVisibility: Record<string, boolean>;
   setMarkerVisibilityState: (markerId: string, isVisible: boolean) => void;
   setTurfVisibilityState: (turfId: string, isVisible: boolean) => void;
-  setDataSourceVisibilityState: (dataSourceId: string, isVisible: boolean) => void;
+  setDataSourceVisibilityState: (
+    dataSourceId: string,
+    isVisible: boolean,
+  ) => void;
   getMarkerVisibility: (markerId: string) => boolean;
   getTurfVisibility: (turfId: string) => boolean;
   getDataSourceVisibility: (dataSourceId: string) => boolean;
