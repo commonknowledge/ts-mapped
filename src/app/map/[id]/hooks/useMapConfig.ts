@@ -47,6 +47,6 @@ export function useMapConfig() {
   return {
     mapConfig,
     updateMapConfig,
-    isDirty: isPending
+    isDirty: isPending,
   };
 }

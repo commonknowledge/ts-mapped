@@ -26,7 +26,7 @@ import {
 } from "@/constants";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
-import { getDataSourceIds } from "../utils";
+import { getDataSourceIds, getMapStyle } from "../utils";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
 
@@ -368,7 +368,7 @@ export default function Map({
         ref={mapRef}
         style={{ flexGrow: 1 }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-        mapStyle={`mapbox://styles/mapbox/${viewConfig.getMapStyle().slug}`}
+        mapStyle={`mapbox://styles/mapbox/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
         onClick={(e) => {
           const map = e.target;

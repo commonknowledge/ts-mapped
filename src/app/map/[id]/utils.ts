@@ -1,4 +1,6 @@
+import mapStyles from "./styles";
 import type { MapConfig } from "@/server/models/Map";
+import type { MapViewConfig } from "@/server/models/MapView";
 
 export const sortByPositionAndId = <T extends { id: string; position: number }>(
   items: T[],
@@ -84,4 +86,8 @@ export const getDataSourceIds = (mapConfig: MapConfig) => {
   )
     .values()
     .toArray();
+};
+
+export const getMapStyle = (viewConfig: MapViewConfig) => {
+  return mapStyles[viewConfig.mapStyleName] || Object.values(mapStyles)[0];
 };
