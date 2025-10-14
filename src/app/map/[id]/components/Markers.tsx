@@ -207,15 +207,7 @@ function DataSourceMarkers({
           ["==", ["get", "point_count"], 1],
         ]}
         paint={{
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            4, // Smaller radius at low zoom levels
-            10,
-            6, // Larger radius at higher zoom levels
-          ],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
           "circle-color": colors.color,
           "circle-opacity": ["case", NOT_MATCHED_CASE, 0.5, 1],
           "circle-stroke-width": 1,
