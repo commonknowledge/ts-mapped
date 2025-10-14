@@ -9,7 +9,7 @@ interface TagExplainerCardProps {
 
 export default function TagExplainerCard({ onConfigureTag }: TagExplainerCardProps) {
     return (
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-sm">
+        <div className="bg-white rounded-lg shadow-lg border border-neutral-200 p-4 max-w-sm">
             <div className="flex items-center gap-3 mb-3">
                 <div className="w-6 h-6 bg-purple-600 rounded-sm flex items-center justify-center text-white">
                     <TagIcon className="w-4 h-4" />
@@ -17,7 +17,7 @@ export default function TagExplainerCard({ onConfigureTag }: TagExplainerCardPro
                 <h2 className="text-lg font-semibold">Tag View</h2>
             </div>
 
-            <p className="text-sm text-gray-700 mb-4">
+            <p className="text-sm text-neutral-700 mb-4">
                 This is a tag view. Open the table panel to configure tag settings and send tags to your data source.
             </p>
 

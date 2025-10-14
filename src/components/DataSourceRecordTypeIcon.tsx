@@ -9,24 +9,24 @@ import {
 import { DataSourceRecordType } from "@/server/models/DataSource";
 
 export const dataSourceRecordTypeColors: Record<DataSourceRecordType, string> =
-  {
-    [DataSourceRecordType.Members]: " var(--brandBlue)",
-    [DataSourceRecordType.Data]: "var(--brandGreen)",
-    [DataSourceRecordType.Events]: "var(--brandPurple)",
-    [DataSourceRecordType.Locations]: "var(--brandRed)",
-    [DataSourceRecordType.People]: "var(--brandRoyalBlue)",
-    [DataSourceRecordType.Other]: "var(--brandGray)",
-  };
+{
+  [DataSourceRecordType.Members]: " var(--brandBlue)",
+  [DataSourceRecordType.Data]: "var(--brandGreen)",
+  [DataSourceRecordType.Events]: "var(--brandPurple)",
+  [DataSourceRecordType.Locations]: "var(--brandRed)",
+  [DataSourceRecordType.People]: "var(--brandRoyalBlue)",
+  [DataSourceRecordType.Other]: "var(--brandneutral)",
+};
 
 export const dataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =
-  {
-    [DataSourceRecordType.Members]: "Members",
-    [DataSourceRecordType.Data]: "Reference data",
-    [DataSourceRecordType.Events]: "Events",
-    [DataSourceRecordType.Locations]: "Locations",
-    [DataSourceRecordType.People]: "People",
-    [DataSourceRecordType.Other]: "Other",
-  };
+{
+  [DataSourceRecordType.Members]: "Members",
+  [DataSourceRecordType.Data]: "Reference data",
+  [DataSourceRecordType.Events]: "Events",
+  [DataSourceRecordType.Locations]: "Locations",
+  [DataSourceRecordType.People]: "People",
+  [DataSourceRecordType.Other]: "Other",
+};
 
 interface DataSourceRecordTypeIconProps {
   type: DataSourceRecordType;
@@ -73,7 +73,7 @@ export const DataSourceRecordTypeIcon = ({
       <div
         className={`shrink-0 aspect-square rounded flex items-center justify-center text-white ${className}`}
         style={{
-          background: color || "var(--brandGray)",
+          background: color || "var(--brandneutral)",
         }}
       >
         <span>{icon}</span>

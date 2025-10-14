@@ -43,8 +43,8 @@ export default function DataSourcesPage() {
         <>
           {/* Show message if no data sources at all */}
           {dataSources && dataSources.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <Database className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <div className="text-center py-12 text-neutral-500">
+              <Database className="w-12 h-12 mx-auto mb-4 text-neutral-300" />
               <p className="text-lg font-medium">No sources yet</p>
               <p className="text-sm mb-4">
                 Create your first data source to get started

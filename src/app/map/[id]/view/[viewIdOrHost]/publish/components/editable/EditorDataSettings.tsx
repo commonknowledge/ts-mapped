@@ -89,9 +89,8 @@ export default function EditorDataSettings() {
             <TabsList
               className="grid w-full"
               style={{
-                gridTemplateColumns: `repeat(${
-                  publicMap.dataSourceConfigs.length
-                }, 1fr)`,
+                gridTemplateColumns: `repeat(${publicMap.dataSourceConfigs.length
+                  }, 1fr)`,
               }}
             >
               {publicMap.dataSourceConfigs.map((dsc) => (
@@ -265,7 +264,7 @@ export default function EditorDataSettings() {
                                 {isVisible ? (
                                   <Eye className="w-4 h-4 text-green-600" />
                                 ) : (
-                                  <EyeOff className="w-4 h-4 text-gray-400" />
+                                  <EyeOff className="w-4 h-4 text-neutral-400" />
                                 )}
                               </Button>
                             </div>
