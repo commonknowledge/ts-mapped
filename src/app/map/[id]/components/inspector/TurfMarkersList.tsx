@@ -1,13 +1,12 @@
 import { useQueries } from "@tanstack/react-query";
-
 import { useContext, useMemo } from "react";
-import { FilterType } from "@/__generated__/types";
-import { DataSourcesContext } from "@/app/map/[id]/context/DataSourcesContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { DataSourceRecordType } from "@/server/models/DataSource";
+import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType, type RecordData, type RecordsResponse } from "@/types";
 import {
@@ -20,8 +19,8 @@ import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 
 export default function TurfMarkersList() {
-  const { getDataSourceById } = useContext(DataSourcesContext);
-  const { mapConfig } = useContext(MapContext);
+  const { getDataSourceById } = useDataSources();
+  const { mapConfig } = useMapConfig();
   const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
   const { selectedTurf } = useContext(InspectorContext);
   const trpc = useTRPC();
