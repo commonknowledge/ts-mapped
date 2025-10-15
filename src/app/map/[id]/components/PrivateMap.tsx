@@ -42,8 +42,6 @@ export default function PrivateMap() {
 
   // Handle configure tag callback
   const handleConfigureTag = () => {
-
-
     // Prioritize members data source (most common use case for tagging)
     if (membersDataSource?.id) {
       console.log("Selecting members data source:", membersDataSource.id);
@@ -62,7 +60,10 @@ export default function PrivateMap() {
     // Last resort: any available data source
     const availableDataSourceIds = allDataSources?.map((ds) => ds.id) || [];
     if (availableDataSourceIds.length > 0) {
-      console.log("Selecting any available data source:", availableDataSourceIds[0]);
+      console.log(
+        "Selecting any available data source:",
+        availableDataSourceIds[0],
+      );
       handleDataSourceSelect(availableDataSourceIds[0]);
     } else {
       console.log("No data source IDs available");

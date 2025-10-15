@@ -139,13 +139,13 @@ export default function TagConfigSidebar({
             {/* Show direct filter if no children but has filter criteria */}
             {(!dataSourceView?.filter.children ||
               dataSourceView.filter.children.length === 0) && (
-                <Badge
-                  variant="outline"
-                  className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-50 border-neutral-300 hover:bg-neutral-100"
-                >
-                  {renderFilterDescription(dataSourceView?.filter)}
-                </Badge>
-              )}
+              <Badge
+                variant="outline"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-50 border-neutral-300 hover:bg-neutral-100"
+              >
+                {renderFilterDescription(dataSourceView?.filter)}
+              </Badge>
+            )}
           </div>
         ) : (
           <div className="flex gap-2 items-center border-1 border-dashed border-neutral-300 rounded-lg p-2 ">

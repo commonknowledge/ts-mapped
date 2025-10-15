@@ -2,7 +2,7 @@
 
 import { useQueries } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
@@ -24,7 +24,7 @@ export default function MarkerAndTurfProvider({
 }) {
   const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
   const { mapConfig } = useMapConfig();
-  const { view } = useMapViews();
+  const { view, viewConfig } = useMapViews();
 
   const { data: map } = useMapQuery(mapId);
   const { publicMap } = useContext(PublicMapContext);
@@ -204,9 +204,12 @@ export default function MarkerAndTurfProvider({
     return markerVisibility[markerId] ?? true; // Default to visible
   };
 
-  const getTurfVisibility = (turfId: string) => {
-    return turfVisibility[turfId] ?? true; // Default to visible
-  };
+  const getTurfVisibility = useCallback(
+    (turfId: string): boolean => {
+      return turfVisibility[turfId] ?? true;
+    },
+    [turfVisibility],
+  );
 
   const setDataSourceVisibilityState = (
     dataSourceId: string,
@@ -246,6 +249,18 @@ export default function MarkerAndTurfProvider({
     });
   }, [dataSourceIds, dataSourceVisibility]);
 
+  const visibleTurfs = useMemo(() => {
+    return turfs.filter((turf) => {
+      // Check individual visibility first
+      if (!getTurfVisibility(turf.id)) {
+        return false;
+      }
+
+      // Then check global area visibility
+      return viewConfig.showTurf;
+    });
+  }, [turfs, getTurfVisibility, viewConfig?.showTurf]);
+
   return (
     <MarkerAndTurfContext
       value={{
@@ -268,6 +283,7 @@ export default function MarkerAndTurfProvider({
         deleteTurf,
         insertTurf,
         turfs,
+        visibleTurfs,
         updateTurf,
         markerQueries,
         searchMarker,
