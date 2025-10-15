@@ -213,9 +213,8 @@ export default function PrivateMapNavbar() {
               )}
             </div>
           )}
-          <div className="">
-            <SearchBox />
-          </div>
+
+          <SearchBox />
         </div>
       </div>
     </Navbar>
