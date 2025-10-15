@@ -31,7 +31,7 @@ export default function DataRecordsList({
 }: DataRecordsListProps) {
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
-  const { selectedRecord } = useContext(InspectorContext);
+  const { inspectorContent } = useContext(InspectorContext);
   const { publicFilters, records, setRecords } =
     useContext(PublicFiltersContext);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
@@ -115,7 +115,7 @@ export default function DataRecordsList({
     <ul className="flex flex-col">
       {records.map((r) => {
         const isExpanded = expandedRecordId === r.id;
-        const isSelected = selectedRecord?.id === r.id;
+        const isSelected = inspectorContent?.id === r.id;
 
         return (
           <li

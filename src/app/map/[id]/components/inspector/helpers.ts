@@ -1,18 +1,18 @@
 import * as turf from "@turf/turf";
-import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { Turf } from "@/server/models/Turf";
 import type { RecordData, RecordsResponse } from "@/types";
 
 export function getMarkersInsideTurf(
   markers: PlacedMarker[],
-  selectedTurf: SelectedTurf | null,
+  selectedTurf: Turf | null,
 ) {
   if (!selectedTurf) {
     return [];
   }
 
-  const turfPolygon = turf.polygon(selectedTurf.geometry.coordinates);
+  const turfPolygon = turf.polygon(selectedTurf.polygon.coordinates);
 
   return markers.filter((marker) => {
     const point = turf.point([marker.point.lng, marker.point.lat]);

@@ -14,6 +14,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
+import { LayerType } from "@/types";
 import { PublicMapContext } from "../../context/PublicMapContext";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
@@ -30,7 +31,7 @@ export default function PublishPublicMapSidebar() {
     recordSidebarVisible,
     setRecordSidebarVisible,
   } = useContext(PublicMapContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setInspectorContent } = useContext(InspectorContext);
   const [hideSidebar] = useState(false);
   const [, setError] = useState("");
   const [publishedHost, setPublishedHost] = useState(
@@ -57,9 +58,15 @@ export default function PublishPublicMapSidebar() {
       const records = dataRecordsQuery?.data?.records;
       if (records && records.length > 0) {
         const firstRecord = records[0];
-        setSelectedRecord({
+        setInspectorContent({
+          type: LayerType.Member,
+          name:
+            ((firstRecord as Record<string, unknown>).name as string) ||
+            `Id: ${firstRecord.id}`,
+          properties: firstRecord,
+          dataSource: null,
           id: firstRecord.id,
-          dataSourceId: activeTabId,
+          recordId: firstRecord.id,
         });
       }
     }
@@ -68,7 +75,7 @@ export default function PublishPublicMapSidebar() {
     activePublishTab,
     recordSidebarVisible,
     dataRecordsQueries,
-    setSelectedRecord,
+    setInspectorContent,
   ]);
 
   // Should never happen
@@ -114,9 +121,15 @@ export default function PublishPublicMapSidebar() {
                       dataRecordsQueries[currentDataSourceId]?.data
                         ?.records?.[0];
                     if (firstRecord) {
-                      setSelectedRecord({
+                      setInspectorContent({
+                        type: LayerType.Member,
+                        name:
+                          ((firstRecord as Record<string, unknown>)
+                            .name as string) || `Id: ${firstRecord.id}`,
+                        properties: firstRecord,
+                        dataSource: null,
                         id: firstRecord.id,
-                        dataSourceId: currentDataSourceId,
+                        recordId: firstRecord.id,
                       });
                     }
                   }

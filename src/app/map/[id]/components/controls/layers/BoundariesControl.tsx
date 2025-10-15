@@ -6,11 +6,13 @@ import {
   Eye,
   Grid3X3,
   Hexagon,
+  List,
   MapPin,
   Palette,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
   useDataSources,
   useMembersDataSource,
@@ -37,6 +39,7 @@ import {
 } from "@/shadcn/ui/dropdown-menu";
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
+import { LayerType } from "@/types";
 import Legend from "../../Legend";
 import { defaultLayerStyles } from "../LayerStyles";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
@@ -44,10 +47,21 @@ import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 export default function BoundariesControl() {
   // const { setBoundariesPanelOpen } = useContext(ChoroplethContext); // Unused variable
   const { viewConfig, updateViewConfig } = useMapViews();
+  const { setInspectorContent, resetInspector } = useContext(InspectorContext);
   // const dataSource = useChoroplethDataSource(); // Unused variable
   const membersDataSource = useMembersDataSource();
   const { data: allDataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
+
+  const openBoundariesPanel = () => {
+    setInspectorContent({
+      type: LayerType.Boundary,
+      name: "Boundaries",
+      properties: null,
+      dataSource: null,
+      id: "boundaries",
+    });
+  };
 
   const toggleChoropleth = () => {
     if (viewConfig.visualisationType === VisualisationType.BoundaryOnly) {
@@ -106,10 +120,11 @@ export default function BoundariesControl() {
 
     return [
       {
-        label: "No Locality",
+        label: "None",
         icon: <Circle className="w-4 h-4" />,
         onClick: () => {
           updateViewConfig({ areaSetGroupCode: null });
+          resetInspector(); // Close any open boundary inspector
         },
       },
       ...allAreaSetGroupCodes.map((code) => ({
@@ -267,7 +282,7 @@ export default function BoundariesControl() {
                           ? AreaSetGroupCodeLabels[
                               viewConfig.areaSetGroupCode as AreaSetGroupCode
                             ]
-                          : "No Locality"}
+                          : "None"}
                       </div>
                     </div>
                   </div>
@@ -289,6 +304,26 @@ export default function BoundariesControl() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <div className="space-y-1 bg-neutral-50 rounded-md p-1">
+              {viewConfig.areaSetGroupCode && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={openBoundariesPanel}
+                  className="w-full h-auto py-2 px-2 border border-neutral-200"
+                  title="View all boundaries"
+                >
+                  <div className="flex items-center gap-2">
+                    <List className="w-4 h-4 text-neutral-600" />
+                    <span className="text-sm">Open Boundaries Inspector</span>
+                  </div>
+                </Button>
+              )}
+              <p className="text-xs text-neutral-600 text-center py-2 text-balance">
+                Or <span className="font-medium">Right click</span> over a
+                boundary to open it the inspector
+              </p>
+            </div>
           </div>
 
           <Separator />
@@ -298,75 +333,88 @@ export default function BoundariesControl() {
               <Palette className="w-4 h-4 " />
               <span className="text-sm font-medium uppercase ">Fill</span>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-between h-auto py-2 px-2 shadow-none ${!isChoroplethVisible ? "opacity-50" : ""}`}
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div className="flex-shrink-0">{getFillIcon()}</div>
-                    <div className="text-left min-w-0 flex-1">
-                      <div className="text-sm font-medium truncate">
-                        {getFillLabel()}
+            {!viewConfig.areaSetGroupCode && (
+              <div className="text-xs text-neutral-600 text-center py-2 px-3 bg-neutral-50 rounded-md">
+                Select a boundary shape dataset to see the fill data
+              </div>
+            )}
+            <div
+              className={`${!viewConfig.areaSetGroupCode ? "opacity-50 pointer-events-none" : ""}`}
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`w-full justify-between h-auto py-2 px-2 shadow-none ${!isChoroplethVisible ? "opacity-50" : ""}`}
+                    disabled={!viewConfig.areaSetGroupCode}
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="flex-shrink-0">{getFillIcon()}</div>
+                      <div className="text-left min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">
+                          {getFillLabel()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-neutral-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Choose Fill Type</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {getFillOptions().map((option, index) => (
-                  <DropdownMenuItem
-                    key={index}
-                    onClick={option.onClick}
-                    className="flex items-center gap-2"
-                  >
-                    <div className="flex-shrink-0">{option.icon}</div>
-                    <span className="truncate">{option.label}</span>
-                  </DropdownMenuItem>
-                ))}
-                {getVoteShareOptions().length > 0 && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger className="flex items-center gap-2">
-                        <div className="flex-shrink-0">
-                          <BarChart3 className="w-4 h-4" />
-                        </div>
-                        <span className="truncate">Vote Share</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        {getVoteShareOptions().map((option, index) => (
-                          <DropdownMenuItem
-                            key={index}
-                            onClick={option.onClick}
-                            className="flex items-center gap-2"
-                          >
-                            <div className="flex-shrink-0">{option.icon}</div>
-                            <span className="truncate">{option.label}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <ChevronDown className="w-4 h-4 text-neutral-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>Choose Fill Type</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {getFillOptions().map((option, index) => (
+                    <DropdownMenuItem
+                      key={index}
+                      onClick={option.onClick}
+                      className="flex items-center gap-2"
+                    >
+                      <div className="flex-shrink-0">{option.icon}</div>
+                      <span className="truncate">{option.label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  {getVoteShareOptions().length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="flex items-center gap-2">
+                          <div className="flex-shrink-0">
+                            <BarChart3 className="w-4 h-4" />
+                          </div>
+                          <span className="truncate">Vote Share</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          {getVoteShareOptions().map((option, index) => (
+                            <DropdownMenuItem
+                              key={index}
+                              onClick={option.onClick}
+                              className="flex items-center gap-2"
+                            >
+                              <div className="flex-shrink-0">{option.icon}</div>
+                              <span className="truncate">{option.label}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Legend Section */}
           {viewConfig.areaDataSourceId &&
             viewConfig.areaDataSourceId !== "" && (
-              <div className="space-y-1">
+              <div
+                className={`space-y-1 ${!viewConfig.areaSetGroupCode ? "opacity-50 pointer-events-none" : ""}`}
+              >
                 <div
                   className={`flex items-center bg-white   cursor-pointer group relative ${viewConfig.visualisationType === VisualisationType.BoundaryOnly ? "opacity-50" : ""}`}
                 >
                   <button
                     className="bg-neutral-100 hover:bg-neutral-200 rounded px-0.5 py-2 flex items-center justify-center self-stretch w-8 mr-2"
                     onClick={toggleChoropleth}
+                    disabled={!viewConfig.areaSetGroupCode}
                   >
                     <Eye
                       className={`w-4 h-4 ${viewConfig.visualisationType !== VisualisationType.BoundaryOnly ? "text-neutral-500" : "text-neutral-400"}`}

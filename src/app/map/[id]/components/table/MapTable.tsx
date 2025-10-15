@@ -10,12 +10,14 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
+import { InspectorContentFactory } from "../inspector/inspectorContentFactory";
 import TagButton from "../TagButton";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import TagConfigSidebar from "./TagConfigSidebar";
 import TagViewCreationModal from "./TagViewCreationModal";
 import type { DataSourceView } from "@/server/models/MapView";
+import type { RecordData } from "@/types";
 
 interface DataRecord {
   id: string;
@@ -26,7 +28,8 @@ export default function MapTable() {
   const { mapRef } = useContext(MapContext);
   const { view, updateView, insertView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
+  const { setInspectorContent, inspectorContent } =
+    useContext(InspectorContext);
   const { placedMarkers } = useContext(MarkerAndTurfContext);
   const [tagLabel, setTagLabel] = useState("");
   const [isTagCreationModalOpen, setIsTagCreationModalOpen] = useState(false);
@@ -75,7 +78,14 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedRecord({ id: row.id, dataSourceId: dataSource.id });
+
+    // Use the factory to create consistent inspector content
+    const inspectorContent =
+      InspectorContentFactory.createMemberInspectorContent(
+        row as RecordData, // Cast to RecordData type
+        dataSource,
+      );
+    setInspectorContent(inspectorContent);
   };
 
   const dataSourceView = view.dataSourceViews.find(
@@ -194,7 +204,7 @@ export default function MapTable() {
           sort={dataSourceView?.sort || []}
           setSort={(sort) => updateDataSourceView({ sort })}
           onRowClick={handleRowClick}
-          selectedRecordId={selectedRecord?.id}
+          selectedRecordId={inspectorContent?.recordId}
           onClose={() => handleDataSourceSelect("")}
         />
       </div>

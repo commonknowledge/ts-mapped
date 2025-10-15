@@ -35,6 +35,7 @@ import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import { getDataSourceIds, getMapStyle } from "../utils";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
+import { InspectorContentFactory } from "./inspector/inspectorContentFactory";
 
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
@@ -97,6 +98,7 @@ export default function Map({
     markerQueries,
     visibleTurfs,
     folders,
+    setSelectedPlacedMarkerId,
   } = useContext(MarkerAndTurfContext);
 
   // Get the data source for the current tag view
@@ -115,25 +117,13 @@ export default function Map({
     }
     tagRecords({ dataSourceId: tagDataSource.id, viewId: view.id });
   };
-  const {
-    resetInspector,
-    setSelectedRecord,
-    setSelectedTurf,
-    setSelectedBoundary,
-    setInspectorContent,
-  } = useContext(InspectorContext);
+  const { resetInspector, setInspectorContent } = useContext(InspectorContext);
   const {
     choroplethLayerConfig: {
       mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
     },
   } = useContext(ChoroplethContext);
 
-  console.log("ChoroplethContext values:", {
-    sourceId,
-    layerId,
-    featureNameProperty,
-    featureCodeProperty
-  });
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -327,13 +317,13 @@ export default function Map({
 
     const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
-        type: "Feature" as const,
-        geometry: {
-          type: "Point" as const,
-          coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-        },
-        properties: {},
-      }))
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+          },
+          properties: {},
+        }))
       : [];
 
     const dataSourceMarkerFeatures =
@@ -409,35 +399,43 @@ export default function Map({
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
 
-            setSelectedTurf(null); // resets the turf context for the selected marker
-            setSelectedRecord({
-              id: dataRecordId,
-              dataSourceId: dataSourceId,
-              properties: properties,
-            });
-
             // If this is a placed marker (no dataSourceId), set inspector content
             if (dataRecordId && !dataSourceId) {
               // Find the placed marker data
-              const placedMarker = placedMarkers?.find(m => m.id === dataRecordId);
+              const placedMarker = placedMarkers?.find(
+                (m) => m.id === dataRecordId,
+              );
               if (placedMarker) {
-                // Get folder name if marker is in a folder
-                const folderName = placedMarker.folderId
-                  ? folders?.find((f) => f.id === placedMarker.folderId)?.name || "Unknown folder"
-                  : null;
-
-                setInspectorContent({
-                  type: LayerType.Marker,
-                  name: placedMarker.label,
-                  properties: {
-                    coordinates: `${placedMarker.point.lat.toFixed(4)}, ${placedMarker.point.lng.toFixed(4)}`,
-                    folder: folderName || "No folder",
-                    notes: placedMarker.notes || "No notes",
-                    ...(placedMarker.address && { address: placedMarker.address }),
-                  },
-                  dataSource: null,
-                });
+                setSelectedPlacedMarkerId(placedMarker.id);
+                setInspectorContent(
+                  InspectorContentFactory.createPlacedMarkerInspectorContent(
+                    placedMarker,
+                    folders,
+                  ),
+                );
               }
+            } else if (dataRecordId && dataSourceId) {
+              // This is a data source record
+              const dataSource = getDataSourceById(dataSourceId);
+              const type =
+                dataSourceId === mapConfig.membersDataSourceId
+                  ? LayerType.Member
+                  : LayerType.Marker;
+
+              // Use the new factory method for map clicks (incomplete data)
+              const inspectorContent =
+                type === LayerType.Member
+                  ? InspectorContentFactory.createMemberInspectorContentFromMap(
+                      dataRecordId,
+                      dataSource,
+                      properties || {},
+                    )
+                  : InspectorContentFactory.createDataSourceMarkerInspectorContentFromMap(
+                      dataRecordId,
+                      dataSource,
+                      properties || {},
+                    );
+              setInspectorContent(inspectorContent);
             }
 
             map.flyTo({
@@ -446,8 +444,6 @@ export default function Map({
             });
 
             return;
-          } else {
-            setSelectedRecord(null);
           }
 
           if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
@@ -456,11 +452,24 @@ export default function Map({
             if (polygonFeature) {
               draw.changeMode("simple_select", { featureIds: [] });
 
-              setSelectedTurf({
-                id: polygonFeature.properties?.id,
-                name: polygonFeature.properties?.label,
-                geometry: polygonFeature.geometry as Polygon,
-              });
+              // Find the turf data
+              const turf = visibleTurfs?.find(
+                (t) => t.id === polygonFeature.properties?.id,
+              );
+              if (turf) {
+                // Find the index of this turf in the visible turfs array for consistent naming
+                const turfIndex = visibleTurfs.findIndex(
+                  (t) => t.id === turf.id,
+                );
+                const areaNumber = turfIndex >= 0 ? turfIndex + 1 : 1;
+
+                const inspectorContent =
+                  InspectorContentFactory.createTurfInspectorContent(
+                    turf,
+                    areaNumber,
+                  );
+                setInspectorContent(inspectorContent);
+              }
 
               return;
             } else {
@@ -491,58 +500,45 @@ export default function Map({
           const map = e.target;
 
           // Check for boundary right-clicks
-          if (sourceId && layerId) {
-            const boundaryFeatures = map.queryRenderedFeatures(e.point, {
-              layers: [`${sourceId}-fill`, `${sourceId}-line`],
-            });
+          if (
+            sourceId &&
+            layerId &&
+            featureCodeProperty &&
+            featureNameProperty
+          ) {
+            try {
+              // Try to query boundary features - use both fill and line layers
+              const boundaryFeatures = map.queryRenderedFeatures(e.point, {
+                layers: [`${sourceId}-fill`, `${sourceId}-line`],
+              });
 
-            if (boundaryFeatures.length > 0) {
-              const feature = boundaryFeatures[0];
-              const areaCode = feature.properties?.[featureCodeProperty] as string;
-              const areaName = feature.properties?.[featureNameProperty] as string;
+              if (boundaryFeatures.length > 0) {
+                const feature = boundaryFeatures[0];
+                const areaCode = feature.properties?.[
+                  featureCodeProperty
+                ] as string;
+                const areaName = feature.properties?.[
+                  featureNameProperty
+                ] as string;
 
-              if (areaCode && areaName) {
-                // Prevent default context menu
-                e.originalEvent.preventDefault();
+                if (areaCode && areaName) {
+                  // Prevent default context menu
+                  e.originalEvent.preventDefault();
 
-                // Get dataset name based on layer ID
-                const getDatasetName = () => {
-                  if (layerId.includes('uk_cons')) return 'Westminster Constituencies';
-                  if (layerId.includes('OA21')) return 'Output Areas';
-                  if (layerId.includes('MSOA')) return 'Middle Layer Super Output Areas';
-                  return 'Boundary Data';
-                };
+                  const inspectorContent =
+                    InspectorContentFactory.createBoundaryInspectorContent(
+                      areaName,
+                      feature as unknown as Record<string, unknown>,
+                      areaCode,
+                    );
+                  setInspectorContent(inspectorContent);
 
-                // Clear any selected record and turf, then set the boundary
-                setSelectedRecord(null);
-                setSelectedTurf(null);
-                setSelectedBoundary({
-                  id: areaCode,
-                  name: areaName,
-                  properties: {
-                    "Dataset": getDatasetName(),
-                    "Area Code": areaCode,
-                    areaCode: areaCode,
-                    areaName: areaName,
-                    boundaryFeature: feature,
-                  },
-                });
-
-                setInspectorContent({
-                  type: LayerType.Boundary,
-                  name: areaName,
-                  properties: {
-                    "Dataset": getDatasetName(),
-                    "Area Code": areaCode,
-                    areaCode: areaCode,
-                    areaName: areaName,
-                    boundaryFeature: feature,
-                  },
-                  dataSource: null,
-                });
-
-                return;
+                  return;
+                }
               }
+            } catch (error) {
+              // Silently ignore errors - layers might not exist yet
+              console.debug("Boundary query failed:", error);
             }
           }
         }}
@@ -670,11 +666,11 @@ export default function Map({
           const bounds = e.target.getBounds();
           const boundingBox = bounds
             ? {
-              north: bounds.getNorth(),
-              east: bounds.getEast(),
-              south: bounds.getSouth(),
-              west: bounds.getWest(),
-            }
+                north: bounds.getNorth(),
+                east: bounds.getEast(),
+                south: bounds.getSouth(),
+                west: bounds.getWest(),
+              }
             : null;
           setBoundingBox(boundingBox);
           setZoom(e.viewState.zoom);

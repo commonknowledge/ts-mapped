@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, CornerDownRight, Pencil, Trash2 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
+import { InspectorContentFactory } from "@/app/map/[id]/components/inspector/inspectorContentFactory";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
@@ -14,7 +15,6 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
-import { LayerType } from "@/types";
 import LayerItem from "../../LayerItem";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { SyntheticEvent } from "react";
@@ -83,24 +83,12 @@ export default function SortableMarkerItem({
       zoom: 12,
     });
 
-    // Get folder name if marker is in a folder
-    const folderName = marker.folderId
-      ? folders?.find((f) => f.id === marker.folderId)?.name || "Unknown folder"
-      : null;
-
-    // Show marker data in inspector
-    const inspectorData = {
-      type: LayerType.Marker,
-      name: marker.label,
-      properties: {
-        coordinates: `${marker.point.lat.toFixed(4)}, ${marker.point.lng.toFixed(4)}`,
-        folder: folderName || "No folder",
-        notes: marker.notes || "No notes",
-        ...(marker.address && { address: marker.address }),
-      },
-      dataSource: null,
-    };
-
+    // Use the factory to create consistent inspector content
+    const inspectorData =
+      InspectorContentFactory.createPlacedMarkerInspectorContent(
+        marker,
+        folders,
+      );
     setInspectorContent(inspectorData);
   };
 

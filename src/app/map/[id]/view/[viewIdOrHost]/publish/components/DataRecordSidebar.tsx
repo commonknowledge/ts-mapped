@@ -10,24 +10,25 @@ import { buildName, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
-  const { selectedRecord } = useContext(InspectorContext);
+  const { inspectorContent } = useContext(InspectorContext);
   const { dataRecordsQueries, publicMap } = useContext(PublicMapContext);
   const selectedRecordDetails = useMemo(() => {
-    if (!selectedRecord) {
+    if (!inspectorContent) {
       return null;
     }
-    const dataRecordsQuery = dataRecordsQueries[selectedRecord.dataSourceId];
+    const dataRecordsQuery =
+      dataRecordsQueries[inspectorContent.dataSourceId || ""];
     return dataRecordsQuery.data?.records?.find(
-      (r) => r.id === selectedRecord.id,
+      (r) => r.id === inspectorContent.id,
     );
-  }, [dataRecordsQueries, selectedRecord]);
+  }, [dataRecordsQueries, inspectorContent]);
 
-  if (!selectedRecord || !selectedRecordDetails || !publicMap) {
+  if (!inspectorContent || !selectedRecordDetails || !publicMap) {
     return null;
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId,
+    (dsc) => dsc.dataSourceId === inspectorContent?.dataSourceId,
   );
 
   const name = buildName(
@@ -47,7 +48,7 @@ export default function DataRecordSidebar() {
           <div className="flex flex-col">
             <EditablePublicMapProperty
               dataSourceProperty={{
-                dataSourceId: selectedRecord.dataSourceId,
+                dataSourceId: inspectorContent.dataSourceId || "",
                 property: "nameLabel",
               }}
               placeholder="Name label"
@@ -63,7 +64,7 @@ export default function DataRecordSidebar() {
               <div className="flex flex-col ">
                 <EditablePublicMapProperty
                   dataSourceProperty={{
-                    dataSourceId: selectedRecord.dataSourceId,
+                    dataSourceId: inspectorContent.dataSourceId || "",
                     property: "descriptionLabel",
                   }}
                   placeholder="Description label"
@@ -87,7 +88,7 @@ export default function DataRecordSidebar() {
               <EditablePublicMapProperty
                 additionalColumnProperty={{
                   columnIndex: i,
-                  dataSourceId: selectedRecord.dataSourceId,
+                  dataSourceId: inspectorContent.dataSourceId || "",
                   property: "label",
                 }}
                 placeholder="Label"

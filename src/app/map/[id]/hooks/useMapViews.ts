@@ -7,6 +7,8 @@ import {
   MapContext,
   createNewViewConfig,
 } from "@/app/map/[id]/context/MapContext";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
+import { VisualisationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
@@ -34,7 +36,18 @@ export function useMapViews() {
   );
 
   const viewConfig = useMemo(() => {
-    return view?.config || createNewViewConfig();
+    const config = view?.config || createNewViewConfig();
+
+    // Ensure default values for boundary visualization if not set
+    // Only set default if areaSetGroupCode is undefined, not if it's explicitly null
+    if (config.areaSetGroupCode === undefined) {
+      config.areaSetGroupCode = AreaSetGroupCode.WMC24;
+    }
+    if (!config.visualisationType) {
+      config.visualisationType = VisualisationType.BoundaryOnly;
+    }
+
+    return config;
   }, [view]);
 
   const { mutate: insertViewMutate } = useMutation(

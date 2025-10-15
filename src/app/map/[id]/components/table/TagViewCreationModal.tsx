@@ -56,13 +56,6 @@ export default function TagViewCreationModal({
 }: TagViewCreationModalProps) {
   const [tagLabel, setTagLabel] = useState(defaultLabel);
 
-  // Debug logging
-  console.log("TagViewCreationModal Debug:", {
-    dataRecordsCount: dataRecords.length,
-    dataRecords: dataRecords,
-    dataSourceViewFilter: dataSourceView?.filter,
-  });
-
   const hasFilters =
     dataSourceView?.filter &&
     // Check if filter has children (nested filters)
@@ -142,16 +135,20 @@ export default function TagViewCreationModal({
 
           {/* Data Source */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-900">Data Source</h3>
-            <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md bg-gray-50">
+            <h3 className="text-sm font-medium text-neutral-900">
+              Data Source
+            </h3>
+            <div className="flex items-center gap-2 px-3 py-2 border border-neutral-200 rounded-md bg-neutral-50">
               <DataSourceIcon type={dataSource.config?.type as string} />
-              <span className="text-sm text-gray-900">{dataSource.name}</span>
+              <span className="text-sm text-neutral-900">
+                {dataSource.name}
+              </span>
             </div>
           </div>
 
           {/* Segmentation Settings */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-900">
+            <h3 className="text-sm font-medium text-neutral-900">
               Targeting Records based on:
             </h3>
             {hasFilters ? (
@@ -161,7 +158,7 @@ export default function TagViewCreationModal({
                   <Badge
                     key={index}
                     variant="outline"
-                    className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 border-gray-300 hover:bg-gray-100"
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-50 border-neutral-300 hover:bg-neutral-100"
                   >
                     {renderFilterDescription(filter)}
                   </Badge>
@@ -171,16 +168,16 @@ export default function TagViewCreationModal({
                   dataSourceView.filter.children.length === 0) && (
                   <Badge
                     variant="outline"
-                    className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 border-gray-300 hover:bg-gray-100"
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-50 border-neutral-300 hover:bg-neutral-100"
                   >
                     {renderFilterDescription(dataSourceView?.filter)}
                   </Badge>
                 )}
               </div>
             ) : (
-              <div className="flex gap-2 items-center border-2 border-dashed border-gray-300 rounded-lg p-4">
-                <Filter className="w-8 h-8 text-gray-400" />
-                <p className="text-sm text-gray-500">
+              <div className="flex gap-2 items-center border-2 border-dashed border-neutral-300 rounded-lg p-4">
+                <Filter className="w-8 h-8 text-neutral-400" />
+                <p className="text-sm text-neutral-500">
                   No filters configured. Add filters in the table section to
                   enable tagging.
                 </p>
@@ -190,8 +187,8 @@ export default function TagViewCreationModal({
 
           {/* Tag Label Input */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-900">Tag Label</h3>
-            <p className="text-xs text-gray-500">
+            <h3 className="text-sm font-medium text-neutral-900">Tag Label</h3>
+            <p className="text-xs text-neutral-500">
               This label will be used as the column name in your data source and
               cannot be changed after creation.
             </p>
@@ -199,25 +196,25 @@ export default function TagViewCreationModal({
               value={tagLabel}
               onChange={(e) => setTagLabel(e.target.value)}
               placeholder="Enter tag label..."
-              className="w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+              className="w-full border-neutral-300 focus:border-purple-500 focus:ring-purple-500"
             />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex gap-3 pt-4 border-t border-neutral-200">
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
             <Button
               onClick={handleCreate}
               disabled={!tagLabel.trim() || !hasFilters}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white disabled:bg-neutral-300 disabled:cursor-not-allowed"
             >
               Next{" "}
             </Button>
           </div>
           {!hasFilters && (
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-neutral-500 text-center">
               Add filters to enable tagging
             </p>
           )}

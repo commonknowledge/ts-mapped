@@ -21,7 +21,7 @@ export default function FiltersForm({
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { resetInspector } = useContext(InspectorContext);
 
   // setting default values
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function FiltersForm({
       setPublicFilters({ ...publicFilters, [activeTabId]: values });
     }
     // closing the data record sidebar when applying filters - to avoid showing details of a record that is filtered out
-    setSelectedRecord(null);
+    resetInspector();
     // closing filters dialog
     closeDialog();
   };

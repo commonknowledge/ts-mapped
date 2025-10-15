@@ -1,9 +1,11 @@
 import { createContext } from "react";
 import { DEFAULT_ZOOM } from "@/constants";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import {
   CalculationType,
   ColorScheme,
   MapStyleName,
+  VisualisationType,
 } from "@/server/models/MapView";
 import type { BoundingBox } from "@/server/models/Area";
 import type { RefObject } from "react";
@@ -62,7 +64,7 @@ export const createNewViewConfig = () => {
   return {
     areaDataSourceId: "",
     areaDataColumn: "",
-    areaSetGroupCode: null,
+    areaSetGroupCode: AreaSetGroupCode.WMC24, // Enable Westminster Constituencies by default
     excludeColumnsString: "",
     mapStyleName: MapStyleName.Light,
     showLabels: true,
@@ -73,6 +75,6 @@ export const createNewViewConfig = () => {
     calculationType: CalculationType.Value,
     colorScheme: ColorScheme.Sequential,
     reverseColorScheme: false,
-    visualisationType: null,
+    visualisationType: VisualisationType.BoundaryOnly, // Enable boundary visualization by default
   };
 };

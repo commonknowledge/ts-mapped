@@ -1,57 +1,38 @@
 import { createContext } from "react";
-import type { Point } from "@/server/models/shared";
-import type { RouterOutputs } from "@/services/trpc/react";
+import type { DataSource } from "@/server/models/DataSource";
 import type { LayerType } from "@/types";
-import type { Polygon } from "geojson";
-
-type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
 export interface InspectorContent {
-  type: LayerType | undefined;
-  name: string | unknown;
+  type: LayerType;
+  name: string;
   properties: Record<string, unknown> | null;
   dataSource: DataSource | null;
-}
 
-export interface SelectedRecord {
-  id: string;
-  dataSourceId: string;
-  point?: Point | null;
-  properties?: Record<string, unknown> | null;
-}
+  // Unified identifier system - always present
+  id: string; // Unique identifier for this item
+  dataSourceId?: string; // Data source ID for records (members/markers)
+  mapId?: string; // Map ID for placed markers and turfs
 
-export interface SelectedTurf {
-  id: string;
-  name: string;
-  geometry: Polygon;
-}
+  // Navigation context for hierarchical views
+  parent?: {
+    type: LayerType;
+    name: string;
+    id: string; // Parent's unified ID
+  };
 
-export interface SelectedBoundary {
-  id: string;
-  name: string;
-  properties: Record<string, unknown>;
+  // Special data for different layer types
+  boundaryFeature?: Record<string, unknown>; // GeoJSON feature for boundaries
+  recordId?: string; // For individual records within areas/boundaries (deprecated - use id instead)
 }
 
 export const InspectorContext = createContext<{
   inspectorContent: InspectorContent | null;
   resetInspector: () => void;
-  setInspectorContent: (r: InspectorContent) => void;
-  selectedRecord: SelectedRecord | null;
-  setSelectedRecord: (r: SelectedRecord | null) => void;
-
-  selectedTurf: SelectedTurf | null;
-  setSelectedTurf: (r: SelectedTurf | null) => void;
-
-  selectedBoundary: SelectedBoundary | null;
-  setSelectedBoundary: (r: SelectedBoundary | null) => void;
+  setInspectorContent: (content: InspectorContent) => void;
+  navigateToParent: () => void;
 }>({
   inspectorContent: null,
   resetInspector: () => null,
   setInspectorContent: () => null,
-  selectedRecord: null,
-  setSelectedRecord: () => null,
-  selectedTurf: null,
-  setSelectedTurf: () => null,
-  selectedBoundary: null,
-  setSelectedBoundary: () => null,
+  navigateToParent: () => null,
 });

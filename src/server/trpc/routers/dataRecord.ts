@@ -5,6 +5,7 @@ import {
   findDataRecordsByDataSource,
   findPageForDataRecord,
 } from "@/server/repositories/DataRecord";
+import { db } from "@/server/services/database";
 import { dataSourceReadProcedure, router } from "../index";
 
 export const dataRecordRouter = router({
@@ -60,4 +61,21 @@ export const dataRecordRouter = router({
         return { records, count };
       },
     ),
+
+  byId: dataSourceReadProcedure
+    .input(z.object({ recordId: z.string() }))
+    .query(async ({ input: { recordId, dataSourceId } }) => {
+      const record = await db
+        .selectFrom("dataRecord")
+        .where("id", "=", recordId)
+        .where("dataSourceId", "=", dataSourceId)
+        .selectAll()
+        .executeTakeFirst();
+
+      if (!record) {
+        throw new Error("Record not found");
+      }
+
+      return record;
+    }),
 });

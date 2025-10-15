@@ -165,10 +165,10 @@ export default function TagConfigSidebar({
           value={tagLabel}
           onChange={(e) => setTagLabel(e.target.value)}
           disabled={isReadOnly}
-          className={`w-full border-neutral-300 focus:border-blue-500 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
+          className={`w-full border-neutral-300 focus:border-blue-500 focus:ring-blue-500 ${isReadOnly ? "bg-neutral-100 cursor-not-allowed" : ""}`}
         />
         {isReadOnly && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-neutral-500">
             Tag label cannot be changed after creation
           </p>
         )}

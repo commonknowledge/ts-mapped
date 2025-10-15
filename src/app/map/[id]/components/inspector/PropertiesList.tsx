@@ -77,24 +77,56 @@ export default function PropertiesList({
     <dl className="flex flex-col gap-3">
       {Object.keys(properties as object)
         .filter((label) => {
-          const value = `${properties?.[label]}`;
-          if (!value) return false;
+          const value = properties?.[label];
+
+          // Skip objects
+          if (typeof value === "object" && value !== null) {
+            return false;
+          }
+
+          const stringValue = `${value}`;
+          if (!stringValue) return false;
 
           const isFolderField = label.toLowerCase() === "folder";
           const isAddressField = label.toLowerCase() === "address";
           const isInternalField = label.toLowerCase() === "boundaryfeature";
           const isAreaCodeField = label.toLowerCase() === "areacode";
           const isAreaNameField = label.toLowerCase() === "areaname";
+          const isIdField = label.toLowerCase() === "id";
+          const isAreaField = label.toLowerCase() === "area";
+          const isCreatedField = label.toLowerCase() === "created";
+
+          // Hide internal fields that start with __
+          if (label.startsWith("__")) {
+            return false;
+          }
+
+          // Hide id field
+          if (isIdField) {
+            return false;
+          }
+
+          // Hide area field
+          if (isAreaField) {
+            return false;
+          }
+
+          // Hide created field
+          if (isCreatedField) {
+            return false;
+          }
 
           // Hide folder field if it shows "No folder"
-          if (isFolderField && value === "No folder") {
+          if (isFolderField && stringValue === "No folder") {
             return false;
           }
 
           // Hide address field if it's empty or null
           if (
             isAddressField &&
-            (!value || value === "null" || value === "undefined")
+            (!stringValue ||
+              stringValue === "null" ||
+              stringValue === "undefined")
           ) {
             return false;
           }
@@ -118,7 +150,8 @@ export default function PropertiesList({
           return 0;
         })
         .map((label) => {
-          const value = `${properties?.[label]}`;
+          const value = properties?.[label];
+          const stringValue = `${value}`;
           const isNotesField = label.toLowerCase() === "notes";
 
           return (
@@ -158,7 +191,7 @@ export default function PropertiesList({
                       </div>
                     ) : (
                       <div className="flex items-start justify-between gap-2">
-                        <span className="flex-1">{value}</span>
+                        <span className="flex-1">{stringValue}</span>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -171,7 +204,7 @@ export default function PropertiesList({
                     )}
                   </div>
                 ) : (
-                  value
+                  stringValue
                 )}
               </dd>
             </div>

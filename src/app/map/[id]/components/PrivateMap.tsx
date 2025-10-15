@@ -60,7 +60,6 @@ export default function PrivateMap() {
     if (availableDataSourceIds.length > 0) {
       handleDataSourceSelect(availableDataSourceIds[0]);
     } else {
-      console.log("No data source IDs available");
     }
   };
 

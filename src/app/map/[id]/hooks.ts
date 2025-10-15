@@ -104,16 +104,18 @@ export const usePlacedMarkers = (mapId: string | null) => {
   const {
     mutate: upsertPlacedMarkerMutation,
     isPending: upsertPlacedMarkerLoading,
-  } = useMutation(trpc.placedMarker.upsert.mutationOptions({
-    onSuccess: () => {
-      // Invalidate the map query cache to refetch the latest data
-      if (mapId) {
-        queryClient.invalidateQueries({
-          queryKey: trpc.map.byId.queryKey({ mapId }),
-        });
-      }
-    },
-  }));
+  } = useMutation(
+    trpc.placedMarker.upsert.mutationOptions({
+      onSuccess: () => {
+        // Invalidate the map query cache to refetch the latest data
+        if (mapId) {
+          queryClient.invalidateQueries({
+            queryKey: trpc.map.byId.queryKey({ mapId }),
+          });
+        }
+      },
+    }),
+  );
 
   /* Complex actions */
   const deletePlacedMarker = (id: string) => {

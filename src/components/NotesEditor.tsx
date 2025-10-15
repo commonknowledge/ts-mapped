@@ -56,7 +56,7 @@ export default function NotesEditor({
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
             Notes
           </label>
           <textarea
@@ -64,7 +64,7 @@ export default function NotesEditor({
             onChange={(e) => setNotes(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add your notes here..."
-            className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-32 px-3 py-2 border border-neutral-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             autoFocus
           />
         </div>
@@ -76,7 +76,7 @@ export default function NotesEditor({
           <Button onClick={handleSave}>Save Notes</Button>
         </div>
 
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-neutral-500">
           Press Ctrl+Enter to save, or Escape to cancel
         </div>
       </div>

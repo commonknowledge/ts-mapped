@@ -15,6 +15,7 @@ import {
   getMarkersInsideTurf,
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
+import { InspectorContentFactory } from "./inspectorContentFactory";
 import TurfMarkerButton from "./TurfMarkerButton";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
@@ -22,18 +23,24 @@ import type { Folder } from "@/server/models/Folder";
 export default function TurfMarkersList() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
-  const { selectedTurf } = useContext(InspectorContext);
+  const { folders, placedMarkers, turfs } = useContext(MarkerAndTurfContext);
+  const { inspectorContent } = useContext(InspectorContext);
   const trpc = useTRPC();
 
   const dataSourceIds = getDataSourceIds(mapConfig);
+
+  // Get turf ID from inspector content
+  const turfId =
+    inspectorContent?.type === LayerType.Turf
+      ? ((inspectorContent.properties as Record<string, unknown>)?.id as string)
+      : null;
 
   const { data, isFetching } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
       trpc.dataRecord.list.queryOptions(
         {
           dataSourceId,
-          filter: { type: FilterType.GEO, turf: selectedTurf?.id },
+          filter: { type: FilterType.GEO, turf: turfId },
           page: 0,
         },
         { refetchOnMount: "always" },
@@ -72,12 +79,15 @@ export default function TurfMarkersList() {
   );
 
   const mappedPlacedMarkers = useMemo(() => {
+    // Find the actual turf object
+    const selectedTurf = turfId ? turfs?.find((t) => t.id === turfId) : null;
+
     const activePlacedMarkers = getMarkersInsideTurf(
       placedMarkers,
-      selectedTurf,
+      selectedTurf || null,
     );
     return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
-  }, [folders, placedMarkers, selectedTurf]);
+  }, [folders, placedMarkers, turfId, turfs]);
 
   if (isFetching) {
     return <p>Loading...</p>;
@@ -132,22 +142,26 @@ const MembersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setInspectorContent, inspectorContent } =
+    useContext(InspectorContext);
 
   const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const memberRecords = records.records ?? [];
   const total = records.count.matched ?? 0;
 
   const onRecordClick = (record: RecordData) => {
-    setSelectedRecord({
-      id: record.id,
-      dataSourceId: dataSource?.id as string,
-      point: record.geocodePoint,
-      properties: {
-        ...record.json,
-        __name: nameColumn ? record.json[nameColumn] : "",
-      },
-    });
+    const parent = {
+      type: LayerType.Turf,
+      name: inspectorContent?.name || "Area",
+      id: inspectorContent?.id || "turf",
+    };
+    setInspectorContent(
+      InspectorContentFactory.createMemberInspectorContent(
+        record,
+        dataSource,
+        parent,
+      ),
+    );
   };
 
   return (
@@ -189,22 +203,26 @@ const MarkersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setInspectorContent, inspectorContent } =
+    useContext(InspectorContext);
 
   const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
 
   const onRecordClick = (record: RecordData) => {
-    setSelectedRecord({
-      id: record.id,
-      dataSourceId: dataSource?.id as string,
-      point: record.geocodePoint,
-      properties: {
-        ...record.json,
-        __name: nameColumn ? record.json[nameColumn] : "",
-      },
-    });
+    const parent = {
+      type: LayerType.Turf,
+      name: inspectorContent?.name || "Area",
+      id: inspectorContent?.id || "turf",
+    };
+    setInspectorContent(
+      InspectorContentFactory.createDataSourceMarkerInspectorContent(
+        record,
+        dataSource,
+        parent,
+      ),
+    );
   };
 
   if (recordsList.length === 0) {
@@ -247,21 +265,43 @@ const PlacedMarkersList = ({
   folder: Folder | null;
   records: RecordsResponse;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setInspectorContent, inspectorContent } =
+    useContext(InspectorContext);
+  const { placedMarkers, folders } = useContext(MarkerAndTurfContext);
 
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
   const name = folder?.name || "No folder";
 
   const onRecordClick = (record: RecordData) => {
-    setSelectedRecord({
-      id: record.id,
-      dataSourceId: "",
-      point: record.geocodePoint,
-      properties: {
-        __name: record.json?.name || "",
-      },
-    });
+    // Find the actual placed marker to get complete data
+    const placedMarker = placedMarkers?.find((pm) => pm.id === record.id);
+    if (placedMarker) {
+      const parent = {
+        type: LayerType.Turf,
+        name: inspectorContent?.name || "Area",
+        id: inspectorContent?.id || "turf",
+      };
+      setInspectorContent(
+        InspectorContentFactory.createPlacedMarkerInspectorContent(
+          placedMarker,
+          folders,
+          parent,
+        ),
+      );
+    } else {
+      // Fallback for cases where placed marker is not found
+      setInspectorContent({
+        type: LayerType.Marker,
+        name: String(record.json?.name || `Id: ${record.id}`),
+        properties: {
+          __name: record.json?.name || "",
+        },
+        dataSource: null,
+        id: record.id,
+        recordId: record.id,
+      });
+    }
   };
 
   if (recordsList.length === 0) {

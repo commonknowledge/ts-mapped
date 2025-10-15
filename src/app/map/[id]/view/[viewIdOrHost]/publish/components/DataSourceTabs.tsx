@@ -5,6 +5,7 @@ import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
+import { LayerType } from "@/types";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import DataRecordsList from "./DataRecordsList";
@@ -33,7 +34,17 @@ export default function DataSourceTabs({
 }: DataSourceTabsProps) {
   const { publicMap, activeTabId, setActiveTabId } =
     useContext(PublicMapContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setInspectorContent } = useContext(InspectorContext);
+  const handleRecordSelect = (record: Record<string, unknown>) => {
+    setInspectorContent({
+      type: LayerType.Member,
+      name: (record.name as string) || `Id: ${record.id}`,
+      properties: record,
+      dataSource: null,
+      id: record.id as string,
+      recordId: record.id as string,
+    });
+  };
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
 
   if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
@@ -54,7 +65,7 @@ export default function DataSourceTabs({
             dataRecordsQuery={dataRecordsQuery}
             editable={editable}
             colourScheme={colourScheme}
-            onSelect={setSelectedRecord}
+            onSelect={handleRecordSelect}
           />
         </>
       )
@@ -105,7 +116,7 @@ export default function DataSourceTabs({
                 dataRecordsQuery={dataRecordsQuery}
                 editable={editable}
                 colourScheme={colourScheme}
-                onSelect={setSelectedRecord}
+                onSelect={handleRecordSelect}
               />
             </TabsContent>
           )

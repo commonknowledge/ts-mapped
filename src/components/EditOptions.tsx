@@ -47,7 +47,7 @@ export default function EditOptions({
       </Button>
 
       {showMenu && (
-        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 min-w-[8rem]">
+        <div className="absolute right-0 top-full mt-1 bg-white border border-neutral-200 rounded shadow-lg z-50 min-w-[8rem]">
           {onRename && (
             <button
               onClick={(e) => {
@@ -55,7 +55,7 @@ export default function EditOptions({
                 setShowMenu(false);
                 onRename();
               }}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 flex items-center gap-2"
             >
               <Pencil className={iconSizes[size]} />
               Rename
@@ -68,7 +68,7 @@ export default function EditOptions({
                 setShowMenu(false);
                 onDelete();
               }}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 flex items-center gap-2 text-red-600"
             >
               <Trash2 className={iconSizes[size]} />
               Delete

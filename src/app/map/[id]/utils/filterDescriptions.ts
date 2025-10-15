@@ -50,7 +50,7 @@ export function getFilterDescription(
     );
 
     // Debug logging
-    console.log("Data Record Filter Debug:", {
+    console.log("getFilterDescription - Data record filter:", {
       dataRecordId: filter.dataRecordId,
       dataRecordsCount: dataRecords.length,
       dataRecordIds: dataRecords.map((r) => r.id),
