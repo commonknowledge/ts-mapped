@@ -180,17 +180,6 @@ main {
 }
 
 /* Move bottom right icons if Sentry widget visible */
-.with-feeback-widget .mapboxgl-ctrl-bottom-right {
-  margin-right: 96px;
-}
-
-/* Zoom in-out map buttons */
-.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group:not(:empty) {
-  display: flex;
-  box-shadow: none;
-  background: transparent;
-}
-
-.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group:not(:empty):hover {
-  background: white;
+.with-feeback-widget .map-zoom-controls {
+  margin-right: 64px;
 }
