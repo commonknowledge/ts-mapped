@@ -268,9 +268,6 @@ export default function Map({
     return polygonFeature ?? null;
   };
 
-  // Note: Area visibility is now handled by TurfVisibilityManager component
-  // The toggleDrawVisibility function is kept for MapboxDraw controls only
-
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
