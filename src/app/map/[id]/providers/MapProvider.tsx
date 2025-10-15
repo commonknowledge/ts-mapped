@@ -1,9 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
+import {
+  MapContext,
+  createNewViewConfig,
+} from "@/app/map/[id]/context/MapContext";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "../hooks/useMapQuery";
@@ -27,7 +30,6 @@ export default function MapProvider({
 
   /* Map State */
   const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
-  const [configDirty, setConfigDirty] = useState(false);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [pinDropMode, setPinDropMode] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -39,23 +41,10 @@ export default function MapProvider({
   const mapQuery = useMapQuery(mapId);
   const { data: mapData } = mapQuery;
 
-  const trpc = useTRPC();
-  const { mutate: saveConfigMutate } = useMutation(
-    trpc.map.updateConfig.mutationOptions({
-      onSuccess: () => {
-        setConfigDirty(false);
-      },
-    }),
-  );
-
-  const saveConfig = useCallback(() => {
-    if (!mapId || !mapData?.config) return;
-    saveConfigMutate({ mapId, config: mapData.config });
-  }, [saveConfigMutate, mapId, mapData?.config]);
   const viewsInitialized = useRef(false);
 
+  const trpc = useTRPC();
   const queryClient = useQueryClient();
-
   const { mutate: createDefaultViewMutate } = useMutation(
     trpc.map.updateViews.mutationOptions(),
   );
@@ -76,7 +65,7 @@ export default function MapProvider({
       const newView = {
         id: uuidv4(),
         name: "Default View",
-        config: new ViewConfig(),
+        config: createNewViewConfig(),
         dataSourceViews: [],
         mapId: mapId,
         position: getNewLastPosition(mapData.views),
@@ -99,48 +88,6 @@ export default function MapProvider({
     createDefaultViewMutate,
   ]);
 
-  /* Auto-save views when dirty */
-  const { mutate: saveViewsMutate } = useMutation(
-    trpc.map.updateViews.mutationOptions({
-      onSuccess: () => {
-        setDirtyViewIds([]);
-      },
-    }),
-  );
-  const saveViews = useCallback(() => {
-    if (!mapId) return;
-
-    const currentData = queryClient.getQueryData(
-      trpc.map.byId.queryKey({ mapId }),
-    );
-    if (!currentData?.views) return;
-
-    saveViewsMutate({ mapId, views: currentData.views });
-  }, [mapId, saveViewsMutate, queryClient, trpc.map.byId]);
-
-  useEffect(() => {
-    if (!dirtyViewIds.length) return;
-
-    const handler = setTimeout(() => {
-      saveViews();
-    }, 1000); // debounce 1s
-
-    return () => clearTimeout(handler);
-  }, [dirtyViewIds, saveViews]);
-
-  // auto save map config when dirty
-  useEffect(() => {
-    if (!configDirty) return;
-
-    const handler = setTimeout(() => {
-      saveConfig();
-    }, 1000); // debounce 1s
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [configDirty, saveConfig]);
-
   return (
     <MapContext
       value={{
@@ -152,8 +99,6 @@ export default function MapProvider({
         setViewId,
         dirtyViewIds,
         setDirtyViewIds,
-        configDirty,
-        setConfigDirty,
         zoom,
         setZoom,
         pinDropMode,

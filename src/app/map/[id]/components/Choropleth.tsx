@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { MapContext, getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
   CalculationType,
@@ -146,7 +146,7 @@ export default function Choropleth() {
                 "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
               }}
               paint={{
-                "text-color": viewConfig.getMapStyle().textColor,
+                "text-color": getMapStyle(viewConfig).textColor,
                 "text-opacity": [
                   "interpolate",
                   ["linear"],
@@ -156,7 +156,7 @@ export default function Choropleth() {
                   10,
                   0.8,
                 ],
-                "text-halo-color": viewConfig.getMapStyle().textHaloColor,
+                "text-halo-color": getMapStyle(viewConfig).textHaloColor,
                 "text-halo-width": 1.5,
               }}
             />

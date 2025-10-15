@@ -14,7 +14,11 @@ import {
 } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import {
+  MapContext,
+  getDataSourceIds,
+  getMapStyle,
+} from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -86,8 +90,7 @@ export default function Map({
 
   const markerLayers = useMemo(
     () =>
-      mapConfig
-        .getDataSourceIds()
+      getDataSourceIds(mapConfig)
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
@@ -368,7 +371,7 @@ export default function Map({
         ref={mapRef}
         style={{ flexGrow: 1 }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-        mapStyle={`mapbox://styles/mapbox/${viewConfig.getMapStyle().slug}`}
+        mapStyle={`mapbox://styles/mapbox/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
         onClick={(e) => {
           const map = e.target;

@@ -7,38 +7,10 @@ import {
 } from "@/server/models/MapView";
 import mapStyles from "../styles";
 import type { BoundingBox } from "@/server/models/Area";
-import type { AreaSetGroupCode } from "@/server/models/AreaSet";
-import type {
-  MapViewConfigInput,
-  VisualisationType,
-} from "@/server/models/MapView";
+import type { MapConfig } from "@/server/models/Map";
+import type { MapViewConfig } from "@/server/models/MapView";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
-
-export class ViewConfig implements MapViewConfigInput {
-  public areaDataSourceId = "";
-  public areaDataColumn = "";
-  public areaSetGroupCode: AreaSetGroupCode | null = null;
-  public excludeColumnsString = "";
-  public mapStyleName: MapStyleName = MapStyleName.Light;
-  public showLabels = true;
-  public showBoundaryOutline = false;
-  public showMembers = true;
-  public showLocations = true;
-  public showTurf = true;
-  public calculationType?: CalculationType | null = CalculationType.Value;
-  public colorScheme?: ColorScheme | null = ColorScheme.RedBlue;
-  public reverseColorScheme?: boolean | null | undefined;
-  public visualisationType?: VisualisationType | null;
-
-  constructor(params: Partial<ViewConfig> = {}) {
-    Object.assign(this, params);
-  }
-
-  getMapStyle() {
-    return mapStyles[this.mapStyleName] || Object.values(mapStyles)[0];
-  }
-}
 
 export const MapContext = createContext<{
   /* Map ID from URL */
@@ -58,9 +30,6 @@ export const MapContext = createContext<{
   /* Dirty Views Tracking */
   dirtyViewIds: string[];
   setDirtyViewIds: (ids: string[] | ((prev: string[]) => string[])) => void;
-
-  configDirty: boolean;
-  setConfigDirty: (dirty: boolean) => void;
 
   zoom: number;
   setZoom: (zoom: number) => void;
@@ -82,8 +51,6 @@ export const MapContext = createContext<{
   setViewId: () => null,
   dirtyViewIds: [],
   setDirtyViewIds: () => null,
-  configDirty: false,
-  setConfigDirty: () => null,
   zoom: DEFAULT_ZOOM,
   setZoom: () => null,
   pinDropMode: false,
@@ -93,3 +60,36 @@ export const MapContext = createContext<{
   showControls: true,
   setShowControls: () => null,
 });
+
+export const createNewViewConfig = (): MapViewConfig => {
+  return {
+    areaDataSourceId: "",
+    areaDataColumn: "",
+    areaSetGroupCode: null,
+    excludeColumnsString: "",
+    mapStyleName: MapStyleName.Light,
+    showLabels: true,
+    showBoundaryOutline: false,
+    showMembers: true,
+    showLocations: true,
+    showTurf: true,
+    calculationType: CalculationType.Value,
+    colorScheme: ColorScheme.RedBlue,
+    reverseColorScheme: false,
+    visualisationType: null,
+  };
+};
+
+export const getDataSourceIds = (mapConfig: MapConfig) => {
+  return new Set(
+    [mapConfig.membersDataSourceId]
+      .concat(mapConfig.markerDataSourceIds)
+      .filter(Boolean),
+  )
+    .values()
+    .toArray();
+};
+
+export const getMapStyle = (viewConfig: MapViewConfig) => {
+  return mapStyles[viewConfig.mapStyleName] || Object.values(mapStyles)[0];
+};

@@ -4,7 +4,10 @@ import { useQueries } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import {
+  MapContext,
+  getDataSourceIds,
+} from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -38,14 +41,12 @@ export default function MarkerAndTurfProvider({
 
   const dataSourceIds = useMemo(() => {
     if (!publicMap) {
-      return mapConfig.getDataSourceIds();
+      return getDataSourceIds(mapConfig);
     }
     // If a public map is being displayed, don't fetch markers that aren't included
-    return mapConfig
-      .getDataSourceIds()
-      .filter((id) =>
-        publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
-      );
+    return getDataSourceIds(mapConfig).filter((id) =>
+      publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
+    );
   }, [mapConfig, publicMap]);
 
   // Using the `combine` option in this useQueries call makes `markerQueries`

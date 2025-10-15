@@ -3,14 +3,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { use, useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
+import {
+  MapContext,
+  createNewViewConfig,
+} from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
+import type { MapViewConfig } from "@/server/models/MapView";
 
 export function useMapViews() {
-  const { viewId, mapId, setDirtyViewIds, setViewId } = use(MapContext);
+  const { viewId, mapId, setViewId, setDirtyViewIds } = use(MapContext);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
@@ -24,34 +28,8 @@ export function useMapViews() {
   );
 
   const viewConfig = useMemo(() => {
-    return new ViewConfig({ ...view?.config });
+    return view?.config || createNewViewConfig();
   }, [view]);
-
-  const updateViewConfig = useCallback(
-    (nextViewConfig: Partial<ViewConfig>) => {
-      if (!mapId || !viewId) return;
-
-      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-        if (!old) return old;
-
-        const currentView = old.views.find((v) => v.id === viewId);
-        if (!currentView) return old;
-
-        const nextView = {
-          ...currentView,
-          config: new ViewConfig({ ...currentView.config, ...nextViewConfig }),
-        };
-
-        return {
-          ...old,
-          views: old.views.map((v) => (v.id === currentView.id ? nextView : v)),
-        };
-      });
-
-      setDirtyViewIds((prev) => [...prev, viewId]);
-    },
-    [viewId, mapId, queryClient, trpc.map.byId, setDirtyViewIds],
-  );
 
   const { mutate: insertViewMutate } = useMutation(
     trpc.map.updateViews.mutationOptions({
@@ -93,6 +71,11 @@ export function useMapViews() {
         }
         toast.error("Failed to create view");
       },
+      onSuccess: (_data, _variables) => {
+        setDirtyViewIds((ids) =>
+          ids.filter((id) => !_variables.views.find((v) => v.id === id)),
+        );
+      },
     }),
   );
 
@@ -109,12 +92,14 @@ export function useMapViews() {
 
       setViewId(newView.id);
 
+      setDirtyViewIds((ids) => ids.concat([newView.id]));
+
       insertViewMutate({
         mapId,
         views: newViews,
       });
     },
-    [mapId, views, insertViewMutate, setViewId],
+    [mapId, views, setViewId, setDirtyViewIds, insertViewMutate],
   );
 
   const { mutate: updateViewMutate } = useMutation(
@@ -158,6 +143,11 @@ export function useMapViews() {
         }
         toast.error("Failed to update view");
       },
+      onSuccess: (_data, _variables) => {
+        setDirtyViewIds((ids) =>
+          ids.filter((id) => !_variables.views.find((v) => v.id === id)),
+        );
+      },
     }),
   );
 
@@ -167,12 +157,23 @@ export function useMapViews() {
 
       const updatedViews = views.map((v) => (v.id === view.id ? view : v));
 
+      setDirtyViewIds((ids) => ids.concat([view.id]));
+
       updateViewMutate({
         mapId,
         views: updatedViews,
       });
     },
-    [mapId, updateViewMutate, views],
+    [mapId, setDirtyViewIds, updateViewMutate, views],
+  );
+
+  const updateViewConfig = useCallback(
+    (viewConfig: Partial<MapViewConfig>) => {
+      if (!view) return;
+
+      return updateView({ ...view, config: { ...view.config, ...viewConfig } });
+    },
+    [updateView, view],
   );
 
   const { mutate: deleteViewMutate } = useMutation(

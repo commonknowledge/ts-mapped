@@ -1,5 +1,6 @@
 import { Database } from "lucide-react";
 import { useContext } from "react";
+import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { Button } from "@/shadcn/ui/button";
@@ -26,8 +27,7 @@ export default function DataSourcesSelect() {
   const { getDataSourceById } = useDataSources();
   const { publicMap, updatePublicMap } = useContext(PublicMapContext);
 
-  const dataSources = mapConfig
-    .getDataSourceIds()
+  const dataSources = getDataSourceIds(mapConfig)
     .map((id) => getDataSourceById(id))
     .filter((ds) => ds !== undefined && ds !== null);
 

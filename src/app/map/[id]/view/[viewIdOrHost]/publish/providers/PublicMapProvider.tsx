@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
+import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -210,8 +211,7 @@ const usePublicMapAndActiveTab = (
       return;
     }
 
-    const dataSources = mapConfig
-      .getDataSourceIds()
+    const dataSources = getDataSourceIds(mapConfig)
       .map(getDataSourceById)
       .filter((ds) => ds !== undefined && ds !== null);
 

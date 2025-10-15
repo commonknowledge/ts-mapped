@@ -20,7 +20,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { Check, Layers, Plus, X } from "lucide-react";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { MapContext, ViewConfig } from "@/app/map/[id]/context/MapContext";
+import {
+  MapContext,
+  createNewViewConfig,
+} from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
@@ -88,7 +91,7 @@ export default function MapViews() {
     const newView = {
       id: uuidv4(),
       name: newViewName.trim(),
-      config: new ViewConfig(),
+      config: createNewViewConfig(),
       dataSourceViews: [],
       mapId,
       createdAt: new Date(),

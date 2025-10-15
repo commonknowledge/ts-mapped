@@ -1,6 +1,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
@@ -25,7 +26,7 @@ export default function TurfMarkersList() {
   const { selectedTurf } = useContext(InspectorContext);
   const trpc = useTRPC();
 
-  const dataSourceIds = mapConfig.getDataSourceIds();
+  const dataSourceIds = getDataSourceIds(mapConfig);
 
   const { data, isFetching } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
