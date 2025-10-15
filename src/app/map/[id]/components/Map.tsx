@@ -96,6 +96,7 @@ export default function Map({
     placedMarkers,
     markerQueries,
     visibleTurfs,
+    folders,
   } = useContext(MarkerAndTurfContext);
 
   // Get the data source for the current tag view
@@ -118,6 +119,7 @@ export default function Map({
     resetInspector,
     setSelectedRecord,
     setSelectedTurf,
+    setSelectedBoundary,
     setInspectorContent,
   } = useContext(InspectorContext);
   const {
@@ -414,6 +416,30 @@ export default function Map({
               properties: properties,
             });
 
+            // If this is a placed marker (no dataSourceId), set inspector content
+            if (dataRecordId && !dataSourceId) {
+              // Find the placed marker data
+              const placedMarker = placedMarkers?.find(m => m.id === dataRecordId);
+              if (placedMarker) {
+                // Get folder name if marker is in a folder
+                const folderName = placedMarker.folderId
+                  ? folders?.find((f) => f.id === placedMarker.folderId)?.name || "Unknown folder"
+                  : null;
+
+                setInspectorContent({
+                  type: LayerType.Marker,
+                  name: placedMarker.label,
+                  properties: {
+                    coordinates: `${placedMarker.point.lat.toFixed(4)}, ${placedMarker.point.lng.toFixed(4)}`,
+                    folder: folderName || "No folder",
+                    notes: placedMarker.notes || "No notes",
+                    ...(placedMarker.address && { address: placedMarker.address }),
+                  },
+                  dataSource: null,
+                });
+              }
+            }
+
             map.flyTo({
               center: features[0].geometry.coordinates as [number, number],
               zoom: 12,
@@ -486,6 +512,21 @@ export default function Map({
                   if (layerId.includes('MSOA')) return 'Middle Layer Super Output Areas';
                   return 'Boundary Data';
                 };
+
+                // Clear any selected record and turf, then set the boundary
+                setSelectedRecord(null);
+                setSelectedTurf(null);
+                setSelectedBoundary({
+                  id: areaCode,
+                  name: areaName,
+                  properties: {
+                    "Dataset": getDatasetName(),
+                    "Area Code": areaCode,
+                    areaCode: areaCode,
+                    areaName: areaName,
+                    boundaryFeature: feature,
+                  },
+                });
 
                 setInspectorContent({
                   type: LayerType.Boundary,

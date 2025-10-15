@@ -12,10 +12,10 @@ export default function TurfMarkerButton({
 }) {
   return (
     <button
-      className="flex gap-2 w-full p-1 -mx-1 rounded cursor-pointer text-left transition-bg hover:bg-muted"
+      className="flex gap-2 w-full p-1 -mx-1 items-center rounded cursor-pointer text-left transition-bg hover:bg-muted"
       onClick={onClick}
     >
-      <LayerIcon type={type} size="sm" className="mt-[0.4em]" />
+      <LayerIcon type={type} size="sm" />
 
       {label}
     </button>

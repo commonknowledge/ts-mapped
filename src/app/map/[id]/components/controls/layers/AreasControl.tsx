@@ -103,7 +103,7 @@ const TurfItem = ({ turf, index }: { turf: Turf; index: number }) => {
   const { mapRef, showControls } = useContext(MapContext);
   const { updateTurf, deleteTurf, getTurfVisibility, setTurfVisibilityState } =
     useContext(MarkerAndTurfContext);
-  const { setInspectorContent } = useContext(InspectorContext);
+  const { setSelectedTurf, setSelectedRecord } = useContext(InspectorContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const isVisible = getTurfVisibility(turf.id); // Get visibility from context
 
@@ -131,16 +131,13 @@ const TurfItem = ({ turf, index }: { turf: Turf; index: number }) => {
       },
     );
 
-    // Show area data in inspector
-    setInspectorContent({
-      type: LayerType.Turf,
+    // Clear any selected record and set the selected turf
+    // This will trigger the InspectorProvider to show area data
+    setSelectedRecord(null);
+    setSelectedTurf({
+      id: turf.id,
       name: turf.label || `Area ${index + 1}`,
-      properties: {
-        area: `${turf.area?.toFixed(2)} m²`,
-        notes: turf.notes || "No notes",
-        created: turf.createdAt.toLocaleDateString(),
-      },
-      dataSource: null,
+      geometry: turf.polygon,
     });
   };
 

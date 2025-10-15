@@ -26,6 +26,12 @@ export interface SelectedTurf {
   geometry: Polygon;
 }
 
+export interface SelectedBoundary {
+  id: string;
+  name: string;
+  properties: Record<string, unknown>;
+}
+
 export const InspectorContext = createContext<{
   inspectorContent: InspectorContent | null;
   resetInspector: () => void;
@@ -35,6 +41,9 @@ export const InspectorContext = createContext<{
 
   selectedTurf: SelectedTurf | null;
   setSelectedTurf: (r: SelectedTurf | null) => void;
+
+  selectedBoundary: SelectedBoundary | null;
+  setSelectedBoundary: (r: SelectedBoundary | null) => void;
 }>({
   inspectorContent: null,
   resetInspector: () => null,
@@ -43,4 +52,6 @@ export const InspectorContext = createContext<{
   setSelectedRecord: () => null,
   selectedTurf: null,
   setSelectedTurf: () => null,
+  selectedBoundary: null,
+  setSelectedBoundary: () => null,
 });

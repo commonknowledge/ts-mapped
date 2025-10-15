@@ -120,17 +120,21 @@ export default function BoundaryMarkersList() {
     const members = useMemo(
         () =>
             filteredData.find(
-                (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
+                (item) =>
+                    item?.dataSource?.recordType === DataSourceRecordType.Members ||
+                    item?.dataSource?.id === mapConfig.membersDataSourceId,
             ),
-        [filteredData],
+        [filteredData, mapConfig.membersDataSourceId],
     );
 
     const markers = useMemo(
         () =>
             filteredData.filter(
-                (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
+                (item) =>
+                    item?.dataSource?.recordType !== DataSourceRecordType.Members &&
+                    item?.dataSource?.id !== mapConfig.membersDataSourceId,
             ),
-        [filteredData],
+        [filteredData, mapConfig.membersDataSourceId],
     );
 
     // Filter placed markers that are within the boundary
@@ -359,7 +363,8 @@ const PlacedMarkersList = ({
     folder: Folder | null;
     records: RecordsResponse;
 }) => {
-    const { setSelectedRecord } = useContext(InspectorContext);
+    const { setSelectedRecord, setInspectorContent } = useContext(InspectorContext);
+    const { placedMarkers } = useContext(MarkerAndTurfContext);
 
     const recordsList = records.records ?? [];
     const total = records.count.matched ?? 0;
@@ -374,6 +379,27 @@ const PlacedMarkersList = ({
                 __name: record.json?.name || "",
             },
         });
+
+        // Find the placed marker data and set inspector content
+        const placedMarker = placedMarkers?.find(m => m.id === record.id);
+        if (placedMarker) {
+            // Get folder name if marker is in a folder
+            const folderName = placedMarker.folderId
+                ? folder?.name || "Unknown folder"
+                : null;
+
+            setInspectorContent({
+                type: LayerType.Marker,
+                name: placedMarker.label,
+                properties: {
+                    coordinates: `${placedMarker.point.lat.toFixed(4)}, ${placedMarker.point.lng.toFixed(4)}`,
+                    folder: folderName || "No folder",
+                    notes: placedMarker.notes || "No notes",
+                    ...(placedMarker.address && { address: placedMarker.address }),
+                },
+                dataSource: null,
+            });
+        }
     };
 
     if (recordsList.length === 0) {

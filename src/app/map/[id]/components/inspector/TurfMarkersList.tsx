@@ -54,17 +54,21 @@ export default function TurfMarkersList() {
   const members = useMemo(
     () =>
       data.find(
-        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
+        (item) =>
+          item?.dataSource?.recordType === DataSourceRecordType.Members ||
+          item?.dataSource?.id === mapConfig.membersDataSourceId,
       ),
-    [data],
+    [data, mapConfig.membersDataSourceId],
   );
 
   const markers = useMemo(
     () =>
       data.filter(
-        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
+        (item) =>
+          item?.dataSource?.recordType !== DataSourceRecordType.Members &&
+          item?.dataSource?.id !== mapConfig.membersDataSourceId,
       ),
-    [data],
+    [data, mapConfig.membersDataSourceId],
   );
 
   const mappedPlacedMarkers = useMemo(() => {

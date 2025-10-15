@@ -17,6 +17,7 @@ export default function InspectorPanel() {
     inspectorContent,
     resetInspector,
     selectedTurf,
+    selectedBoundary,
     selectedRecord,
     setSelectedRecord,
   } = useContext(InspectorContext);
@@ -31,8 +32,13 @@ export default function InspectorPanel() {
   const { dataSource, properties, type } = inspectorContent ?? {};
   const tableOpen = Boolean(selectedDataSourceId);
   const detailsViewInTurfInspector = selectedTurf && type !== LayerType.Turf;
+  const detailsViewInBoundaryInspector = selectedBoundary && type !== LayerType.Boundary;
 
   const onBackToTurfClick = () => {
+    setSelectedRecord(null);
+  };
+
+  const onBackToBoundaryClick = () => {
     setSelectedRecord(null);
   };
 
@@ -54,7 +60,7 @@ export default function InspectorPanel() {
       <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans group">
         <div className="flex justify-between items-start gap-4 p-4">
           <h1 className="grow flex items-center gap-2 / text-sm font-semibold">
-            <LayerIcon type={inspectorContent?.type} dataSource={dataSource} />
+            <LayerIcon type={inspectorContent?.type || LayerType.Marker} dataSource={dataSource} />
             {inspectorContent?.name as string}
           </h1>
           <button
@@ -66,19 +72,40 @@ export default function InspectorPanel() {
           </button>
         </div>
 
-        {detailsViewInTurfInspector && (
+        {(detailsViewInTurfInspector || detailsViewInBoundaryInspector) && (
           <div className="px-4 pb-2">
-            <button
-              onClick={() => onBackToTurfClick()}
-              className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 cursor-pointer"
-            >
-              <ArrowLeftIcon size={12} />
-              Back to
-              <span className="inline-flex items-center gap-1 font-semibold">
-                <LayerIcon type={LayerType.Turf} size="sm" />
-                {selectedTurf.name}
-              </span>
-            </button>
+            {detailsViewInTurfInspector && (
+              <button
+                onClick={() => onBackToTurfClick()}
+                className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 cursor-pointer"
+              >
+                <ArrowLeftIcon size={12} />
+                Back to
+                <span className="inline-flex items-center gap-1 font-semibold">
+                  <LayerIcon type={LayerType.Turf} size="sm" />
+                  {selectedTurf.name}
+                </span>
+              </button>
+            )}
+            {detailsViewInBoundaryInspector && (
+              <button
+                onClick={() => onBackToBoundaryClick()}
+                className="flex items-center justify-between gap-1 text-xs opacity-70 hover:opacity-100 cursor-pointer"
+              >
+                <div className="flex items-center gap-1">
+                  <ArrowLeftIcon size={12} />
+                  <span className="whitespace-nowrap">
+                    Back to
+                  </span>
+                </div>
+
+                <span className="inline-flex items-center gap-1 font-semibold text-left">
+                  <LayerIcon type={LayerType.Boundary} size="sm" />
+
+                  {selectedBoundary.name}
+                </span>
+              </button>
+            )}
           </div>
         )}
 
@@ -103,9 +130,9 @@ export default function InspectorPanel() {
           {type === LayerType.Turf && <TurfMarkersList />}
           {type === LayerType.Boundary && <BoundaryMarkersList />}
 
-          {(detailsViewInTurfInspector || dataSource) && (
+          {(detailsViewInTurfInspector || detailsViewInBoundaryInspector || dataSource) && (
             <div className="flex flex-col gap-3 border-t pt-4">
-              {detailsViewInTurfInspector && selectedRecord?.point && (
+              {(detailsViewInTurfInspector || detailsViewInBoundaryInspector) && selectedRecord?.point && (
                 <Button onClick={() => flyToMarker()}>
                   <MapPinIcon />
                   View on map
