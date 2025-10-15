@@ -42,10 +42,7 @@ export default function PrivateMap() {
 
   // Handle configure tag callback
   const handleConfigureTag = () => {
-    console.log("handleConfigureTag called");
-    console.log("All data sources:", allDataSources);
-    console.log("Marker data sources:", markerDataSources);
-    console.log("Members data source:", membersDataSource);
+
 
     // Prioritize members data source (most common use case for tagging)
     if (membersDataSource?.id) {
