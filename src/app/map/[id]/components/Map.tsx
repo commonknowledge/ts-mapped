@@ -254,10 +254,6 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
-  // Note: Turf rendering is now handled by TurfVisibilityManager component
-  // MapboxDraw is only used for drawing/editing new polygons
-  // The toggleDrawVisibility function is kept for MapboxDraw controls only
-
   const getClickedPolygonFeature = (
     draw: MapboxDraw,
     e: MapMouseEvent,
@@ -289,9 +285,6 @@ export default function Map({
 
     return polygonFeature ?? null;
   };
-
-  // Note: Area visibility is now handled by TurfVisibilityManager component
-  // The toggleDrawVisibility function is kept for MapboxDraw controls only
 
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);

@@ -104,7 +104,7 @@ export default function PrivateMap() {
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
                 onConfigureTag={handleConfigureTag}
-                isTableOpen={!!selectedDataSourceId}
+                isTableOpen={Boolean(selectedDataSourceId)}
               />
             </ResizablePanel>
             {selectedDataSourceId && (

@@ -20,7 +20,7 @@ export default function TagButton({
       disabled={disabled || !onClick}
     >
       <TagIcon className="w-4 h-4" />
-      {children && children}
+      {children}
     </Button>
   );
 }

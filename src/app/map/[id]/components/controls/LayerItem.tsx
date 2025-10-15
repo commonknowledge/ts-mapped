@@ -87,8 +87,6 @@ export default function LayerItem({
         !getDataSourceVisibility(dataSourceId),
       );
     } else if (individualVisibility) {
-      // For individual visibility, parent component should handle this
-      // We'll just call the onClick if no custom handler is provided
       console.warn(
         "Individual visibility enabled but no onVisibilityToggle handler provided",
       );
