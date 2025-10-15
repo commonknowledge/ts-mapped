@@ -3,7 +3,6 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point as turfPoint } from "@turf/helpers";
 import * as turf from "@turf/turf";
-import dynamic from "next/dynamic";
 import {
   useCallback,
   useContext,
@@ -632,17 +631,6 @@ export default function Map({
           </>
         )}
       </MapGL>
-      <div className="fixed z-100 top-[10px] right-4">
-        <SearchBox />
-      </div>
     </MapWrapper>
   );
 }
-
-const SearchBox = dynamic(
-  () => import("./SearchBox").then((mod) => ({ default: mod.SearchBox })),
-  {
-    ssr: false,
-    loading: () => null,
-  },
-);

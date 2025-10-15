@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -146,7 +147,7 @@ export default function PrivateMapNavbar() {
 
   return (
     <Navbar>
-      <div className="flex justify-between items-center gap-4 w-full pr-[248px]">
+      <div className="flex justify-between items-center gap-4 w-full">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-neutral-600">
             <Link
@@ -212,8 +213,19 @@ export default function PrivateMapNavbar() {
               )}
             </div>
           )}
+          <div className="">
+            <SearchBox />
+          </div>
         </div>
       </div>
     </Navbar>
   );
 }
+
+const SearchBox = dynamic(
+  () => import("./SearchBox").then((mod) => ({ default: mod.SearchBox })),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
