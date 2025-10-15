@@ -5,6 +5,7 @@ import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import EditOptions from "@/components/EditOptions";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -123,27 +124,16 @@ export default function SortableMarkerItem({
                     <div className="flex-1">
                       <div className="text-sm">{marker.label}</div>
                     </div>
-                    <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white">
-                      <button
-                        className="cursor-pointer hover:text-primary p-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                    <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white z-10">
+                      <EditOptions
+                        onRename={() => {
                           setEditText(marker.label);
                           setEditing(true);
                           setKeyboardCapture(true);
                         }}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </button>
-                      <button
-                        className="cursor-pointer hover:text-primary p-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deletePlacedMarker(marker.id);
-                        }}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+                        onDelete={() => deletePlacedMarker(marker.id)}
+                        size="sm"
+                      />
                     </div>
                   </>
                 )}
@@ -187,27 +177,16 @@ export default function SortableMarkerItem({
                   <div className="flex-1">
                     <div className="text-sm">{marker.label}</div>
                   </div>
-                  <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white">
-                    <button
-                      className="cursor-pointer hover:text-primary p-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                  <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white z-10">
+                    <EditOptions
+                      onRename={() => {
                         setEditText(marker.label);
                         setEditing(true);
                         setKeyboardCapture(true);
                       }}
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </button>
-                    <button
-                      className="cursor-pointer hover:text-primary p-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deletePlacedMarker(marker.id);
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                      onDelete={() => deletePlacedMarker(marker.id)}
+                      size="sm"
+                    />
                   </div>
                 </>
               )}

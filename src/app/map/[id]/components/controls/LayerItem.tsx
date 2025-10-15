@@ -1,4 +1,4 @@
-import { Eye } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import React, { useContext } from "react";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -118,9 +118,11 @@ export default function LayerItem({
           onClick={handleVisibilityToggle}
           className="bg-neutral-100 hover:bg-neutral-200 rounded px-0.5 py-2 flex items-center justify-center self-stretch w-8 mr-1"
         >
-          <Eye
-            className={`w-4 h-4 ${visibilityState ? "text-neutral-500" : "text-neutral-400"}`}
-          />
+          {visibilityState ? (
+            <Eye className="w-4 h-4 text-neutral-500" />
+          ) : (
+            <EyeOff className="w-4 h-4 text-neutral-400" />
+          )}
         </button>
       )}
       {!noColorBar && (

@@ -164,9 +164,10 @@ export default function MarkerAndTurfProvider({
 
     const clickHandler = (e: mapboxgl.MapMouseEvent) => {
       const markerId = uuidv4();
+      const markerCount = placedMarkers.length + 1;
       insertPlacedMarker({
         id: markerId,
-        label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
+        label: `Marker ${markerCount}`,
         notes: "",
         point: e.lngLat,
         folderId: null,

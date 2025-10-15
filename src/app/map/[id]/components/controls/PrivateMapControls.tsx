@@ -33,19 +33,18 @@ export default function PrivateMapControls() {
 
       {/* Control panel with transition */}
       <div
-        className={`absolute top-0 left-0 z-20 h-full overflow-hidden transition-all duration-300 ease-in-out ${
-          showControls
-            ? "translate-x-0 opacity-100"
-            : "-translate-x-full opacity-0"
-        }`}
+        className={`absolute top-0 left-0 z-20 h-full overflow-hidden transition-all duration-300 ease-in-out ${showControls
+          ? "translate-x-0 opacity-100"
+          : "-translate-x-full opacity-0"
+          }`}
         style={{
           width: `${CONTROL_PANEL_WIDTH}px`,
           minWidth: `${CONTROL_PANEL_WIDTH}px`,
         }}
       >
-        <div className="flex flex-col bg-white z-10 h-full border-r border-neutral-200">
+        <div className="flex flex-col bg-white/80 backdrop-blur-sm z-10 h-full border-r border-neutral-200">
           {/* Header */}
-          <div className="flex items-center justify-between gap-2 px-4 py-3">
+          <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-neutral-200">
             <p className="text-sm font-semibold">Layers</p>
             <Button
               variant="ghost"
@@ -60,7 +59,7 @@ export default function PrivateMapControls() {
 
           {/* Content */}
           <div
-            className="flex-1 overflow-y-auto px-3 py-2"
+            className="flex-1 overflow-y-auto p-3"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
             <MembersControl />

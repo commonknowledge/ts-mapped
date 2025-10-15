@@ -12,6 +12,7 @@ import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import EditOptions from "@/components/EditOptions";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -82,7 +83,7 @@ export default function AreasControl() {
       {expanded && (
         <div className={cn(defaultLayerStyles.content, "space-y-1")}>
           {turfs && turfs.length > 0 ? (
-            turfs.map((turf) => <TurfItem key={turf.id} turf={turf} />)
+            turfs.map((turf, index) => <TurfItem key={turf.id} turf={turf} index={index} />)
           ) : (
             <EmptyLayer message="Add an Area Layer" />
           )}
@@ -92,7 +93,7 @@ export default function AreasControl() {
   );
 }
 
-const TurfItem = ({ turf }: { turf: Turf }) => {
+const TurfItem = ({ turf, index }: { turf: Turf; index: number }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
   const { mapRef, showControls } = useContext(MapContext);
@@ -159,28 +160,15 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
             <>
               <div className="flex-1">
                 <div className="text-sm">
-                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                  {turf.label || `Area ${index + 1}`}
                 </div>
               </div>
-              <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white">
-                <button
-                  className="cursor-pointer hover:text-primary p-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditing(true);
-                  }}
-                >
-                  <Pencil className="h-3 w-3" />
-                </button>
-                <button
-                  className="cursor-pointer hover:text-primary p-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteTurf(turf.id);
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
+              <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 bg-white z-10">
+                <EditOptions
+                  onRename={() => setEditing(true)}
+                  onDelete={() => deleteTurf(turf.id)}
+                  size="sm"
+                />
               </div>
             </>
           )}

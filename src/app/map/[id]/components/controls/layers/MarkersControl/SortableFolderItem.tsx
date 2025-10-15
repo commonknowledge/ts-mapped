@@ -18,6 +18,7 @@ import { useContext, useMemo, useRef, useState } from "react";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import EditOptions from "@/components/EditOptions";
 import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
@@ -166,9 +167,7 @@ export default function SortableFolderItem({
                 </form>
               ) : (
                 <>
-                  <span className="text-sm flex-1 break-all py-1">
-                    {folder.name}
-                  </span>
+
                   <span
                     className={cn(
                       "text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1",
@@ -180,27 +179,19 @@ export default function SortableFolderItem({
                   >
                     {sortedMarkers.length}
                   </span>
-                  <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0">
-                    <button
-                      className="cursor-pointer hover:text-primary p-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                  <span className="text-sm  break-all py-1">
+                    {folder.name}
+                  </span>
+                  <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 z-10">
+                    <EditOptions
+                      onRename={() => {
                         setEditText(folder.name);
                         setEditing(true);
                         setKeyboardCapture(true);
                       }}
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </button>
-                    <button
-                      className="cursor-pointer hover:text-primary p-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onClickDelete();
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                      onDelete={onClickDelete}
+                      size="sm"
+                    />
                   </div>
                 </>
               )}

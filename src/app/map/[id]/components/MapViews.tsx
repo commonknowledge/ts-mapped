@@ -294,18 +294,16 @@ function SortableViewItem({
           style={style}
           {...attributes}
           {...listeners}
-          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${
-            isRenaming ? "cursor-default" : "cursor-pointer"
-          } ${
-            isSelected
+          className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${isRenaming ? "cursor-default" : "cursor-pointer"
+            } ${isSelected
               ? "bg-muted"
               : "bg-transparent hover:bg-neutral-100 hover:border-action-hover"
-          } ${isDragging ? "opacity-50" : "opacity-100"}`}
+            } ${isDragging ? "opacity-50" : "opacity-100"}`}
           onClick={() => !isRenaming && handleViewSelect()}
           onDoubleClick={() => !isRenaming && handleDoubleClick()}
         >
           {view.isTag ? (
-            <Tag className="w-4 h-4 text-purple-600" />
+            <Tag className="w-4 h-4 text-purple-600 fill-purple-200" />
           ) : (
             <Layers className="w-4 h-4 text-muted-foreground" />
           )}
