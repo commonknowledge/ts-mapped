@@ -83,7 +83,9 @@ export default function AreasControl() {
       {expanded && (
         <div className={cn(defaultLayerStyles.content, "space-y-1")}>
           {turfs && turfs.length > 0 ? (
-            turfs.map((turf, index) => <TurfItem key={turf.id} turf={turf} index={index} />)
+            turfs.map((turf, index) => (
+              <TurfItem key={turf.id} turf={turf} index={index} />
+            ))
           ) : (
             <EmptyLayer message="Add an Area Layer" />
           )}

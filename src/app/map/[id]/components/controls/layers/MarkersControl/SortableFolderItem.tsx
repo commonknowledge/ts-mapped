@@ -167,7 +167,6 @@ export default function SortableFolderItem({
                 </form>
               ) : (
                 <>
-
                   <span
                     className={cn(
                       "text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1",
@@ -179,9 +178,7 @@ export default function SortableFolderItem({
                   >
                     {sortedMarkers.length}
                   </span>
-                  <span className="text-sm  break-all py-1">
-                    {folder.name}
-                  </span>
+                  <span className="text-sm  break-all py-1">{folder.name}</span>
                   <div className="hidden group-hover:flex gap-1 text-muted-foreground absolute right-0 z-10">
                     <EditOptions
                       onRename={() => {

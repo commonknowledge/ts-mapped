@@ -33,10 +33,11 @@ export default function PrivateMapControls() {
 
       {/* Control panel with transition */}
       <div
-        className={`absolute top-0 left-0 z-20 h-full overflow-hidden transition-all duration-300 ease-in-out ${showControls
-          ? "translate-x-0 opacity-100"
-          : "-translate-x-full opacity-0"
-          }`}
+        className={`absolute top-0 left-0 z-20 h-full overflow-hidden transition-all duration-300 ease-in-out ${
+          showControls
+            ? "translate-x-0 opacity-100"
+            : "-translate-x-full opacity-0"
+        }`}
         style={{
           width: `${CONTROL_PANEL_WIDTH}px`,
           minWidth: `${CONTROL_PANEL_WIDTH}px`,
