@@ -146,7 +146,7 @@ export default function PrivateMapNavbar() {
 
   return (
     <Navbar>
-      <div className="flex justify-between items-center gap-4 w-full">
+      <div className="flex justify-between items-center gap-4 w-full pr-[248px]">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-neutral-600">
             <Link

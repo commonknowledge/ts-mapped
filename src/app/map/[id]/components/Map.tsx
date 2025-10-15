@@ -632,7 +632,7 @@ export default function Map({
           </>
         )}
       </MapGL>
-      <div className="absolute top-4 right-4 z-20">
+      <div className="fixed z-100 top-[10px] right-4">
         <SearchBox />
       </div>
     </MapWrapper>

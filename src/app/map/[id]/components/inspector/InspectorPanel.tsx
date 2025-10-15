@@ -46,7 +46,7 @@ export default function InspectorPanel() {
   return (
     <div
       className={cn(
-        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 pt-20 pb-5",
+        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 py-5",
         tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
       )}
     >
