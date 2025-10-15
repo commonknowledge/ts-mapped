@@ -7,7 +7,8 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import LayerTypeIcon from "../LayerTypeIcon";
+import LayerIcon from "@/components/LayerIcon";
+import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
 
@@ -52,8 +53,8 @@ export default function InspectorPanel() {
     >
       <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans group">
         <div className="flex justify-between items-start gap-4 p-4">
-          <h1 className="grow flex gap-2 / text-sm font-semibold">
-            <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
+          <h1 className="grow flex items-center gap-2 / text-sm font-semibold">
+            <LayerIcon type={inspectorContent?.type} dataSource={dataSource} />
             {inspectorContent?.name as string}
           </h1>
           <button
@@ -74,7 +75,7 @@ export default function InspectorPanel() {
               <ArrowLeftIcon size={12} />
               Back to
               <span className="inline-flex items-center gap-1 font-semibold">
-                <LayerTypeIcon type={LayerType.Turf} size={2} />
+                <LayerIcon type={LayerType.Turf} size="sm" />
                 {selectedTurf.name}
               </span>
             </button>
@@ -100,6 +101,7 @@ export default function InspectorPanel() {
           <PropertiesList properties={properties} />
 
           {type === LayerType.Turf && <TurfMarkersList />}
+          {type === LayerType.Boundary && <BoundaryMarkersList />}
 
           {(detailsViewInTurfInspector || dataSource) && (
             <div className="flex flex-col gap-3 border-t pt-4">

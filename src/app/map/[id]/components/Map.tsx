@@ -15,6 +15,7 @@ import {
 } from "react";
 import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
 import { toast } from "sonner";
+import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
@@ -28,6 +29,7 @@ import {
   MARKER_NAME_KEY,
 } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
+import { LayerType } from "@/types";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import { getDataSourceIds, getMapStyle } from "../utils";
@@ -112,8 +114,24 @@ export default function Map({
     }
     tagRecords({ dataSourceId: tagDataSource.id, viewId: view.id });
   };
-  const { resetInspector, setSelectedRecord, setSelectedTurf } =
-    useContext(InspectorContext);
+  const {
+    resetInspector,
+    setSelectedRecord,
+    setSelectedTurf,
+    setInspectorContent,
+  } = useContext(InspectorContext);
+  const {
+    choroplethLayerConfig: {
+      mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
+    },
+  } = useContext(ChoroplethContext);
+
+  console.log("ChoroplethContext values:", {
+    sourceId,
+    layerId,
+    featureNameProperty,
+    featureCodeProperty
+  });
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -314,13 +332,13 @@ export default function Map({
 
     const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
-          type: "Feature" as const,
-          geometry: {
-            type: "Point" as const,
-            coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-          },
-          properties: {},
-        }))
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+        },
+        properties: {},
+      }))
       : [];
 
     const dataSourceMarkerFeatures =
@@ -382,6 +400,7 @@ export default function Map({
         interactiveLayerIds={markerLayers}
         onClick={(e) => {
           const map = e.target;
+
           const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
           const features = map.queryRenderedFeatures(e.point, {
             layers: validMarkerLayers,
@@ -446,6 +465,50 @@ export default function Map({
               // Prevent default map zoom on double-click
               e.originalEvent.preventDefault();
               return;
+            }
+          }
+        }}
+        onContextMenu={(e) => {
+          const map = e.target;
+
+          // Check for boundary right-clicks
+          if (sourceId && layerId) {
+            const boundaryFeatures = map.queryRenderedFeatures(e.point, {
+              layers: [`${sourceId}-fill`, `${sourceId}-line`],
+            });
+
+            if (boundaryFeatures.length > 0) {
+              const feature = boundaryFeatures[0];
+              const areaCode = feature.properties?.[featureCodeProperty] as string;
+              const areaName = feature.properties?.[featureNameProperty] as string;
+
+              if (areaCode && areaName) {
+                // Prevent default context menu
+                e.originalEvent.preventDefault();
+
+                // Get dataset name based on layer ID
+                const getDatasetName = () => {
+                  if (layerId.includes('uk_cons')) return 'Westminster Constituencies';
+                  if (layerId.includes('OA21')) return 'Output Areas';
+                  if (layerId.includes('MSOA')) return 'Middle Layer Super Output Areas';
+                  return 'Boundary Data';
+                };
+
+                setInspectorContent({
+                  type: LayerType.Boundary,
+                  name: areaName,
+                  properties: {
+                    "Dataset": getDatasetName(),
+                    "Area Code": areaCode,
+                    areaCode: areaCode,
+                    areaName: areaName,
+                    boundaryFeature: feature,
+                  },
+                  dataSource: null,
+                });
+
+                return;
+              }
             }
           }
         }}
@@ -573,11 +636,11 @@ export default function Map({
           const bounds = e.target.getBounds();
           const boundingBox = bounds
             ? {
-                north: bounds.getNorth(),
-                east: bounds.getEast(),
-                south: bounds.getSouth(),
-                west: bounds.getWest(),
-              }
+              north: bounds.getNorth(),
+              east: bounds.getEast(),
+              south: bounds.getSouth(),
+              west: bounds.getWest(),
+            }
             : null;
           setBoundingBox(boundingBox);
           setZoom(e.viewState.zoom);

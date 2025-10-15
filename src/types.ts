@@ -80,4 +80,5 @@ export enum LayerType {
   Member = "Member",
   Marker = "Marker",
   Turf = "Turf",
+  Boundary = "Boundary",
 }

@@ -1,4 +1,4 @@
-import LayerTypeIcon from "@/app/map/[id]/components/LayerTypeIcon";
+import LayerIcon from "@/components/LayerIcon";
 import type { LayerType } from "@/types";
 
 export default function TurfMarkerButton({
@@ -15,7 +15,7 @@ export default function TurfMarkerButton({
       className="flex gap-2 w-full p-1 -mx-1 rounded cursor-pointer text-left transition-bg hover:bg-muted"
       onClick={onClick}
     >
-      <LayerTypeIcon type={type} size={2} className="mt-[0.4em]" />
+      <LayerIcon type={type} size="sm" className="mt-[0.4em]" />
 
       {label}
     </button>

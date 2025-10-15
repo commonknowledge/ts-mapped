@@ -82,6 +82,9 @@ export default function PropertiesList({
 
           const isFolderField = label.toLowerCase() === "folder";
           const isAddressField = label.toLowerCase() === "address";
+          const isInternalField = label.toLowerCase() === "boundaryfeature";
+          const isAreaCodeField = label.toLowerCase() === "areacode";
+          const isAreaNameField = label.toLowerCase() === "areaname";
 
           // Hide folder field if it shows "No folder"
           if (isFolderField && value === "No folder") {
@@ -93,6 +96,16 @@ export default function PropertiesList({
             isAddressField &&
             (!value || value === "null" || value === "undefined")
           ) {
+            return false;
+          }
+
+          // Hide internal boundary feature field
+          if (isInternalField) {
+            return false;
+          }
+
+          // Hide area code and area name fields (they'll be shown separately)
+          if (isAreaCodeField || isAreaNameField) {
             return false;
           }
 
