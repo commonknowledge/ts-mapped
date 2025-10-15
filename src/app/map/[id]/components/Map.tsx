@@ -96,22 +96,21 @@ export default function Map({
     markerQueries,
   } = useContext(MarkerAndTurfContext);
 
-  // Get the first data source and its view for tag preview
-  const firstDataSourceId = getDataSourceIds(mapConfig)[0];
-  const firstDataSource = firstDataSourceId
-    ? getDataSourceById(firstDataSourceId) || undefined
+  // Get the data source for the current tag view
+  // The view should be associated with a specific data source for tagging
+  const tagDataSourceId = view?.dataSourceViews?.[0]?.dataSourceId;
+  const tagDataSource = tagDataSourceId
+    ? getDataSourceById(tagDataSourceId) || undefined
     : undefined;
-  const firstDataSourceView = view?.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === firstDataSourceId,
-  );
+  const tagDataSourceView = view?.dataSourceViews?.[0];
 
   // Handle resend tags
   const handleResendTags = () => {
-    if (!firstDataSource || !view) {
+    if (!tagDataSource || !view) {
       toast.error("No data source or view available for tagging");
       return;
     }
-    tagRecords({ dataSourceId: firstDataSource.id, viewId: view.id });
+    tagRecords({ dataSourceId: tagDataSource.id, viewId: view.id });
   };
   const { resetInspector, setSelectedRecord, setSelectedTurf } =
     useContext(InspectorContext);
@@ -317,13 +316,13 @@ export default function Map({
 
     const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
-          type: "Feature" as const,
-          geometry: {
-            type: "Point" as const,
-            coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-          },
-          properties: {},
-        }))
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+        },
+        properties: {},
+      }))
       : [];
 
     const dataSourceMarkerFeatures =
@@ -576,11 +575,11 @@ export default function Map({
           const bounds = e.target.getBounds();
           const boundingBox = bounds
             ? {
-                north: bounds.getNorth(),
-                east: bounds.getEast(),
-                south: bounds.getSouth(),
-                west: bounds.getWest(),
-              }
+              north: bounds.getNorth(),
+              east: bounds.getEast(),
+              south: bounds.getSouth(),
+              west: bounds.getWest(),
+            }
             : null;
           setBoundingBox(boundingBox);
           setZoom(e.viewState.zoom);
@@ -661,8 +660,8 @@ export default function Map({
           <TagExplainerCard
             onConfigureTag={onConfigureTag || (() => undefined)}
             onResendTags={handleResendTags}
-            dataSource={firstDataSource}
-            dataSourceView={firstDataSourceView}
+            dataSource={tagDataSource}
+            dataSourceView={tagDataSourceView}
             viewName={view?.name}
             placedMarkers={placedMarkers}
           />

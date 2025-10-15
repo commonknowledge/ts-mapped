@@ -10,6 +10,7 @@ export default function TagButton({
   disabled?: boolean;
   children: React.ReactNode;
 }) {
+
   return (
     <Button
       variant="outline"
@@ -17,7 +18,7 @@ export default function TagButton({
       onClick={() => {
         onClick?.();
       }}
-      disabled={disabled}
+      disabled={disabled || !onClick}
     >
       <TagIcon className="w-4 h-4" />
       {children && children}

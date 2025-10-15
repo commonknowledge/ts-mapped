@@ -8,6 +8,7 @@ import { TableContext } from "@/app/map/[id]/context/TableContext";
 import {
   useDataSources,
   useMarkerDataSources,
+  useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import {
   ResizableHandle,
@@ -32,6 +33,7 @@ export default function PrivateMap() {
   const { isPending: dataSourcesLoading, data: allDataSources } =
     useDataSources();
   const markerDataSources = useMarkerDataSources();
+  const membersDataSource = useMembersDataSource();
   const { markerQueries } = useContext(MarkerAndTurfContext);
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
@@ -43,23 +45,28 @@ export default function PrivateMap() {
     console.log("handleConfigureTag called");
     console.log("All data sources:", allDataSources);
     console.log("Marker data sources:", markerDataSources);
+    console.log("Members data source:", membersDataSource);
 
-    // Try to get data source IDs from the hooks
-    const availableDataSourceIds = allDataSources?.map((ds) => ds.id) || [];
+    // Prioritize members data source (most common use case for tagging)
+    if (membersDataSource?.id) {
+      console.log("Selecting members data source:", membersDataSource.id);
+      handleDataSourceSelect(membersDataSource.id);
+      return;
+    }
+
+    // Fallback to marker data sources
     const markerDataSourceIds = markerDataSources?.map((ds) => ds.id) || [];
+    if (markerDataSourceIds.length > 0) {
+      console.log("Selecting marker data source:", markerDataSourceIds[0]);
+      handleDataSourceSelect(markerDataSourceIds[0]);
+      return;
+    }
 
-    console.log("Available data source IDs:", availableDataSourceIds);
-    console.log("Marker data source IDs:", markerDataSourceIds);
-
-    // Prefer marker data sources, fallback to any data source
-    const dataSourceIdsToUse =
-      markerDataSourceIds.length > 0
-        ? markerDataSourceIds
-        : availableDataSourceIds;
-
-    if (dataSourceIdsToUse.length > 0) {
-      console.log("Selecting data source:", dataSourceIdsToUse[0]);
-      handleDataSourceSelect(dataSourceIdsToUse[0]);
+    // Last resort: any available data source
+    const availableDataSourceIds = allDataSources?.map((ds) => ds.id) || [];
+    if (availableDataSourceIds.length > 0) {
+      console.log("Selecting any available data source:", availableDataSourceIds[0]);
+      handleDataSourceSelect(availableDataSourceIds[0]);
     } else {
       console.log("No data source IDs available");
     }
