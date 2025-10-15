@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, CornerDownRight, Pencil, Trash2 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
@@ -13,6 +14,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { LayerType } from "@/types";
 import LayerItem from "../../LayerItem";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { SyntheticEvent } from "react";
@@ -45,7 +47,9 @@ export default function SortableMarkerItem({
     setSelectedPlacedMarkerId,
     getMarkerVisibility,
     setMarkerVisibilityState,
+    folders,
   } = useContext(MarkerAndTurfContext);
+  const { setInspectorContent } = useContext(InspectorContext);
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
@@ -78,6 +82,26 @@ export default function SortableMarkerItem({
       center: marker.point,
       zoom: 12,
     });
+
+    // Get folder name if marker is in a folder
+    const folderName = marker.folderId
+      ? folders?.find((f) => f.id === marker.folderId)?.name || "Unknown folder"
+      : null;
+
+    // Show marker data in inspector
+    const inspectorData = {
+      type: LayerType.Marker,
+      name: marker.label,
+      properties: {
+        coordinates: `${marker.point.lat.toFixed(4)}, ${marker.point.lng.toFixed(4)}`,
+        folder: folderName || "No folder",
+        notes: marker.notes || "No notes",
+        ...(marker.address && { address: marker.address }),
+      },
+      dataSource: null,
+    };
+
+    setInspectorContent(inspectorData);
   };
 
   return (

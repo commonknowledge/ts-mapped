@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
@@ -22,6 +23,7 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
+import { LayerType } from "@/types";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
 import EmptyLayer from "../Emptylayer";
 import LayerItem from "../LayerItem";
@@ -101,14 +103,15 @@ const TurfItem = ({ turf, index }: { turf: Turf; index: number }) => {
   const { mapRef, showControls } = useContext(MapContext);
   const { updateTurf, deleteTurf, getTurfVisibility, setTurfVisibilityState } =
     useContext(MarkerAndTurfContext);
+  const { setInspectorContent } = useContext(InspectorContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const isVisible = getTurfVisibility(turf.id); // Get visibility from context
 
-  const handleFlyTo = (turf: Turf) => {
+  const handleLayerClick = (turf: Turf) => {
     const map = mapRef?.current;
     if (!map) return;
 
-    // the bounding box of the polygon
+    // Fly to the area
     const bbox = turfLib.bbox(turf.polygon);
     const padding = 20;
 
@@ -127,13 +130,25 @@ const TurfItem = ({ turf, index }: { turf: Turf; index: number }) => {
         duration: 1000,
       },
     );
+
+    // Show area data in inspector
+    setInspectorContent({
+      type: LayerType.Turf,
+      name: turf.label || `Area ${index + 1}`,
+      properties: {
+        area: `${turf.area?.toFixed(2)} m²`,
+        notes: turf.notes || "No notes",
+        created: turf.createdAt.toLocaleDateString(),
+      },
+      dataSource: null,
+    });
   };
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <LayerItem
-          onClick={() => handleFlyTo(turf)}
+          onClick={() => handleLayerClick(turf)}
           layerType="areas"
           individualVisibility={true}
           isVisible={isVisible}

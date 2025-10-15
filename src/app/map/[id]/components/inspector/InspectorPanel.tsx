@@ -50,7 +50,7 @@ export default function InspectorPanel() {
         tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
       )}
     >
-      <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
+      <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans group">
         <div className="flex justify-between items-start gap-4 p-4">
           <h1 className="grow flex gap-2 / text-sm font-semibold">
             <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />

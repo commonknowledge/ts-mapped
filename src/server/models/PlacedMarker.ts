@@ -7,6 +7,7 @@ export const placedMarkerSchema = z.object({
   mapId: z.string(),
   label: z.string(),
   notes: z.string(),
+  address: z.string().nullish(),
   point: pointSchema,
   folderId: z.string().nullish(),
   position: z.number(),

@@ -169,6 +169,7 @@ export default function MarkerAndTurfProvider({
         id: markerId,
         label: `Marker ${markerCount}`,
         notes: "",
+        address: null,
         point: e.lngLat,
         folderId: null,
       });
