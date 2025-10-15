@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronRight, Database } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
@@ -83,7 +83,7 @@ export default function MembersControl() {
             dropdownLabel="Select a member collection"
             dropdownItems={getDropdownItems()}
           >
-            <RefreshCw className="w-4 h-4" />
+            <Database className="w-4 h-4" />
           </IconButtonWithTooltip>
         </div>
       </div>

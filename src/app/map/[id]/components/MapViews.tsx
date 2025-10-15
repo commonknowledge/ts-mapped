@@ -297,7 +297,9 @@ function SortableViewItem({
           className={`flex flex-row gap-2 items-center px-2 py-1 rounded border transition-all  ${
             isRenaming ? "cursor-default" : "cursor-pointer"
           } ${
-            isSelected ? "bg-muted" : "bg-transparent hover:border-action-hover"
+            isSelected
+              ? "bg-muted"
+              : "bg-transparent hover:bg-neutral-100 hover:border-action-hover"
           } ${isDragging ? "opacity-50" : "opacity-100"}`}
           onClick={() => !isRenaming && handleViewSelect()}
           onDoubleClick={() => !isRenaming && handleDoubleClick()}

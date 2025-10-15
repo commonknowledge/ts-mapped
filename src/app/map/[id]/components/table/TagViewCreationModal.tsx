@@ -13,8 +13,25 @@ import {
   DialogTitle,
 } from "@/shadcn/ui/dialog";
 import { Input } from "@/shadcn/ui/input";
+import MarkerPreview from "../shared/MarkerPreview";
 import type { DataSource } from "@/server/models/DataSource";
-import type { DataSourceView } from "@/server/models/MapView";
+import type {
+  DataSourceView,
+  RecordFilterInput,
+} from "@/server/models/MapView";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
+
+interface DataRecord {
+  id: string;
+  name?: string;
+  json?: {
+    name?: string;
+    Name?: string;
+    title?: string;
+    Title?: string;
+    [key: string]: unknown;
+  };
+}
 
 interface TagViewCreationModalProps {
   isOpen: boolean;
@@ -23,6 +40,8 @@ interface TagViewCreationModalProps {
   dataSource: DataSource;
   dataSourceView?: DataSourceView;
   defaultLabel: string;
+  placedMarkers?: PlacedMarker[];
+  dataRecords?: DataRecord[];
 }
 
 export default function TagViewCreationModal({
@@ -32,8 +51,17 @@ export default function TagViewCreationModal({
   dataSource,
   dataSourceView,
   defaultLabel,
+  placedMarkers = [],
+  dataRecords = [],
 }: TagViewCreationModalProps) {
   const [tagLabel, setTagLabel] = useState(defaultLabel);
+
+  // Debug logging
+  console.log("TagViewCreationModal Debug:", {
+    dataRecordsCount: dataRecords.length,
+    dataRecords: dataRecords,
+    dataSourceViewFilter: dataSourceView?.filter,
+  });
 
   const hasFilters =
     dataSourceView?.filter &&
@@ -48,6 +76,26 @@ export default function TagViewCreationModal({
           dataSourceView.filter.placedMarker ||
           dataSourceView.filter.dataRecordId)));
 
+  const renderFilterDescription = (filter: RecordFilterInput) => {
+    // For placed marker filters, use MarkerPreview component
+    if (filter.placedMarker) {
+      const distance = filter.distance;
+      return (
+        <span className="flex items-center gap-1">
+          {distance ? `${distance}km from ` : "Near "}
+          <MarkerPreview
+            markerId={filter.placedMarker}
+            placedMarkers={placedMarkers}
+            showIcon={false}
+          />
+        </span>
+      );
+    }
+
+    // For other filters, use the standard description
+    return getFilterDescription(filter, placedMarkers, dataRecords);
+  };
+
   const handleCreate = () => {
     onCreateTagView(tagLabel);
     onClose();
@@ -61,7 +109,7 @@ export default function TagViewCreationModal({
             <div className="w-8 h-8 bg-purple-600 rounded-sm flex items-center justify-center text-white">
               <TagIcon className="w-5 h-5" />
             </div>
-            Create Tag View
+            Send tags to {dataSource.name}
           </DialogTitle>
         </DialogHeader>
 
@@ -86,12 +134,10 @@ export default function TagViewCreationModal({
                 your CRM/tool.
               </li>
               <li>
-                • Resend the tags if you update the segmentation settings.
+                • Click resend to update the tags if you update the segmentation
+                settings or have new data in your data source.
               </li>
             </ul>
-            <p className="text-sm text-purple-800 mt-3">
-              Currently works with Airtable, Google Sheets and Action Network.
-            </p>
           </div>
 
           {/* Data Source */}
@@ -106,7 +152,7 @@ export default function TagViewCreationModal({
           {/* Segmentation Settings */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-gray-900">
-              Segmentation Settings
+              Targeting Records based on:
             </h3>
             {hasFilters ? (
               <div className="flex flex-wrap gap-2">
@@ -117,7 +163,7 @@ export default function TagViewCreationModal({
                     variant="outline"
                     className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 border-gray-300 hover:bg-gray-100"
                   >
-                    {getFilterDescription(filter)}
+                    {renderFilterDescription(filter)}
                   </Badge>
                 ))}
                 {/* Show direct filter if no children but has filter criteria */}
@@ -127,7 +173,7 @@ export default function TagViewCreationModal({
                     variant="outline"
                     className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 border-gray-300 hover:bg-gray-100"
                   >
-                    {getFilterDescription(dataSourceView?.filter)}
+                    {renderFilterDescription(dataSourceView?.filter)}
                   </Badge>
                 )}
               </div>
@@ -167,7 +213,7 @@ export default function TagViewCreationModal({
               disabled={!tagLabel.trim() || !hasFilters}
               className="flex-1 bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              Create Tag View
+              Next{" "}
             </Button>
           </div>
           {!hasFilters && (

@@ -66,7 +66,7 @@ export default function Choropleth() {
 
   const fillColor = useFillColor(
     areaStatsQuery?.data,
-    viewConfig.colorScheme || ColorScheme.RedBlue,
+    viewConfig.colorScheme || ColorScheme.Sequential,
     viewConfig.calculationType === CalculationType.Count,
     Boolean(viewConfig.reverseColorScheme),
   );

@@ -156,7 +156,11 @@ export default function MapTable() {
 
   const syncToCRMButton = (
     <TagButton key="sync-to-crm" onClick={handleOpenTagCreationModal}>
-      {isTagView ? "Duplicate Tag" : "Create Tag View"}
+      <span className="capitalize">
+        {isTagView
+          ? "Duplicate Tag"
+          : `Tag records in ${dataSource.config?.type}`}
+      </span>
     </TagButton>
   );
 
@@ -171,6 +175,7 @@ export default function MapTable() {
           onSendTag={handleSendTag}
           isReadOnly={true}
           placedMarkers={placedMarkers}
+          dataRecords={dataRecordsResult?.records || []}
         />
       )}
       <div className="flex-1 min-w-0">
@@ -201,6 +206,8 @@ export default function MapTable() {
         dataSource={dataSource}
         dataSourceView={dataSourceView}
         defaultLabel={`${view?.name || "Untitled"} Tag`}
+        placedMarkers={placedMarkers}
+        dataRecords={dataRecordsResult?.records || []}
       />
     </div>
   );

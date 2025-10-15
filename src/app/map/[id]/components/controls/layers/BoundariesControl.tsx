@@ -1,31 +1,28 @@
 import {
+  BarChart3,
   ChevronDown,
   ChevronRight,
+  Circle,
   Eye,
   Grid3X3,
   Hexagon,
-  Palette,
-  Settings,
   MapPin,
+  Palette,
   Users,
-  BarChart3,
-  Circle,
 } from "lucide-react";
-import { useContext, useState } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import { useState } from "react";
 import {
-  useChoroplethDataSource,
   useDataSources,
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
-import { CalculationType, VisualisationType, ColorScheme } from "@/server/models/MapView";
-import Legend from "../../Legend";
-import { defaultLayerStyles } from "../LayerStyles";
-import type { AreaSetGroupCode } from "@/server/models/AreaSet";
+import {
+  CalculationType,
+  ColorScheme,
+  VisualisationType,
+} from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -39,11 +36,15 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { Separator } from "@/shadcn/ui/separator";
+import { Switch } from "@/shadcn/ui/switch";
+import Legend from "../../Legend";
+import { defaultLayerStyles } from "../LayerStyles";
+import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function BoundariesControl() {
-  const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
+  // const { setBoundariesPanelOpen } = useContext(ChoroplethContext); // Unused variable
   const { viewConfig, updateViewConfig } = useMapViews();
-  const dataSource = useChoroplethDataSource();
+  // const dataSource = useChoroplethDataSource(); // Unused variable
   const membersDataSource = useMembersDataSource();
   const { data: allDataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
@@ -58,13 +59,11 @@ export default function BoundariesControl() {
     }
   };
 
-  const isChoroplethVisible = viewConfig.visualisationType !== VisualisationType.BoundaryOnly;
+  const isChoroplethVisible =
+    viewConfig.visualisationType !== VisualisationType.BoundaryOnly;
 
   const getFillLabel = () => {
-    if (
-      !viewConfig.areaDataSourceId ||
-      viewConfig.areaDataSourceId === ""
-    ) {
+    if (!viewConfig.areaDataSourceId || viewConfig.areaDataSourceId === "") {
       return "No Fill";
     }
 
@@ -89,10 +88,7 @@ export default function BoundariesControl() {
   };
 
   const getFillIcon = () => {
-    if (
-      !viewConfig.areaDataSourceId ||
-      viewConfig.areaDataSourceId === ""
-    ) {
+    if (!viewConfig.areaDataSourceId || viewConfig.areaDataSourceId === "") {
       return <Circle className="w-4 h-4" />;
     }
 
@@ -104,7 +100,9 @@ export default function BoundariesControl() {
 
   const getShapeOptions = () => {
     // Get all available area set group codes from labels, not dependent on data source
-    const allAreaSetGroupCodes = Object.keys(AreaSetGroupCodeLabels) as AreaSetGroupCode[];
+    const allAreaSetGroupCodes = Object.keys(
+      AreaSetGroupCodeLabels,
+    ) as AreaSetGroupCode[];
 
     return [
       {
@@ -125,9 +123,9 @@ export default function BoundariesControl() {
   };
 
   const getFillOptions = () => {
-    const hnhVoteShareDataSource = allDataSources?.find(
-      (ds) => ds.name === "HNH Voteshare",
-    );
+    // const hnhVoteShareDataSource = allDataSources?.find(
+    //   (ds) => ds.name === "HNH Voteshare",
+    // ); // Unused variable
 
     const options = [
       {
@@ -186,6 +184,11 @@ export default function BoundariesControl() {
   const getColorSchemeOptions = () => {
     return [
       {
+        label: "Sequential",
+        value: ColorScheme.Sequential,
+        color: "bg-gradient-to-r from-blue-100 to-blue-600",
+      },
+      {
         label: "Red-Blue",
         value: ColorScheme.RedBlue,
         color: "bg-gradient-to-r from-red-500 to-blue-500",
@@ -210,11 +213,6 @@ export default function BoundariesControl() {
         value: ColorScheme.Diverging,
         color: "bg-gradient-to-r from-brown-500 via-yellow-500 to-teal-500",
       },
-      {
-        label: "Sequential",
-        value: ColorScheme.Sequential,
-        color: "bg-gradient-to-r from-blue-100 to-blue-600",
-      },
     ];
   };
 
@@ -234,7 +232,7 @@ export default function BoundariesControl() {
           <Grid3X3 className="w-4 h-4 text-neutral-600" />
           <span className="text-sm font-medium">Boundaries</span>
         </button>
-        <div className="flex items-center gap-1">
+        {/* <div className="flex items-center gap-1">
           <IconButtonWithTooltip
             align="start"
             side="right"
@@ -243,7 +241,7 @@ export default function BoundariesControl() {
           >
             <Settings className="w-4 h-4" />
           </IconButtonWithTooltip>
-        </div>
+        </div> */}
       </div>
 
       {/* Layer Items */}
@@ -267,8 +265,8 @@ export default function BoundariesControl() {
                       <div className="text-sm font-medium truncate">
                         {viewConfig.areaSetGroupCode
                           ? AreaSetGroupCodeLabels[
-                          viewConfig.areaSetGroupCode as AreaSetGroupCode
-                          ]
+                              viewConfig.areaSetGroupCode as AreaSetGroupCode
+                            ]
                           : "No Locality"}
                       </div>
                     </div>
@@ -309,7 +307,9 @@ export default function BoundariesControl() {
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <div className="flex-shrink-0">{getFillIcon()}</div>
                     <div className="text-left min-w-0 flex-1">
-                      <div className="text-sm font-medium truncate">{getFillLabel()}</div>
+                      <div className="text-sm font-medium truncate">
+                        {getFillLabel()}
+                      </div>
                     </div>
                   </div>
                   <ChevronDown className="w-4 h-4 text-neutral-400" />
@@ -384,13 +384,31 @@ export default function BoundariesControl() {
                       {getColorSchemeOptions().map((option, index) => (
                         <DropdownMenuItem
                           key={index}
-                          onClick={() => updateViewConfig({ colorScheme: option.value })}
+                          onClick={() =>
+                            updateViewConfig({ colorScheme: option.value })
+                          }
                           className="flex items-center gap-2"
                         >
                           <div className={`w-4 h-4 rounded ${option.color}`} />
                           <span className="truncate">{option.label}</span>
                         </DropdownMenuItem>
                       ))}
+                      <DropdownMenuSeparator />
+                      <div className="flex items-center gap-2 px-2 py-1.5">
+                        <Switch
+                          id="reverse-color-scheme-switch"
+                          checked={Boolean(viewConfig.reverseColorScheme)}
+                          onCheckedChange={(checked) =>
+                            updateViewConfig({ reverseColorScheme: checked })
+                          }
+                        />
+                        <label
+                          htmlFor="reverse-color-scheme-switch"
+                          className="text-sm cursor-pointer"
+                        >
+                          Reverse colors
+                        </label>
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

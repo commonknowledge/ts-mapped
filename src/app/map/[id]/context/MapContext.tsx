@@ -71,7 +71,7 @@ export const createNewViewConfig = () => {
     showLocations: true,
     showTurf: true,
     calculationType: CalculationType.Value,
-    colorScheme: ColorScheme.RedBlue,
+    colorScheme: ColorScheme.Sequential,
     reverseColorScheme: false,
     visualisationType: null,
   };

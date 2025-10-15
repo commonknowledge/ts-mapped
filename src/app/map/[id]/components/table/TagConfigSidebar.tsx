@@ -6,10 +6,26 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
+import MarkerPreview from "../shared/MarkerPreview";
 import TagInfoModal from "./TagInfoModal";
 import type { DataSource } from "@/server/models/DataSource";
-import type { DataSourceView } from "@/server/models/MapView";
+import type {
+  DataSourceView,
+  RecordFilterInput,
+} from "@/server/models/MapView";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
+
+interface DataRecord {
+  id: string;
+  name?: string;
+  json?: {
+    name?: string;
+    Name?: string;
+    title?: string;
+    Title?: string;
+    [key: string]: unknown;
+  };
+}
 
 interface TagConfigSidebarProps {
   tagLabel: string;
@@ -19,6 +35,7 @@ interface TagConfigSidebarProps {
   onSendTag: () => void;
   isReadOnly?: boolean;
   placedMarkers?: PlacedMarker[];
+  dataRecords?: DataRecord[];
 }
 
 export default function TagConfigSidebar({
@@ -29,6 +46,7 @@ export default function TagConfigSidebar({
   onSendTag,
   isReadOnly = false,
   placedMarkers = [],
+  dataRecords = [],
 }: TagConfigSidebarProps) {
   const hasFilters =
     dataSourceView?.filter &&
@@ -43,6 +61,26 @@ export default function TagConfigSidebar({
           dataSourceView.filter.placedMarker ||
           dataSourceView.filter.dataRecordId)));
 
+  const renderFilterDescription = (filter: RecordFilterInput) => {
+    // For placed marker filters, use MarkerPreview component
+    if (filter.placedMarker) {
+      const distance = filter.distance;
+      return (
+        <span className="flex items-center gap-1">
+          {distance ? `${distance}km from ` : "Near "}
+          <MarkerPreview
+            markerId={filter.placedMarker}
+            placedMarkers={placedMarkers}
+            showIcon={false}
+          />
+        </span>
+      );
+    }
+
+    // For other filters, use the standard description
+    return getFilterDescription(filter, placedMarkers, dataRecords);
+  };
+
   return (
     <div className="w-full lg:w-64 xl:w-72 2xl:w-80 shrink-0 bg-purple-50 border-r-0 lg:border-r border-b lg:border-b-0 border-neutral-200 p-4 space-y-4 sm:space-y-6 overflow-y-auto max-h-96 lg:max-h-none">
       {/* Header */}
@@ -54,6 +92,22 @@ export default function TagConfigSidebar({
           <h2 className="text-lg font-semibold">Tag Configuration</h2>
         </div>
         <TagInfoModal />
+      </div>
+
+      {/* Action Button */}
+      <div className="pb-4 border-b border-neutral-200">
+        <Button
+          onClick={onSendTag}
+          disabled={!hasFilters}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-md disabled:bg-neutral-300 disabled:cursor-not-allowed"
+        >
+          Tag Records Shown in Table
+        </Button>
+        {!hasFilters && (
+          <p className="text-xs text-neutral-500 text-center mt-2">
+            Add filters to enable tagging
+          </p>
+        )}
       </div>
 
       {/* Data Source */}
@@ -79,7 +133,7 @@ export default function TagConfigSidebar({
                 variant="outline"
                 className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-50 border-neutral-300 hover:bg-neutral-100"
               >
-                {getFilterDescription(filter, placedMarkers)}
+                {renderFilterDescription(filter)}
               </Badge>
             ))}
             {/* Show direct filter if no children but has filter criteria */}
@@ -89,7 +143,7 @@ export default function TagConfigSidebar({
                 variant="outline"
                 className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-50 border-neutral-300 hover:bg-neutral-100"
               >
-                {getFilterDescription(dataSourceView?.filter, placedMarkers)}
+                {renderFilterDescription(dataSourceView?.filter)}
               </Badge>
             )}
           </div>
@@ -116,22 +170,6 @@ export default function TagConfigSidebar({
         {isReadOnly && (
           <p className="text-xs text-gray-500">
             Tag label cannot be changed after creation
-          </p>
-        )}
-      </div>
-
-      {/* Action Button */}
-      <div className="pt-4 border-t border-neutral-200">
-        <Button
-          onClick={onSendTag}
-          disabled={!hasFilters}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-md disabled:bg-neutral-300 disabled:cursor-not-allowed"
-        >
-          Tag Records Shown in Table
-        </Button>
-        {!hasFilters && (
-          <p className="text-xs text-neutral-500 text-center mt-2">
-            Add filters to enable tagging
           </p>
         )}
       </div>
