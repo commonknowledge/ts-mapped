@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -212,8 +213,18 @@ export default function PrivateMapNavbar() {
               )}
             </div>
           )}
+
+          <SearchBox />
         </div>
       </div>
     </Navbar>
   );
 }
+
+const SearchBox = dynamic(
+  () => import("./SearchBox").then((mod) => ({ default: mod.SearchBox })),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
