@@ -150,11 +150,14 @@ export function DataTable({
       <div className="flex items-center justify-between px-3 py-2 border-b h-12">
         <div className="flex items-center gap-4">
           {title && (
-            <div className="flex flex-row gap-2">
+            <div className="flex flex-row gap-2 items-center">
               <p className="font-bold whitespace-nowrap">{title}</p>
-              {recordCount && <span>{recordCount?.matched}</span>}
-              {recordCount && recordCount.count !== recordCount.matched && (
-                <span>{`(${recordCount.count})`}</span>
+              {recordCount && (
+                <span className="text-sm text-muted-foreground">
+                  {recordCount.count !== recordCount.matched
+                    ? `Showing ${recordCount.matched} out of ${recordCount.count} records`
+                    : `${recordCount.matched} records`}
+                </span>
               )}
             </div>
           )}
