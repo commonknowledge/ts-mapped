@@ -236,10 +236,6 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
-  // Note: Turf rendering is now handled by TurfVisibilityManager component
-  // MapboxDraw is only used for drawing/editing new polygons
-  // The toggleDrawVisibility function is kept for MapboxDraw controls only
-
   const getClickedPolygonFeature = (
     draw: MapboxDraw,
     e: MapMouseEvent,
