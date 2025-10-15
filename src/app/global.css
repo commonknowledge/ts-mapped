@@ -172,3 +172,25 @@ main {
   transition: all 0.2s ease-in-out !important;
   border-radius: 0.25rem;
 }
+
+/* Sentry user feedback trigger */
+#sentry-feedback {
+  --actor-border-radius: calc(var(--radius) + 4px);
+  --page-margin: 2rem;
+}
+
+/* Move bottom right icons if Sentry widget visible */
+.with-feeback-widget .mapboxgl-ctrl-bottom-right {
+  margin-right: 96px;
+}
+
+/* Zoom in-out map buttons */
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group:not(:empty) {
+  display: flex;
+  box-shadow: none;
+  background: transparent;
+}
+
+.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group:not(:empty):hover {
+  background: white;
+}

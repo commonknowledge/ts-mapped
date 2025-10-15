@@ -36,8 +36,10 @@ export default async function MapPage({
           <MarkerAndTurfProvider>
             <TableProvider>
               <DesktopOnly>
-                <PrivateMap />
-                <SentryFeedbackWidget />
+                <div className="with-feeback-widget">
+                  <PrivateMap />
+                  <SentryFeedbackWidget />
+                </div>
               </DesktopOnly>
             </TableProvider>
           </MarkerAndTurfProvider>
