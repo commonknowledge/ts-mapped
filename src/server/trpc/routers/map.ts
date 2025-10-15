@@ -54,13 +54,13 @@ export const mapRouter = router({
           config:
             dataSource.recordType === DataSourceRecordType.Members
               ? {
-                  membersDataSourceId: input.dataSourceId,
-                  markerDataSourceIds: [],
-                }
+                membersDataSourceId: input.dataSourceId,
+                markerDataSourceIds: [],
+              }
               : {
-                  markerDataSourceIds: [input.dataSourceId],
-                  membersDataSourceId: null,
-                },
+                markerDataSourceIds: [input.dataSourceId],
+                membersDataSourceId: null,
+              },
         });
       } else {
         await upsertMapView({

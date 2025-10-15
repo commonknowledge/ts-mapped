@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "./utils";
@@ -86,14 +86,34 @@ export const usePlacedMarkers = (mapId: string | null) => {
   );
 
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const { mutate: deletePlacedMarkerMutation } = useMutation(
-    trpc.placedMarker.delete.mutationOptions({}),
+    trpc.placedMarker.delete.mutationOptions({
+      onSuccess: () => {
+        // Invalidate the map query cache to refetch the latest data
+        if (mapId) {
+          queryClient.invalidateQueries({
+            queryKey: trpc.map.byId.queryKey({ mapId }),
+          });
+        }
+      },
+    }),
   );
 
   const {
     mutate: upsertPlacedMarkerMutation,
     isPending: upsertPlacedMarkerLoading,
-  } = useMutation(trpc.placedMarker.upsert.mutationOptions());
+  } = useMutation(trpc.placedMarker.upsert.mutationOptions({
+    onSuccess: () => {
+      // Invalidate the map query cache to refetch the latest data
+      if (mapId) {
+        queryClient.invalidateQueries({
+          queryKey: trpc.map.byId.queryKey({ mapId }),
+        });
+      }
+    },
+  }));
 
   /* Complex actions */
   const deletePlacedMarker = (id: string) => {
@@ -160,7 +180,12 @@ export const usePlacedMarkers = (mapId: string | null) => {
         dirty.current[placedMarker.id] = null;
       }
     }
-  }, [mapId, upsertPlacedMarkerMutation]);
+
+    // Invalidate the map query cache to refetch the latest data
+    queryClient.invalidateQueries({
+      queryKey: trpc.map.byId.queryKey({ mapId }),
+    });
+  }, [mapId, upsertPlacedMarkerMutation, queryClient, trpc.map.byId]);
 
   return {
     placedMarkers,

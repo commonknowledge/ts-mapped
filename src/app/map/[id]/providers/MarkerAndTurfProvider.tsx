@@ -141,7 +141,7 @@ export default function MarkerAndTurfProvider({
       });
       setTurfVisibility(initialTurfVisibility);
     }
-  }, [map, setFolders, setPlacedMarkers, setTurfs]);
+  }, [map]);
 
   const handleAddArea = () => {
     const map = mapRef?.current;
@@ -231,7 +231,7 @@ export default function MarkerAndTurfProvider({
         setTurfVisibility((prev) => ({ ...prev, [turf.id]: true }));
       }
     });
-  }, [turfs, turfVisibility]);
+  }, [turfs]);
 
   // Initialize visibility for new markers when they're added
   useEffect(() => {
@@ -240,7 +240,7 @@ export default function MarkerAndTurfProvider({
         setMarkerVisibility((prev) => ({ ...prev, [marker.id]: true }));
       }
     });
-  }, [placedMarkers, markerVisibility]);
+  }, [placedMarkers]);
 
   // Initialize visibility for data sources when they're added
   useEffect(() => {
@@ -249,7 +249,7 @@ export default function MarkerAndTurfProvider({
         setDataSourceVisibility((prev) => ({ ...prev, [dataSourceId]: true }));
       }
     });
-  }, [dataSourceIds, dataSourceVisibility]);
+  }, [dataSourceIds]);
 
   const visibleTurfs = useMemo(() => {
     return turfs.filter((turf) => {
