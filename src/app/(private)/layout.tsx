@@ -22,7 +22,7 @@ export default async function PrivateLayout({
 
   return (
     <DesktopOnly>
-      <div className="flex h-screen">
+      <div className="flex h-screen with-feeback-widget">
         <Sidebar />
         <div className="flex-1 overflow-auto p-10 w-full">{children}</div>
       </div>

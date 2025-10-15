@@ -172,3 +172,14 @@ main {
   transition: all 0.2s ease-in-out !important;
   border-radius: 0.25rem;
 }
+
+/* Sentry user feedback trigger */
+#sentry-feedback {
+  --actor-border-radius: calc(var(--radius) + 4px);
+  --page-margin: 2rem;
+}
+
+/* Move bottom right icons if Sentry widget visible */
+.with-feeback-widget .map-zoom-controls {
+  margin-right: 64px;
+}

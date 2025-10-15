@@ -10,6 +10,7 @@ export default function SentryFeedbackWidget() {
       integrations: [
         Sentry.feedbackIntegration({
           colorScheme: "light",
+          triggerLabel: "",
         }),
       ],
     });

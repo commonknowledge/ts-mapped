@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
-import MapGL, { NavigationControl, Popup } from "react-map-gl/mapbox";
+import MapGL, { Popup } from "react-map-gl/mapbox";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
@@ -610,11 +610,6 @@ export default function Map({
       >
         {ready && (
           <>
-            <NavigationControl
-              showZoom={true}
-              showCompass={false}
-              position="bottom-right"
-            />
             <Choropleth />
             <FilterMarkers />
             <PlacedMarkers />
