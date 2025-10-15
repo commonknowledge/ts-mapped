@@ -17,7 +17,9 @@ export default function SearchResultMarker() {
     "Unknown location";
 
   // Extract address information from Mapbox search result
-  const getAddressFromSearchResult = (feature: Feature | null | undefined): string | null => {
+  const getAddressFromSearchResult = (
+    feature: Feature | null | undefined,
+  ): string | null => {
     if (!feature?.properties) return null;
 
     const props = feature.properties;
@@ -26,7 +28,7 @@ export default function SearchResultMarker() {
     const fullAddress = props["full_address"] as string;
     const placeName = props["place_name"] as string;
     const address = props["address"] as string;
-    const context = props["context"] as any;
+    const context = props["context"] as unknown;
 
     // Priority order: full_address > place_name > constructed from address + context
     if (fullAddress) {
@@ -40,7 +42,7 @@ export default function SearchResultMarker() {
     // Otherwise, try to construct from address and context
     if (address && context && Array.isArray(context)) {
       const contextParts = context
-        .map((item: any) => item?.text)
+        .map((item: unknown) => (item as { text?: string })?.text)
         .filter(Boolean)
         .join(", ");
       return `${address}, ${contextParts}`;
@@ -50,7 +52,6 @@ export default function SearchResultMarker() {
   };
 
   const address = getAddressFromSearchResult(searchMarker);
-
 
   const addMarker = () => {
     if (!searchMarker || !center) return;
@@ -64,7 +65,6 @@ export default function SearchResultMarker() {
       folderId: null,
     };
 
-    console.log("Creating marker with data:", markerData);
     insertPlacedMarker(markerData);
 
     setSearchMarker(null);

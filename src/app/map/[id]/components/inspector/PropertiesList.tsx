@@ -18,7 +18,6 @@ export default function PropertiesList({
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notesText, setNotesText] = useState("");
 
-
   if (!properties || !Object.keys(properties as object)?.length) {
     return <></>;
   }
@@ -81,7 +80,6 @@ export default function PropertiesList({
           const value = `${properties?.[label]}`;
           if (!value) return false;
 
-          const isNotesField = label.toLowerCase() === "notes";
           const isFolderField = label.toLowerCase() === "folder";
           const isAddressField = label.toLowerCase() === "address";
 
@@ -91,7 +89,10 @@ export default function PropertiesList({
           }
 
           // Hide address field if it's empty or null
-          if (isAddressField && (!value || value === "null" || value === "undefined")) {
+          if (
+            isAddressField &&
+            (!value || value === "null" || value === "undefined")
+          ) {
             return false;
           }
 
