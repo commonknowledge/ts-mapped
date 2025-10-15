@@ -39,7 +39,6 @@ import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import TagExplainerCard from "./table/TagExplainerCard";
-import TurfVisibilityManager from "./TurfVisibilityManager";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 import type {
@@ -94,6 +93,7 @@ export default function Map({
     searchMarker,
     placedMarkers,
     markerQueries,
+    visibleTurfs,
   } = useContext(MarkerAndTurfContext);
 
   // Get the data source for the current tag view
@@ -133,19 +133,17 @@ export default function Map({
     [mapConfig],
   );
 
-  // Note: Turf rendering is now handled by TurfVisibilityManager component
-  // MapboxDraw is only used for drawing/editing new polygons
-  // useEffect(() => {
-  //   if (!turfs || !draw) return;
-  //   draw.deleteAll();
-  //   turfs.forEach((turf) => {
-  //     draw.add({
-  //       type: "Feature",
-  //       properties: { ...turf },
-  //       geometry: turf.polygon,
-  //     });
-  //   });
-  // }, [turfs, draw]);
+  useEffect(() => {
+    if (!visibleTurfs || !draw) return;
+    draw.deleteAll();
+    visibleTurfs.forEach((turf) => {
+      draw.add({
+        type: "Feature",
+        properties: { ...turf },
+        geometry: turf.polygon,
+      });
+    });
+  }, [visibleTurfs, draw]);
 
   // Hover behavior
   useEffect(() => {
@@ -316,13 +314,13 @@ export default function Map({
 
     const placedMarkerFeatures = placedMarkers?.length
       ? placedMarkers.map((m) => ({
-        type: "Feature" as const,
-        geometry: {
-          type: "Point" as const,
-          coordinates: [m.point.lng, m.point.lat], // [lng, lat]
-        },
-        properties: {},
-      }))
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: [m.point.lng, m.point.lat], // [lng, lat]
+          },
+          properties: {},
+        }))
       : [];
 
     const dataSourceMarkerFeatures =
@@ -575,11 +573,11 @@ export default function Map({
           const bounds = e.target.getBounds();
           const boundingBox = bounds
             ? {
-              north: bounds.getNorth(),
-              east: bounds.getEast(),
-              south: bounds.getSouth(),
-              west: bounds.getWest(),
-            }
+                north: bounds.getNorth(),
+                east: bounds.getEast(),
+                south: bounds.getSouth(),
+                west: bounds.getWest(),
+              }
             : null;
           setBoundingBox(boundingBox);
           setZoom(e.viewState.zoom);
@@ -631,7 +629,6 @@ export default function Map({
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
-            <TurfVisibilityManager />
             {searchMarker && <SearchResultMarker />}
             {hoverMarker && (
               <Popup

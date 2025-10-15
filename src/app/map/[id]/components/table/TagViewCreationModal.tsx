@@ -169,13 +169,13 @@ export default function TagViewCreationModal({
                 {/* Show direct filter if no children but has filter criteria */}
                 {(!dataSourceView?.filter.children ||
                   dataSourceView.filter.children.length === 0) && (
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 border-gray-300 hover:bg-gray-100"
-                    >
-                      {renderFilterDescription(dataSourceView?.filter)}
-                    </Badge>
-                  )}
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-50 border-gray-300 hover:bg-gray-100"
+                  >
+                    {renderFilterDescription(dataSourceView?.filter)}
+                  </Badge>
+                )}
               </div>
             ) : (
               <div className="flex gap-2 items-center border-2 border-dashed border-gray-300 rounded-lg p-4">

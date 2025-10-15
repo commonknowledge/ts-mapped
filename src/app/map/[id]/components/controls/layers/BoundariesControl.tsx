@@ -265,8 +265,8 @@ export default function BoundariesControl() {
                       <div className="text-sm font-medium truncate">
                         {viewConfig.areaSetGroupCode
                           ? AreaSetGroupCodeLabels[
-                          viewConfig.areaSetGroupCode as AreaSetGroupCode
-                          ]
+                              viewConfig.areaSetGroupCode as AreaSetGroupCode
+                            ]
                           : "No Locality"}
                       </div>
                     </div>
