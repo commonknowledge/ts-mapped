@@ -89,7 +89,7 @@ function MarketingFooter() {
             <ul className="flex flex-col gap-8">
               <li>
                 <Link
-                  href="/"
+                  href="mailto:mapped@commonknowledge.coop"
                   className="flex items-center gap-2 font-medium mb-2 underline"
                 >
                   <MailIcon />
