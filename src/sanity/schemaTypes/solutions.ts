@@ -89,7 +89,6 @@ export const solutionsType = defineType({
                 defineField({
                   name: "text",
                   type: "string",
-                  validation: (rule) => rule.required(),
                 }),
                 defineField({
                   name: "linkType",
@@ -103,7 +102,6 @@ export const solutionsType = defineType({
                     layout: "dropdown",
                   },
                   initialValue: "external",
-                  validation: (rule) => rule.required(),
                 }),
                 defineField({
                   name: "url",
