@@ -40,18 +40,7 @@ export default function BoundaryMarkersList() {
 
   // Get boundary feature from the inspector content
   const boundaryFeature = useMemo(() => {
-    console.log("BoundaryMarkersList - Extracting boundaryFeature:", {
-      inspectorContent: !!inspectorContent,
-      hasInspectorContent: !!inspectorContent,
-      type: inspectorContent?.type,
-      hasBoundaryFeature: !!inspectorContent?.boundaryFeature,
-      boundaryFeature: inspectorContent?.boundaryFeature,
-      boundaryFeatureType: typeof inspectorContent?.boundaryFeature,
-      boundaryFeatureKeys: inspectorContent?.boundaryFeature
-        ? Object.keys(inspectorContent.boundaryFeature)
-        : [],
-      hasGeometry: inspectorContent?.boundaryFeature?.geometry ? true : false,
-    });
+
 
     if (!inspectorContent || inspectorContent.type !== LayerType.Boundary) {
       console.log("BoundaryMarkersList - No inspector content or wrong type");
@@ -117,71 +106,16 @@ export default function BoundaryMarkersList() {
     const boundaryCode = boundaryFeature.properties?.gss_code;
     const areaSetCode = choroplethLayerConfig.areaSetCode;
 
-    console.log("BoundaryMarkersList Debug:", {
-      boundaryName: inspectorContent?.name,
-      boundaryCode: boundaryCode,
-      areaSetCode: areaSetCode,
-      totalRecords: data.reduce(
-        (sum, { records }) => sum + records.records.length,
-        0,
-      ),
-      dataSources: data.map(({ dataSource }) => dataSource?.name),
-      choroplethLayerConfig: choroplethLayerConfig,
-      boundaryFeature: boundaryFeature,
-    });
-
     return data.map(({ dataSource, records }) => {
       const filteredRecords = records.records.filter((record) => {
-        // Debug each record's geocoding data
-        const geocodeResult = (record as unknown as Record<string, unknown>)
-          .geocodeResult;
-        const geocodeAreas = (geocodeResult as Record<string, unknown>)
-          ?.areas as Record<string, unknown>;
-        const matchingAreaCode = geocodeAreas?.[areaSetCode];
 
-        console.log("Record filtering debug:", {
-          recordId: record.id,
-          recordName: record.json?.name,
-          areaSetCode: areaSetCode,
-          boundaryCode: boundaryCode,
-          geocodeAreas: geocodeAreas,
-          matchingAreaCode: matchingAreaCode,
-          isMatch: matchingAreaCode === boundaryCode,
-        });
-
-        // Use the same logic as server-side counting: check geocodeResult.areas
-        if (matchingAreaCode === boundaryCode) {
-          console.log("Record matched by geocodeResult:", record.id);
-          return true;
-        }
-
-        // Fallback to spatial filtering if geocodeResult doesn't have the area
-        if (!record.geocodePoint) {
-          console.log("Record without geocodePoint:", record.id);
-          return false;
-        }
 
         if (!boundaryFeature) {
-          console.log(
-            "No boundaryFeature available for spatial filtering:",
-            record.id,
-          );
           return false;
         }
 
         // Additional safety check for boundaryFeature structure
         if (!boundaryFeature.geometry) {
-          console.log("boundaryFeature has no geometry:", {
-            recordId: record.id,
-            boundaryFeature: boundaryFeature,
-            hasGeometry: !!boundaryFeature.geometry,
-            boundaryFeatureKeys: Object.keys(boundaryFeature),
-            boundaryFeatureType: typeof boundaryFeature,
-            boundaryFeatureString: JSON.stringify(boundaryFeature).substring(
-              0,
-              200,
-            ),
-          });
           return false;
         }
 
@@ -190,23 +124,6 @@ export default function BoundaryMarkersList() {
           record.geocodePoint.lat,
         ]);
         const isInside = turf.booleanPointInPolygon(point, boundaryFeature);
-
-        console.log("Spatial filtering debug:", {
-          recordId: record.id,
-          recordName: record.json?.name,
-          geocodePoint: record.geocodePoint,
-          isInside: isInside,
-          boundaryCode: boundaryFeature.properties?.gss_code,
-          areaSetCode: areaSetCode,
-          // Debug geometry
-          boundaryGeometryType: boundaryFeature.geometry?.type,
-          boundaryCoordinatesSample:
-            boundaryFeature.geometry?.coordinates?.[0]?.[0]?.slice(0, 2),
-          markerCoordinates: [record.geocodePoint.lng, record.geocodePoint.lat],
-          // Debug the actual turf calculation
-          pointGeometry: point.geometry,
-          boundaryGeometry: boundaryFeature.geometry,
-        });
 
         return isInside;
       });
@@ -256,12 +173,6 @@ export default function BoundaryMarkersList() {
 
     const filtered = (placedMarkers || []).filter((marker) => {
       if (!boundaryFeature.geometry) {
-        console.log("boundaryFeature has no geometry for marker filtering:", {
-          markerId: marker.id,
-          boundaryFeature: boundaryFeature,
-          hasGeometry: !!boundaryFeature.geometry,
-          boundaryFeatureKeys: Object.keys(boundaryFeature),
-        });
         return false;
       }
 

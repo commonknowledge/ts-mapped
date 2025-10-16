@@ -43,23 +43,7 @@ export default function AreasContainingRecord({
   const [isLoadingRecord, setIsLoadingRecord] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-  console.log("AreasContainingRecord - Component rendered:", {
-    recordId,
-    recordType,
-    unifiedId,
-    dataSourceId,
-    mapId,
-    hasRecordData: !!recordData,
-    hasGeocodeResult: !!geocodeResult,
-    hasGeocodePoint: !!geocodePoint,
-    isLoadingRecord,
-    hasAttemptedFetch,
-    willFetch:
-      recordType === LayerType.Member &&
-      dataSourceId &&
-      !isLoadingRecord &&
-      !hasAttemptedFetch,
-  });
+
 
   // Reset fetch attempt when recordId changes
   useEffect(() => {
@@ -69,17 +53,6 @@ export default function AreasContainingRecord({
 
   // Always fetch full record data for members when we have a dataSourceId to ensure consistency
   useEffect(() => {
-    console.log("AreasContainingRecord - useEffect check:", {
-      recordType,
-      dataSourceId,
-      isLoadingRecord,
-      hasAttemptedFetch,
-      shouldFetch:
-        recordType === LayerType.Member &&
-        dataSourceId &&
-        !isLoadingRecord &&
-        !hasAttemptedFetch,
-    });
 
     if (
       recordType === LayerType.Member &&
@@ -87,10 +60,7 @@ export default function AreasContainingRecord({
       !isLoadingRecord &&
       !hasAttemptedFetch
     ) {
-      console.log("AreasContainingRecord - Fetching full record data:", {
-        recordId: unifiedId,
-        dataSourceId: dataSourceId,
-      });
+
 
       setIsLoadingRecord(true);
       setHasAttemptedFetch(true);
@@ -114,7 +84,6 @@ export default function AreasContainingRecord({
       )
         .then((response) => response.json())
         .then((data: unknown) => {
-          console.log("AreasContainingRecord - Fetched record data:", data);
           const response = data as { result?: { data?: RecordData } };
           if (response.result?.data) {
             console.log(
