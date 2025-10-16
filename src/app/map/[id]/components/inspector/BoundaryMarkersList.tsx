@@ -1,7 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import { useContext, useMemo } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import {
@@ -29,7 +28,6 @@ export default function BoundaryMarkersList() {
   const { mapConfig } = useMapConfig();
   const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
   const { inspectorContent } = useContext(InspectorContext);
-  const { choroplethLayerConfig } = useContext(ChoroplethContext);
   const trpc = useTRPC();
   const choroplethDataSource = useChoroplethDataSource();
 
@@ -40,8 +38,6 @@ export default function BoundaryMarkersList() {
 
   // Get boundary feature from the inspector content
   const boundaryFeature = useMemo(() => {
-
-
     if (!inspectorContent || inspectorContent.type !== LayerType.Boundary) {
       console.log("BoundaryMarkersList - No inspector content or wrong type");
       return null;
@@ -103,13 +99,8 @@ export default function BoundaryMarkersList() {
       return [];
     }
 
-    const boundaryCode = boundaryFeature.properties?.gss_code;
-    const areaSetCode = choroplethLayerConfig.areaSetCode;
-
     return data.map(({ dataSource, records }) => {
       const filteredRecords = records.records.filter((record) => {
-
-
         if (!boundaryFeature) {
           return false;
         }
@@ -128,7 +119,6 @@ export default function BoundaryMarkersList() {
         return isInside;
       });
 
-
       return {
         dataSource,
         records: {
@@ -137,7 +127,7 @@ export default function BoundaryMarkersList() {
         },
       };
     });
-  }, [data, boundaryFeature, inspectorContent, choroplethLayerConfig]);
+  }, [data, boundaryFeature]);
 
   const members = useMemo(
     () =>

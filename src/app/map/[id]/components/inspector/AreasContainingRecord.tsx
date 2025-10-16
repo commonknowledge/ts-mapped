@@ -28,7 +28,6 @@ export default function AreasContainingRecord({
   // Use the unified identifier system
   const unifiedId = inspectorContent?.id || recordId;
   const dataSourceId = inspectorContent?.dataSourceId;
-  const mapId = inspectorContent?.mapId;
 
   // Get the record data from inspector content
   const recordData = inspectorContent?.properties as RecordData | undefined;
@@ -43,8 +42,6 @@ export default function AreasContainingRecord({
   const [isLoadingRecord, setIsLoadingRecord] = useState(false);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
-
-
   // Reset fetch attempt when recordId changes
   useEffect(() => {
     setHasAttemptedFetch(false);
@@ -53,15 +50,12 @@ export default function AreasContainingRecord({
 
   // Always fetch full record data for members when we have a dataSourceId to ensure consistency
   useEffect(() => {
-
     if (
       recordType === LayerType.Member &&
       dataSourceId &&
       !isLoadingRecord &&
       !hasAttemptedFetch
     ) {
-
-
       setIsLoadingRecord(true);
       setHasAttemptedFetch(true);
 
