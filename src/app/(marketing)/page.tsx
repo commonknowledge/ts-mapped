@@ -40,7 +40,7 @@ export default function HomePage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Sign up to waitlist
+              Request access
             </Link>
           </Button>
         </div>

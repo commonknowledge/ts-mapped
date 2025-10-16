@@ -30,7 +30,7 @@ export default function CTA() {
           rel="noopener noreferrer"
           className="z-30"
         >
-          <Button>Sign up to waitlist</Button>
+          <Button>Request access</Button>
         </Link>
       </div>
     </div>
