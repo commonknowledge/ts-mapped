@@ -77,6 +77,54 @@ export const blockContentType = defineType({
           type: "string",
           title: "Caption",
         },
+        {
+          name: "isScreenshot",
+          type: "boolean",
+          title: "Is Screenshot",
+          description:
+            "If checked, image will be styled as a screenshot with border and shadow",
+          initialValue: false,
+        },
+        {
+          name: "size",
+          type: "string",
+          title: "Size",
+          description: "Choose the size of the image",
+          options: {
+            list: [
+              { title: "Small", value: "sm" },
+              { title: "Medium", value: "md" },
+              { title: "Large", value: "lg" },
+            ],
+            layout: "radio",
+          },
+          initialValue: "md",
+          hidden: ({ parent }) => parent?.isScreenshot === true,
+        },
+        {
+          name: "link",
+          type: "object",
+          title: "Link",
+          description: "Optional link to make the image clickable",
+          fields: [
+            {
+              name: "href",
+              type: "url",
+              title: "URL",
+              validation: (Rule) =>
+                Rule.uri({
+                  allowRelative: true,
+                  scheme: ["http", "https", "mailto", "tel"],
+                }),
+            },
+            {
+              name: "openInNewTab",
+              type: "boolean",
+              title: "Open in new tab",
+              initialValue: false,
+            },
+          ],
+        },
       ],
     }),
     defineArrayMember({

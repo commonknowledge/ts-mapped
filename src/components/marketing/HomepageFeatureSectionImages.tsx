@@ -3,11 +3,11 @@ import React from "react";
 import Container from "@/components/layout/Container";
 import { Separator } from "@/shadcn/ui/separator";
 
-export default function HomepageFeatureSection() {
+export default function HomepageFeatureSectionImages() {
   return (
     <Container>
       <div className="flex flex-col gap-10 md:gap-20 / py-10 md:py-[160px]">
-        <FeatureCard
+        <FeatureCardImages
           title="Map your movement"
           description="Transform static, siloed databases into live, interactive maps."
           image="/homepage/hp-feat-map.png"
@@ -18,7 +18,7 @@ export default function HomepageFeatureSection() {
           ]}
         />
         <Separator />
-        <FeatureCard
+        <FeatureCardImages
           title="Bring your data to life"
           description="You don’t need to be a tech expert, just plug in your existing tools."
           image="/homepage/hp-feat-data.png"
@@ -30,7 +30,7 @@ export default function HomepageFeatureSection() {
           ]}
         />
         <Separator />
-        <FeatureCard
+        <FeatureCardImages
           title="Strategise together"
           description="Move in sync with your group and sharpen your collective strategy."
           image="/homepage/hp-feat-strategy.png"
@@ -45,7 +45,7 @@ export default function HomepageFeatureSection() {
   );
 }
 
-function FeatureCard({
+function FeatureCardImages({
   title,
   description,
   image,
