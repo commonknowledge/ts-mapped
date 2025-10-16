@@ -128,9 +128,6 @@ export default function BoundaryMarkersList() {
         return isInside;
       });
 
-      console.log(
-        `${dataSource?.name} - Total: ${records.records.length}, Filtered: ${filteredRecords.length}`,
-      );
 
       return {
         dataSource,
