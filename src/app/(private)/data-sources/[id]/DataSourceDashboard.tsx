@@ -203,23 +203,22 @@ export function DataSourceDashboard({
 
       <Separator className="my-8" />
 
-      {lastImported && (
-        <>
-          <h2 className="mb-2 font-medium text-xl">Last imported</h2>
-          <time className="text-sm">{lastImportedDateReadable}</time>
-          {lastImportedFormattedFromNow && (
-            <span className="text-neutral-500 text-sm flex items-center gap-1 ">
-              ({lastImportedFormattedFromNow})
-            </span>
-          )}
-          <Separator className="my-8" />
-        </>
-      )}
-
       <div className="grid grid-cols-2 gap-20 pb-10">
         <div className="flex flex-col gap-6">
           <h2 className="font-medium text-xl">About this data source</h2>
-          <DefinitionList items={mappedInformation} />
+          <DefinitionList
+            items={
+              lastImported
+                ? [
+                    ...mappedInformation,
+                    {
+                      label: "Last imported",
+                      value: `${lastImportedDateReadable} (${lastImportedFormattedFromNow})`,
+                    },
+                  ]
+                : mappedInformation
+            }
+          />
         </div>
 
         <div className="flex flex-col gap-6">
