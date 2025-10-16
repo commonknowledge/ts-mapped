@@ -12,8 +12,8 @@ import {
 } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
-import { Button } from "@/shadcn/ui/button";
 import { Badge } from "@/shadcn/ui/badge";
+import { Button } from "@/shadcn/ui/button";
 
 interface SolutionArray {
   title: string;
@@ -97,8 +97,8 @@ export default async function SolutionPage({
               )}
               {solution.status === "coming-soon" && (
                 <TypographyP className="mt-10 text-neutral-600 text-sm flex items-center gap-2">
-                  <Badge >Coming soon</Badge>
-                  Bear with, we're working on it!
+                  <Badge>Coming soon</Badge>
+                  Bear with, we&apos;re working on it!
                 </TypographyP>
               )}
             </div>

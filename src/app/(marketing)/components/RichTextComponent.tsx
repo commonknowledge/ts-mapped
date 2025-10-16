@@ -70,9 +70,7 @@ function RichTextImage({ value }: { value: SanityImage }) {
   const regularClasses = "";
 
   // Determine which classes to use
-  const imageClasses = value.isScreenshot
-    ? screenshotClasses
-    : regularClasses;
+  const imageClasses = value.isScreenshot ? screenshotClasses : regularClasses;
 
   const sizeClass = value.size ? sizeClasses[value.size] : sizeClasses.md;
 

@@ -1,12 +1,6 @@
+import { FileText, Info, Newspaper, Puzzle, Video } from "lucide-react";
 import { map } from "rxjs";
 import type { StructureResolver } from "sanity/structure";
-import {
-  FileText,
-  Newspaper,
-  Puzzle,
-  Info,
-  Video
-} from "lucide-react";
 
 // https://www.sanity.io/docs/structure-builder-cheat-sheet
 export const structure: StructureResolver = (S, context) => {
@@ -67,10 +61,7 @@ export const structure: StructureResolver = (S, context) => {
     .title("Content")
     .items([
       // Features section with dynamic hierarchy
-      S.listItem()
-        .title("Features")
-        .icon(FileText)
-        .child(featureHierarchy),
+      S.listItem().title("Features").icon(FileText).child(featureHierarchy),
 
       // Solutions section
       S.listItem()
@@ -98,17 +89,11 @@ export const structure: StructureResolver = (S, context) => {
         .child(S.documentTypeList("homepageVideos").title("Homepage Videos")),
 
       // About singleton document
-      S.listItem()
-        .title("About")
-        .id("about")
-        .icon(Info)
-        .child(
-          // Instead of rendering a list of documents, we render a single
-          // document, specifying the `documentId` manually to ensure
-          // that we're editing the single instance of the document
-          S.document()
-            .schemaType("about")
-            .documentId("about")
-        ),
+      S.listItem().title("About").id("about").icon(Info).child(
+        // Instead of rendering a list of documents, we render a single
+        // document, specifying the `documentId` manually to ensure
+        // that we're editing the single instance of the document
+        S.document().schemaType("about").documentId("about"),
+      ),
     ]);
 };

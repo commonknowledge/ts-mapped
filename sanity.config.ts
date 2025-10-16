@@ -44,7 +44,7 @@ export default defineConfig({
     visionTool({ defaultApiVersion: apiVersion }),
     // Mux video input plugin
     muxInput({
-      mp4_support: 'standard',
+      mp4_support: "standard",
     }),
   ],
 });

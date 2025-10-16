@@ -81,7 +81,8 @@ export const blockContentType = defineType({
           name: "isScreenshot",
           type: "boolean",
           title: "Is Screenshot",
-          description: "If checked, image will be styled as a screenshot with border and shadow",
+          description:
+            "If checked, image will be styled as a screenshot with border and shadow",
           initialValue: false,
         },
         {
@@ -110,10 +111,11 @@ export const blockContentType = defineType({
               name: "href",
               type: "url",
               title: "URL",
-              validation: (Rule) => Rule.uri({
-                allowRelative: true,
-                scheme: ['http', 'https', 'mailto', 'tel']
-              }),
+              validation: (Rule) =>
+                Rule.uri({
+                  allowRelative: true,
+                  scheme: ["http", "https", "mailto", "tel"],
+                }),
             },
             {
               name: "openInNewTab",

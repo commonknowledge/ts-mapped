@@ -1,5 +1,3 @@
-import Image from "next/image";
-import { Link } from "@/components/Link";
 import Prose from "@/components/Prose";
 import { client } from "@/sanity/lib/client";
 import RichTextComponent from "../../components/RichTextComponent";
