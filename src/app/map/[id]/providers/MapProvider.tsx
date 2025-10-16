@@ -49,9 +49,9 @@ export default function MapProvider({
     trpc.map.updateViews.mutationOptions(),
   );
 
-  /* Views initialization */
+  /* Views initialization: create view if none exist and ensure a view is selected */
   useEffect(() => {
-    // Only initialize views once when data first loads
+    // Only initialize views once when data first loads (otherwise the selected view can change)
     if (viewsInitialized.current) return;
     if (!mapData?.views) return;
 

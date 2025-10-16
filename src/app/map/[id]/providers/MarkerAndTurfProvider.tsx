@@ -2,7 +2,7 @@
 
 import { useQueries } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapContext,
@@ -25,6 +25,7 @@ export default function MarkerAndTurfProvider({
   children: ReactNode;
 }) {
   const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
+  const featuresInitialized = useRef(false);
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
 
@@ -112,14 +113,21 @@ export default function MarkerAndTurfProvider({
     useTurfs(mapId);
 
   useEffect(() => {
-    if (map?.folders) {
-      setFolders(map?.folders);
+    // Only initialize the features when the map first loads
+    // TODO: use the TRPC query cache for this state
+    if (featuresInitialized.current || !map) {
+      return;
     }
-    if (map?.placedMarkers) {
-      setPlacedMarkers(map?.placedMarkers);
+    featuresInitialized.current = true;
+
+    if (map.folders) {
+      setFolders(map.folders);
     }
-    if (map?.turfs) {
-      setTurfs(map?.turfs);
+    if (map.placedMarkers) {
+      setPlacedMarkers(map.placedMarkers);
+    }
+    if (map.turfs) {
+      setTurfs(map.turfs);
     }
   }, [map, setFolders, setPlacedMarkers, setTurfs]);
 
