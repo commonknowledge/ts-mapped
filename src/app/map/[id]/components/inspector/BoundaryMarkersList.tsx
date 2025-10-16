@@ -41,11 +41,16 @@ export default function BoundaryMarkersList() {
   // Get boundary feature from the inspector content
   const boundaryFeature = useMemo(() => {
     console.log("BoundaryMarkersList - Extracting boundaryFeature:", {
-      inspectorContent,
+      inspectorContent: !!inspectorContent,
       hasInspectorContent: !!inspectorContent,
       type: inspectorContent?.type,
       hasBoundaryFeature: !!inspectorContent?.boundaryFeature,
       boundaryFeature: inspectorContent?.boundaryFeature,
+      boundaryFeatureType: typeof inspectorContent?.boundaryFeature,
+      boundaryFeatureKeys: inspectorContent?.boundaryFeature
+        ? Object.keys(inspectorContent.boundaryFeature)
+        : [],
+      hasGeometry: inspectorContent?.boundaryFeature?.geometry ? true : false,
     });
 
     if (!inspectorContent || inspectorContent.type !== LayerType.Boundary) {
@@ -171,6 +176,11 @@ export default function BoundaryMarkersList() {
             boundaryFeature: boundaryFeature,
             hasGeometry: !!boundaryFeature.geometry,
             boundaryFeatureKeys: Object.keys(boundaryFeature),
+            boundaryFeatureType: typeof boundaryFeature,
+            boundaryFeatureString: JSON.stringify(boundaryFeature).substring(
+              0,
+              200,
+            ),
           });
           return false;
         }
@@ -188,6 +198,14 @@ export default function BoundaryMarkersList() {
           isInside: isInside,
           boundaryCode: boundaryFeature.properties?.gss_code,
           areaSetCode: areaSetCode,
+          // Debug geometry
+          boundaryGeometryType: boundaryFeature.geometry?.type,
+          boundaryCoordinatesSample:
+            boundaryFeature.geometry?.coordinates?.[0]?.[0]?.slice(0, 2),
+          markerCoordinates: [record.geocodePoint.lng, record.geocodePoint.lat],
+          // Debug the actual turf calculation
+          pointGeometry: point.geometry,
+          boundaryGeometry: boundaryFeature.geometry,
         });
 
         return isInside;

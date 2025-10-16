@@ -68,7 +68,10 @@ export const areaRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      return findAllAreasByAreaSet(input.areaSetCode, {
+      console.log(
+        `API call to area.listAll with areaSetCode: ${input.areaSetCode}`,
+      );
+      const result = await findAllAreasByAreaSet(input.areaSetCode, {
         searchTerm: input.searchTerm,
         page: input.page,
         pageSize: input.pageSize,
@@ -77,5 +80,7 @@ export const areaRouter = router({
         dataSourceId: input.dataSourceId,
         mapId: input.mapId,
       });
+      console.log(`API returning ${result.areas.length} areas`);
+      return result;
     }),
 });

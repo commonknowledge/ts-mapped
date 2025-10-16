@@ -154,6 +154,25 @@ export async function findAllAreasByAreaSet(
 
   const areas = await finalQuery.execute();
 
+  // Debug: Check for duplicates
+  const areaCodes = areas.map((area) => area.code);
+  const uniqueAreaCodes = new Set(areaCodes);
+  if (areaCodes.length !== uniqueAreaCodes.size) {
+    console.warn(`Found duplicate area codes in database query:`, {
+      totalAreas: areaCodes.length,
+      uniqueAreas: uniqueAreaCodes.size,
+      duplicates: areaCodes.filter(
+        (code, index) => areaCodes.indexOf(code) !== index,
+      ),
+      sampleDuplicates: areaCodes
+        .filter((code, index) => areaCodes.indexOf(code) !== index)
+        .slice(0, 5),
+    });
+  }
+
+  // Debug: Log sample area codes being returned
+  console.log(`Sample area codes from database:`, areaCodes.slice(0, 10));
+
   // Get member counts if dataSourceId is provided
   let memberCounts: Record<string, number> = {};
   if (dataSourceId) {
@@ -168,17 +187,6 @@ export async function findAllAreasByAreaSet(
         .groupBy("areaCode");
 
       const memberCountResults = await memberCountQuery.execute();
-      console.log("Member count results:", memberCountResults);
-      console.log("AreaSetCode used for counting:", areaSetCode);
-      console.log("DataSourceId used for counting:", dataSourceId);
-
-      // Debug specific area codes
-      const edmontonResults = memberCountResults.filter((row) =>
-        String(row.areaCode || "").includes("E14001221"),
-      );
-      if (edmontonResults.length > 0) {
-        console.log("Edmonton member count results:", edmontonResults);
-      }
 
       memberCounts = Object.fromEntries(
         memberCountResults.map((row) => [row.areaCode, Number(row.count)]),
@@ -217,7 +225,21 @@ export async function findAllAreasByAreaSet(
     }
   }
 
-  const areasWithCounts = areas.map((area) => ({
+  // Deduplicate areas by code (keep the one with the lowest ID)
+  const uniqueAreas = areas.reduce(
+    (acc, area) => {
+      const existing = acc.find((a) => a.code === area.code);
+      if (!existing || area.id < existing.id) {
+        // Remove existing if it exists and add current
+        const filtered = acc.filter((a) => a.code !== area.code);
+        return [...filtered, area];
+      }
+      return acc;
+    },
+    [] as typeof areas,
+  );
+
+  const areasWithCounts = uniqueAreas.map((area) => ({
     ...area,
     memberCount: memberCounts[area.code] || 0,
     markerCount: markerCounts[area.code] || 0,

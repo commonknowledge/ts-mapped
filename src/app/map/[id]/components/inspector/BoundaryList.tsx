@@ -91,9 +91,12 @@ export default function BoundaryList() {
         }),
       });
 
-      const response = await fetch(`/api/trpc/area.listAll?${params}`, {
-        method: "GET",
-      });
+      const response = await fetch(
+        `/api/trpc/area.listAll?${params}&_t=${Date.now()}`,
+        {
+          method: "GET",
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch boundaries: ${response.status}`);
@@ -107,8 +110,69 @@ export default function BoundaryList() {
     enabled: !!areaSetCode && !!choroplethDataSource?.id && !!mapId,
   });
 
-  const boundaries = boundaryData?.json?.areas || [];
   const totalBoundaries = boundaryData?.json?.total || 0;
+
+  // Filter boundaries to only include those that exist in the map
+  const [filteredBoundaries, setFilteredBoundaries] = useState<
+    BoundaryFeature[]
+  >([]);
+  const [isFiltering, setIsFiltering] = useState(true);
+
+  useEffect(() => {
+    const allBoundaries = boundaryData?.json?.areas || [];
+
+    if (!mapRef?.current || !sourceId || !layerId || !featureCodeProperty) {
+      setFilteredBoundaries(allBoundaries);
+      setIsFiltering(false);
+      return;
+    }
+
+    const map = mapRef.current;
+
+    // Get all available features from the map
+    const getAvailableFeatures = () => {
+      try {
+        // Try both methods to get all available features
+        const sourceFeatures = map.querySourceFeatures(sourceId, {
+          sourceLayer: layerId,
+        });
+
+        const renderedFeatures = map.queryRenderedFeatures({
+          layers: [`${sourceId}-fill`, `${sourceId}-line`],
+        });
+
+        // Combine and deduplicate feature codes
+        const allFeatureCodes = new Set<string>();
+
+        sourceFeatures.forEach((f) => {
+          const code = f.properties?.[featureCodeProperty] as string;
+          if (code) allFeatureCodes.add(code);
+        });
+
+        renderedFeatures.forEach((f) => {
+          const code = f.properties?.[featureCodeProperty] as string;
+          if (code) allFeatureCodes.add(code);
+        });
+
+        return Array.from(allFeatureCodes);
+      } catch (error) {
+        console.debug("Failed to get map features:", error);
+        return [];
+      }
+    };
+
+    const availableCodes = getAvailableFeatures();
+
+    // Filter boundaries to only include those that exist in the map
+    const filtered = allBoundaries.filter((boundary) =>
+      availableCodes.includes(boundary.code),
+    );
+
+    setFilteredBoundaries(filtered);
+    setIsFiltering(false);
+  }, [boundaryData, mapRef, sourceId, layerId, featureCodeProperty]);
+
+  const boundaries = filteredBoundaries;
   const totalPages = Math.ceil(totalBoundaries / 50);
 
   // Handle search with debouncing
@@ -159,10 +223,66 @@ export default function BoundaryList() {
       return;
     }
 
-    const features = map.querySourceFeatures(sourceId, {
+    // If map or source isn't ready, wait a bit and try again
+    if (!map.isStyleLoaded() || !map.isSourceLoaded(sourceId)) {
+      setTimeout(() => {
+        handleBoundaryClick(boundary);
+      }, 1000);
+      return;
+    }
+
+    // Try to find the feature using the same approach as right-click
+    // First try querySourceFeatures with the correct sourceLayer
+    let features = map.querySourceFeatures(sourceId, {
       sourceLayer: layerId,
       filter: ["==", featureCodeProperty, boundary.code],
     });
+
+    // If that doesn't work, try queryRenderedFeatures like right-click does
+    if (features.length === 0) {
+      try {
+        const renderedFeatures = map.queryRenderedFeatures({
+          layers: [`${sourceId}-fill`, `${sourceId}-line`],
+        });
+        features = renderedFeatures.filter(
+          (f) => f.properties?.[featureCodeProperty] === boundary.code,
+        );
+      } catch (error) {
+        console.debug("Rendered features query failed:", error);
+      }
+    }
+
+    if (features.length === 0) {
+      // For constituencies not in the current map source, still create inspector content
+      // but without the boundary feature (so no "Show on map" button)
+      const getDatasetName = () => {
+        if (layerId.includes("uk_cons")) return "Westminster Constituencies";
+        if (layerId.includes("OA21")) return "Output Areas";
+        if (layerId.includes("MSOA")) return "Middle Layer Super Output Areas";
+        return "Boundary Data";
+      };
+
+      setInspectorContent({
+        type: LayerType.Boundary,
+        name: boundary.name,
+        properties: {
+          "Area Code": boundary.code,
+          Dataset: getDatasetName(),
+          areaCode: boundary.code,
+          areaName: boundary.name,
+        },
+        dataSource: null,
+        id: boundary.code,
+        boundaryFeature: undefined, // No feature available
+        parent: {
+          type: LayerType.Boundary,
+          name: "Boundaries",
+          id: "boundaries-list",
+        },
+      });
+
+      return;
+    }
 
     if (features.length > 0) {
       const feature = features[0];
@@ -241,11 +361,13 @@ export default function BoundaryList() {
             <div className="p-4 text-xs text-center text-red-500">
               Error loading boundaries: {error.message}
             </div>
-          ) : isLoading ? (
+          ) : isLoading || isFiltering ? (
             <div className="flex flex-col gap-2 p-4">
               <div className=" text-center text-neutral-500 flex items-center gap-2 justify-center">
                 <Loader2Icon className="size-4 animate-spin" />
-                Loading boundaries...
+                {isLoading
+                  ? "Loading boundaries..."
+                  : "Filtering boundaries..."}
               </div>
               <p className="text-xs text-center text-neutral-500">
                 {" "}
@@ -273,7 +395,8 @@ export default function BoundaryList() {
               </div>
               <div className="flex flex-col text-xs text-neutral-500 px-2 py-0">
                 <div>
-                  {totalBoundaries} boundar{totalBoundaries !== 1 ? "ies" : "y"}
+                  {boundaries.length} boundar
+                  {boundaries.length !== 1 ? "ies" : "y"}
                 </div>
 
                 {/* Sorting Controls */}
@@ -312,7 +435,7 @@ export default function BoundaryList() {
 
               {boundaries.map((boundary: BoundaryFeature) => (
                 <button
-                  key={boundary.id}
+                  key={`${boundary.areaSetCode}-${boundary.code}`}
                   onClick={() => handleBoundaryClick(boundary)}
                   className={cn(
                     "w-full flex items-center gap-3 p-3 text-left hover:bg-neutral-50 rounded-md transition-colors",
