@@ -106,8 +106,14 @@ const TokenHelpText = (
       <li>Click Create Token.</li>
       <li>Enter your preferred name.</li>
       <li>
-        Under Scope, add &quot;data.records:read&quot; and
-        &quot;data.records:write&quot;.
+        Under Scope, add
+        <ul>
+          <li>&quot;data.records:read&quot;</li>
+          <li>&quot;data.records:write&quot;</li>
+          <li>&quot;schema.bases:read&quot;</li>
+          <li>&quot;schema.tables:write&quot;</li>
+          <li>&quot;webhooks:manage&quot;</li>
+        </ul>
       </li>
       <li>Under Access, select the base or bases you want to include.</li>
       <li>Click Create token.</li>
