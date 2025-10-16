@@ -6,6 +6,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
@@ -24,6 +25,7 @@ export default function MapTable() {
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
+  const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
 
   const {
     selectedDataSourceId,
@@ -103,7 +105,7 @@ export default function MapTable() {
     />
   );
 
-  const syncToCRMButton = (
+  const syncToCRMButton = enableSyncToCRM ? (
     <Button
       key="sync-to-crm"
       type="button"
@@ -114,7 +116,7 @@ export default function MapTable() {
     >
       Tag records in {DataSourceTypeLabels[dataSource.config.type]}
     </Button>
-  );
+  ) : null;
 
   return (
     <div className="h-full">
