@@ -101,7 +101,7 @@ function MarketingFooter() {
               </li>
               <li>
                 <Link
-                  href="/https://opencollective.com/commonknowledge"
+                  href="https://opencollective.com/commonknowledge"
                   className="flex items-center gap-2 font-medium mb-2 underline"
                 >
                   <HeartHandshakeIcon />
