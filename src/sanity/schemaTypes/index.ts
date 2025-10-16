@@ -4,6 +4,8 @@ import { featureSetType, featureType } from "./features";
 import { newsSchema } from "./news";
 import { solutionsType } from "./solutions";
 import { youtubeType } from "./youtubeType";
+import { aboutType } from "./about";
+import { homepageVideosType } from "./homepageVideos";
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -13,5 +15,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     featureType,
     newsSchema,
     youtubeType,
+    aboutType,
+    homepageVideosType,
   ],
 };

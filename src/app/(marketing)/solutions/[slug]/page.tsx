@@ -13,11 +13,13 @@ import {
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import { Button } from "@/shadcn/ui/button";
+import { Badge } from "@/shadcn/ui/badge";
 
 interface SolutionArray {
   title: string;
   description: string;
   image?: string;
+  status: string;
   button?: {
     text: string;
     url: string;
@@ -36,6 +38,7 @@ const POST_QUERY = `*[_type == "solutions" && slug.current == $slug][0]{
   slug,
   position,
   publishedAt,
+  status,
   solutionsArray[]{
     title,
     description,
@@ -91,6 +94,12 @@ export default async function SolutionPage({
                 <TypographyLead className="mt-2 max-w-2xl">
                   {solution.subtitle}
                 </TypographyLead>
+              )}
+              {solution.status === "coming-soon" && (
+                <TypographyP className="mt-10 text-neutral-600 text-sm flex items-center gap-2">
+                  <Badge >Coming soon</Badge>
+                  Bear with, we're working on it!
+                </TypographyP>
               )}
             </div>
           </div>
@@ -173,7 +182,7 @@ function SolutionItemCard({
           alt={solutionItem.title}
           width={1400}
           height={1000}
-          className="w-full h-full object-cover rounded-md border border-neutral-200 shadow-md"
+          className="w-full h-full object-cover"
         />
       ) : (
         <Image
@@ -181,7 +190,7 @@ function SolutionItemCard({
           alt={solutionItem.title}
           width={1400}
           height={1000}
-          className="w-full h-full object-cover rounded-md border border-neutral-200 shadow-md"
+          className="w-full h-full object-cover"
         />
       )}
     </div>
