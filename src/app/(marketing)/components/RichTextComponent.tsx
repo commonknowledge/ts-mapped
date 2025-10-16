@@ -41,6 +41,12 @@ interface SanityImage {
   };
   alt?: string;
   caption?: string;
+  isScreenshot?: boolean;
+  size?: "sm" | "md" | "lg";
+  link?: {
+    href: string;
+    openInNewTab?: boolean;
+  };
 }
 
 function RichTextImage({ value }: { value: SanityImage }) {
@@ -50,15 +56,52 @@ function RichTextImage({ value }: { value: SanityImage }) {
     return <></>;
   }
 
+  // Size classes for different image sizes
+  const sizeClasses = {
+    sm: "max-w-48",
+    md: "max-w-96",
+    lg: "max-w-2xl",
+  };
+
+  // Screenshot styling (current styling)
+  const screenshotClasses = "border rounded-md border-neutral-200 shadow-md";
+
+  // Regular image styling (no border/shadow)
+  const regularClasses = "";
+
+  // Determine which classes to use
+  const imageClasses = value.isScreenshot
+    ? screenshotClasses
+    : regularClasses;
+
+  const sizeClass = value.size ? sizeClasses[value.size] : sizeClasses.md;
+
+  const imageElement = (
+    <Image
+      src={url}
+      alt={value.alt || ""}
+      width={624}
+      height={624}
+      className={imageClasses}
+    />
+  );
+
+  const content = value.link ? (
+    <a
+      href={value.link.href}
+      target={value.link.openInNewTab ? "_blank" : undefined}
+      rel={value.link.openInNewTab ? "noopener noreferrer" : undefined}
+      className="block"
+    >
+      {imageElement}
+    </a>
+  ) : (
+    imageElement
+  );
+
   return (
-    <figure>
-      <Image
-        src={url}
-        alt={value.alt || ""}
-        width={624}
-        height={624}
-        className="border rounded-md border-neutral-200 shadow-md"
-      />
+    <figure className={value.isScreenshot ? "" : sizeClass}>
+      {content}
       {value.caption ? <figcaption>{value.caption} </figcaption> : <></>}
     </figure>
   );
