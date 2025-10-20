@@ -17,7 +17,7 @@ export default function Legend() {
 
   const colorScheme = useColorScheme(
     areaStats,
-    viewConfig.colorScheme || ColorScheme.RedBlue,
+    viewConfig.colorScheme || ColorScheme.Sequential,
     viewConfig.calculationType === CalculationType.Count,
     Boolean(viewConfig.reverseColorScheme),
   );

@@ -6,7 +6,7 @@ import type { RecordData, RecordsResponse } from "@/types";
 
 export function getMarkersInsideTurf(
   markers: PlacedMarker[],
-  selectedTurf: SelectedTurf | null
+  selectedTurf: SelectedTurf | null,
 ) {
   if (!selectedTurf) {
     return [];
@@ -41,7 +41,7 @@ const placedMarkerToRecord = (marker: PlacedMarker): RecordData => {
 
 export const mapPlacedMarkersToRecordsResponse = (
   markers: PlacedMarker[],
-  folders: Folder[]
+  folders: Folder[],
 ): { records: RecordsResponse; folder: Folder | null }[] => {
   if (!markers?.length) {
     return [];
@@ -54,7 +54,7 @@ export const mapPlacedMarkersToRecordsResponse = (
       acc[key].push(marker);
       return acc;
     },
-    {}
+    {},
   );
 
   return Object.keys(markersByFolderId).map((folderId) => {
@@ -72,7 +72,7 @@ export const mapPlacedMarkersToRecordsResponse = (
 };
 
 export const getBoundaryDatasetName = (
-  properties: Record<string, unknown> | null | undefined
+  properties: Record<string, unknown> | null | undefined,
 ) => {
   if (!properties) {
     return "";

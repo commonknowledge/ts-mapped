@@ -3,6 +3,7 @@ import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { LayerType } from "@/types";
 import type { Polygon } from "geojson";
+import type { GeoJSONFeature } from "mapbox-gl";
 
 type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
@@ -32,6 +33,7 @@ export interface SelectedBoundary {
   sourceLayerId: string;
   name: string;
   properties?: Record<string, unknown> | null;
+  boundaryFeature?: GeoJSONFeature;
 }
 
 export const InspectorContext = createContext<{

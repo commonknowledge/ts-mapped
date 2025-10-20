@@ -14,6 +14,7 @@ import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import LayerTypeIcon from "../LayerTypeIcon";
+import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
 
@@ -111,6 +112,8 @@ export default function InspectorPanel() {
           <PropertiesList properties={properties} />
 
           {type === LayerType.Turf && <TurfMarkersList />}
+
+          {type === LayerType.Boundary && <BoundaryMarkersList />}
 
           {(detailsViewInTurfInspector || dataSource) && (
             <div className="flex flex-col gap-3 border-t pt-4">

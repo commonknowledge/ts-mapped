@@ -488,6 +488,7 @@ export default function Map({
                     sourceLayerId: feature?.sourceLayer as string,
                     name: areaName,
                     properties: feature?.properties,
+                    boundaryFeature: feature,
                   });
 
                   return;
