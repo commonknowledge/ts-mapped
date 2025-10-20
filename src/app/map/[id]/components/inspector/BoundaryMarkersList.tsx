@@ -8,18 +8,15 @@ import {
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import DataSourceIcon from "@/components/DataSourceIcon";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { LayerType, type RecordsResponse } from "@/types";
+import { type RecordsResponse } from "@/types";
 import {
   checkIfAnyRecords,
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
-import TurfMarkerButton from "./TurfMarkerButton";
-import type { DataSource } from "@/server/models/DataSource";
-import type { Folder } from "@/server/models/Folder";
+import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 
 export default function BoundaryMarkersList() {
@@ -45,7 +42,7 @@ export default function BoundaryMarkersList() {
     const feature = selectedBoundary?.boundaryFeature ?? null;
     if (!feature) {
       console.log(
-        "BoundaryMarkersList - No boundaryFeature in inspectorContent",
+        "BoundaryMarkersList - No boundaryFeature in inspectorContent"
       );
       return null;
     }
@@ -75,8 +72,8 @@ export default function BoundaryMarkersList() {
           },
           page: 0,
         },
-        { refetchOnMount: "always" },
-      ),
+        { refetchOnMount: "always" }
+      )
     ),
     combine: (results) => ({
       data: results.map((result, i) => ({
@@ -113,7 +110,7 @@ export default function BoundaryMarkersList() {
         ]);
         const isInside = turf.booleanPointInPolygon(
           point,
-          boundaryFeature as Feature<Polygon>,
+          boundaryFeature as Feature<Polygon>
         );
 
         return isInside;
@@ -134,9 +131,9 @@ export default function BoundaryMarkersList() {
       filteredData.find(
         (item) =>
           item?.dataSource?.recordType === DataSourceRecordType.Members ||
-          item?.dataSource?.id === mapConfig.membersDataSourceId,
+          item?.dataSource?.id === mapConfig.membersDataSourceId
       ),
-    [filteredData, mapConfig.membersDataSourceId],
+    [filteredData, mapConfig.membersDataSourceId]
   );
 
   const markers = useMemo(
@@ -144,16 +141,16 @@ export default function BoundaryMarkersList() {
       filteredData.filter(
         (item) =>
           item?.dataSource?.recordType !== DataSourceRecordType.Members &&
-          item?.dataSource?.id !== mapConfig.membersDataSourceId,
+          item?.dataSource?.id !== mapConfig.membersDataSourceId
       ),
-    [filteredData, mapConfig.membersDataSourceId],
+    [filteredData, mapConfig.membersDataSourceId]
   );
 
   // Filter placed markers that are within the boundary
   const markersInBoundary = useMemo(() => {
     if (!boundaryFeature) {
       console.log(
-        "BoundaryMarkersList - No boundaryFeature for markers filtering",
+        "BoundaryMarkersList - No boundaryFeature for markers filtering"
       );
       return [];
     }
@@ -166,7 +163,7 @@ export default function BoundaryMarkersList() {
       const point = turf.point([marker.point.lng, marker.point.lat]);
       const isInside = turf.booleanPointInPolygon(
         point,
-        boundaryFeature as Feature<Polygon>,
+        boundaryFeature as Feature<Polygon>
       );
 
       return isInside;
@@ -224,189 +221,3 @@ export default function BoundaryMarkersList() {
     </div>
   );
 }
-
-const MembersList = ({
-  records,
-  dataSource,
-}: {
-  records: RecordsResponse;
-  dataSource: DataSource | null;
-}) => {
-  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
-  const memberRecords = records.records ?? [];
-  const total = records.count.matched ?? 0;
-
-  //   const onRecordClick = (record: RecordData) => {
-  //     const parent = {
-  //       type: LayerType.Boundary,
-  //       name: inspectorContent?.name || "Boundary",
-  //       id: inspectorContent?.id || "boundary",
-  //     };
-  //     setInspectorContent(
-  //       InspectorContentFactory.createMemberInspectorContent(
-  //         record,
-  //         dataSource,
-  //         parent,
-  //       ),
-  //     );
-  //   };
-
-  return (
-    <div className="flex flex-col gap-2">
-      <h2 className="text-xs font-mono uppercase text-muted-foreground">
-        Members in this boundary {total > 0 && <>({total})</>}
-      </h2>
-
-      {!dataSource ? (
-        <p>No members data source found.</p>
-      ) : memberRecords.length > 0 ? (
-        <ul>
-          {memberRecords.map((record, index) => {
-            const displayName = nameColumn
-              ? String(record.json[nameColumn] ?? "")
-              : `Id: ${record.id}`;
-            return (
-              <li key={`member-${record.id}-${index}`}>
-                <TurfMarkerButton
-                  label={displayName}
-                  type={LayerType.Member}
-                  onClick={() => console.log(record)}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p>No members in this boundary.</p>
-      )}
-    </div>
-  );
-};
-
-const MarkersList = ({
-  records,
-  dataSource,
-}: {
-  records: RecordsResponse;
-  dataSource: DataSource | null;
-}) => {
-  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
-  const recordsList = records.records ?? [];
-  const total = records.count.matched ?? 0;
-
-  //   const onRecordClick = (record: RecordData) => {
-  //     const parent = {
-  //       type: LayerType.Boundary,
-  //       name: inspectorContent?.name || "Boundary",
-  //       id: inspectorContent?.id || "boundary",
-  //     };
-  //     setInspectorContent(
-  //       InspectorContentFactory.createDataSourceMarkerInspectorContent(
-  //         record,
-  //         dataSource,
-  //         parent,
-  //       ),
-  //     );
-  //   };
-
-  if (recordsList.length === 0) {
-    return <></>;
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <h3 className="flex items-center gap-2 font-semibold">
-        <div className="shrink-0">
-          <DataSourceIcon type={dataSource?.config.type}></DataSourceIcon>
-        </div>
-        {dataSource?.name} {total > 0 && <>({total})</>}
-      </h3>
-
-      <ul>
-        {recordsList.map((record, index) => {
-          const displayName = nameColumn
-            ? String(record.json[nameColumn] ?? "")
-            : `Id: ${record.id}`;
-          return (
-            <li key={`marker-${record.id}-${index}`}>
-              <TurfMarkerButton
-                label={displayName}
-                type={LayerType.Marker}
-                onClick={() => console.log(record)}
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-};
-
-const PlacedMarkersList = ({
-  folder,
-  records,
-}: {
-  folder: Folder | null;
-  records: RecordsResponse;
-}) => {
-  const recordsList = records.records ?? [];
-  const total = records.count.matched ?? 0;
-  const name = folder?.name || "No folder";
-
-  //   const onRecordClick = (record: RecordData) => {
-  //     // Find the actual placed marker to get complete data
-  //     const placedMarker = placedMarkers?.find((pm) => pm.id === record.id);
-  //     if (placedMarker) {
-  //       const parent = {
-  //         type: LayerType.Boundary,
-  //         name: inspectorContent?.name || "Boundary",
-  //         id: inspectorContent?.id || "boundary",
-  //       };
-  //       setInspectorContent(
-  //         InspectorContentFactory.createPlacedMarkerInspectorContent(
-  //           placedMarker,
-  //           folders,
-  //           parent,
-  //         ),
-  //       );
-  //     } else {
-  //       // Fallback for cases where placed marker is not found
-  //       setInspectorContent({
-  //         type: LayerType.Marker,
-  //         name: String(record.json?.name || `Id: ${record.id}`),
-  //         properties: {
-  //           __name: record.json?.name || "",
-  //         },
-  //         dataSource: null,
-  //         id: record.id,
-  //         recordId: record.id,
-  //       });
-  //     }
-  //   };
-
-  if (recordsList.length === 0) {
-    return <></>;
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <h3 className="font-semibold">
-        {name} ({total})
-      </h3>
-
-      <ul>
-        {recordsList.map((record, index) => {
-          return (
-            <li key={`area-${record.id}-${index}`}>
-              <TurfMarkerButton
-                label={record.json?.name as string}
-                type={LayerType.Marker}
-                onClick={() => console.log(record)}
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-};
