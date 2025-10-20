@@ -1,4 +1,5 @@
 import { jwtVerify } from "jose";
+import { sql } from "kysely";
 import { db } from "@/server/services/database";
 import { hashPassword, verifyPassword } from "@/server/utils/auth";
 import type { NewUser, UserUpdate } from "@/server/models/User";
@@ -63,6 +64,22 @@ export async function findUserByToken(token: string) {
   const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
   const { payload } = await jwtVerify<{ id: string }>(token, secret);
   return findUserById(payload.id);
+}
+
+export function listUsers() {
+  return db
+    .selectFrom("user")
+    .leftJoin("organisationUser", "user.id", "organisationUser.userId")
+    .leftJoin(
+      "organisation",
+      "organisationUser.organisationId",
+      "organisation.id",
+    )
+    .selectAll("user")
+    .select(sql<string[]>`array_agg(organisation.name)`.as("organisations"))
+    .groupBy("user.id")
+    .orderBy("email")
+    .execute();
 }
 
 export async function updateUser(

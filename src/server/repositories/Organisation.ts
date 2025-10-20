@@ -48,6 +48,14 @@ export async function deleteOrganisation(id: string) {
     .executeTakeFirstOrThrow();
 }
 
+export function listOrganisations() {
+  return db
+    .selectFrom("organisation")
+    .selectAll()
+    .orderBy((eb) => eb.fn("lower", ["name"]))
+    .execute();
+}
+
 export function upsertOrganisation(organisation: NewOrganisation) {
   return db
     .insertInto("organisation")
