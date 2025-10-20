@@ -10,13 +10,13 @@ import { verifyPassword } from "@/server/utils/auth";
 import { protectedProcedure, router, superadminProcedure } from "../index";
 
 export const userRouter = router({
-  create: superadminProcedure
+  upsert: superadminProcedure
     .input(
       z.object({
         name: z.string(),
         email: z.string().email(),
         organisation: z.string().min(1),
-        password: z.string(),
+        password: z.string().min(8).optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -24,6 +24,7 @@ export const userRouter = router({
         const org = await upsertOrganisation({
           name: input.organisation,
         });
+
         const user = await upsertUser({
           email: input.email,
           name: input.name,
@@ -35,6 +36,7 @@ export const userRouter = router({
         });
         await ensureOrganisationMap(org.id);
         logger.info(`Created user ${input.email}, ID ${user.id}`);
+        return true;
       } catch (error) {
         logger.error("Could not create user", { error });
         throw new TRPCError({
