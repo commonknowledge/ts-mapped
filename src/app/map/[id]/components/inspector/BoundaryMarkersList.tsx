@@ -2,6 +2,7 @@ import { useQueries } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import {
   useChoroplethDataSource,
@@ -27,27 +28,20 @@ export default function BoundaryMarkersList() {
   const trpc = useTRPC();
   const choroplethDataSource = useChoroplethDataSource();
 
-  // Use the same data source as the boundary list for consistency
   const dataSourceIds = choroplethDataSource?.id
     ? [choroplethDataSource.id]
-    : [];
+    : getDataSourceIds(mapConfig);
 
-  // Get boundary feature from the inspector content
   const boundaryFeature = useMemo(() => {
     if (!selectedBoundary) {
-      console.log("BoundaryMarkersList - No inspector content or wrong type");
       return null;
     }
 
     const feature = selectedBoundary?.boundaryFeature ?? null;
     if (!feature) {
-      console.log(
-        "BoundaryMarkersList - No boundaryFeature in inspectorContent"
-      );
       return null;
     }
 
-    // Convert vector tile feature to proper GeoJSON if needed
     if ((feature as unknown as Record<string, unknown>)._vectorTileFeature) {
       return {
         type: "Feature",
@@ -59,7 +53,6 @@ export default function BoundaryMarkersList() {
     return feature;
   }, [selectedBoundary]);
 
-  // Fetch all data source records (we'll filter them spatially)
   const { data, isFetching } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
       trpc.dataRecord.list.queryOptions(
@@ -87,7 +80,6 @@ export default function BoundaryMarkersList() {
     }),
   });
 
-  // Filter records that are within the boundary
   const filteredData = useMemo(() => {
     if (!boundaryFeature) {
       return [];
@@ -99,7 +91,6 @@ export default function BoundaryMarkersList() {
           return false;
         }
 
-        // Additional safety check for boundaryFeature structure
         if (!boundaryFeature.geometry) {
           return false;
         }
@@ -146,7 +137,6 @@ export default function BoundaryMarkersList() {
     [filteredData, mapConfig.membersDataSourceId]
   );
 
-  // Filter placed markers that are within the boundary
   const markersInBoundary = useMemo(() => {
     if (!boundaryFeature) {
       console.log(
