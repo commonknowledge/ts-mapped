@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
@@ -63,10 +64,11 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         setInspectorContent({
           type: LayerType.Boundary,
           name: selectedBoundary.name,
+          dataSource: null,
           properties: {
             ["Area Code"]: selectedBoundary?.areaCode,
+            Dataset: getBoundaryDatasetName(selectedBoundary.properties),
           },
-          dataSource: null,
         });
       } else {
         setInspectorContent(null);
