@@ -67,7 +67,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
           dataSource: null,
           properties: {
             ["Area Code"]: selectedBoundary?.areaCode,
-            Dataset: getBoundaryDatasetName(selectedBoundary.properties),
+            Dataset: getBoundaryDatasetName(selectedBoundary?.sourceLayerId),
           },
         });
       } else {

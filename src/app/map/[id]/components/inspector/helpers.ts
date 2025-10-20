@@ -1,5 +1,8 @@
 import * as turf from "@turf/turf";
+import { CHOROPLETH_LAYER_CONFIGS } from "@/app/map/[id]/sources";
+import { AreaSetCodeLabels } from "@/labels";
 import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { RecordData, RecordsResponse } from "@/types";
@@ -71,38 +74,28 @@ export const mapPlacedMarkersToRecordsResponse = (
   });
 };
 
+function findAreaSetCodeByLayerId(layerId: string): string | null {
+  for (const [key, items] of Object.entries(CHOROPLETH_LAYER_CONFIGS)) {
+    const found = items.some((item) => item.mapbox?.layerId === layerId);
+    if (found) {
+      return key;
+    }
+  }
+  return null;
+}
+
 export const getBoundaryDatasetName = (
-  properties: Record<string, unknown> | null | undefined,
+  sourceLayerId: string | null | undefined,
 ) => {
-  if (!properties) {
+  if (!sourceLayerId) {
     return "";
   }
 
-  const layerId = properties.layerId || "";
-  const sourceLayer = properties.sourceLayer || "";
-  const gssCode = properties.gss_code || "";
+  const configName = findAreaSetCodeByLayerId(sourceLayerId);
 
-  if (
-    (layerId as string).includes("uk_cons") ||
-    (sourceLayer as string).includes("uk_cons") ||
-    (sourceLayer as string).includes("uk_cons_2025") ||
-    (gssCode as string).startsWith("E14")
-  ) {
-    return "Westminster Constituencies";
+  if (!configName) {
+    return "Boundary Data";
   }
-  if (
-    (layerId as string).includes("OA21") ||
-    (sourceLayer as string).includes("OA21")
-  )
-    return "Output Areas";
-  if (
-    (layerId as string).includes("MSOA") ||
-    (sourceLayer as string).includes("MSOA")
-  )
-    return "Middle Layer Super Output Areas";
 
-  if ((gssCode as string).startsWith("E14"))
-    return "Westminster Constituencies";
-
-  return "Boundary Data";
+  return AreaSetCodeLabels?.[configName as AreaSetCode] ?? "Boundary Data";
 };

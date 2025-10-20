@@ -33,8 +33,8 @@ export default function TurfMarkersList() {
           filter: { type: FilterType.GEO, turf: selectedTurf?.id },
           page: 0,
         },
-        { refetchOnMount: "always" }
-      )
+        { refetchOnMount: "always" },
+      ),
     ),
     combine: (results) => ({
       data: results.map((result, i) => ({
@@ -51,23 +51,23 @@ export default function TurfMarkersList() {
   const members = useMemo(
     () =>
       data.find(
-        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members
+        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
       ),
-    [data]
+    [data],
   );
 
   const markers = useMemo(
     () =>
       data.filter(
-        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members
+        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
       ),
-    [data]
+    [data],
   );
 
   const mappedPlacedMarkers = useMemo(() => {
     const activePlacedMarkers = getMarkersInsideTurf(
       placedMarkers,
-      selectedTurf
+      selectedTurf,
     );
     return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
   }, [folders, placedMarkers, selectedTurf]);

@@ -4,10 +4,7 @@ import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import {
-  useChoroplethDataSource,
-  useDataSources,
-} from "@/app/map/[id]/hooks/useDataSources";
+import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
@@ -26,11 +23,8 @@ export default function BoundaryMarkersList() {
   const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
   const { selectedBoundary } = useContext(InspectorContext);
   const trpc = useTRPC();
-  const choroplethDataSource = useChoroplethDataSource();
 
-  const dataSourceIds = choroplethDataSource?.id
-    ? [choroplethDataSource.id]
-    : getDataSourceIds(mapConfig);
+  const dataSourceIds = getDataSourceIds(mapConfig);
 
   const boundaryFeature = useMemo(() => {
     if (!selectedBoundary) {
@@ -53,6 +47,7 @@ export default function BoundaryMarkersList() {
     return feature;
   }, [selectedBoundary]);
 
+  // TODO: change to FE mapping
   const { data, isFetching } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
       trpc.dataRecord.list.queryOptions(
@@ -65,8 +60,8 @@ export default function BoundaryMarkersList() {
           },
           page: 0,
         },
-        { refetchOnMount: "always" }
-      )
+        { refetchOnMount: "always" },
+      ),
     ),
     combine: (results) => ({
       data: results.map((result, i) => ({
@@ -101,7 +96,7 @@ export default function BoundaryMarkersList() {
         ]);
         const isInside = turf.booleanPointInPolygon(
           point,
-          boundaryFeature as Feature<Polygon>
+          boundaryFeature as Feature<Polygon>,
         );
 
         return isInside;
@@ -122,9 +117,9 @@ export default function BoundaryMarkersList() {
       filteredData.find(
         (item) =>
           item?.dataSource?.recordType === DataSourceRecordType.Members ||
-          item?.dataSource?.id === mapConfig.membersDataSourceId
+          item?.dataSource?.id === mapConfig.membersDataSourceId,
       ),
-    [filteredData, mapConfig.membersDataSourceId]
+    [filteredData, mapConfig.membersDataSourceId],
   );
 
   const markers = useMemo(
@@ -132,15 +127,15 @@ export default function BoundaryMarkersList() {
       filteredData.filter(
         (item) =>
           item?.dataSource?.recordType !== DataSourceRecordType.Members &&
-          item?.dataSource?.id !== mapConfig.membersDataSourceId
+          item?.dataSource?.id !== mapConfig.membersDataSourceId,
       ),
-    [filteredData, mapConfig.membersDataSourceId]
+    [filteredData, mapConfig.membersDataSourceId],
   );
 
   const markersInBoundary = useMemo(() => {
     if (!boundaryFeature) {
       console.log(
-        "BoundaryMarkersList - No boundaryFeature for markers filtering"
+        "BoundaryMarkersList - No boundaryFeature for markers filtering",
       );
       return [];
     }
@@ -153,7 +148,7 @@ export default function BoundaryMarkersList() {
       const point = turf.point([marker.point.lng, marker.point.lat]);
       const isInside = turf.booleanPointInPolygon(
         point,
-        boundaryFeature as Feature<Polygon>
+        boundaryFeature as Feature<Polygon>,
       );
 
       return isInside;
