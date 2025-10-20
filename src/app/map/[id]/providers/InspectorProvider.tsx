@@ -18,6 +18,7 @@ import { LayerType } from "@/types";
 
 import type {
   InspectorContent,
+  SelectedBoundary,
   SelectedRecord,
   SelectedTurf,
 } from "@/app/map/[id]/context/InspectorContext";
@@ -38,19 +39,30 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
   const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
-    null,
+    null
   );
   const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
+  const [selectedBoundary, setSelectedBoundary] =
+    useState<SelectedBoundary | null>(null);
 
   const [inspectorContent, setInspectorContent] =
     useState<InspectorContent | null>(null);
 
   useEffect(() => {
+    // if no selected marker / member to inspect
     if (!selectedRecord || !selectedRecord?.properties) {
+      // check if area selected
       if (selectedTurf?.id) {
         setInspectorContent({
           type: LayerType.Turf,
           name: selectedTurf.name || "Area",
+          properties: null,
+          dataSource: null,
+        });
+      } else if (selectedBoundary) {
+        setInspectorContent({
+          type: LayerType.Turf,
+          name: selectedBoundary.name || "Boundary",
           properties: null,
           dataSource: null,
         });
@@ -71,8 +83,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
     const filteredProperties = Object.fromEntries(
       Object.entries(selectedRecord.properties).filter(
-        ([key]) => !HIDDEN_PROPERTIES.includes(key),
-      ),
+        ([key]) => !HIDDEN_PROPERTIES.includes(key)
+      )
     );
 
     setInspectorContent({
@@ -103,6 +115,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         setSelectedRecord,
         selectedTurf,
         setSelectedTurf,
+        selectedBoundary,
+        setSelectedBoundary,
         resetInspector,
       }}
     >

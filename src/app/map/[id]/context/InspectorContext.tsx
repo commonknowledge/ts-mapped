@@ -26,12 +26,21 @@ export interface SelectedTurf {
   geometry: Polygon;
 }
 
+export interface SelectedBoundary {
+  id: string;
+  sourceLayerId: string;
+  name: string;
+  properties?: Record<string, unknown> | null;
+}
+
 export const InspectorContext = createContext<{
   inspectorContent: InspectorContent | null;
   resetInspector: () => void;
   setInspectorContent: (r: InspectorContent) => void;
   selectedRecord: SelectedRecord | null;
   setSelectedRecord: (r: SelectedRecord | null) => void;
+  selectedBoundary: SelectedBoundary | null;
+  setSelectedBoundary: (r: SelectedBoundary | null) => void;
 
   selectedTurf: SelectedTurf | null;
   setSelectedTurf: (r: SelectedTurf | null) => void;
@@ -43,4 +52,6 @@ export const InspectorContext = createContext<{
   setSelectedRecord: () => null,
   selectedTurf: null,
   setSelectedTurf: () => null,
+  selectedBoundary: null,
+  setSelectedBoundary: () => null,
 });

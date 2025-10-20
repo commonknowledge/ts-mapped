@@ -75,8 +75,12 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
-  const { resetInspector, setSelectedRecord, setSelectedTurf } =
-    useContext(InspectorContext);
+  const {
+    resetInspector,
+    setSelectedRecord,
+    setSelectedTurf,
+    setSelectedBoundary,
+  } = useContext(InspectorContext);
   const {
     choroplethLayerConfig: {
       mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
@@ -476,11 +480,13 @@ export default function Map({
                   // Prevent default context menu
                   e.originalEvent.preventDefault();
 
-                  console.log(
-                    areaName,
-                    feature as unknown as Record<string, unknown>,
-                    areaCode
-                  );
+                  resetInspector();
+                  setSelectedBoundary({
+                    id: feature?.id as string,
+                    sourceLayerId: feature?.sourceLayer as string,
+                    name: areaName,
+                    properties: feature?.properties,
+                  });
 
                   return;
                 }
