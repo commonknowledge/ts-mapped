@@ -1,7 +1,8 @@
 import { useContext, useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { MapContext, getMapStyle } from "@/app/map/[id]/context/MapContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
   CalculationType,
@@ -65,7 +66,7 @@ export default function Choropleth() {
 
   const fillColor = useFillColor(
     areaStatsQuery?.data,
-    viewConfig.colorScheme || ColorScheme.RedBlue,
+    viewConfig.colorScheme || ColorScheme.Sequential,
     viewConfig.calculationType === CalculationType.Count,
     Boolean(viewConfig.reverseColorScheme),
   );
@@ -86,7 +87,7 @@ export default function Choropleth() {
           type="circle"
         />
       </Source>
-      {viewConfig.areaSetGroupCode && viewConfig.visualisationType && (
+      {viewConfig.areaSetGroupCode && (
         <Source
           id={sourceId}
           key={layerId}
@@ -94,36 +95,46 @@ export default function Choropleth() {
           type="vector"
           url={`mapbox://${sourceId}`}
         >
-          {/* Fill Layer - only show for choropleth */}
-          {viewConfig.visualisationType === VisualisationType.Choropleth && (
-            <Layer
-              id={`${sourceId}-fill`}
-              beforeId={choroplethTopLayerId}
-              source={sourceId}
-              source-layer={layerId}
-              type="fill"
-              paint={{
-                "fill-color": fillColor,
-                "fill-opacity": 0.8, // Higher opacity to ensure colors are visible
-              }}
-            />
-          )}
+          {/* Fill Layer - always show, transparent for boundary-only mode */}
+          <Layer
+            id={`${sourceId}-fill`}
+            beforeId={choroplethTopLayerId}
+            source={sourceId}
+            source-layer={layerId}
+            type="fill"
+            paint={{
+              "fill-color":
+                viewConfig.visualisationType === VisualisationType.Choropleth
+                  ? fillColor
+                  : "transparent",
+              "fill-opacity":
+                viewConfig.visualisationType === VisualisationType.Choropleth
+                  ? 0.8
+                  : 0,
+            }}
+          />
 
-          {/* Line Layer - show for both boundary-only and choropleth */}
-          {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
-            viewConfig.visualisationType === VisualisationType.Choropleth) && (
-            <Layer
-              id={`${sourceId}-line`}
-              beforeId={choroplethTopLayerId}
-              source={sourceId}
-              source-layer={layerId}
-              type="line"
-              paint={{
-                "line-color": "#999",
-                "line-width": 1,
-              }}
-            />
-          )}
+          {/* Line Layer - always show when areaSetGroupCode is set */}
+          <Layer
+            id={`${sourceId}-line`}
+            beforeId={choroplethTopLayerId}
+            source={sourceId}
+            source-layer={layerId}
+            type="line"
+            paint={{
+              "line-color": "#999",
+              "line-width": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                // At zoom 15, line width is 1
+                10,
+                0.5, // At zoom 20, line width is 0.5
+                20,
+                4, // At zoom 0, line width is 2
+              ],
+            }}
+          />
 
           {/* Symbol Layer (Labels) */}
           {viewConfig.showLabels && (

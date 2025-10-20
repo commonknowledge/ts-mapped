@@ -39,7 +39,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
   const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
-    null
+    null,
   );
   const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
   const [selectedBoundary, setSelectedBoundary] =
@@ -59,11 +59,13 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
           properties: null,
           dataSource: null,
         });
-      } else if (selectedBoundary) {
+      } else if (selectedBoundary?.name) {
         setInspectorContent({
-          type: LayerType.Turf,
-          name: selectedBoundary.name || "Boundary",
-          properties: null,
+          type: LayerType.Boundary,
+          name: selectedBoundary.name,
+          properties: {
+            ["Area Code"]: selectedBoundary?.areaCode,
+          },
           dataSource: null,
         });
       } else {
@@ -83,8 +85,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
     const filteredProperties = Object.fromEntries(
       Object.entries(selectedRecord.properties).filter(
-        ([key]) => !HIDDEN_PROPERTIES.includes(key)
-      )
+        ([key]) => !HIDDEN_PROPERTIES.includes(key),
+      ),
     );
 
     setInspectorContent({
@@ -97,6 +99,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     getDataSourceById,
     selectedRecord,
     selectedTurf,
+    selectedBoundary,
     mapConfig.membersDataSourceId,
   ]);
 

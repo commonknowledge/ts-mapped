@@ -1,4 +1,10 @@
-import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  Grid3X3Icon,
+  MapPinIcon,
+  TableIcon,
+  XIcon,
+} from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
@@ -53,7 +59,12 @@ export default function InspectorPanel() {
       <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
         <div className="flex justify-between items-start gap-4 p-4">
           <h1 className="grow flex gap-2 / text-sm font-semibold">
-            <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
+            {inspectorContent?.type === LayerType.Boundary ? (
+              <Grid3X3Icon size={16} className="mt-[2px] shrink-0" />
+            ) : (
+              <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
+            )}
+
             {inspectorContent?.name as string}
           </h1>
           <button
