@@ -33,31 +33,18 @@ export function useMapViews() {
 
   const { mutate: insertViewMutate } = useMutation(
     trpc.map.updateViews.mutationOptions({
-      onMutate: async ({ views: newViews }) => {
+      onMutate: async () => {
         if (!mapId) return;
 
-        // Cancel outgoing refetches
+        // Cancel outgoing refetches (so they don't overwrite our optimistic update)
         await queryClient.cancelQueries({
           queryKey: trpc.map.byId.queryKey({ mapId }),
         });
 
-        // Snapshot previous value
+        // Snapshot previous value for rollback
         const previousData = queryClient.getQueryData(
           trpc.map.byId.queryKey({ mapId }),
         );
-
-        // Optimistically update the cache
-        queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            views: newViews.map((v) => ({
-              ...v,
-              mapId,
-              createdAt: new Date(),
-            })),
-          };
-        });
 
         return { previousData };
       },
@@ -91,45 +78,48 @@ export function useMapViews() {
       const newViews = [...(views || []), newView];
 
       setViewId(newView.id);
-
       setDirtyViewIds((ids) => ids.concat([newView.id]));
 
-      insertViewMutate({
-        mapId,
-        views: newViews,
+      // Synchronously update cache BEFORE calling mutation for instant UI feedback
+      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          views: newViews.map((v) => ({
+            ...v,
+            mapId,
+            createdAt: new Date(),
+          })),
+        };
       });
+
+      insertViewMutate({ mapId, views: newViews });
     },
-    [mapId, views, setViewId, setDirtyViewIds, insertViewMutate],
+    [
+      mapId,
+      views,
+      setViewId,
+      setDirtyViewIds,
+      queryClient,
+      trpc.map.byId,
+      insertViewMutate,
+    ],
   );
 
   const { mutate: updateViewMutate } = useMutation(
     trpc.map.updateViews.mutationOptions({
-      onMutate: async ({ views: updatedViews }) => {
+      onMutate: async () => {
         if (!mapId) return;
 
-        // Cancel outgoing refetches
+        // Cancel outgoing refetches (so they don't overwrite our optimistic update)
         await queryClient.cancelQueries({
           queryKey: trpc.map.byId.queryKey({ mapId }),
         });
 
-        // Snapshot previous value
+        // Snapshot previous value for rollback
         const previousData = queryClient.getQueryData(
           trpc.map.byId.queryKey({ mapId }),
         );
-
-        // Optimistically update the cache
-        queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            views: updatedViews.map((v) => ({
-              ...v,
-              mapId,
-              createdAt:
-                old.views.find((ov) => ov.id === v.id)?.createdAt || new Date(),
-            })),
-          };
-        });
 
         return { previousData };
       },
@@ -159,12 +149,30 @@ export function useMapViews() {
 
       setDirtyViewIds((ids) => ids.concat([view.id]));
 
-      updateViewMutate({
-        mapId,
-        views: updatedViews,
+      // Synchronously update cache BEFORE calling mutation for instant UI feedback
+      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          views: updatedViews.map((v) => ({
+            ...v,
+            mapId,
+            createdAt:
+              old.views.find((ov) => ov.id === v.id)?.createdAt || new Date(),
+          })),
+        };
       });
+
+      updateViewMutate({ mapId, views: updatedViews });
     },
-    [mapId, setDirtyViewIds, updateViewMutate, views],
+    [
+      mapId,
+      setDirtyViewIds,
+      queryClient,
+      trpc.map.byId,
+      updateViewMutate,
+      views,
+    ],
   );
 
   const updateViewConfig = useCallback(
@@ -178,26 +186,18 @@ export function useMapViews() {
 
   const { mutate: deleteViewMutate } = useMutation(
     trpc.mapView.delete.mutationOptions({
-      onMutate: async ({ viewId }) => {
+      onMutate: async () => {
         if (!mapId) return;
 
-        // Cancel outgoing refetches
+        // Cancel outgoing refetches (so they don't overwrite our optimistic update)
         await queryClient.cancelQueries({
           queryKey: trpc.map.byId.queryKey({ mapId }),
         });
 
-        // Snapshot previous value
+        // Snapshot previous value for rollback
         const previousData = queryClient.getQueryData(
           trpc.map.byId.queryKey({ mapId }),
         );
-
-        queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            views: old.views.filter((v) => v.id !== viewId),
-          };
-        });
 
         return { previousData };
       },
@@ -217,9 +217,19 @@ export function useMapViews() {
   const deleteView = useCallback(
     (viewId: string) => {
       if (!mapId) return;
+
+      // Synchronously update cache BEFORE calling mutation for instant UI feedback
+      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          views: old.views.filter((v) => v.id !== viewId),
+        };
+      });
+
       deleteViewMutate({ mapId, viewId });
     },
-    [mapId, deleteViewMutate],
+    [mapId, queryClient, trpc.map.byId, deleteViewMutate],
   );
 
   return {
