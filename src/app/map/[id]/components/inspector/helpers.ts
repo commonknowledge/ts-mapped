@@ -1,25 +1,59 @@
 import * as turf from "@turf/turf";
 import { CHOROPLETH_LAYER_CONFIGS } from "@/app/map/[id]/sources";
 import { AreaSetCodeLabels } from "@/labels";
-import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
 import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { RecordData, RecordsResponse } from "@/types";
+import type { Feature, Polygon } from "geojson";
 
-export function getMarkersInsideTurf(
+export function getMarkersInsidePolygon(
   markers: PlacedMarker[],
-  selectedTurf: SelectedTurf | null,
+  geometry: Polygon | null | undefined,
 ) {
-  if (!selectedTurf) {
+  if (!geometry) {
     return [];
   }
 
-  const turfPolygon = turf.polygon(selectedTurf.geometry.coordinates);
+  const turfPolygon = turf.polygon(geometry.coordinates);
 
   return markers.filter((marker) => {
     const point = turf.point([marker.point.lng, marker.point.lat]);
     return turf.booleanPointInPolygon(point, turfPolygon);
+  });
+}
+
+export function getRecordsInsideBoundary(
+  data: {
+    records: RecordsResponse;
+    dataSource: DataSource | null;
+  }[],
+  boundaryFeature: Feature<Polygon> | null | undefined,
+) {
+  if (!boundaryFeature) {
+    return [];
+  }
+
+  return data.map((d) => {
+    const recordsInsideTurf = d.records.records.filter((r) => {
+      const point = turf.point([r.geocodePoint.lng, r.geocodePoint.lat]);
+      return turf.booleanPointInPolygon(
+        point,
+        boundaryFeature as Feature<Polygon>,
+      );
+    });
+
+    return {
+      dataSource: d.dataSource,
+      records: {
+        count: {
+          ...d.records.count,
+          matched: recordsInsideTurf?.length ?? 0,
+        },
+        records: recordsInsideTurf,
+      },
+    };
   });
 }
 

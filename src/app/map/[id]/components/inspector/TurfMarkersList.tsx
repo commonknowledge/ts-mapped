@@ -11,7 +11,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { type RecordsResponse } from "@/types";
 import {
   checkIfAnyRecords,
-  getMarkersInsideTurf,
+  getMarkersInsidePolygon,
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
@@ -65,9 +65,9 @@ export default function TurfMarkersList() {
   );
 
   const mappedPlacedMarkers = useMemo(() => {
-    const activePlacedMarkers = getMarkersInsideTurf(
+    const activePlacedMarkers = getMarkersInsidePolygon(
       placedMarkers,
-      selectedTurf,
+      selectedTurf?.geometry,
     );
     return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
   }, [folders, placedMarkers, selectedTurf]);
