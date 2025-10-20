@@ -109,7 +109,7 @@ export default function SuperadminPage() {
 
       <div className="flex gap-8">
         <div>
-          <h2 className="text-center text-2xl font-medium mb-4">All users</h2>
+          <h2 className="text-center text-2xl font-medium mb-4">All Users</h2>
           <Table>
             <TableHeader>
               <TableRow>
@@ -131,7 +131,9 @@ export default function SuperadminPage() {
         </div>
 
         <div>
-          <h2 className="text-center text-2xl font-medium mb-4">Create user</h2>
+          <h2 className="text-center text-2xl font-medium mb-4">
+            Create/Update User
+          </h2>
           <form onSubmit={onSubmit} className="flex flex-col gap-6">
             <FormFieldWrapper id="name" label="Name">
               <Input
