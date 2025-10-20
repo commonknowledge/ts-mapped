@@ -190,7 +190,7 @@ export default function SuperadminPage() {
                   <SelectItem value="NEW">New organisation</SelectItem>
                   {organisations?.map((o) => {
                     return (
-                      <SelectItem key={o.id} value={o.id}>
+                      <SelectItem key={o.id} value={o.name}>
                         {o.name}
                       </SelectItem>
                     );
