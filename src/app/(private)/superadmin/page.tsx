@@ -47,7 +47,7 @@ export default function SuperadminPage() {
 
   const client = useQueryClient();
   const { mutate: createUserMutate, isPending } = useMutation(
-    trpc.user.create.mutationOptions({
+    trpc.user.upsert.mutationOptions({
       onSuccess: () => {
         toast.success("User created successfully.");
         setName("");
@@ -97,6 +97,16 @@ export default function SuperadminPage() {
     });
   };
 
+  const onSubmitUpdate = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    createUserMutate({
+      organisation: isNewOrganisation ? newOrganisation : organisation,
+      email,
+      name,
+    });
+  };
+
   if (organisationsLoading || usersLoading) {
     return "Loading...";
   }
@@ -130,91 +140,174 @@ export default function SuperadminPage() {
           </Table>
         </div>
 
-        <div>
-          <h2 className="text-center text-2xl font-medium mb-4">
-            Create/Update User
-          </h2>
-          <form onSubmit={onSubmit} className="flex flex-col gap-6">
-            <FormFieldWrapper id="name" label="Name">
-              <Input
-                id="name"
-                name="name"
-                type="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </FormFieldWrapper>
-
-            <FormFieldWrapper id="email" label="Email">
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </FormFieldWrapper>
-
-            <FormFieldWrapper id="password" label="Password">
-              <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-8">
+          <div>
+            <h2 className="text-center text-2xl font-medium mb-4">
+              Create User
+            </h2>
+            <form onSubmit={onSubmit} className="flex flex-col gap-6">
+              <FormFieldWrapper id="name" label="Name">
                 <Input
-                  id="password"
-                  name="password"
-                  type="text"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="name"
+                  name="name"
+                  type="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={generatePassword}
-                >
-                  Generate Password
-                </Button>
-              </div>
-            </FormFieldWrapper>
+              </FormFieldWrapper>
 
-            <FormFieldWrapper id="organisation" label="Organisation">
-              <Select
-                value={organisation}
-                onValueChange={(org) => setOrganisation(org)}
-              >
-                <SelectTrigger className="w-[360px]">
-                  <SelectValue placeholder="Select an existing organisation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NEW">New organisation</SelectItem>
-                  {organisations?.map((o) => {
-                    return (
-                      <SelectItem key={o.id} value={o.name}>
-                        {o.name}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </FormFieldWrapper>
-
-            {isNewOrganisation && (
-              <FormFieldWrapper id="new-organisation" label="New organisation">
+              <FormFieldWrapper id="email" label="Email">
                 <Input
-                  id="new-organisation"
-                  name="new-organisation"
-                  type="text"
-                  value={newOrganisation}
-                  onChange={(e) => setNewOrganisation(e.target.value)}
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </FormFieldWrapper>
-            )}
 
-            <Button disabled={isPending} size="sm">
-              Create user
-            </Button>
-          </form>
+              <FormFieldWrapper id="password" label="Password">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="password"
+                    name="password"
+                    type="text"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generatePassword}
+                  >
+                    Generate Password
+                  </Button>
+                </div>
+              </FormFieldWrapper>
+
+              <FormFieldWrapper id="organisation" label="Organisation">
+                <Select
+                  value={organisation}
+                  onValueChange={(org) => setOrganisation(org)}
+                >
+                  <SelectTrigger className="w-[360px]">
+                    <SelectValue placeholder="Select an existing organisation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NEW">New organisation</SelectItem>
+                    {organisations?.map((o) => {
+                      return (
+                        <SelectItem key={o.id} value={o.name || "Unknown"}>
+                          {o.name || "Unknown"}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </FormFieldWrapper>
+
+              {isNewOrganisation && (
+                <FormFieldWrapper
+                  id="new-organisation"
+                  label="New organisation"
+                >
+                  <Input
+                    id="new-organisation"
+                    name="new-organisation"
+                    type="text"
+                    value={newOrganisation}
+                    onChange={(e) => setNewOrganisation(e.target.value)}
+                  />
+                </FormFieldWrapper>
+              )}
+
+              <Button disabled={isPending} size="sm">
+                Create user
+              </Button>
+            </form>
+          </div>
+
+          <div>
+            <h2 className="text-center text-2xl font-medium mb-4">
+              Update User
+            </h2>
+            <form onSubmit={onSubmitUpdate} className="flex flex-col gap-6">
+              <FormFieldWrapper id="email" label="Email">
+                <Select
+                  value={email}
+                  onValueChange={(email) => setEmail(email)}
+                >
+                  <SelectTrigger className="w-[360px]">
+                    <SelectValue placeholder="Select an existing user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users?.map((u) => {
+                      return (
+                        <SelectItem key={u.id} value={u.email || "Unknown"}>
+                          {u.email || "Unknown"}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </FormFieldWrapper>
+
+              <FormFieldWrapper id="name" label="Name">
+                <Input
+                  id="name"
+                  name="name"
+                  type="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </FormFieldWrapper>
+
+              <FormFieldWrapper id="organisation" label="Organisation">
+                <Select
+                  value={organisation}
+                  onValueChange={(org) => setOrganisation(org)}
+                >
+                  <SelectTrigger className="w-[360px]">
+                    <SelectValue placeholder="Select an existing organisation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NEW">New organisation</SelectItem>
+                    {organisations?.map((o) => {
+                      return (
+                        <SelectItem key={o.id} value={o.name || "Unknown"}>
+                          {o.name || "Unknown"}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </FormFieldWrapper>
+
+              {isNewOrganisation && (
+                <FormFieldWrapper
+                  id="new-organisation"
+                  label="New organisation"
+                >
+                  <Input
+                    id="new-organisation"
+                    name="new-organisation"
+                    type="text"
+                    value={newOrganisation}
+                    onChange={(e) => setNewOrganisation(e.target.value)}
+                  />
+                </FormFieldWrapper>
+              )}
+
+              <Button disabled={isPending} size="sm">
+                Update user
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

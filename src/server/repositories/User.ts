@@ -5,18 +5,28 @@ import { hashPassword, verifyPassword } from "@/server/utils/auth";
 import type { NewUser, UserUpdate } from "@/server/models/User";
 
 export async function upsertUser(
-  user: Omit<NewUser, "passwordHash"> & { password: string },
+  user: Omit<NewUser, "passwordHash"> & { password?: string },
 ) {
-  const passwordHash = await hashPassword(user.password);
-  const newUser = { ...user, passwordHash, password: undefined };
+  if (user.password) {
+    const passwordHash = await hashPassword(user.password);
+    const newUser = { ...user, passwordHash, password: undefined };
+    return db
+      .insertInto("user")
+      .values(newUser)
+      .onConflict((oc) =>
+        oc.columns(["email"]).doUpdateSet({
+          passwordHash: newUser.passwordHash,
+        }),
+      )
+      .returningAll()
+      .executeTakeFirstOrThrow();
+  }
+  // Only updates allowed if password is not provided
+  const updatedUser = { ...user, password: undefined };
   return db
-    .insertInto("user")
-    .values(newUser)
-    .onConflict((oc) =>
-      oc.columns(["email"]).doUpdateSet({
-        passwordHash: newUser.passwordHash,
-      }),
-    )
+    .updateTable("user")
+    .set(updatedUser)
+    .where("email", "=", user.email)
     .returningAll()
     .executeTakeFirstOrThrow();
 }
