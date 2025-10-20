@@ -85,16 +85,23 @@ export default function SuperadminPage() {
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!window.confirm("Do you have this password saved? " + password)) {
-      return;
-    }
-
     createUserMutate({
       organisation: isNewOrganisation ? newOrganisation : organisation,
       email,
       name,
       password,
     });
+
+    // Copy password to clipboard
+    navigator.clipboard
+      .writeText(password)
+      .then(() => {
+        toast.success("Password copied");
+      })
+      .catch((err) => {
+        console.error("Failed to copy password:", err);
+        toast.error("Failed to copy password");
+      });
   };
 
   if (organisationsLoading || usersLoading) {
@@ -190,8 +197,8 @@ export default function SuperadminPage() {
                   <SelectItem value="NEW">New organisation</SelectItem>
                   {organisations?.map((o) => {
                     return (
-                      <SelectItem key={o.id} value={o.name}>
-                        {o.name}
+                      <SelectItem key={o.id} value={o.name || "Unknown"}>
+                        {o.name || "Unknown"}
                       </SelectItem>
                     );
                   })}
