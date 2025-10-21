@@ -1,4 +1,3 @@
-import { logger } from "@sentry/nextjs";
 import { TRPCError } from "@trpc/server";
 import { SignJWT } from "jose";
 import z from "zod";
@@ -12,6 +11,7 @@ import {
   findOrganisationById,
   upsertOrganisation,
 } from "@/server/repositories/Organisation";
+import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
 import { router, superadminProcedure } from "..";
 
@@ -66,8 +66,6 @@ export const invitationRouter = router({
           `Created invitation for ${input.email}, ID ${invitation.id}`,
         );
       } catch (error) {
-        console.log(error);
-
         logger.error("Could not create invitation", { error });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

@@ -31,7 +31,6 @@ export function listPendingInvitations() {
 }
 
 export function updateUnusedInvitation(id: string, data: InvitationUpdate) {
-  console.log("updating", data);
   return db
     .updateTable("invitation")
     .where("id", "=", id)
@@ -41,5 +40,5 @@ export function updateUnusedInvitation(id: string, data: InvitationUpdate) {
       updatedAt: sql`CURRENT_TIMESTAMP`,
     })
     .returningAll()
-    .executeTakeFirstOrThrow();
+    .executeTakeFirst();
 }
