@@ -29,8 +29,15 @@
 - Add commands to `bin/cmd.ts`.
 - Run commands with `npm run cmd -- [command] [...args]`
 
+#### Create a user and an org
+
+```bash
+npm run cmd -- upsertUser --email a@b.com --password 1234 --org "My Org"
+```
+
 ### Tests
 
+- Run `npm config set strict-ssl false` to allow testing with HTTPS fetch requests.
 - Run tests with `npm test`
 - This will download `test_credentials.json` from BitWarden Secrets manager, which is required to test the data source adaptors.
 - Filter tests with `npm test -- -t [filter]`
