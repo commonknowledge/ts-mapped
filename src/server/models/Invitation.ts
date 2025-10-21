@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type {
   ColumnType,
+  Generated,
   GeneratedAlways,
   Insertable,
   Updateable,
@@ -14,12 +15,14 @@ export const invitationSchema = z.object({
   userId: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  used: z.boolean(),
 });
 
 export type Invitation = z.infer<typeof invitationSchema>;
 
 export type InvitationTable = Invitation & {
   id: GeneratedAlways<string>;
+  used: Generated<boolean>;
   createdAt: ColumnType<Date, string | undefined, never>;
   updatedAt: ColumnType<Date, string | undefined, string>;
 };
