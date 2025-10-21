@@ -48,7 +48,9 @@ export default function SuperadminPage() {
   const { mutate: createUserMutate, isPending } = useMutation(
     trpc.user.create.mutationOptions({
       onSuccess: () => {
-        toast.success("User created successfully.");
+        toast.success("User created successfully", {
+          description: "An invite has been sent to the user",
+        });
         setName("");
         setEmail("");
         setOrganisation("");
