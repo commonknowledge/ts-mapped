@@ -102,7 +102,7 @@ export default function Map({
       getDataSourceIds(mapConfig)
         .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig]
+    [mapConfig],
   );
 
   // draw existing turfs
@@ -198,7 +198,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
           )
           .map((layer) => layer.id);
 
@@ -209,7 +209,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded]
+    [mapRef, styleLoaded],
   );
 
   const toggleDrawVisibility = useCallback(
@@ -238,12 +238,12 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded]
+    [mapRef, styleLoaded],
   );
 
   const getClickedPolygonFeature = (
     draw: MapboxDraw,
-    e: MapMouseEvent
+    e: MapMouseEvent,
   ): Feature<Polygon | MultiPolygon> | null => {
     const drawData: FeatureCollection = draw.getAll();
 
@@ -253,7 +253,7 @@ export default function Map({
 
     // Type guard — no `any` or unsafe casts
     const isPolygonFeature = (
-      f: unknown
+      f: unknown,
     ): f is Feature<Polygon | MultiPolygon> => {
       if (typeof f !== "object" || f === null) return false;
 
@@ -267,7 +267,7 @@ export default function Map({
 
     const polygonFeature = drawData.features.find(
       (feature: Feature): feature is Feature<Polygon | MultiPolygon> =>
-        isPolygonFeature(feature) && booleanPointInPolygon(point, feature)
+        isPolygonFeature(feature) && booleanPointInPolygon(point, feature),
     );
 
     return polygonFeature ?? null;
@@ -349,7 +349,7 @@ export default function Map({
             bottom: 100,
           },
           duration: 1000,
-        }
+        },
       );
     }
 
@@ -442,7 +442,7 @@ export default function Map({
                 "direct_select",
                 {
                   featureId: polygonFeature.id,
-                }
+                },
               );
 
               // Prevent default map zoom on double-click
@@ -601,7 +601,7 @@ export default function Map({
                     area: roundedArea,
                     polygon: feature.geometry as Polygon,
                     createdAt: new Date(
-                      feature?.properties?.createdAt as string
+                      feature?.properties?.createdAt as string,
                     ),
                   });
                 });
@@ -654,7 +654,7 @@ export default function Map({
                 Array.isArray(layer.layout["text-field"]) &&
                 layer.layout["text-field"][0] === "coalesce" &&
                 layer.layout["text-field"].find(
-                  (i) => Array.isArray(i) && i.includes("name")
+                  (i) => Array.isArray(i) && i.includes("name"),
                 )
               ) {
                 map.setLayoutProperty(layer.id, "text-field", [
