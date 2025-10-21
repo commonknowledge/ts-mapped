@@ -22,6 +22,7 @@ export default function InspectorPanel() {
   const {
     inspectorContent,
     resetInspector,
+    selectedBoundary,
     selectedTurf,
     selectedRecord,
     setSelectedRecord,
@@ -36,9 +37,11 @@ export default function InspectorPanel() {
 
   const { dataSource, properties, type } = inspectorContent ?? {};
   const tableOpen = Boolean(selectedDataSourceId);
-  const detailsViewInTurfInspector = selectedTurf && type !== LayerType.Turf;
+  const isDetailsView =
+    (selectedTurf && type !== LayerType.Turf) ||
+    (selectedBoundary && type !== LayerType.Boundary);
 
-  const onBackToTurfClick = () => {
+  const onCloseDetailsView = () => {
     setSelectedRecord(null);
   };
 
@@ -77,17 +80,22 @@ export default function InspectorPanel() {
           </button>
         </div>
 
-        {detailsViewInTurfInspector && (
+        {isDetailsView && (
           <div className="px-4 pb-2">
             <button
-              onClick={() => onBackToTurfClick()}
-              className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 cursor-pointer"
+              onClick={() => onCloseDetailsView()}
+              className="flex gap-1 text-xs text-left opacity-70 hover:opacity-100 cursor-pointer"
             >
-              <ArrowLeftIcon size={12} />
-              Back to
-              <span className="inline-flex items-center gap-1 font-semibold">
-                <LayerTypeIcon type={LayerType.Turf} size={2} />
-                {selectedTurf.name}
+              <ArrowLeftIcon size={12} className="mt-[2px]" />
+              <span>
+                Back to{" "}
+                <span className="inline-flex items-center gap-1 font-semibold">
+                  {selectedTurf
+                    ? selectedTurf.name || "Area"
+                    : selectedBoundary
+                      ? selectedBoundary.name || "Boundary"
+                      : ""}
+                </span>
               </span>
             </button>
           </div>
@@ -115,9 +123,9 @@ export default function InspectorPanel() {
 
           {type === LayerType.Boundary && <BoundaryMarkersList />}
 
-          {(detailsViewInTurfInspector || dataSource) && (
+          {(isDetailsView || dataSource) && (
             <div className="flex flex-col gap-3 border-t pt-4">
-              {detailsViewInTurfInspector && selectedRecord?.point && (
+              {isDetailsView && selectedRecord?.point && (
                 <Button onClick={() => flyToMarker()}>
                   <MapPinIcon />
                   View on map

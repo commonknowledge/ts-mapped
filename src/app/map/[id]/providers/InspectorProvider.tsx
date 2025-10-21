@@ -108,6 +108,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const resetInspector = () => {
     setSelectedRecord(null);
     setSelectedTurf(null);
+    setSelectedBoundary(null);
     setInspectorContent(null);
   };
 
