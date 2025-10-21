@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   ColumnType,
   DataSourceRecordType,
@@ -20,6 +20,8 @@ describe("GeoJSON REST API", () => {
   const testPassword = "testPassword123";
 
   beforeAll(async () => {
+    console.warn("Set npm config set strict-ssl false");
+    
     // Create test user
     testUser = await upsertUser({
       email: `test-geojson-${uuidv4()}@example.com`,
@@ -43,25 +45,30 @@ describe("GeoJSON REST API", () => {
       .execute();
 
     // Create test data source
-    testDataSource = await createDataSource({
-      name: "Test Data Source",
-      recordType: DataSourceRecordType.Locations,
-      autoEnrich: false,
-      autoImport: false,
-      public: false,
-      config: {
-        type: DataSourceType.CSV,
-        url: "https://example.com/test.csv",
-      },
-      columnDefs: [
-        { name: "name", type: ColumnType.String },
-        { name: "address", type: ColumnType.String },
-      ],
-      columnRoles: { nameColumns: ["name"] },
-      geocodingConfig: { type: GeocodingType.None },
-      enrichments: [],
-      organisationId: testOrganisation.id,
-    });
+    const name = "Test Data Source";
+    testDataSource = (
+      await db.selectFrom("dataSource").where("name", "=", name).selectAll().executeTakeFirst()
+    ) || (
+      await createDataSource({
+        name,
+        recordType: DataSourceRecordType.Locations,
+        autoEnrich: false,
+        autoImport: false,
+        public: false,
+        config: {
+          type: DataSourceType.CSV,
+          url: "https://example.com/test.csv",
+        },
+        columnDefs: [
+          { name: "name", type: ColumnType.String },
+          { name: "address", type: ColumnType.String },
+        ],
+        columnRoles: { nameColumns: ["name"] },
+        geocodingConfig: { type: GeocodingType.None },
+        enrichments: [],
+        organisationId: testOrganisation.id,
+      })
+    );
 
     // Add test data records with geocoded points
     await upsertDataRecord({
@@ -106,7 +113,7 @@ describe("GeoJSON REST API", () => {
 
   it("should return 401 without authentication", async () => {
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`
     );
     expect(response.status).toBe(401);
   });
@@ -116,7 +123,7 @@ describe("GeoJSON REST API", () => {
       `${testUser.email}:wrongpassword`
     ).toString("base64");
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -130,14 +137,16 @@ describe("GeoJSON REST API", () => {
     const credentials = Buffer.from(
       `${testUser.email}:${testPassword}`
     ).toString("base64");
+    const id = uuidv4();
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${uuidv4()}/geojson`,
+      `https://localhost:3000/api/rest/data-sources/${id}/geojson`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
       }
     );
+    console.log("response", await response.json());
     expect(response.status).toBe(404);
   });
 
@@ -146,7 +155,7 @@ describe("GeoJSON REST API", () => {
       `${testUser.email}:${testPassword}`
     ).toString("base64");
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -196,7 +205,7 @@ describe("GeoJSON REST API", () => {
       `${otherUser.email}:${testPassword}`
     ).toString("base64");
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -211,7 +220,7 @@ describe("GeoJSON REST API", () => {
       `${testUser.email}:${testPassword}`
     ).toString("base64");
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?search=Location%201`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?search=Location%201`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -234,7 +243,7 @@ describe("GeoJSON REST API", () => {
       `${testUser.email}:${testPassword}`
     ).toString("base64");
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=0&all=false`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=0&all=false`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -253,7 +262,7 @@ describe("GeoJSON REST API", () => {
       `${testUser.email}:${testPassword}`
     ).toString("base64");
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?all=true`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?all=true`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -273,7 +282,7 @@ describe("GeoJSON REST API", () => {
     ).toString("base64");
     const sortParam = JSON.stringify([{ name: "name", desc: true }]);
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?sort=${encodeURIComponent(sortParam)}&all=true`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?sort=${encodeURIComponent(sortParam)}&all=true`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
@@ -294,7 +303,7 @@ describe("GeoJSON REST API", () => {
       `${testUser.email}:${testPassword}`
     ).toString("base64");
     const response = await fetch(
-      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=invalid`,
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=invalid`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
