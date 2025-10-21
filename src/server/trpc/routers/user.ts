@@ -1,11 +1,14 @@
 import { TRPCError } from "@trpc/server";
+import { SignJWT } from "jose";
 import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
+import Invite from "@/server/emails/invite";
 import { passwordSchema, userSchema } from "@/server/models/User";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { listUsers, updateUser, upsertUser } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
+import { sendEmail } from "@/server/services/mailer";
 import { verifyPassword } from "@/server/utils/auth";
 import { protectedProcedure, router, superadminProcedure } from "../index";
 
@@ -16,7 +19,6 @@ export const userRouter = router({
         name: z.string(),
         email: z.string().email(),
         organisation: z.string().min(1),
-        password: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -27,13 +29,20 @@ export const userRouter = router({
         const user = await upsertUser({
           email: input.email,
           name: input.name,
-          password: input.password,
+          password: "__PENDING_INVITE__",
         });
         await upsertOrganisationUser({
           organisationId: org.id,
           userId: user.id,
         });
         await ensureOrganisationMap(org.id);
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+        const token = await new SignJWT({ id: user.id })
+          .setProtectedHeader({ alg: "HS256" })
+          .setExpirationTime("7d")
+          .sign(secret);
+
+        await sendEmail(input.email, "Invite to Mapped", Invite({ token }));
         logger.info(`Created user ${input.email}, ID ${user.id}`);
       } catch (error) {
         logger.error("Could not create user", { error });

@@ -1,10 +1,12 @@
 import { Command } from "commander";
+import { SignJWT } from "jose";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
+import Invite from "@/server/emails/invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import {
@@ -12,9 +14,10 @@ import {
   upsertOrganisation,
 } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { upsertUser } from "@/server/repositories/User";
+import { findUserByEmail, upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
+import { sendEmail } from "@/server/services/mailer";
 import { getPubSub } from "@/server/services/pubsub";
 import { runWorker } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
@@ -109,6 +112,28 @@ program
       logger.info(`Created user ${options.email}, ID ${user.id}`);
     } catch (error) {
       logger.error("Could not create user", { error });
+    }
+  });
+
+program
+  .command("sendInvite")
+  .option("--email <email>")
+  .description("Send an invite to a user")
+  .action(async (options) => {
+    try {
+      const user = await findUserByEmail(options.email);
+      if (!user) {
+        throw new Error(`User not found: ${options.email}`);
+      }
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+      const token = await new SignJWT({ id: user.id })
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime("7d")
+        .sign(secret);
+      await sendEmail(options.email, "Invite to Mapped", Invite({ token }));
+      logger.info(`Sent invite to ${options.email}`);
+    } catch (error) {
+      logger.error("Could not send invite", { error });
     }
   });
 

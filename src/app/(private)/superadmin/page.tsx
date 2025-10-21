@@ -31,7 +31,6 @@ export default function SuperadminPage() {
   const { currentUser } = useCurrentUser();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [organisation, setOrganisation] = useState("");
   const [newOrganisation, setNewOrganisation] = useState("");
 
@@ -52,7 +51,6 @@ export default function SuperadminPage() {
         toast.success("User created successfully.");
         setName("");
         setEmail("");
-        setPassword("");
         setOrganisation("");
         setNewOrganisation("");
         client.invalidateQueries({
@@ -68,19 +66,7 @@ export default function SuperadminPage() {
     }),
   );
 
-  if (currentUser?.email !== ADMIN_USER_EMAIL) {
-    return redirect("/");
-  }
-
-  const generatePassword = () => {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let password = "";
-    for (let i = 0; i < 16; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setPassword(password);
-  };
+  if (currentUser?.email !== ADMIN_USER_EMAIL) redirect("/");
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -89,19 +75,7 @@ export default function SuperadminPage() {
       organisation: isNewOrganisation ? newOrganisation : organisation,
       email,
       name,
-      password,
     });
-
-    // Copy password to clipboard
-    navigator.clipboard
-      .writeText(password)
-      .then(() => {
-        toast.success("Password copied");
-      })
-      .catch((err) => {
-        console.error("Failed to copy password:", err);
-        toast.error("Failed to copy password");
-      });
   };
 
   if (organisationsLoading || usersLoading) {
@@ -162,27 +136,6 @@ export default function SuperadminPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </FormFieldWrapper>
-
-            <FormFieldWrapper id="password" label="Password">
-              <div className="flex items-center gap-2">
-                <Input
-                  id="password"
-                  name="password"
-                  type="text"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={generatePassword}
-                >
-                  Generate Password
-                </Button>
-              </div>
             </FormFieldWrapper>
 
             <FormFieldWrapper id="organisation" label="Organisation">
