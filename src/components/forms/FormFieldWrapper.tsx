@@ -1,3 +1,4 @@
+import React from "react";
 import { Label } from "@/shadcn/ui/label";
 import { HelpPopover } from "../HelpPopover";
 
@@ -10,7 +11,7 @@ export default function FormFieldWrapper({
   id,
   isHorizontal = false,
 }: {
-  label: string;
+  label: React.ReactNode;
   children: React.ReactNode;
   error?: string | string[] | null;
   helpText?: string | React.ReactNode;

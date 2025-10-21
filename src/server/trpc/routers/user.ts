@@ -1,48 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
-import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import { passwordSchema, userSchema } from "@/server/models/User";
-import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { listUsers, updateUser, upsertUser } from "@/server/repositories/User";
-import logger from "@/server/services/logger";
+import { listUsers, updateUser } from "@/server/repositories/User";
 import { verifyPassword } from "@/server/utils/auth";
 import { protectedProcedure, router, superadminProcedure } from "../index";
 
 export const userRouter = router({
-  create: superadminProcedure
-    .input(
-      z.object({
-        name: z.string(),
-        email: z.string().email(),
-        organisation: z.string().min(1),
-        password: z.string(),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      try {
-        const org = await upsertOrganisation({
-          name: input.organisation,
-        });
-        const user = await upsertUser({
-          email: input.email,
-          name: input.name,
-          password: input.password,
-        });
-        await upsertOrganisationUser({
-          organisationId: org.id,
-          userId: user.id,
-        });
-        await ensureOrganisationMap(org.id);
-        logger.info(`Created user ${input.email}, ID ${user.id}`);
-      } catch (error) {
-        logger.error("Could not create user", { error });
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Unknown error",
-        });
-      }
-    }),
   list: superadminProcedure.query(() => listUsers()),
   update: protectedProcedure
     .input(

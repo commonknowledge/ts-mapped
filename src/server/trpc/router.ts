@@ -3,6 +3,7 @@ import { authRouter } from "./routers/auth";
 import { dataRecordRouter } from "./routers/dataRecord";
 import { dataSourceRouter } from "./routers/dataSource";
 import { folderRouter } from "./routers/folder";
+import { invitationRouter } from "./routers/invitation";
 import { mapRouter } from "./routers/map";
 import { mapViewRouter } from "./routers/mapView";
 import { organisationRouter } from "./routers/organisation";
@@ -18,6 +19,7 @@ export const appRouter = router({
   dataRecord: dataRecordRouter,
   dataSource: dataSourceRouter,
   map: mapRouter,
+  invitation: invitationRouter,
   folder: folderRouter,
   placedMarker: placedMarkerRouter,
   turf: turfRouter,
