@@ -38,16 +38,20 @@ export const mapBoundaryToGeoFeature = (boundary: SelectedBoundary | null) => {
     return null;
   }
 
-  return {
-    type: "Feature",
-    geometry: feature.geometry,
-    properties: feature.properties,
-  } as Feature<Polygon | MultiPolygon>;
+  if ((feature as unknown as Record<string, unknown>)._vectorTileFeature) {
+    return {
+      type: "Feature",
+      geometry: feature.geometry,
+      properties: feature.properties,
+    } as Feature<Polygon | MultiPolygon>;
+  }
+
+  return feature;
 };
 
 const checkIfPointInPolygon = (
   coordinates: number[],
-  polygon: Feature<Polygon>,
+  polygon: Feature<Polygon>
 ) => {
   const point = turf.point(coordinates);
   return turf.booleanPointInPolygon(point, polygon);
@@ -55,7 +59,7 @@ const checkIfPointInPolygon = (
 
 export function getMarkersInsidePolygon(
   markers: PlacedMarker[],
-  polygon: Feature<Polygon> | null | undefined,
+  polygon: Feature<Polygon> | null | undefined
 ) {
   if (!polygon) {
     return [];
@@ -71,7 +75,7 @@ export function getRecordsInsideBoundary(
     records: RecordsResponse;
     dataSource: DataSource | null;
   }[],
-  boundaryFeature: Feature<Polygon> | null | undefined,
+  boundaryFeature: Feature<Polygon> | null | undefined
 ) {
   if (!boundaryFeature) {
     return [];
@@ -81,7 +85,7 @@ export function getRecordsInsideBoundary(
     const recordsInsideTurf = d.records.records.filter((r) => {
       return checkIfPointInPolygon(
         [r.geocodePoint.lng, r.geocodePoint.lat],
-        boundaryFeature,
+        boundaryFeature
       );
     });
 
@@ -119,7 +123,7 @@ const placedMarkerToRecord = (marker: PlacedMarker): RecordData => {
 
 export const mapPlacedMarkersToRecordsResponse = (
   markers: PlacedMarker[],
-  folders: Folder[],
+  folders: Folder[]
 ): { records: RecordsResponse; folder: Folder | null }[] => {
   if (!markers?.length) {
     return [];
@@ -132,7 +136,7 @@ export const mapPlacedMarkersToRecordsResponse = (
       acc[key].push(marker);
       return acc;
     },
-    {},
+    {}
   );
 
   return Object.keys(markersByFolderId).map((folderId) => {
@@ -160,7 +164,7 @@ function findAreaSetCodeByLayerId(layerId: string): string | null {
 }
 
 export const getBoundaryDatasetName = (
-  sourceLayerId: string | null | undefined,
+  sourceLayerId: string | null | undefined
 ) => {
   if (!sourceLayerId) {
     return "";
