@@ -1,18 +1,70 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import z from "zod";
 import type { Feature, FeatureCollection, Point } from "geojson";
-import { findDataSourceById } from "@/server/repositories/DataSource";
-import { findUserByEmailAndPassword } from "@/server/repositories/User";
-import { findOrganisationForUser } from "@/server/repositories/Organisation";
-import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
+import {
+  recordFilterSchema,
+  recordSortSchema,
+} from "@/server/models/MapView";
+import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
+import { findDataSourceById } from "@/server/repositories/DataSource";
+import { findOrganisationForUser } from "@/server/repositories/Organisation";
+import { findUserByEmailAndPassword } from "@/server/repositories/User";
+
+/**
+ * Query parameters schema for GeoJSON API
+ */
+const queryParamsSchema = z.object({
+  filter: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return null;
+      try {
+        const parsed = JSON.parse(val);
+        return recordFilterSchema.parse(parsed);
+      } catch {
+        return null;
+      }
+    }),
+  search: z.string().optional().nullable(),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 0))
+    .pipe(z.number().int().min(0).default(0)),
+  sort: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return [];
+      try {
+        const parsed = JSON.parse(val);
+        return z.array(recordSortSchema).parse(parsed);
+      } catch {
+        return [];
+      }
+    }),
+  all: z
+    .string()
+    .optional()
+    .transform((val) => val === "true")
+    .pipe(z.boolean().default(false)),
+});
 
 /**
  * Authenticated GeoJSON REST API for data source items
- * 
+ *
  * GET /api/rest/data-sources/:dataSourceId/geojson
- * 
+ *
  * Authentication: Basic Auth (user:password)
+ * Query Parameters:
+ *   - filter: JSON string of RecordFilterInput (optional)
+ *   - search: Search string (optional)
+ *   - page: Page number for pagination (optional, default: 0)
+ *   - sort: JSON array of SortInput (optional)
+ *   - all: Boolean to return all records (optional, default: false)
  * Returns: GeoJSON FeatureCollection with geocoded items
  */
 export async function GET(
@@ -20,6 +72,31 @@ export async function GET(
   { params }: { params: Promise<{ dataSourceId: string }> }
 ) {
   const { dataSourceId } = await params;
+
+  // Parse and validate query parameters
+  const searchParams = request.nextUrl.searchParams;
+  const queryParamsResult = queryParamsSchema.safeParse({
+    filter: searchParams.get("filter"),
+    search: searchParams.get("search"),
+    page: searchParams.get("page"),
+    sort: searchParams.get("sort"),
+    all: searchParams.get("all"),
+  });
+
+  if (!queryParamsResult.success) {
+    return new NextResponse(
+      JSON.stringify({
+        error: "Invalid query parameters",
+        details: queryParamsResult.error.format(),
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  const { filter, search, page, sort, all } = queryParamsResult.data;
 
   // Check Basic Auth
   const authHeader = request.headers.get("authorization");
@@ -96,14 +173,14 @@ export async function GET(
     );
   }
 
-  // Fetch all data records for this data source
+  // Fetch data records for this data source with filters, search, and sorting
   const records = await findDataRecordsByDataSource(
     dataSourceId,
-    null, // no filter
-    null, // no search
-    0, // page 0
-    [], // no sorting
-    true // get all records
+    filter,
+    search,
+    page,
+    sort,
+    all
   );
 
   // Transform to GeoJSON
@@ -125,12 +202,12 @@ function dataRecordsToGeoJSON(
   const features: Feature[] = records
     .filter((record) => record.geocodePoint) // Only include geocoded records
     .map((record) => {
+      const point = record.geocodePoint;
+      if (!point) return null;
+
       const geometry: Point = {
         type: "Point",
-        coordinates: [
-          record.geocodePoint!.lng,
-          record.geocodePoint!.lat,
-        ],
+        coordinates: [point.lng, point.lat],
       };
 
       return {
@@ -144,7 +221,8 @@ function dataRecordsToGeoJSON(
           _geocodeResult: record.geocodeResult,
         },
       };
-    });
+    })
+    .filter((feature): feature is Feature => feature !== null);
 
   return {
     type: "FeatureCollection",

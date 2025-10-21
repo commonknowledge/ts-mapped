@@ -1,11 +1,16 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { v4 as uuidv4 } from "uuid";
-import { db } from "@/server/services/database";
-import { upsertUser } from "@/server/repositories/User";
-import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { createDataSource } from "@/server/repositories/DataSource";
+import {
+  ColumnType,
+  DataSourceRecordType,
+  DataSourceType,
+  GeocodingType,
+} from "@/server/models/DataSource";
 import { upsertDataRecord } from "@/server/repositories/DataRecord";
-import { DataSourceType, GeocodingType, ColumnType, DataSourceRecordType } from "@/server/models/DataSource";
+import { createDataSource } from "@/server/repositories/DataSource";
+import { upsertOrganisation } from "@/server/repositories/Organisation";
+import { upsertUser } from "@/server/repositories/User";
+import { db } from "@/server/services/database";
 
 describe("GeoJSON REST API", () => {
   let testUser: Awaited<ReturnType<typeof upsertUser>>;
@@ -198,5 +203,106 @@ describe("GeoJSON REST API", () => {
       }
     );
     expect(response.status).toBe(403);
+  });
+
+  it("should support search query parameter", async () => {
+    const credentials = Buffer.from(
+      `${testUser.email}:${testPassword}`
+    ).toString("base64");
+    const response = await fetch(
+      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?search=Location%201`,
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      }
+    );
+
+    expect(response.status).toBe(200);
+    const geojson = await response.json();
+    expect(geojson.type).toBe("FeatureCollection");
+    // Search should filter to only Location 1
+    expect(geojson.features.length).toBeGreaterThan(0);
+    expect(
+      geojson.features.some((f: any) => f.properties.name === "Location 1")
+    ).toBe(true);
+  });
+
+  it("should support pagination with page parameter", async () => {
+    const credentials = Buffer.from(
+      `${testUser.email}:${testPassword}`
+    ).toString("base64");
+    const response = await fetch(
+      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=0&all=false`,
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      }
+    );
+
+    expect(response.status).toBe(200);
+    const geojson = await response.json();
+    expect(geojson.type).toBe("FeatureCollection");
+    expect(Array.isArray(geojson.features)).toBe(true);
+  });
+
+  it("should support all parameter to get all records", async () => {
+    const credentials = Buffer.from(
+      `${testUser.email}:${testPassword}`
+    ).toString("base64");
+    const response = await fetch(
+      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?all=true`,
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      }
+    );
+
+    expect(response.status).toBe(200);
+    const geojson = await response.json();
+    expect(geojson.type).toBe("FeatureCollection");
+    expect(geojson.features).toHaveLength(2);
+  });
+
+  it("should support sort parameter", async () => {
+    const credentials = Buffer.from(
+      `${testUser.email}:${testPassword}`
+    ).toString("base64");
+    const sortParam = JSON.stringify([{ name: "name", desc: true }]);
+    const response = await fetch(
+      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?sort=${encodeURIComponent(sortParam)}&all=true`,
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      }
+    );
+
+    expect(response.status).toBe(200);
+    const geojson = await response.json();
+    expect(geojson.type).toBe("FeatureCollection");
+    expect(geojson.features).toHaveLength(2);
+    // Sorted descending by name, so Location 2 should come first
+    expect(geojson.features[0].properties.name).toBe("Location 2");
+  });
+
+  it("should return 400 for invalid query parameters", async () => {
+    const credentials = Buffer.from(
+      `${testUser.email}:${testPassword}`
+    ).toString("base64");
+    const response = await fetch(
+      `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=invalid`,
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      }
+    );
+
+    expect(response.status).toBe(400);
+    const error = await response.json();
+    expect(error.error).toBe("Invalid query parameters");
   });
 });

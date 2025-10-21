@@ -50,17 +50,33 @@ GET /api/rest/data-sources/{dataSourceId}/geojson
 - Basic Auth (user:password)
 - The authenticated user must have access to the data source through their organisation membership
 
+**Query Parameters:**
+- `filter` (optional): JSON string of filter criteria (RecordFilterInput)
+- `search` (optional): Search string to filter records
+- `page` (optional): Page number for pagination (default: 0)
+- `sort` (optional): JSON array of sort criteria (SortInput[])
+- `all` (optional): Boolean to return all records instead of paginated (default: false)
+
 **Response:**
 - Content-Type: `application/geo+json`
-- Returns a GeoJSON FeatureCollection with all geocoded items from the data source
+- Returns a GeoJSON FeatureCollection with geocoded items from the data source
 - Each feature includes:
   - `geometry`: Point coordinates (longitude, latitude)
   - `properties`: Raw data from the item plus metadata fields (`_dataSourceId`, `_externalId`, `_geocodeResult`)
 
-**Example:**
+**Examples:**
 ```bash
+# Get all records
 curl -u "user@example.com:password" \
-  https://your-mapped-instance.com/api/rest/data-sources/{uuid}/geojson
+  "https://your-mapped-instance.com/api/rest/data-sources/{uuid}/geojson?all=true"
+
+# Search and filter
+curl -u "user@example.com:password" \
+  "https://your-mapped-instance.com/api/rest/data-sources/{uuid}/geojson?search=london&page=0"
+
+# With sorting
+curl -u "user@example.com:password" \
+  "https://your-mapped-instance.com/api/rest/data-sources/{uuid}/geojson?sort=%5B%7B%22name%22%3A%22name%22%2C%22desc%22%3Afalse%7D%5D"
 ```
 
 **Example Response:**
