@@ -191,8 +191,8 @@ export default function VisualisationPanel({
                   size="sm"
                   onClick={() =>
                     updateViewConfig({
-                      areaDataSourceId: undefined,
-                      areaDataColumn: undefined,
+                      areaDataSourceId: "",
+                      areaDataColumn: "",
                     })
                   }
                   className="text-xs text-gray-500 hover:text-gray-700"

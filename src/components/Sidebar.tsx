@@ -6,13 +6,15 @@ import {
   DatabaseIcon,
   LockIcon,
   MapIcon,
+  UserCogIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Link } from "@/components/Link";
 import SidebarUserMenu from "@/components/SidebarUserMenu";
-import { useFeatureFlagEnabled } from "@/hooks";
+import { ADMIN_USER_EMAIL } from "@/constants";
+import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { cn } from "@/shadcn/utils";
 
 export default function Sidebar() {
@@ -23,6 +25,7 @@ export default function Sidebar() {
   const showMovementDataLibrary = useFeatureFlagEnabled(
     "movement-data-library",
   );
+  const { currentUser } = useCurrentUser();
 
   useEffect(() => setMounted(true), []);
 
@@ -64,6 +67,14 @@ export default function Sidebar() {
       label: "Movement data library",
       href: "/data-library",
       icon: <BookOpenIcon className="w-4 h-4" />,
+    });
+  }
+
+  if (currentUser?.email === ADMIN_USER_EMAIL) {
+    navItems.push({
+      label: "Superadmin",
+      href: "/superadmin",
+      icon: <UserCogIcon className="w-4 h-4" />,
     });
   }
 

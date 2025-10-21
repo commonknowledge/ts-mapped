@@ -8,7 +8,7 @@ function Table({
   className,
   containerClassName,
   ...props
-}: React.ComponentProps<"table"> & { containerClassName: string }) {
+}: React.ComponentProps<"table"> & { containerClassName?: string }) {
   return (
     <div
       data-slot="table-container"

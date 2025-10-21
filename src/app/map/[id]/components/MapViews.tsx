@@ -81,12 +81,8 @@ export default function MapViews() {
   );
 
   const handleCreateView = () => {
-    if (!newViewName.trim()) {
-      return;
-    }
-    if (!mapId) {
-      return;
-    }
+    if (!newViewName.trim()) return;
+    if (!mapId) return;
 
     const newView = {
       id: uuidv4(),
@@ -105,19 +101,13 @@ export default function MapViews() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id === over?.id) {
-      return;
-    }
+    if (active.id === over?.id || !over) return;
 
     const activeView = views.find((v) => v.id === active.id.toString());
-    const overView = views.find((v) => v.id === over?.id.toString());
+    const overView = views.find((v) => v.id === over.id.toString());
 
-    if (!activeView || !overView) {
-      return;
-    }
-
+    if (!activeView || !overView) return;
     let newPosition = 0;
-
     const otherViews = views.filter((v) => v.id !== active.id);
     const wasBefore = compareByPositionAndId(activeView, overView) < 0;
     if (wasBefore) {
@@ -129,9 +119,8 @@ export default function MapViews() {
   };
 
   const handleDragStart = () => {
-    if (renamingViewId) {
-      setRenamingViewId(null);
-    }
+    if (!renamingViewId) return;
+    setRenamingViewId(null);
   };
 
   const sortedViews = useMemo(() => {
