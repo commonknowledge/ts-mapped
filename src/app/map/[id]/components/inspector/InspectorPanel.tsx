@@ -1,4 +1,10 @@
-import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  Grid3X3Icon,
+  MapPinIcon,
+  TableIcon,
+  XIcon,
+} from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
@@ -8,6 +14,7 @@ import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import LayerTypeIcon from "../LayerTypeIcon";
+import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
 
@@ -15,6 +22,7 @@ export default function InspectorPanel() {
   const {
     inspectorContent,
     resetInspector,
+    selectedBoundary,
     selectedTurf,
     selectedRecord,
     setSelectedRecord,
@@ -29,9 +37,11 @@ export default function InspectorPanel() {
 
   const { dataSource, properties, type } = inspectorContent ?? {};
   const tableOpen = Boolean(selectedDataSourceId);
-  const detailsViewInTurfInspector = selectedTurf && type !== LayerType.Turf;
+  const isDetailsView =
+    (selectedTurf && type !== LayerType.Turf) ||
+    (selectedBoundary && type !== LayerType.Boundary);
 
-  const onBackToTurfClick = () => {
+  const onCloseDetailsView = () => {
     setSelectedRecord(null);
   };
 
@@ -50,10 +60,15 @@ export default function InspectorPanel() {
         tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
       )}
     >
-      <div className="relative z-10 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
+      <div className="relative z-100 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
         <div className="flex justify-between items-start gap-4 p-4">
           <h1 className="grow flex gap-2 / text-sm font-semibold">
-            <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
+            {inspectorContent?.type === LayerType.Boundary ? (
+              <Grid3X3Icon size={16} className="mt-[2px] shrink-0" />
+            ) : (
+              <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
+            )}
+
             {inspectorContent?.name as string}
           </h1>
           <button
@@ -65,17 +80,22 @@ export default function InspectorPanel() {
           </button>
         </div>
 
-        {detailsViewInTurfInspector && (
+        {isDetailsView && (
           <div className="px-4 pb-2">
             <button
-              onClick={() => onBackToTurfClick()}
-              className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 cursor-pointer"
+              onClick={() => onCloseDetailsView()}
+              className="flex gap-1 text-xs text-left opacity-70 hover:opacity-100 cursor-pointer"
             >
-              <ArrowLeftIcon size={12} />
-              Back to
-              <span className="inline-flex items-center gap-1 font-semibold">
-                <LayerTypeIcon type={LayerType.Turf} size={2} />
-                {selectedTurf.name}
+              <ArrowLeftIcon size={12} className="mt-[2px]" />
+              <span>
+                Back to{" "}
+                <span className="inline-flex items-center gap-1 font-semibold">
+                  {selectedTurf
+                    ? selectedTurf.name || "Area"
+                    : selectedBoundary
+                      ? selectedBoundary.name || "Boundary"
+                      : ""}
+                </span>
               </span>
             </button>
           </div>
@@ -101,9 +121,11 @@ export default function InspectorPanel() {
 
           {type === LayerType.Turf && <TurfMarkersList />}
 
-          {(detailsViewInTurfInspector || dataSource) && (
+          {type === LayerType.Boundary && <BoundaryMarkersList />}
+
+          {(isDetailsView || dataSource) && (
             <div className="flex flex-col gap-3 border-t pt-4">
-              {detailsViewInTurfInspector && selectedRecord?.point && (
+              {isDetailsView && selectedRecord?.point && (
                 <Button onClick={() => flyToMarker()}>
                   <MapPinIcon />
                   View on map

@@ -6,34 +6,33 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { type RecordsResponse } from "@/types";
 import {
   checkIfAnyRecords,
   getMarkersInsidePolygon,
+  getRecordsInsideBoundary,
+  mapBoundaryToGeoFeature,
   mapPlacedMarkersToRecordsResponse,
-  mapTurfToGeoFeature,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
 import type { Feature, Polygon } from "geojson";
 
-export default function TurfMarkersList() {
+export default function BoundaryMarkersList() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
   const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
-  const { selectedTurf } = useContext(InspectorContext);
+  const { selectedBoundary } = useContext(InspectorContext);
   const trpc = useTRPC();
 
   const dataSourceIds = getDataSourceIds(mapConfig);
 
-  const { data, isFetching } = useQueries({
+  // fetching all records
+  const { data } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
       trpc.dataRecord.list.queryOptions(
         {
           dataSourceId,
-          filter: { type: FilterType.GEO, turf: selectedTurf?.id },
-          page: 0,
         },
         { refetchOnMount: "always" },
       ),
@@ -50,37 +49,49 @@ export default function TurfMarkersList() {
     }),
   });
 
+  const boundaryFeature = useMemo(() => {
+    return mapBoundaryToGeoFeature(selectedBoundary);
+  }, [selectedBoundary]);
+
+  // frontend filtering - looking for markers within the selected boundary
+  const filteredData = useMemo(() => {
+    if (!boundaryFeature) {
+      return [];
+    }
+
+    return getRecordsInsideBoundary(data, boundaryFeature as Feature<Polygon>);
+  }, [data, boundaryFeature]);
+
   const members = useMemo(
     () =>
-      data.find(
-        (item) => item?.dataSource?.recordType === DataSourceRecordType.Members,
+      filteredData.find(
+        (item) =>
+          item?.dataSource?.recordType === DataSourceRecordType.Members ||
+          item?.dataSource?.id === mapConfig.membersDataSourceId,
       ),
-    [data],
+    [filteredData, mapConfig.membersDataSourceId],
   );
 
   const markers = useMemo(
     () =>
-      data.filter(
-        (item) => item?.dataSource?.recordType !== DataSourceRecordType.Members,
+      filteredData.filter(
+        (item) =>
+          item?.dataSource?.recordType !== DataSourceRecordType.Members &&
+          item?.dataSource?.id !== mapConfig.membersDataSourceId,
       ),
-    [data],
+    [filteredData, mapConfig.membersDataSourceId],
   );
 
-  const turfFeature = useMemo(() => {
-    return mapTurfToGeoFeature(selectedTurf);
-  }, [selectedTurf]);
+  const markersInBoundary = useMemo(() => {
+    return getMarkersInsidePolygon(
+      placedMarkers,
+      boundaryFeature as Feature<Polygon>,
+    );
+  }, [boundaryFeature, placedMarkers]);
 
   const mappedPlacedMarkers = useMemo(() => {
-    const activePlacedMarkers = getMarkersInsidePolygon(
-      placedMarkers,
-      turfFeature as Feature<Polygon>,
-    );
-    return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
-  }, [folders, placedMarkers, turfFeature]);
-
-  if (isFetching) {
-    return <p>Loading...</p>;
-  }
+    return mapPlacedMarkersToRecordsResponse(markersInBoundary, folders);
+  }, [folders, markersInBoundary]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,29 +105,29 @@ export default function TurfMarkersList() {
       {(markers?.length > 0 || mappedPlacedMarkers.length > 0) && (
         <div className="flex flex-col gap-3">
           <h2 className="text-xs font-mono uppercase text-muted-foreground">
-            Markers in this area
+            Markers in this boundary
           </h2>
 
           {!checkIfAnyRecords([...mappedPlacedMarkers, ...markers]) && (
-            <p>No markers in this area</p>
+            <p>No markers in this boundary</p>
           )}
 
           {mappedPlacedMarkers.length > 0 &&
             mappedPlacedMarkers.map((markersGroup, index) => (
               <PlacedMarkersList
-                key={index}
+                key={`placed-markers-${markersGroup.folder?.id || "no-folder"}-${index}`}
                 folder={markersGroup.folder}
                 records={markersGroup.records}
-              ></PlacedMarkersList>
+              />
             ))}
 
           {markers?.length > 0 &&
             markers.map((markersGroup, index) => (
               <MarkersList
-                key={index}
+                key={`markers-${markersGroup.dataSource?.id || "no-datasource"}-${index}`}
                 dataSource={markersGroup.dataSource}
                 records={markersGroup.records}
-              ></MarkersList>
+              />
             ))}
         </div>
       )}

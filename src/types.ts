@@ -77,6 +77,7 @@ export interface RecordsResponse {
 }
 
 export enum LayerType {
+  Boundary = "Boundary",
   Member = "Member",
   Marker = "Marker",
   Turf = "Turf",
