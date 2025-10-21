@@ -1,22 +1,104 @@
 import * as turf from "@turf/turf";
-import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
+import { CHOROPLETH_LAYER_CONFIGS } from "@/app/map/[id]/sources";
+import { AreaSetCodeLabels } from "@/labels";
+import type {
+  SelectedBoundary,
+  SelectedTurf,
+} from "@/app/map/[id]/context/InspectorContext";
+import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { RecordData, RecordsResponse } from "@/types";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 
-export function getMarkersInsideTurf(
+export const mapTurfToGeoFeature = (turf: SelectedTurf | null) => {
+  if (!turf) {
+    return null;
+  }
+
+  const geometry = turf?.geometry ?? null;
+  if (!geometry) {
+    return null;
+  }
+
+  return {
+    type: "Feature",
+    geometry: geometry,
+  } as Feature<Polygon | MultiPolygon>;
+};
+
+export const mapBoundaryToGeoFeature = (boundary: SelectedBoundary | null) => {
+  if (!boundary) {
+    return null;
+  }
+
+  const feature = boundary?.boundaryFeature ?? null;
+  if (!feature) {
+    return null;
+  }
+
+  if ((feature as unknown as Record<string, unknown>)._vectorTileFeature) {
+    return {
+      type: "Feature",
+      geometry: feature.geometry,
+      properties: feature.properties,
+    } as Feature<Polygon | MultiPolygon>;
+  }
+
+  return feature;
+};
+
+const checkIfPointInPolygon = (
+  coordinates: number[],
+  polygon: Feature<Polygon>,
+) => {
+  const point = turf.point(coordinates);
+  return turf.booleanPointInPolygon(point, polygon);
+};
+
+export function getMarkersInsidePolygon(
   markers: PlacedMarker[],
-  selectedTurf: SelectedTurf | null,
+  polygon: Feature<Polygon> | null | undefined,
 ) {
-  if (!selectedTurf) {
+  if (!polygon) {
     return [];
   }
 
-  const turfPolygon = turf.polygon(selectedTurf.geometry.coordinates);
-
   return markers.filter((marker) => {
-    const point = turf.point([marker.point.lng, marker.point.lat]);
-    return turf.booleanPointInPolygon(point, turfPolygon);
+    return checkIfPointInPolygon([marker.point.lng, marker.point.lat], polygon);
+  });
+}
+
+export function getRecordsInsideBoundary(
+  data: {
+    records: RecordsResponse;
+    dataSource: DataSource | null;
+  }[],
+  boundaryFeature: Feature<Polygon> | null | undefined,
+) {
+  if (!boundaryFeature) {
+    return [];
+  }
+
+  return data.map((d) => {
+    const recordsInsideTurf = d.records.records.filter((r) => {
+      return checkIfPointInPolygon(
+        [r.geocodePoint.lng, r.geocodePoint.lat],
+        boundaryFeature,
+      );
+    });
+
+    return {
+      dataSource: d.dataSource,
+      records: {
+        count: {
+          ...d.records.count,
+          matched: recordsInsideTurf?.length ?? 0,
+        },
+        records: recordsInsideTurf,
+      },
+    };
   });
 }
 
@@ -69,4 +151,30 @@ export const mapPlacedMarkersToRecordsResponse = (
       },
     };
   });
+};
+
+function findAreaSetCodeByLayerId(layerId: string): string | null {
+  for (const [key, items] of Object.entries(CHOROPLETH_LAYER_CONFIGS)) {
+    const found = items.some((item) => item.mapbox?.layerId === layerId);
+    if (found) {
+      return key;
+    }
+  }
+  return null;
+}
+
+export const getBoundaryDatasetName = (
+  sourceLayerId: string | null | undefined,
+) => {
+  if (!sourceLayerId) {
+    return "";
+  }
+
+  const configName = findAreaSetCodeByLayerId(sourceLayerId);
+
+  if (!configName) {
+    return "Boundary Data";
+  }
+
+  return AreaSetCodeLabels?.[configName as AreaSetCode] ?? "Boundary Data";
 };

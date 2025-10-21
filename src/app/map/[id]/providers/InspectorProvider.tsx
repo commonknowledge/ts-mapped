@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
@@ -18,6 +19,7 @@ import { LayerType } from "@/types";
 
 import type {
   InspectorContent,
+  SelectedBoundary,
   SelectedRecord,
   SelectedTurf,
 } from "@/app/map/[id]/context/InspectorContext";
@@ -41,18 +43,32 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     null,
   );
   const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
+  const [selectedBoundary, setSelectedBoundary] =
+    useState<SelectedBoundary | null>(null);
 
   const [inspectorContent, setInspectorContent] =
     useState<InspectorContent | null>(null);
 
   useEffect(() => {
+    // if no selected marker / member to inspect
     if (!selectedRecord || !selectedRecord?.properties) {
+      // check if area selected
       if (selectedTurf?.id) {
         setInspectorContent({
           type: LayerType.Turf,
           name: selectedTurf.name || "Area",
           properties: null,
           dataSource: null,
+        });
+      } else if (selectedBoundary?.name) {
+        setInspectorContent({
+          type: LayerType.Boundary,
+          name: selectedBoundary.name,
+          dataSource: null,
+          properties: {
+            ["Area Code"]: selectedBoundary?.areaCode,
+            Dataset: getBoundaryDatasetName(selectedBoundary?.sourceLayerId),
+          },
         });
       } else {
         setInspectorContent(null);
@@ -85,12 +101,14 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     getDataSourceById,
     selectedRecord,
     selectedTurf,
+    selectedBoundary,
     mapConfig.membersDataSourceId,
   ]);
 
   const resetInspector = () => {
     setSelectedRecord(null);
     setSelectedTurf(null);
+    setSelectedBoundary(null);
     setInspectorContent(null);
   };
 
@@ -103,6 +121,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         setSelectedRecord,
         selectedTurf,
         setSelectedTurf,
+        selectedBoundary,
+        setSelectedBoundary,
         resetInspector,
       }}
     >

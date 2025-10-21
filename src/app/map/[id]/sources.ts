@@ -21,7 +21,7 @@ const AREA_SET_SIZES: Record<AreaSetCode, number> = {
 };
 
 // Configs within a group should be in descending order of minZoom
-const CHOROPLETH_LAYER_CONFIGS: Record<
+export const CHOROPLETH_LAYER_CONFIGS: Record<
   AreaSetGroupCode,
   ChoroplethLayerConfig[]
 > = {

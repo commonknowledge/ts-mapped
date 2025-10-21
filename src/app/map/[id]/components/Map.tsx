@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
+import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
   MapContext,
@@ -74,8 +75,17 @@ export default function Map({
     placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
-  const { resetInspector, setSelectedRecord, setSelectedTurf } =
-    useContext(InspectorContext);
+  const {
+    resetInspector,
+    setSelectedRecord,
+    setSelectedTurf,
+    setSelectedBoundary,
+  } = useContext(InspectorContext);
+  const {
+    choroplethLayerConfig: {
+      mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
+    },
+  } = useContext(ChoroplethContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -438,6 +448,53 @@ export default function Map({
               // Prevent default map zoom on double-click
               e.originalEvent.preventDefault();
               return;
+            }
+          }
+        }}
+        onContextMenu={(e) => {
+          const map = e.target;
+
+          if (
+            sourceId &&
+            layerId &&
+            featureCodeProperty &&
+            featureNameProperty
+          ) {
+            try {
+              const boundaryFeatures = map.queryRenderedFeatures(e.point, {
+                layers: [`${sourceId}-fill`, `${sourceId}-line`],
+              });
+
+              if (boundaryFeatures.length > 0) {
+                const feature = boundaryFeatures[0];
+                const areaCode = feature.properties?.[
+                  featureCodeProperty
+                ] as string;
+                const areaName = feature.properties?.[
+                  featureNameProperty
+                ] as string;
+
+                if (areaCode && areaName) {
+                  // Prevent default context menu
+                  e.originalEvent.preventDefault();
+
+                  resetInspector();
+
+                  setSelectedBoundary({
+                    id: feature?.id as string,
+                    areaCode: areaCode,
+                    sourceLayerId: feature?.sourceLayer as string,
+                    name: areaName,
+                    properties: feature?.properties,
+                    boundaryFeature: feature,
+                  });
+
+                  return;
+                }
+              }
+            } catch (error) {
+              // Silently ignore errors - layers might not exist yet
+              console.debug("Boundary query failed:", error);
             }
           }
         }}
