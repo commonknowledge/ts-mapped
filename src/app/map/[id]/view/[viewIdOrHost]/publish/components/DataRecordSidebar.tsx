@@ -16,9 +16,16 @@ export default function DataRecordSidebar() {
     if (!selectedRecord) {
       return null;
     }
+<<<<<<< Updated upstream
     const dataRecordsQuery = dataRecordsQueries[selectedRecord.dataSourceId];
     return dataRecordsQuery.data?.records?.find(
       (r) => r.id === selectedRecord.id,
+=======
+    const dataRecordsQuery =
+      dataRecordsQueries[inspectorContent.dataSourceId || ""];
+    return dataRecordsQuery?.data?.records?.find(
+      (r) => r.id === inspectorContent.id,
+>>>>>>> Stashed changes
     );
   }, [dataRecordsQueries, selectedRecord]);
 
