@@ -1,5 +1,6 @@
-import { beforeAll, describe, expect, it } from "vitest";
 import { v4 as uuidv4 } from "uuid";
+import { beforeAll, describe, expect, it } from "vitest";
+import type { Feature } from "geojson";
 import {
   ColumnType,
   DataSourceRecordType,
@@ -164,22 +165,22 @@ describe("GeoJSON REST API", () => {
 
     // Check first feature
     const feature1 = geojson.features.find(
-      (f: any) => f.properties.name === "Location 1"
+      (f: Feature) => f.properties?.name === "Location 1"
     );
     expect(feature1).toBeDefined();
-    expect(feature1.type).toBe("Feature");
-    expect(feature1.geometry.type).toBe("Point");
-    expect(feature1.geometry.coordinates).toEqual([-0.1278, 51.5074]);
-    expect(feature1.properties.name).toBe("Location 1");
-    expect(feature1.properties.address).toBe("123 Main St");
-    expect(feature1.properties._dataSourceId).toBe(testDataSource.id);
+    expect(feature1?.type).toBe("Feature");
+    expect(feature1?.geometry.type).toBe("Point");
+    expect(feature1?.geometry.coordinates).toEqual([-0.1278, 51.5074]);
+    expect(feature1?.properties?.name).toBe("Location 1");
+    expect(feature1?.properties?.address).toBe("123 Main St");
+    expect(feature1?.properties?._dataSourceId).toBe(testDataSource.id);
 
     // Check second feature
     const feature2 = geojson.features.find(
-      (f: any) => f.properties.name === "Location 2"
+      (f: Feature) => f.properties?.name === "Location 2"
     );
     expect(feature2).toBeDefined();
-    expect(feature2.geometry.coordinates).toEqual([-74.006, 40.7128]);
+    expect(feature2?.geometry.coordinates).toEqual([-74.006, 40.7128]);
   });
 
   it("should return 403 for user without access to data source", async () => {
@@ -224,7 +225,7 @@ describe("GeoJSON REST API", () => {
     // Search should filter to only Location 1
     expect(geojson.features.length).toBeGreaterThan(0);
     expect(
-      geojson.features.some((f: any) => f.properties.name === "Location 1")
+      geojson.features.some((f: Feature) => f.properties?.name === "Location 1")
     ).toBe(true);
   });
 

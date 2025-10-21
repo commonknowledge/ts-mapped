@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import z from "zod";
-import type { Feature, FeatureCollection, Point } from "geojson";
-import type { DataRecord } from "@/server/models/DataRecord";
 import {
   recordFilterSchema,
   recordSortSchema,
@@ -11,6 +8,9 @@ import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationForUser } from "@/server/repositories/Organisation";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
+import type { Feature, FeatureCollection, Point } from "geojson";
+import type { NextRequest } from "next/server";
+import type { DataRecord } from "@/server/models/DataRecord";
 
 /**
  * Query parameters schema for GeoJSON API
