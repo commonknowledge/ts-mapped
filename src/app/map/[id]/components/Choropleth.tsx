@@ -45,7 +45,7 @@ export default function Choropleth() {
           sourceLayer: layerId,
           id: stat.areaCode,
         },
-        { value: stat.value }
+        { value: stat.value },
       );
       nextAreaCodesToClean[stat.areaCode] = true;
     });
@@ -67,7 +67,7 @@ export default function Choropleth() {
     areaStatsQuery?.data,
     viewConfig.colorScheme || ColorScheme.RedBlue,
     viewConfig.calculationType === CalculationType.Count,
-    Boolean(viewConfig.reverseColorScheme)
+    Boolean(viewConfig.reverseColorScheme),
   );
 
   const choroplethTopLayerId = "choropleth-top";
