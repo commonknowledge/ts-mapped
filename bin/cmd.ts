@@ -9,6 +9,7 @@ import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import Invite from "@/server/emails/invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
+import { createInvitation } from "@/server/repositories/Invitation";
 import {
   findOrganisationByName,
   upsertOrganisation,
@@ -135,6 +136,33 @@ program
     } catch (error) {
       logger.error("Could not send invite", { error });
     }
+  });
+
+program
+  .command("createInvitation")
+  .option("--email <email>")
+  .option("--name <name>")
+  .option("--organisationId <organisationId>")
+  .description("Create an invitation for a user")
+  .action(async (options) => {
+    const invitation = await createInvitation({
+      email: options.email,
+      name: options.name,
+      organisationId: options.organisationId,
+    });
+
+    logger.info(`Created invitation ${invitation.id}`);
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+    const token = await new SignJWT({ invitationId: invitation.id })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(secret);
+
+    await sendEmail(options.email, "Invite to Mapped", Invite({ token }));
+    logger.info(`Sent invite to ${options.email}`);
+
+    logger.info(`Invitation token: ${token}`);
   });
 
 program

@@ -40,11 +40,10 @@ export default function SuperadminPage() {
   const { currentUser } = useCurrentUser();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [organisation, setOrganisation] = useState("");
-  const [newOrganisation, setNewOrganisation] = useState("");
+  const [organisationId, setOrganisationId] = useState("");
+  const [organisationName, setOrganisationName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  const isNewOrganisation = !organisation || organisation === "NEW";
+  const [isCreatingNewOrg, setIsCreatingNewOrg] = useState(false);
 
   const trpc = useTRPC();
   const { data: organisations, isPending: organisationsLoading } = useQuery(
@@ -54,20 +53,21 @@ export default function SuperadminPage() {
     trpc.user.list.queryOptions(),
   );
   const { data: invitations, isPending: invitationsLoading } = useQuery(
-    trpc.user.listInvitations.queryOptions(),
+    trpc.invitation.list.queryOptions(),
   );
 
   const client = useQueryClient();
-  const { mutate: createUserMutate, isPending } = useMutation(
-    trpc.user.create.mutationOptions({
+  const { mutate: createInvitationMutate, isPending } = useMutation(
+    trpc.invitation.create.mutationOptions({
       onSuccess: () => {
         toast.success("Invitation created successfully", {
           description: "An invite has been sent to the user",
         });
         setName("");
         setEmail("");
-        setOrganisation("");
-        setNewOrganisation("");
+        setOrganisationId("");
+        setOrganisationName("");
+        setIsCreatingNewOrg(false);
         setDialogOpen(false);
         client.invalidateQueries({
           queryKey: trpc.organisation.listAll.queryKey(),
@@ -76,11 +76,13 @@ export default function SuperadminPage() {
           queryKey: trpc.user.list.queryKey(),
         });
         client.invalidateQueries({
-          queryKey: trpc.user.listInvitations.queryKey(),
+          queryKey: trpc.invitation.list.queryKey(),
         });
       },
-      onError: () => {
-        toast.error("Failed to create invitation.");
+      onError: (error) => {
+        toast.error("Failed to create invitation.", {
+          description: error.message,
+        });
       },
     }),
   );
@@ -90,11 +92,21 @@ export default function SuperadminPage() {
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    createUserMutate({
-      organisation: isNewOrganisation ? newOrganisation : organisation,
-      email,
-      name,
-    });
+    if (!organisationId && !organisationName) {
+      toast.error("Please select an organisation or create a new one");
+      return;
+    }
+    createInvitationMutate({ organisationId, organisationName, email, name });
+  };
+
+  const toggleOrganisationMode = () => {
+    setIsCreatingNewOrg(!isCreatingNewOrg);
+    // Clear the state of whichever mode we're leaving
+    if (isCreatingNewOrg) {
+      setOrganisationName("");
+    } else {
+      setOrganisationId("");
+    }
   };
 
   if (organisationsLoading || usersLoading || invitationsLoading) {
@@ -149,43 +161,64 @@ export default function SuperadminPage() {
                     />
                   </FormFieldWrapper>
 
-                  <FormFieldWrapper id="organisation" label="Organisation">
-                    <Select
-                      value={organisation}
-                      onValueChange={(org) => setOrganisation(org)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select an existing organisation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="NEW">New organisation</SelectItem>
-                        {organisations?.map((o) => {
-                          return (
-                            <SelectItem key={o.id} value={o.name || "Unknown"}>
-                              {o.name || "Unknown"}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </FormFieldWrapper>
-
-                  {isNewOrganisation && (
-                    <FormFieldWrapper
-                      id="new-organisation"
-                      label="New organisation"
-                    >
+                  <FormFieldWrapper
+                    id="organisation"
+                    label={
+                      <div className="flex items-center justify-between w-full">
+                        <span>Organisation</span>
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          onClick={toggleOrganisationMode}
+                          className="h-auto p-0 text-xs"
+                        >
+                          {isCreatingNewOrg
+                            ? "or select one"
+                            : "or create a new one"}
+                        </Button>
+                      </div>
+                    }
+                  >
+                    {isCreatingNewOrg ? (
                       <Input
                         id="new-organisation"
                         name="new-organisation"
                         type="text"
-                        value={newOrganisation}
-                        onChange={(e) => setNewOrganisation(e.target.value)}
+                        autoFocus
+                        placeholder="Enter new organisation name"
+                        value={organisationName}
+                        onChange={(e) => setOrganisationName(e.target.value)}
+                        required
                       />
-                    </FormFieldWrapper>
-                  )}
+                    ) : (
+                      <Select
+                        value={organisationId}
+                        onValueChange={(org) => setOrganisationId(org)}
+                        required
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select an existing organisation" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {organisations?.map((o) => {
+                            return (
+                              <SelectItem key={o.id} value={o.id.toString()}>
+                                {o.name || "Unknown"}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </FormFieldWrapper>
 
-                  <Button disabled={isPending} size="sm" className="mt-2">
+                  <Button
+                    disabled={isPending}
+                    type="submit"
+                    size="sm"
+                    className="mt-2"
+                  >
                     Send invitation
                   </Button>
                 </form>
