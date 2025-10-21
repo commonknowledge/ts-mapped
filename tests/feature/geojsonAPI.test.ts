@@ -21,7 +21,7 @@ describe("GeoJSON REST API", () => {
 
   beforeAll(async () => {
     console.warn("Set npm config set strict-ssl false");
-    
+
     // Create test user
     testUser = await upsertUser({
       email: `test-geojson-${uuidv4()}@example.com`,
@@ -46,10 +46,13 @@ describe("GeoJSON REST API", () => {
 
     // Create test data source
     const name = "Test Data Source";
-    testDataSource = (
-      await db.selectFrom("dataSource").where("name", "=", name).selectAll().executeTakeFirst()
-    ) || (
-      await createDataSource({
+    testDataSource =
+      (await db
+        .selectFrom("dataSource")
+        .where("name", "=", name)
+        .selectAll()
+        .executeTakeFirst()) ||
+      (await createDataSource({
         name,
         recordType: DataSourceRecordType.Locations,
         autoEnrich: false,
@@ -67,8 +70,7 @@ describe("GeoJSON REST API", () => {
         geocodingConfig: { type: GeocodingType.None },
         enrichments: [],
         organisationId: testOrganisation.id,
-      })
-    );
+      }));
 
     // Add test data records with geocoded points
     await upsertDataRecord({
@@ -113,29 +115,29 @@ describe("GeoJSON REST API", () => {
 
   it("should return 401 without authentication", async () => {
     const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`
+      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
     );
     expect(response.status).toBe(401);
   });
 
   it("should return 401 with invalid credentials", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:wrongpassword`
-    ).toString("base64");
+    const credentials = Buffer.from(`${testUser.email}:wrongpassword`).toString(
+      "base64",
+    );
     const response = await fetch(
       `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
       {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
     expect(response.status).toBe(401);
   });
 
   it("should return 404 for non-existent data source", async () => {
     const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`
+      `${testUser.email}:${testPassword}`,
     ).toString("base64");
     const id = uuidv4();
     const response = await fetch(
@@ -144,7 +146,7 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
     console.log("response", await response.json());
     expect(response.status).toBe(404);
@@ -152,7 +154,7 @@ describe("GeoJSON REST API", () => {
 
   it("should return GeoJSON for valid request", async () => {
     const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`
+      `${testUser.email}:${testPassword}`,
     ).toString("base64");
     const response = await fetch(
       `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
@@ -160,21 +162,22 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain(
-      "application/geo+json"
+      "application/geo+json",
     );
 
-    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
+    const geojson =
+      (await response.json()) as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(geojson.features).toHaveLength(2); // Only geocoded records
 
     // Check first feature
     const feature1 = geojson.features.find(
-      (f: Feature) => f.properties?.name === "Location 1"
+      (f: Feature) => f.properties?.name === "Location 1",
     );
     expect(feature1).toBeDefined();
     expect(feature1?.type).toBe("Feature");
@@ -186,7 +189,7 @@ describe("GeoJSON REST API", () => {
 
     // Check second feature
     const feature2 = geojson.features.find(
-      (f: Feature) => f.properties?.name === "Location 2"
+      (f: Feature) => f.properties?.name === "Location 2",
     );
     expect(feature2).toBeDefined();
     expect(feature2?.geometry.coordinates).toEqual([-74.006, 40.7128]);
@@ -202,7 +205,7 @@ describe("GeoJSON REST API", () => {
     });
 
     const credentials = Buffer.from(
-      `${otherUser.email}:${testPassword}`
+      `${otherUser.email}:${testPassword}`,
     ).toString("base64");
     const response = await fetch(
       `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
@@ -210,14 +213,14 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
     expect(response.status).toBe(403);
   });
 
   it("should support search query parameter", async () => {
     const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`
+      `${testUser.email}:${testPassword}`,
     ).toString("base64");
     const response = await fetch(
       `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?search=Location%201`,
@@ -225,22 +228,25 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
+    const geojson =
+      (await response.json()) as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     // Search should filter to only Location 1
     expect(geojson.features.length).toBeGreaterThan(0);
     expect(
-      geojson.features.some((f: Feature) => f.properties?.name === "Location 1")
+      geojson.features.some(
+        (f: Feature) => f.properties?.name === "Location 1",
+      ),
     ).toBe(true);
   });
 
   it("should support pagination with page parameter", async () => {
     const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`
+      `${testUser.email}:${testPassword}`,
     ).toString("base64");
     const response = await fetch(
       `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=0&all=false`,
@@ -248,18 +254,19 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
+    const geojson =
+      (await response.json()) as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(Array.isArray(geojson.features)).toBe(true);
   });
 
   it("should support all parameter to get all records", async () => {
     const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`
+      `${testUser.email}:${testPassword}`,
     ).toString("base64");
     const response = await fetch(
       `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?all=true`,
@@ -267,18 +274,19 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
+    const geojson =
+      (await response.json()) as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(geojson.features).toHaveLength(2);
   });
 
   it("should support sort parameter", async () => {
     const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`
+      `${testUser.email}:${testPassword}`,
     ).toString("base64");
     const sortParam = JSON.stringify([{ name: "name", desc: true }]);
     const response = await fetch(
@@ -287,11 +295,12 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
+    const geojson =
+      (await response.json()) as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(geojson.features).toHaveLength(2);
     // Sorted descending by name, so Location 2 should come first
@@ -300,7 +309,7 @@ describe("GeoJSON REST API", () => {
 
   it("should return 400 for invalid query parameters", async () => {
     const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`
+      `${testUser.email}:${testPassword}`,
     ).toString("base64");
     const response = await fetch(
       `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=invalid`,
@@ -308,11 +317,11 @@ describe("GeoJSON REST API", () => {
         headers: {
           Authorization: `Basic ${credentials}`,
         },
-      }
+      },
     );
 
     expect(response.status).toBe(400);
-    const error = await response.json() as { error: string };
+    const error = (await response.json()) as { error: string };
     expect(error.error).toBe("Invalid query parameters");
   });
 });

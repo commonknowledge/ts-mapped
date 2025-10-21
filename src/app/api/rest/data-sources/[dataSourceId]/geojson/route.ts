@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import z from "zod";
-import {
-  recordFilterSchema,
-  recordSortSchema,
-} from "@/server/models/MapView";
+import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
 import { findDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationForUser } from "@/server/repositories/Organisation";
@@ -80,7 +77,7 @@ const queryParamsSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ dataSourceId: string }> }
+  { params }: { params: Promise<{ dataSourceId: string }> },
 ) {
   const { dataSourceId } = await params;
 
@@ -103,7 +100,7 @@ export async function GET(
       {
         status: 400,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 
@@ -120,13 +117,15 @@ export async function GET(
           "WWW-Authenticate": 'Basic realm="Data Source API"',
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   }
 
   // Decode Basic Auth credentials
   const base64Credentials = authHeader.split(" ")[1];
-  const credentials = Buffer.from(base64Credentials, "base64").toString("utf-8");
+  const credentials = Buffer.from(base64Credentials, "base64").toString(
+    "utf-8",
+  );
   const [email, password] = credentials.split(":");
 
   if (!email || !password) {
@@ -138,23 +137,20 @@ export async function GET(
           "WWW-Authenticate": 'Basic realm="Data Source API"',
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   }
 
   // Authenticate user with email and password
   const user = await findUserByEmailAndPassword({ email, password });
   if (!user) {
-    return new NextResponse(
-      JSON.stringify({ error: "Invalid credentials" }),
-      {
-        status: 401,
-        headers: {
-          "WWW-Authenticate": 'Basic realm="Data Source API"',
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new NextResponse(JSON.stringify({ error: "Invalid credentials" }), {
+      status: 401,
+      headers: {
+        "WWW-Authenticate": 'Basic realm="Data Source API"',
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   // Find data source
@@ -165,23 +161,20 @@ export async function GET(
       {
         status: 404,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 
   // Check if user has access to the data source via organization
   const organisation = await findOrganisationForUser(
     dataSource.organisationId,
-    user.id
+    user.id,
   );
   if (!organisation) {
-    return new NextResponse(
-      JSON.stringify({ error: "Access denied" }),
-      {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new NextResponse(JSON.stringify({ error: "Access denied" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // Fetch data records for this data source with filters, search, and sorting
@@ -207,9 +200,7 @@ export async function GET(
 /**
  * Convert data records to GeoJSON FeatureCollection
  */
-function dataRecordsToGeoJSON(
-  records: DataRecord[]
-): FeatureCollection {
+function dataRecordsToGeoJSON(records: DataRecord[]): FeatureCollection {
   const features: Feature[] = records
     .filter((record) => record?.geocodePoint) // Only include geocoded records
     .map((record) => {
