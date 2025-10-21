@@ -40,5 +40,5 @@ export function updateUnusedInvitation(id: string, data: InvitationUpdate) {
       updatedAt: sql`CURRENT_TIMESTAMP`,
     })
     .returningAll()
-    .executeTakeFirst();
+    .executeTakeFirstOrThrow();
 }
