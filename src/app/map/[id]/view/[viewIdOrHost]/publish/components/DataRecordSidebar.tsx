@@ -18,7 +18,7 @@ export default function DataRecordSidebar() {
     }
     const dataRecordsQuery =
       dataRecordsQueries[inspectorContent.dataSourceId || ""];
-    return dataRecordsQuery.data?.records?.find(
+    return dataRecordsQuery?.data?.records?.find(
       (r) => r.id === inspectorContent.id,
     );
   }, [dataRecordsQueries, inspectorContent]);
