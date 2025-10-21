@@ -20,6 +20,14 @@ export function findInvitationById(id: string) {
     .selectAll()
     .executeTakeFirst();
 }
+export function findUnusedInvitationById(id: string) {
+  return db
+    .selectFrom("invitation")
+    .where("id", "=", id)
+    .where("userId", "is", null)
+    .selectAll()
+    .executeTakeFirst();
+}
 
 export function listPendingInvitations() {
   return db
@@ -42,6 +50,18 @@ export function updateInvitation(id: string, data: InvitationUpdate) {
   return db
     .updateTable("invitation")
     .where("id", "=", id)
+    .set({
+      ...data,
+      updatedAt: sql`CURRENT_TIMESTAMP`,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+export function updateUnusedInvitation(id: string, data: InvitationUpdate) {
+  return db
+    .updateTable("invitation")
+    .where("id", "=", id)
+    .where("userId", "is", null)
     .set({
       ...data,
       updatedAt: sql`CURRENT_TIMESTAMP`,

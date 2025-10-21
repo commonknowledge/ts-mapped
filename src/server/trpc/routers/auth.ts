@@ -5,8 +5,8 @@ import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import ForgotPassword from "@/server/emails/forgot-password";
 import {
-  findInvitationById,
-  updateInvitation,
+  findUnusedInvitationById,
+  updateUnusedInvitation,
 } from "@/server/repositories/Invitation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import {
@@ -32,7 +32,7 @@ export const authRouter = router({
       );
 
       // Find invitation by ID
-      const invitation = await findInvitationById(payload.invitationId);
+      const invitation = await findUnusedInvitationById(payload.invitationId);
       if (!invitation)
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -53,14 +53,14 @@ export const authRouter = router({
         password,
       });
 
+      // Mark invitation as used
+      await updateUnusedInvitation(invitation.id, { userId: user.id });
+
       // Link user to organisation
       await upsertOrganisationUser({
         organisationId: invitation.organisationId,
         userId: user.id,
       });
-
-      // Mark invitation as used
-      await updateInvitation(invitation.id, { userId: user.id });
 
       // Ensure organisation map exists
       await ensureOrganisationMap(invitation.organisationId);
