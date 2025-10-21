@@ -107,7 +107,7 @@ export default function Map({
 
   // draw existing turfs
   useEffect(() => {
-    if (!turfs || !draw) return;
+    if (!turfs || !draw || !viewConfig?.showTurf) return;
 
     draw.deleteAll();
 
@@ -119,7 +119,7 @@ export default function Map({
         geometry: turf.polygon,
       });
     });
-  }, [turfs, draw]);
+  }, [turfs, draw, viewConfig?.showTurf]);
 
   // Hover behavior
   useEffect(() => {
