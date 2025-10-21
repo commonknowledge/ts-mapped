@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { Feature } from "geojson";
 import {
   ColumnType,
   DataSourceRecordType,
@@ -12,6 +11,7 @@ import { createDataSource } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
+import type { Feature } from "geojson";
 
 describe("GeoJSON REST API", () => {
   let testUser: Awaited<ReturnType<typeof upsertUser>>;
