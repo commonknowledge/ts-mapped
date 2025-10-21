@@ -70,8 +70,12 @@ export default function Invite({ token = "123" }: { token: string }) {
           We fund the ongoing development of Mapped through a mix of grants,
           feature commissions, individual donations and our own surplus income.
           Mapped will always be free for grassroots organisers, but if you’re in
-          the position to support our work with a donation, it would go a long
-          way to making this work sustainable.
+          the position to{" "}
+          <a href="https://opencollective.com/commonknowledge">
+            support our work
+          </a>{" "}
+          with a donation, it would go a long way to making this work
+          sustainable.
         </Text>
 
         <Hr className="mx-0 my-[26px] w-full border border-[#eaeaea] border-solid" />
