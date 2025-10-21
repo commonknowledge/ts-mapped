@@ -4,9 +4,12 @@ import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import Invite from "@/server/emails/invite";
 import { passwordSchema, userSchema } from "@/server/models/User";
+import {
+  createInvitation,
+  listPendingInvitations,
+} from "@/server/repositories/Invitation";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
-import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { listUsers, updateUser, upsertUser } from "@/server/repositories/User";
+import { listUsers, updateUser } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
 import { verifyPassword } from "@/server/utils/auth";
@@ -26,26 +29,26 @@ export const userRouter = router({
         const org = await upsertOrganisation({
           name: input.organisation,
         });
-        const user = await upsertUser({
-          email: input.email,
-          name: input.name,
-          password: "__PENDING_INVITE__",
-        });
-        await upsertOrganisationUser({
-          organisationId: org.id,
-          userId: user.id,
-        });
         await ensureOrganisationMap(org.id);
+
+        const invitation = await createInvitation({
+          email: input.email.toLowerCase().trim(),
+          name: input.name,
+          organisationId: org.id,
+        });
+
         const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
-        const token = await new SignJWT({ id: user.id })
+        const token = await new SignJWT({ invitationId: invitation.id })
           .setProtectedHeader({ alg: "HS256" })
           .setExpirationTime("7d")
           .sign(secret);
 
         await sendEmail(input.email, "Invite to Mapped", Invite({ token }));
-        logger.info(`Created user ${input.email}, ID ${user.id}`);
+        logger.info(
+          `Created invitation for ${input.email}, ID ${invitation.id}`,
+        );
       } catch (error) {
-        logger.error("Could not create user", { error });
+        logger.error("Could not create invitation", { error });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Unknown error",
@@ -53,6 +56,7 @@ export const userRouter = router({
       }
     }),
   list: superadminProcedure.query(() => listUsers()),
+  listInvitations: superadminProcedure.query(() => listPendingInvitations()),
   update: protectedProcedure
     .input(
       userSchema.pick({ email: true, name: true, avatarUrl: true }).partial(),

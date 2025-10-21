@@ -30,8 +30,8 @@ export default function InvitePage() {
       onSuccess: () => {
         window.location.href = "/dashboard";
       },
-      onError: () => {
-        setError("Failed to confirm invite, please try again.");
+      onError: (error) => {
+        setError(error.message);
       },
     }),
   );
