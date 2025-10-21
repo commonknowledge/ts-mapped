@@ -168,7 +168,7 @@ describe("GeoJSON REST API", () => {
       "application/geo+json"
     );
 
-    const geojson = await response.json();
+    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(geojson.features).toHaveLength(2); // Only geocoded records
 
@@ -229,7 +229,7 @@ describe("GeoJSON REST API", () => {
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json();
+    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     // Search should filter to only Location 1
     expect(geojson.features.length).toBeGreaterThan(0);
@@ -252,7 +252,7 @@ describe("GeoJSON REST API", () => {
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json();
+    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(Array.isArray(geojson.features)).toBe(true);
   });
@@ -271,7 +271,7 @@ describe("GeoJSON REST API", () => {
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json();
+    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(geojson.features).toHaveLength(2);
   });
@@ -291,11 +291,11 @@ describe("GeoJSON REST API", () => {
     );
 
     expect(response.status).toBe(200);
-    const geojson = await response.json();
+    const geojson = await response.json() as GeoJSON.FeatureCollection<GeoJSON.Point>;
     expect(geojson.type).toBe("FeatureCollection");
     expect(geojson.features).toHaveLength(2);
     // Sorted descending by name, so Location 2 should come first
-    expect(geojson.features[0].properties.name).toBe("Location 2");
+    expect(geojson.features[0]?.properties?.name).toBe("Location 2");
   });
 
   it("should return 400 for invalid query parameters", async () => {
@@ -312,7 +312,7 @@ describe("GeoJSON REST API", () => {
     );
 
     expect(response.status).toBe(400);
-    const error = await response.json();
+    const error = await response.json() as { error: string };
     expect(error.error).toBe("Invalid query parameters");
   });
 });
