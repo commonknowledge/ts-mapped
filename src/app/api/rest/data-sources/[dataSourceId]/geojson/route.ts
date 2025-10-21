@@ -15,10 +15,18 @@ import type { NextRequest } from "next/server";
 /**
  * Query parameters schema for GeoJSON API
  */
+// dataSourceId: string,
+// filter: RecordFilterInput | null | undefined,
+// search: string | null | undefined,
+// page: number,
+// sort: SortInput[],
+// all: boolean | null | undefined,
+
 const queryParamsSchema = z.object({
   filter: z
     .string()
     .optional()
+    .nullable()
     .transform((val) => {
       if (!val) return null;
       try {
@@ -32,11 +40,13 @@ const queryParamsSchema = z.object({
   page: z
     .string()
     .optional()
+    .nullable()
     .transform((val) => (val ? parseInt(val, 10) : 0))
     .pipe(z.number().int().min(0).default(0)),
   sort: z
     .string()
     .optional()
+    .nullable()
     .transform((val) => {
       if (!val) return [];
       try {
@@ -49,6 +59,7 @@ const queryParamsSchema = z.object({
   all: z
     .string()
     .optional()
+    .nullable()
     .transform((val) => val === "true")
     .pipe(z.boolean().default(false)),
 });
@@ -180,7 +191,7 @@ export async function GET(
     search,
     page,
     sort,
-    all
+    all,
   );
 
   // Transform to GeoJSON
@@ -200,7 +211,7 @@ function dataRecordsToGeoJSON(
   records: DataRecord[]
 ): FeatureCollection {
   const features: Feature[] = records
-    .filter((record) => record.geocodePoint) // Only include geocoded records
+    .filter((record) => record?.geocodePoint) // Only include geocoded records
     .map((record) => {
       const point = record.geocodePoint;
       if (!point) return null;
@@ -220,7 +231,7 @@ function dataRecordsToGeoJSON(
           _externalId: record.externalId,
           _geocodeResult: record.geocodeResult,
         },
-      };
+      } as Feature;
     })
     .filter((feature): feature is Feature => feature !== null);
 
