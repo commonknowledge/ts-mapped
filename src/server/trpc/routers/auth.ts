@@ -4,10 +4,7 @@ import { cookies } from "next/headers";
 import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import ForgotPassword from "@/server/emails/forgot-password";
-import {
-  findUnusedInvitationById,
-  updateUnusedInvitation,
-} from "@/server/repositories/Invitation";
+import { updateUnusedInvitation } from "@/server/repositories/Invitation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import {
   findUserByEmail,
@@ -31,8 +28,10 @@ export const authRouter = router({
         secret,
       );
 
-      // Find invitation by ID
-      const invitation = await findUnusedInvitationById(payload.invitationId);
+      // Find and update invitation by ID (prevents duplicate requests)
+      const invitation = await updateUnusedInvitation(payload.invitationId, {
+        used: true,
+      });
       if (!invitation)
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -52,9 +51,6 @@ export const authRouter = router({
         name: invitation.name,
         password,
       });
-
-      // Mark invitation as used
-      await updateUnusedInvitation(invitation.id, { userId: user.id });
 
       // Link user to organisation
       await upsertOrganisationUser({

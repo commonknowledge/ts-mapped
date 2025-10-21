@@ -14,6 +14,7 @@ export const invitationSchema = z.object({
   userId: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  used: z.boolean(),
 });
 
 export type Invitation = z.infer<typeof invitationSchema>;

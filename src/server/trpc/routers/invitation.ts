@@ -52,6 +52,7 @@ export const invitationRouter = router({
           email: input.email.toLowerCase().trim(),
           name: input.name,
           organisationId: org.id,
+          used: false,
         });
 
         const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");

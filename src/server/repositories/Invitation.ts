@@ -13,22 +13,6 @@ export function createInvitation(invitation: NewInvitation) {
     .executeTakeFirstOrThrow();
 }
 
-export function findInvitationById(id: string) {
-  return db
-    .selectFrom("invitation")
-    .where("id", "=", id)
-    .selectAll()
-    .executeTakeFirst();
-}
-export function findUnusedInvitationById(id: string) {
-  return db
-    .selectFrom("invitation")
-    .where("id", "=", id)
-    .where("userId", "is", null)
-    .selectAll()
-    .executeTakeFirst();
-}
-
 export function listPendingInvitations() {
   return db
     .selectFrom("invitation")
@@ -46,22 +30,12 @@ export function listPendingInvitations() {
     .execute();
 }
 
-export function updateInvitation(id: string, data: InvitationUpdate) {
-  return db
-    .updateTable("invitation")
-    .where("id", "=", id)
-    .set({
-      ...data,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    })
-    .returningAll()
-    .executeTakeFirstOrThrow();
-}
 export function updateUnusedInvitation(id: string, data: InvitationUpdate) {
+  console.log("updating", data);
   return db
     .updateTable("invitation")
     .where("id", "=", id)
-    .where("userId", "is", null)
+    .where("used", "=", false)
     .set({
       ...data,
       updatedAt: sql`CURRENT_TIMESTAMP`,
