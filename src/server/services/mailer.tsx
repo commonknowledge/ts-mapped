@@ -30,7 +30,7 @@ export async function sendEmail(
   try {
     const html = await render(template);
     await transporter.sendMail({
-      from: "noreply@v3.mapped.tools",
+      from: "noreply@mapped.tools",
       to,
       subject,
       html,

@@ -66,7 +66,7 @@ export default function PublicMap() {
             />
             {loading && <Loading />}
             <Link
-              href="https://v3.mapped.tools"
+              href="https://mapped.tools"
               className="absolute bottom-6 right-4 flex flex-col items-center w-24 md:w-auto"
             >
               <p className="text-sm text-neutral-500">Made using Mapped</p>
