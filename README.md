@@ -35,6 +35,58 @@
 - This will download `test_credentials.json` from BitWarden Secrets manager, which is required to test the data source adaptors.
 - Filter tests with `npm test -- -t [filter]`
 
+## API Documentation
+
+### GeoJSON REST API
+
+The application provides a REST API endpoint to retrieve data source items as GeoJSON.
+
+**Endpoint:**
+```
+GET /api/rest/data-sources/{dataSourceId}/geojson
+```
+
+**Authentication:**
+- Basic Auth (user:password)
+- The authenticated user must have access to the data source through their organisation membership
+
+**Response:**
+- Content-Type: `application/geo+json`
+- Returns a GeoJSON FeatureCollection with all geocoded items from the data source
+- Each feature includes:
+  - `geometry`: Point coordinates (longitude, latitude)
+  - `properties`: Raw data from the item plus metadata fields (`_dataSourceId`, `_externalId`, `_geocodeResult`)
+
+**Example:**
+```bash
+curl -u "user@example.com:password" \
+  https://your-mapped-instance.com/api/rest/data-sources/{uuid}/geojson
+```
+
+**Example Response:**
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "record-id",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.1278, 51.5074]
+      },
+      "properties": {
+        "name": "Location Name",
+        "address": "123 Main St",
+        "_dataSourceId": "data-source-uuid",
+        "_externalId": "external-id",
+        "_geocodeResult": { ... }
+      }
+    }
+  ]
+}
+```
+
 ## Further Details
 
 ### Seed Data
