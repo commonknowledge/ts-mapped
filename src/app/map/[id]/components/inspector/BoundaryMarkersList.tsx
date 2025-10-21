@@ -1,5 +1,4 @@
 import { useQueries } from "@tanstack/react-query";
-import * as turf from "@turf/turf";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
@@ -11,11 +10,13 @@ import { useTRPC } from "@/services/trpc/react";
 import { type RecordsResponse } from "@/types";
 import {
   checkIfAnyRecords,
+  getMarkersInsidePolygon,
   getRecordsInsideBoundary,
+  mapBoundaryToGeoFeature,
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
-import type { Feature, MultiPolygon, Polygon } from "geojson";
+import type { Feature, Polygon } from "geojson";
 
 export default function BoundaryMarkersList() {
   const { getDataSourceById } = useDataSources();
@@ -25,27 +26,6 @@ export default function BoundaryMarkersList() {
   const trpc = useTRPC();
 
   const dataSourceIds = getDataSourceIds(mapConfig);
-
-  const boundaryFeature = useMemo(() => {
-    if (!selectedBoundary) {
-      return null;
-    }
-
-    const feature = selectedBoundary?.boundaryFeature ?? null;
-    if (!feature) {
-      return null;
-    }
-
-    if ((feature as unknown as Record<string, unknown>)._vectorTileFeature) {
-      return {
-        type: "Feature",
-        geometry: feature.geometry,
-        properties: feature.properties,
-      } as Feature<Polygon | MultiPolygon>;
-    }
-
-    return feature;
-  }, [selectedBoundary]);
 
   // fetching all records
   const { data } = useQueries({
@@ -69,7 +49,11 @@ export default function BoundaryMarkersList() {
     }),
   });
 
-  // frontend filtering by boundary
+  const boundaryFeature = useMemo(() => {
+    return mapBoundaryToGeoFeature(selectedBoundary);
+  }, [selectedBoundary]);
+
+  // frontend filtering - looking for markers within the selected boundary
   const filteredData = useMemo(() => {
     if (!boundaryFeature) {
       return [];
@@ -99,28 +83,10 @@ export default function BoundaryMarkersList() {
   );
 
   const markersInBoundary = useMemo(() => {
-    if (!boundaryFeature) {
-      console.log(
-        "BoundaryMarkersList - No boundaryFeature for markers filtering",
-      );
-      return [];
-    }
-
-    const filtered = (placedMarkers || []).filter((marker) => {
-      if (!boundaryFeature.geometry) {
-        return false;
-      }
-
-      const point = turf.point([marker.point.lng, marker.point.lat]);
-      const isInside = turf.booleanPointInPolygon(
-        point,
-        boundaryFeature as Feature<Polygon>,
-      );
-
-      return isInside;
-    });
-
-    return filtered;
+    return getMarkersInsidePolygon(
+      placedMarkers,
+      boundaryFeature as Feature<Polygon>,
+    );
   }, [boundaryFeature, placedMarkers]);
 
   const mappedPlacedMarkers = useMemo(() => {

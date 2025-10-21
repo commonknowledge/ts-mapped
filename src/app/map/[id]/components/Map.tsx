@@ -454,7 +454,6 @@ export default function Map({
         onContextMenu={(e) => {
           const map = e.target;
 
-          // Check for boundary right-clicks
           if (
             sourceId &&
             layerId &&
@@ -462,7 +461,6 @@ export default function Map({
             featureNameProperty
           ) {
             try {
-              // Try to query boundary features - use both fill and line layers
               const boundaryFeatures = map.queryRenderedFeatures(e.point, {
                 layers: [`${sourceId}-fill`, `${sourceId}-line`],
               });

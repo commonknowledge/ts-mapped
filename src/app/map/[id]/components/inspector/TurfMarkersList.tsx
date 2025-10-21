@@ -13,8 +13,10 @@ import {
   checkIfAnyRecords,
   getMarkersInsidePolygon,
   mapPlacedMarkersToRecordsResponse,
+  mapTurfToGeoFeature,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
+import type { Feature, Polygon } from "geojson";
 
 export default function TurfMarkersList() {
   const { getDataSourceById } = useDataSources();
@@ -64,13 +66,17 @@ export default function TurfMarkersList() {
     [data],
   );
 
+  const turfFeature = useMemo(() => {
+    return mapTurfToGeoFeature(selectedTurf);
+  }, [selectedTurf]);
+
   const mappedPlacedMarkers = useMemo(() => {
     const activePlacedMarkers = getMarkersInsidePolygon(
       placedMarkers,
-      selectedTurf?.geometry,
+      turfFeature as Feature<Polygon>,
     );
     return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
-  }, [folders, placedMarkers, selectedTurf]);
+  }, [folders, placedMarkers, turfFeature]);
 
   if (isFetching) {
     return <p>Loading...</p>;

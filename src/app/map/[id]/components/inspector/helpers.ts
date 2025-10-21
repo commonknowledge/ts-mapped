@@ -1,26 +1,68 @@
 import * as turf from "@turf/turf";
 import { CHOROPLETH_LAYER_CONFIGS } from "@/app/map/[id]/sources";
 import { AreaSetCodeLabels } from "@/labels";
+import type {
+  SelectedBoundary,
+  SelectedTurf,
+} from "@/app/map/[id]/context/InspectorContext";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { RecordData, RecordsResponse } from "@/types";
-import type { Feature, Polygon } from "geojson";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
+
+export const mapTurfToGeoFeature = (turf: SelectedTurf | null) => {
+  if (!turf) {
+    return null;
+  }
+
+  const geometry = turf?.geometry ?? null;
+  if (!geometry) {
+    return null;
+  }
+
+  return {
+    type: "Feature",
+    geometry: geometry,
+  } as Feature<Polygon | MultiPolygon>;
+};
+
+export const mapBoundaryToGeoFeature = (boundary: SelectedBoundary | null) => {
+  if (!boundary) {
+    return null;
+  }
+
+  const feature = boundary?.boundaryFeature ?? null;
+  if (!feature) {
+    return null;
+  }
+
+  return {
+    type: "Feature",
+    geometry: feature.geometry,
+    properties: feature.properties,
+  } as Feature<Polygon | MultiPolygon>;
+};
+
+const checkIfPointInPolygon = (
+  coordinates: number[],
+  polygon: Feature<Polygon>,
+) => {
+  const point = turf.point(coordinates);
+  return turf.booleanPointInPolygon(point, polygon);
+};
 
 export function getMarkersInsidePolygon(
   markers: PlacedMarker[],
-  geometry: Polygon | null | undefined,
+  polygon: Feature<Polygon> | null | undefined,
 ) {
-  if (!geometry) {
+  if (!polygon) {
     return [];
   }
 
-  const turfPolygon = turf.polygon(geometry.coordinates);
-
   return markers.filter((marker) => {
-    const point = turf.point([marker.point.lng, marker.point.lat]);
-    return turf.booleanPointInPolygon(point, turfPolygon);
+    return checkIfPointInPolygon([marker.point.lng, marker.point.lat], polygon);
   });
 }
 
@@ -37,10 +79,9 @@ export function getRecordsInsideBoundary(
 
   return data.map((d) => {
     const recordsInsideTurf = d.records.records.filter((r) => {
-      const point = turf.point([r.geocodePoint.lng, r.geocodePoint.lat]);
-      return turf.booleanPointInPolygon(
-        point,
-        boundaryFeature as Feature<Polygon>,
+      return checkIfPointInPolygon(
+        [r.geocodePoint.lng, r.geocodePoint.lat],
+        boundaryFeature,
       );
     });
 
