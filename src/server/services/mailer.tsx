@@ -35,6 +35,7 @@ export async function sendEmail(
       subject,
       html,
     });
+    logger.info(`Sent ${subject} email to ${to}`)
   } catch (error) {
     logger.error(error);
   }
