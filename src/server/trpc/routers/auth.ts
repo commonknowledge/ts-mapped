@@ -1,10 +1,14 @@
 import { TRPCError } from "@trpc/server";
 import { SignJWT, jwtVerify } from "jose";
+import { NoResultError } from "kysely";
 import { cookies } from "next/headers";
 import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import ForgotPassword from "@/server/emails/forgot-password";
-import { updateUnusedInvitation } from "@/server/repositories/Invitation";
+import {
+  findAndUseInvitation,
+  updateInvitation,
+} from "@/server/repositories/Invitation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
 import {
   findUserByEmail,
@@ -15,7 +19,6 @@ import {
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
 import { publicProcedure, router } from "../index";
-import { NoResultError } from "kysely";
 
 export const authRouter = router({
   confirmInvite: publicProcedure
@@ -32,21 +35,7 @@ export const authRouter = router({
         );
 
         // Find and update invitation by ID (prevents duplicate requests)
-        const invitation = await updateUnusedInvitation(payload.invitationId, {
-          used: true,
-        });
-        if (!invitation)
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Invitation not found",
-          });
-
-        // Verify invitation hasn't been used already
-        if (invitation.userId)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invitation already used",
-          });
+        const invitation = await findAndUseInvitation(payload.invitationId);
 
         // Create user with provided password
         const user = await upsertUser({
@@ -60,6 +49,8 @@ export const authRouter = router({
           organisationId: invitation.organisationId,
           userId: user.id,
         });
+
+        await updateInvitation(invitation.id, { userId: user.id });
 
         // Ensure organisation map exists
         await ensureOrganisationMap(invitation.organisationId);
@@ -77,7 +68,6 @@ export const authRouter = router({
         cookieStore.set("JWT", cookieToken);
         return user;
       } catch (error) {
-        console.log('error', JSON.stringify(error))
         if (error instanceof NoResultError) {
           throw new TRPCError({
             code: "BAD_REQUEST",

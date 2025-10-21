@@ -30,11 +30,23 @@ export function listPendingInvitations() {
     .execute();
 }
 
-export function updateUnusedInvitation(id: string, data: InvitationUpdate) {
+export function findAndUseInvitation(id: string) {
   return db
     .updateTable("invitation")
     .where("id", "=", id)
     .where("used", "=", false)
+    .set({
+      used: true,
+      updatedAt: sql`CURRENT_TIMESTAMP`,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}
+
+export function updateInvitation(id: string, data: InvitationUpdate) {
+  return db
+    .updateTable("invitation")
+    .where("id", "=", id)
     .set({
       ...data,
       updatedAt: sql`CURRENT_TIMESTAMP`,

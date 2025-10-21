@@ -149,7 +149,6 @@ program
       email: options.email,
       name: options.name,
       organisationId: options.organisationId,
-      used: false,
     });
 
     logger.info(`Created invitation ${invitation.id}`);
