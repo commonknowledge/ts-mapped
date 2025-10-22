@@ -11,7 +11,7 @@ import * as React from "react";
 import { getAbsoluteUrl } from "@/utils/appUrl";
 import { EmailLayout } from "./layout";
 
-export default function Invite({ token = "123" }: { token: string }) {
+export default function Invite({ token }: { token: string }) {
   const baseUrl = getAbsoluteUrl();
 
   const link = `${baseUrl}invite/${token}`;
@@ -81,7 +81,8 @@ export default function Invite({ token = "123" }: { token: string }) {
 
         <Hr className="mx-0 my-[26px] w-full border border-[#eaeaea] border-solid" />
         <Text className="text-[#666666] text-[12px] font-sans leading-[24px]">
-          If you did not request an invite, please ignore this email.
+          If you did not request an invite, or have already created an account,
+          please ignore this email.
         </Text>
       </Container>
     </EmailLayout>
