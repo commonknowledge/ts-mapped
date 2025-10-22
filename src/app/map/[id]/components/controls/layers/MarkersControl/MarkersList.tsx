@@ -127,16 +127,54 @@ export default function MarkersList() {
     (event: DragOverEvent) => {
       const { active, over } = event;
 
-      // Early exit if marker is not over a different folder
+      // Early exit if marker is not over anything or over itself
       if (!over || active.id === over.id) {
         return;
       }
 
+      if (!mapId) return;
+
       // Handle moving into a different folder - CACHE UPDATE ONLY (no mutation)
       const activeMarkerId = active.id.toString().replace("marker-", "");
-      const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
+
+      // Get current cache data (reflects any previous drag over updates)
+      const currentCacheData = queryClient.getQueryData(
+        trpc.map.byId.queryKey({ mapId }),
+      );
+      const currentMarkers = currentCacheData?.placedMarkers || [];
+
+      const activeMarker = currentMarkers.find((m) => m.id === activeMarkerId);
 
       if (!activeMarker) {
+        return;
+      }
+
+      // Check if we're over another marker
+      if (over.id.toString().startsWith("marker-")) {
+        const overMarkerId = over.id.toString().replace("marker-", "");
+        const overMarker = currentMarkers.find((m) => m.id === overMarkerId);
+
+        // If we're over a marker in a DIFFERENT container, move to that container
+        if (overMarker && overMarker.folderId !== activeMarker.folderId) {
+          const activeWasBeforeOver =
+            compareByPositionAndId(activeMarker, overMarker) < 0;
+
+          // Get other markers in the target container
+          const otherMarkers = currentMarkers.filter(
+            (m) =>
+              m.id !== activeMarker.id && m.folderId === overMarker.folderId,
+          );
+
+          const newPosition = activeWasBeforeOver
+            ? getNewPositionAfter(overMarker.position, otherMarkers)
+            : getNewPositionBefore(overMarker.position, otherMarkers);
+
+          updateMarkerInCache({
+            ...activeMarker,
+            folderId: overMarker.folderId,
+            position: newPosition,
+          });
+        }
         return;
       }
 
@@ -157,7 +195,7 @@ export default function MarkersList() {
 
         // Only update cache if the marker is not already in this folder
         if (activeMarker.folderId !== folderId) {
-          const folderMarkers = placedMarkers.filter(
+          const folderMarkers = currentMarkers.filter(
             (m) => m.folderId === folderId,
           );
 
@@ -175,7 +213,7 @@ export default function MarkersList() {
       } else if (over.id === "unassigned") {
         // Only update cache if the marker is not already unassigned
         if (activeMarker.folderId !== null) {
-          const unassignedMarkers = placedMarkers.filter(
+          const unassignedMarkers = currentMarkers.filter(
             (m) => m.folderId === null,
           );
           const newPosition = getNewFirstPosition(unassignedMarkers);
@@ -189,7 +227,7 @@ export default function MarkersList() {
         }
       }
     },
-    [placedMarkers, updateMarkerInCache],
+    [mapId, queryClient, trpc.map.byId, updateMarkerInCache],
   );
 
   const handleDragEndMarker = useCallback(
