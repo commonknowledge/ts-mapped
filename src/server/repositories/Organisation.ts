@@ -4,6 +4,14 @@ import type {
   OrganisationUpdate,
 } from "@/server/models/Organisation";
 
+export function findOrganisationById(id: string) {
+  return db
+    .selectFrom("organisation")
+    .where("id", "=", id)
+    .selectAll("organisation")
+    .executeTakeFirstOrThrow();
+}
+
 export function findOrganisationByName(name: string) {
   return db
     .selectFrom("organisation")

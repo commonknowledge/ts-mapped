@@ -54,7 +54,6 @@ export default function Map({
 }: {
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
-  isPrivate?: boolean;
 }) {
   const {
     mapRef,

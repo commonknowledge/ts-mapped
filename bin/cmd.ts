@@ -1,20 +1,25 @@
 import { Command } from "commander";
+import { SignJWT } from "jose";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
+import Invite from "@/server/emails/invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
+import { createInvitation } from "@/server/repositories/Invitation";
 import {
   findOrganisationByName,
+  findOrganisationsByUserId,
   upsertOrganisation,
 } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { upsertUser } from "@/server/repositories/User";
+import { listUsers, upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
+import { sendEmail } from "@/server/services/mailer";
 import { getPubSub } from "@/server/services/pubsub";
 import { runWorker } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
@@ -109,6 +114,67 @@ program
       logger.info(`Created user ${options.email}, ID ${user.id}`);
     } catch (error) {
       logger.error("Could not create user", { error });
+    }
+  });
+
+program
+  .command("createInvitation")
+  .option("--email <email>")
+  .option("--name <name>")
+  .option("--organisationId <organisationId>")
+  .description("Create an invitation for a user")
+  .action(async (options) => {
+    const invitation = await createInvitation({
+      email: options.email,
+      name: options.name,
+      organisationId: options.organisationId,
+    });
+
+    logger.info(`Created invitation ${invitation.id}`);
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+    const token = await new SignJWT({ invitationId: invitation.id })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(secret);
+
+    await sendEmail(options.email, "Invite to Mapped", Invite({ token }));
+    logger.info(`Sent invite to ${options.email}`);
+
+    logger.info(`Invitation token: ${token}`);
+  });
+
+program
+  .command("inviteAll")
+  .description("Create and send invitations for all users")
+  .action(async () => {
+    const users = await listUsers();
+    for (const user of users) {
+      const orgs = await findOrganisationsByUserId(user.id);
+
+      if (!orgs.length) {
+        logger.warning(`No organisation found for user ${user.email}`);
+        continue;
+      }
+
+      const invitation = await createInvitation({
+        email: user.email,
+        name: user.name,
+        organisationId: orgs[0].id,
+      });
+
+      logger.info(`Created invitation ${invitation.id}`);
+
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+      const token = await new SignJWT({ invitationId: invitation.id })
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime("7d")
+        .sign(secret);
+
+      await sendEmail(user.email, "Invite to Mapped", Invite({ token }));
+      logger.info(`Sent invite to ${user.email}`);
+
+      logger.info(`Invitation token: ${token}`);
     }
   });
 

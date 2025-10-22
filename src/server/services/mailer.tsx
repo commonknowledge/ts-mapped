@@ -30,12 +30,13 @@ export async function sendEmail(
   try {
     const html = await render(template);
     await transporter.sendMail({
-      from: "noreply@v3.mapped.tools",
+      from: "noreply@mapped.tools",
       to,
       subject,
       html,
     });
+    logger.info(`Sent ${subject} email to ${to}`);
   } catch (error) {
-    logger.error(error);
+    logger.error(`Failed to send ${subject} email to ${to}`, { error });
   }
 }
