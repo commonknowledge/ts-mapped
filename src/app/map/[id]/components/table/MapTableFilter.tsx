@@ -12,6 +12,7 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
 import { FilterOperator, FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
@@ -57,7 +58,8 @@ export default function MapTableFilter({
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const { mapConfig } = useMapConfig();
-  const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
+  const { turfs } = useContext(MarkerAndTurfContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { getDataSourceById } = useDataSources();
   const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
 

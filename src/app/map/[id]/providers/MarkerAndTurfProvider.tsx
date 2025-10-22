@@ -1,7 +1,6 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -11,12 +10,14 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
+import { useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
+import { usePlacedMarkerMutations } from "../hooks/usePlacedMarkers";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
 import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
+import "mapbox-gl/dist/mapbox-gl.css";
 import type { ReactNode } from "react";
 
 export default function MarkerAndTurfProvider({
@@ -25,11 +26,10 @@ export default function MarkerAndTurfProvider({
   children: ReactNode;
 }) {
   const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
-  const featuresInitialized = useRef(false);
   const { mapConfig } = useMapConfig();
+  const { data: map } = useMapQuery(mapId);
   const { view } = useMapViews();
 
-  const { data: map } = useMapQuery(mapId);
   const { publicMap } = useContext(PublicMapContext);
   /* State */
 
@@ -89,29 +89,11 @@ export default function MarkerAndTurfProvider({
   });
 
   /* Persisted map features */
-  const {
-    folders,
-    loading: foldersLoading,
-    setFolders,
-    deleteFolder,
-    insertFolder,
-    updateFolder,
-  } = useFolders(mapId);
-
-  const {
-    placedMarkers,
-    setPlacedMarkers,
-    deletePlacedMarker,
-    insertPlacedMarker,
-    preparePlacedMarkerUpdate,
-    commitPlacedMarkerUpdates,
-    updatePlacedMarker,
-    loading: placedMarkersLoading,
-  } = usePlacedMarkers(mapId);
 
   const { deleteTurf, insertTurf, updateTurf, turfs, setTurfs } =
     useTurfs(mapId);
 
+  const featuresInitialized = useRef(false);
   useEffect(() => {
     // Only initialize the features when the map first loads
     // TODO: use the TRPC query cache for this state
@@ -120,16 +102,10 @@ export default function MarkerAndTurfProvider({
     }
     featuresInitialized.current = true;
 
-    if (map.folders) {
-      setFolders(map.folders);
-    }
-    if (map.placedMarkers) {
-      setPlacedMarkers(map.placedMarkers);
-    }
     if (map.turfs) {
       setTurfs(map.turfs);
     }
-  }, [map, setFolders, setPlacedMarkers, setTurfs]);
+  }, [map, setTurfs]);
 
   const handleAddArea = () => {
     const map = mapRef?.current;
@@ -143,6 +119,7 @@ export default function MarkerAndTurfProvider({
       }
     }
   };
+  const { insertPlacedMarker } = usePlacedMarkerMutations();
 
   const handleDropPin = () => {
     const map = mapRef?.current;
@@ -180,18 +157,6 @@ export default function MarkerAndTurfProvider({
       value={{
         editingTurf,
         setEditingTurf,
-        folders,
-        foldersLoading,
-        deleteFolder,
-        insertFolder,
-        updateFolder,
-        placedMarkers,
-        placedMarkersLoading,
-        deletePlacedMarker,
-        insertPlacedMarker,
-        preparePlacedMarkerUpdate,
-        commitPlacedMarkerUpdates,
-        updatePlacedMarker,
         selectedPlacedMarkerId,
         setSelectedPlacedMarkerId,
         deleteTurf,
