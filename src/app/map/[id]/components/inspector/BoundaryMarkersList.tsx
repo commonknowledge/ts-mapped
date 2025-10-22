@@ -29,6 +29,7 @@ export default function BoundaryMarkersList() {
   const dataSourceIds = getDataSourceIds(mapConfig);
 
   // fetching all records
+  // TODO: change to markerQueries mapping
   const { data } = useQueries({
     queries: dataSourceIds.map((dataSourceId) =>
       trpc.dataRecord.list.queryOptions(
