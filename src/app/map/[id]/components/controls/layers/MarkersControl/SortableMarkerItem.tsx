@@ -4,6 +4,7 @@ import { Check, Pencil, Trash2 } from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
@@ -36,12 +37,9 @@ export default function SortableMarkerItem({
   } = useSortable({ id: `marker-${marker.id}` });
 
   const { mapRef } = useContext(MapContext);
-  const {
-    updatePlacedMarker,
-    deletePlacedMarker,
-    selectedPlacedMarkerId,
-    setSelectedPlacedMarkerId,
-  } = useContext(MarkerAndTurfContext);
+  const { selectedPlacedMarkerId, setSelectedPlacedMarkerId } =
+    useContext(MarkerAndTurfContext);
+  const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);

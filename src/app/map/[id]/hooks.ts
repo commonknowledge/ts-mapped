@@ -3,7 +3,6 @@ import { useCallback, useRef, useState } from "react";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "./utils";
 import type { Folder } from "@/server/models/Folder";
-import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { Turf } from "@/server/models/Turf";
 
 export const useFolders = (mapId: string | null) => {
@@ -64,113 +63,6 @@ export const useFolders = (mapId: string | null) => {
     insertFolder,
     updateFolder,
     loading: upsertFolderLoading,
-  };
-};
-
-export const usePlacedMarkers = (mapId: string | null) => {
-  const ref = useRef<PlacedMarker[]>([]);
-  const [placedMarkers, _setPlacedMarkers] = useState<PlacedMarker[]>([]);
-
-  // Use a ref to keep track of dirty (unpersisted) markers, for immediate flagging
-  const dirty = useRef<Record<string, PlacedMarker | null>>({});
-
-  // Use a combination of ref and state, because Mapbox native components don't
-  // update on state changes - ref is needed for them to update the latest state,
-  // instead of the initial state.
-  const setPlacedMarkers = useCallback(
-    (markers: PlacedMarker[]) => {
-      ref.current = markers;
-      _setPlacedMarkers(markers);
-    },
-    [_setPlacedMarkers],
-  );
-
-  const trpc = useTRPC();
-  const { mutate: deletePlacedMarkerMutation } = useMutation(
-    trpc.placedMarker.delete.mutationOptions({}),
-  );
-
-  const {
-    mutate: upsertPlacedMarkerMutation,
-    isPending: upsertPlacedMarkerLoading,
-  } = useMutation(trpc.placedMarker.upsert.mutationOptions());
-
-  /* Complex actions */
-  const deletePlacedMarker = (id: string) => {
-    if (!mapId) return;
-    deletePlacedMarkerMutation({
-      placedMarkerId: id,
-      mapId,
-    });
-    const newMarkers = ref.current.filter((m) => m.id !== id);
-    setPlacedMarkers(newMarkers);
-  };
-
-  const insertPlacedMarker = useCallback(
-    (newMarker: Omit<PlacedMarker, "position" | "mapId">) => {
-      if (!mapId) return;
-
-      const newPosition = getNewLastPosition(ref.current);
-      const positionedMarker = { ...newMarker, position: newPosition };
-
-      const newMarkers = [...ref.current, positionedMarker];
-      setPlacedMarkers(newMarkers.map((m) => ({ ...m, mapId })));
-
-      upsertPlacedMarkerMutation({ ...positionedMarker, mapId });
-    },
-    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
-  );
-
-  const updatePlacedMarker = useCallback(
-    (placedMarker: Omit<PlacedMarker, "mapId">) => {
-      if (!mapId) return;
-
-      upsertPlacedMarkerMutation({ ...placedMarker, mapId });
-
-      setPlacedMarkers(
-        ref.current
-          .map((m) => (m.id === placedMarker.id ? placedMarker : m))
-          .map((m) => ({ ...m, mapId })),
-      );
-    },
-    [mapId, setPlacedMarkers, upsertPlacedMarkerMutation],
-  );
-
-  /**
-   * Two functions, preparePlacedMarkerUpdate and commitPlacedMarkerUpdates
-   * to aggregate updates before sending them to the API. Originally
-   * added for the drag-and-drop functionality of the marker sidebar.
-   */
-  const preparePlacedMarkerUpdate = useCallback(
-    (placedMarker: PlacedMarker) => {
-      setPlacedMarkers(
-        ref.current.map((m) => (m.id === placedMarker.id ? placedMarker : m)),
-      );
-      dirty.current[placedMarker.id] = placedMarker;
-    },
-    [setPlacedMarkers],
-  );
-
-  const commitPlacedMarkerUpdates = useCallback(() => {
-    if (!mapId) return;
-
-    for (const placedMarker of Object.values(dirty.current)) {
-      if (placedMarker) {
-        upsertPlacedMarkerMutation({ ...placedMarker, mapId });
-        dirty.current[placedMarker.id] = null;
-      }
-    }
-  }, [mapId, upsertPlacedMarkerMutation]);
-
-  return {
-    placedMarkers,
-    setPlacedMarkers,
-    deletePlacedMarker,
-    insertPlacedMarker,
-    preparePlacedMarkerUpdate,
-    commitPlacedMarkerUpdates,
-    updatePlacedMarker,
-    loading: upsertPlacedMarkerLoading,
   };
 };
 

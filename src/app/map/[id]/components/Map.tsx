@@ -22,6 +22,7 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
@@ -66,13 +67,13 @@ export default function Map({
   } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const {
     deleteTurf,
     insertTurf,
     updateTurf,
     turfs,
     searchMarker,
-    placedMarkers,
     markerQueries,
   } = useContext(MarkerAndTurfContext);
   const {

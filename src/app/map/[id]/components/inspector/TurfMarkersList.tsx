@@ -5,6 +5,7 @@ import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
@@ -21,7 +22,8 @@ import type { Feature, Polygon } from "geojson";
 export default function TurfMarkersList() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
+  const { folders } = useContext(MarkerAndTurfContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { selectedTurf } = useContext(InspectorContext);
   const trpc = useTRPC();
 

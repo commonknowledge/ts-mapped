@@ -2,14 +2,15 @@ import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
-  const { folders, placedMarkers, selectedPlacedMarkerId } =
-    useContext(MarkerAndTurfContext);
+  const { folders, selectedPlacedMarkerId } = useContext(MarkerAndTurfContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
 
   const visiblePlacedMarkers = useMemo(() => {
     return placedMarkers.filter((marker) => {

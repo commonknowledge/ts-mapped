@@ -1,6 +1,5 @@
 import { createContext } from "react";
 import type { Folder } from "@/server/models/Folder";
-import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { Turf } from "@/server/models/Turf";
 import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
@@ -15,16 +14,6 @@ export const MarkerAndTurfContext = createContext<{
   deleteFolder: (id: string) => void;
   insertFolder: (folder: Omit<Folder, "position" | "mapId">) => void;
   updateFolder: (folder: Omit<Folder, "mapId">) => void;
-
-  placedMarkers: PlacedMarker[];
-  placedMarkersLoading: boolean;
-  deletePlacedMarker: (id: string) => void;
-  insertPlacedMarker: (
-    placedMarker: Omit<PlacedMarker, "position" | "mapId">,
-  ) => void;
-  preparePlacedMarkerUpdate: (placedMarker: PlacedMarker) => void;
-  commitPlacedMarkerUpdates: () => void;
-  updatePlacedMarker: (placedMarker: Omit<PlacedMarker, "mapId">) => void;
 
   selectedPlacedMarkerId: string | null;
   setSelectedPlacedMarkerId: (id: string | null) => void;
@@ -53,13 +42,6 @@ export const MarkerAndTurfContext = createContext<{
   deleteFolder: () => null,
   insertFolder: () => null,
   updateFolder: () => null,
-  placedMarkers: [],
-  placedMarkersLoading: false,
-  deletePlacedMarker: () => null,
-  insertPlacedMarker: () => null,
-  preparePlacedMarkerUpdate: () => null,
-  commitPlacedMarkerUpdates: () => null,
-  updatePlacedMarker: () => null,
   selectedPlacedMarkerId: null,
   setSelectedPlacedMarkerId: () => null,
   searchMarker: null,

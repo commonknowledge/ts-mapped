@@ -20,6 +20,10 @@ import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
+  usePlacedMarkerMutations,
+  usePlacedMarkersQuery,
+} from "@/app/map/[id]/hooks/usePlacedMarkers";
+import {
   compareByPositionAndId,
   getNewFirstPosition,
   getNewLastPosition,
@@ -41,13 +45,9 @@ import type {
 
 export default function MarkersList() {
   const { viewConfig } = useMapViews();
-  const {
-    folders,
-    updateFolder,
-    placedMarkers,
-    preparePlacedMarkerUpdate,
-    commitPlacedMarkerUpdates,
-  } = useContext(MarkerAndTurfContext);
+  const { folders, updateFolder } = useContext(MarkerAndTurfContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { updatePlacedMarker } = usePlacedMarkerMutations();
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
   const markerDataSources = useMarkerDataSources();
@@ -128,9 +128,9 @@ export default function MarkersList() {
           ? getNewLastPosition(folderMarkers)
           : getNewFirstPosition(folderMarkers);
 
-        preparePlacedMarkerUpdate({
+        updatePlacedMarker({
           ...activeMarker,
-          folderId: folderId,
+          folderId,
           position: newPosition,
         });
       } else if (over.id === "unassigned") {
@@ -138,14 +138,14 @@ export default function MarkersList() {
           (m) => m.folderId === null,
         );
         const newPosition = getNewFirstPosition(unassignedMarkers);
-        preparePlacedMarkerUpdate({
+        updatePlacedMarker({
           ...activeMarker,
           folderId: null,
           position: newPosition,
         });
       }
     },
-    [placedMarkers, preparePlacedMarkerUpdate],
+    [placedMarkers, updatePlacedMarker],
   );
 
   const handleDragEndMarker = useCallback(
@@ -197,14 +197,14 @@ export default function MarkersList() {
             );
           }
 
-          preparePlacedMarkerUpdate({
+          updatePlacedMarker({
             ...activeMarker,
             position: newPosition,
           });
         }
       }
     },
-    [placedMarkers, preparePlacedMarkerUpdate, setPulsingFolderId],
+    [placedMarkers, updatePlacedMarker, setPulsingFolderId],
   );
 
   const handleDragEndFolder = useCallback(
@@ -268,10 +268,8 @@ export default function MarkersList() {
       } else if (activeId.startsWith("folder-drag-")) {
         handleDragEndFolder(event);
       }
-
-      commitPlacedMarkerUpdates();
     },
-    [commitPlacedMarkerUpdates, handleDragEndFolder, handleDragEndMarker],
+    [handleDragEndFolder, handleDragEndMarker],
   );
 
   const sortedFolders = useMemo(() => {

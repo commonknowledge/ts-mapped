@@ -6,6 +6,7 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/server/models/MapView";
@@ -21,8 +22,8 @@ export default function FilterMarkers() {
   const { mapRef } = useContext(MapContext);
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
-  const { markerQueries, placedMarkers, turfs } =
-    useContext(MarkerAndTurfContext);
+  const { markerQueries, turfs } = useContext(MarkerAndTurfContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
 
   const { selectedDataSourceId } = useContext(TableContext);
 
