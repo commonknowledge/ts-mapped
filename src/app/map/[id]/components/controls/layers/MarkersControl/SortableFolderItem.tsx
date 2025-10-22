@@ -25,7 +25,6 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
-import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -123,7 +122,9 @@ export default function SortableFolderItem({
             ref={isDraggingMarker ? setHeaderNodeRef : null}
             className={`flex items-center gap-2 hover:bg-neutral-100  transition-colors px-2 py-1 ${
               isHeaderOver ? "bg-blue-50" : ""
-            } ${folder.hideMarkers ? "opacity-70" : ""}`}
+            } ${folder.hideMarkers ? "opacity-70" : ""} ${
+              isPulsing ? "animate-pulse" : ""
+            }`}
             onClick={onClickFolder}
           >
             {folder.hideMarkers ? (
@@ -163,15 +164,7 @@ export default function SortableFolderItem({
                 {folder.name}
               </span>
             )}
-            <span
-              className={cn(
-                "text-xs text-muted-foreground  transition-transform duration-30 rounded-full bg-neutral-50 px-1",
-                isPulsing ? "animate-pulse  transform scale-110" : "",
-              )}
-              style={{
-                color: isPulsing ? "green" : "",
-              }}
-            >
+            <span className="text-xs text-muted-foreground  transition-transform duration-30 rounded-full bg-neutral-50 px-1">
               {sortedMarkers.length}
             </span>
           </div>
