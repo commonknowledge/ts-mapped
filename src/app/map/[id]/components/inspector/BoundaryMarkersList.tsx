@@ -37,8 +37,8 @@ export default function BoundaryMarkersList() {
           dataSourceId,
           all: true,
         },
-        { refetchOnMount: "always" }
-      )
+        { refetchOnMount: "always" },
+      ),
     ),
     combine: (results) => ({
       data: results.map((result, i) => ({
@@ -66,13 +66,13 @@ export default function BoundaryMarkersList() {
       data
         .map((d) => d?.dataSource?.id)
         .filter((d) => !!d)
-        .includes(m.dataSourceId)
+        .includes(m.dataSourceId),
     )?.markers;
 
     return getRecordsInsideBoundary(
       data,
       boundaryFeature as Feature<Polygon | MultiPolygon>,
-      markers
+      markers,
     );
   }, [data, boundaryFeature, markerQueries?.data]);
 
@@ -81,9 +81,9 @@ export default function BoundaryMarkersList() {
       filteredData.find(
         (item) =>
           item?.dataSource?.recordType === DataSourceRecordType.Members ||
-          item?.dataSource?.id === mapConfig.membersDataSourceId
+          item?.dataSource?.id === mapConfig.membersDataSourceId,
       ),
-    [filteredData, mapConfig.membersDataSourceId]
+    [filteredData, mapConfig.membersDataSourceId],
   );
 
   const markers = useMemo(
@@ -91,15 +91,15 @@ export default function BoundaryMarkersList() {
       filteredData.filter(
         (item) =>
           item?.dataSource?.recordType !== DataSourceRecordType.Members &&
-          item?.dataSource?.id !== mapConfig.membersDataSourceId
+          item?.dataSource?.id !== mapConfig.membersDataSourceId,
       ),
-    [filteredData, mapConfig.membersDataSourceId]
+    [filteredData, mapConfig.membersDataSourceId],
   );
 
   const markersInBoundary = useMemo(() => {
     return getMarkersInsidePolygon(
       placedMarkers,
-      boundaryFeature as Feature<Polygon>
+      boundaryFeature as Feature<Polygon>,
     );
   }, [boundaryFeature, placedMarkers]);
 
