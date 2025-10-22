@@ -16,12 +16,13 @@ import {
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
-import type { Feature, Polygon } from "geojson";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 
 export default function BoundaryMarkersList() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const { folders, placedMarkers } = useContext(MarkerAndTurfContext);
+  const { folders, markerQueries, placedMarkers } =
+    useContext(MarkerAndTurfContext);
   const { selectedBoundary } = useContext(InspectorContext);
   const trpc = useTRPC();
 
@@ -34,8 +35,8 @@ export default function BoundaryMarkersList() {
         {
           dataSourceId,
         },
-        { refetchOnMount: "always" },
-      ),
+        { refetchOnMount: "always" }
+      )
     ),
     combine: (results) => ({
       data: results.map((result, i) => ({
@@ -59,17 +60,28 @@ export default function BoundaryMarkersList() {
       return [];
     }
 
-    return getRecordsInsideBoundary(data, boundaryFeature as Feature<Polygon>);
-  }, [data, boundaryFeature]);
+    const markers = markerQueries?.data?.find((m) =>
+      data
+        .map((d) => d?.dataSource?.id)
+        .filter((d) => !!d)
+        .includes(m.dataSourceId)
+    )?.markers;
+
+    return getRecordsInsideBoundary(
+      data,
+      boundaryFeature as Feature<Polygon | MultiPolygon>,
+      markers
+    );
+  }, [data, boundaryFeature, markerQueries?.data]);
 
   const members = useMemo(
     () =>
       filteredData.find(
         (item) =>
           item?.dataSource?.recordType === DataSourceRecordType.Members ||
-          item?.dataSource?.id === mapConfig.membersDataSourceId,
+          item?.dataSource?.id === mapConfig.membersDataSourceId
       ),
-    [filteredData, mapConfig.membersDataSourceId],
+    [filteredData, mapConfig.membersDataSourceId]
   );
 
   const markers = useMemo(
@@ -77,15 +89,15 @@ export default function BoundaryMarkersList() {
       filteredData.filter(
         (item) =>
           item?.dataSource?.recordType !== DataSourceRecordType.Members &&
-          item?.dataSource?.id !== mapConfig.membersDataSourceId,
+          item?.dataSource?.id !== mapConfig.membersDataSourceId
       ),
-    [filteredData, mapConfig.membersDataSourceId],
+    [filteredData, mapConfig.membersDataSourceId]
   );
 
   const markersInBoundary = useMemo(() => {
     return getMarkersInsidePolygon(
       placedMarkers,
-      boundaryFeature as Feature<Polygon>,
+      boundaryFeature as Feature<Polygon>
     );
   }, [boundaryFeature, placedMarkers]);
 

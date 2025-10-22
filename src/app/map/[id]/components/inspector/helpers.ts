@@ -9,7 +9,7 @@ import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
-import type { RecordData, RecordsResponse } from "@/types";
+import type { PointFeature, RecordData, RecordsResponse } from "@/types";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 
 export const mapTurfToGeoFeature = (turf: SelectedTurf | null) => {
@@ -51,15 +51,19 @@ export const mapBoundaryToGeoFeature = (boundary: SelectedBoundary | null) => {
 
 const checkIfPointInPolygon = (
   coordinates: number[],
-  polygon: Feature<Polygon>,
+  polygon: Feature<Polygon | MultiPolygon>
 ) => {
+  if (!coordinates?.[0] || !coordinates?.[1]) {
+    return false;
+  }
+
   const point = turf.point(coordinates);
   return turf.booleanPointInPolygon(point, polygon);
 };
 
 export function getMarkersInsidePolygon(
   markers: PlacedMarker[],
-  polygon: Feature<Polygon> | null | undefined,
+  polygon: Feature<Polygon> | null | undefined
 ) {
   if (!polygon) {
     return [];
@@ -75,7 +79,8 @@ export function getRecordsInsideBoundary(
     records: RecordsResponse;
     dataSource: DataSource | null;
   }[],
-  boundaryFeature: Feature<Polygon> | null | undefined,
+  boundaryFeature: Feature<Polygon | MultiPolygon> | null | undefined,
+  markers: PointFeature[] | undefined
 ) {
   if (!boundaryFeature) {
     return [];
@@ -83,10 +88,13 @@ export function getRecordsInsideBoundary(
 
   return data.map((d) => {
     const recordsInsideTurf = d.records.records.filter((r) => {
-      return checkIfPointInPolygon(
-        [r.geocodePoint.lng, r.geocodePoint.lat],
-        boundaryFeature,
-      );
+      const coordinates =
+        r?.geocodePoint?.lng && r?.geocodePoint?.lat
+          ? [r?.geocodePoint?.lng, r?.geocodePoint?.lat]
+          : markers?.find((m) => m.properties?.__recordId === r.id)?.geometry
+              ?.coordinates || [];
+
+      return checkIfPointInPolygon(coordinates, boundaryFeature);
     });
 
     return {
@@ -123,7 +131,7 @@ const placedMarkerToRecord = (marker: PlacedMarker): RecordData => {
 
 export const mapPlacedMarkersToRecordsResponse = (
   markers: PlacedMarker[],
-  folders: Folder[],
+  folders: Folder[]
 ): { records: RecordsResponse; folder: Folder | null }[] => {
   if (!markers?.length) {
     return [];
@@ -136,7 +144,7 @@ export const mapPlacedMarkersToRecordsResponse = (
       acc[key].push(marker);
       return acc;
     },
-    {},
+    {}
   );
 
   return Object.keys(markersByFolderId).map((folderId) => {
@@ -164,7 +172,7 @@ function findAreaSetCodeByLayerId(layerId: string): string | null {
 }
 
 export const getBoundaryDatasetName = (
-  sourceLayerId: string | null | undefined,
+  sourceLayerId: string | null | undefined
 ) => {
   if (!sourceLayerId) {
     return "";
