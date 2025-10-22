@@ -1,5 +1,4 @@
 import { createContext } from "react";
-import type { Folder } from "@/server/models/Folder";
 import type { Turf } from "@/server/models/Turf";
 import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
@@ -8,12 +7,6 @@ export const MarkerAndTurfContext = createContext<{
   /* State */
   editingTurf: Turf | null;
   setEditingTurf: (turf: Turf | null) => void;
-
-  folders: Folder[];
-  foldersLoading: boolean;
-  deleteFolder: (id: string) => void;
-  insertFolder: (folder: Omit<Folder, "position" | "mapId">) => void;
-  updateFolder: (folder: Omit<Folder, "mapId">) => void;
 
   selectedPlacedMarkerId: string | null;
   setSelectedPlacedMarkerId: (id: string | null) => void;
@@ -37,11 +30,6 @@ export const MarkerAndTurfContext = createContext<{
 }>({
   editingTurf: null,
   setEditingTurf: () => null,
-  folders: [],
-  foldersLoading: false,
-  deleteFolder: () => null,
-  insertFolder: () => null,
-  updateFolder: () => null,
   selectedPlacedMarkerId: null,
   setSelectedPlacedMarkerId: () => null,
   searchMarker: null,

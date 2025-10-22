@@ -15,9 +15,12 @@ import {
 } from "@dnd-kit/sortable";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useFolderMutations,
+  useFoldersQuery,
+} from "@/app/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
   usePlacedMarkerMutations,
@@ -45,7 +48,8 @@ import type {
 
 export default function MarkersList() {
   const { viewConfig } = useMapViews();
-  const { folders, updateFolder } = useContext(MarkerAndTurfContext);
+  const { data: folders = [] } = useFoldersQuery();
+  const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { updatePlacedMarker } = usePlacedMarkerMutations();
   const { selectedDataSourceId, handleDataSourceSelect } =
@@ -245,10 +249,7 @@ export default function MarkersList() {
             );
           }
 
-          updateFolder({
-            ...activeFolder,
-            position: newPosition,
-          });
+          updateFolder({ ...activeFolder, position: newPosition });
         }
       }
     },

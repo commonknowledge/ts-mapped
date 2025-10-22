@@ -1,70 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { useTRPC } from "@/services/trpc/react";
-import { getNewLastPosition } from "./utils";
-import type { Folder } from "@/server/models/Folder";
 import type { Turf } from "@/server/models/Turf";
-
-export const useFolders = (mapId: string | null) => {
-  const [folders, setFolders] = useState<Folder[]>([]);
-
-  const trpc = useTRPC();
-  const { mutate: deleteFolderMutation } = useMutation(
-    trpc.folder.delete.mutationOptions(),
-  );
-
-  /* Complex actions */
-  const deleteFolder = useCallback(
-    (id: string) => {
-      if (!mapId) return;
-      deleteFolderMutation({ folderId: id, mapId });
-      const newFolders = folders.filter((m) => m.id !== id);
-      setFolders(newFolders);
-    },
-    [deleteFolderMutation, folders, mapId],
-  );
-
-  const { mutate: upsertFolderMutation, isPending: upsertFolderLoading } =
-    useMutation(trpc.folder.upsert.mutationOptions());
-
-  const insertFolder = useCallback(
-    (newFolder: Omit<Folder, "position" | "mapId">) => {
-      if (!mapId) return;
-      const newPosition = getNewLastPosition(folders);
-      const positionedFolder = { ...newFolder, position: newPosition };
-
-      const newFolders = [...folders, positionedFolder];
-      setFolders(newFolders.map((f) => ({ ...f, mapId })));
-
-      upsertFolderMutation({ ...positionedFolder, mapId });
-    },
-    [folders, mapId, upsertFolderMutation],
-  );
-
-  const updateFolder = useCallback(
-    (updatedFolder: Omit<Folder, "mapId">) => {
-      if (!mapId) return;
-
-      upsertFolderMutation({ ...updatedFolder, mapId });
-
-      setFolders(
-        folders
-          .map((f) => (f.id === updatedFolder.id ? updatedFolder : f))
-          .map((f) => ({ ...f, mapId })),
-      );
-    },
-    [folders, mapId, upsertFolderMutation],
-  );
-
-  return {
-    folders,
-    setFolders,
-    deleteFolder,
-    insertFolder,
-    updateFolder,
-    loading: upsertFolderLoading,
-  };
-};
 
 export const useTurfs = (mapId: string | null) => {
   const trpc = useTRPC();

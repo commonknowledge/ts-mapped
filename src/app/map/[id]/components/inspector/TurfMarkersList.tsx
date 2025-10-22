@@ -2,8 +2,8 @@ import { useQueries } from "@tanstack/react-query";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -22,7 +22,7 @@ import type { Feature, Polygon } from "geojson";
 export default function TurfMarkersList() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const { folders } = useContext(MarkerAndTurfContext);
+  const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { selectedTurf } = useContext(InspectorContext);
   const trpc = useTRPC();

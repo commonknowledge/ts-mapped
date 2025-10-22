@@ -14,8 +14,8 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { useContext, useMemo, useRef, useState } from "react";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMemo, useRef, useState } from "react";
+import { useFolderMutations } from "@/app/map/[id]/hooks/useFolders";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
@@ -75,7 +75,7 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const { updateFolder, deleteFolder } = useContext(MarkerAndTurfContext);
+  const { updateFolder, deleteFolder } = useFolderMutations();
 
   const [isExpanded, setExpanded] = useState(false);
   const [isEditing, setEditing] = useState(false);

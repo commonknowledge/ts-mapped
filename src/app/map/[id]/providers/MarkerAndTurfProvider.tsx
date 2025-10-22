@@ -10,7 +10,7 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useFolders, useTurfs } from "../hooks";
+import { useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { usePlacedMarkerMutations } from "../hooks/usePlacedMarkers";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
@@ -89,14 +89,6 @@ export default function MarkerAndTurfProvider({
   });
 
   /* Persisted map features */
-  const {
-    folders,
-    loading: foldersLoading,
-    setFolders,
-    deleteFolder,
-    insertFolder,
-    updateFolder,
-  } = useFolders(mapId);
 
   const { deleteTurf, insertTurf, updateTurf, turfs, setTurfs } =
     useTurfs(mapId);
@@ -110,13 +102,10 @@ export default function MarkerAndTurfProvider({
     }
     featuresInitialized.current = true;
 
-    if (map.folders) {
-      setFolders(map.folders);
-    }
     if (map.turfs) {
       setTurfs(map.turfs);
     }
-  }, [map, setFolders, setTurfs]);
+  }, [map, setTurfs]);
 
   const handleAddArea = () => {
     const map = mapRef?.current;
@@ -168,11 +157,6 @@ export default function MarkerAndTurfProvider({
       value={{
         editingTurf,
         setEditingTurf,
-        folders,
-        foldersLoading,
-        deleteFolder,
-        insertFolder,
-        updateFolder,
         selectedPlacedMarkerId,
         setSelectedPlacedMarkerId,
         deleteTurf,

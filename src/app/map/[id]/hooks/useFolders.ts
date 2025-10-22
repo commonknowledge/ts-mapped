@@ -7,24 +7,21 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
-import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { Folder } from "@/server/models/Folder";
 
-export function usePlacedMarkersQuery() {
+export function useFoldersQuery() {
   const { mapId } = use(MapContext);
   const { data: mapData, isFetching } = useMapQuery(mapId);
-  return {
-    data: mapData?.placedMarkers,
-    isFetching,
-  };
+  return { data: mapData?.folders, isFetching };
 }
 
-export function usePlacedMarkerMutations() {
+export function useFolderMutations() {
   const { mapId } = use(MapContext);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { mutate: deletePlacedMarkerMutation } = useMutation(
-    trpc.placedMarker.delete.mutationOptions({
+  const { mutate: deleteFolderMutation } = useMutation(
+    trpc.folder.delete.mutationOptions({
       onMutate: async () => {
         if (!mapId) return;
 
@@ -48,14 +45,14 @@ export function usePlacedMarkerMutations() {
             context.previousData,
           );
         }
-        toast.error("Failed to delete marker");
+        toast.error("Failed to delete folder");
       },
     }),
   );
 
-  const { mutate: upsertPlacedMarkerMutation, isPending: upsertLoading } =
+  const { mutate: upsertFolderMutation, isPending: upsertLoading } =
     useMutation(
-      trpc.placedMarker.upsert.mutationOptions({
+      trpc.folder.upsert.mutationOptions({
         onMutate: async () => {
           if (!mapId) return;
 
@@ -79,12 +76,12 @@ export function usePlacedMarkerMutations() {
               context.previousData,
             );
           }
-          toast.error("Failed to save marker");
+          toast.error("Failed to save folder");
         },
       }),
     );
 
-  const deletePlacedMarker = useCallback(
+  const deleteFolder = useCallback(
     (id: string) => {
       if (!mapId) return;
 
@@ -93,83 +90,75 @@ export function usePlacedMarkerMutations() {
         if (!old) return old;
         return {
           ...old,
-          placedMarkers: old.placedMarkers?.filter((m) => m.id !== id) || [],
+          folders: old.folders?.filter((f) => f.id !== id) || [],
         };
       });
 
-      deletePlacedMarkerMutation({ placedMarkerId: id, mapId });
+      deleteFolderMutation({ folderId: id, mapId });
     },
-    [mapId, queryClient, trpc.map.byId, deletePlacedMarkerMutation],
+    [mapId, queryClient, trpc.map.byId, deleteFolderMutation],
   );
 
-  const insertPlacedMarker = useCallback(
-    (newMarker: Omit<PlacedMarker, "position" | "mapId">) => {
+  const insertFolder = useCallback(
+    (newFolder: Omit<Folder, "position" | "mapId">) => {
       if (!mapId) return;
 
-      // Get current markers for position calculation
+      // Get current folders for position calculation
       const mapData = queryClient.getQueryData(
         trpc.map.byId.queryKey({ mapId }),
       );
-      const currentMarkers = mapData?.placedMarkers || [];
+      const currentFolders = mapData?.folders || [];
 
-      const newPosition = getNewLastPosition(currentMarkers);
+      const newPosition = getNewLastPosition(currentFolders);
       // Optimistic update: add to cache immediately
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
         if (!old) return old;
         return {
           ...old,
-          placedMarkers: [
-            ...(old.placedMarkers || []),
+          folders: [
+            ...(old.folders || []),
             {
-              ...newMarker,
+              ...newFolder,
+              hideMarkers: newFolder.hideMarkers ?? false,
               position: newPosition,
               mapId,
-              folderId: newMarker.folderId ?? null,
             },
           ],
         };
       });
 
-      upsertPlacedMarkerMutation({
-        ...newMarker,
-        position: newPosition,
-        mapId,
-      });
+      upsertFolderMutation({ ...newFolder, position: newPosition, mapId });
     },
-    [mapId, queryClient, trpc.map.byId, upsertPlacedMarkerMutation],
+    [mapId, queryClient, trpc.map.byId, upsertFolderMutation],
   );
 
-  const updatePlacedMarker = useCallback(
-    (placedMarker: Omit<PlacedMarker, "mapId">) => {
+  const updateFolder = useCallback(
+    (folder: Omit<Folder, "mapId">) => {
       if (!mapId) return;
-
-      const fullMarker = {
-        ...placedMarker,
-        mapId,
-        folderId: placedMarker.folderId ?? null,
-      };
 
       // Optimistic update: update in cache immediately
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
         if (!old) return old;
         return {
           ...old,
-          placedMarkers:
-            old.placedMarkers?.map((m) =>
-              m.id === placedMarker.id ? fullMarker : m,
+          folders:
+            old.folders?.map((f) =>
+              f.id === folder.id
+                ? { ...folder, hideMarkers: folder.hideMarkers ?? false, mapId }
+                : f,
             ) || [],
         };
       });
 
-      upsertPlacedMarkerMutation(fullMarker);
+      upsertFolderMutation({ ...folder, mapId });
     },
-    [mapId, queryClient, trpc.map.byId, upsertPlacedMarkerMutation],
+    [mapId, queryClient, trpc.map.byId, upsertFolderMutation],
   );
 
   return {
-    deletePlacedMarker,
-    insertPlacedMarker,
-    updatePlacedMarker,
+    deleteFolder,
+    insertFolder,
+    updateFolder,
     loading: upsertLoading,
   };
 }
