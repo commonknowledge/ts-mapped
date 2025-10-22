@@ -36,10 +36,10 @@ import {
 } from "@/app/map/[id]/utils";
 import CollectionLayer from "../../CollectionLayer";
 import EmptyLayer from "../../Emptylayer";
-import FolderDragOverlay from "./FolderDragOverlay";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type {
   DragEndEvent,
   DragOverEvent,
@@ -92,24 +92,16 @@ export default function MarkersList() {
     setActiveId(event.active.id.toString());
   }, []);
 
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    // This function is now only used for visual feedback during drag
-    // The actual mutations will happen in handleDragEnd
-    const { active, over } = event;
-
-    // Early exit if marker is not over a different folder
-    if (!over || active.id === over.id) {
-      return;
-    }
-
-    // We could add visual feedback here if needed
-    // but no mutations should happen during drag
-  }, []);
-
-  const handleDragEndMarker = useCallback(
-    (event: DragEndEvent) => {
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
       const { active, over } = event;
 
+      // Early exit if marker is not over a different folder
+      if (!over || active.id === over.id) {
+        return;
+      }
+
+      // Handle moving into a different folder
       const activeMarkerId = active.id.toString().replace("marker-", "");
       const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
 
@@ -117,8 +109,7 @@ export default function MarkersList() {
         return;
       }
 
-      // Handle moving into a different folder
-      if (over && over.id.toString().startsWith("folder")) {
+      if (over.id.toString().startsWith("folder")) {
         let folderId: string;
 
         // Handle header, footer, and draggable folder element IDs
@@ -146,10 +137,7 @@ export default function MarkersList() {
           folderId,
           position: newPosition,
         });
-
-        // Animate movement - pulse the folder that received the marker
-        setPulsingFolderId(folderId);
-      } else if (over && over.id === "unassigned") {
+      } else if (over.id === "unassigned") {
         const unassignedMarkers = placedMarkers.filter(
           (m) => m.folderId === null,
         );
@@ -159,8 +147,31 @@ export default function MarkersList() {
           folderId: null,
           position: newPosition,
         });
-      } else if (over && over.id.toString().startsWith("marker-")) {
-        // Handle reordering within the same container
+      }
+    },
+    [placedMarkers, updatePlacedMarker],
+  );
+
+  const handleDragEndMarker = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      const activeMarkerId = active.id.toString().replace("marker-", "");
+      const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
+
+      if (!activeMarker) {
+        return;
+      }
+
+      // Animate movement
+      if (activeMarker.folderId) {
+        setPulsingFolderId(activeMarker.folderId);
+      }
+
+      // Handle reordering within the same container
+      // Simpler to do it here than in onDragOver, as the library
+      // automatically handles re-ordering while drag is in progress
+      if (over && over.id.toString().startsWith("marker-")) {
         const overMarkerId = over.id.toString().replace("marker-", "");
         const overMarker = placedMarkers.find((m) => m.id === overMarkerId);
 
@@ -266,17 +277,12 @@ export default function MarkersList() {
     return sortByPositionAndId(folders);
   }, [folders]);
 
-  const activeMarker = useMemo(() => {
+  // Get active marker for drag overlay
+  const getActiveMarker = () => {
     if (!activeId) return null;
     const markerId = activeId.replace("marker-", "");
     return placedMarkers.find((marker) => marker.id === markerId) || null;
-  }, [activeId, placedMarkers]);
-
-  const activeFolder = useMemo(() => {
-    if (!activeId) return null;
-    const folderId = activeId.replace("folder-drag-", "");
-    return folders.find((folder) => folder.id === folderId) || null;
-  }, [activeId, folders]);
+  };
 
   return (
     <div className="relative">
@@ -346,8 +352,9 @@ export default function MarkersList() {
 
         {createPortal(
           <DragOverlay dropAnimation={null}>
-            {activeMarker && <MarkerDragOverlay marker={activeMarker} />}
-            {activeFolder && <FolderDragOverlay folder={activeFolder} />}
+            {activeId && getActiveMarker() && (
+              <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
+            )}
           </DragOverlay>,
           document.body,
         )}
