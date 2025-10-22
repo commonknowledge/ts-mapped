@@ -2,10 +2,10 @@ import { circle } from "@turf/turf";
 import { useContext, useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
 import { MARKER_ID_KEY } from "@/constants";
@@ -23,7 +23,7 @@ export default function FilterMarkers() {
   const { mapRef } = useContext(MapContext);
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
-  const { markerQueries } = useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
 

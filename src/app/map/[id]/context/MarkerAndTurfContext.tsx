@@ -1,6 +1,5 @@
 import { createContext } from "react";
 import type { Turf } from "@/server/models/Turf";
-import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
 
 export const MarkerAndTurfContext = createContext<{
@@ -14,11 +13,6 @@ export const MarkerAndTurfContext = createContext<{
   searchMarker: Feature | null;
   setSearchMarker: (marker: Feature | null) => void;
 
-  markerQueries: {
-    data: { dataSourceId: string; markers: PointFeature[] }[];
-    isFetching: boolean;
-  } | null;
-
   /* helpers */
   handleAddArea: () => void;
   handleDropPin: () => void;
@@ -29,7 +23,6 @@ export const MarkerAndTurfContext = createContext<{
   setSelectedPlacedMarkerId: () => null,
   searchMarker: null,
   setSearchMarker: () => null,
-  markerQueries: null,
   handleAddArea: () => null,
   handleDropPin: () => null,
 });

@@ -22,6 +22,7 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import {
   DEFAULT_ZOOM,
@@ -69,7 +70,8 @@ export default function Map({
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { searchMarker, markerQueries } = useContext(MarkerAndTurfContext);
+  const { searchMarker } = useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
   const {
     resetInspector,
     setSelectedRecord,

@@ -1,19 +1,11 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import {
-  MapContext,
-  getDataSourceIds,
-} from "@/app/map/[id]/context/MapContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { usePlacedMarkerMutations } from "../hooks/usePlacedMarkers";
-import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
-import type { PointFeature } from "@/types";
 import type { Feature } from "geojson";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { ReactNode } from "react";
@@ -24,66 +16,14 @@ export default function MarkerAndTurfProvider({
   children: ReactNode;
 }) {
   const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
-  const { mapConfig } = useMapConfig();
-  const { view } = useMapViews();
 
-  const { publicMap } = useContext(PublicMapContext);
   /* State */
-
   const [editingTurf, setEditingTurf] = useState<Turf | null>(null);
   const [selectedPlacedMarkerId, setSelectedPlacedMarkerId] = useState<
     string | null
   >(null);
 
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
-
-  const dataSourceIds = useMemo(() => {
-    if (!publicMap) {
-      return getDataSourceIds(mapConfig);
-    }
-    // If a public map is being displayed, don't fetch markers that aren't included
-    return getDataSourceIds(mapConfig).filter((id) =>
-      publicMap.dataSourceConfigs.some((dsc) => dsc.dataSourceId === id),
-    );
-  }, [mapConfig, publicMap]);
-
-  // Using the `combine` option in this useQueries call makes `markerQueries`
-  // only update when the data updates. This prevents infinite loops
-  // when `markerQueries` is used in useEffect hooks.
-  const markerQueries = useQueries({
-    queries: dataSourceIds.map((dataSourceId) => {
-      const dsv = view?.dataSourceViews.find(
-        (dsv) => dsv.dataSourceId === dataSourceId,
-      );
-      const filter = JSON.stringify(dsv?.filter || null);
-      const search = dsv?.search || "";
-      return {
-        queryKey: ["markers", dataSourceId, filter, search],
-        queryFn: async () => {
-          const params = new URLSearchParams();
-          params.set("filter", filter);
-          params.set("search", search);
-          const response = await fetch(
-            `/api/data-sources/${dataSourceId}/markers?${params.toString()}`,
-          );
-          if (!response.ok) {
-            throw new Error(`Bad response: ${response.status}`);
-          }
-          const data = await response.json();
-          return data as PointFeature[];
-        },
-      };
-    }),
-    combine: (results) => {
-      return {
-        data: results.map((result, i) => ({
-          dataSourceId: dataSourceIds[i],
-          markers: result.data || [],
-        })),
-        isFetching: results.some((result) => result.isFetching),
-      };
-    },
-  });
 
   const handleAddArea = () => {
     const map = mapRef?.current;
@@ -137,7 +77,6 @@ export default function MarkerAndTurfProvider({
         setEditingTurf,
         selectedPlacedMarkerId,
         setSelectedPlacedMarkerId,
-        markerQueries,
         searchMarker,
         setSearchMarker,
         handleAddArea,
