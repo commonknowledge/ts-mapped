@@ -34,6 +34,7 @@ export default function BoundaryMarkersList() {
       trpc.dataRecord.list.queryOptions(
         {
           dataSourceId,
+          all: true,
         },
         { refetchOnMount: "always" }
       )
