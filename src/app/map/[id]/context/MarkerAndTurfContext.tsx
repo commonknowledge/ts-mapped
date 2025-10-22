@@ -14,11 +14,6 @@ export const MarkerAndTurfContext = createContext<{
   searchMarker: Feature | null;
   setSearchMarker: (marker: Feature | null) => void;
 
-  turfs: Turf[];
-  deleteTurf: (id: string) => void;
-  insertTurf: (turf: Omit<Turf, "mapId" | "id" | "createdAt">) => void;
-  updateTurf: (turf: Omit<Turf, "mapId">) => void;
-
   markerQueries: {
     data: { dataSourceId: string; markers: PointFeature[] }[];
     isFetching: boolean;
@@ -34,10 +29,6 @@ export const MarkerAndTurfContext = createContext<{
   setSelectedPlacedMarkerId: () => null,
   searchMarker: null,
   setSearchMarker: () => null,
-  turfs: [],
-  deleteTurf: () => null,
-  insertTurf: () => null,
-  updateTurf: () => null,
   markerQueries: null,
   handleAddArea: () => null,
   handleDropPin: () => null,

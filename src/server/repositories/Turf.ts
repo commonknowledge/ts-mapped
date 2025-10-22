@@ -29,3 +29,12 @@ export async function updateTurf(id: string, turf: TurfUpdate) {
     .returningAll()
     .executeTakeFirstOrThrow();
 }
+
+export async function upsertTurf(turf: NewTurf) {
+  return db
+    .insertInto("turf")
+    .values(turf)
+    .onConflict((oc) => oc.columns(["id"]).doUpdateSet(turf))
+    .returningAll()
+    .executeTakeFirstOrThrow();
+}

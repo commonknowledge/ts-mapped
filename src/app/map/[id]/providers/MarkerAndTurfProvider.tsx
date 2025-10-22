@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapContext,
@@ -10,8 +10,6 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useTurfs } from "../hooks";
-import { useMapQuery } from "../hooks/useMapQuery";
 import { usePlacedMarkerMutations } from "../hooks/usePlacedMarkers";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { Turf } from "@/server/models/Turf";
@@ -27,7 +25,6 @@ export default function MarkerAndTurfProvider({
 }) {
   const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
   const { mapConfig } = useMapConfig();
-  const { data: map } = useMapQuery(mapId);
   const { view } = useMapViews();
 
   const { publicMap } = useContext(PublicMapContext);
@@ -88,25 +85,6 @@ export default function MarkerAndTurfProvider({
     },
   });
 
-  /* Persisted map features */
-
-  const { deleteTurf, insertTurf, updateTurf, turfs, setTurfs } =
-    useTurfs(mapId);
-
-  const featuresInitialized = useRef(false);
-  useEffect(() => {
-    // Only initialize the features when the map first loads
-    // TODO: use the TRPC query cache for this state
-    if (featuresInitialized.current || !map) {
-      return;
-    }
-    featuresInitialized.current = true;
-
-    if (map.turfs) {
-      setTurfs(map.turfs);
-    }
-  }, [map, setTurfs]);
-
   const handleAddArea = () => {
     const map = mapRef?.current;
     if (map) {
@@ -159,10 +137,6 @@ export default function MarkerAndTurfProvider({
         setEditingTurf,
         selectedPlacedMarkerId,
         setSelectedPlacedMarkerId,
-        deleteTurf,
-        insertTurf,
-        turfs,
-        updateTurf,
         markerQueries,
         searchMarker,
         setSearchMarker,

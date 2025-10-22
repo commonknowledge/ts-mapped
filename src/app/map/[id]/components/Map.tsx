@@ -29,6 +29,7 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { useTurfMutations, useTurfsQuery } from "../hooks/useTurfs";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
@@ -68,14 +69,7 @@ export default function Map({
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const {
-    deleteTurf,
-    insertTurf,
-    updateTurf,
-    turfs,
-    searchMarker,
-    markerQueries,
-  } = useContext(MarkerAndTurfContext);
+  const { searchMarker, markerQueries } = useContext(MarkerAndTurfContext);
   const {
     resetInspector,
     setSelectedRecord,
@@ -105,6 +99,9 @@ export default function Map({
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );
+
+  const { data: turfs } = useTurfsQuery();
+  const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
 
   // draw existing turfs
   useEffect(() => {
@@ -579,6 +576,7 @@ export default function Map({
                 const area = turf.area(feature);
                 const roundedArea = Math.round(area * 100) / 100;
                 insertTurf({
+                  id: crypto.randomUUID(),
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
