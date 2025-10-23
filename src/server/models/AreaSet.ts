@@ -6,6 +6,7 @@ export enum AreaSetCode {
   OA21 = "OA21",
   PC = "PC",
   WMC24 = "WMC24",
+  UKREGIONCOUNTRY18 = "UKREGIONCOUNTRY18",
 }
 export const areaSetCodes = Object.values(AreaSetCode);
 
@@ -14,6 +15,7 @@ export const areaSetCode = z.nativeEnum(AreaSetCode);
 export enum AreaSetGroupCode {
   OA21 = "OA21",
   WMC24 = "WMC24",
+  UKREGIONCOUNTRY18 = "UKREGIONCOUNTRY18",
 }
 export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
 
