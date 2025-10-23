@@ -24,6 +24,7 @@ import { getPubSub } from "@/server/services/pubsub";
 import { runWorker } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
 import { stopPublicTunnel } from "@/server/services/urls";
+import importRegions from "@/server/commands/importRegions";
 
 const program = new Command();
 
@@ -59,6 +60,13 @@ program
   .description("Import Westminster Constituencies")
   .action(async () => {
     await importConstituencies();
+  });
+
+program
+  .command("importRegions")
+  .description("Import English Regions & Nations")
+  .action(async () => {
+    await importRegions();
   });
 
 program
