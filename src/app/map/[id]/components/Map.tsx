@@ -462,11 +462,20 @@ export default function Map({
           ) {
             try {
               const boundaryFeatures = map.queryRenderedFeatures(e.point, {
-                layers: [`${sourceId}-fill`, `${sourceId}-line`],
+                layers: [`${sourceId}-fill`],
               });
 
               if (boundaryFeatures.length > 0) {
                 const feature = boundaryFeatures[0];
+
+                // Get the feature with its complete geometry from the mapbox source
+                const allFeatures = map.querySourceFeatures(sourceId, {
+                  sourceLayer: layerId,
+                });
+                const fullFeature = allFeatures.find(
+                  (f) => f.id === feature.id,
+                );
+
                 const areaCode = feature.properties?.[
                   featureCodeProperty
                 ] as string;
@@ -486,7 +495,8 @@ export default function Map({
                     sourceLayerId: feature?.sourceLayer as string,
                     name: areaName,
                     properties: feature?.properties,
-                    boundaryFeature: feature,
+                    // Fallback to the selected feature if the full feature was not found
+                    boundaryFeature: fullFeature || feature,
                   });
 
                   return;
