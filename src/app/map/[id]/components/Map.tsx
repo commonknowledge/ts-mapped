@@ -397,7 +397,7 @@ export default function Map({
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
 
-            setSelectedTurf(null); // resets the turf context for the selected marker
+            resetInspector();
             setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
