@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Separator } from "@/shadcn/ui/separator";
+import LayerControlWrapper from "../../LayerControlWrapper";
 import LayerHeader from "../../LayerHeader";
 import { FillSelector } from "./FillSelector";
 import { LegendControl } from "./LegendControl";
@@ -16,7 +17,7 @@ export default function BoundariesControl() {
     useContext(ChoroplethContext);
 
   return (
-    <div className="flex flex-col gap-1 p-3">
+    <LayerControlWrapper>
       <LayerHeader
         label="Boundaries"
         showLayer={true}
@@ -41,6 +42,6 @@ export default function BoundariesControl() {
           {hasDataSource && <LegendControl />}
         </div>
       )}
-    </div>
+    </LayerControlWrapper>
   );
 }

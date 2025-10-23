@@ -14,7 +14,8 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
-import EmptyLayer from "../Emptylayer";
+import LayerControlWrapper from "../LayerControlWrapper";
+import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
 import type { Turf } from "@/server/models/Turf";
 
@@ -34,7 +35,7 @@ export default function AreasControl() {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-3">
+    <LayerControlWrapper>
       <LayerHeader
         label="Areas"
         color={mapColors.areas.color}
@@ -71,7 +72,7 @@ export default function AreasControl() {
           </ul>
         </div>
       )}
-    </div>
+    </LayerControlWrapper>
   );
 }
 

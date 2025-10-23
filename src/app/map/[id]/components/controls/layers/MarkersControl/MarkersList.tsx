@@ -28,7 +28,7 @@ import {
   sortByPositionAndId,
 } from "@/app/map/[id]/utils";
 import CollectionLayer from "../../CollectionLayer";
-import EmptyLayer from "../../Emptylayer";
+import EmptyLayer from "../../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";

@@ -1,4 +1,4 @@
-import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
+import { Check, FolderPlusIcon, LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -10,7 +10,7 @@ import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { CollectionIcon } from "../../../Icons";
-import ControlItemWrapper from "../../ControlItemWrapper";
+import LayerControlWrapper from "../../LayerControlWrapper";
 import LayerHeader from "../../LayerHeader";
 import MarkersList from "./MarkersList";
 
@@ -132,7 +132,7 @@ export default function MarkersControl() {
   const loading = foldersLoading || placedMarkersLoading;
 
   return (
-    <ControlItemWrapper className="markers-control">
+    <LayerControlWrapper>
       <LayerHeader
         label="Markers"
         color={mapColors.markers.color}
@@ -149,10 +149,10 @@ export default function MarkersControl() {
           dropdownLabel="Marker options"
           dropdownItems={getDropdownItems()}
         >
-          <Ellipsis className="w-4 h-4" />
+          <PlusIcon size={16} />
         </IconButtonWithTooltip>
       </LayerHeader>
       {expanded && <MarkersList />}
-    </ControlItemWrapper>
+    </LayerControlWrapper>
   );
 }

@@ -1,4 +1,4 @@
-import { Ellipsis } from "lucide-react";
+import { DatabaseIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
@@ -13,8 +13,8 @@ import { DataSourceRecordType } from "@/server/models/DataSource";
 import { mapColors } from "../../../styles";
 import { CollectionIcon } from "../../Icons";
 import CollectionLayer from "../CollectionLayer";
-import ControlItemWrapper from "../ControlItemWrapper";
-import EmptyLayer from "../Emptylayer";
+import LayerControlWrapper from "../LayerControlWrapper";
+import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
@@ -58,7 +58,7 @@ export default function MembersControl() {
   };
 
   return (
-    <ControlItemWrapper>
+    <LayerControlWrapper>
       <LayerHeader
         label="Members"
         color={mapColors.member.color}
@@ -70,11 +70,11 @@ export default function MembersControl() {
         <IconButtonWithTooltip
           align="start"
           side="right"
-          tooltip="Member lists"
+          tooltip="Select a member collection"
           dropdownLabel="Select a member collection"
           dropdownItems={getDropdownItems()}
         >
-          <Ellipsis className="w-4 h-4" />
+          <DatabaseIcon size={16} />
         </IconButtonWithTooltip>
       </LayerHeader>
 
@@ -105,6 +105,6 @@ export default function MembersControl() {
           )}
         </ul>
       )}
-    </ControlItemWrapper>
+    </LayerControlWrapper>
   );
 }
