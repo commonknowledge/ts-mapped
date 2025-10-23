@@ -83,6 +83,7 @@ export default function Map({
   } = useContext(InspectorContext);
   const {
     choroplethLayerConfig: {
+      areaSetCode,
       mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
     },
   } = useContext(ChoroplethContext);
@@ -462,20 +463,11 @@ export default function Map({
           ) {
             try {
               const boundaryFeatures = map.queryRenderedFeatures(e.point, {
-                layers: [`${sourceId}-fill`],
+                layers: [`${sourceId}-fill`, `${sourceId}-line`],
               });
 
               if (boundaryFeatures.length > 0) {
                 const feature = boundaryFeatures[0];
-
-                // Get the feature with its complete geometry from the mapbox source
-                const allFeatures = map.querySourceFeatures(sourceId, {
-                  sourceLayer: layerId,
-                });
-                const fullFeature = allFeatures.find(
-                  (f) => f.id === feature.id,
-                );
-
                 const areaCode = feature.properties?.[
                   featureCodeProperty
                 ] as string;
@@ -492,11 +484,10 @@ export default function Map({
                   setSelectedBoundary({
                     id: feature?.id as string,
                     areaCode: areaCode,
+                    areaSetCode: areaSetCode,
                     sourceLayerId: feature?.sourceLayer as string,
                     name: areaName,
                     properties: feature?.properties,
-                    // Fallback to the selected feature if the full feature was not found
-                    boundaryFeature: fullFeature || feature,
                   });
 
                   return;
