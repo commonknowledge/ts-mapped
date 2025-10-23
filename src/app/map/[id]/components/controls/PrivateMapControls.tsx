@@ -7,7 +7,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 import AreasControl from "./layers/AreasControl";
-import BoundariesControl from "./layers/BoundariesControl";
+import BoundariesControl from "./layers/BoundariesControl/BoundariesControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
 
