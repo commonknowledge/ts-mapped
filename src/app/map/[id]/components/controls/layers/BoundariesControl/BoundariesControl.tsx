@@ -11,21 +11,9 @@ import { useBoundariesControl } from "./useBoundariesControl";
 
 export default function BoundariesControl() {
   const [expanded, setExpanded] = useState(true);
+  const { hasDataSource } = useBoundariesControl();
   const { boundariesPanelOpen, setBoundariesPanelOpen } =
     useContext(ChoroplethContext);
-
-  const {
-    viewConfig,
-    updateViewConfig,
-    isChoroplethVisible,
-    toggleChoropleth,
-    fillLabel,
-    shapeOptions,
-    fillOptions,
-    colorSchemeOptions,
-    hasShape,
-    hasDataSource,
-  } = useBoundariesControl();
 
   return (
     <div className="flex flex-col gap-1 p-3">
@@ -44,39 +32,10 @@ export default function BoundariesControl() {
       </LayerHeader>
       {expanded && (
         <div className="space-y-2 py-2">
-          <ShapeSelector
-            selectedShape={viewConfig.areaSetGroupCode}
-            shapeOptions={shapeOptions}
-          />
-
+          <ShapeSelector />
           <Separator />
-
-          <FillSelector
-            disabled={!hasShape}
-            fillLabel={fillLabel}
-            isChoroplethVisible={isChoroplethVisible}
-            areaDataSourceId={viewConfig.areaDataSourceId}
-            calculationType={viewConfig.calculationType}
-            baseOptions={fillOptions.baseOptions}
-            voteShareOptions={fillOptions.voteShareOptions}
-          />
-
-          {hasDataSource && (
-            <LegendControl
-              disabled={!hasShape}
-              isChoroplethVisible={isChoroplethVisible}
-              visualisationType={viewConfig.visualisationType}
-              reverseColorScheme={Boolean(viewConfig.reverseColorScheme)}
-              colorSchemeOptions={colorSchemeOptions}
-              onToggleChoropleth={toggleChoropleth}
-              onUpdateColorScheme={(colorScheme) =>
-                updateViewConfig({ colorScheme })
-              }
-              onToggleReverse={(checked) =>
-                updateViewConfig({ reverseColorScheme: checked })
-              }
-            />
-          )}
+          <FillSelector />
+          {hasDataSource && <LegendControl />}
         </div>
       )}
     </div>

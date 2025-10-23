@@ -1,4 +1,5 @@
 import { ChevronDown, Circle, Hexagon, MapPin } from "lucide-react";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -9,17 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import type { AreaSetGroupCode } from "@/server/models/AreaSet";
+import { useBoundariesControl } from "./useBoundariesControl";
 
-interface ShapeSelectorProps {
-  selectedShape: AreaSetGroupCode | null | undefined;
-  shapeOptions: { label: string; onClick: () => void }[];
-}
+export function ShapeSelector() {
+  const { viewConfig } = useMapViews();
+  const { shapeOptions } = useBoundariesControl();
 
-export function ShapeSelector({
-  selectedShape,
-  shapeOptions,
-}: ShapeSelectorProps) {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2 text-neutral-500">
@@ -36,8 +32,8 @@ export function ShapeSelector({
               <MapPin className="w-4 h-4 text-neutral-600 flex-shrink-0" />
               <div className="text-left min-w-0 flex-1">
                 <div className="text-sm font-medium truncate">
-                  {selectedShape
-                    ? AreaSetGroupCodeLabels[selectedShape as AreaSetGroupCode]
+                  {viewConfig?.areaSetGroupCode
+                    ? AreaSetGroupCodeLabels[viewConfig?.areaSetGroupCode]
                     : "None"}
                 </div>
               </div>

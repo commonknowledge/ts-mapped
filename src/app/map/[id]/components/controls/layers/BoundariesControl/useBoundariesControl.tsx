@@ -166,8 +166,6 @@ export function useBoundariesControl() {
     Boolean(viewConfig.areaDataSourceId) && viewConfig.areaDataSourceId !== "";
 
   return {
-    viewConfig,
-    updateViewConfig,
     isChoroplethVisible,
     toggleChoropleth,
     fillLabel,
