@@ -4,6 +4,7 @@ import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useTurfMutations, useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
@@ -20,7 +21,8 @@ import type { Turf } from "@/server/models/Turf";
 
 export default function AreasControl() {
   const { viewConfig, updateViewConfig } = useMapViews();
-  const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
+  const { handleAddArea } = useContext(MarkerAndTurfContext);
+  const { data: turfs = [] } = useTurfsQuery();
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
@@ -79,7 +81,7 @@ const TurfItem = ({ turf }: { turf: Turf }) => {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
   const { mapRef, showControls } = useContext(MapContext);
-  const { updateTurf, deleteTurf } = useContext(MarkerAndTurfContext);
+  const { updateTurf, deleteTurf } = useTurfMutations();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFlyTo = (turf: Turf) => {

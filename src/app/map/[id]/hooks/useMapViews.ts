@@ -20,10 +20,10 @@ export function useMapViews() {
   const { data: mapData } = useMapQuery(mapId);
 
   // Get views directly from cache
-  const views = useMemo(() => mapData?.views || [], [mapData?.views]);
+  const views = mapData?.views;
 
   const view = useMemo(
-    () => views.find((v) => v.id === viewId) || null,
+    () => views?.find((v) => v.id === viewId) || null,
     [viewId, views],
   );
 
@@ -145,7 +145,8 @@ export function useMapViews() {
     (view: View) => {
       if (!mapId) return;
 
-      const updatedViews = views.map((v) => (v.id === view.id ? view : v));
+      const updatedViews =
+        views?.map((v) => (v.id === view.id ? view : v)) || [];
 
       setDirtyViewIds((ids) => ids.concat([view.id]));
 
@@ -233,7 +234,7 @@ export function useMapViews() {
   );
 
   return {
-    views,
+    views: views || [],
     view,
     viewConfig,
     updateViewConfig,
