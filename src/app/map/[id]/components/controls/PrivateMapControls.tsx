@@ -7,9 +7,9 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 import AreasControl from "./layers/AreasControl";
+import BoundariesControl from "./layers/BoundariesControl";
 import MarkersControl from "./layers/MarkersControl/MarkersControl";
 import MembersControl from "./layers/MembersControl";
-import VisualiseControl from "./layers/VisualiseControl";
 
 export default function PrivateMapControls() {
   const { showControls, setShowControls } = useContext(MapContext);
@@ -68,10 +68,8 @@ export default function PrivateMapControls() {
             <MarkersControl />
             <Separator />
             <AreasControl />
-          </div>
-          <div className="sticky bottom-0 left-0 w-full bg-white">
             <Separator />
-            <VisualiseControl />
+            <BoundariesControl />
           </div>
         </div>
       </div>
