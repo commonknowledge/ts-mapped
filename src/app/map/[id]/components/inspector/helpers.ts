@@ -9,7 +9,7 @@ import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
-import type { PointFeature, RecordData, RecordsResponse } from "@/types";
+import type { RecordData, RecordsResponse } from "@/types";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 
 export const mapTurfToGeoFeature = (turf: SelectedTurf | null) => {
@@ -80,19 +80,16 @@ export function getRecordsInsideBoundary(
     dataSource: DataSource | null;
   }[],
   boundaryFeature: Feature<Polygon | MultiPolygon> | null | undefined,
-  markers: PointFeature[] | undefined,
 ) {
   if (!boundaryFeature) {
     return [];
   }
 
+  console.log("DATA", data);
+
   return data.map((d) => {
     const recordsInsideTurf = d.records.records.filter((r) => {
-      const coordinates =
-        r?.geocodePoint?.lng && r?.geocodePoint?.lat
-          ? [r?.geocodePoint?.lng, r?.geocodePoint?.lat]
-          : markers?.find((m) => m.properties?.__recordId === r.id)?.geometry
-              ?.coordinates || [];
+      const coordinates = [r?.geocodePoint?.lng, r?.geocodePoint?.lat];
 
       return checkIfPointInPolygon(coordinates, boundaryFeature);
     });

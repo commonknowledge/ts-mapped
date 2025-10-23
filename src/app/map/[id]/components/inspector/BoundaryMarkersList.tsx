@@ -1,13 +1,12 @@
-import { useQueries } from "@tanstack/react-query";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { MARKER_ID_KEY } from "@/constants";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import { useTRPC } from "@/services/trpc/react";
-import { type RecordsResponse } from "@/types";
+
 import {
   checkIfAnyRecords,
   getMarkersInsidePolygon,
@@ -24,33 +23,22 @@ export default function BoundaryMarkersList() {
   const { folders, markerQueries, placedMarkers } =
     useContext(MarkerAndTurfContext);
   const { selectedBoundary } = useContext(InspectorContext);
-  const trpc = useTRPC();
-
   const dataSourceIds = getDataSourceIds(mapConfig);
 
-  // fetching all records
-  // TODO: change to markerQueries mapping
-  const { data } = useQueries({
-    queries: dataSourceIds.map((dataSourceId) =>
-      trpc.dataRecord.list.queryOptions(
-        {
-          dataSourceId,
-          all: true,
-        },
-        { refetchOnMount: "always" },
-      ),
-    ),
-    combine: (results) => ({
-      data: results.map((result, i) => ({
-        dataSource: getDataSourceById(dataSourceIds[i]),
-        records: (result.data as RecordsResponse) ?? {
-          count: { matched: 0 },
-          records: [],
+  const data = markerQueries?.data?.map((result, i) => ({
+    dataSource: getDataSourceById(dataSourceIds[i]),
+    records: {
+      count: { matched: 0 },
+      records: result?.markers?.map((marker) => ({
+        id: marker.properties?.[MARKER_ID_KEY] as string,
+        json: marker.properties,
+        geocodePoint: {
+          lng: marker?.geometry?.coordinates?.[0],
+          lat: marker?.geometry?.coordinates?.[1],
         },
       })),
-      isFetching: results.some((r) => r.isFetching),
-    }),
-  });
+    },
+  }));
 
   const boundaryFeature = useMemo(() => {
     return mapBoundaryToGeoFeature(selectedBoundary);
@@ -58,23 +46,15 @@ export default function BoundaryMarkersList() {
 
   // frontend filtering - looking for markers within the selected boundary
   const filteredData = useMemo(() => {
-    if (!boundaryFeature) {
+    if (!boundaryFeature || !data) {
       return [];
     }
-
-    const markers = markerQueries?.data?.find((m) =>
-      data
-        .map((d) => d?.dataSource?.id)
-        .filter((d) => !!d)
-        .includes(m.dataSourceId),
-    )?.markers;
 
     return getRecordsInsideBoundary(
       data,
       boundaryFeature as Feature<Polygon | MultiPolygon>,
-      markers,
     );
-  }, [data, boundaryFeature, markerQueries?.data]);
+  }, [data, boundaryFeature]);
 
   const members = useMemo(
     () =>
