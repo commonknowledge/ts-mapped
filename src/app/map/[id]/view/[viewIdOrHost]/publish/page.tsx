@@ -8,6 +8,24 @@ import MarkerAndTurfProvider from "../../../providers/MarkerAndTurfProvider";
 import PublicMap from "./components/PublicMap";
 import PublicFiltersProvider from "./providers/PublicFiltersProvider";
 import PublicMapProvider from "./providers/PublicMapProvider";
+import type { Metadata } from "next";
+
+interface Props {
+  params: Promise<{ id: string; viewIdOrHost: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { viewIdOrHost } = await params;
+  const queryClient = await createCaller();
+
+  const map = await queryClient.publicMap.getPublished({
+    host: decodeURIComponent(viewIdOrHost),
+  });
+
+  return {
+    title: Boolean(map?.name) ? `${map?.name} - Mapped` : "Mapped",
+  };
+}
 
 export default async function PublicMapAdminPage({
   params,
