@@ -1,10 +1,13 @@
 import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
-import { MARKER_ID_KEY } from "@/constants";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import {
+  MARKER_ID_KEY,
+  MARKER_MATCHED_KEY,
+  MARKER_NAME_KEY,
+} from "@/constants";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
 import type { PointFeature } from "@/types";
@@ -29,7 +32,7 @@ function rgbaString(hex: string, alpha: number) {
 export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
-  const { markerQueries } = useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
 
   const memberMarkers = useMemo(
     () =>

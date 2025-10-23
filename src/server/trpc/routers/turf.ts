@@ -1,6 +1,6 @@
 import z from "zod";
 import { turfSchema } from "@/server/models/Turf";
-import { deleteTurf, insertTurf, updateTurf } from "@/server/repositories/Turf";
+import { deleteTurf, upsertTurf } from "@/server/repositories/Turf";
 import { mapWriteProcedure, router } from "..";
 
 export const turfRouter = router({
@@ -12,18 +12,8 @@ export const turfRouter = router({
     }),
 
   upsert: mapWriteProcedure
-    .input(
-      turfSchema
-        .omit({ id: true, createdAt: true })
-        .extend({ id: z.string().optional() }),
-    )
-    .mutation(async ({ input }) => {
-      let turf = null;
-      if (input.id) {
-        turf = await updateTurf(input.id, input);
-      } else {
-        turf = await insertTurf({ ...input, createdAt: new Date() });
-      }
-      return turf;
+    .input(turfSchema.omit({ createdAt: true }))
+    .mutation(({ input }) => {
+      return upsertTurf(input);
     }),
 });

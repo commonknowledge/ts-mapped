@@ -22,12 +22,15 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { useTurfMutations, useTurfsQuery } from "../hooks/useTurfs";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
@@ -66,15 +69,9 @@ export default function Map({
   } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
-  const {
-    deleteTurf,
-    insertTurf,
-    updateTurf,
-    turfs,
-    searchMarker,
-    placedMarkers,
-    markerQueries,
-  } = useContext(MarkerAndTurfContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { searchMarker } = useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
   const {
     resetInspector,
     setSelectedRecord,
@@ -104,6 +101,9 @@ export default function Map({
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );
+
+  const { data: turfs } = useTurfsQuery();
+  const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
 
   // draw existing turfs
   useEffect(() => {
@@ -578,6 +578,7 @@ export default function Map({
                 const area = turf.area(feature);
                 const roundedArea = Math.round(area * 100) / 100;
                 insertTurf({
+                  id: crypto.randomUUID(),
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
