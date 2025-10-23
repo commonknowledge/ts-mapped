@@ -2,10 +2,21 @@ import z from "zod";
 import { boundingBoxSchema } from "@/server/models/Area";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { CalculationType } from "@/server/models/MapView";
+import { findAreaByCodeWithGeometry } from "@/server/repositories/Area";
 import { getAreaStats } from "@/server/stats";
-import { dataSourceReadProcedure, router } from "../index";
+import { dataSourceReadProcedure, protectedProcedure, router } from "../index";
 
 export const areaRouter = router({
+  byCode: protectedProcedure
+    .input(
+      z.object({
+        areaSetCode: z.nativeEnum(AreaSetCode),
+        code: z.string(),
+      }),
+    )
+    .query(({ input: { code, areaSetCode } }) => {
+      return findAreaByCodeWithGeometry(code, areaSetCode);
+    }),
   stats: dataSourceReadProcedure
     .input(
       z.object({

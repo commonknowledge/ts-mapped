@@ -69,6 +69,7 @@ export interface RecordData {
   id: string;
   json: Record<string, unknown>;
   geocodePoint: Point;
+  name?: string;
 }
 
 export interface RecordsResponse {

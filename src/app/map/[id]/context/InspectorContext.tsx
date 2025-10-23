@@ -1,9 +1,9 @@
 import { createContext } from "react";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { LayerType } from "@/types";
 import type { Polygon } from "geojson";
-import type { GeoJSONFeature } from "mapbox-gl";
 
 type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
@@ -30,10 +30,10 @@ export interface SelectedTurf {
 export interface SelectedBoundary {
   id: string;
   areaCode: string;
+  areaSetCode: AreaSetCode;
   sourceLayerId: string;
   name: string;
   properties?: Record<string, unknown> | null;
-  boundaryFeature?: GeoJSONFeature;
 }
 
 export const InspectorContext = createContext<{

@@ -83,6 +83,7 @@ export default function Map({
   } = useContext(InspectorContext);
   const {
     choroplethLayerConfig: {
+      areaSetCode,
       mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
     },
   } = useContext(ChoroplethContext);
@@ -397,7 +398,7 @@ export default function Map({
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
 
-            setSelectedTurf(null); // resets the turf context for the selected marker
+            resetInspector();
             setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
@@ -411,7 +412,7 @@ export default function Map({
 
             return;
           } else {
-            setSelectedRecord(null);
+            resetInspector();
           }
 
           if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
@@ -429,6 +430,50 @@ export default function Map({
               return;
             } else {
               resetInspector();
+            }
+
+            if (
+              sourceId &&
+              layerId &&
+              featureCodeProperty &&
+              featureNameProperty
+            ) {
+              try {
+                const boundaryFeatures = map.queryRenderedFeatures(e.point, {
+                  layers: [`${sourceId}-fill`, `${sourceId}-line`],
+                });
+
+                if (boundaryFeatures.length > 0) {
+                  const feature = boundaryFeatures[0];
+                  const areaCode = feature.properties?.[
+                    featureCodeProperty
+                  ] as string;
+                  const areaName = feature.properties?.[
+                    featureNameProperty
+                  ] as string;
+
+                  if (areaCode && areaName) {
+                    // Prevent default context menu
+                    e.originalEvent.preventDefault();
+
+                    resetInspector();
+
+                    setSelectedBoundary({
+                      id: feature?.id as string,
+                      areaCode: areaCode,
+                      areaSetCode: areaSetCode,
+                      sourceLayerId: feature?.sourceLayer as string,
+                      name: areaName,
+                      properties: feature?.properties,
+                    });
+
+                    return;
+                  }
+                }
+              } catch (error) {
+                // Silently ignore errors - layers might not exist yet
+                console.debug("Boundary query failed:", error);
+              }
             }
           }
         }}
@@ -448,53 +493,6 @@ export default function Map({
               // Prevent default map zoom on double-click
               e.originalEvent.preventDefault();
               return;
-            }
-          }
-        }}
-        onContextMenu={(e) => {
-          const map = e.target;
-
-          if (
-            sourceId &&
-            layerId &&
-            featureCodeProperty &&
-            featureNameProperty
-          ) {
-            try {
-              const boundaryFeatures = map.queryRenderedFeatures(e.point, {
-                layers: [`${sourceId}-fill`, `${sourceId}-line`],
-              });
-
-              if (boundaryFeatures.length > 0) {
-                const feature = boundaryFeatures[0];
-                const areaCode = feature.properties?.[
-                  featureCodeProperty
-                ] as string;
-                const areaName = feature.properties?.[
-                  featureNameProperty
-                ] as string;
-
-                if (areaCode && areaName) {
-                  // Prevent default context menu
-                  e.originalEvent.preventDefault();
-
-                  resetInspector();
-
-                  setSelectedBoundary({
-                    id: feature?.id as string,
-                    areaCode: areaCode,
-                    sourceLayerId: feature?.sourceLayer as string,
-                    name: areaName,
-                    properties: feature?.properties,
-                    boundaryFeature: feature,
-                  });
-
-                  return;
-                }
-              }
-            } catch (error) {
-              // Silently ignore errors - layers might not exist yet
-              console.debug("Boundary query failed:", error);
             }
           }
         }}

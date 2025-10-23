@@ -1,5 +1,6 @@
 import { sql } from "kysely";
 import { db } from "@/server/services/database";
+import type { Area } from "@/server/models/Area";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Database } from "@/server/services/database";
 import type { SelectQueryBuilder } from "kysely";
@@ -29,6 +30,19 @@ export async function findAreaByCode(
     .where("area.code", "=", code)
     .where("areaSet.code", "=", areaSetCode);
   return applyAreaWithPointsSelect(query).executeTakeFirst();
+}
+
+export async function findAreaByCodeWithGeometry(
+  code: string,
+  areaSetCode: AreaSetCode,
+): Promise<Area | undefined> {
+  return db
+    .selectFrom("area")
+    .innerJoin("areaSet", "area.areaSetId", "areaSet.id")
+    .where("area.code", "=", code)
+    .where("areaSet.code", "=", areaSetCode)
+    .selectAll("area")
+    .executeTakeFirst();
 }
 
 export async function findAreaByName(
