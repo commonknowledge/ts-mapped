@@ -1,7 +1,7 @@
 import { OperationNodeTransformer } from "kysely";
 import logger from "../../../services/logger"; // Relative import required for Kysely CLI
 import type { Point } from "@/server/models/shared";
-import type { Polygon } from "geojson";
+import type { MultiPolygon, Polygon } from "geojson";
 import type {
   KyselyPlugin,
   PluginTransformQueryArgs,
@@ -109,7 +109,7 @@ function isPolygon(polygon: unknown): polygon is Polygon {
 function mapDbRowPoints(row: Record<string, unknown>): Record<string, unknown> {
   const mapped: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(row)) {
-    if (typeof value === "string" && key === "polygon") {
+    if (typeof value === "string" && ["polygon", "geography"].includes(key)) {
       mapped[key] = parseDbPolygon(value) ?? value;
     } else if (typeof value === "string" && isWkbHex(value)) {
       mapped[key] = parseDbPoint(value) ?? value;
@@ -160,18 +160,19 @@ function parseDbPoint(val: string): Point | null {
   return null;
 }
 
-function parseDbPolygon(val: string): Polygon | null {
+function parseDbPolygon(val: string): Polygon | MultiPolygon | null {
   if (isWkbHex(val)) {
     try {
       const buf = Buffer.from(val, "hex");
-      // WKB: [byte order][type][SRID][num_rings][ring1][ring2]...
-      // For each ring: [num_points][point1][point2]...
-      // Each point: [x][y] (8 bytes each)
+      // WKB: [byte order][type][SRID][...]
 
       const littleEndian = buf[0] === 1;
       let offset = 1;
 
-      // Skip type (4 bytes)
+      // Read type (4 bytes)
+      const geomType = littleEndian
+        ? buf.readUInt32LE(offset)
+        : buf.readUInt32BE(offset);
       offset += 4;
 
       // Check SRID
@@ -184,50 +185,125 @@ function parseDbPolygon(val: string): Polygon | null {
         return null;
       }
 
-      // Read number of rings
-      const numRings = littleEndian
-        ? buf.readUInt32LE(offset)
-        : buf.readUInt32BE(offset);
-      offset += 4;
+      // PostGIS extended WKB type codes with SRID flag (0x20000000):
+      // 918 = 0x20000396 = Polygon with SRID
+      // 915 = 0x20000393 = MultiPolygon with SRID
+      // Extract base type by masking off flags
+      const baseType = geomType & 0xff; // Get lowest byte: 0x96 = 150, 0x93 = 147
 
-      if (numRings === 0) {
-        return null;
-      }
+      // Standard WKB types: 3 = Polygon, 6 = MultiPolygon
+      // PostGIS can also use: 0x03 with flags, or extended codes
+      const isPolygon = baseType === 3 || geomType === 918;
+      const isMultiPolygon = baseType === 6 || geomType === 915;
 
-      const coordinates: [number, number][][] = [];
-
-      // Parse all rings (exterior + holes)
-      for (let ringIndex = 0; ringIndex < numRings; ringIndex++) {
-        const numPoints = littleEndian
+      if (isPolygon) {
+        // Parse Polygon
+        const numRings = littleEndian
           ? buf.readUInt32LE(offset)
           : buf.readUInt32BE(offset);
         offset += 4;
 
-        const ring: [number, number][] = [];
-
-        for (let i = 0; i < numPoints; i++) {
-          const x = littleEndian
-            ? buf.readDoubleLE(offset)
-            : buf.readDoubleBE(offset);
-          offset += 8;
-          const y = littleEndian
-            ? buf.readDoubleLE(offset)
-            : buf.readDoubleBE(offset);
-          offset += 8;
-
-          if (isNaN(x) || isNaN(y)) {
-            return null;
-          }
-
-          ring.push([x, y]);
+        if (numRings === 0) {
+          return null;
         }
 
-        coordinates.push(ring);
+        const coordinates: [number, number][][] = [];
+
+        for (let ringIndex = 0; ringIndex < numRings; ringIndex++) {
+          const numPoints = littleEndian
+            ? buf.readUInt32LE(offset)
+            : buf.readUInt32BE(offset);
+          offset += 4;
+
+          const ring: [number, number][] = [];
+
+          for (let i = 0; i < numPoints; i++) {
+            const x = littleEndian
+              ? buf.readDoubleLE(offset)
+              : buf.readDoubleBE(offset);
+            offset += 8;
+            const y = littleEndian
+              ? buf.readDoubleLE(offset)
+              : buf.readDoubleBE(offset);
+            offset += 8;
+
+            if (isNaN(x) || isNaN(y)) {
+              return null;
+            }
+
+            ring.push([x, y]);
+          }
+
+          coordinates.push(ring);
+        }
+
+        return { type: "Polygon", coordinates };
+      } else if (isMultiPolygon) {
+        // Parse MultiPolygon
+        const numPolygons = littleEndian
+          ? buf.readUInt32LE(offset)
+          : buf.readUInt32BE(offset);
+        offset += 4;
+
+        if (numPolygons === 0) {
+          return null;
+        }
+
+        const coordinates: [number, number][][][] = [];
+
+        for (let polyIndex = 0; polyIndex < numPolygons; polyIndex++) {
+          // Each polygon has its own WKB header
+          const polyByteOrder = buf[offset];
+          const polyLittleEndian = polyByteOrder === 1;
+          offset += 1;
+
+          // Skip polygon type (4 bytes)
+          offset += 4;
+
+          const numRings = polyLittleEndian
+            ? buf.readUInt32LE(offset)
+            : buf.readUInt32BE(offset);
+          offset += 4;
+
+          const polygonCoords: [number, number][][] = [];
+
+          for (let ringIndex = 0; ringIndex < numRings; ringIndex++) {
+            const numPoints = polyLittleEndian
+              ? buf.readUInt32LE(offset)
+              : buf.readUInt32BE(offset);
+            offset += 4;
+
+            const ring: [number, number][] = [];
+
+            for (let i = 0; i < numPoints; i++) {
+              const x = polyLittleEndian
+                ? buf.readDoubleLE(offset)
+                : buf.readDoubleBE(offset);
+              offset += 8;
+              const y = polyLittleEndian
+                ? buf.readDoubleLE(offset)
+                : buf.readDoubleBE(offset);
+              offset += 8;
+
+              if (isNaN(x) || isNaN(y)) {
+                return null;
+              }
+
+              ring.push([x, y]);
+            }
+
+            polygonCoords.push(ring);
+          }
+
+          coordinates.push(polygonCoords);
+        }
+
+        return { type: "MultiPolygon", coordinates };
       }
 
-      return { type: "Polygon", coordinates };
+      return null;
     } catch (e) {
-      logger.error("Error parsing PostGIS polygon", e);
+      logger.error("Error parsing PostGIS geometry", e);
       return null;
     }
   }
