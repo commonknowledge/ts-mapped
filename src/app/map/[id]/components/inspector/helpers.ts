@@ -85,8 +85,6 @@ export function getRecordsInsideBoundary(
     return [];
   }
 
-  console.log("DATA", data);
-
   return data.map((d) => {
     const recordsInsideTurf = d.records.records.filter((r) => {
       const coordinates = [r?.geocodePoint?.lng, r?.geocodePoint?.lat];

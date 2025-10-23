@@ -4,7 +4,7 @@ import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { MARKER_ID_KEY } from "@/constants";
+import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 
 import {
@@ -31,6 +31,7 @@ export default function BoundaryMarkersList() {
       count: { matched: 0 },
       records: result?.markers?.map((marker) => ({
         id: marker.properties?.[MARKER_ID_KEY] as string,
+        name: marker?.properties?.[MARKER_NAME_KEY] as string,
         json: marker.properties,
         geocodePoint: {
           lng: marker?.geometry?.coordinates?.[0],
