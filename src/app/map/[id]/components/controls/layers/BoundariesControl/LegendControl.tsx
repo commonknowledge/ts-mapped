@@ -55,7 +55,7 @@ export function LegendControl({
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="cursor-pointer">
+            <div className="cursor-pointer w-54">
               <Legend />
             </div>
           </DropdownMenuTrigger>

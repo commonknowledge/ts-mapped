@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { SettingsIcon } from "lucide-react";
+import { useContext, useState } from "react";
+import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Separator } from "@/shadcn/ui/separator";
 import LayerHeader from "../../LayerHeader";
 import { FillSelector } from "./FillSelector";
@@ -8,6 +11,8 @@ import { useBoundariesControl } from "./useBoundariesControl";
 
 export default function BoundariesControl() {
   const [expanded, setExpanded] = useState(true);
+  const { boundariesPanelOpen, setBoundariesPanelOpen } =
+    useContext(ChoroplethContext);
 
   const {
     viewConfig,
@@ -29,7 +34,14 @@ export default function BoundariesControl() {
         showLayer={true}
         expanded={expanded}
         setExpanded={setExpanded}
-      />
+      >
+        <IconButtonWithTooltip
+          tooltip="Open advanced settings"
+          onClick={() => setBoundariesPanelOpen(!boundariesPanelOpen)}
+        >
+          <SettingsIcon size={16} />
+        </IconButtonWithTooltip>
+      </LayerHeader>
       {expanded && (
         <div className="space-y-2 py-2">
           <ShapeSelector
