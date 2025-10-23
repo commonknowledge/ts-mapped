@@ -28,16 +28,16 @@ function getFillIcon(
   return <BarChart3 className="w-4 h-4" />;
 }
 
+const getOptionIcon = (option: { label: string }) => {
+  if (option.label === "No Fill") return <Circle className="w-4 h-4" />;
+  if (option.label === "Member Count") return <Users className="w-4 h-4" />;
+  return <BarChart3 className="w-4 h-4" />;
+};
+
 export function FillSelector() {
   const { viewConfig } = useMapViews();
   const { isChoroplethVisible, fillLabel, fillOptions, hasShape } =
     useBoundariesControl();
-
-  const getIcon = (option: { label: string }) => {
-    if (option.label === "No Fill") return <Circle className="w-4 h-4" />;
-    if (option.label === "Member Count") return <Users className="w-4 h-4" />;
-    return <BarChart3 className="w-4 h-4" />;
-  };
 
   return (
     <div className="space-y-1">
@@ -83,7 +83,7 @@ export function FillSelector() {
                 onClick={option.onClick}
                 className="flex items-center gap-2"
               >
-                <div className="flex-shrink-0">{getIcon(option)}</div>
+                <div className="flex-shrink-0">{getOptionIcon(option)}</div>
                 <span className="truncate">{option.label}</span>
               </DropdownMenuItem>
             ))}

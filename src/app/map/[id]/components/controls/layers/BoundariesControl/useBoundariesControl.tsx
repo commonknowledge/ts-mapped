@@ -1,4 +1,3 @@
-// hooks/useBoundariesControl.ts
 import { useCallback, useMemo } from "react";
 import {
   useDataSources,
@@ -163,7 +162,8 @@ export function useBoundariesControl() {
 
   const hasShape = Boolean(viewConfig.areaSetGroupCode);
   const hasDataSource =
-    Boolean(viewConfig.areaDataSourceId) && viewConfig.areaDataSourceId !== "";
+    Boolean(viewConfig.areaDataSourceId) &&
+    Boolean(viewConfig.areaDataSourceId);
 
   return {
     isChoroplethVisible,

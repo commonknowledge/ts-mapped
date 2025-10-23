@@ -24,12 +24,15 @@ export default function BoundariesControl() {
         setExpanded={setExpanded}
       >
         <IconButtonWithTooltip
-          tooltip="Open advanced settings"
+          tooltip={
+            boundariesPanelOpen ? "Close settings" : "Open advanced settings"
+          }
           onClick={() => setBoundariesPanelOpen(!boundariesPanelOpen)}
         >
           <SettingsIcon size={16} />
         </IconButtonWithTooltip>
       </LayerHeader>
+
       {expanded && (
         <div className="space-y-2 py-2">
           <ShapeSelector />
