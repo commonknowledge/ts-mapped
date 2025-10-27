@@ -18,8 +18,8 @@ export function useBoundariesControl() {
   const membersDataSource = useMembersDataSource();
   const { data: allDataSources } = useDataSources();
 
-  const hnhVoteShareDataSource = useMemo(
-    () => allDataSources?.find((ds) => ds.name === "HNH Voteshare"),
+  const voteShareDataSource = useMemo(
+    () => allDataSources?.find((ds) => ds.name === "2024 GE Results"),
     [allDataSources],
   );
 
@@ -46,15 +46,15 @@ export function useBoundariesControl() {
     }
 
     if (
-      hnhVoteShareDataSource &&
-      viewConfig.areaDataSourceId === hnhVoteShareDataSource.id &&
+      voteShareDataSource &&
+      viewConfig.areaDataSourceId === voteShareDataSource.id &&
       viewConfig.areaDataColumn
     ) {
       return viewConfig.areaDataColumn;
     }
 
     return "Data Visualization";
-  }, [viewConfig, hnhVoteShareDataSource]);
+  }, [viewConfig, voteShareDataSource]);
 
   const shapeOptions = useMemo(() => {
     const allAreaSetGroupCodes = Object.keys(
@@ -107,13 +107,13 @@ export function useBoundariesControl() {
         ]
       : [];
 
-    const voteShareOptions = hnhVoteShareDataSource
-      ? hnhVoteShareDataSource.columnDefs.map((column) => ({
+    const voteShareOptions = voteShareDataSource
+      ? voteShareDataSource.columnDefs.map((column) => ({
           label: column.name,
           onClick: () => {
             updateViewConfig({
               visualisationType: VisualisationType.Choropleth,
-              areaDataSourceId: hnhVoteShareDataSource.id,
+              areaDataSourceId: voteShareDataSource.id,
               areaDataColumn: column.name,
               calculationType: CalculationType.Value,
             });
@@ -125,7 +125,7 @@ export function useBoundariesControl() {
       baseOptions: [...baseOptions, ...memberCountOption],
       voteShareOptions,
     };
-  }, [updateViewConfig, membersDataSource, hnhVoteShareDataSource]);
+  }, [updateViewConfig, membersDataSource, voteShareDataSource]);
 
   const colorSchemeOptions = [
     {
