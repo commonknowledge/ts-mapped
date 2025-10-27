@@ -13,7 +13,7 @@ import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
 import { mapColors } from "../../../styles";
 import { CollectionIcon } from "../../Icons";
-import CollectionLayer from "../CollectionLayer";
+import DataSourceControl from "../DataSourceControl";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
@@ -84,10 +84,9 @@ export default function MembersControl() {
           className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
         >
           {allDataSourcesLoading ? null : dataSource ? (
-            <CollectionLayer
+            <DataSourceControl
               dataSource={dataSource}
               isSelected={isSelected}
-              onClick={() => handleDataSourceSelect(dataSource.id)}
               handleDataSourceSelect={handleDataSourceSelect}
               layerType="member"
             />

@@ -40,6 +40,28 @@ export default function MarkerAndTurfProvider({
 
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
+  // Individual visibility states
+  // const [markerVisibility, setMarkerVisibility] = useState<
+  //   Record<string, boolean>
+  // >({});
+  // const [turfVisibility, setTurfVisibility] = useState<Record<string, boolean>>(
+  //   {}
+  // );
+  const [dataSourceVisibility, setDataSourceVisibility] = useState<
+    Record<string, boolean>
+  >({});
+
+  const setDataSourceVisibilityState = (
+    dataSourceId: string,
+    isVisible: boolean,
+  ) => {
+    setDataSourceVisibility((prev) => ({ ...prev, [dataSourceId]: isVisible }));
+  };
+
+  const getDataSourceVisibility = (dataSourceId: string) => {
+    return dataSourceVisibility[dataSourceId] ?? true; // Default to visible
+  };
+
   const dataSourceIds = useMemo(() => {
     if (!publicMap) {
       return getDataSourceIds(mapConfig);
@@ -203,6 +225,15 @@ export default function MarkerAndTurfProvider({
         setSearchMarker,
         handleAddArea,
         handleDropPin,
+        // markerVisibility,
+        // turfVisibility,
+        dataSourceVisibility,
+        // setMarkerVisibilityState,
+        // setTurfVisibilityState,
+        setDataSourceVisibilityState,
+        // getMarkerVisibility,
+        // getTurfVisibility,
+        getDataSourceVisibility,
       }}
     >
       {children}

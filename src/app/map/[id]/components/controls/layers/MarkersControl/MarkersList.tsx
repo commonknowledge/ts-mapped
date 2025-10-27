@@ -27,7 +27,7 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/map/[id]/utils";
-import CollectionLayer from "../../CollectionLayer";
+import DataSourceControl from "../../DataSourceControl";
 import EmptyLayer from "../../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
@@ -310,10 +310,9 @@ export default function MarkersList() {
               <ul>
                 {markerDataSources.map((dataSource) => (
                   <li key={dataSource.id} className="mb-2">
-                    <CollectionLayer
+                    <DataSourceControl
                       dataSource={dataSource}
                       isSelected={dataSource.id === selectedDataSourceId}
-                      onClick={() => handleDataSourceSelect(dataSource.id)}
                       handleDataSourceSelect={handleDataSourceSelect}
                       layerType="marker"
                     />

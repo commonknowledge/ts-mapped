@@ -1,6 +1,5 @@
 import { ChevronDown } from "lucide-react";
 import React from "react";
-import { Label } from "@/shadcn/ui/label";
 import { cn } from "@/shadcn/utils";
 import LayerTypeIcon from "../LayerTypeIcon";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
@@ -31,14 +30,14 @@ export default function LayerHeader({
           onClick={() => setExpanded(!expanded)}
           className={cn(
             "flex items-center gap-2 hover:bg-neutral-100 rounded py-2 px-1 -m-1 my-1 / text-sm font-medium cursor-pointer",
-            showLayer ? "opacity-100" : "opacity-70"
+            showLayer ? "opacity-100" : "opacity-70",
           )}
         >
           <ChevronDown
             size={16}
             className={cn(
               "transition-transform",
-              expanded ? "rotate-0" : "-rotate-90"
+              expanded ? "rotate-0" : "-rotate-90",
             )}
           />
 
