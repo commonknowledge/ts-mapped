@@ -2,7 +2,7 @@ import { createContext } from "react";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { Turf } from "@/server/models/Turf";
-import type { PointFeature } from "@/types";
+import type { LayerType, PointFeature } from "@/types";
 import type { Feature } from "geojson";
 
 export const MarkerAndTurfContext = createContext<{
@@ -60,6 +60,10 @@ export const MarkerAndTurfContext = createContext<{
   getMarkerVisibility: (markerId: string) => boolean;
   getTurfVisibility: (turfId: string) => boolean;
   getDataSourceVisibility: (dataSourceId: string) => boolean;
+  hiddenLayers: LayerType[];
+  hideLayer: (layer: LayerType) => void;
+  showLayer: (layer: LayerType) => void;
+  getLayerVisibility: (layer: LayerType) => boolean;
 }>({
   editingTurf: null,
   setEditingTurf: () => null,
@@ -97,4 +101,8 @@ export const MarkerAndTurfContext = createContext<{
   getMarkerVisibility: () => true,
   getTurfVisibility: () => true,
   getDataSourceVisibility: () => true,
+  hiddenLayers: [],
+  showLayer: () => null,
+  hideLayer: () => null,
+  getLayerVisibility: () => true,
 });

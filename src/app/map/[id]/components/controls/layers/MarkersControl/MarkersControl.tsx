@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -17,7 +16,6 @@ import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig } = useMapViews();
   const { mapConfig, updateMapConfig } = useMapConfig();
   const {
     placedMarkersLoading,
@@ -137,8 +135,6 @@ export default function MarkersControl() {
       <LayerHeader
         label="Markers"
         type={LayerType.Marker}
-        showLayer={viewConfig.showLocations}
-        setLayer={(show) => updateViewConfig({ showLocations: show })}
         expanded={expanded}
         setExpanded={setExpanded}
       >

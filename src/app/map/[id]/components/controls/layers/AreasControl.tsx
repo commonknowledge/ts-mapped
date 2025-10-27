@@ -1,7 +1,6 @@
 import { ArrowRight, PlusIcon } from "lucide-react";
 import { useContext, useState } from "react";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
 import LayerControlWrapper from "../LayerControlWrapper";
@@ -10,7 +9,6 @@ import LayerHeader from "../LayerHeader";
 import TurfItem from "../TurfItem";
 
 export default function AreasControl() {
-  const { viewConfig, updateViewConfig } = useMapViews();
   const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
@@ -29,10 +27,9 @@ export default function AreasControl() {
       <LayerHeader
         label="Areas"
         type={LayerType.Turf}
-        showLayer={viewConfig.showTurf}
-        setLayer={(show) => updateViewConfig({ showTurf: show })}
         expanded={expanded}
         setExpanded={setExpanded}
+        enableVisibilityToggle={true}
       >
         {!isAddingArea ? (
           <IconButtonWithTooltip tooltip="Add Area" onClick={() => onAddArea()}>
@@ -51,9 +48,7 @@ export default function AreasControl() {
           {turfs && turfs.length === 0 && (
             <EmptyLayer message="Add an Area Layer" />
           )}
-          <ul
-            className={`flex flex-col gap-1 ml-1 ${viewConfig.showTurf ? "opacity-100" : "opacity-50"}`}
-          >
+          <ul className="flex flex-col gap-1 ml-1">
             {turfs.map((turf) => (
               <li key={turf.id}>
                 <TurfItem turf={turf} />

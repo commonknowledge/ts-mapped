@@ -22,7 +22,6 @@ export default function BoundariesControl() {
       <LayerHeader
         label="Boundaries"
         type={LayerType.Boundary}
-        showLayer={true}
         expanded={expanded}
         setExpanded={setExpanded}
       >

@@ -50,15 +50,13 @@ export default function Markers() {
 
   return (
     <>
-      {memberMarkers &&
-        viewConfig.showMembers &&
-        getDataSourceVisibility(memberMarkers.dataSourceId) && (
-          <DataSourceMarkers
-            key={memberMarkers.dataSourceId}
-            dataSourceMarkers={memberMarkers}
-            isMembers
-          />
-        )}
+      {memberMarkers && getDataSourceVisibility(memberMarkers.dataSourceId) && (
+        <DataSourceMarkers
+          key={memberMarkers.dataSourceId}
+          dataSourceMarkers={memberMarkers}
+          isMembers
+        />
+      )}
       {otherMarkers.map((markers) => {
         if (
           !markers ||

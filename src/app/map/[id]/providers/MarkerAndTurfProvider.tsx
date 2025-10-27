@@ -18,6 +18,7 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { LayerType } from "@/types";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
@@ -82,6 +83,38 @@ export default function MarkerAndTurfProvider({
   };
   const getDataSourceVisibility = (dataSourceId: string) => {
     return dataSourceVisibility[dataSourceId] ?? true; // Default to visible
+  };
+
+  const [hiddenLayers, setHiddenLayers] = useState<LayerType[]>([]);
+
+  const showLayer = (layer: LayerType) => {
+    setHiddenLayers((prev) => prev.filter((l) => l !== layer));
+
+    // TODO: add logic for markers
+    if (layer === LayerType.Member) {
+      if (mapConfig.membersDataSourceId) {
+        setDataSourceVisibilityState(mapConfig.membersDataSourceId, true);
+      }
+    } else if (layer === LayerType.Turf) {
+      turfs.map((t) => setTurfVisibilityState(t.id, true));
+    }
+  };
+
+  const hideLayer = (layer: LayerType) => {
+    setHiddenLayers((prev) => [...prev, layer]);
+
+    // TODO: add logic for markers
+    if (layer === LayerType.Member) {
+      if (mapConfig.membersDataSourceId) {
+        setDataSourceVisibilityState(mapConfig.membersDataSourceId, false);
+      }
+    } else if (layer === LayerType.Turf) {
+      turfs.map((t) => setTurfVisibilityState(t.id, false));
+    }
+  };
+
+  const getLayerVisibility = (layer: LayerType) => {
+    return !hiddenLayers.includes(layer);
   };
 
   const dataSourceIds = useMemo(() => {
@@ -263,6 +296,10 @@ export default function MarkerAndTurfProvider({
         getMarkerVisibility,
         getTurfVisibility,
         getDataSourceVisibility,
+        hiddenLayers,
+        showLayer,
+        hideLayer,
+        getLayerVisibility,
       }}
     >
       {children}

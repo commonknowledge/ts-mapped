@@ -7,7 +7,6 @@ import {
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
@@ -20,7 +19,6 @@ import LayerHeader from "../LayerHeader";
 
 export default function MembersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig } = useMapViews();
   const { updateMapConfig } = useMapConfig();
   const dataSource = useMembersDataSource();
   const { data: allDataSources, isPending: allDataSourcesLoading } =
@@ -63,8 +61,6 @@ export default function MembersControl() {
       <LayerHeader
         label="Members"
         type={LayerType.Member}
-        showLayer={viewConfig.showMembers}
-        setLayer={(show) => updateViewConfig({ showMembers: show })}
         expanded={expanded}
         setExpanded={setExpanded}
       >
@@ -80,9 +76,7 @@ export default function MembersControl() {
       </LayerHeader>
 
       {expanded && (
-        <ul
-          className={`${viewConfig.showMembers ? "opacity-100" : "opacity-50"}`}
-        >
+        <>
           {allDataSourcesLoading ? null : dataSource ? (
             <DataSourceControl
               dataSource={dataSource}
@@ -103,7 +97,7 @@ export default function MembersControl() {
               }
             />
           )}
-        </ul>
+        </>
       )}
     </LayerControlWrapper>
   );
