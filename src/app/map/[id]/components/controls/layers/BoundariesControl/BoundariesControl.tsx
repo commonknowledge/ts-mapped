@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Separator } from "@/shadcn/ui/separator";
+import { LayerType } from "@/types";
 import LayerControlWrapper from "../../LayerControlWrapper";
 import LayerHeader from "../../LayerHeader";
 import { FillSelector } from "./FillSelector";
@@ -20,6 +21,7 @@ export default function BoundariesControl() {
     <LayerControlWrapper>
       <LayerHeader
         label="Boundaries"
+        type={LayerType.Boundary}
         showLayer={true}
         expanded={expanded}
         setExpanded={setExpanded}

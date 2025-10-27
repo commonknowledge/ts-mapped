@@ -1,11 +1,13 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import React from "react";
 import { Label } from "@/shadcn/ui/label";
+import LayerTypeIcon from "../LayerTypeIcon";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
+import type { LayerType } from "@/types";
 
 export default function LayerHeader({
   label,
-  color,
+  type,
   showLayer,
   setLayer,
   expanded,
@@ -13,12 +15,12 @@ export default function LayerHeader({
   children,
 }: {
   label: string;
+  type: LayerType;
   showLayer: boolean;
   expanded: boolean;
   setExpanded: (expanded: boolean) => void;
 
   children?: React.ReactNode;
-  color?: string;
   setLayer?: (layer: boolean) => void;
 }) {
   return (
@@ -29,15 +31,8 @@ export default function LayerHeader({
           className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
         >
           {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          {color && (
-            <div
-              className="w-3 h-3 flex items-center justify-center rounded-full"
-              style={{
-                backgroundColor: color,
-                opacity: showLayer ? 1 : 0.5,
-              }}
-            ></div>
-          )}
+
+          <LayerTypeIcon type={type} />
 
           <Label>{label}</Label>
         </button>

@@ -13,6 +13,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { Input } from "@/shadcn/ui/input";
+import { LayerType } from "@/types";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
@@ -38,7 +39,7 @@ export default function AreasControl() {
     <LayerControlWrapper>
       <LayerHeader
         label="Areas"
-        color={mapColors.areas.color}
+        type={LayerType.Turf}
         showLayer={viewConfig.showTurf}
         setLayer={(show) => updateViewConfig({ showTurf: show })}
         expanded={expanded}

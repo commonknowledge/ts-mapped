@@ -10,6 +10,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
+import { LayerType } from "@/types";
 import { mapColors } from "../../../styles";
 import { CollectionIcon } from "../../Icons";
 import CollectionLayer from "../CollectionLayer";
@@ -61,7 +62,7 @@ export default function MembersControl() {
     <LayerControlWrapper>
       <LayerHeader
         label="Members"
-        color={mapColors.member.color}
+        type={LayerType.Member}
         showLayer={viewConfig.showMembers}
         setLayer={(show) => updateViewConfig({ showMembers: show })}
         expanded={expanded}
