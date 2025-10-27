@@ -32,7 +32,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
           bottom: padding,
         },
         duration: 1000,
-      }
+      },
     );
   };
 

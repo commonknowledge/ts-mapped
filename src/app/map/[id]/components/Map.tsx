@@ -70,7 +70,7 @@ export default function Map({
     deleteTurf,
     insertTurf,
     updateTurf,
-    turfs,
+    visibleTurfs,
     searchMarker,
     placedMarkers,
     markerQueries,
@@ -108,19 +108,19 @@ export default function Map({
 
   // draw existing turfs
   useEffect(() => {
-    if (!turfs || !draw || !viewConfig?.showTurf) return;
+    if (!visibleTurfs || !draw || !viewConfig?.showTurf) return;
 
     draw.deleteAll();
 
     // Add existing polygons from your array
-    turfs.forEach((turf) => {
+    visibleTurfs.forEach((turf) => {
       draw.add({
         type: "Feature",
         properties: { ...turf },
         geometry: turf.polygon,
       });
     });
-  }, [turfs, draw, viewConfig?.showTurf]);
+  }, [visibleTurfs, draw, viewConfig?.showTurf]);
 
   // Hover behavior
   useEffect(() => {

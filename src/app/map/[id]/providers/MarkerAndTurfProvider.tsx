@@ -156,6 +156,12 @@ export default function MarkerAndTurfProvider({
   const { deleteTurf, insertTurf, updateTurf, turfs, setTurfs } =
     useTurfs(mapId);
 
+  const visibleTurfs = useMemo(() => {
+    return turfs.filter((turf) => {
+      return getTurfVisibility(turf.id);
+    });
+  }, [turfs, getTurfVisibility]);
+
   useEffect(() => {
     // Only initialize the features when the map first loads
     // TODO: use the TRPC query cache for this state
@@ -241,6 +247,7 @@ export default function MarkerAndTurfProvider({
         deleteTurf,
         insertTurf,
         turfs,
+        visibleTurfs,
         updateTurf,
         markerQueries,
         searchMarker,
