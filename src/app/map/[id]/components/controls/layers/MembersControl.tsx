@@ -13,7 +13,7 @@ import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
 import { mapColors } from "../../../styles";
 import { CollectionIcon } from "../../Icons";
-import DataSourceControl from "../DataSourceControl";
+import DataSourceControl from "../DataSourceItem";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";

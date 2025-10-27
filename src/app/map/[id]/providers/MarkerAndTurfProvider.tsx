@@ -2,7 +2,14 @@
 
 import { useQueries } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapContext,
@@ -41,23 +48,38 @@ export default function MarkerAndTurfProvider({
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
 
   // Individual visibility states
-  // const [markerVisibility, setMarkerVisibility] = useState<
-  //   Record<string, boolean>
-  // >({});
-  // const [turfVisibility, setTurfVisibility] = useState<Record<string, boolean>>(
-  //   {}
-  // );
+  const [markerVisibility, setMarkerVisibility] = useState<
+    Record<string, boolean>
+  >({});
+  const setMarkerVisibilityState = (markerId: string, isVisible: boolean) => {
+    setMarkerVisibility((prev) => ({ ...prev, [markerId]: isVisible }));
+  };
+  const getMarkerVisibility = (markerId: string) => {
+    return markerVisibility[markerId] ?? true; // Default to visible
+  };
+
+  const [turfVisibility, setTurfVisibility] = useState<Record<string, boolean>>(
+    {},
+  );
+  const setTurfVisibilityState = (turfId: string, isVisible: boolean) => {
+    setTurfVisibility((prev) => ({ ...prev, [turfId]: isVisible }));
+  };
+  const getTurfVisibility = useCallback(
+    (turfId: string): boolean => {
+      return turfVisibility[turfId] ?? true;
+    },
+    [turfVisibility],
+  );
+
   const [dataSourceVisibility, setDataSourceVisibility] = useState<
     Record<string, boolean>
   >({});
-
   const setDataSourceVisibilityState = (
     dataSourceId: string,
     isVisible: boolean,
   ) => {
     setDataSourceVisibility((prev) => ({ ...prev, [dataSourceId]: isVisible }));
   };
-
   const getDataSourceVisibility = (dataSourceId: string) => {
     return dataSourceVisibility[dataSourceId] ?? true; // Default to visible
   };
@@ -225,14 +247,14 @@ export default function MarkerAndTurfProvider({
         setSearchMarker,
         handleAddArea,
         handleDropPin,
-        // markerVisibility,
-        // turfVisibility,
+        markerVisibility,
+        turfVisibility,
         dataSourceVisibility,
-        // setMarkerVisibilityState,
-        // setTurfVisibilityState,
+        setMarkerVisibilityState,
+        setTurfVisibilityState,
         setDataSourceVisibilityState,
-        // getMarkerVisibility,
-        // getTurfVisibility,
+        getMarkerVisibility,
+        getTurfVisibility,
         getDataSourceVisibility,
       }}
     >

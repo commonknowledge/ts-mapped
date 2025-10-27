@@ -27,7 +27,7 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/map/[id]/utils";
-import DataSourceControl from "../../DataSourceControl";
+import DataSourceControl from "../../DataSourceItem";
 import EmptyLayer from "../../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
