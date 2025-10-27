@@ -6,6 +6,7 @@ import type { PlacedMarker } from "@/server/models/PlacedMarker";
 export default function SortableMarkerItem({
   marker,
   activeId,
+  setKeyboardCapture,
 }: {
   marker: PlacedMarker;
   activeId: string | null;
@@ -37,7 +38,11 @@ export default function SortableMarkerItem({
       {...listeners}
       className="cursor-grab active:cursor-grabbing"
     >
-      <SingleMarkerItem disableClick={isCurrentlyDragging} marker={marker} />
+      <SingleMarkerItem
+        disableClick={isCurrentlyDragging}
+        marker={marker}
+        setKeyboardCapture={setKeyboardCapture}
+      />
     </div>
   );
 }

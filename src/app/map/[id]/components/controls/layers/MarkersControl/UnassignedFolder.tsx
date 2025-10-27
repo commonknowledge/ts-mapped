@@ -31,7 +31,7 @@ export default function UnassignedFolder({
 
   return (
     <div className="mb-3 flex flex-col gap-1">
-      {folders.length > 0 && <div ref={setNodeRef} className="px-1 py-1" />}
+      {folders.length > 0 && <div ref={setNodeRef} />}
 
       <SortableContext
         items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
