@@ -5,20 +5,15 @@ import type { RefObject } from "react";
 
 export default function ControlContextMenuContent({
   inputRef,
-  isEditing,
   onEdit,
   onDelete,
 }: {
   inputRef: RefObject<HTMLInputElement | null>;
-  isEditing: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   return (
-    <ContextMenuContentWithFocus
-      shouldFocusTarget={isEditing}
-      targetRef={inputRef}
-    >
+    <ContextMenuContentWithFocus shouldFocusTarget={true} targetRef={inputRef}>
       <ContextMenuItem onClick={onEdit}>
         <PencilIcon size={12} />
         Edit

@@ -1,6 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import SingleMarkerItem from "../../SingleMarkerItem";
+import { useContext, useRef, useState } from "react";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
+import ControlContextMenuContent from "../../ControlContextMenuContent";
+import ControlEditForm from "../../ControlEditForm";
+import LayerItemWrapper from "../../LayerItemWrapper";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function SortableMarkerItem({
@@ -21,13 +27,56 @@ export default function SortableMarkerItem({
     isDragging,
   } = useSortable({ id: `marker-${marker.id}` });
 
+  const {
+    setSelectedPlacedMarkerId,
+    getMarkerVisibility,
+    setMarkerVisibilityState,
+    deletePlacedMarker,
+    updatePlacedMarker,
+  } = useContext(MarkerAndTurfContext);
+  const { mapRef } = useContext(MapContext);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isEditing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(marker.label);
+
   // Check if this marker is the one being dragged (even outside its container)
   const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
+  const isVisible = getMarkerVisibility(marker.id);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isCurrentlyDragging ? 0.3 : 1,
+  };
+
+  const flyToMarker = () => {
+    const map = mapRef?.current;
+
+    if (isCurrentlyDragging || isEditing || !map) {
+      return;
+    }
+
+    setSelectedPlacedMarkerId(marker.id);
+    map.flyTo({
+      center: marker.point,
+      zoom: 12,
+    });
+  };
+
+  const onEdit = () => {
+    setEditText(marker.label);
+    setEditing(true);
+    setKeyboardCapture(true);
+  };
+
+  const onSubmit = () => {
+    updatePlacedMarker({
+      ...marker,
+      label: editText,
+    });
+    setEditing(false);
+    setKeyboardCapture(false);
   };
 
   return (
@@ -38,11 +87,38 @@ export default function SortableMarkerItem({
       {...listeners}
       className="cursor-grab active:cursor-grabbing"
     >
-      <SingleMarkerItem
-        disableClick={isCurrentlyDragging}
-        marker={marker}
-        setKeyboardCapture={setKeyboardCapture}
-      />
+      <LayerItemWrapper
+        name={marker?.label}
+        isVisible={isVisible}
+        onVisibilityToggle={() =>
+          setMarkerVisibilityState(marker.id, !isVisible)
+        }
+      >
+        {isEditing ? (
+          <ControlEditForm
+            inputRef={inputRef}
+            initialValue={editText}
+            onChange={setEditText}
+            onSubmit={onSubmit}
+          />
+        ) : (
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <button
+                className="w-full hover:bg-neutral-100 text-left cursor-pointer"
+                onClick={() => flyToMarker()}
+              >
+                {marker.label}
+              </button>
+            </ContextMenuTrigger>
+            <ControlContextMenuContent
+              inputRef={inputRef}
+              onEdit={() => onEdit()}
+              onDelete={() => deletePlacedMarker(marker.id)}
+            />
+          </ContextMenu>
+        )}
+      </LayerItemWrapper>
     </div>
   );
 }

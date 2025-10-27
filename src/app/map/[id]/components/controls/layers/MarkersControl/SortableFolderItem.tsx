@@ -6,15 +6,14 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ContextMenuTrigger } from "@radix-ui/react-context-menu";
-import { CheckIcon, Folder as FolderClosed, FolderOpen } from "lucide-react";
+import { Folder as FolderClosed, FolderOpen } from "lucide-react";
 import { useContext, useMemo, useRef, useState } from "react";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
-import { Button } from "@/shadcn/ui/button";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
-import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import ControlContextMenuContent from "../../ControlContextMenuContent";
+import ControlEditForm from "../../ControlEditForm";
 import LayerItemWrapper from "../../LayerItemWrapper";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
@@ -112,23 +111,12 @@ export default function SortableFolderItem({
         }}
       >
         {isEditing ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              onSubmit();
-            }}
-            className="w-full flex items-center gap-1"
-          >
-            <Input
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              ref={inputRef}
-              className="flex-1 h-7 px-1"
-            />
-            <Button type="submit" size="sm" variant="ghost" className="p-0">
-              <CheckIcon size={16} />
-            </Button>
-          </form>
+          <ControlEditForm
+            inputRef={inputRef}
+            initialValue={editText}
+            onChange={setEditText}
+            onSubmit={onSubmit}
+          />
         ) : (
           <ContextMenu>
             <ContextMenuTrigger asChild>
@@ -150,7 +138,6 @@ export default function SortableFolderItem({
             </ContextMenuTrigger>
             <ControlContextMenuContent
               inputRef={inputRef}
-              isEditing={isEditing}
               onDelete={() => onDelete()}
               onEdit={() => onEdit()}
             />
