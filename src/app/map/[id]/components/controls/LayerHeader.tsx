@@ -1,6 +1,7 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import React from "react";
 import { Label } from "@/shadcn/ui/label";
+import { cn } from "@/shadcn/utils";
 import LayerTypeIcon from "../LayerTypeIcon";
 import LayerVisibilityToggle from "./LayerVisibilityToggle";
 import type { LayerType } from "@/types";
@@ -28,13 +29,22 @@ export default function LayerHeader({
       <div className="group / grow / flex items-center gap-1">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 hover:bg-neutral-100 rounded p-1 -m-1"
+          className={cn(
+            "flex items-center gap-2 hover:bg-neutral-100 rounded py-2 px-1 -m-1 my-1 / text-sm font-medium cursor-pointer",
+            showLayer ? "opacity-100" : "opacity-70"
+          )}
         >
-          {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          <ChevronDown
+            size={16}
+            className={cn(
+              "transition-transform",
+              expanded ? "rotate-0" : "-rotate-90"
+            )}
+          />
 
           <LayerTypeIcon type={type} />
 
-          <Label>{label}</Label>
+          {label}
         </button>
 
         <div className="opacity-0 group-hover:opacity-100 transition-opacity">

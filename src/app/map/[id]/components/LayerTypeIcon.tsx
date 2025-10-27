@@ -42,7 +42,7 @@ export default function LayerTypeIcon({
       case LayerType.Turf:
         return <TurfIcon size={size} />;
       case LayerType.Boundary:
-        return <Grid3x3Icon size={size * 5} />;
+        return <Grid3x3Icon size={size * 4} />;
       default:
         return <></>;
     }
