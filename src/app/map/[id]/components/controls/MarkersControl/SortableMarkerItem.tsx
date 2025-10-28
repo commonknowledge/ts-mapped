@@ -86,7 +86,7 @@ export default function SortableMarkerItem({
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-grab active:cursor-grabbing"
+      className="cursor-grab active:cursor-grabbing w-full"
     >
       <LayerItemWrapper
         name={marker?.label}
@@ -107,7 +107,7 @@ export default function SortableMarkerItem({
           <ContextMenu>
             <ContextMenuTrigger asChild>
               <button
-                className="w-full hover:bg-neutral-100 text-left cursor-pointer"
+                className="flex items-center gap-2 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer"
                 onClick={() => flyToMarker()}
               >
                 {marker.label}

@@ -30,7 +30,7 @@ export default function LayerItemWrapper({
   };
 
   return (
-    <div className="relative flex items-center gap-1 text-sm">
+    <div className="relative flex gap-1 text-sm">
       <button
         className="shrink-0 bg-neutral-100 hover:bg-neutral-200 text-neutral-500 rounded px-0.5 py-2 flex items-center justify-center self-stretch w-8 mr-2 cursor-pointer"
         aria-label={`Toggle ${name} visibility`}

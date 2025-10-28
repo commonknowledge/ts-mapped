@@ -12,7 +12,13 @@ export default function DataSourceItem({
   handleDataSourceSelect,
   layerType,
 }: {
-  dataSource: { id: string; name: string; config: { type: DataSourceType } };
+  dataSource: {
+    id: string;
+    name: string;
+    config: { type: DataSourceType };
+    recordCount?: number;
+    createdAt?: Date;
+  };
   isSelected: boolean;
   handleDataSourceSelect: (id: string) => void;
   layerType: LayerType;
@@ -36,13 +42,30 @@ export default function DataSourceItem({
       }
     >
       <button
-        className="flex w-full items-center justify-between gap-2 cursor-pointer hover:bg-neutral-100 border-2 rounded"
+        className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
         style={{ borderColor: isSelected ? layerColor : "transparent" }}
         onClick={() => handleDataSourceSelect(dataSource.id)}
       >
-        <div className="flex items-center gap-2 text-sm">
-          <DataSourceIcon type={dataSource.config.type} />
-          <span className="font-medium">{dataSource.name}</span>
+        <div className="flex gap-1 text-left">
+          <div className="shrink-0 mt-[0.333em]">
+            <DataSourceIcon type={dataSource.config.type} />
+          </div>
+
+          <div>
+            <span className="text-sm font-medium">{dataSource.name}</span>
+            <div className="text-xs text-muted-foreground">
+              {Boolean(dataSource?.recordCount) ? (
+                <p>{dataSource.recordCount} records</p>
+              ) : (
+                <p>No records</p>
+              )}
+              {dataSource.createdAt && (
+                <p>
+                  Created {new Date(dataSource?.createdAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </button>
     </LayerItemWrapper>

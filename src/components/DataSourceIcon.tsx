@@ -296,7 +296,7 @@ const ActionNetworkSVG = () => (
 const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.ActionNetwork]: <ActionNetworkSVG />,
   [DataSourceType.Airtable]: <AirtableIconSVG />,
-  [DataSourceType.CSV]: <File className="w-4 h-4" />,
+  [DataSourceType.CSV]: <File size={16} />,
   [DataSourceType.GoogleSheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.Mailchimp]: <MailchimpIconSVG />,
 };

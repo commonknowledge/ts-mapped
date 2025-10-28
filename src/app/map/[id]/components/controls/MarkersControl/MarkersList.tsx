@@ -300,7 +300,7 @@ export default function MarkersList() {
         <div
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
-          <ul className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1">
             {markerDataSources &&
               markerDataSources.length === 0 &&
               placedMarkers.length === 0 && (
@@ -309,18 +309,17 @@ export default function MarkersList() {
 
             {/* Data sources */}
             {markerDataSources && markerDataSources.length > 0 && (
-              <ul className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1">
                 {markerDataSources.map((dataSource) => (
-                  <li key={dataSource.id}>
-                    <DataSourceControl
-                      dataSource={dataSource}
-                      isSelected={dataSource.id === selectedDataSourceId}
-                      handleDataSourceSelect={handleDataSourceSelect}
-                      layerType={LayerType.Marker}
-                    />
-                  </li>
+                  <DataSourceControl
+                    key={dataSource.id}
+                    dataSource={dataSource}
+                    isSelected={dataSource.id === selectedDataSourceId}
+                    handleDataSourceSelect={handleDataSourceSelect}
+                    layerType={LayerType.Marker}
+                  />
                 ))}
-              </ul>
+              </div>
             )}
 
             {/* Folders */}
@@ -341,7 +340,7 @@ export default function MarkersList() {
                 />
               ))}
             </SortableContext>
-          </ul>
+          </div>
           {/* Unassigned markers */}
           <div>
             <UnassignedFolder

@@ -6,7 +6,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ContextMenuTrigger } from "@radix-ui/react-context-menu";
-import { Folder as FolderClosed, FolderOpen } from "lucide-react";
+import {
+  CornerDownRightIcon,
+  Folder as FolderClosed,
+  FolderOpen,
+} from "lucide-react";
 import { useContext, useMemo, useRef, useState } from "react";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
@@ -103,7 +107,7 @@ export default function SortableFolderItem({
   };
 
   return (
-    <li ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <LayerItemWrapper
         name={folder.name}
         layerType={LayerType.Marker}
@@ -126,7 +130,7 @@ export default function SortableFolderItem({
                 ref={isDraggingMarker ? setHeaderNodeRef : null}
                 onClick={() => onClickFolder()}
                 className={cn(
-                  "flex items-center gap-2 text-sm font-medium flex-1 break-all py-1",
+                  "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
                   isHeaderOver ? "bg-blue-50" : "",
                 )}
               >
@@ -135,6 +139,9 @@ export default function SortableFolderItem({
                 ) : (
                   <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
                 )}
+                <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
+                  {sortedMarkers.length}
+                </span>
                 {folder.name}
               </button>
             </ContextMenuTrigger>
@@ -150,21 +157,29 @@ export default function SortableFolderItem({
       {isExpanded && (
         <>
           {sortedMarkers.length > 0 ? (
-            <ol className="ml-4 mt-2 space-y-0.5">
+            <ul className="flex flex-col gap-1 mt-2 ml-2">
               <SortableContext
                 items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
                 strategy={verticalListSortingStrategy}
               >
                 {sortedMarkers.map((marker, index) => (
-                  <SortableMarkerItem
+                  <li
                     key={`${marker.id}-${index}`}
-                    marker={marker}
-                    activeId={activeId}
-                    setKeyboardCapture={setKeyboardCapture}
-                  />
+                    className="flex items-center gap-1 w-full"
+                  >
+                    <CornerDownRightIcon
+                      size={16}
+                      className="text-neutral-400"
+                    />
+                    <SortableMarkerItem
+                      marker={marker}
+                      activeId={activeId}
+                      setKeyboardCapture={setKeyboardCapture}
+                    />
+                  </li>
                 ))}
               </SortableContext>
-            </ol>
+            </ul>
           ) : (
             <div className="ml-3 mt-1 text-sm text-muted-foreground">
               No markers in this folder
@@ -177,6 +192,6 @@ export default function SortableFolderItem({
           />
         </>
       )}
-    </li>
+    </div>
   );
 }

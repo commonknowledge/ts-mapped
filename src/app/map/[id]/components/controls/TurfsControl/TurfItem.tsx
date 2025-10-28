@@ -69,12 +69,10 @@ export default function TurfItem({ turf }: { turf: Turf }) {
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <button
-              className="w-full overflow-hidden / flex items-center gap-2 / text-sm text-left / cursor-pointer"
+              className="flex items-center gap-2 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer"
               onClick={() => handleFlyTo(turf)}
             >
-              <span className="truncate">
-                {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
-              </span>
+              {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
             </button>
           </ContextMenuTrigger>
           <ControlContextMenuContent
