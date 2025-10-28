@@ -77,7 +77,7 @@ export default function DataRecordsList({
 
   const getDescription = (record: { json: Record<string, unknown> }) => {
     const descriptionColumn = dataSourceConfig?.descriptionColumn;
-    return descriptionColumn ? String(record.json[descriptionColumn]) : null;
+    return descriptionColumn ? String(record.json[descriptionColumn]) : "";
   };
 
   const handleRecordClick = (record: {
@@ -129,10 +129,10 @@ export default function DataRecordsList({
             }
           >
             {/* Main record item */}
-            <div
-              role="button"
+            <button
+              type="button"
               onClick={() => handleRecordClick(r)}
-              className="py-3 px-4 flex flex-col gap-2"
+              className="py-3 px-4 flex flex-col gap-2 / text-left cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <div
@@ -148,7 +148,7 @@ export default function DataRecordsList({
               {getDescription(r) && (
                 <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
               )}
-            </div>
+            </button>
 
             {/* Expanded content - only on mobile */}
             {isExpanded && (

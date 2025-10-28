@@ -8,7 +8,6 @@ import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
-import { Link } from "@/components/Link";
 import { PublicMapContext } from "../context/PublicMapContext";
 import EditorNavbar from "./editable/EditorNavbar";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
@@ -65,18 +64,19 @@ export default function PublicMap() {
               hideDrawControls={true}
             />
             {loading && <Loading />}
-            <Link
+            <a
               href="https://mapped.tools"
-              className="absolute bottom-6 right-4 flex flex-col items-center w-24 md:w-auto"
+              target="_blank"
+              className="absolute top-4 right-4 flex flex-col items-center w-24 md:w-auto text-sm text-neutral-500"
             >
-              <p className="text-sm text-neutral-500">Made using Mapped</p>
+              Made using Mapped
               <Image
                 src="/mapped-logo-colours.svg"
                 alt="Logo"
                 width={200}
                 height={200}
               />
-            </Link>
+            </a>
           </div>
 
           {/* Mobile Listings - Overlay on bottom half */}
