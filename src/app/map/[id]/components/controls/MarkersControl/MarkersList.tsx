@@ -27,6 +27,7 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/map/[id]/utils";
+import { LayerType } from "@/types";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
@@ -315,7 +316,7 @@ export default function MarkersList() {
                       dataSource={dataSource}
                       isSelected={dataSource.id === selectedDataSourceId}
                       handleDataSourceSelect={handleDataSourceSelect}
-                      layerType="marker"
+                      layerType={LayerType.Marker}
                     />
                   </li>
                 ))}

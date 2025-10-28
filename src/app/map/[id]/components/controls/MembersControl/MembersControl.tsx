@@ -82,7 +82,7 @@ export default function MembersControl() {
               dataSource={dataSource}
               isSelected={isSelected}
               handleDataSourceSelect={handleDataSourceSelect}
-              layerType="member"
+              layerType={LayerType.Member}
             />
           ) : (
             <EmptyLayer

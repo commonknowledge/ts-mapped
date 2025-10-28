@@ -12,6 +12,7 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
+import { LayerType } from "@/types";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import LayerItemWrapper from "../LayerItemWrapper";
@@ -105,6 +106,7 @@ export default function SortableFolderItem({
     <li ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <LayerItemWrapper
         name={folder.name}
+        layerType={LayerType.Marker}
         isVisible={!folder.hideMarkers}
         onVisibilityToggle={() => {
           updateFolder({ ...folder, hideMarkers: !folder.hideMarkers });

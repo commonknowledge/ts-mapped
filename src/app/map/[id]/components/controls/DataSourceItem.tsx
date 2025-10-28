@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { LayerType } from "@/types";
 import { mapColors } from "../../styles";
 import LayerItemWrapper from "./LayerItemWrapper";
 import type { DataSourceType } from "@/server/models/DataSource";
@@ -14,18 +15,21 @@ export default function DataSourceItem({
   dataSource: { id: string; name: string; config: { type: DataSourceType } };
   isSelected: boolean;
   handleDataSourceSelect: (id: string) => void;
-  layerType: string;
+  layerType: LayerType;
 }) {
   const { setDataSourceVisibilityState, getDataSourceVisibility } =
     useContext(MarkerAndTurfContext);
   const layerColor =
-    layerType === "member" ? mapColors.member.color : mapColors.markers.color;
+    layerType === LayerType.Member
+      ? mapColors.member.color
+      : mapColors.markers.color;
 
   const isVisible = getDataSourceVisibility(dataSource?.id);
 
   return (
     <LayerItemWrapper
       name={dataSource.name}
+      layerType={layerType}
       isVisible={isVisible}
       onVisibilityToggle={() =>
         setDataSourceVisibilityState(dataSource?.id, !isVisible)

@@ -4,6 +4,7 @@ import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
+import { LayerType } from "@/types";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import LayerItemWrapper from "../LayerItemWrapper";
@@ -89,6 +90,7 @@ export default function SortableMarkerItem({
     >
       <LayerItemWrapper
         name={marker?.label}
+        layerType={LayerType.Marker}
         isVisible={isVisible}
         onVisibilityToggle={() =>
           setMarkerVisibilityState(marker.id, !isVisible)

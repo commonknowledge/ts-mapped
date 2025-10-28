@@ -3,6 +3,7 @@ import { useContext, useRef, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
+import { LayerType } from "@/types";
 import { CONTROL_PANEL_WIDTH } from "../../../styles";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
@@ -53,6 +54,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   return (
     <LayerItemWrapper
       name={turf.label}
+      layerType={LayerType.Turf}
       isVisible={isVisible}
       onVisibilityToggle={() => setTurfVisibilityState(turf.id, !isVisible)}
     >
