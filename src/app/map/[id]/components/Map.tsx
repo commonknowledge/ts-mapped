@@ -366,7 +366,10 @@ export default function Map({
   ]);
 
   return (
-    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
+    <MapWrapper
+      currentMode={pinDropMode ? "pin_drop" : currentMode}
+      hideDrawControls={hideDrawControls}
+    >
       <MapGL
         initialViewState={{
           longitude: -4.5481,
