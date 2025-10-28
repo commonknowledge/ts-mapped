@@ -7,7 +7,7 @@ import { LayerType } from "@/types";
 import { CONTROL_PANEL_WIDTH } from "../../../styles";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
-import LayerItemWrapper from "../LayerItemWrapper";
+import ControlWrapper from "../ControlWrapper";
 import type { Turf } from "@/server/models/Turf";
 
 export default function TurfItem({ turf }: { turf: Turf }) {
@@ -52,7 +52,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   };
 
   return (
-    <LayerItemWrapper
+    <ControlWrapper
       name={turf.label}
       layerType={LayerType.Turf}
       isVisible={isVisible}
@@ -82,6 +82,6 @@ export default function TurfItem({ turf }: { turf: Turf }) {
           />
         </ContextMenu>
       )}
-    </LayerItemWrapper>
+    </ControlWrapper>
   );
 }

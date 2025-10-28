@@ -76,7 +76,7 @@ export default function MembersControl() {
       </LayerHeader>
 
       {expanded && (
-        <>
+        <div className="pt-2">
           {allDataSourcesLoading ? null : dataSource ? (
             <DataSourceControl
               dataSource={dataSource}
@@ -97,7 +97,7 @@ export default function MembersControl() {
               }
             />
           )}
-        </>
+        </div>
       )}
     </LayerControlWrapper>
   );

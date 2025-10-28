@@ -39,11 +39,11 @@ export default function LayerHeader({
 
   return (
     <div className="flex items-center justify-between relative">
-      <div className="group / grow / flex items-center gap-1">
+      <div className="group flex items-center gap-1">
         <button
           onClick={() => setExpanded(!expanded)}
           className={cn(
-            "flex items-center gap-2 hover:bg-neutral-100 rounded py-2 px-1 -m-1 my-1 / text-sm font-medium cursor-pointer",
+            "flex items-center gap-2 hover:bg-neutral-100 rounded px-1 py-2 -mx-1 / text-sm font-medium cursor-pointer",
             isLayerVisible ? "opacity-100" : "opacity-70",
           )}
         >
@@ -82,7 +82,7 @@ export default function LayerHeader({
         )}
       </div>
 
-      <div className="shrink-0 transition-opacity ml-auto flex flex-row items-center">
+      <div className="shrink-0 ml-auto flex flex-row items-center">
         {children}
       </div>
     </div>

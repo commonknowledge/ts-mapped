@@ -19,7 +19,7 @@ import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
-import LayerItemWrapper from "../LayerItemWrapper";
+import ControlWrapper from "../ControlWrapper";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -108,7 +108,7 @@ export default function SortableFolderItem({
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <LayerItemWrapper
+      <ControlWrapper
         name={folder.name}
         layerType={LayerType.Marker}
         isVisible={!folder.hideMarkers}
@@ -152,7 +152,7 @@ export default function SortableFolderItem({
             />
           </ContextMenu>
         )}
-      </LayerItemWrapper>
+      </ControlWrapper>
 
       {isExpanded && (
         <>

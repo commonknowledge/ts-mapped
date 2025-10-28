@@ -287,7 +287,7 @@ export default function MarkersList() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative pt-2">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

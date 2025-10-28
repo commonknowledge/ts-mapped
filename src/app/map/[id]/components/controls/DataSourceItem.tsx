@@ -3,7 +3,7 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType } from "@/types";
 import { mapColors } from "../../styles";
-import LayerItemWrapper from "./LayerItemWrapper";
+import ControlWrapper from "./ControlWrapper";
 import type { DataSourceType } from "@/server/models/DataSource";
 
 export default function DataSourceItem({
@@ -33,7 +33,7 @@ export default function DataSourceItem({
   const isVisible = getDataSourceVisibility(dataSource?.id);
 
   return (
-    <LayerItemWrapper
+    <ControlWrapper
       name={dataSource.name}
       layerType={layerType}
       isVisible={isVisible}
@@ -46,7 +46,7 @@ export default function DataSourceItem({
         style={{ borderColor: isSelected ? layerColor : "transparent" }}
         onClick={() => handleDataSourceSelect(dataSource.id)}
       >
-        <div className="flex gap-1 text-left">
+        <div className="flex gap-[6px] text-left">
           <div className="shrink-0 mt-[0.333em]">
             <DataSourceIcon type={dataSource.config.type} />
           </div>
@@ -68,6 +68,6 @@ export default function DataSourceItem({
           </div>
         </div>
       </button>
-    </LayerItemWrapper>
+    </ControlWrapper>
   );
 }

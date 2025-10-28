@@ -44,7 +44,7 @@ export default function AreasControl() {
       </LayerHeader>
 
       {expanded && (
-        <div className="relative">
+        <div className="relative pt-2">
           {turfs && turfs.length === 0 && (
             <EmptyLayer message="Add an Area Layer" />
           )}

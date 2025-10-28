@@ -7,7 +7,7 @@ import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
-import LayerItemWrapper from "../LayerItemWrapper";
+import ControlWrapper from "../ControlWrapper";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function SortableMarkerItem({
@@ -88,7 +88,7 @@ export default function SortableMarkerItem({
       {...listeners}
       className="cursor-grab active:cursor-grabbing w-full"
     >
-      <LayerItemWrapper
+      <ControlWrapper
         name={marker?.label}
         layerType={LayerType.Marker}
         isVisible={isVisible}
@@ -120,7 +120,7 @@ export default function SortableMarkerItem({
             />
           </ContextMenu>
         )}
-      </LayerItemWrapper>
+      </ControlWrapper>
     </div>
   );
 }
