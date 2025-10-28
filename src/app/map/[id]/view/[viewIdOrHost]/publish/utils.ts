@@ -2,6 +2,7 @@ export const buildName = (
   nameColumns: string[],
   json: Record<string, unknown>,
 ) => {
+  console.log(nameColumns, json);
   return nameColumns
     .map((c) => String(json[c] || "").trim())
     .filter(Boolean)

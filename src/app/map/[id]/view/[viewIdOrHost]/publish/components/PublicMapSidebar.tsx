@@ -11,13 +11,8 @@ import PublicMapGeocoder from "./PublicMapGeocoder";
 import { PublicMapListings } from "./PublicMapListings";
 
 export default function PublicMapSidebar() {
-  const {
-    publicMap,
-    editable,
-    setSearchLocation,
-    recordSidebarVisible,
-    colourScheme,
-  } = useContext(PublicMapContext);
+  const { publicMap, editable, setSearchLocation, colourScheme } =
+    useContext(PublicMapContext);
 
   // Convert string colourScheme to actual color scheme object
   const activeColourScheme =
@@ -128,7 +123,7 @@ export default function PublicMapSidebar() {
         <PublicMapListings />
       </div>
 
-      {recordSidebarVisible && <DataRecordSidebar />}
+      <DataRecordSidebar />
     </div>
   );
 }

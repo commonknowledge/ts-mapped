@@ -172,7 +172,7 @@ function DataRecordsQueryComponent({
   const trpc = useTRPC();
   const dataRecordsQuery = useQuery(
     trpc.dataSource.byIdWithRecords.queryOptions(
-      { dataSourceId, filter, sort },
+      { dataSourceId, filter, sort, all: true },
       { placeholderData: keepPreviousData },
     ),
   );
