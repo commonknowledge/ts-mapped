@@ -64,7 +64,12 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const { updateFolder, deleteFolder } = useContext(MarkerAndTurfContext);
+  const {
+    updateFolder,
+    deleteFolder,
+    getMarkerVisibility,
+    setMarkerVisibilityState,
+  } = useContext(MarkerAndTurfContext);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [isExpanded, setExpanded] = useState(false);
@@ -86,7 +91,7 @@ export default function SortableFolderItem({
   const onDelete = () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost.",
+        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost."
       )
     ) {
       return;
@@ -106,15 +111,25 @@ export default function SortableFolderItem({
     setKeyboardCapture(false);
   };
 
+  const visibleMarkers = useMemo(
+    () => sortedMarkers.filter((marker) => getMarkerVisibility(marker.id)),
+    [sortedMarkers, getMarkerVisibility]
+  );
+  const isFolderVisible = Boolean(visibleMarkers?.length);
+
+  const onVisibilityToggle = () => {
+    sortedMarkers.forEach((marker) =>
+      setMarkerVisibilityState(marker.id, !isFolderVisible)
+    );
+  };
+
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <ControlWrapper
         name={folder.name}
         layerType={LayerType.Marker}
-        isVisible={!folder.hideMarkers}
-        onVisibilityToggle={() => {
-          updateFolder({ ...folder, hideMarkers: !folder.hideMarkers });
-        }}
+        isVisible={isFolderVisible}
+        onVisibilityToggle={() => onVisibilityToggle()}
       >
         {isEditing ? (
           <ControlEditForm
@@ -131,7 +146,7 @@ export default function SortableFolderItem({
                 onClick={() => onClickFolder()}
                 className={cn(
                   "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
-                  isHeaderOver ? "bg-blue-50" : "",
+                  isHeaderOver ? "bg-blue-50" : ""
                 )}
               >
                 {isExpanded ? (
