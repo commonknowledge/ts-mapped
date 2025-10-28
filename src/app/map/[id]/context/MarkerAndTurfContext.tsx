@@ -2,7 +2,7 @@ import { createContext } from "react";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { Turf } from "@/server/models/Turf";
-import type { PointFeature } from "@/types";
+import type { LayerType, PointFeature } from "@/types";
 import type { Feature } from "geojson";
 
 export const MarkerAndTurfContext = createContext<{
@@ -33,6 +33,7 @@ export const MarkerAndTurfContext = createContext<{
   setSearchMarker: (marker: Feature | null) => void;
 
   turfs: Turf[];
+  visibleTurfs: Turf[];
   deleteTurf: (id: string) => void;
   insertTurf: (turf: Omit<Turf, "mapId" | "id" | "createdAt">) => void;
   updateTurf: (turf: Omit<Turf, "mapId">) => void;
@@ -45,6 +46,24 @@ export const MarkerAndTurfContext = createContext<{
   /* helpers */
   handleAddArea: () => void;
   handleDropPin: () => void;
+
+  /* Individual visibility management */
+  markerVisibility: Record<string, boolean>;
+  turfVisibility: Record<string, boolean>;
+  dataSourceVisibility: Record<string, boolean>;
+  setMarkerVisibilityState: (markerId: string, isVisible: boolean) => void;
+  setTurfVisibilityState: (turfId: string, isVisible: boolean) => void;
+  setDataSourceVisibilityState: (
+    dataSourceId: string,
+    isVisible: boolean,
+  ) => void;
+  getMarkerVisibility: (markerId: string) => boolean;
+  getTurfVisibility: (turfId: string) => boolean;
+  getDataSourceVisibility: (dataSourceId: string) => boolean;
+  hiddenLayers: LayerType[];
+  hideLayer: (layer: LayerType) => void;
+  showLayer: (layer: LayerType) => void;
+  getLayerVisibility: (layer: LayerType) => boolean;
 }>({
   editingTurf: null,
   setEditingTurf: () => null,
@@ -65,10 +84,25 @@ export const MarkerAndTurfContext = createContext<{
   searchMarker: null,
   setSearchMarker: () => null,
   turfs: [],
+  visibleTurfs: [],
   deleteTurf: () => null,
   insertTurf: () => null,
   updateTurf: () => null,
   markerQueries: null,
   handleAddArea: () => null,
   handleDropPin: () => null,
+
+  markerVisibility: {},
+  turfVisibility: {},
+  dataSourceVisibility: {},
+  setMarkerVisibilityState: () => null,
+  setTurfVisibilityState: () => null,
+  setDataSourceVisibilityState: () => null,
+  getMarkerVisibility: () => true,
+  getTurfVisibility: () => true,
+  getDataSourceVisibility: () => true,
+  hiddenLayers: [],
+  showLayer: () => null,
+  hideLayer: () => null,
+  getLayerVisibility: () => true,
 });

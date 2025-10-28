@@ -2,7 +2,14 @@
 
 import { useQueries } from "@tanstack/react-query";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   MapContext,
@@ -11,6 +18,7 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { LayerType } from "@/types";
 import { useFolders, usePlacedMarkers, useTurfs } from "../hooks";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
@@ -39,6 +47,79 @@ export default function MarkerAndTurfProvider({
   >(null);
 
   const [searchMarker, setSearchMarker] = useState<Feature | null>(null);
+
+  // Individual visibility states
+  const [markerVisibility, setMarkerVisibility] = useState<
+    Record<string, boolean>
+  >({});
+  const setMarkerVisibilityState = (markerId: string, isVisible: boolean) => {
+    setMarkerVisibility((prev) => ({ ...prev, [markerId]: isVisible }));
+  };
+  const getMarkerVisibility = (markerId: string) => {
+    return markerVisibility[markerId] ?? true; // Default to visible
+  };
+
+  const [turfVisibility, setTurfVisibility] = useState<Record<string, boolean>>(
+    {},
+  );
+  const setTurfVisibilityState = (turfId: string, isVisible: boolean) => {
+    setTurfVisibility((prev) => ({ ...prev, [turfId]: isVisible }));
+  };
+  const getTurfVisibility = useCallback(
+    (turfId: string): boolean => {
+      return turfVisibility[turfId] ?? true;
+    },
+    [turfVisibility],
+  );
+
+  const [dataSourceVisibility, setDataSourceVisibility] = useState<
+    Record<string, boolean>
+  >({});
+  const setDataSourceVisibilityState = (
+    dataSourceId: string,
+    isVisible: boolean,
+  ) => {
+    setDataSourceVisibility((prev) => ({ ...prev, [dataSourceId]: isVisible }));
+  };
+  const getDataSourceVisibility = (dataSourceId: string) => {
+    return dataSourceVisibility[dataSourceId] ?? true; // Default to visible
+  };
+
+  const [hiddenLayers, setHiddenLayers] = useState<LayerType[]>([]);
+
+  const showLayer = (layer: LayerType) => {
+    setHiddenLayers((prev) => prev.filter((l) => l !== layer));
+
+    // TODO: add logic for markers
+    if (layer === LayerType.Member) {
+      if (mapConfig.membersDataSourceId) {
+        setDataSourceVisibilityState(mapConfig.membersDataSourceId, true);
+      }
+    } else if (layer === LayerType.Turf) {
+      turfs.map((t) => setTurfVisibilityState(t.id, true));
+    }
+  };
+
+  const hideLayer = (layer: LayerType) => {
+    setHiddenLayers((prev) => [...prev, layer]);
+
+    // TODO: add logic for markers
+    if (layer === LayerType.Member) {
+      if (mapConfig.membersDataSourceId) {
+        setDataSourceVisibilityState(mapConfig.membersDataSourceId, false);
+      }
+    } else if (layer === LayerType.Turf) {
+      turfs.map((t) => setTurfVisibilityState(t.id, false));
+    }
+  };
+
+  const getLayerVisibility = (layer: LayerType) => {
+    if (layer === LayerType.Turf) {
+      return Boolean(visibleTurfs?.length) && !hiddenLayers.includes(layer);
+    }
+
+    return !hiddenLayers.includes(layer);
+  };
 
   const dataSourceIds = useMemo(() => {
     if (!publicMap) {
@@ -111,6 +192,12 @@ export default function MarkerAndTurfProvider({
 
   const { deleteTurf, insertTurf, updateTurf, turfs, setTurfs } =
     useTurfs(mapId);
+
+  const visibleTurfs = useMemo(() => {
+    return turfs.filter((turf) => {
+      return getTurfVisibility(turf.id);
+    });
+  }, [turfs, getTurfVisibility]);
 
   useEffect(() => {
     // Only initialize the features when the map first loads
@@ -197,12 +284,26 @@ export default function MarkerAndTurfProvider({
         deleteTurf,
         insertTurf,
         turfs,
+        visibleTurfs,
         updateTurf,
         markerQueries,
         searchMarker,
         setSearchMarker,
         handleAddArea,
         handleDropPin,
+        markerVisibility,
+        turfVisibility,
+        dataSourceVisibility,
+        setMarkerVisibilityState,
+        setTurfVisibilityState,
+        setDataSourceVisibilityState,
+        getMarkerVisibility,
+        getTurfVisibility,
+        getDataSourceVisibility,
+        hiddenLayers,
+        showLayer,
+        hideLayer,
+        getLayerVisibility,
       }}
     >
       {children}
