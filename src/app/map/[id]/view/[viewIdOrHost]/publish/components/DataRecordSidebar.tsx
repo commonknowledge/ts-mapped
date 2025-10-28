@@ -16,14 +16,16 @@ export default function DataRecordSidebar() {
     if (!selectedRecord) {
       return null;
     }
+
     const dataRecordsQuery = dataRecordsQueries[selectedRecord.dataSourceId];
+
     return dataRecordsQuery?.data?.records?.find(
       (r) => r.id === selectedRecord.id,
     );
   }, [dataRecordsQueries, selectedRecord]);
 
   if (!selectedRecord || !selectedRecordDetails || !publicMap) {
-    return null;
+    return <></>;
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
@@ -40,7 +42,7 @@ export default function DataRecordSidebar() {
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
-    <div className="flex flex-col justify-between h-full w-[280px] p-4">
+    <div className="flex flex-col justify-between h-[100vh] overflow-auto w-[280px] p-4">
       <div className={cn("flex flex-col gap-4")}>
         {/* Name */}
         <div className="flex flex-col gap-4">
