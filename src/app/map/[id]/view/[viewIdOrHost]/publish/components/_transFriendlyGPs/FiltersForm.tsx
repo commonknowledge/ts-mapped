@@ -49,14 +49,14 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
 
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>
-      prev.map((v) => (v.name === name ? { ...v, value } : v))
+      prev.map((v) => (v.name === name ? { ...v, value } : v)),
     );
   };
 
   const handleOptionCheck = (
     fieldName: string,
     option: string,
-    checked: boolean
+    checked: boolean,
   ) => {
     setValues((prev) =>
       prev.map((v) => {
@@ -73,7 +73,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
         }
 
         return { ...v, selectedOptions: updatedOptions };
-      })
+      }),
     );
   };
 
@@ -102,10 +102,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
             // text input
-            <FormFieldWrapper
-              label={field.name}
-              id={`filters-${field.name}`}
-            >
+            <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
               <Input
                 type="text"
                 autoComplete="off"

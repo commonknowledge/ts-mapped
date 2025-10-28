@@ -110,10 +110,7 @@ export default function FiltersForm({
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
             // text input
-            <FormFieldWrapper
-              label={field.label || field.name}
-              id={`filters-${field.name}`}
-            >
+            <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
               <Input
                 type="text"
                 autoComplete="off"
@@ -126,7 +123,7 @@ export default function FiltersForm({
           ) : field.type === PublicMapColumnType.Boolean ? (
             // boolean swicth
             <FormFieldWrapper
-              label={field.label || field.name}
+              label={field.name}
               id={`filters-${field.name}`}
               isHorizontal={true}
             >

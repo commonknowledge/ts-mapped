@@ -2,11 +2,9 @@
 
 import { CircleX } from "lucide-react";
 import { Fragment, useContext } from "react";
-import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Badge } from "@/shadcn/ui/badge";
 import { PublicFiltersContext } from "../../context/PublicFiltersContext";
 import { PublicMapContext } from "../../context/PublicMapContext";
-import { toBoolean } from "../../utils";
 import { getActiveFilters } from "../filtersHelpers";
 import type { PublicFiltersFormValue } from "@/types";
 
@@ -37,7 +35,7 @@ export default function FiltersList() {
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
   const activeFilters = getActiveFilters(
-    activeTabId ? publicFilters[activeTabId] : undefined
+    activeTabId ? publicFilters[activeTabId] : undefined,
   );
 
   const removeFilter = (filter: PublicFiltersFormValue, optionName = "") => {
@@ -57,7 +55,7 @@ export default function FiltersList() {
                     ? [...f.selectedOptions.filter((o) => o !== optionName)]
                     : [],
                 }
-              : { ...f }
+              : { ...f },
           ),
         ],
       });
@@ -65,7 +63,7 @@ export default function FiltersList() {
       setPublicFilters({
         [activeTabId]: [
           ...activePublicFilters.map((f) =>
-            f.name === filter.name ? { ...f, value: "" } : { ...f }
+            f.name === filter.name ? { ...f, value: "" } : { ...f },
           ),
         ],
       });
@@ -91,24 +89,14 @@ export default function FiltersList() {
                 </li>
               ))}
             </Fragment>
-          ) : filter.type === PublicMapColumnType.Boolean &&
-            toBoolean(filter.value) ? (
+          ) : (
             <li key={filter.name}>
               <FiltersListBadge
                 name={filter.name}
                 onClick={() => removeFilter(filter)}
               />
             </li>
-          ) : filter.type === PublicMapColumnType.String ? (
-            <li key={filter.value}>
-              <FiltersListBadge
-                name={filter.name}
-                onClick={() => removeFilter(filter)}
-              />
-            </li>
-          ) : (
-            <></>
-          )
+          ),
         )}
       </ul>
     </div>

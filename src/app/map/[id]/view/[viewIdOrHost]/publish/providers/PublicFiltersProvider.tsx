@@ -53,7 +53,7 @@ export default function PublicFiltersProvider({
         }
       }
 
-      console.log("cols", typedColumns)
+      console.log("cols", typedColumns);
 
       const fields = typedColumns.map((col) => {
         if (col.type === PublicMapColumnType.CommaSeparatedList) {
