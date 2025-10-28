@@ -114,7 +114,9 @@ export default function SortableFolderItem({
     () => sortedMarkers.filter((marker) => getMarkerVisibility(marker.id)),
     [sortedMarkers, getMarkerVisibility],
   );
-  const isFolderVisible = Boolean(visibleMarkers?.length);
+  const isFolderVisible = sortedMarkers?.length
+    ? Boolean(visibleMarkers?.length)
+    : true;
 
   const onVisibilityToggle = () => {
     sortedMarkers.forEach((marker) =>
@@ -200,7 +202,7 @@ export default function SortableFolderItem({
           {/* Invisible footer drop zone */}
           <div
             ref={isDraggingMarker ? setFooterNodeRef : null}
-            className={`h-2 ml-4 mt-1 rounded`}
+            className={`h-2 rounded`}
           />
         </>
       )}
