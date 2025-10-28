@@ -8,8 +8,7 @@ import { PublicFiltersContext } from "../../context/PublicFiltersContext";
 import { PublicMapContext } from "../../context/PublicMapContext";
 import { toBoolean } from "../../utils";
 import { getActiveFilters } from "../filtersHelpers";
-import { TRANS_FRIENDLY_GPS_FILTERS } from "./CustomFilters";
-import type { FilterField, PublicFiltersFormValue } from "@/types";
+import type { PublicFiltersFormValue } from "@/types";
 
 function FiltersListBadge({
   name,
@@ -38,7 +37,7 @@ export default function FiltersList() {
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
   const activeFilters = getActiveFilters(
-    activeTabId ? publicFilters[activeTabId] : undefined,
+    activeTabId ? publicFilters[activeTabId] : undefined
   );
 
   const removeFilter = (filter: PublicFiltersFormValue, optionName = "") => {
@@ -58,7 +57,7 @@ export default function FiltersList() {
                     ? [...f.selectedOptions.filter((o) => o !== optionName)]
                     : [],
                 }
-              : { ...f },
+              : { ...f }
           ),
         ],
       });
@@ -66,7 +65,7 @@ export default function FiltersList() {
       setPublicFilters({
         [activeTabId]: [
           ...activePublicFilters.map((f) =>
-            f.name === filter.name ? { ...f, value: "" } : { ...f },
+            f.name === filter.name ? { ...f, value: "" } : { ...f }
           ),
         ],
       });
@@ -77,14 +76,6 @@ export default function FiltersList() {
     return <></>;
   }
 
-  const findLabel = (name: string) => {
-    return (
-      TRANS_FRIENDLY_GPS_FILTERS.find(
-        (filter: FilterField) => filter.name === name,
-      )?.label || name
-    );
-  };
-
   return (
     <div className="flex flex-col gap-4 w-full shrink-0 overflow-x-auto p-4 bg-muted">
       <ul className="flex flex-wrap gap-2">
@@ -94,7 +85,7 @@ export default function FiltersList() {
               {filter.selectedOptions.map((val) => (
                 <li key={val}>
                   <FiltersListBadge
-                    name={findLabel(val)}
+                    name={val}
                     onClick={() => removeFilter(filter, val)}
                   />
                 </li>
@@ -104,20 +95,20 @@ export default function FiltersList() {
             toBoolean(filter.value) ? (
             <li key={filter.name}>
               <FiltersListBadge
-                name={findLabel(filter.name)}
+                name={filter.name}
                 onClick={() => removeFilter(filter)}
               />
             </li>
           ) : filter.type === PublicMapColumnType.String ? (
             <li key={filter.value}>
               <FiltersListBadge
-                name={findLabel(filter.name)}
+                name={filter.name}
                 onClick={() => removeFilter(filter)}
               />
             </li>
           ) : (
             <></>
-          ),
+          )
         )}
       </ul>
     </div>
