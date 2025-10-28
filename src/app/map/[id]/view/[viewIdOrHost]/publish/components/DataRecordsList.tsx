@@ -77,7 +77,9 @@ export default function DataRecordsList({
 
   const getDescription = (record: { json: Record<string, unknown> }) => {
     const descriptionColumn = dataSourceConfig?.descriptionColumn;
-    return descriptionColumn ? record.json[descriptionColumn] || "" : "";
+    return descriptionColumn && Boolean(record.json[descriptionColumn])
+      ? `${record.json[descriptionColumn]}`
+      : "";
   };
 
   const handleRecordClick = (record: {
