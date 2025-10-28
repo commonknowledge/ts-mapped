@@ -50,7 +50,7 @@ export default function ControlWrapper({
         style={{ background: getLayerColor() }}
       ></div>
 
-      <div className="grow overflow-hidden">{children}</div>
+      <div className="grow">{children}</div>
     </div>
   );
 }

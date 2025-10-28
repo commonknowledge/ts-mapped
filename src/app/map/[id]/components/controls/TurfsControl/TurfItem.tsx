@@ -1,5 +1,5 @@
 import * as turfLib from "@turf/turf";
-import { useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
@@ -15,7 +15,6 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   const { getTurfVisibility, setTurfVisibilityState, updateTurf, deleteTurf } =
     useContext(MarkerAndTurfContext);
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
 
@@ -46,6 +45,10 @@ export default function TurfItem({ turf }: { turf: Turf }) {
 
   const isVisible = getTurfVisibility(turf.id);
 
+  const onEdit = () => {
+    setEditing(true);
+  };
+
   const onSubmit = () => {
     updateTurf({ ...turf, label: editText });
     setEditing(false);
@@ -60,7 +63,6 @@ export default function TurfItem({ turf }: { turf: Turf }) {
     >
       {isEditing ? (
         <ControlEditForm
-          inputRef={inputRef}
           initialValue={editText}
           onChange={setEditText}
           onSubmit={onSubmit}
@@ -76,9 +78,8 @@ export default function TurfItem({ turf }: { turf: Turf }) {
             </button>
           </ContextMenuTrigger>
           <ControlContextMenuContent
-            inputRef={inputRef}
             onDelete={() => deleteTurf(turf.id)}
-            onEdit={() => setEditing(true)}
+            onEdit={() => onEdit()}
           />
         </ContextMenu>
       )}

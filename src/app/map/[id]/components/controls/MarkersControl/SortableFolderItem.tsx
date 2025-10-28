@@ -11,7 +11,7 @@ import {
   Folder as FolderClosed,
   FolderOpen,
 } from "lucide-react";
-import { useContext, useMemo, useRef, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
@@ -71,7 +71,6 @@ export default function SortableFolderItem({
     setMarkerVisibilityState,
   } = useContext(MarkerAndTurfContext);
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const [isExpanded, setExpanded] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(folder.name);
@@ -91,7 +90,7 @@ export default function SortableFolderItem({
   const onDelete = () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost."
+        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost.",
       )
     ) {
       return;
@@ -113,13 +112,13 @@ export default function SortableFolderItem({
 
   const visibleMarkers = useMemo(
     () => sortedMarkers.filter((marker) => getMarkerVisibility(marker.id)),
-    [sortedMarkers, getMarkerVisibility]
+    [sortedMarkers, getMarkerVisibility],
   );
   const isFolderVisible = Boolean(visibleMarkers?.length);
 
   const onVisibilityToggle = () => {
     sortedMarkers.forEach((marker) =>
-      setMarkerVisibilityState(marker.id, !isFolderVisible)
+      setMarkerVisibilityState(marker.id, !isFolderVisible),
     );
   };
 
@@ -133,7 +132,6 @@ export default function SortableFolderItem({
       >
         {isEditing ? (
           <ControlEditForm
-            inputRef={inputRef}
             initialValue={editText}
             onChange={setEditText}
             onSubmit={onSubmit}
@@ -146,7 +144,7 @@ export default function SortableFolderItem({
                 onClick={() => onClickFolder()}
                 className={cn(
                   "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
-                  isHeaderOver ? "bg-blue-50" : ""
+                  isHeaderOver ? "bg-blue-50" : "",
                 )}
               >
                 {isExpanded ? (
@@ -161,7 +159,6 @@ export default function SortableFolderItem({
               </button>
             </ContextMenuTrigger>
             <ControlContextMenuContent
-              inputRef={inputRef}
               onDelete={() => onDelete()}
               onEdit={() => onEdit()}
             />

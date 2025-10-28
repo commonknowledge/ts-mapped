@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
@@ -36,8 +36,6 @@ export default function SortableMarkerItem({
     updatePlacedMarker,
   } = useContext(MarkerAndTurfContext);
   const { mapRef } = useContext(MapContext);
-
-  const inputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
 
@@ -98,7 +96,6 @@ export default function SortableMarkerItem({
       >
         {isEditing ? (
           <ControlEditForm
-            inputRef={inputRef}
             initialValue={editText}
             onChange={setEditText}
             onSubmit={onSubmit}
@@ -114,7 +111,6 @@ export default function SortableMarkerItem({
               </button>
             </ContextMenuTrigger>
             <ControlContextMenuContent
-              inputRef={inputRef}
               onEdit={() => onEdit()}
               onDelete={() => deletePlacedMarker(marker.id)}
             />
