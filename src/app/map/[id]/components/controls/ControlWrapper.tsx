@@ -34,7 +34,7 @@ export default function ControlWrapper({
     <div
       className={cn(
         "relative flex gap-1 text-sm",
-        isVisible ? "opacity-100" : "opacity-70"
+        isVisible ? "opacity-100" : "opacity-70",
       )}
     >
       <button

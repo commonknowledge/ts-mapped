@@ -114,6 +114,10 @@ export default function MarkerAndTurfProvider({
   };
 
   const getLayerVisibility = (layer: LayerType) => {
+    if (layer === LayerType.Turf) {
+      return Boolean(visibleTurfs?.length) && !hiddenLayers.includes(layer);
+    }
+
     return !hiddenLayers.includes(layer);
   };
 

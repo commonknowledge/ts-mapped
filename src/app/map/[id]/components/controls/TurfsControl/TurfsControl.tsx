@@ -29,7 +29,7 @@ export default function AreasControl() {
         type={LayerType.Turf}
         expanded={expanded}
         setExpanded={setExpanded}
-        enableVisibilityToggle={true}
+        enableVisibilityToggle={Boolean(turfs?.length)}
       >
         {!isAddingArea ? (
           <IconButtonWithTooltip tooltip="Add Area" onClick={() => onAddArea()}>
