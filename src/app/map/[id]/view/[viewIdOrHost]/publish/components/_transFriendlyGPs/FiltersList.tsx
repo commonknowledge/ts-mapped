@@ -35,7 +35,7 @@ export default function FiltersList() {
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
   const activeFilters = getActiveFilters(
-    activeTabId ? publicFilters[activeTabId] : undefined,
+    activeTabId ? publicFilters[activeTabId] : undefined
   );
 
   const removeFilter = (filter: PublicFiltersFormValue, optionName = "") => {
@@ -55,7 +55,7 @@ export default function FiltersList() {
                     ? [...f.selectedOptions.filter((o) => o !== optionName)]
                     : [],
                 }
-              : { ...f },
+              : { ...f }
           ),
         ],
       });
@@ -63,7 +63,7 @@ export default function FiltersList() {
       setPublicFilters({
         [activeTabId]: [
           ...activePublicFilters.map((f) =>
-            f.name === filter.name ? { ...f, value: "" } : { ...f },
+            f.name === filter.name ? { ...f, value: "" } : { ...f }
           ),
         ],
       });
@@ -96,7 +96,7 @@ export default function FiltersList() {
                 onClick={() => removeFilter(filter)}
               />
             </li>
-          ),
+          )
         )}
       </ul>
     </div>

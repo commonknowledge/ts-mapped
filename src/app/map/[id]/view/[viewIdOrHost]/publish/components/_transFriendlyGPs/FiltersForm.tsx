@@ -6,6 +6,7 @@ import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
+import { Label } from "@/shadcn/ui/label";
 import { PublicFiltersContext } from "../../context/PublicFiltersContext";
 import { PublicMapContext } from "../../context/PublicMapContext";
 import { toBoolean } from "../../utils";
@@ -49,14 +50,14 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
 
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>
-      prev.map((v) => (v.name === name ? { ...v, value } : v)),
+      prev.map((v) => (v.name === name ? { ...v, value } : v))
     );
   };
 
   const handleOptionCheck = (
     fieldName: string,
     option: string,
-    checked: boolean,
+    checked: boolean
   ) => {
     setValues((prev) =>
       prev.map((v) => {
@@ -73,7 +74,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
         }
 
         return { ...v, selectedOptions: updatedOptions };
-      }),
+      })
     );
   };
 
@@ -113,20 +114,19 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
               />
             </FormFieldWrapper>
           ) : field.type === PublicMapColumnType.Boolean ? (
-            // boolean swicth
-            <FormFieldWrapper
-              label={field.name}
-              id={`filters-${field.name}`}
-              isHorizontal={true}
-            >
+            // boolean checkbox
+            <div className="flex gap-2">
               <Checkbox
                 id={`filters-${field.name}`}
                 checked={isChecked(field)}
                 onCheckedChange={(checked) =>
-                  handleChange(field.name, checked ? "Yes" : "No")
+                  handleChange(field.name, checked ? "Yes" : "")
                 }
               />
-            </FormFieldWrapper>
+              <Label htmlFor={`filters-${field.name}`} className="font-normal">
+                {field.name}
+              </Label>
+            </div>
           ) : field?.options?.length ? (
             // multiselect
             <FiltersMultiSelect
