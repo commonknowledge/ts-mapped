@@ -12,9 +12,9 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
-import ControlContextMenuContent from "../../ControlContextMenuContent";
-import ControlEditForm from "../../ControlEditForm";
-import LayerItemWrapper from "../../LayerItemWrapper";
+import ControlContextMenuContent from "../ControlContextMenuContent";
+import ControlEditForm from "../ControlEditForm";
+import LayerItemWrapper from "../LayerItemWrapper";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";

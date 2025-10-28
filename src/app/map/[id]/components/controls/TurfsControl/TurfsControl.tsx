@@ -6,7 +6,7 @@ import { LayerType } from "@/types";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
-import TurfItem from "../TurfItem";
+import TurfItem from "./TurfItem";
 
 export default function AreasControl() {
   const { handleAddArea, turfs } = useContext(MarkerAndTurfContext);

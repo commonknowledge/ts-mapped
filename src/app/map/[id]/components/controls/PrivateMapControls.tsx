@@ -5,10 +5,11 @@ import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
-import AreasControl from "./layers/AreasControl";
-import BoundariesControl from "./layers/BoundariesControl/BoundariesControl";
-import MarkersControl from "./layers/MarkersControl/MarkersControl";
-import MembersControl from "./layers/MembersControl";
+
+import BoundariesControl from "./BoundariesControl/BoundariesControl";
+import MarkersControl from "./MarkersControl/MarkersControl";
+import MembersControl from "./MembersControl/MembersControl";
+import TurfsControl from "./TurfsControl/TurfsControl";
 
 export default function PrivateMapControls() {
   const { showControls, setShowControls } = useContext(MapContext);
@@ -64,7 +65,7 @@ export default function PrivateMapControls() {
           >
             <MembersControl />
             <MarkersControl />
-            <AreasControl />
+            <TurfsControl />
             <BoundariesControl />
           </div>
         </div>

@@ -9,9 +9,9 @@ import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
-import { CollectionIcon } from "../../../Icons";
-import LayerControlWrapper from "../../LayerControlWrapper";
-import LayerHeader from "../../LayerHeader";
+import { CollectionIcon } from "../../Icons";
+import LayerControlWrapper from "../LayerControlWrapper";
+import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
