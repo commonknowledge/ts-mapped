@@ -6,18 +6,13 @@ import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
-import { toBoolean } from "../utils";
+import { Label } from "@/shadcn/ui/label";
+import { PublicFiltersContext } from "../../context/PublicFiltersContext";
+import { PublicMapContext } from "../../context/PublicMapContext";
+import { toBoolean } from "../../utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
-export default function FiltersForm({
-  fields,
-  closeDialog,
-}: {
-  fields: FilterField[];
-  closeDialog: () => void;
-}) {
+export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
@@ -90,8 +85,6 @@ export default function FiltersForm({
     }
     // closing the data record sidebar when applying filters - to avoid showing details of a record that is filtered out
     setSelectedRecord(null);
-    // closing filters dialog
-    closeDialog();
   };
 
   const isChecked = (field: FilterField) => {
@@ -105,7 +98,7 @@ export default function FiltersForm({
   };
 
   return (
-    <form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-4 w-full" onChange={handleSubmit}>
       {fields.map((field) => (
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
@@ -121,20 +114,19 @@ export default function FiltersForm({
               />
             </FormFieldWrapper>
           ) : field.type === PublicMapColumnType.Boolean ? (
-            // boolean swicth
-            <FormFieldWrapper
-              label={field.name}
-              id={`filters-${field.name}`}
-              isHorizontal={true}
-            >
+            // boolean checkbox
+            <div className="flex gap-2">
               <Checkbox
                 id={`filters-${field.name}`}
                 checked={isChecked(field)}
                 onCheckedChange={(checked) =>
-                  handleChange(field.name, checked ? "Yes" : "No")
+                  handleChange(field.name, checked ? "Yes" : "")
                 }
               />
-            </FormFieldWrapper>
+              <Label htmlFor={`filters-${field.name}`} className="font-normal">
+                {field.name}
+              </Label>
+            </div>
           ) : field?.options?.length ? (
             // multiselect
             <FiltersMultiSelect
@@ -147,7 +139,7 @@ export default function FiltersForm({
           )}
         </div>
       ))}
-      <div>
+      <div className="sr-only">
         <Button type="submit">Filter</Button>
       </div>
     </form>

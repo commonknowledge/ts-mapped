@@ -102,8 +102,8 @@ const TokenHelpText = (
     <h3>How to generate a Personal access token in Airtable</h3>
     <ol>
       <li>Log in to Airtable.</li>
-      <li>From the main menu, select Builder Hub.</li>
-      <li>Click Create Token.</li>
+      <li>From the user menu, select Builder Hub.</li>
+      <li>Go to Personal Access Tokens and click Create Token.</li>
       <li>Enter your preferred name.</li>
       <li>
         Under Scope, add
@@ -112,7 +112,7 @@ const TokenHelpText = (
           <li>&quot;data.records:write&quot;</li>
           <li>&quot;schema.bases:read&quot;</li>
           <li>&quot;schema.tables:write&quot;</li>
-          <li>&quot;webhooks:manage&quot;</li>
+          <li>&quot;webhook:manage&quot;</li>
         </ul>
       </li>
       <li>Under Access, select the base or bases you want to include.</li>
