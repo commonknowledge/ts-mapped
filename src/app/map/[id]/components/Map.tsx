@@ -31,7 +31,7 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
-import { useTurfMutations, useTurfsQuery } from "../hooks/useTurfs";
+import { useTurfMutations } from "../hooks/useTurfs";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
@@ -71,7 +71,7 @@ export default function Map({
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { searchMarker } = useContext(MarkerAndTurfContext);
+  const { searchMarker, visibleTurfs } = useContext(MarkerAndTurfContext);
   const markerQueries = useMarkerQueries();
   const {
     resetInspector,
@@ -81,6 +81,7 @@ export default function Map({
   } = useContext(InspectorContext);
   const {
     choroplethLayerConfig: {
+      areaSetCode,
       mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
     },
   } = useContext(ChoroplethContext);
@@ -103,24 +104,23 @@ export default function Map({
     [mapConfig],
   );
 
-  const { data: turfs } = useTurfsQuery();
   const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
 
   // draw existing turfs
   useEffect(() => {
-    if (!turfs || !draw || !viewConfig?.showTurf) return;
+    if (!visibleTurfs || !draw) return;
 
     draw.deleteAll();
 
     // Add existing polygons from your array
-    turfs.forEach((turf) => {
+    visibleTurfs.forEach((turf) => {
       draw.add({
         type: "Feature",
         properties: { ...turf },
         geometry: turf.polygon,
       });
     });
-  }, [turfs, draw, viewConfig?.showTurf]);
+  }, [visibleTurfs, draw, viewConfig?.showTurf]);
 
   // Hover behavior
   useEffect(() => {
@@ -213,35 +213,6 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
-  const toggleDrawVisibility = useCallback(
-    (visible: boolean) => {
-      const map = mapRef?.current;
-
-      // all draw layers
-      const drawLayerIds = [
-        "gl-draw-polygon-fill.cold",
-        "gl-draw-polygon-stroke.cold",
-        "gl-draw-polygon-and-line-vertex-halo-active.cold",
-        "gl-draw-polygon-and-line-vertex-active.cold",
-      ];
-
-      if (map && styleLoaded) {
-        // draw layers that actually exist on our map
-        const style = map.getStyle();
-        const layerIds = style.layers
-          .filter((layer) => drawLayerIds.includes(layer.id))
-          .map((layer) => layer.id);
-
-        layerIds.forEach((id) => {
-          map
-            .getMap()
-            .setLayoutProperty(id, "visibility", visible ? "visible" : "none");
-        });
-      }
-    },
-    [mapRef, styleLoaded],
-  );
-
   const getClickedPolygonFeature = (
     draw: MapboxDraw,
     e: MapMouseEvent,
@@ -273,10 +244,6 @@ export default function Map({
 
     return polygonFeature ?? null;
   };
-
-  useEffect(() => {
-    toggleDrawVisibility(viewConfig.showTurf);
-  }, [viewConfig.showTurf, toggleDrawVisibility]);
 
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
@@ -366,7 +333,10 @@ export default function Map({
   ]);
 
   return (
-    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
+    <MapWrapper
+      currentMode={pinDropMode ? "pin_drop" : currentMode}
+      hideDrawControls={hideDrawControls}
+    >
       <MapGL
         initialViewState={{
           longitude: -4.5481,
@@ -398,7 +368,7 @@ export default function Map({
               ? properties[MARKER_DATA_SOURCE_ID_KEY]
               : null;
 
-            setSelectedTurf(null); // resets the turf context for the selected marker
+            resetInspector();
             setSelectedRecord({
               id: dataRecordId,
               dataSourceId: dataSourceId,
@@ -412,7 +382,7 @@ export default function Map({
 
             return;
           } else {
-            setSelectedRecord(null);
+            resetInspector();
           }
 
           if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
@@ -430,6 +400,50 @@ export default function Map({
               return;
             } else {
               resetInspector();
+            }
+
+            if (
+              sourceId &&
+              layerId &&
+              featureCodeProperty &&
+              featureNameProperty
+            ) {
+              try {
+                const boundaryFeatures = map.queryRenderedFeatures(e.point, {
+                  layers: [`${sourceId}-fill`, `${sourceId}-line`],
+                });
+
+                if (boundaryFeatures.length > 0) {
+                  const feature = boundaryFeatures[0];
+                  const areaCode = feature.properties?.[
+                    featureCodeProperty
+                  ] as string;
+                  const areaName = feature.properties?.[
+                    featureNameProperty
+                  ] as string;
+
+                  if (areaCode && areaName) {
+                    // Prevent default context menu
+                    e.originalEvent.preventDefault();
+
+                    resetInspector();
+
+                    setSelectedBoundary({
+                      id: feature?.id as string,
+                      areaCode: areaCode,
+                      areaSetCode: areaSetCode,
+                      sourceLayerId: feature?.sourceLayer as string,
+                      name: areaName,
+                      properties: feature?.properties,
+                    });
+
+                    return;
+                  }
+                }
+              } catch (error) {
+                // Silently ignore errors - layers might not exist yet
+                console.debug("Boundary query failed:", error);
+              }
             }
           }
         }}
@@ -449,53 +463,6 @@ export default function Map({
               // Prevent default map zoom on double-click
               e.originalEvent.preventDefault();
               return;
-            }
-          }
-        }}
-        onContextMenu={(e) => {
-          const map = e.target;
-
-          if (
-            sourceId &&
-            layerId &&
-            featureCodeProperty &&
-            featureNameProperty
-          ) {
-            try {
-              const boundaryFeatures = map.queryRenderedFeatures(e.point, {
-                layers: [`${sourceId}-fill`, `${sourceId}-line`],
-              });
-
-              if (boundaryFeatures.length > 0) {
-                const feature = boundaryFeatures[0];
-                const areaCode = feature.properties?.[
-                  featureCodeProperty
-                ] as string;
-                const areaName = feature.properties?.[
-                  featureNameProperty
-                ] as string;
-
-                if (areaCode && areaName) {
-                  // Prevent default context menu
-                  e.originalEvent.preventDefault();
-
-                  resetInspector();
-
-                  setSelectedBoundary({
-                    id: feature?.id as string,
-                    areaCode: areaCode,
-                    sourceLayerId: feature?.sourceLayer as string,
-                    name: areaName,
-                    properties: feature?.properties,
-                    boundaryFeature: feature,
-                  });
-
-                  return;
-                }
-              }
-            } catch (error) {
-              // Silently ignore errors - layers might not exist yet
-              console.debug("Boundary query failed:", error);
             }
           }
         }}

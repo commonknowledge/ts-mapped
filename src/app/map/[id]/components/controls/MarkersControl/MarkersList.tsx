@@ -37,8 +37,9 @@ import {
   sortByPositionAndId,
 } from "@/app/map/[id]/utils";
 import { useTRPC } from "@/services/trpc/react";
-import CollectionLayer from "../../CollectionLayer";
-import EmptyLayer from "../../Emptylayer";
+import { LayerType } from "@/types";
+import DataSourceControl from "../DataSourceItem";
+import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
@@ -399,7 +400,7 @@ export default function MarkersList() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative pt-2">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -412,28 +413,28 @@ export default function MarkersList() {
         <div
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
-          <ol>
+          <div className="flex flex-col gap-1">
             {markerDataSources &&
               markerDataSources.length === 0 &&
               placedMarkers.length === 0 && (
                 <EmptyLayer message="Add a Marker Layer" />
               )}
+
             {/* Data sources */}
             {markerDataSources && markerDataSources.length > 0 && (
-              <ul>
+              <div className="flex flex-col gap-1">
                 {markerDataSources.map((dataSource) => (
-                  <li key={dataSource.id} className="mb-2">
-                    <CollectionLayer
-                      dataSource={dataSource}
-                      isSelected={dataSource.id === selectedDataSourceId}
-                      onClick={() => handleDataSourceSelect(dataSource.id)}
-                      handleDataSourceSelect={handleDataSourceSelect}
-                      layerType="marker"
-                    />
-                  </li>
+                  <DataSourceControl
+                    key={dataSource.id}
+                    dataSource={dataSource}
+                    isSelected={dataSource.id === selectedDataSourceId}
+                    handleDataSourceSelect={handleDataSourceSelect}
+                    layerType={LayerType.Marker}
+                  />
                 ))}
-              </ul>
+              </div>
             )}
+
             {/* Folders */}
             <SortableContext
               items={sortedFolders.map((f) => `folder-drag-${f.id}`)}
@@ -452,7 +453,7 @@ export default function MarkersList() {
                 />
               ))}
             </SortableContext>
-          </ol>
+          </div>
           {/* Unassigned markers */}
           <div>
             <UnassignedFolder

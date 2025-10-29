@@ -1,4 +1,4 @@
-import { Check, Ellipsis, FolderPlusIcon, LoaderPinwheel } from "lucide-react";
+import { Check, FolderPlusIcon, LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -9,19 +9,18 @@ import {
   useFoldersQuery,
 } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
-import { CollectionIcon } from "../../../Icons";
-import ControlItemWrapper from "../../ControlItemWrapper";
-import LayerHeader from "../../LayerHeader";
+import { LayerType } from "@/types";
+import { CollectionIcon } from "../../Icons";
+import LayerControlWrapper from "../LayerControlWrapper";
+import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
-  const { viewConfig, updateViewConfig } = useMapViews();
   const { mapConfig, updateMapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
@@ -134,12 +133,10 @@ export default function MarkersControl() {
   const loading = isFoldersMutating || isPlacedMarkersMutating;
 
   return (
-    <ControlItemWrapper className="markers-control">
+    <LayerControlWrapper>
       <LayerHeader
         label="Markers"
-        color={mapColors.markers.color}
-        showLayer={viewConfig.showLocations}
-        setLayer={(show) => updateViewConfig({ showLocations: show })}
+        type={LayerType.Marker}
         expanded={expanded}
         setExpanded={setExpanded}
       >
@@ -151,10 +148,10 @@ export default function MarkersControl() {
           dropdownLabel="Marker options"
           dropdownItems={getDropdownItems()}
         >
-          <Ellipsis className="w-4 h-4" />
+          <PlusIcon size={16} />
         </IconButtonWithTooltip>
       </LayerHeader>
       {expanded && <MarkersList />}
-    </ControlItemWrapper>
+    </LayerControlWrapper>
   );
 }

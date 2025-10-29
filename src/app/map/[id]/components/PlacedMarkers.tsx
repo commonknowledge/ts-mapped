@@ -10,12 +10,17 @@ import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
-  const { selectedPlacedMarkerId } = useContext(MarkerAndTurfContext);
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { selectedPlacedMarkerId, getMarkerVisibility } =
+    useContext(MarkerAndTurfContext);
 
   const visiblePlacedMarkers = useMemo(() => {
     return placedMarkers.filter((marker) => {
+      if (!getMarkerVisibility(marker.id)) {
+        return false;
+      }
+
       if (!marker.folderId) return true;
 
       const parentFolder = folders.find(
@@ -24,7 +29,7 @@ export default function PlacedMarkers() {
 
       return !parentFolder?.hideMarkers;
     });
-  }, [placedMarkers, folders]);
+  }, [placedMarkers, folders, getMarkerVisibility]);
 
   const features: FeatureCollection<Point> = {
     type: "FeatureCollection",

@@ -10,13 +10,6 @@ import type { RouterOutputs } from "@/services/trpc/react";
 export const PublicMapContext = createContext<{
   publicMap: RouterOutputs["publicMap"]["getPublished"];
   editable: boolean;
-  dataRecordsQueries: Record<
-    string,
-    {
-      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
-      isPending: boolean;
-    }
-  >;
   searchLocation: Point | null;
   setSearchLocation: (p: Point | null) => void;
   updatePublicMap: (publicMap: Partial<PublicMap>) => void;
@@ -40,7 +33,6 @@ export const PublicMapContext = createContext<{
 }>({
   publicMap: null,
   editable: false,
-  dataRecordsQueries: {},
   searchLocation: null,
   setSearchLocation: () => null,
   updatePublicMap: () => null,

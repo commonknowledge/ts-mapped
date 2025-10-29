@@ -15,7 +15,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
-import VisualisationPanel from "./controls/visualisation/VisualisationPanel";
+import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
 import Loading from "./Loading";
 import Map from "./Map";
 import PrivateMapNavbar from "./PrivateMapNavbar";

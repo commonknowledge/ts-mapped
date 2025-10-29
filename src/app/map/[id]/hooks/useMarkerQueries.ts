@@ -34,7 +34,6 @@ export function useMarkerQueries() {
       const filter = JSON.stringify(dsv?.filter || null);
       const search = dsv?.search || "";
       return {
-        enabled: Boolean(dsv),
         queryKey: ["markers", dataSourceId, filter, search],
         queryFn: async () => {
           const params = new URLSearchParams();

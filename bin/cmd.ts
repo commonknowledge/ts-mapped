@@ -12,10 +12,11 @@ import importDataSource from "@/server/jobs/importDataSource";
 import { createInvitation } from "@/server/repositories/Invitation";
 import {
   findOrganisationByName,
+  findOrganisationsByUserId,
   upsertOrganisation,
 } from "@/server/repositories/Organisation";
 import { upsertOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { findUserByEmail, upsertUser } from "@/server/repositories/User";
+import { listUsers, upsertUser } from "@/server/repositories/User";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
@@ -117,28 +118,6 @@ program
   });
 
 program
-  .command("sendInvite")
-  .option("--email <email>")
-  .description("Send an invite to a user")
-  .action(async (options) => {
-    try {
-      const user = await findUserByEmail(options.email);
-      if (!user) {
-        throw new Error(`User not found: ${options.email}`);
-      }
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
-      const token = await new SignJWT({ id: user.id })
-        .setProtectedHeader({ alg: "HS256" })
-        .setExpirationTime("7d")
-        .sign(secret);
-      await sendEmail(options.email, "Invite to Mapped", Invite({ token }));
-      logger.info(`Sent invite to ${options.email}`);
-    } catch (error) {
-      logger.error("Could not send invite", { error });
-    }
-  });
-
-program
   .command("createInvitation")
   .option("--email <email>")
   .option("--name <name>")
@@ -163,6 +142,40 @@ program
     logger.info(`Sent invite to ${options.email}`);
 
     logger.info(`Invitation token: ${token}`);
+  });
+
+program
+  .command("inviteAll")
+  .description("Create and send invitations for all users")
+  .action(async () => {
+    const users = await listUsers();
+    for (const user of users) {
+      const orgs = await findOrganisationsByUserId(user.id);
+
+      if (!orgs.length) {
+        logger.warning(`No organisation found for user ${user.email}`);
+        continue;
+      }
+
+      const invitation = await createInvitation({
+        email: user.email,
+        name: user.name,
+        organisationId: orgs[0].id,
+      });
+
+      logger.info(`Created invitation ${invitation.id}`);
+
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+      const token = await new SignJWT({ invitationId: invitation.id })
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime("7d")
+        .sign(secret);
+
+      await sendEmail(user.email, "Invite to Mapped", Invite({ token }));
+      logger.info(`Sent invite to ${user.email}`);
+
+      logger.info(`Invitation token: ${token}`);
+    }
   });
 
 program

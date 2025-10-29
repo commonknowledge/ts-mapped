@@ -5,7 +5,6 @@ import {
 } from "@dnd-kit/sortable";
 import { useMemo } from "react";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
-import { cn } from "@/shadcn/utils";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -31,24 +30,22 @@ export default function UnassignedFolder({
   }, [markers]);
 
   return (
-    <div className="mb-3">
-      {folders.length > 0 && <div ref={setNodeRef} className="px-1 py-1" />}
+    <div className="mb-3 flex flex-col gap-1">
+      {folders.length > 0 && <div ref={setNodeRef} />}
 
-      <div className={cn("mt-1 space-y-0.5 ml-1")}>
-        <SortableContext
-          items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
-          strategy={verticalListSortingStrategy}
-        >
-          {sortedMarkers.map((marker, index) => (
-            <SortableMarkerItem
-              key={`${marker.id}-${index}`}
-              marker={marker}
-              activeId={activeId}
-              setKeyboardCapture={setKeyboardCapture}
-            />
-          ))}
-        </SortableContext>
-      </div>
+      <SortableContext
+        items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
+        strategy={verticalListSortingStrategy}
+      >
+        {sortedMarkers.map((marker, index) => (
+          <SortableMarkerItem
+            key={`${marker.id}-${index}`}
+            marker={marker}
+            activeId={activeId}
+            setKeyboardCapture={setKeyboardCapture}
+          />
+        ))}
+      </SortableContext>
     </div>
   );
 }

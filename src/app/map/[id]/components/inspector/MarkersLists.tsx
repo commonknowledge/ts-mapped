@@ -6,6 +6,15 @@ import TurfMarkerButton from "./TurfMarkerButton";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 
+const getDisplayName = (dataSource: DataSource | null, record: RecordData) => {
+  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
+  return record.name
+    ? record.name
+    : nameColumn
+      ? String(record.json[nameColumn] ?? "")
+      : `Id: ${record.id}`;
+};
+
 export const MembersList = ({
   records,
   dataSource,
@@ -15,7 +24,6 @@ export const MembersList = ({
 }) => {
   const { setSelectedRecord } = useContext(InspectorContext);
 
-  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const memberRecords = records.records ?? [];
   const total = records.count.matched ?? 0;
 
@@ -26,7 +34,7 @@ export const MembersList = ({
       point: record.geocodePoint,
       properties: {
         ...record.json,
-        __name: nameColumn ? record.json[nameColumn] : "",
+        __name: getDisplayName(dataSource, record),
       },
     });
   };
@@ -42,9 +50,7 @@ export const MembersList = ({
       ) : memberRecords.length > 0 ? (
         <ul>
           {memberRecords.map((record) => {
-            const displayName = nameColumn
-              ? String(record.json[nameColumn] ?? "")
-              : `Id: ${record.id}`;
+            const displayName = getDisplayName(dataSource, record);
             return (
               <li key={record.id}>
                 <TurfMarkerButton
@@ -83,7 +89,11 @@ export const MarkersList = ({
       point: record.geocodePoint,
       properties: {
         ...record.json,
-        __name: nameColumn ? record.json[nameColumn] : "",
+        __name: record?.name
+          ? record.name
+          : nameColumn
+            ? record.json[nameColumn]
+            : "",
       },
     });
   };
@@ -103,9 +113,7 @@ export const MarkersList = ({
 
       <ul>
         {recordsList.map((record) => {
-          const displayName = nameColumn
-            ? String(record.json[nameColumn] ?? "")
-            : `Id: ${record.id}`;
+          const displayName = getDisplayName(dataSource, record);
           return (
             <li key={record.id}>
               <TurfMarkerButton

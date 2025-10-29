@@ -3,7 +3,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
@@ -11,8 +11,8 @@ import FormFieldWrapper, {
   FormFieldError,
 } from "@/components/forms/FormFieldWrapper";
 import PageHeader from "@/components/PageHeader";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { DataSourceRecordTypeLabels, DataSourceTypeLabels } from "@/labels";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { DataSourceType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
@@ -38,7 +38,7 @@ import type {
 } from "@/server/models/DataSource";
 
 export default function NewDataSourcePage() {
-  const { organisationId } = useContext(OrganisationsContext);
+  const { organisationId } = useOrganisations();
   const router = useRouter();
   const oAuthState = useOAuthState();
 

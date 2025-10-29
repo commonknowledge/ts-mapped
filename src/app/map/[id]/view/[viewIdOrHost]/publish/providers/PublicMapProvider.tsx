@@ -1,13 +1,9 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
-import { useTRPC } from "@/services/trpc/react";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
 import { PublicMapContext } from "../context/PublicMapContext";
 import type {
@@ -36,28 +32,6 @@ export default function PublicMapProvider({
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);
   const [colourScheme, setColourScheme] = useState<string>("red");
-  const [dataRecordsQueries, setDataRecordsQueries] = useState<
-    Record<
-      string,
-      {
-        data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
-        isPending: boolean;
-      }
-    >
-  >({});
-
-  const onLoadDataRecords = useCallback(
-    (
-      dataSourceId: string,
-      q: {
-        data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
-        isPending: boolean;
-      },
-    ) => {
-      setDataRecordsQueries((prev) => ({ ...prev, [dataSourceId]: q }));
-    },
-    [],
-  );
 
   const updatePublicMap = (updates: Partial<PublicMap>) => {
     if (publicMap) {
@@ -113,7 +87,6 @@ export default function PublicMapProvider({
       value={{
         publicMap,
         editable,
-        dataRecordsQueries,
         searchLocation,
         setSearchLocation,
         updatePublicMap,
@@ -129,67 +102,9 @@ export default function PublicMapProvider({
         setColourScheme,
       }}
     >
-      {publicMap?.dataSourceConfigs.map((dsc) => (
-        <DataRecordsQueryComponent
-          key={dsc.dataSourceId}
-          dataSourceId={dsc.dataSourceId}
-          location={searchLocation}
-          onLoadDataRecords={onLoadDataRecords}
-        />
-      ))}
       {children}
     </PublicMapContext>
   );
-}
-
-// TODO: use useQueries instead
-
-function DataRecordsQueryComponent({
-  dataSourceId,
-  location,
-  onLoadDataRecords,
-}: {
-  dataSourceId: string;
-  location: Point | null;
-  onLoadDataRecords: (
-    dataSourceId: string,
-    q: {
-      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
-      isPending: boolean;
-    },
-  ) => void;
-}) {
-  const { view } = useMapViews();
-
-  const filter = view?.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === dataSourceId,
-  )?.filter;
-
-  const sort = location
-    ? [{ name: SORT_BY_LOCATION, location, desc: false }]
-    : [{ name: SORT_BY_NAME_COLUMNS, desc: false }];
-
-  const trpc = useTRPC();
-  const dataRecordsQuery = useQuery(
-    trpc.dataSource.byIdWithRecords.queryOptions(
-      { dataSourceId, filter, sort },
-      { placeholderData: keepPreviousData },
-    ),
-  );
-
-  useEffect(() => {
-    onLoadDataRecords(dataSourceId, {
-      data: dataRecordsQuery.data,
-      isPending: dataRecordsQuery.isPending,
-    });
-  }, [
-    dataRecordsQuery.data,
-    dataRecordsQuery.isPending,
-    dataSourceId,
-    onLoadDataRecords,
-  ]);
-
-  return null;
 }
 
 // When loading an editable public map with no data sources,

@@ -37,6 +37,6 @@ export async function sendEmail(
     });
     logger.info(`Sent ${subject} email to ${to}`);
   } catch (error) {
-    logger.error(error);
+    logger.error(`Failed to send ${subject} email to ${to}`, { error });
   }
 }

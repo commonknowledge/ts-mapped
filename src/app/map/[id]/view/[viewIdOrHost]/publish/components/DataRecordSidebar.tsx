@@ -6,24 +6,25 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import { buildName, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
   const { selectedRecord } = useContext(InspectorContext);
-  const { dataRecordsQueries, publicMap } = useContext(PublicMapContext);
+  const { publicMap } = useContext(PublicMapContext);
+  const dataRecordsQueries = usePublicDataRecordsQueries();
+
   const selectedRecordDetails = useMemo(() => {
-    if (!selectedRecord) {
-      return null;
-    }
+    if (!selectedRecord) return null;
     const dataRecordsQuery = dataRecordsQueries[selectedRecord.dataSourceId];
-    return dataRecordsQuery?.data?.records?.find(
-      (r) => r.id === selectedRecord.id,
-    );
+    const records = dataRecordsQuery?.data?.records;
+
+    return records?.find((r) => r.id === selectedRecord.id);
   }, [dataRecordsQueries, selectedRecord]);
 
   if (!selectedRecord || !selectedRecordDetails || !publicMap) {
-    return null;
+    return <></>;
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
@@ -40,7 +41,7 @@ export default function DataRecordSidebar() {
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
-    <div className="flex flex-col justify-between h-full w-[280px] p-4">
+    <div className="flex flex-col justify-between h-[100vh] overflow-auto w-[280px] p-4">
       <div className={cn("flex flex-col gap-4")}>
         {/* Name */}
         <div className="flex flex-col gap-4">

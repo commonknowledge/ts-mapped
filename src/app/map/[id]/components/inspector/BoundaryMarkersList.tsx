@@ -1,4 +1,5 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { LoaderPinwheel } from "lucide-react";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
@@ -6,63 +7,64 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
+import { AreaSetCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
+
 import { useTRPC } from "@/services/trpc/react";
-import { type RecordsResponse } from "@/types";
+import { useMarkerQueries } from "../../hooks/useMarkerQueries";
 import {
   checkIfAnyRecords,
   getMarkersInsidePolygon,
   getRecordsInsideBoundary,
-  mapBoundaryToGeoFeature,
   mapPlacedMarkersToRecordsResponse,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
-import type { Feature, Polygon } from "geojson";
 
 export default function BoundaryMarkersList() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const markerQueries = useMarkerQueries();
   const { selectedBoundary } = useContext(InspectorContext);
-  const trpc = useTRPC();
-
   const dataSourceIds = getDataSourceIds(mapConfig);
 
-  // fetching all records
-  const { data } = useQueries({
-    queries: dataSourceIds.map((dataSourceId) =>
-      trpc.dataRecord.list.queryOptions(
-        {
-          dataSourceId,
-        },
-        { refetchOnMount: "always" },
-      ),
-    ),
-    combine: (results) => ({
-      data: results.map((result, i) => ({
-        dataSource: getDataSourceById(dataSourceIds[i]),
-        records: (result.data as RecordsResponse) ?? {
-          count: { matched: 0 },
-          records: [],
+  const data = markerQueries?.data?.map((result, i) => ({
+    dataSource: getDataSourceById(dataSourceIds[i]),
+    records: {
+      count: { matched: 0 },
+      records: result?.markers?.map((marker) => ({
+        id: marker.properties?.[MARKER_ID_KEY] as string,
+        name: marker?.properties?.[MARKER_NAME_KEY] as string,
+        json: marker.properties,
+        geocodePoint: {
+          lng: marker?.geometry?.coordinates?.[0],
+          lat: marker?.geometry?.coordinates?.[1],
         },
       })),
-      isFetching: results.some((r) => r.isFetching),
-    }),
-  });
+    },
+  }));
 
-  const boundaryFeature = useMemo(() => {
-    return mapBoundaryToGeoFeature(selectedBoundary);
-  }, [selectedBoundary]);
+  const trpc = useTRPC();
+  const { data: areaData, isPending: areaDataLoading } = useQuery(
+    trpc.area.byCode.queryOptions(
+      {
+        code: selectedBoundary?.areaCode || "",
+        areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
+      },
+      { enabled: Boolean(selectedBoundary) },
+    ),
+  );
 
   // frontend filtering - looking for markers within the selected boundary
   const filteredData = useMemo(() => {
-    if (!boundaryFeature) {
+    if (!areaData || !data) {
       return [];
     }
 
-    return getRecordsInsideBoundary(data, boundaryFeature as Feature<Polygon>);
-  }, [data, boundaryFeature]);
+    return getRecordsInsideBoundary(data, areaData.geography);
+  }, [data, areaData]);
 
   const members = useMemo(
     () =>
@@ -85,15 +87,16 @@ export default function BoundaryMarkersList() {
   );
 
   const markersInBoundary = useMemo(() => {
-    return getMarkersInsidePolygon(
-      placedMarkers,
-      boundaryFeature as Feature<Polygon>,
-    );
-  }, [boundaryFeature, placedMarkers]);
+    return getMarkersInsidePolygon(placedMarkers, areaData?.geography);
+  }, [areaData, placedMarkers]);
 
   const mappedPlacedMarkers = useMemo(() => {
     return mapPlacedMarkersToRecordsResponse(markersInBoundary, folders);
   }, [folders, markersInBoundary]);
+
+  if (areaDataLoading) {
+    return <LoaderPinwheel className="animate-spin" size={16} />;
+  }
 
   return (
     <div className="flex flex-col gap-6">

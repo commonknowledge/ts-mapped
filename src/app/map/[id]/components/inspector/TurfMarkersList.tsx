@@ -17,7 +17,6 @@ import {
   mapTurfToGeoFeature,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
-import type { Feature, Polygon } from "geojson";
 
 export default function TurfMarkersList() {
   const { getDataSourceById } = useDataSources();
@@ -75,7 +74,7 @@ export default function TurfMarkersList() {
   const mappedPlacedMarkers = useMemo(() => {
     const activePlacedMarkers = getMarkersInsidePolygon(
       placedMarkers,
-      turfFeature as Feature<Polygon>,
+      turfFeature?.geometry,
     );
     return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
   }, [folders, placedMarkers, turfFeature]);

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useFeatureFlagEnabled } from "@/hooks";
@@ -32,9 +33,10 @@ export default function MapTable() {
     handleDataSourceSelect,
     tablePage,
     setTablePage,
-    dataRecordsResult,
-    dataRecordsLoading,
   } = useContext(TableContext);
+
+  const { data: dataRecordsResult, isPending: dataRecordsLoading } =
+    useDataRecords(selectedDataSourceId, tablePage);
 
   const trpc = useTRPC();
   const { mutate: tagRecords } = useMutation(

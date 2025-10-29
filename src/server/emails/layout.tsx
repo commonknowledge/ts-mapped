@@ -4,6 +4,7 @@ import {
   Tailwind,
   pixelBasedPreset,
 } from "@react-email/components";
+import * as React from "react";
 
 export function EmailLayout({ children }: { children: React.ReactNode }) {
   return (

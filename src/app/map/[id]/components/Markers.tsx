@@ -1,5 +1,6 @@
 import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
+import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
@@ -33,6 +34,7 @@ export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const markerQueries = useMarkerQueries();
+  const { getDataSourceVisibility } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = useMemo(
     () =>
@@ -52,7 +54,7 @@ export default function Markers() {
 
   return (
     <>
-      {memberMarkers && viewConfig.showMembers && (
+      {memberMarkers && getDataSourceVisibility(memberMarkers.dataSourceId) && (
         <DataSourceMarkers
           key={memberMarkers.dataSourceId}
           dataSourceMarkers={memberMarkers}
@@ -60,7 +62,11 @@ export default function Markers() {
         />
       )}
       {otherMarkers.map((markers) => {
-        if (!markers || !viewConfig.showLocations) {
+        if (
+          !markers ||
+          !viewConfig.showLocations ||
+          !getDataSourceVisibility(markers.dataSourceId)
+        ) {
           return null;
         }
         return (

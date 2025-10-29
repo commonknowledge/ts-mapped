@@ -1,5 +1,4 @@
 import { createContext } from "react";
-import type { RouterOutputs } from "@/services/trpc/react";
 
 export const TableContext = createContext<{
   /* State */
@@ -9,15 +8,10 @@ export const TableContext = createContext<{
 
   tablePage: number;
   setTablePage: (page: number) => void;
-
-  dataRecordsResult: RouterOutputs["dataRecord"]["list"] | null | undefined;
-  dataRecordsLoading: boolean;
 }>({
   selectedDataSourceId: "",
   setSelectedDataSourceId: () => null,
   handleDataSourceSelect: () => null,
   tablePage: 0,
   setTablePage: () => null,
-  dataRecordsResult: null,
-  dataRecordsLoading: false,
 });

@@ -1,10 +1,7 @@
 import * as turf from "@turf/turf";
 import { CHOROPLETH_LAYER_CONFIGS } from "@/app/map/[id]/sources";
 import { AreaSetCodeLabels } from "@/labels";
-import type {
-  SelectedBoundary,
-  SelectedTurf,
-} from "@/app/map/[id]/context/InspectorContext";
+import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
@@ -28,38 +25,21 @@ export const mapTurfToGeoFeature = (turf: SelectedTurf | null) => {
   } as Feature<Polygon | MultiPolygon>;
 };
 
-export const mapBoundaryToGeoFeature = (boundary: SelectedBoundary | null) => {
-  if (!boundary) {
-    return null;
-  }
-
-  const feature = boundary?.boundaryFeature ?? null;
-  if (!feature) {
-    return null;
-  }
-
-  if ((feature as unknown as Record<string, unknown>)._vectorTileFeature) {
-    return {
-      type: "Feature",
-      geometry: feature.geometry,
-      properties: feature.properties,
-    } as Feature<Polygon | MultiPolygon>;
-  }
-
-  return feature;
-};
-
 const checkIfPointInPolygon = (
   coordinates: number[],
-  polygon: Feature<Polygon>,
+  polygon: Polygon | MultiPolygon,
 ) => {
+  if (!coordinates?.[0] || !coordinates?.[1]) {
+    return false;
+  }
+
   const point = turf.point(coordinates);
   return turf.booleanPointInPolygon(point, polygon);
 };
 
 export function getMarkersInsidePolygon(
   markers: PlacedMarker[],
-  polygon: Feature<Polygon> | null | undefined,
+  polygon: Polygon | MultiPolygon | null | undefined,
 ) {
   if (!polygon) {
     return [];
@@ -75,7 +55,7 @@ export function getRecordsInsideBoundary(
     records: RecordsResponse;
     dataSource: DataSource | null;
   }[],
-  boundaryFeature: Feature<Polygon> | null | undefined,
+  boundaryFeature: Polygon | MultiPolygon | null | undefined,
 ) {
   if (!boundaryFeature) {
     return [];
@@ -83,10 +63,9 @@ export function getRecordsInsideBoundary(
 
   return data.map((d) => {
     const recordsInsideTurf = d.records.records.filter((r) => {
-      return checkIfPointInPolygon(
-        [r.geocodePoint.lng, r.geocodePoint.lat],
-        boundaryFeature,
-      );
+      const coordinates = [r?.geocodePoint?.lng, r?.geocodePoint?.lat];
+
+      return checkIfPointInPolygon(coordinates, boundaryFeature);
     });
 
     return {

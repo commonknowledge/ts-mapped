@@ -4,8 +4,8 @@ import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
+import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
-import { Switch } from "@/shadcn/ui/switch";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { toBoolean } from "../utils";
@@ -105,7 +105,7 @@ export default function FiltersForm({
   };
 
   return (
-    <form className="flex flex-col gap-6 w-full" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
       {fields.map((field) => (
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
@@ -122,18 +122,18 @@ export default function FiltersForm({
             </FormFieldWrapper>
           ) : field.type === PublicMapColumnType.Boolean ? (
             // boolean swicth
-            <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={isChecked(field)}
-                  onCheckedChange={(checked) =>
-                    handleChange(field.name, checked ? "Yes" : "No")
-                  }
-                />
-                <span className="text-sm">
-                  {isChecked(field) ? "Yes" : "No"}
-                </span>
-              </div>
+            <FormFieldWrapper
+              label={field.name}
+              id={`filters-${field.name}`}
+              isHorizontal={true}
+            >
+              <Checkbox
+                id={`filters-${field.name}`}
+                checked={isChecked(field)}
+                onCheckedChange={(checked) =>
+                  handleChange(field.name, checked ? "Yes" : "No")
+                }
+              />
             </FormFieldWrapper>
           ) : field?.options?.length ? (
             // multiselect
