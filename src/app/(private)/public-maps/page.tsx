@@ -2,14 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel } from "lucide-react";
-import { useContext } from "react";
 import { MapsList } from "@/app/(private)/components/MapsList";
 import PageHeader from "@/components/PageHeader";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
 
 export default function DashboardPage() {
-  const { organisationId } = useContext(OrganisationsContext);
+  const { organisationId } = useOrganisations();
 
   const trpc = useTRPC();
   const { data, isPending } = useQuery(

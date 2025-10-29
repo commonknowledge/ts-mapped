@@ -3,16 +3,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { MapsList } from "@/app/(private)/components/MapsList";
 import PageHeader from "@/components/PageHeader";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { organisationId } = useContext(OrganisationsContext);
+  const { organisationId } = useOrganisations();
 
   const trpc = useTRPC();
   const { data, isPending } = useQuery(
