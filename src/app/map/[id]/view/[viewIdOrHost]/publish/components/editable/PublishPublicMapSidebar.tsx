@@ -15,6 +15,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../../context/PublicMapContext";
+import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
@@ -23,13 +24,13 @@ import type { FormEvent } from "react";
 export default function PublishPublicMapSidebar() {
   const {
     publicMap,
-    dataRecordsQueries,
     activeTabId,
     activePublishTab,
     setActivePublishTab,
     recordSidebarVisible,
     setRecordSidebarVisible,
   } = useContext(PublicMapContext);
+  const dataRecordsQueries = usePublicDataRecordsQueries();
   const { setSelectedRecord } = useContext(InspectorContext);
   const [hideSidebar] = useState(false);
   const [, setError] = useState("");
