@@ -7,9 +7,8 @@ import {
   LogOutIcon,
   SettingsIcon,
 } from "lucide-react";
-import { useContext } from "react";
 import { useCurrentUser } from "@/hooks";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shadcn/ui/avatar";
 import {
   DropdownMenu,
@@ -32,8 +31,12 @@ import type { SyntheticEvent } from "react";
 
 export default function SidebarUserMenu() {
   const { currentUser: user } = useCurrentUser();
-  const { organisations, organisationId, setOrganisationId, getOrganisation } =
-    useContext(OrganisationsContext);
+  const {
+    organisations,
+    organisationId,
+    setOrganisationId,
+    currentOrganisation,
+  } = useOrganisations();
 
   const onSubmitLogout = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -81,10 +84,10 @@ export default function SidebarUserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuLabel>Organisation</DropdownMenuLabel>
 
-          {organisations?.length > 1 ? (
+          {organisations.length > 1 ? (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="truncate">
-                {getOrganisation()?.name}
+                {currentOrganisation?.name}
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent className="flex flex-col">
@@ -105,7 +108,7 @@ export default function SidebarUserMenu() {
             </DropdownMenuSub>
           ) : (
             <DropdownMenuItem className="truncate pointer-events-none">
-              {getOrganisation()?.name}
+              {currentOrganisation?.name}
             </DropdownMenuItem>
           )}
         </DropdownMenuGroup>

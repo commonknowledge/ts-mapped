@@ -1,3 +1,4 @@
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { getServerSession } from "@/auth";
 import NProgressProvider from "@/providers/NProgressProvider";
@@ -5,8 +6,9 @@ import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { TRPCReactProvider } from "@/services/trpc/react";
-import { createCaller } from "@/services/trpc/server";
+import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import { Toaster } from "@/shadcn/ui/sonner";
+import type { Organisation } from "@/server/models/Organisation";
 import type { Metadata } from "next";
 import "nprogress/nprogress.css";
 import "./global.css";
@@ -37,9 +39,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const serverSession = await getServerSession();
-  const organisations = serverSession.currentUser
-    ? await getOrganisations()
-    : [];
+  const queryClient = getQueryClient();
+
+  let organisations: Organisation[] = [];
+  if (serverSession.currentUser) {
+    const caller = await createCaller();
+    organisations = await caller.organisation.list();
+    queryClient.setQueryData<Organisation[]>(
+      trpc.organisation.list.queryKey(),
+      organisations,
+    );
+  }
 
   return (
     <html
@@ -48,23 +58,22 @@ export default async function RootLayout({
     >
       <body className={ibmPlexSans.className + " antialiased"}>
         <ServerSessionProvider serverSession={serverSession}>
-          <PostHogProvider>
-            <OrganisationsProvider organisations={organisations}>
-              <TRPCReactProvider>
-                <NProgressProvider>
-                  <main className="min-h-screen relative z-10">{children}</main>
-                  <Toaster position="top-center" />
-                </NProgressProvider>
-              </TRPCReactProvider>
-            </OrganisationsProvider>
-          </PostHogProvider>
+          <TRPCReactProvider>
+            <HydrationBoundary state={dehydrate(queryClient)}>
+              <PostHogProvider>
+                <OrganisationsProvider initialOrganisations={organisations}>
+                  <NProgressProvider>
+                    <main className="min-h-screen relative z-10">
+                      {children}
+                    </main>
+                    <Toaster position="top-center" />
+                  </NProgressProvider>
+                </OrganisationsProvider>
+              </PostHogProvider>
+            </HydrationBoundary>
+          </TRPCReactProvider>
         </ServerSessionProvider>
       </body>
     </html>
   );
 }
-
-const getOrganisations = async () => {
-  const trpcServer = await createCaller();
-  return trpcServer.organisation.list();
-};
