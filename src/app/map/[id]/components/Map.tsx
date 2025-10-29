@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
+import { v4 as uuidv4 } from "uuid";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
@@ -578,7 +579,7 @@ export default function Map({
                 const area = turf.area(feature);
                 const roundedArea = Math.round(area * 100) / 100;
                 insertTurf({
-                  id: crypto.randomUUID(),
+                  id: uuidv4(),
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
