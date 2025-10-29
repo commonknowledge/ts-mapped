@@ -13,12 +13,21 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { use, useCallback, useContext, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useFolderMutations,
+  useFoldersQuery,
+} from "@/app/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import {
+  usePlacedMarkerMutations,
+  usePlacedMarkersQuery,
+} from "@/app/map/[id]/hooks/usePlacedMarkers";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -27,6 +36,7 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "@/app/map/[id]/utils";
+import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
@@ -41,14 +51,14 @@ import type {
 } from "@dnd-kit/core";
 
 export default function MarkersList() {
+  const { mapId } = use(MapContext);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { viewConfig } = useMapViews();
-  const {
-    folders,
-    updateFolder,
-    placedMarkers,
-    preparePlacedMarkerUpdate,
-    commitPlacedMarkerUpdates,
-  } = useContext(MarkerAndTurfContext);
+  const { data: folders = [] } = useFoldersQuery();
+  const { updateFolder } = useFolderMutations();
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { updatePlacedMarker } = usePlacedMarkerMutations();
   const { selectedDataSourceId, handleDataSourceSelect } =
     useContext(TableContext);
   const markerDataSources = useMarkerDataSources();
@@ -67,6 +77,31 @@ export default function MarkersList() {
 
   // Keep track of if a text input is active to disable keyboard dragging
   const [keyboardCapture, setKeyboardCapture] = useState(false);
+
+  // Update cache only (for optimistic updates during drag) - NO mutation
+  const updateMarkerInCache = useCallback(
+    (placedMarker: Omit<PlacedMarker, "mapId">) => {
+      if (!mapId) return;
+
+      const fullMarker = {
+        ...placedMarker,
+        mapId,
+        folderId: placedMarker.folderId ?? null,
+      };
+
+      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          placedMarkers:
+            old.placedMarkers?.map((m) =>
+              m.id === placedMarker.id ? fullMarker : m,
+            ) || [],
+        };
+      });
+    },
+    [mapId, queryClient, trpc.map.byId],
+  );
 
   // DnD sensors
   const sensors = useSensors(
@@ -93,12 +128,113 @@ export default function MarkersList() {
     (event: DragOverEvent) => {
       const { active, over } = event;
 
-      // Early exit if marker is not over a different folder
+      // Early exit if marker is not over anything or over itself
       if (!over || active.id === over.id) {
         return;
       }
 
-      // Handle moving into a different folder
+      if (!mapId) return;
+
+      // Handle moving into a different folder - CACHE UPDATE ONLY (no mutation)
+      const activeMarkerId = active.id.toString().replace("marker-", "");
+
+      // Get current cache data (reflects any previous drag over updates)
+      const currentCacheData = queryClient.getQueryData(
+        trpc.map.byId.queryKey({ mapId }),
+      );
+      const currentMarkers = currentCacheData?.placedMarkers || [];
+
+      const activeMarker = currentMarkers.find((m) => m.id === activeMarkerId);
+
+      if (!activeMarker) {
+        return;
+      }
+
+      // Check if we're over another marker
+      if (over.id.toString().startsWith("marker-")) {
+        const overMarkerId = over.id.toString().replace("marker-", "");
+        const overMarker = currentMarkers.find((m) => m.id === overMarkerId);
+
+        // If we're over a marker in a DIFFERENT container, move to that container
+        if (overMarker && overMarker.folderId !== activeMarker.folderId) {
+          const activeWasBeforeOver =
+            compareByPositionAndId(activeMarker, overMarker) < 0;
+
+          // Get other markers in the target container
+          const otherMarkers = currentMarkers.filter(
+            (m) =>
+              m.id !== activeMarker.id && m.folderId === overMarker.folderId,
+          );
+
+          const newPosition = activeWasBeforeOver
+            ? getNewPositionAfter(overMarker.position, otherMarkers)
+            : getNewPositionBefore(overMarker.position, otherMarkers);
+
+          updateMarkerInCache({
+            ...activeMarker,
+            folderId: overMarker.folderId,
+            position: newPosition,
+          });
+        }
+        return;
+      }
+
+      if (over.id.toString().startsWith("folder")) {
+        let folderId: string;
+
+        // Handle header, footer, and draggable folder element IDs
+        let append = false;
+        if (over.id.toString().startsWith("folder-footer-")) {
+          folderId = over.id.toString().replace("folder-footer-", "");
+          append = true;
+        } else if (over.id.toString().startsWith("folder-drag-")) {
+          folderId = over.id.toString().replace("folder-drag-", "");
+          append = true;
+        } else {
+          folderId = over.id.toString().replace("folder-", "");
+        }
+
+        // Only update cache if the marker is not already in this folder
+        if (activeMarker.folderId !== folderId) {
+          const folderMarkers = currentMarkers.filter(
+            (m) => m.folderId === folderId,
+          );
+
+          const newPosition = append
+            ? getNewLastPosition(folderMarkers)
+            : getNewFirstPosition(folderMarkers);
+
+          // Update CACHE only - no mutation sent to server
+          updateMarkerInCache({
+            ...activeMarker,
+            folderId,
+            position: newPosition,
+          });
+        }
+      } else if (over.id === "unassigned") {
+        // Only update cache if the marker is not already unassigned
+        if (activeMarker.folderId !== null) {
+          const unassignedMarkers = currentMarkers.filter(
+            (m) => m.folderId === null,
+          );
+          const newPosition = getNewFirstPosition(unassignedMarkers);
+
+          // Update CACHE only - no mutation sent to server
+          updateMarkerInCache({
+            ...activeMarker,
+            folderId: null,
+            position: newPosition,
+          });
+        }
+      }
+    },
+    [mapId, queryClient, trpc.map.byId, updateMarkerInCache],
+  );
+
+  const handleDragEndMarker = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
       const activeMarkerId = active.id.toString().replace("marker-", "");
       const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
 
@@ -106,7 +242,8 @@ export default function MarkersList() {
         return;
       }
 
-      if (over.id.toString().startsWith("folder")) {
+      // Handle moving into a different folder
+      if (over && over.id.toString().startsWith("folder")) {
         let folderId: string;
 
         // Handle header, footer, and draggable folder element IDs
@@ -129,46 +266,26 @@ export default function MarkersList() {
           ? getNewLastPosition(folderMarkers)
           : getNewFirstPosition(folderMarkers);
 
-        preparePlacedMarkerUpdate({
+        updatePlacedMarker({
           ...activeMarker,
-          folderId: folderId,
+          folderId,
           position: newPosition,
         });
-      } else if (over.id === "unassigned") {
+
+        // Animate movement - pulse the folder that received the marker
+        setPulsingFolderId(folderId);
+      } else if (over && over.id === "unassigned") {
         const unassignedMarkers = placedMarkers.filter(
           (m) => m.folderId === null,
         );
         const newPosition = getNewFirstPosition(unassignedMarkers);
-        preparePlacedMarkerUpdate({
+        updatePlacedMarker({
           ...activeMarker,
           folderId: null,
           position: newPosition,
         });
-      }
-    },
-    [placedMarkers, preparePlacedMarkerUpdate],
-  );
-
-  const handleDragEndMarker = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-
-      const activeMarkerId = active.id.toString().replace("marker-", "");
-      const activeMarker = placedMarkers.find((m) => m.id === activeMarkerId);
-
-      if (!activeMarker) {
-        return;
-      }
-
-      // Animate movement
-      if (activeMarker.folderId) {
-        setPulsingFolderId(activeMarker.folderId);
-      }
-
-      // Handle reordering within the same container
-      // Simpler to do it here than in onDragOver, as the library
-      // automatically handles re-ordering while drag is in progress
-      if (over && over.id.toString().startsWith("marker-")) {
+      } else if (over && over.id.toString().startsWith("marker-")) {
+        // Handle reordering within the same container OR moving to a different container
         const overMarkerId = over.id.toString().replace("marker-", "");
         const overMarker = placedMarkers.find((m) => m.id === overMarkerId);
 
@@ -178,10 +295,10 @@ export default function MarkersList() {
           const activeWasBeforeOver =
             compareByPositionAndId(activeMarker, overMarker) < 0;
 
-          // Get other markers to position against
+          // Get other markers in the SAME container as the over marker
           const otherMarkers = placedMarkers.filter(
             (m) =>
-              m.id !== activeMarker.id && m.folderId === activeMarker.folderId,
+              m.id !== activeMarker.id && m.folderId === overMarker.folderId,
           );
 
           if (activeWasBeforeOver) {
@@ -198,14 +315,15 @@ export default function MarkersList() {
             );
           }
 
-          preparePlacedMarkerUpdate({
+          updatePlacedMarker({
             ...activeMarker,
+            folderId: overMarker.folderId, // Move to the same folder as the marker we're dropping on
             position: newPosition,
           });
         }
       }
     },
-    [placedMarkers, preparePlacedMarkerUpdate, setPulsingFolderId],
+    [placedMarkers, updatePlacedMarker, setPulsingFolderId],
   );
 
   const handleDragEndFolder = useCallback(
@@ -246,10 +364,7 @@ export default function MarkersList() {
             );
           }
 
-          updateFolder({
-            ...activeFolder,
-            position: newPosition,
-          });
+          updateFolder({ ...activeFolder, position: newPosition });
         }
       }
     },
@@ -260,9 +375,6 @@ export default function MarkersList() {
     (event: DragEndEvent) => {
       const { active } = event;
 
-      // Update UI
-      setActiveId(null);
-
       const activeId = active.id.toString();
       if (activeId.startsWith("marker-")) {
         handleDragEndMarker(event);
@@ -270,9 +382,10 @@ export default function MarkersList() {
         handleDragEndFolder(event);
       }
 
-      commitPlacedMarkerUpdates();
+      // Update UI AFTER handling the drag
+      setActiveId(null);
     },
-    [commitPlacedMarkerUpdates, handleDragEndFolder, handleDragEndMarker],
+    [handleDragEndFolder, handleDragEndMarker],
   );
 
   const sortedFolders = useMemo(() => {

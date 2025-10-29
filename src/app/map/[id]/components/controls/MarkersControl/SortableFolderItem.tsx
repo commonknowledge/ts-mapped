@@ -17,6 +17,7 @@ import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import { useFolderMutations } from "../../../hooks/useFolders";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
@@ -64,12 +65,10 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const {
-    updateFolder,
-    deleteFolder,
-    getMarkerVisibility,
-    setMarkerVisibilityState,
-  } = useContext(MarkerAndTurfContext);
+  const { getMarkerVisibility, setMarkerVisibilityState } =
+    useContext(MarkerAndTurfContext);
+
+  const { updateFolder, deleteFolder } = useFolderMutations();
 
   const [isExpanded, setExpanded] = useState(false);
   const [isEditing, setEditing] = useState(false);

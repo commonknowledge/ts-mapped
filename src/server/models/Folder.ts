@@ -1,7 +1,5 @@
 import z from "zod";
-import type { Insertable, Updateable } from "kysely";
-
-import type { ColumnType, GeneratedAlways } from "kysely";
+import type { Generated, Insertable, Updateable } from "kysely";
 
 export const folderSchema = z.object({
   id: z.string(),
@@ -15,8 +13,7 @@ export const folderSchema = z.object({
 export type Folder = z.infer<typeof folderSchema>;
 
 export type FolderTable = Folder & {
-  id: GeneratedAlways<string>;
-  createdAt: ColumnType<Date, string | undefined, never>;
+  id: Generated<string>;
 };
 
 export type NewFolder = Insertable<FolderTable>;

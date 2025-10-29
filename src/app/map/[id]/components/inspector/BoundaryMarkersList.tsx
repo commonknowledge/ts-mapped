@@ -3,14 +3,16 @@ import { LoaderPinwheel } from "lucide-react";
 import { useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 
 import { useTRPC } from "@/services/trpc/react";
+import { useMarkerQueries } from "../../hooks/useMarkerQueries";
 import {
   checkIfAnyRecords,
   getMarkersInsidePolygon,
@@ -22,8 +24,9 @@ import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
 export default function BoundaryMarkersList() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const { folders, markerQueries, placedMarkers } =
-    useContext(MarkerAndTurfContext);
+  const { data: folders = [] } = useFoldersQuery();
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const markerQueries = useMarkerQueries();
   const { selectedBoundary } = useContext(InspectorContext);
   const dataSourceIds = getDataSourceIds(mapConfig);
 

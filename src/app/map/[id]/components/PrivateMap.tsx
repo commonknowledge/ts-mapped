@@ -3,9 +3,9 @@
 import { useContext, useEffect } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -27,7 +27,7 @@ export default function PrivateMap() {
     useContext(ChoroplethContext);
 
   const { isPending: dataSourcesLoading } = useDataSources();
-  const { markerQueries } = useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
   const { selectedDataSourceId } = useContext(TableContext);
 
   const { data: map, isPending } = useMapQuery(mapId);
