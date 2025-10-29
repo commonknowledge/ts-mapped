@@ -10,7 +10,7 @@ import {
 } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -23,9 +23,9 @@ export default function MarkersControl() {
   const router = useRouter();
   const { viewConfig, updateViewConfig } = useMapViews();
   const { mapConfig, updateMapConfig } = useMapConfig();
-  const { isFetching: placedMarkersLoading } = usePlacedMarkersQuery();
-  const { data: folders = [], isFetching: foldersLoading } = useFoldersQuery();
-  const { insertFolder } = useFolderMutations();
+  const { data: folders = [] } = useFoldersQuery();
+  const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
+  const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
   const { handleDropPin } = useContext(MarkerAndTurfContext);
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
@@ -131,7 +131,7 @@ export default function MarkersControl() {
     },
   ];
 
-  const loading = foldersLoading || placedMarkersLoading;
+  const loading = isFoldersMutating || isPlacedMarkersMutating;
 
   return (
     <ControlItemWrapper className="markers-control">

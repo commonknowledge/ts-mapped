@@ -1,6 +1,10 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useIsMutating,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { use, useCallback } from "react";
 import { toast } from "sonner";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
@@ -53,36 +57,35 @@ export function usePlacedMarkerMutations() {
     }),
   );
 
-  const { mutate: upsertPlacedMarkerMutation, isPending: upsertLoading } =
-    useMutation(
-      trpc.placedMarker.upsert.mutationOptions({
-        onMutate: async () => {
-          if (!mapId) return;
+  const { mutate: upsertPlacedMarkerMutation } = useMutation(
+    trpc.placedMarker.upsert.mutationOptions({
+      onMutate: async () => {
+        if (!mapId) return;
 
-          // Cancel outgoing refetches
-          await queryClient.cancelQueries({
-            queryKey: trpc.map.byId.queryKey({ mapId }),
-          });
+        // Cancel outgoing refetches
+        await queryClient.cancelQueries({
+          queryKey: trpc.map.byId.queryKey({ mapId }),
+        });
 
-          // Snapshot previous value for rollback
-          const previousData = queryClient.getQueryData(
+        // Snapshot previous value for rollback
+        const previousData = queryClient.getQueryData(
+          trpc.map.byId.queryKey({ mapId }),
+        );
+
+        return { previousData };
+      },
+      onError: (_err, _variables, context) => {
+        // Rollback on error
+        if (mapId && context?.previousData) {
+          queryClient.setQueryData(
             trpc.map.byId.queryKey({ mapId }),
+            context.previousData,
           );
-
-          return { previousData };
-        },
-        onError: (_err, _variables, context) => {
-          // Rollback on error
-          if (mapId && context?.previousData) {
-            queryClient.setQueryData(
-              trpc.map.byId.queryKey({ mapId }),
-              context.previousData,
-            );
-          }
-          toast.error("Failed to save marker");
-        },
-      }),
-    );
+        }
+        toast.error("Failed to save marker");
+      },
+    }),
+  );
 
   const deletePlacedMarker = useCallback(
     (id: string) => {
@@ -166,10 +169,14 @@ export function usePlacedMarkerMutations() {
     [mapId, queryClient, trpc.map.byId, upsertPlacedMarkerMutation],
   );
 
+  const isUpsertMutating = useIsMutating({
+    mutationKey: trpc.placedMarker.upsert.mutationOptions().mutationKey,
+  });
+
   return {
     deletePlacedMarker,
     insertPlacedMarker,
     updatePlacedMarker,
-    loading: upsertLoading,
+    isMutating: isUpsertMutating > 0,
   };
 }

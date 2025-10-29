@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useIsMutating } from "@tanstack/react-query";
 import { use, useCallback } from "react";
 import { toast } from "sonner";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
@@ -50,36 +51,35 @@ export function useFolderMutations() {
     }),
   );
 
-  const { mutate: upsertFolderMutation, isPending: upsertLoading } =
-    useMutation(
-      trpc.folder.upsert.mutationOptions({
-        onMutate: async () => {
-          if (!mapId) return;
+  const { mutate: upsertFolderMutation } = useMutation(
+    trpc.folder.upsert.mutationOptions({
+      onMutate: async () => {
+        if (!mapId) return;
 
-          // Cancel outgoing refetches
-          await queryClient.cancelQueries({
-            queryKey: trpc.map.byId.queryKey({ mapId }),
-          });
+        // Cancel outgoing refetches
+        await queryClient.cancelQueries({
+          queryKey: trpc.map.byId.queryKey({ mapId }),
+        });
 
-          // Snapshot previous value for rollback
-          const previousData = queryClient.getQueryData(
+        // Snapshot previous value for rollback
+        const previousData = queryClient.getQueryData(
+          trpc.map.byId.queryKey({ mapId }),
+        );
+
+        return { previousData };
+      },
+      onError: (_err, _variables, context) => {
+        // Rollback on error
+        if (mapId && context?.previousData) {
+          queryClient.setQueryData(
             trpc.map.byId.queryKey({ mapId }),
+            context.previousData,
           );
-
-          return { previousData };
-        },
-        onError: (_err, _variables, context) => {
-          // Rollback on error
-          if (mapId && context?.previousData) {
-            queryClient.setQueryData(
-              trpc.map.byId.queryKey({ mapId }),
-              context.previousData,
-            );
-          }
-          toast.error("Failed to save folder");
-        },
-      }),
-    );
+        }
+        toast.error("Failed to save folder");
+      },
+    }),
+  );
 
   const deleteFolder = useCallback(
     (id: string) => {
@@ -155,10 +155,14 @@ export function useFolderMutations() {
     [mapId, queryClient, trpc.map.byId, upsertFolderMutation],
   );
 
+  const isFoldersMutating = useIsMutating({
+    mutationKey: trpc.folder.upsert.mutationOptions().mutationKey,
+  });
+
   return {
     deleteFolder,
     insertFolder,
     updateFolder,
-    loading: upsertLoading,
+    isMutating: isFoldersMutating > 0,
   };
 }
