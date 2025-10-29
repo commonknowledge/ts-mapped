@@ -11,7 +11,7 @@ export function usePublicDataRecordsQueries() {
   const { view } = useMapViews();
   const trpc = useTRPC();
 
-  const results = useQueries({
+  return useQueries({
     queries:
       publicMap?.dataSourceConfigs.map((config) => {
         const filter = view?.dataSourceViews.find(
@@ -32,24 +32,24 @@ export function usePublicDataRecordsQueries() {
           { refetchOnMount: "always" },
         );
       }) ?? [],
+    combine: (results) => {
+      const dataRecordsQueries: Record<
+        string,
+        {
+          data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
+          isPending: boolean;
+        }
+      > = {};
+
+      publicMap?.dataSourceConfigs.forEach((config, index) => {
+        const result = results[index];
+        dataRecordsQueries[config.dataSourceId] = {
+          data: result?.data,
+          isPending: result?.isPending ?? false,
+        };
+      });
+
+      return dataRecordsQueries;
+    },
   });
-
-  // Convert array of query results to Record keyed by dataSourceId
-  const dataRecordsQueries: Record<
-    string,
-    {
-      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
-      isPending: boolean;
-    }
-  > = {};
-
-  publicMap?.dataSourceConfigs.forEach((config, index) => {
-    const result = results[index];
-    dataRecordsQueries[config.dataSourceId] = {
-      data: result?.data,
-      isPending: result?.isPending ?? false,
-    };
-  });
-
-  return dataRecordsQueries;
 }
