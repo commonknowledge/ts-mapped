@@ -6,22 +6,21 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import { buildName, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
   const { selectedRecord } = useContext(InspectorContext);
-  const { dataRecordsQueries, publicMap } = useContext(PublicMapContext);
+  const { publicMap } = useContext(PublicMapContext);
+  const dataRecordsQueries = usePublicDataRecordsQueries();
+
   const selectedRecordDetails = useMemo(() => {
-    if (!selectedRecord) {
-      return null;
-    }
-
+    if (!selectedRecord) return null;
     const dataRecordsQuery = dataRecordsQueries[selectedRecord.dataSourceId];
+    const records = dataRecordsQuery?.data?.records;
 
-    return dataRecordsQuery?.data?.records?.find(
-      (r) => r.id === selectedRecord.id,
-    );
+    return records?.find((r) => r.id === selectedRecord.id);
   }, [dataRecordsQueries, selectedRecord]);
 
   if (!selectedRecord || !selectedRecordDetails || !publicMap) {

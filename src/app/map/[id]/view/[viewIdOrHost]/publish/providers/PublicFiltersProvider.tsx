@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 import type { ReactNode } from "react";
@@ -13,8 +14,8 @@ export default function PublicFiltersProvider({
 }: {
   children: ReactNode;
 }) {
-  const { publicMap, activeTabId, dataRecordsQueries } =
-    useContext(PublicMapContext);
+  const { publicMap, activeTabId } = useContext(PublicMapContext);
+  const dataRecordsQueries = usePublicDataRecordsQueries();
   const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
   const [publicFilters, setPublicFilters] = useState<
