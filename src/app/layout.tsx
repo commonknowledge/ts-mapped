@@ -57,9 +57,9 @@ export default async function RootLayout({
       className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} `}
     >
       <body className={ibmPlexSans.className + " antialiased"}>
-        <ServerSessionProvider serverSession={serverSession}>
-          <TRPCReactProvider>
-            <HydrationBoundary state={dehydrate(queryClient)}>
+        <TRPCReactProvider>
+          <HydrationBoundary state={dehydrate(queryClient)}>
+            <ServerSessionProvider serverSession={serverSession}>
               <PostHogProvider>
                 <OrganisationsProvider initialOrganisations={organisations}>
                   <NProgressProvider>
@@ -70,9 +70,9 @@ export default async function RootLayout({
                   </NProgressProvider>
                 </OrganisationsProvider>
               </PostHogProvider>
-            </HydrationBoundary>
-          </TRPCReactProvider>
-        </ServerSessionProvider>
+            </ServerSessionProvider>
+          </HydrationBoundary>
+        </TRPCReactProvider>
       </body>
     </html>
   );
