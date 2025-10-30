@@ -50,11 +50,8 @@ export default function MapProvider({
     trpc.map.updateViews.mutationOptions(),
   );
 
+  // Need to reset page when viewId changes as filters may have changed
   const setTablePage = useTableStore((s) => s.setTablePage);
-  const resetTableStore = useTableStore((s) => s.reset);
-  useEffect(() => {
-    resetTableStore();
-  }, [mapId, resetTableStore]);
   useEffect(() => {
     setTablePage(0);
   }, [viewId, setTablePage]);

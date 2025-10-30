@@ -7,6 +7,7 @@ import ChoroplethProvider from "./providers/ChoroplethProvider";
 import InspectorProvider from "./providers/InspectorProvider";
 import MapProvider from "./providers/MapProvider";
 import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
+import { TableStoreProvider } from "./stores/useTableStore";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -29,19 +30,21 @@ export default async function MapPage({
   const { viewId } = await searchParams;
 
   return (
-    <MapProvider mapId={id} viewId={viewId}>
-      <InspectorProvider>
-        <ChoroplethProvider>
-          <MarkerAndTurfProvider>
-            <DesktopOnly>
-              <div className="with-feeback-widget">
-                <PrivateMap />
-                <SentryFeedbackWidget />
-              </div>
-            </DesktopOnly>
-          </MarkerAndTurfProvider>
-        </ChoroplethProvider>
-      </InspectorProvider>
-    </MapProvider>
+    <TableStoreProvider>
+      <MapProvider mapId={id} viewId={viewId}>
+        <InspectorProvider>
+          <ChoroplethProvider>
+            <MarkerAndTurfProvider>
+              <DesktopOnly>
+                <div className="with-feeback-widget">
+                  <PrivateMap />
+                  <SentryFeedbackWidget />
+                </div>
+              </DesktopOnly>
+            </MarkerAndTurfProvider>
+          </ChoroplethProvider>
+        </InspectorProvider>
+      </MapProvider>
+    </TableStoreProvider>
   );
 }

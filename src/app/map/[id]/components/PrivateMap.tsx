@@ -31,12 +31,6 @@ export default function PrivateMap() {
   const { isPending: dataSourcesLoading } = useDataSources();
   const markerQueries = useMarkerQueries();
   const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
-  const resetTableStore = useTableStore((s) => s.reset);
-
-  // Reset table store when mapId changes
-  useEffect(() => {
-    resetTableStore();
-  }, [mapId, resetTableStore]);
 
   const { data: map, isPending } = useMapQuery(mapId);
   // Resize map when UI changes
