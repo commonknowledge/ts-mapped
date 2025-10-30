@@ -1,6 +1,5 @@
 import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
@@ -18,8 +17,8 @@ export default function InspectorPanel() {
   const selectedRecord = useMapStore((s) => s.selectedRecord);
   const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
   const mapRef = useMapStore((s) => s.mapRef);
-  const toggleDataSourceId = usePrivateMapStore((s) => s.toggleDataSourceId);
-  const selectedDataSourceId = usePrivateMapStore(
+  const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
+  const selectedDataSourceId = useMapStore(
     (s) => s.selectedDataSourceId,
   );
 

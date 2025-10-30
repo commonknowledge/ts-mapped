@@ -22,9 +22,10 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { createNewViewConfig } from "@/app/map/[id]/stores/useMapStore";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
+import {
+  createNewViewConfig,
+  useMapStore,
+} from "@/app/map/[id]/stores/useMapStore";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -207,7 +208,7 @@ function SortableViewItem({
   view: View;
 }) {
   const setSelectedViewId = useMapStore((s) => s.setViewId);
-  const dirtyViewIds = usePrivateMapStore((s) => s.dirtyViewIds);
+  const dirtyViewIds = useMapStore((s) => s.dirtyViewIds);
 
   const { views, deleteView, updateView, view: selectedView } = useMapViews();
   const [editName, setEditName] = useState(view.name);

@@ -8,7 +8,6 @@ import {
   createNewViewConfig,
   useMapStore,
 } from "@/app/map/[id]/stores/useMapStore";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
@@ -19,7 +18,7 @@ export function useMapViews() {
   const viewId = useMapStore((s) => s.viewId);
   const { id: mapId } = useParams<{ id: string }>();
   const setViewId = useMapStore((s) => s.setViewId);
-  const setDirtyViewIds = usePrivateMapStore((s) => s.setDirtyViewIds);
+  const setDirtyViewIds = useMapStore((s) => s.setDirtyViewIds);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery();

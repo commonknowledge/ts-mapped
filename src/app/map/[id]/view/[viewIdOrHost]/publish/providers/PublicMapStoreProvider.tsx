@@ -17,7 +17,7 @@ export function PublicMapStoreProvider({
   editable = false,
   children,
 }: {
-  publicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>;
+  publicMap?: NonNullable<RouterOutputs["publicMap"]["getPublished"]>;
   editable?: boolean;
   children: ReactNode;
 }) {
@@ -32,7 +32,11 @@ export function PublicMapStoreProvider({
   // When loading an editable public map with no data sources,
   // update the public map to show all available data sources
   useEffect(() => {
-    if (!editable || initialPublicMap.dataSourceConfigs.length) {
+    if (
+      !initialPublicMap ||
+      !editable ||
+      initialPublicMap?.dataSourceConfigs.length
+    ) {
       return;
     }
 
@@ -49,13 +53,7 @@ export function PublicMapStoreProvider({
     if (dataSourceConfigs.length) {
       store.getState().setActiveTabId(dataSourceConfigs[0].dataSourceId);
     }
-  }, [
-    editable,
-    getDataSourceById,
-    initialPublicMap.dataSourceConfigs.length,
-    mapConfig,
-    store,
-  ]);
+  }, [initialPublicMap, editable, getDataSourceById, mapConfig, store]);
 
   return (
     <PublicMapStoreContext value={store}>{children}</PublicMapStoreContext>

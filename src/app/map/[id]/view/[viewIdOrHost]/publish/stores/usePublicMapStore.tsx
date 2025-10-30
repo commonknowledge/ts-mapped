@@ -13,23 +13,23 @@ import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 interface PublicMapStore {
   // Public map state
-  publicMap: RouterOutputs["publicMap"]["getPublished"];
+  publicMap: RouterOutputs["publicMap"]["getPublished"] | null;
   editable: boolean;
   searchLocation: Point | null;
   setSearchLocation: (p: Point | null) => void;
-  
+
   // Tab state
   activeTabId: string | null;
   setActiveTabId: (tabId: string | null) => void;
   activePublishTab: string;
   setActivePublishTab: (tab: string) => void;
-  
+
   // UI state
   recordSidebarVisible: boolean;
   setRecordSidebarVisible: (visible: boolean) => void;
   colourScheme: string;
   setColourScheme: (scheme: string) => void;
-  
+
   // Update functions
   updatePublicMap: (updates: Partial<PublicMap>) => void;
   updateDataSourceConfig: (
@@ -41,7 +41,7 @@ interface PublicMapStore {
     columnIndex: number,
     updates: Partial<PublicMapColumn>,
   ) => void;
-  
+
   // Filter state
   filtersDialogOpen: boolean;
   setFiltersDialogOpen: (open: boolean) => void;
@@ -49,11 +49,15 @@ interface PublicMapStore {
   setFilterFields: (fields: FilterField[]) => void;
   publicFilters: Record<string, PublicFiltersFormValue[]>;
   setPublicFilters: (filters: Record<string, PublicFiltersFormValue[]>) => void;
-  records: NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"];
+  records: NonNullable<
+    RouterOutputs["dataSource"]["byIdWithRecords"]
+  >["records"];
   setRecords: (
-    records: NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"],
+    records: NonNullable<
+      RouterOutputs["dataSource"]["byIdWithRecords"]
+    >["records"],
   ) => void;
-  
+
   // Initialization
   initialize: (
     initialPublicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
@@ -62,25 +66,25 @@ interface PublicMapStore {
 }
 
 export const createPublicMapStore = (
-  initialPublicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
-  editable: boolean,
+  initialPublicMap?: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
+  editable?: boolean,
 ) => {
   return createStore<PublicMapStore>((set, get) => ({
     // Initial state
-    publicMap: initialPublicMap,
-    editable,
+    publicMap: initialPublicMap || null,
+    editable: editable || false,
     searchLocation: null,
     activeTabId: initialPublicMap?.dataSourceConfigs?.[0]?.dataSourceId || null,
     activePublishTab: "settings",
     recordSidebarVisible: false,
     colourScheme: "red",
-    
+
     // Filter state
     filtersDialogOpen: false,
     filterFields: [],
     publicFilters: {},
     records: [],
-    
+
     // Setters
     setSearchLocation: (searchLocation) => {
       set({ searchLocation });
@@ -109,7 +113,7 @@ export const createPublicMapStore = (
     setRecords: (records) => {
       set({ records });
     },
-    
+
     // Update functions
     updatePublicMap: (updates) => {
       const current = get().publicMap;
@@ -157,13 +161,14 @@ export const createPublicMapStore = (
         });
       }
     },
-    
+
     // Initialization
     initialize: (initialPublicMap, editable) => {
       set({
         publicMap: initialPublicMap,
         editable,
-        activeTabId: initialPublicMap?.dataSourceConfigs?.[0]?.dataSourceId || null,
+        activeTabId:
+          initialPublicMap?.dataSourceConfigs?.[0]?.dataSourceId || null,
       });
     },
   }));
@@ -180,4 +185,3 @@ export function usePublicMapStore<T>(
   if (!store) throw new Error("Missing PublicMapStoreProvider");
   return useStore(store, selector);
 }
-

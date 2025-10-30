@@ -1,7 +1,6 @@
 import { ArrowRight, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
 import { useTurfsQuery } from "../../../hooks/useTurfs";
@@ -12,7 +11,7 @@ import TurfItem from "./TurfItem";
 
 export default function AreasControl() {
   const mapRef = useMapStore((s) => s.mapRef);
-  const handleAddArea = usePrivateMapStore((s) => s.handleAddArea);
+  const handleAddArea = useMapStore((s) => s.handleAddArea);
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const { data: turfs = [] } = useTurfsQuery();

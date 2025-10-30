@@ -1,5 +1,5 @@
 import { ChevronDown, Eye, EyeOff } from "lucide-react";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { TooltipProvider } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
@@ -22,9 +22,9 @@ export default function LayerHeader({
   children?: React.ReactNode;
   enableVisibilityToggle?: boolean;
 }) {
-  const getLayerVisibility = usePrivateMapStore((s) => s.getLayerVisibility);
-  const hideLayer = usePrivateMapStore((s) => s.hideLayer);
-  const showLayer = usePrivateMapStore((s) => s.showLayer);
+  const getLayerVisibility = useMapStore((s) => s.getLayerVisibility);
+  const hideLayer = useMapStore((s) => s.hideLayer);
+  const showLayer = useMapStore((s) => s.showLayer);
 
   const isLayerVisible = getLayerVisibility(type);
 

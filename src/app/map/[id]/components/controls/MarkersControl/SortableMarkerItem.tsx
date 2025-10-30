@@ -2,7 +2,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { usePlacedMarkerMutations } from "../../../hooks/usePlacedMarkers";
@@ -29,11 +28,11 @@ export default function SortableMarkerItem({
     isDragging,
   } = useSortable({ id: `marker-${marker.id}` });
 
-  const setSelectedPlacedMarkerId = usePrivateMapStore(
+  const setSelectedPlacedMarkerId = useMapStore(
     (s) => s.setSelectedPlacedMarkerId,
   );
-  const markerVisibility = usePrivateMapStore((s) => s.markerVisibility);
-  const setMarkerVisibilityState = usePrivateMapStore(
+  const markerVisibility = useMapStore((s) => s.markerVisibility);
+  const setMarkerVisibilityState = useMapStore(
     (s) => s.setMarkerVisibilityState,
   );
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();

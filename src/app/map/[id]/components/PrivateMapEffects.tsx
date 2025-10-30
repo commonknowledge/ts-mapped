@@ -4,15 +4,13 @@ import { useEffect } from "react";
 import { LayerType } from "@/types";
 import { useMapConfig } from "../hooks/useMapConfig";
 import { useTurfsQuery } from "../hooks/useTurfs";
-import { usePrivateMapStore } from "../stores/usePrivateMapStore";
+import { useMapStore } from "../stores/useMapStore";
 
 // WE REALLY WANA DELETE THIS, DERIVE!!
 export function PrivateMapEffects() {
-  const hiddenLayers = usePrivateMapStore((s) => s.hiddenLayers);
-  const setTurfVisibilityState = usePrivateMapStore(
-    (s) => s.setTurfVisibilityState,
-  );
-  const setDataSourceVisibilityState = usePrivateMapStore(
+  const hiddenLayers = useMapStore((s) => s.hiddenLayers);
+  const setTurfVisibilityState = useMapStore((s) => s.setTurfVisibilityState);
+  const setDataSourceVisibilityState = useMapStore(
     (s) => s.setDataSourceVisibilityState,
   );
   const { mapConfig } = useMapConfig();

@@ -1,6 +1,6 @@
 import { SettingsIcon } from "lucide-react";
 import { useState } from "react";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Separator } from "@/shadcn/ui/separator";
 import { LayerType } from "@/types";
@@ -14,8 +14,8 @@ import { useBoundariesControl } from "./useBoundariesControl";
 export default function BoundariesControl() {
   const [expanded, setExpanded] = useState(true);
   const { hasDataSource } = useBoundariesControl();
-  const boundariesPanelOpen = usePrivateMapStore((s) => s.boundariesPanelOpen);
-  const setBoundariesPanelOpen = usePrivateMapStore(
+  const boundariesPanelOpen = useMapStore((s) => s.boundariesPanelOpen);
+  const setBoundariesPanelOpen = useMapStore(
     (s) => s.setBoundariesPanelOpen,
   );
 

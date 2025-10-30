@@ -6,7 +6,7 @@ import { MapEffects } from "./components/MapEffects";
 import PrivateMap from "./components/PrivateMap";
 import { PrivateMapEffects } from "./components/PrivateMapEffects";
 import { MapStoreProvider } from "./providers/MapStoreProvider";
-import { PrivateMapStoreProvider } from "./providers/PrivateMapStoreProvider";
+import { PublicMapStoreProvider } from "./view/[viewIdOrHost]/publish/providers/PublicMapStoreProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -25,7 +25,8 @@ export default async function MapPage({
 
   return (
     <MapStoreProvider viewId={viewId}>
-      <PrivateMapStoreProvider>
+      {/*  have to wrap to provide dummy store, for components/hooks that may need a public map */}
+      <PublicMapStoreProvider editable={false}>
         <MapEffects />
         <PrivateMapEffects />
         <DesktopOnly>
@@ -34,7 +35,7 @@ export default async function MapPage({
             <SentryFeedbackWidget />
           </div>
         </DesktopOnly>
-      </PrivateMapStoreProvider>
+      </PublicMapStoreProvider>
     </MapStoreProvider>
   );
 }

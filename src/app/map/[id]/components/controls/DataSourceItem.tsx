@@ -1,6 +1,6 @@
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType } from "@/types";
-import { usePrivateMapStore } from "../../stores/usePrivateMapStore";
+import { useMapStore } from "../../stores/useMapStore";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
 import type { DataSourceType } from "@/server/models/DataSource";
@@ -22,10 +22,10 @@ export default function DataSourceItem({
   handleDataSourceSelect: (id: string) => void;
   layerType: LayerType;
 }) {
-  const setDataSourceVisibilityState = usePrivateMapStore(
+  const setDataSourceVisibilityState = useMapStore(
     (s) => s.setDataSourceVisibilityState,
   );
-  const getDataSourceVisibility = usePrivateMapStore(
+  const getDataSourceVisibility = useMapStore(
     (s) => s.getDataSourceVisibility,
   );
   const layerColor =

@@ -3,13 +3,12 @@
 import { SearchBox as _SearchBox } from "@mapbox/search-js-react";
 import mapboxgl from "mapbox-gl";
 import { useState } from "react";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
-import { usePrivateMapStore } from "../stores/usePrivateMapStore";
+import { useMapStore } from "../stores/useMapStore";
 import styles from "./SearchBox.module.css";
 
 export function SearchBox() {
   const mapRef = useMapStore((s) => s.mapRef);
-  const setSearchMarker = usePrivateMapStore((s) => s.setSearchMarker);
+  const setSearchMarker = useMapStore((s) => s.setSearchMarker);
   const [search, setSearch] = useState("");
 
   return (

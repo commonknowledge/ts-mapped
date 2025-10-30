@@ -16,7 +16,6 @@ import {
   getMapStyle,
 } from "@/app/map/[id]/stores/useMapStore";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
@@ -55,7 +54,7 @@ export default function Map({
 }) {
   const setBoundingBox = useMapStore((s) => s.setBoundingBox);
   const setZoom = useMapStore((s) => s.setZoom);
-  const privatePinDropMode = usePrivateMapStore((s) => s.pinDropMode);
+  const privatePinDropMode = useMapStore((s) => s.pinDropMode);
   const pinDropMode = hideDrawControls ? false : privatePinDropMode;
   const showControls = useMapStore((s) => s.showControls);
   const ready = useMapStore((s) => s.ready);
@@ -64,8 +63,8 @@ export default function Map({
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { data: turfs = [] } = useTurfsQuery();
-  const searchMarker = usePrivateMapStore((s) => s.searchMarker);
-  const turfVisibility = usePrivateMapStore((s) => s.turfVisibility);
+  const searchMarker = useMapStore((s) => s.searchMarker);
+  const turfVisibility = useMapStore((s) => s.turfVisibility);
   const markerQueries = useMarkerQueries();
 
   const visibleTurfs = useMemo(() => {

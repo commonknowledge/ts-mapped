@@ -5,7 +5,7 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
-import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
 import { FilterOperator, FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
@@ -54,7 +54,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { getDataSourceById } = useDataSources();
-  const tableDataSourceId = usePrivateMapStore((s) => s.selectedDataSourceId);
+  const tableDataSourceId = useMapStore((s) => s.selectedDataSourceId);
 
   const tableDataSource = getDataSourceById(tableDataSourceId);
   const columns = useMemo(
