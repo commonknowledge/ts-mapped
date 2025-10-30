@@ -6,9 +6,8 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { GeocodingType } from "@/server/models/DataSource";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { VisualisationType } from "@/server/models/MapView";
-import { useAreaStats } from "../data";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { getChoroplethLayerConfig } from "../sources";
 import type { ReactNode } from "react";
 
@@ -17,7 +16,7 @@ export default function ChoroplethProvider({
 }: {
   children: ReactNode;
 }) {
-  const { boundingBox, zoom } = useContext(MapContext);
+  const { zoom } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 
@@ -50,12 +49,6 @@ export default function ChoroplethProvider({
     zoom,
   ]);
 
-  const areaStatsQuery = useAreaStats({
-    viewConfig,
-    areaSetCode: choroplethLayerConfig.areaSetCode,
-    boundingBox: choroplethLayerConfig.requiresBoundingBox ? boundingBox : null,
-  });
-
   return (
     <ChoroplethContext
       value={{
@@ -64,8 +57,6 @@ export default function ChoroplethProvider({
 
         lastLoadedSourceId,
         setLastLoadedSourceId,
-
-        areaStatsQuery,
         choroplethLayerConfig,
       }}
     >
