@@ -1,12 +1,12 @@
 import { DatabaseIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useState } from "react";
 import {
   useDataSources,
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
@@ -23,8 +23,8 @@ export default function MembersControl() {
   const dataSource = useMembersDataSource();
   const { data: allDataSources, isPending: allDataSourcesLoading } =
     useDataSources();
-  const { selectedDataSourceId, handleDataSourceSelect } =
-    useContext(TableContext);
+  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
+  const toggleDataSourceId = useTableStore((s) => s.toggleDataSourceId);
   const [expanded, setExpanded] = useState(true);
 
   const isSelected = dataSource
@@ -41,7 +41,7 @@ export default function MembersControl() {
         type: "item" as const,
         label: ds.name,
         onClick: () => {
-          handleDataSourceSelect(ds.id);
+          toggleDataSourceId(ds.id);
           updateMapConfig({ membersDataSourceId: ds.id });
         },
       })) || [];
@@ -81,7 +81,7 @@ export default function MembersControl() {
             <DataSourceControl
               dataSource={dataSource}
               isSelected={isSelected}
-              handleDataSourceSelect={handleDataSourceSelect}
+              handleDataSourceSelect={toggleDataSourceId}
               layerType={LayerType.Member}
             />
           ) : (

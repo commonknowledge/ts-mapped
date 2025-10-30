@@ -3,10 +3,10 @@ import { useContext } from "react";
 import { toast } from "sonner";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
@@ -28,12 +28,10 @@ export default function MapTable() {
   const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
 
-  const {
-    selectedDataSourceId,
-    handleDataSourceSelect,
-    tablePage,
-    setTablePage,
-  } = useContext(TableContext);
+  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
+  const toggleDataSourceId = useTableStore((s) => s.toggleDataSourceId);
+  const tablePage = useTableStore((s) => s.tablePage);
+  const setTablePage = useTableStore((s) => s.setTablePage);
 
   const { data: dataRecordsResult, isPending: dataRecordsLoading } =
     useDataRecords(selectedDataSourceId, tablePage);
@@ -138,7 +136,7 @@ export default function MapTable() {
         setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
         selectedRecordId={selectedRecord?.id}
-        onClose={() => handleDataSourceSelect("")}
+        onClose={() => toggleDataSourceId("")}
       />
     </div>
   );

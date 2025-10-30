@@ -7,7 +7,6 @@ import ChoroplethProvider from "./providers/ChoroplethProvider";
 import InspectorProvider from "./providers/InspectorProvider";
 import MapProvider from "./providers/MapProvider";
 import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
-import TableProvider from "./providers/TableProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -34,14 +33,12 @@ export default async function MapPage({
       <InspectorProvider>
         <ChoroplethProvider>
           <MarkerAndTurfProvider>
-            <TableProvider>
-              <DesktopOnly>
-                <div className="with-feeback-widget">
-                  <PrivateMap />
-                  <SentryFeedbackWidget />
-                </div>
-              </DesktopOnly>
-            </TableProvider>
+            <DesktopOnly>
+              <div className="with-feeback-widget">
+                <PrivateMap />
+                <SentryFeedbackWidget />
+              </div>
+            </DesktopOnly>
           </MarkerAndTurfProvider>
         </ChoroplethProvider>
       </InspectorProvider>

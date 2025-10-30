@@ -10,6 +10,7 @@ import {
 import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "../hooks/useMapQuery";
+import { useTableStore } from "../stores/useTableStore";
 import { getNewLastPosition } from "../utils";
 import type { BoundingBox } from "@/server/models/Area";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -48,6 +49,15 @@ export default function MapProvider({
   const { mutate: createDefaultViewMutate } = useMutation(
     trpc.map.updateViews.mutationOptions(),
   );
+
+  const setTablePage = useTableStore((s) => s.setTablePage);
+  const resetTableStore = useTableStore((s) => s.reset);
+  useEffect(() => {
+    resetTableStore();
+  }, [mapId, resetTableStore]);
+  useEffect(() => {
+    setTablePage(0);
+  }, [viewId, setTablePage]);
 
   /* Views initialization: create view if none exist and ensure a view is selected */
   useEffect(() => {

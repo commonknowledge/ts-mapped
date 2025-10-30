@@ -2,12 +2,12 @@ import { circle } from "@turf/turf";
 import { useContext, useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
+import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/server/models/MapView";
@@ -27,7 +27,7 @@ export default function FilterMarkers() {
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
 
-  const { selectedDataSourceId } = useContext(TableContext);
+  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
 
   const memberMarkers = useMemo(
     () =>

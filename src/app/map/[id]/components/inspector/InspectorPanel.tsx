@@ -2,7 +2,7 @@ import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
@@ -22,8 +22,8 @@ export default function InspectorPanel() {
     setSelectedRecord,
   } = useContext(InspectorContext);
   const { mapRef } = useContext(MapContext);
-  const { setSelectedDataSourceId, selectedDataSourceId } =
-    useContext(TableContext);
+  const toggleDataSourceId = useTableStore((s) => s.toggleDataSourceId);
+  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
 
   if (!Boolean(inspectorContent)) {
     return <></>;
@@ -124,7 +124,7 @@ export default function InspectorPanel() {
               {dataSource && (
                 <Button
                   variant="secondary"
-                  onClick={() => setSelectedDataSourceId(dataSource.id)}
+                  onClick={() => toggleDataSourceId(dataSource.id)}
                 >
                   <TableIcon />
                   View in table
