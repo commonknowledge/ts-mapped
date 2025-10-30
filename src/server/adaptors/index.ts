@@ -5,6 +5,7 @@ import { AirtableAdaptor } from "./airtable";
 import { CSVAdaptor } from "./csv";
 import { GoogleSheetsAdaptor } from "./googlesheets";
 import { MailchimpAdaptor } from "./mailchimp";
+import { PayloadCMSAdaptor } from "./payloadcms";
 import type { DataSourceConfig } from "../models/DataSource";
 
 export const getDataSourceAdaptor = (dataSource: {
@@ -35,6 +36,12 @@ export const getDataSourceAdaptor = (dataSource: {
       );
     case DataSourceType.Mailchimp:
       return new MailchimpAdaptor(id, config.apiKey, config.listId);
+    case DataSourceType.PayloadCMS:
+      return new PayloadCMSAdaptor(
+        config.apiBaseUrl,
+        config.apiKey,
+        config.collectionName,
+      );
     default:
       logger.error(`Unimplemented data source type: ${dataSourceType}`);
       return null;

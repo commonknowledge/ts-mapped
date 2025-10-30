@@ -29,4 +29,9 @@ export const DataSourceFeatures: Record<
     autoImport: true,
     enrichment: false,
   },
+  [DataSourceType.PayloadCMS]: {
+    autoEnrich: true,
+    autoImport: true,
+    enrichment: false,
+  },
 };

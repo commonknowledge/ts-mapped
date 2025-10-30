@@ -26,6 +26,7 @@ export enum DataSourceType {
   CSV = "csv",
   GoogleSheets = "googlesheets",
   Mailchimp = "mailchimp",
+  PayloadCMS = "payloadcms",
 }
 
 export const dataSourceTypes = Object.values(DataSourceType);
@@ -80,12 +81,22 @@ export const csvConfigSchema = z.object({
 
 export type CSVConfig = z.infer<typeof csvConfigSchema>;
 
+export const payloadCMSConfigSchema = z.object({
+  type: z.literal(DataSourceType.PayloadCMS),
+  apiBaseUrl: z.string().nonempty(),
+  apiKey: z.string().nonempty(),
+  collectionName: z.string().nonempty(),
+});
+
+export type PayloadCMSConfig = z.infer<typeof payloadCMSConfigSchema>;
+
 export const dataSourceConfigSchema = z.discriminatedUnion("type", [
   actionNetworkConfigSchema,
   airtableConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
   csvConfigSchema,
+  payloadCMSConfigSchema,
 ]);
 
 export type DataSourceConfig = z.infer<typeof dataSourceConfigSchema>;
