@@ -11,8 +11,8 @@ import {
   Folder as FolderClosed,
   FolderOpen,
 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMemo, useState } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
@@ -65,8 +65,10 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const { getMarkerVisibility, setMarkerVisibilityState } =
-    useContext(MarkerAndTurfContext);
+  const markerVisibility = useMapStore((s) => s.markerVisibility);
+  const setMarkerVisibilityState = useMapStore(
+    (s) => s.setMarkerVisibilityState,
+  );
 
   const { updateFolder, deleteFolder } = useFolderMutations();
 
@@ -110,8 +112,9 @@ export default function SortableFolderItem({
   };
 
   const visibleMarkers = useMemo(
-    () => sortedMarkers.filter((marker) => getMarkerVisibility(marker.id)),
-    [sortedMarkers, getMarkerVisibility],
+    () =>
+      sortedMarkers.filter((marker) => markerVisibility[marker.id] !== false),
+    [sortedMarkers, markerVisibility],
   );
   const isFolderVisible = sortedMarkers?.length
     ? Boolean(visibleMarkers?.length)

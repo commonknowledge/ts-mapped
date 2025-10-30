@@ -1,8 +1,7 @@
 import { Check, FolderPlusIcon, LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useCallback, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import {
   useFolderMutations,
@@ -10,6 +9,7 @@ import {
 } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -18,6 +18,7 @@ import { CollectionIcon } from "../../Icons";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
+import type { LngLat } from "mapbox-gl";
 
 export default function MarkersControl() {
   const router = useRouter();
@@ -25,9 +26,23 @@ export default function MarkersControl() {
   const { data: folders = [] } = useFoldersQuery();
   const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
-  const { handleDropPin } = useContext(MarkerAndTurfContext);
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
+  const handleDropPin = useMapStore((s) => s.handleDropPin);
+
+  const { insertPlacedMarker } = usePlacedMarkerMutations();
+  const onInsert = useCallback(
+    (lngLat: LngLat) => {
+      insertPlacedMarker({
+        id: uuidv4(),
+        label: `Dropped Pin (${lngLat.lat.toFixed(4)}, ${lngLat.lng.toFixed(4)})`,
+        notes: "",
+        point: lngLat,
+        folderId: null,
+      });
+    },
+    [insertPlacedMarker],
+  );
 
   const createFolder = () => {
     const newFolder = {
@@ -96,12 +111,12 @@ export default function MarkersControl() {
         {
           type: "item" as const,
           label: "Search for a location",
-          onClick: () => handleManualSearch(),
+          onClick: handleManualSearch,
         },
         {
           type: "item" as const,
           label: "Drop a pin on the map",
-          onClick: () => handleDropPin(),
+          onClick: () => handleDropPin(onInsert),
         },
       ],
     },
@@ -126,7 +141,7 @@ export default function MarkersControl() {
       type: "item" as const,
       icon: <FolderPlusIcon className="w-4 h-4 text-muted-foreground" />,
       label: "Add Folder",
-      onClick: () => createFolder(),
+      onClick: createFolder,
     },
   ];
 

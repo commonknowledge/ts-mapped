@@ -1,15 +1,15 @@
 import { Plus } from "lucide-react";
-import { useContext } from "react";
 import { Marker, Popup } from "react-map-gl/mapbox";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { mapColors } from "../styles";
 import type { Feature } from "geojson";
 
 export default function SearchResultMarker() {
-  const { searchMarker, setSearchMarker } = useContext(MarkerAndTurfContext);
+  const searchMarker = useMapStore((s) => s.searchMarker);
+  const setSearchMarker = useMapStore((s) => s.setSearchMarker);
   const { insertPlacedMarker } = usePlacedMarkerMutations();
 
   const center = getFeatureCenter(searchMarker);

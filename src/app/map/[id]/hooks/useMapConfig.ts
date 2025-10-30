@@ -1,17 +1,17 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useMemo } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "./useMapQuery";
 import type { MapConfig } from "@/server/models/Map";
 
 export function useMapConfig() {
-  const { mapId } = use(MapContext);
+  const { id: mapId } = useParams<{ id: string }>();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { data: mapData } = useMapQuery(mapId);
+  const { data: mapData } = useMapQuery();
 
   const { mutate, isPending } = useMutation(
     trpc.map.updateConfig.mutationOptions({
@@ -36,9 +36,8 @@ export function useMapConfig() {
 
   const updateMapConfig = useCallback(
     (newMapConfig: Partial<MapConfig>) => {
-      if (!mapId) {
-        return;
-      }
+      if (!mapId) return;
+
       return mutate({ mapId, config: { ...mapConfig, ...newMapConfig } });
     },
     [mapConfig, mapId, mutate],

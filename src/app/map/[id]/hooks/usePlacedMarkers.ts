@@ -5,17 +5,16 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { use, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { useCallback } from "react";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export function usePlacedMarkersQuery() {
-  const { mapId } = use(MapContext);
-  const { data: mapData, isFetching } = useMapQuery(mapId);
+  const { data: mapData, isFetching } = useMapQuery();
   return {
     data: mapData?.placedMarkers,
     isFetching,
@@ -23,7 +22,7 @@ export function usePlacedMarkersQuery() {
 }
 
 export function usePlacedMarkerMutations() {
-  const { mapId } = use(MapContext);
+  const { id: mapId } = useParams<{ id: string }>();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 

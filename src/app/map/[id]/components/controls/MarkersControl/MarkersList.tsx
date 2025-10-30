@@ -14,9 +14,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import {
   useFolderMutations,
@@ -27,7 +27,7 @@ import {
   usePlacedMarkerMutations,
   usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -51,7 +51,7 @@ import type {
 } from "@dnd-kit/core";
 
 export default function MarkersList() {
-  const { mapId } = use(MapContext);
+  const { id: mapId } = useParams<{ id: string }>();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { viewConfig } = useMapViews();
@@ -59,8 +59,8 @@ export default function MarkersList() {
   const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { updatePlacedMarker } = usePlacedMarkerMutations();
-  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
-  const toggleDataSourceId = useTableStore((s) => s.toggleDataSourceId);
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
+  const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
   const markerDataSources = useMarkerDataSources();
 
   const [activeId, setActiveId] = useState<string | null>(null);

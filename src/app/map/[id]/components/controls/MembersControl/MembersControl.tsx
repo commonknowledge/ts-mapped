@@ -6,7 +6,7 @@ import {
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
@@ -23,8 +23,8 @@ export default function MembersControl() {
   const dataSource = useMembersDataSource();
   const { data: allDataSources, isPending: allDataSourcesLoading } =
     useDataSources();
-  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
-  const toggleDataSourceId = useTableStore((s) => s.toggleDataSourceId);
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
+  const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
   const [expanded, setExpanded] = useState(true);
 
   const isSelected = dataSource

@@ -1,12 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useMemo } from "react";
+import { useParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import {
-  MapContext,
-  createNewViewConfig,
-} from "@/app/map/[id]/context/MapContext";
+import { createNewViewConfig } from "@/app/map/[id]/context/MapContext";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
@@ -14,10 +13,13 @@ import type { View } from "../types";
 import type { MapViewConfig } from "@/server/models/MapView";
 
 export function useMapViews() {
-  const { viewId, mapId, setViewId, setDirtyViewIds } = use(MapContext);
+  const viewId = useMapStore((s) => s.viewId);
+  const { id: mapId } = useParams<{ id: string }>();
+  const setViewId = useMapStore((s) => s.setViewId);
+  const setDirtyViewIds = useMapStore((s) => s.setDirtyViewIds);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { data: mapData } = useMapQuery(mapId);
+  const { data: mapData } = useMapQuery();
 
   // Get views directly from cache
   const views = mapData?.views;

@@ -2,14 +2,13 @@
 
 import { SearchBox as _SearchBox } from "@mapbox/search-js-react";
 import mapboxgl from "mapbox-gl";
-import { useContext, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useState } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import styles from "./SearchBox.module.css";
 
 export function SearchBox() {
-  const { mapRef } = useContext(MapContext);
-  const { setSearchMarker } = useContext(MarkerAndTurfContext);
+  const mapRef = useMapStore((s) => s.mapRef);
+  const setSearchMarker = useMapStore((s) => s.setSearchMarker);
   const [search, setSearch] = useState("");
 
   return (

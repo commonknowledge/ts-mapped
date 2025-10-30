@@ -3,18 +3,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
 import { useFeatureFlagEnabled } from "@/hooks";
@@ -31,8 +30,10 @@ import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapId, mapRef, dirtyViewIds } = useContext(MapContext);
-  const { data: map } = useMapQuery(mapId);
+  const { id: mapId } = useParams<{ id: string }>();
+  const mapRef = useMapStore((s) => s.mapRef);
+  const dirtyViewIds = useMapStore((s) => s.dirtyViewIds);
+  const { data: map } = useMapQuery();
   const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();
 

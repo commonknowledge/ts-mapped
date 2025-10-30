@@ -15,7 +15,7 @@ import { PublicMapContext } from "../../context/PublicMapContext";
 
 export default function EditorNavbar() {
   const { mapId } = useContext(MapContext);
-  const { data: map } = useMapQuery(mapId);
+  const { data: map } = useMapQuery();
   const { publicMap } = useContext(PublicMapContext);
 
   return (

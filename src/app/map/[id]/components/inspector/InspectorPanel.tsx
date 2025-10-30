@@ -1,8 +1,5 @@
 import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
-import { useContext } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
@@ -13,17 +10,15 @@ import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
 
 export default function InspectorPanel() {
-  const {
-    inspectorContent,
-    resetInspector,
-    selectedBoundary,
-    selectedTurf,
-    selectedRecord,
-    setSelectedRecord,
-  } = useContext(InspectorContext);
-  const { mapRef } = useContext(MapContext);
-  const toggleDataSourceId = useTableStore((s) => s.toggleDataSourceId);
-  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
+  const inspectorContent = useMapStore((s) => s.inspectorContent);
+  const resetInspector = useMapStore((s) => s.resetInspector);
+  const selectedBoundary = useMapStore((s) => s.selectedBoundary);
+  const selectedTurf = useMapStore((s) => s.selectedTurf);
+  const selectedRecord = useMapStore((s) => s.selectedRecord);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
+  const mapRef = useMapStore((s) => s.mapRef);
+  const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
 
   if (!Boolean(inspectorContent)) {
     return <></>;

@@ -9,13 +9,13 @@ import {
   PlusIcon,
   X,
 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import { useMemo, useState } from "react";
 import {
   useChoroplethDataSource,
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
@@ -59,8 +59,8 @@ export default function VisualisationPanel({
   positionLeft: number;
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
-  const { boundariesPanelOpen, setBoundariesPanelOpen } =
-    useContext(ChoroplethContext);
+  const boundariesPanelOpen = useMapStore((s) => s.boundariesPanelOpen);
+  const setBoundariesPanelOpen = useMapStore((s) => s.setBoundariesPanelOpen);
   const { data: dataSources } = useDataSources();
   const dataSource = useChoroplethDataSource();
 

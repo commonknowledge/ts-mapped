@@ -1,21 +1,20 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { use, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { useCallback } from "react";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "./useMapQuery";
 import type { Turf } from "@/server/models/Turf";
 
 export function useTurfsQuery() {
-  const { mapId } = use(MapContext);
-  const { data: mapData, isFetching } = useMapQuery(mapId);
+  const { data: mapData, isFetching } = useMapQuery();
   return { data: mapData?.turfs, isFetching };
 }
 
 export function useTurfMutations() {
-  const { mapId } = use(MapContext);
+  const { id: mapId } = useParams<{ id: string }>();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 

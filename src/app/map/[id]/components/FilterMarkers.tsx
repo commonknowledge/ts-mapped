@@ -1,13 +1,12 @@
 import { circle } from "@turf/turf";
-import { useContext, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
-import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/server/models/MapView";
@@ -20,14 +19,14 @@ import type {
 import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapStore((s) => s.mapRef);
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
   const markerQueries = useMarkerQueries();
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
 
-  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
 
   const memberMarkers = useMemo(
     () =>

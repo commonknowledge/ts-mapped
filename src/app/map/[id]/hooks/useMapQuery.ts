@@ -1,12 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { useTRPC } from "@/services/trpc/react";
 
-export function useMapQuery(mapId: string | null | undefined) {
+export function useMapQuery() {
   const trpc = useTRPC();
-  return useQuery(
-    trpc.map.byId.queryOptions(
-      { mapId: mapId || "" },
-      { enabled: Boolean(mapId) },
-    ),
-  );
+  const { id: mapId } = useParams<{ id: string }>();
+  return useQuery(trpc.map.byId.queryOptions({ mapId }));
 }

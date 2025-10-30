@@ -1,10 +1,7 @@
 import { notFound } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
-import ChoroplethProvider from "../../../providers/ChoroplethProvider";
-import InspectorProvider from "../../../providers/InspectorProvider";
-import MapProvider from "../../../providers/MapProvider";
-import MarkerAndTurfProvider from "../../../providers/MarkerAndTurfProvider";
+import { MapStoreProvider } from "../../../providers/MapStoreProvider";
 import PublicMap from "./components/PublicMap";
 import PublicFiltersProvider from "./providers/PublicFiltersProvider";
 import PublicMapProvider from "./providers/PublicMapProvider";
@@ -67,18 +64,12 @@ export default async function PublicMapAdminPage({
   }
 
   return (
-    <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
-      <InspectorProvider>
-        <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
-          <PublicFiltersProvider>
-            <ChoroplethProvider>
-              <MarkerAndTurfProvider>
-                <PublicMap />
-              </MarkerAndTurfProvider>
-            </ChoroplethProvider>
-          </PublicFiltersProvider>
-        </PublicMapProvider>
-      </InspectorProvider>
-    </MapProvider>
+    <MapStoreProvider viewId={publicMap.viewId}>
+      <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
+        <PublicFiltersProvider>
+          <PublicMap />
+        </PublicFiltersProvider>
+      </PublicMapProvider>
+    </MapStoreProvider>
   );
 }

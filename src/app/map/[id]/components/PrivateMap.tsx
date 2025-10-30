@@ -1,11 +1,9 @@
 "use client";
 
-import { useContext, useEffect } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
-import { useTableStore } from "@/app/map/[id]/stores/useTableStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -23,16 +21,15 @@ import PrivateMapNavbar from "./PrivateMapNavbar";
 import MapTable from "./table/MapTable";
 
 export default function PrivateMap() {
-  const { mapRef, showControls, mapId } = useContext(MapContext);
-
+  const mapRef = useMapStore((s) => s.mapRef);
+  const showControls = useMapStore((s) => s.showControls);
   const areaStatsQuery = useAreaStats();
-  const { setLastLoadedSourceId } = useContext(ChoroplethContext);
-
+  const setLastLoadedSourceId = useMapStore((s) => s.setLastLoadedSourceId);
   const { isPending: dataSourcesLoading } = useDataSources();
   const markerQueries = useMarkerQueries();
-  const selectedDataSourceId = useTableStore((s) => s.selectedDataSourceId);
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
 
-  const { data: map, isPending } = useMapQuery(mapId);
+  const { data: map, isPending } = useMapQuery();
   // Resize map when UI changes
   useEffect(() => {
     if (mapRef?.current) {

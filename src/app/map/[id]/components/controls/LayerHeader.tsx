@@ -1,7 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
-import { useContext } from "react";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { TooltipProvider } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
@@ -24,8 +23,9 @@ export default function LayerHeader({
   children?: React.ReactNode;
   enableVisibilityToggle?: boolean;
 }) {
-  const { getLayerVisibility, hideLayer, showLayer } =
-    useContext(MarkerAndTurfContext);
+  const getLayerVisibility = useMapStore((s) => s.getLayerVisibility);
+  const hideLayer = useMapStore((s) => s.hideLayer);
+  const showLayer = useMapStore((s) => s.showLayer);
 
   const isLayerVisible = getLayerVisibility(type);
 

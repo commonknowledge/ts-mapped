@@ -1,9 +1,9 @@
-import { useContext, useMemo } from "react";
+import { use, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import {
   MARKER_ID_KEY,
   MARKER_MATCHED_KEY,
@@ -34,7 +34,7 @@ export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const markerQueries = useMarkerQueries();
-  const { getDataSourceVisibility } = useContext(MarkerAndTurfContext);
+  const getDataSourceVisibility = useMapStore((s) => s.getDataSourceVisibility);
 
   const memberMarkers = useMemo(
     () =>
@@ -88,7 +88,7 @@ function DataSourceMarkers({
   dataSourceMarkers: { dataSourceId: string; markers: PointFeature[] };
   isMembers: boolean;
 }) {
-  const { records, publicFilters } = useContext(PublicFiltersContext);
+  const { records, publicFilters } = use(PublicFiltersContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     // Don't add MARKER_CLIENT_EXCLUDED_KEY property if no public filters exist
