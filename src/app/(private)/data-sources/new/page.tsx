@@ -30,6 +30,7 @@ import AirtableFields from "./fields/AirtableFields";
 import CSVFields from "./fields/CSVFields";
 import GoogleSheetsFields from "./fields/GoogleSheetsFields";
 import MailchimpFields from "./fields/MailchimpFields";
+import PayloadCMSFields from "./fields/PayloadCMSFields";
 
 import { type NewDataSourceConfig, defaultStateSchema } from "./schema";
 import type {
@@ -252,6 +253,8 @@ function ConfigFields({
       );
     case DataSourceType.Mailchimp:
       return <MailchimpFields config={config} onChange={onChange} />;
+    case DataSourceType.PayloadCMS:
+      return <PayloadCMSFields config={config} onChange={onChange} />;
     default:
       return null;
   }
