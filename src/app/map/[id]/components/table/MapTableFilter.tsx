@@ -1,17 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ListFilter, XIcon } from "lucide-react";
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
 import { FilterOperator, FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
@@ -57,9 +51,10 @@ export default function MapTableFilter({
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const { mapConfig } = useMapConfig();
-  const { placedMarkers, turfs } = useContext(MarkerAndTurfContext);
+  const { data: turfs = [] } = useTurfsQuery();
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { getDataSourceById } = useDataSources();
-  const { selectedDataSourceId: tableDataSourceId } = useContext(TableContext);
+  const tableDataSourceId = useMapStore((s) => s.selectedDataSourceId);
 
   const tableDataSource = getDataSourceById(tableDataSourceId);
   const columns = useMemo(

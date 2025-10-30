@@ -3,31 +3,27 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point as turfPoint } from "@turf/helpers";
 import * as turf from "@turf/turf";
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import {
-  MapContext,
-  getDataSourceIds,
-  getMapStyle,
-} from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { v4 as uuidv4 } from "uuid";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
+import {
+  getDataSourceIds,
+  getMapStyle,
+} from "@/app/map/[id]/stores/useMapStore";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import { useTurfMutations } from "../hooks/useTurfs";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
@@ -47,6 +43,7 @@ import type {
   Point,
 } from "geojson";
 import type { MapMouseEvent } from "mapbox-gl";
+import type { MapRef } from "react-map-gl/mapbox";
 
 export default function Map({
   onSourceLoad,
@@ -55,38 +52,40 @@ export default function Map({
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
 }) {
-  const {
-    mapRef,
-    setBoundingBox,
-    setZoom,
-    pinDropMode,
-    showControls,
-    ready,
-    setReady,
-  } = useContext(MapContext);
+  const setBoundingBox = useMapStore((s) => s.setBoundingBox);
+  const setZoom = useMapStore((s) => s.setZoom);
+  const privatePinDropMode = useMapStore((s) => s.pinDropMode);
+  const pinDropMode = hideDrawControls ? false : privatePinDropMode;
+  const showControls = useMapStore((s) => s.showControls);
+  const ready = useMapStore((s) => s.ready);
+  const setReady = useMapStore((s) => s.setReady);
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
-  const {
-    deleteTurf,
-    insertTurf,
-    updateTurf,
-    visibleTurfs,
-    searchMarker,
-    placedMarkers,
-    markerQueries,
-  } = useContext(MarkerAndTurfContext);
-  const {
-    resetInspector,
-    setSelectedRecord,
-    setSelectedTurf,
-    setSelectedBoundary,
-  } = useContext(InspectorContext);
-  const {
-    choroplethLayerConfig: {
-      areaSetCode,
-      mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
-    },
-  } = useContext(ChoroplethContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { data: turfs = [] } = useTurfsQuery();
+  const searchMarker = useMapStore((s) => s.searchMarker);
+  const turfVisibility = useMapStore((s) => s.turfVisibility);
+  const markerQueries = useMarkerQueries();
+
+  const visibleTurfs = useMemo(() => {
+    return turfs.filter((turf) => turfVisibility[turf.id] !== false);
+  }, [turfs, turfVisibility]);
+  const resetInspector = useMapStore((s) => s.resetInspector);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
+  const setSelectedTurf = useMapStore((s) => s.setSelectedTurf);
+  const setSelectedBoundary = useMapStore((s) => s.setSelectedBoundary);
+  const choroplethLayerConfig = useMapStore((s) => s.choroplethLayerConfig);
+  const setMapRef = useMapStore((s) => s.setMapRef);
+
+  // Create a local ref for React - this will be synced to Zustand
+  const localMapRef = useRef<MapRef>(null);
+
+  const areaSetCode = choroplethLayerConfig?.areaSetCode;
+  const sourceId = choroplethLayerConfig?.mapbox.sourceId;
+  const layerId = choroplethLayerConfig?.mapbox.layerId;
+  const featureNameProperty = choroplethLayerConfig?.mapbox.featureNameProperty;
+  const featureCodeProperty = choroplethLayerConfig?.mapbox.featureCodeProperty;
+
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -101,10 +100,12 @@ export default function Map({
   const markerLayers = useMemo(
     () =>
       getDataSourceIds(mapConfig)
-        .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
+        .flatMap((id: string) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );
+
+  const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
 
   // draw existing turfs
   useEffect(() => {
@@ -124,17 +125,15 @@ export default function Map({
 
   // Hover behavior
   useEffect(() => {
-    if (!ready) {
-      return;
-    }
+    if (!ready) return;
 
-    const map = mapRef?.current;
+    const map = localMapRef.current;
 
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
       if (map) {
         const features = map.queryRenderedFeatures(e.point, {
           // Filter out layers that aren't ready
-          layers: markerLayers.filter((layer) => map.getLayer(layer)),
+          layers: markerLayers.filter((layer: string) => map.getLayer(layer)),
         });
         if (features?.length) {
           const feature = features[0];
@@ -177,23 +176,23 @@ export default function Map({
         map.off("draw.modechange", handleModeChange);
       }
     };
-  }, [mapRef, markerLayers, ready]);
+  }, [localMapRef, markerLayers, ready]);
 
   // Draw component cleanup
   useEffect(() => {
-    const map = mapRef?.current;
+    const map = localMapRef.current;
 
     return () => {
       if (draw && map) {
         map.getMap().removeControl(draw);
       }
     };
-  }, [draw, mapRef]);
+  }, [draw, localMapRef]);
 
   // Show/Hide labels
   const toggleLabelVisibility = useCallback(
     (show: boolean) => {
-      const map = mapRef?.current;
+      const map = localMapRef.current;
 
       if (map && styleLoaded) {
         const style = map.getStyle();
@@ -210,7 +209,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded],
+    [localMapRef, styleLoaded],
   );
 
   const getClickedPolygonFeature = (
@@ -247,14 +246,14 @@ export default function Map({
 
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
-  }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
+  }, [localMapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const map = mapRef?.current;
+    const map = localMapRef.current;
     if (!map) return;
 
     const padding = {
@@ -274,10 +273,10 @@ export default function Map({
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-  }, [mapRef, showControls]);
+  }, [localMapRef, showControls]);
 
   useEffect(() => {
-    const map = mapRef?.current;
+    const map = localMapRef.current;
     if (!map || didInitialFit || markerQueries?.isFetching) {
       return;
     }
@@ -326,7 +325,7 @@ export default function Map({
     didInitialFit,
     mapConfig.markerDataSourceIds,
     mapConfig.membersDataSourceId,
-    mapRef,
+    localMapRef,
     markerQueries?.data,
     markerQueries?.isFetching,
     placedMarkers,
@@ -348,14 +347,19 @@ export default function Map({
             bottom: 0,
           },
         }}
-        ref={mapRef}
+        ref={(ref) => {
+          localMapRef.current = ref;
+          setMapRef(localMapRef);
+        }}
         style={{ flexGrow: 1 }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle={`mapbox://styles/mapbox/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
         onClick={(e) => {
           const map = e.target;
-          const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
+          const validMarkerLayers = markerLayers.filter((l: string) =>
+            map.getLayer(l),
+          );
           const features = map.queryRenderedFeatures(e.point, {
             layers: validMarkerLayers,
           });
@@ -431,7 +435,7 @@ export default function Map({
                     setSelectedBoundary({
                       id: feature?.id as string,
                       areaCode: areaCode,
-                      areaSetCode: areaSetCode,
+                      areaSetCode: areaSetCode || AreaSetCode.WMC24,
                       sourceLayerId: feature?.sourceLayer as string,
                       name: areaName,
                       properties: feature?.properties,
@@ -467,10 +471,8 @@ export default function Map({
           }
         }}
         onLoad={() => {
-          const map = mapRef?.current;
-          if (!map) {
-            return;
-          }
+          const map = localMapRef.current;
+          if (!map) return;
 
           toggleLabelVisibility(viewConfig.showLabels);
 
@@ -546,6 +548,7 @@ export default function Map({
                 const area = turf.area(feature);
                 const roundedArea = Math.round(area * 100) / 100;
                 insertTurf({
+                  id: uuidv4(),
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
@@ -609,7 +612,7 @@ export default function Map({
           onSourceLoad(e.style.globalId);
           setStyleLoaded(true);
 
-          const map = mapRef?.current?.getMap();
+          const map = localMapRef.current?.getMap();
           if (map) {
             const layers = map.getStyle().layers;
             if (!layers) return;

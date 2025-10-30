@@ -1,9 +1,9 @@
 import * as turfLib from "@turf/turf";
-import { useContext, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useState } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useTurfMutations } from "../../../hooks/useTurfs";
 import { CONTROL_PANEL_WIDTH } from "../../../styles";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
@@ -11,9 +11,11 @@ import ControlWrapper from "../ControlWrapper";
 import type { Turf } from "@/server/models/Turf";
 
 export default function TurfItem({ turf }: { turf: Turf }) {
-  const { mapRef, showControls } = useContext(MapContext);
-  const { getTurfVisibility, setTurfVisibilityState, updateTurf, deleteTurf } =
-    useContext(MarkerAndTurfContext);
+  const mapRef = useMapStore((s) => s.mapRef);
+  const showControls = useMapStore((s) => s.showControls);
+  const turfVisibility = useMapStore((s) => s.turfVisibility);
+  const setTurfVisibilityState = useMapStore((s) => s.setTurfVisibilityState);
+  const { updateTurf, deleteTurf } = useTurfMutations();
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
@@ -43,7 +45,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
     );
   };
 
-  const isVisible = getTurfVisibility(turf.id);
+  const isVisible = turfVisibility[turf.id] !== false;
 
   const onEdit = () => {
     setEditing(true);

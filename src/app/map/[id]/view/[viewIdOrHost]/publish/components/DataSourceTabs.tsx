@@ -1,12 +1,10 @@
 "use client";
 
-import { useContext } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import CustomFilters from "./_transFriendlyGPs/Filters";
 import FiltersList from "./_transFriendlyGPs/FiltersList";
 import DataRecordsList from "./DataRecordsList";
@@ -32,10 +30,12 @@ export default function DataSourceTabs({
   editable,
   dataRecordsQueries,
 }: DataSourceTabsProps) {
-  const { publicMap, activeTabId, setActiveTabId } =
-    useContext(PublicMapContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
-  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const activeTabId = usePublicMapStore((s) => s.activeTabId);
+  const setActiveTabId = usePublicMapStore((s) => s.setActiveTabId);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
+  const publicFilters = usePublicMapStore((s) => s.publicFilters);
+  const setPublicFilters = usePublicMapStore((s) => s.setPublicFilters);
 
   if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
     return null;
@@ -132,9 +132,10 @@ function SingleDataSourceContent({
   colourScheme,
   onSelect,
 }: SingleDataSourceContentProps) {
-  const { publicFilters, setPublicFilters, records } =
-    useContext(PublicFiltersContext);
-  const { publicMap } = useContext(PublicMapContext);
+  const publicFilters = usePublicMapStore((s) => s.publicFilters);
+  const setPublicFilters = usePublicMapStore((s) => s.setPublicFilters);
+  const records = usePublicMapStore((s) => s.records);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
 
   const dataSourceId = dataRecordsQuery.data?.id;
   const activeFilters = getActiveFilters(

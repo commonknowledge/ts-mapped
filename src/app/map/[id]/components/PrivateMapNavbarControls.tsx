@@ -1,9 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useContext } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -18,7 +16,7 @@ export default function PrivateMapNavbarControls({
 }: {
   setIsEditingName: (isEditing: boolean) => void;
 }) {
-  const { mapId } = useContext(MapContext);
+  const { id: mapId } = useParams<{ id: string }>();
   const router = useRouter();
   const trpc = useTRPC();
   const { mutate } = useMutation(

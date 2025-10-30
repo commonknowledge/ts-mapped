@@ -2,12 +2,11 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@/auth";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
+import { MapEffects } from "./components/MapEffects";
 import PrivateMap from "./components/PrivateMap";
-import ChoroplethProvider from "./providers/ChoroplethProvider";
-import InspectorProvider from "./providers/InspectorProvider";
-import MapProvider from "./providers/MapProvider";
-import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
-import TableProvider from "./providers/TableProvider";
+import { PrivateMapEffects } from "./components/PrivateMapEffects";
+import { MapStoreProvider } from "./providers/MapStoreProvider";
+import { PublicMapStoreProvider } from "./view/[viewIdOrHost]/publish/providers/PublicMapStoreProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,36 +14,28 @@ export const metadata: Metadata = {
 };
 
 export default async function MapPage({
-  params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ viewId: string | undefined }>;
 }) {
   const serverSession = await getServerSession();
-  if (!serverSession.currentUser) {
-    return redirect("/");
-  }
-
-  const { id } = await params;
+  if (!serverSession.currentUser) redirect("/");
   const { viewId } = await searchParams;
 
   return (
-    <MapProvider mapId={id} viewId={viewId}>
-      <InspectorProvider>
-        <ChoroplethProvider>
-          <MarkerAndTurfProvider>
-            <TableProvider>
-              <DesktopOnly>
-                <div className="with-feeback-widget">
-                  <PrivateMap />
-                  <SentryFeedbackWidget />
-                </div>
-              </DesktopOnly>
-            </TableProvider>
-          </MarkerAndTurfProvider>
-        </ChoroplethProvider>
-      </InspectorProvider>
-    </MapProvider>
+    <MapStoreProvider viewId={viewId}>
+      {/*  have to wrap to provide dummy store, for components/hooks that may need a public map */}
+      <PublicMapStoreProvider editable={false}>
+        <MapEffects />
+        <PrivateMapEffects />
+        <DesktopOnly>
+          <div className="with-feeback-widget">
+            <PrivateMap />
+            <SentryFeedbackWidget />
+          </div>
+        </DesktopOnly>
+      </PublicMapStoreProvider>
+    </MapStoreProvider>
   );
 }

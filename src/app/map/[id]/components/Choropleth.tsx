@@ -1,39 +1,39 @@
-import { useContext, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { MapContext, getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { getMapStyle, useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import {
   CalculationType,
   ColorScheme,
   VisualisationType,
 } from "@/server/models/MapView";
 import { useFillColor } from "../colors";
+import { useAreaStats } from "../data";
 
 export default function Choropleth() {
   // Keep track of area codes that have feature state, to clean if necessary
   const areaCodesToClean = useRef<Record<string, boolean>>({});
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapStore((s) => s.mapRef);
   const { viewConfig } = useMapViews();
-  const {
-    areaStatsQuery,
-    lastLoadedSourceId,
-    choroplethLayerConfig: {
-      mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
-    },
-  } = useContext(ChoroplethContext);
+  const lastLoadedSourceId = useMapStore((s) => s.lastLoadedSourceId);
+  const choroplethLayerConfig = useMapStore((s) => s.choroplethLayerConfig);
+
+  const featureCodeProperty = choroplethLayerConfig?.mapbox.featureCodeProperty;
+  const featureNameProperty = choroplethLayerConfig?.mapbox.featureNameProperty;
+  const sourceId = choroplethLayerConfig?.mapbox.sourceId;
+  const layerId = choroplethLayerConfig?.mapbox.layerId;
+
+  const areaStatsQuery = useAreaStats();
 
   /* Set Mapbox feature state on receiving new AreaStats */
   useEffect(() => {
-    if (!areaStatsQuery?.data || !mapRef?.current) {
+    if (!areaStatsQuery?.data || !mapRef?.current || !sourceId || !layerId) {
       return;
     }
 
     // Check if the source exists before proceeding
     const source = mapRef.current.getSource(sourceId);
-    if (!source) {
-      return;
-    }
+    if (!source) return;
 
     // Overwrite previous feature states then remove any that weren't
     // overwritten, to avoid flicker and a bug where gaps would appear

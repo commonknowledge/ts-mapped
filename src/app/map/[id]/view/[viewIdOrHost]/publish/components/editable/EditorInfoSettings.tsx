@@ -1,11 +1,11 @@
-import { useContext } from "react";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { Textarea } from "@/shadcn/ui/textarea";
-import { PublicMapContext } from "../../context/PublicMapContext";
+import { usePublicMapStore } from "../../stores/usePublicMapStore";
 
 export default function EditorInfoSettings() {
-  const { publicMap, updatePublicMap } = useContext(PublicMapContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const updatePublicMap = usePublicMapStore((s) => s.updatePublicMap);
   const mapTitle = publicMap?.name;
   const mapDescription = publicMap?.description;
   const mapDescriptionLink = publicMap?.descriptionLink;

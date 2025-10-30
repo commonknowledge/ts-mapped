@@ -1,12 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useMemo } from "react";
+import { useParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import {
-  MapContext,
   createNewViewConfig,
-} from "@/app/map/[id]/context/MapContext";
+  useMapStore,
+} from "@/app/map/[id]/stores/useMapStore";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
@@ -14,16 +15,19 @@ import type { View } from "../types";
 import type { MapViewConfig } from "@/server/models/MapView";
 
 export function useMapViews() {
-  const { viewId, mapId, setViewId, setDirtyViewIds } = use(MapContext);
+  const viewId = useMapStore((s) => s.viewId);
+  const { id: mapId } = useParams<{ id: string }>();
+  const setViewId = useMapStore((s) => s.setViewId);
+  const setDirtyViewIds = useMapStore((s) => s.setDirtyViewIds);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { data: mapData } = useMapQuery(mapId);
+  const { data: mapData } = useMapQuery();
 
   // Get views directly from cache
-  const views = useMemo(() => mapData?.views || [], [mapData?.views]);
+  const views = mapData?.views;
 
   const view = useMemo(
-    () => views.find((v) => v.id === viewId) || null,
+    () => views?.find((v) => v.id === viewId) || null,
     [viewId, views],
   );
 
@@ -145,7 +149,8 @@ export function useMapViews() {
     (view: View) => {
       if (!mapId) return;
 
-      const updatedViews = views.map((v) => (v.id === view.id ? view : v));
+      const updatedViews =
+        views?.map((v) => (v.id === view.id ? view : v)) || [];
 
       setDirtyViewIds((ids) => ids.concat([view.id]));
 
@@ -233,7 +238,7 @@ export function useMapViews() {
   );
 
   return {
-    views,
+    views: views || [],
     view,
     viewConfig,
     updateViewConfig,

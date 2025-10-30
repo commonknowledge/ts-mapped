@@ -1,12 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
-import { useContext } from "react";
 import { toast } from "sonner";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
@@ -22,18 +19,17 @@ interface DataRecord {
 }
 
 export default function MapTable() {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapStore((s) => s.mapRef);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
+  const selectedRecord = useMapStore((s) => s.selectedRecord);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
 
-  const {
-    selectedDataSourceId,
-    handleDataSourceSelect,
-    tablePage,
-    setTablePage,
-  } = useContext(TableContext);
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
+  const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
+  const tablePage = useMapStore((s) => s.tablePage);
+  const setTablePage = useMapStore((s) => s.setTablePage);
 
   const { data: dataRecordsResult, isPending: dataRecordsLoading } =
     useDataRecords(selectedDataSourceId, tablePage);
@@ -138,7 +134,7 @@ export default function MapTable() {
         setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
         selectedRecordId={selectedRecord?.id}
-        onClose={() => handleDataSourceSelect("")}
+        onClose={() => toggleDataSourceId("")}
       />
     </div>
   );

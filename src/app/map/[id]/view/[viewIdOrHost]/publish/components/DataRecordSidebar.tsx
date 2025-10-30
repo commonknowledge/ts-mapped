@@ -1,18 +1,18 @@
 import { Check, X } from "lucide-react";
-import { useContext, useMemo } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { useMemo } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import { buildName, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
-  const { selectedRecord } = useContext(InspectorContext);
-  const { publicMap } = useContext(PublicMapContext);
+  const selectedRecord = useMapStore((s) => s.selectedRecord);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
   const dataRecordsQueries = usePublicDataRecordsQueries();
 
   const selectedRecordDetails = useMemo(() => {

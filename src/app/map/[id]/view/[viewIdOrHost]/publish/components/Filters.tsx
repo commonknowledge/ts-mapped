@@ -1,7 +1,6 @@
 "use client";
 
 import { ListFilter } from "lucide-react";
-import { useContext } from "react";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -12,12 +11,13 @@ import {
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
 import { Separator } from "@/shadcn/ui/separator";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import FiltersForm from "./FiltersForm";
 
 export default function Filters() {
-  const { filtersDialogOpen, setFiltersDialogOpen, filterFields } =
-    useContext(PublicFiltersContext);
+  const filtersDialogOpen = usePublicMapStore((s) => s.filtersDialogOpen);
+  const setFiltersDialogOpen = usePublicMapStore((s) => s.setFiltersDialogOpen);
+  const filterFields = usePublicMapStore((s) => s.filterFields);
 
   const closeDialog = () => setFiltersDialogOpen(false);
 

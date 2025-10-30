@@ -1,17 +1,14 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useContext } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 
 export default function ZoomControl() {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapStore((s) => s.mapRef);
   const map = mapRef?.current;
 
   const zoomIn = () => map?.zoomIn({ duration: 500 });
   const zoomOut = () => map?.zoomOut({ duration: 500 });
 
-  if (!map) {
-    return <></>;
-  }
+  if (!map) return <></>;
 
   return (
     <div className="relative z-10 flex gap-1 p-1 group">

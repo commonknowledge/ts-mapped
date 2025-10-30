@@ -1,0 +1,44 @@
+"use client";
+
+import { useEffect } from "react";
+import { LayerType } from "@/types";
+import { useMapConfig } from "../hooks/useMapConfig";
+import { useTurfsQuery } from "../hooks/useTurfs";
+import { useMapStore } from "../stores/useMapStore";
+
+// WE REALLY WANA DELETE THIS, DERIVE!!
+export function PrivateMapEffects() {
+  const hiddenLayers = useMapStore((s) => s.hiddenLayers);
+  const setTurfVisibilityState = useMapStore((s) => s.setTurfVisibilityState);
+  const setDataSourceVisibilityState = useMapStore(
+    (s) => s.setDataSourceVisibilityState,
+  );
+  const { mapConfig } = useMapConfig();
+  const { data: turfs = [] } = useTurfsQuery();
+
+  // Handle side effects when layers are shown/hidden
+  useEffect(() => {
+    // When a layer visibility changes, update visibility for all items in that layer
+    if (hiddenLayers.includes(LayerType.Member)) {
+      if (mapConfig.membersDataSourceId) {
+        setDataSourceVisibilityState(mapConfig.membersDataSourceId, false);
+      }
+    } else {
+      if (mapConfig.membersDataSourceId) {
+        setDataSourceVisibilityState(mapConfig.membersDataSourceId, true);
+      }
+    }
+  }, [
+    hiddenLayers,
+    mapConfig.membersDataSourceId,
+    setDataSourceVisibilityState,
+  ]);
+
+  useEffect(() => {
+    // When turf layer visibility changes, update visibility for all turfs
+    const isTurfLayerHidden = hiddenLayers.includes(LayerType.Turf);
+    turfs.forEach((t) => setTurfVisibilityState(t.id, !isTurfLayerHidden));
+  }, [hiddenLayers, turfs, setTurfVisibilityState]);
+
+  return null;
+}

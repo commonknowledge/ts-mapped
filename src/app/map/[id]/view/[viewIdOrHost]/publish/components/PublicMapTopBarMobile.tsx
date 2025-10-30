@@ -1,15 +1,17 @@
 "use client";
 
 import { MapIcon, Menu, X } from "lucide-react";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { publicMapColourSchemes } from "@/app/map/[id]/styles";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 import PublicMapGeocoder from "./PublicMapGeocoder";
 
 export default function PublicMapTopBarMobile() {
-  const { publicMap, editable, setSearchLocation, colourScheme } =
-    useContext(PublicMapContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const editable = usePublicMapStore((s) => s.editable);
+  const setSearchLocation = usePublicMapStore((s) => s.setSearchLocation);
+  const colourScheme = usePublicMapStore((s) => s.colourScheme);
 
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
 

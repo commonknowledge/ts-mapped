@@ -1,12 +1,16 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
-import { MARKER_ID_KEY } from "@/constants";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import {
+  MARKER_ID_KEY,
+  MARKER_MATCHED_KEY,
+  MARKER_NAME_KEY,
+} from "@/constants";
 import { mapColors } from "../styles";
-import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
+import { usePublicMapStore } from "../view/[viewIdOrHost]/publish/stores/usePublicMapStore";
 import type { PointFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
 
@@ -29,8 +33,8 @@ function rgbaString(hex: string, alpha: number) {
 export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
-  const { markerQueries, getDataSourceVisibility } =
-    useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
+  const getDataSourceVisibility = useMapStore((s) => s.getDataSourceVisibility);
 
   const memberMarkers = useMemo(
     () =>
@@ -84,11 +88,15 @@ function DataSourceMarkers({
   dataSourceMarkers: { dataSourceId: string; markers: PointFeature[] };
   isMembers: boolean;
 }) {
-  const { records, publicFilters } = useContext(PublicFiltersContext);
+  // Store is always available now (wrapped in both private and public pages)
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const isPublicMap = !!publicMap;
+  const publicFilters = usePublicMapStore((s) => s.publicFilters);
+  const records = usePublicMapStore((s) => s.records);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
-    // Don't add MARKER_CLIENT_EXCLUDED_KEY property if no public filters exist
-    if (Object.keys(publicFilters).length === 0) {
+    // If not in public map context or no filters, return markers as-is
+    if (!isPublicMap || Object.keys(publicFilters).length === 0) {
       return {
         type: "FeatureCollection",
         features: dataSourceMarkers.markers,
@@ -96,7 +104,7 @@ function DataSourceMarkers({
     }
 
     // Add MARKER_CLIENT_EXCLUDED_KEY if public filters are set and marker is not matched
-    const recordIds = (records || []).map((r) => r.id).filter(Boolean);
+    const recordIds = records.map((r) => r.id).filter(Boolean);
     return {
       type: "FeatureCollection",
       features: dataSourceMarkers.markers.map((f) => ({
@@ -109,7 +117,7 @@ function DataSourceMarkers({
         },
       })),
     };
-  }, [dataSourceMarkers.markers, publicFilters, records]);
+  }, [dataSourceMarkers.markers, publicFilters, records, isPublicMap]);
 
   const NOT_MATCHED_CASE = [
     "any",

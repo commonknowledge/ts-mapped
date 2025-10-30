@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect, useState } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
@@ -18,7 +18,7 @@ export default function MapWrapper({
   children: React.ReactNode;
   hideDrawControls?: boolean;
 }) {
-  const { showControls } = useContext(MapContext);
+  const showControls = useMapStore((s) => s.showControls);
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");

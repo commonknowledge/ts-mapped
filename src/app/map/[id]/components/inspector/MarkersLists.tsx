@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType, type RecordData, type RecordsResponse } from "@/types";
 import TurfMarkerButton from "./TurfMarkerButton";
@@ -22,7 +21,7 @@ export const MembersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
 
   const memberRecords = records.records ?? [];
   const total = records.count.matched ?? 0;
@@ -76,7 +75,7 @@ export const MarkersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
 
   const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const recordsList = records.records ?? [];
@@ -136,7 +135,7 @@ export const PlacedMarkersList = ({
   folder: Folder | null;
   records: RecordsResponse;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
 
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;

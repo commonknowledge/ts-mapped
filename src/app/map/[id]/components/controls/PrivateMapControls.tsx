@@ -1,8 +1,5 @@
 import { PanelLeft } from "lucide-react";
-import { useContext } from "react";
-
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { Button } from "@/shadcn/ui/button";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 
@@ -12,8 +9,9 @@ import MembersControl from "./MembersControl/MembersControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
 
 export default function PrivateMapControls() {
-  const { showControls, setShowControls } = useContext(MapContext);
-  const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
+  const showControls = useMapStore((s) => s.showControls);
+  const setShowControls = useMapStore((s) => s.setShowControls);
+  const setBoundariesPanelOpen = useMapStore((s) => s.setBoundariesPanelOpen);
 
   const onToggleControls = () => {
     setShowControls(!showControls);
