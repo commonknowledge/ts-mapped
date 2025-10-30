@@ -23,9 +23,7 @@ export default function MembersControl() {
   const dataSource = useMembersDataSource();
   const { data: allDataSources, isPending: allDataSourcesLoading } =
     useDataSources();
-  const selectedDataSourceId = useMapStore(
-    (s) => s.selectedDataSourceId,
-  );
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
   const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
   const [expanded, setExpanded] = useState(true);
 

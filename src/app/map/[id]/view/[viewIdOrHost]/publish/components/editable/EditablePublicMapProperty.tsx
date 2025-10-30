@@ -26,8 +26,12 @@ export default function EditablePublicMapProperty({
 }) {
   const publicMap = usePublicMapStore((s) => s.publicMap);
   const updatePublicMap = usePublicMapStore((s) => s.updatePublicMap);
-  const updateDataSourceConfig = usePublicMapStore((s) => s.updateDataSourceConfig);
-  const updateAdditionalColumn = usePublicMapStore((s) => s.updateAdditionalColumn);
+  const updateDataSourceConfig = usePublicMapStore(
+    (s) => s.updateDataSourceConfig,
+  );
+  const updateAdditionalColumn = usePublicMapStore(
+    (s) => s.updateAdditionalColumn,
+  );
   const editable = usePublicMapStore((s) => s.editable);
   const inputRef = useRef<HTMLInputElement>(null);
 

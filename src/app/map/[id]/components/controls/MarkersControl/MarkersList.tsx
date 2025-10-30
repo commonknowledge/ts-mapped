@@ -59,9 +59,7 @@ export default function MarkersList() {
   const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { updatePlacedMarker } = usePlacedMarkerMutations();
-  const selectedDataSourceId = useMapStore(
-    (s) => s.selectedDataSourceId,
-  );
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
   const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
   const markerDataSources = useMarkerDataSources();
 

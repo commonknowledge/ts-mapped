@@ -70,8 +70,13 @@ export function PublicMapEffects() {
 
       setFilterFields(fields);
     }
-  }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen, setFilterFields]);
+  }, [
+    publicMap,
+    activeTabId,
+    dataRecordsQueries,
+    filtersDialogOpen,
+    setFilterFields,
+  ]);
 
   return null;
 }
-

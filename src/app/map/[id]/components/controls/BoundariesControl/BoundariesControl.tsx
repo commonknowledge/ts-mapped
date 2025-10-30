@@ -15,9 +15,7 @@ export default function BoundariesControl() {
   const [expanded, setExpanded] = useState(true);
   const { hasDataSource } = useBoundariesControl();
   const boundariesPanelOpen = useMapStore((s) => s.boundariesPanelOpen);
-  const setBoundariesPanelOpen = useMapStore(
-    (s) => s.setBoundariesPanelOpen,
-  );
+  const setBoundariesPanelOpen = useMapStore((s) => s.setBoundariesPanelOpen);
 
   return (
     <LayerControlWrapper>

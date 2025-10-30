@@ -28,7 +28,9 @@ export default function DataRecordsList({
   colourScheme,
 }: DataRecordsListProps) {
   const publicMap = usePublicMapStore((s) => s.publicMap);
-  const setRecordSidebarVisible = usePublicMapStore((s) => s.setRecordSidebarVisible);
+  const setRecordSidebarVisible = usePublicMapStore(
+    (s) => s.setRecordSidebarVisible,
+  );
   const mapRef = useMapStore((s) => s.mapRef);
   const selectedRecord = useMapStore((s) => s.selectedRecord);
   const publicFilters = usePublicMapStore((s) => s.publicFilters);

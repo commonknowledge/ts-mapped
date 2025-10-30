@@ -60,9 +60,7 @@ export default function VisualisationPanel({
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
   const boundariesPanelOpen = useMapStore((s) => s.boundariesPanelOpen);
-  const setBoundariesPanelOpen = useMapStore(
-    (s) => s.setBoundariesPanelOpen,
-  );
+  const setBoundariesPanelOpen = useMapStore((s) => s.setBoundariesPanelOpen);
   const { data: dataSources } = useDataSources();
   const dataSource = useChoroplethDataSource();
 

@@ -22,7 +22,9 @@ import ColumnCard from "./ColumnCard";
 
 export default function EditorDataSettings() {
   const publicMap = usePublicMapStore((s) => s.publicMap);
-  const updateDataSourceConfig = usePublicMapStore((s) => s.updateDataSourceConfig);
+  const updateDataSourceConfig = usePublicMapStore(
+    (s) => s.updateDataSourceConfig,
+  );
   const activeTabId = usePublicMapStore((s) => s.activeTabId);
   const setActiveTabId = usePublicMapStore((s) => s.setActiveTabId);
   const { getDataSourceById } = useDataSources();

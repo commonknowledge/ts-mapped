@@ -25,9 +25,7 @@ export default function DataSourceItem({
   const setDataSourceVisibilityState = useMapStore(
     (s) => s.setDataSourceVisibilityState,
   );
-  const getDataSourceVisibility = useMapStore(
-    (s) => s.getDataSourceVisibility,
-  );
+  const getDataSourceVisibility = useMapStore((s) => s.getDataSourceVisibility);
   const layerColor =
     layerType === LayerType.Member
       ? mapColors.member.color

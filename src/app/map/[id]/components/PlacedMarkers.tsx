@@ -12,9 +12,7 @@ export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const selectedPlacedMarkerId = useMapStore(
-    (s) => s.selectedPlacedMarkerId,
-  );
+  const selectedPlacedMarkerId = useMapStore((s) => s.selectedPlacedMarkerId);
   const markerVisibility = useMapStore((s) => s.markerVisibility);
 
   const visiblePlacedMarkers = useMemo(() => {

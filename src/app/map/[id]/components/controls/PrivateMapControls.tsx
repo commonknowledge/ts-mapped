@@ -11,9 +11,7 @@ import TurfsControl from "./TurfsControl/TurfsControl";
 export default function PrivateMapControls() {
   const showControls = useMapStore((s) => s.showControls);
   const setShowControls = useMapStore((s) => s.setShowControls);
-  const setBoundariesPanelOpen = useMapStore(
-    (s) => s.setBoundariesPanelOpen,
-  );
+  const setBoundariesPanelOpen = useMapStore((s) => s.setBoundariesPanelOpen);
 
   const onToggleControls = () => {
     setShowControls(!showControls);

@@ -18,9 +18,7 @@ export default function InspectorPanel() {
   const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
   const mapRef = useMapStore((s) => s.mapRef);
   const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
-  const selectedDataSourceId = useMapStore(
-    (s) => s.selectedDataSourceId,
-  );
+  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
 
   if (!Boolean(inspectorContent)) {
     return <></>;

@@ -14,9 +14,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   const mapRef = useMapStore((s) => s.mapRef);
   const showControls = useMapStore((s) => s.showControls);
   const turfVisibility = useMapStore((s) => s.turfVisibility);
-  const setTurfVisibilityState = useMapStore(
-    (s) => s.setTurfVisibilityState,
-  );
+  const setTurfVisibilityState = useMapStore((s) => s.setTurfVisibilityState);
   const { updateTurf, deleteTurf } = useTurfMutations();
 
   const [isEditing, setEditing] = useState(false);
