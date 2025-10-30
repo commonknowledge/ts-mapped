@@ -33,7 +33,7 @@ export default function PrivateMapNavbar() {
   const router = useRouter();
   const { mapId, mapRef, dirtyViewIds } = useContext(MapContext);
   const { data: map } = useMapQuery(mapId);
-  const { isDirty: configDirty } = useMapConfig();
+  const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();
 
   const showPublishButton = useFeatureFlagEnabled("public-maps");
@@ -204,7 +204,9 @@ export default function PrivateMapNavbar() {
               {showPublishButton && view && (
                 <Button
                   type="button"
-                  disabled={loading || dirtyViewIds.length > 0 || configDirty}
+                  disabled={
+                    loading || dirtyViewIds.length > 0 || configUpdating
+                  }
                   variant="outline"
                   onClick={onClickPublish}
                 >
