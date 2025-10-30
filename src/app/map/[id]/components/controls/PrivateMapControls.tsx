@@ -1,5 +1,6 @@
 import { PanelLeft } from "lucide-react";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { Button } from "@/shadcn/ui/button";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 
@@ -11,7 +12,9 @@ import TurfsControl from "./TurfsControl/TurfsControl";
 export default function PrivateMapControls() {
   const showControls = useMapStore((s) => s.showControls);
   const setShowControls = useMapStore((s) => s.setShowControls);
-  const setBoundariesPanelOpen = useMapStore((s) => s.setBoundariesPanelOpen);
+  const setBoundariesPanelOpen = usePrivateMapStore(
+    (s) => s.setBoundariesPanelOpen,
+  );
 
   const onToggleControls = () => {
     setShowControls(!showControls);

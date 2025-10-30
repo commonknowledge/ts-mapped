@@ -7,6 +7,7 @@ import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/server/models/MapView";
@@ -26,7 +27,9 @@ export default function FilterMarkers() {
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
 
-  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
+  const selectedDataSourceId = usePrivateMapStore(
+    (s) => s.selectedDataSourceId,
+  );
 
   const memberMarkers = useMemo(
     () =>

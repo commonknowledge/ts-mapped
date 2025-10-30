@@ -3,13 +3,13 @@ import { Marker, Popup } from "react-map-gl/mapbox";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { mapColors } from "../styles";
 import type { Feature } from "geojson";
 
 export default function SearchResultMarker() {
-  const searchMarker = useMapStore((s) => s.searchMarker);
-  const setSearchMarker = useMapStore((s) => s.setSearchMarker);
+  const searchMarker = usePrivateMapStore((s) => s.searchMarker);
+  const setSearchMarker = usePrivateMapStore((s) => s.setSearchMarker);
   const { insertPlacedMarker } = usePlacedMarkerMutations();
 
   const center = getFeatureCenter(searchMarker);

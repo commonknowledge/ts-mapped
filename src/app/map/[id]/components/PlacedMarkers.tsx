@@ -3,7 +3,7 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { FeatureCollection, Point } from "geojson";
@@ -12,8 +12,10 @@ export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const selectedPlacedMarkerId = useMapStore((s) => s.selectedPlacedMarkerId);
-  const markerVisibility = useMapStore((s) => s.markerVisibility);
+  const selectedPlacedMarkerId = usePrivateMapStore(
+    (s) => s.selectedPlacedMarkerId,
+  );
+  const markerVisibility = usePrivateMapStore((s) => s.markerVisibility);
 
   const visiblePlacedMarkers = useMemo(() => {
     return placedMarkers.filter((marker) => {

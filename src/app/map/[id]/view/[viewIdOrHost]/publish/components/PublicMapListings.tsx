@@ -1,12 +1,13 @@
 import { LoaderPinwheel } from "lucide-react";
-import { useContext } from "react";
 import { publicMapColourSchemes } from "@/app/map/[id]/styles";
-import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import DataSourceTabs from "./DataSourceTabs";
 
 export function PublicMapListings() {
-  const { publicMap, editable, colourScheme } = useContext(PublicMapContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const editable = usePublicMapStore((s) => s.editable);
+  const colourScheme = usePublicMapStore((s) => s.colourScheme);
   const dataRecordsQueries = usePublicDataRecordsQueries();
 
   // Convert string colourScheme to actual color scheme object

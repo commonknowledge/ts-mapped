@@ -6,16 +6,17 @@ import * as turf from "@turf/turf";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import {
-  getDataSourceIds,
-  getMapStyle,
-} from "@/app/map/[id]/context/MapContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
+import {
+  getDataSourceIds,
+  getMapStyle,
+} from "@/app/map/[id]/stores/useMapStore";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
@@ -54,7 +55,8 @@ export default function Map({
 }) {
   const setBoundingBox = useMapStore((s) => s.setBoundingBox);
   const setZoom = useMapStore((s) => s.setZoom);
-  const pinDropMode = useMapStore((s) => s.pinDropMode);
+  const privatePinDropMode = usePrivateMapStore((s) => s.pinDropMode);
+  const pinDropMode = hideDrawControls ? false : privatePinDropMode;
   const showControls = useMapStore((s) => s.showControls);
   const ready = useMapStore((s) => s.ready);
   const setReady = useMapStore((s) => s.setReady);
@@ -62,8 +64,8 @@ export default function Map({
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { data: turfs = [] } = useTurfsQuery();
-  const searchMarker = useMapStore((s) => s.searchMarker);
-  const turfVisibility = useMapStore((s) => s.turfVisibility);
+  const searchMarker = usePrivateMapStore((s) => s.searchMarker);
+  const turfVisibility = usePrivateMapStore((s) => s.turfVisibility);
   const markerQueries = useMarkerQueries();
 
   const visibleTurfs = useMemo(() => {
@@ -99,7 +101,7 @@ export default function Map({
   const markerLayers = useMemo(
     () =>
       getDataSourceIds(mapConfig)
-        .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
+        .flatMap((id: string) => [`${id}-markers-pins`, `${id}-markers-labels`])
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );
@@ -132,7 +134,7 @@ export default function Map({
       if (map) {
         const features = map.queryRenderedFeatures(e.point, {
           // Filter out layers that aren't ready
-          layers: markerLayers.filter((layer) => map.getLayer(layer)),
+          layers: markerLayers.filter((layer: string) => map.getLayer(layer)),
         });
         if (features?.length) {
           const feature = features[0];
@@ -356,7 +358,9 @@ export default function Map({
         interactiveLayerIds={markerLayers}
         onClick={(e) => {
           const map = e.target;
-          const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
+          const validMarkerLayers = markerLayers.filter((l: string) =>
+            map.getLayer(l),
+          );
           const features = map.queryRenderedFeatures(e.point, {
             layers: validMarkerLayers,
           });

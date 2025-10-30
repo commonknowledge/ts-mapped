@@ -15,7 +15,7 @@ import {
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
@@ -59,8 +59,10 @@ export default function VisualisationPanel({
   positionLeft: number;
 }) {
   const { viewConfig, updateViewConfig } = useMapViews();
-  const boundariesPanelOpen = useMapStore((s) => s.boundariesPanelOpen);
-  const setBoundariesPanelOpen = useMapStore((s) => s.setBoundariesPanelOpen);
+  const boundariesPanelOpen = usePrivateMapStore((s) => s.boundariesPanelOpen);
+  const setBoundariesPanelOpen = usePrivateMapStore(
+    (s) => s.setBoundariesPanelOpen,
+  );
   const { data: dataSources } = useDataSources();
   const dataSource = useChoroplethDataSource();
 

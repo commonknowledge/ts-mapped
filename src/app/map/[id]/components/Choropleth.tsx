@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { getMapStyle, useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import {
   CalculationType,
   ColorScheme,

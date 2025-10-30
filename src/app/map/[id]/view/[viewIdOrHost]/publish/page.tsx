@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
 import { MapStoreProvider } from "../../../providers/MapStoreProvider";
 import PublicMap from "./components/PublicMap";
-import PublicFiltersProvider from "./providers/PublicFiltersProvider";
-import PublicMapProvider from "./providers/PublicMapProvider";
+import { PublicMapEffects } from "./components/PublicMapEffects";
+import { PublicMapStoreProvider } from "./providers/PublicMapStoreProvider";
 import type { Metadata } from "next";
 
 interface Props {
@@ -65,11 +65,10 @@ export default async function PublicMapAdminPage({
 
   return (
     <MapStoreProvider viewId={publicMap.viewId}>
-      <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
-        <PublicFiltersProvider>
-          <PublicMap />
-        </PublicFiltersProvider>
-      </PublicMapProvider>
+      <PublicMapStoreProvider publicMap={publicMap} editable={!isPublicRoute}>
+        <PublicMapEffects />
+        <PublicMap />
+      </PublicMapStoreProvider>
     </MapStoreProvider>
   );
 }

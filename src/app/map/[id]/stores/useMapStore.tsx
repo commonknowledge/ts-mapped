@@ -3,28 +3,54 @@
 import { createContext, use } from "react";
 import { createStore, useStore } from "zustand";
 import { DEFAULT_ZOOM } from "@/constants";
+import {
+  CalculationType,
+  ColorScheme,
+  MapStyleName,
+} from "@/server/models/MapView";
+import mapStyles from "../styles";
 import type { ChoroplethLayerConfig } from "../sources";
-import type {
-  InspectorContent,
-  SelectedBoundary,
-  SelectedRecord,
-  SelectedTurf,
-} from "@/app/map/[id]/context/InspectorContext";
 import type { BoundingBox } from "@/server/models/Area";
-import type { Turf } from "@/server/models/Turf";
+import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { DataSource } from "@/server/models/DataSource";
+import type { MapConfig } from "@/server/models/Map";
+import type { MapViewConfig } from "@/server/models/MapView";
 import type { LayerType } from "@/types";
-import type { Feature } from "geojson";
-import type { LngLat } from "mapbox-gl";
+import type { Polygon } from "geojson";
+import type { LngLatLike } from "mapbox-gl";
 import type { RefObject } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
 
-interface MapStore {
-  // Table state
-  selectedDataSourceId: string;
-  tablePage: number;
-  toggleDataSourceId: (dataSourceId: string) => void;
-  setTablePage: (page: number) => void;
+export interface InspectorContent {
+  type: LayerType | undefined;
+  name: string | unknown;
+  properties: Record<string, unknown> | null;
+  dataSource: DataSource | null;
+}
 
+export interface SelectedRecord {
+  id: string;
+  dataSourceId: string;
+  point?: LngLatLike | null;
+  properties?: Record<string, unknown> | null;
+}
+
+export interface SelectedTurf {
+  id: string;
+  name: string;
+  geometry: Polygon;
+}
+
+export interface SelectedBoundary {
+  id: string;
+  areaCode: string;
+  areaSetCode: AreaSetCode;
+  sourceLayerId: string;
+  name: string;
+  properties?: Record<string, unknown> | null;
+}
+
+interface MapStore {
   // Map state
   mapRef: RefObject<MapRef | null> | null;
   setMapRef: (ref: RefObject<MapRef | null>) => void;
@@ -32,12 +58,8 @@ interface MapStore {
   setBoundingBox: (boundingBox: BoundingBox | null) => void;
   viewId: string | null | undefined;
   setViewId: (id: string) => void;
-  dirtyViewIds: string[];
-  setDirtyViewIds: (callback: (prevIds: string[]) => string[]) => void;
   zoom: number;
   setZoom: (zoom: number) => void;
-  pinDropMode: boolean;
-  setPinDropMode: (pinDropMode: boolean) => void;
   ready: boolean;
   setReady: (ready: boolean) => void;
   showControls: boolean;
@@ -55,36 +77,8 @@ interface MapStore {
   resetInspector: () => void;
 
   // Choropleth state
-  boundariesPanelOpen: boolean;
-  setBoundariesPanelOpen: (open: boolean) => void;
   lastLoadedSourceId: string | undefined;
   setLastLoadedSourceId: (id: string | undefined) => void;
-
-  // Marker and Turf state
-  editingTurf: Turf | null;
-  setEditingTurf: (turf: Turf | null) => void;
-  selectedPlacedMarkerId: string | null;
-  setSelectedPlacedMarkerId: (id: string | null) => void;
-  searchMarker: Feature | null;
-  setSearchMarker: (marker: Feature | null) => void;
-  markerVisibility: Record<string, boolean>;
-  turfVisibility: Record<string, boolean>;
-  dataSourceVisibility: Record<string, boolean>;
-  setMarkerVisibilityState: (markerId: string, isVisible: boolean) => void;
-  setTurfVisibilityState: (turfId: string, isVisible: boolean) => void;
-  setDataSourceVisibilityState: (
-    dataSourceId: string,
-    isVisible: boolean,
-  ) => void;
-  getMarkerVisibility: (markerId: string) => boolean;
-  getTurfVisibility: (turfId: string) => boolean;
-  getDataSourceVisibility: (dataSourceId: string) => boolean;
-  hiddenLayers: LayerType[];
-  showLayer: (layer: LayerType) => void;
-  hideLayer: (layer: LayerType) => void;
-  getLayerVisibility: (layer: LayerType) => boolean;
-  handleAddArea: () => void;
-  handleDropPin: (callback: (lngLat: LngLat) => void) => void;
   choroplethLayerConfig: ChoroplethLayerConfig | null;
   setChoroplethLayerConfig: (config: ChoroplethLayerConfig | null) => void;
 }
@@ -94,22 +88,7 @@ export const createMapStore = ({
 }: {
   initialViewId?: string;
 }) => {
-  return createStore<MapStore>((set, get) => ({
-    // Table state
-    tablePage: 0,
-    setTablePage: (page) => {
-      set({ tablePage: page });
-    },
-    selectedDataSourceId: "",
-    toggleDataSourceId: (dataSourceId) => {
-      const currentId = get().selectedDataSourceId;
-      if (currentId === dataSourceId) {
-        set({ selectedDataSourceId: "" });
-      } else {
-        set({ selectedDataSourceId: dataSourceId, tablePage: 0 });
-      }
-    },
-
+  return createStore<MapStore>((set) => ({
     // Map state
     mapRef: null,
     setMapRef: (mapRef) => {
@@ -121,21 +100,11 @@ export const createMapStore = ({
     },
     viewId: initialViewId,
     setViewId: (viewId) => {
-      set({ viewId, tablePage: 0 });
-    },
-    dirtyViewIds: [],
-    setDirtyViewIds: (callback) => {
-      set((state) => ({
-        dirtyViewIds: callback(state.dirtyViewIds),
-      }));
+      set({ viewId });
     },
     zoom: DEFAULT_ZOOM,
     setZoom: (zoom) => {
       set({ zoom });
-    },
-    pinDropMode: false,
-    setPinDropMode: (pinDropMode) => {
-      set({ pinDropMode });
     },
     ready: false,
     setReady: (ready) => {
@@ -173,94 +142,9 @@ export const createMapStore = ({
     },
 
     // Choropleth state
-    boundariesPanelOpen: false,
-    setBoundariesPanelOpen: (open) => {
-      set({ boundariesPanelOpen: open });
-    },
     lastLoadedSourceId: undefined,
     setLastLoadedSourceId: (id) => {
       set({ lastLoadedSourceId: id });
-    },
-
-    // Marker and Turf state
-    editingTurf: null,
-    setEditingTurf: (editingTurf) => {
-      set({ editingTurf });
-    },
-    selectedPlacedMarkerId: null,
-    setSelectedPlacedMarkerId: (selectedPlacedMarkerId) => {
-      set({ selectedPlacedMarkerId });
-    },
-    searchMarker: null,
-    setSearchMarker: (searchMarker) => {
-      set({ searchMarker });
-    },
-    markerVisibility: {},
-    turfVisibility: {},
-    dataSourceVisibility: {},
-    setMarkerVisibilityState: (markerId, isVisible) => {
-      set((state) => ({
-        markerVisibility: { ...state.markerVisibility, [markerId]: isVisible },
-      }));
-    },
-    setTurfVisibilityState: (turfId, isVisible) => {
-      set((state) => ({
-        turfVisibility: { ...state.turfVisibility, [turfId]: isVisible },
-      }));
-    },
-    setDataSourceVisibilityState: (dataSourceId, isVisible) => {
-      set((state) => ({
-        dataSourceVisibility: {
-          ...state.dataSourceVisibility,
-          [dataSourceId]: isVisible,
-        },
-      }));
-    },
-    getMarkerVisibility: (markerId) => {
-      return get().markerVisibility[markerId] ?? true;
-    },
-    getTurfVisibility: (turfId) => {
-      return get().turfVisibility[turfId] ?? true;
-    },
-    getDataSourceVisibility: (dataSourceId) => {
-      return get().dataSourceVisibility[dataSourceId] ?? true;
-    },
-    hiddenLayers: [],
-    showLayer: (layer) => {
-      set((state) => ({
-        hiddenLayers: state.hiddenLayers.filter((l) => l !== layer),
-      }));
-    },
-    hideLayer: (layer) => {
-      set((state) => ({
-        hiddenLayers: [...state.hiddenLayers, layer],
-      }));
-    },
-    getLayerVisibility: (layer) => {
-      return !get().hiddenLayers.includes(layer);
-    },
-    handleAddArea: () => {
-      const map = get().mapRef?.current;
-      if (!map) return;
-      const drawButton = document.querySelector(
-        ".mapbox-gl-draw_polygon",
-      ) as HTMLButtonElement;
-      if (drawButton) drawButton.click();
-    },
-    handleDropPin: (callback: (lngLat: LngLat) => void) => {
-      const map = get().mapRef?.current;
-      if (!map) return;
-      set({ pinDropMode: true });
-      map.getCanvas().style.cursor = "crosshair";
-
-      const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-        callback(e.lngLat);
-        map.getCanvas().style.cursor = "";
-        map.off("click", clickHandler);
-        set({ pinDropMode: false });
-        map.flyTo({ center: e.lngLat, zoom: 14 });
-      };
-      map.once("click", clickHandler);
     },
     choroplethLayerConfig: null,
     setChoroplethLayerConfig: (config) => {
@@ -278,3 +162,36 @@ export function useMapStore<T>(selector: (state: MapStore) => T): T {
   if (!store) throw new Error("Missing MapStoreProvider");
   return useStore(store, selector);
 }
+
+export const createNewViewConfig = (): MapViewConfig => {
+  return {
+    areaDataSourceId: "",
+    areaDataColumn: "",
+    areaSetGroupCode: null,
+    excludeColumnsString: "",
+    mapStyleName: MapStyleName.Light,
+    showLabels: true,
+    showBoundaryOutline: false,
+    showMembers: true,
+    showLocations: true,
+    showTurf: true,
+    calculationType: CalculationType.Value,
+    colorScheme: ColorScheme.RedBlue,
+    reverseColorScheme: false,
+    visualisationType: null,
+  };
+};
+
+export const getDataSourceIds = (mapConfig: MapConfig) => {
+  return Array.from(
+    new Set(
+      [mapConfig.membersDataSourceId]
+        .concat(mapConfig.markerDataSourceIds)
+        .filter(Boolean),
+    ),
+  );
+};
+
+export const getMapStyle = (viewConfig: MapViewConfig) => {
+  return mapStyles[viewConfig.mapStyleName] || Object.values(mapStyles)[0];
+};

@@ -1,14 +1,12 @@
 "use client";
 
 import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect, useState } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import { buildName } from "../utils";
 import { filterRecords, getActiveFilters } from "./filtersHelpers";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
@@ -29,11 +27,13 @@ export default function DataRecordsList({
   onSelect,
   colourScheme,
 }: DataRecordsListProps) {
-  const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
-  const { mapRef } = useContext(MapContext);
-  const { selectedRecord } = useContext(InspectorContext);
-  const { publicFilters, records, setRecords } =
-    useContext(PublicFiltersContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const setRecordSidebarVisible = usePublicMapStore((s) => s.setRecordSidebarVisible);
+  const mapRef = useMapStore((s) => s.mapRef);
+  const selectedRecord = useMapStore((s) => s.selectedRecord);
+  const publicFilters = usePublicMapStore((s) => s.publicFilters);
+  const records = usePublicMapStore((s) => s.records);
+  const setRecords = usePublicMapStore((s) => s.setRecords);
   const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
 
   useEffect(() => {

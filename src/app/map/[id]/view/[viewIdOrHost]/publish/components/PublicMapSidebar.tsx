@@ -1,18 +1,19 @@
 "use client";
 
 import { MapIcon } from "lucide-react";
-import { useContext } from "react";
 import { publicMapColourSchemes } from "@/app/map/[id]/styles";
 import { cn } from "@/shadcn/utils";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import DataRecordSidebar from "./DataRecordSidebar";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 import PublicMapGeocoder from "./PublicMapGeocoder";
 import { PublicMapListings } from "./PublicMapListings";
 
 export default function PublicMapSidebar() {
-  const { publicMap, editable, setSearchLocation, colourScheme } =
-    useContext(PublicMapContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const editable = usePublicMapStore((s) => s.editable);
+  const setSearchLocation = usePublicMapStore((s) => s.setSearchLocation);
+  const colourScheme = usePublicMapStore((s) => s.colourScheme);
 
   // Convert string colourScheme to actual color scheme object
   const activeColourScheme =

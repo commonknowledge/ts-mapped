@@ -1,29 +1,16 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
-import type { RouterOutputs } from "@/services/trpc/react";
-import type { FilterField, PublicFiltersFormValue } from "@/types";
-import type { ReactNode } from "react";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 
-export default function PublicFiltersProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const { publicMap, activeTabId } = useContext(PublicMapContext);
+export function PublicMapEffects() {
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const activeTabId = usePublicMapStore((s) => s.activeTabId);
+  const filtersDialogOpen = usePublicMapStore((s) => s.filtersDialogOpen);
+  const setFilterFields = usePublicMapStore((s) => s.setFilterFields);
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
-  const [filterFields, setFilterFields] = useState<FilterField[]>([]);
-  const [publicFilters, setPublicFilters] = useState<
-    Record<string, PublicFiltersFormValue[]>
-  >({});
-  const [records, setRecords] = useState<
-    NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"]
-  >([]);
 
   useEffect(() => {
     // don't run it until user opens the filters
@@ -83,22 +70,8 @@ export default function PublicFiltersProvider({
 
       setFilterFields(fields);
     }
-  }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen]);
+  }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen, setFilterFields]);
 
-  return (
-    <PublicFiltersContext
-      value={{
-        filtersDialogOpen,
-        setFiltersDialogOpen,
-        filterFields,
-        setFilterFields,
-        publicFilters,
-        setPublicFilters,
-        records,
-        setRecords,
-      }}
-    >
-      {children}
-    </PublicFiltersContext>
-  );
+  return null;
 }
+

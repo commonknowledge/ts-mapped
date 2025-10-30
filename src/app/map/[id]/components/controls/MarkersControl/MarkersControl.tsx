@@ -10,6 +10,7 @@ import {
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -28,7 +29,8 @@ export default function MarkersControl() {
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
-  const handleDropPin = useMapStore((s) => s.handleDropPin);
+  const mapRef = useMapStore((s) => s.mapRef);
+  const handleDropPin = usePrivateMapStore((s) => s.handleDropPin);
 
   const { insertPlacedMarker } = usePlacedMarkerMutations();
   const onInsert = useCallback(
@@ -116,7 +118,7 @@ export default function MarkersControl() {
         {
           type: "item" as const,
           label: "Drop a pin on the map",
-          onClick: () => handleDropPin(onInsert),
+          onClick: () => handleDropPin(mapRef, onInsert),
         },
       ],
     },

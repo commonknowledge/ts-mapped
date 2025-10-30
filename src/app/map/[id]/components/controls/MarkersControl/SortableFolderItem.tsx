@@ -12,7 +12,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
@@ -65,8 +65,8 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const markerVisibility = useMapStore((s) => s.markerVisibility);
-  const setMarkerVisibilityState = useMapStore(
+  const markerVisibility = usePrivateMapStore((s) => s.markerVisibility);
+  const setMarkerVisibilityState = usePrivateMapStore(
     (s) => s.setMarkerVisibilityState,
   );
 

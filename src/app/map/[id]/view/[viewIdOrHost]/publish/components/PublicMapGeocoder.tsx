@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
-import { useContext, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useState } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { Input } from "@/shadcn/ui/input";
 import type { Point } from "@/server/models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
@@ -15,7 +15,7 @@ export default function PublicMapGeocoder({
   colourScheme?: { primary: string; muted: string };
   className?: string;
 }) {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapStore((s) => s.mapRef);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);

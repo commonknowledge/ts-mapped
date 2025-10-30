@@ -27,7 +27,7 @@ import {
   usePlacedMarkerMutations,
   usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -59,8 +59,10 @@ export default function MarkersList() {
   const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { updatePlacedMarker } = usePlacedMarkerMutations();
-  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
-  const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
+  const selectedDataSourceId = usePrivateMapStore(
+    (s) => s.selectedDataSourceId,
+  );
+  const toggleDataSourceId = usePrivateMapStore((s) => s.toggleDataSourceId);
   const markerDataSources = useMarkerDataSources();
 
   const [activeId, setActiveId] = useState<string | null>(null);

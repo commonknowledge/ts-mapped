@@ -4,6 +4,7 @@ import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
@@ -26,10 +27,12 @@ export default function MapTable() {
   const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
 
-  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
-  const toggleDataSourceId = useMapStore((s) => s.toggleDataSourceId);
-  const tablePage = useMapStore((s) => s.tablePage);
-  const setTablePage = useMapStore((s) => s.setTablePage);
+  const selectedDataSourceId = usePrivateMapStore(
+    (s) => s.selectedDataSourceId,
+  );
+  const toggleDataSourceId = usePrivateMapStore((s) => s.toggleDataSourceId);
+  const tablePage = usePrivateMapStore((s) => s.tablePage);
+  const setTablePage = usePrivateMapStore((s) => s.setTablePage);
 
   const { data: dataRecordsResult, isPending: dataRecordsLoading } =
     useDataRecords(selectedDataSourceId, tablePage);

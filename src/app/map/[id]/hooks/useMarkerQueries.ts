@@ -1,17 +1,16 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
-import { useContext, useMemo } from "react";
-import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
+import { use, useMemo } from "react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
+import { getDataSourceIds } from "../stores/useMapStore";
+import { PublicMapStoreContext } from "../view/[viewIdOrHost]/publish/stores/usePublicMapStore";
 import type { PointFeature } from "@/types";
 
 export function useMarkerQueries() {
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
-  const { publicMap } = useContext(PublicMapContext);
 
   const dataSourceIds = useMemo(() => {
     if (!publicMap) {

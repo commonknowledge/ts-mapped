@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useContext } from "react";
 import Loading from "@/app/map/[id]/components/Loading";
 import Map from "@/app/map/[id]/components/Map";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import EditorNavbar from "./editable/EditorNavbar";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
 import { PublicMapListings } from "./PublicMapListings";
@@ -16,9 +15,9 @@ import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 
 export default function PublicMap() {
-  const { editable } = useContext(PublicMapContext);
+  const editable = usePublicMapStore((s) => s.editable);
   const areaStatsQuery = useAreaStats();
-  const { setLastLoadedSourceId } = useContext(ChoroplethContext);
+  const setLastLoadedSourceId = useMapStore((s) => s.setLastLoadedSourceId);
   const markerQueries = useMarkerQueries();
 
   const { data: map, isPending } = useMapQuery();

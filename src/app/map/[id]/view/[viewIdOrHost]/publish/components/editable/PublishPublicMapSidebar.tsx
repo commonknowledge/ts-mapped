@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Database, Settings } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { useEffect, useState } from "react";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import {
   VerticalTabs,
   VerticalTabsContent,
@@ -14,24 +14,24 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import { PublicMapContext } from "../../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
+import { usePublicMapStore } from "../../stores/usePublicMapStore";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
 import type { FormEvent } from "react";
 
 export default function PublishPublicMapSidebar() {
-  const {
-    publicMap,
-    activeTabId,
-    activePublishTab,
-    setActivePublishTab,
-    recordSidebarVisible,
-    setRecordSidebarVisible,
-  } = useContext(PublicMapContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const activeTabId = usePublicMapStore((s) => s.activeTabId);
+  const activePublishTab = usePublicMapStore((s) => s.activePublishTab);
+  const setActivePublishTab = usePublicMapStore((s) => s.setActivePublishTab);
+  const recordSidebarVisible = usePublicMapStore((s) => s.recordSidebarVisible);
+  const setRecordSidebarVisible = usePublicMapStore(
+    (s) => s.setRecordSidebarVisible,
+  );
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const setSelectedRecord = useMapStore((s) => s.setSelectedRecord);
   const [hideSidebar] = useState(false);
   const [, setError] = useState("");
   const [publishedHost, setPublishedHost] = useState(

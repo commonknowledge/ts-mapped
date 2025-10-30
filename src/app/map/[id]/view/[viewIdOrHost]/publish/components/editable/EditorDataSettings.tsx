@@ -1,5 +1,5 @@
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
@@ -16,13 +16,15 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import { PublicMapContext } from "../../context/PublicMapContext";
+import { usePublicMapStore } from "../../stores/usePublicMapStore";
 import DataSourcesSelect from "../DataSourcesSelect";
 import ColumnCard from "./ColumnCard";
 
 export default function EditorDataSettings() {
-  const { publicMap, updateDataSourceConfig, activeTabId, setActiveTabId } =
-    useContext(PublicMapContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const updateDataSourceConfig = usePublicMapStore((s) => s.updateDataSourceConfig);
+  const activeTabId = usePublicMapStore((s) => s.activeTabId);
+  const setActiveTabId = usePublicMapStore((s) => s.setActiveTabId);
   const { getDataSourceById } = useDataSources();
   const [expandedColumns, setExpandedColumns] = useState<
     Record<string, boolean>

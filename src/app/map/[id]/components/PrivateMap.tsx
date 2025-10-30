@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -27,7 +28,9 @@ export default function PrivateMap() {
   const setLastLoadedSourceId = useMapStore((s) => s.setLastLoadedSourceId);
   const { isPending: dataSourcesLoading } = useDataSources();
   const markerQueries = useMarkerQueries();
-  const selectedDataSourceId = useMapStore((s) => s.selectedDataSourceId);
+  const selectedDataSourceId = usePrivateMapStore(
+    (s) => s.selectedDataSourceId,
+  );
 
   const { data: map, isPending } = useMapQuery();
   // Resize map when UI changes

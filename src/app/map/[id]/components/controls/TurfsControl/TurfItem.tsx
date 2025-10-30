@@ -1,6 +1,7 @@
 import * as turfLib from "@turf/turf";
 import { useState } from "react";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { useTurfMutations } from "../../../hooks/useTurfs";
@@ -13,8 +14,10 @@ import type { Turf } from "@/server/models/Turf";
 export default function TurfItem({ turf }: { turf: Turf }) {
   const mapRef = useMapStore((s) => s.mapRef);
   const showControls = useMapStore((s) => s.showControls);
-  const turfVisibility = useMapStore((s) => s.turfVisibility);
-  const setTurfVisibilityState = useMapStore((s) => s.setTurfVisibilityState);
+  const turfVisibility = usePrivateMapStore((s) => s.turfVisibility);
+  const setTurfVisibilityState = usePrivateMapStore(
+    (s) => s.setTurfVisibilityState,
+  );
   const { updateTurf, deleteTurf } = useTurfMutations();
 
   const [isEditing, setEditing] = useState(false);

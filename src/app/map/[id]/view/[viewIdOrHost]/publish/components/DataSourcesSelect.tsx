@@ -1,8 +1,7 @@
 import { Database } from "lucide-react";
-import { useContext } from "react";
-import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { getDataSourceIds } from "@/app/map/[id]/stores/useMapStore";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -11,25 +10,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { PublicMapContext } from "../context/PublicMapContext";
-import type { ColumnDef } from "@/server/models/DataSource";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
+import type { RouterOutputs } from "@/services/trpc/react";
 
-interface DataSource {
-  id: string;
-  name: string;
-  columnDefs: ColumnDef[];
-  columnRoles: { nameColumns?: string[] | null };
-}
+type DataSource = RouterOutputs["dataSource"]["listReadable"][number];
 
 export default function DataSourcesSelect() {
   const { mapConfig } = useMapConfig();
   const { getDataSourceById } = useDataSources();
-  const { publicMap, updatePublicMap } = useContext(PublicMapContext);
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const updatePublicMap = usePublicMapStore((s) => s.updatePublicMap);
 
   const dataSources = getDataSourceIds(mapConfig)
     .map((id) => getDataSourceById(id))
-    .filter((ds) => ds !== undefined && ds !== null);
+    .filter((ds): ds is DataSource => ds !== null);
 
   return (
     <DropdownMenu>
@@ -81,7 +76,7 @@ export const createDataSourceConfig = (
     dataSourceLabel: dataSource.name,
     formUrl: "",
     nameLabel: "Name",
-    nameColumns: dataSource.columnRoles.nameColumns || [],
+    nameColumns: dataSource.columnRoles?.nameColumns || [],
     descriptionLabel: "",
     descriptionColumn: "",
     additionalColumns: [],

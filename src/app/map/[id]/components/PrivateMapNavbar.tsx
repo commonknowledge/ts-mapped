@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
+import { usePrivateMapStore } from "@/app/map/[id]/stores/usePrivateMapStore";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
 import { useFeatureFlagEnabled } from "@/hooks";
@@ -32,7 +33,7 @@ export default function PrivateMapNavbar() {
   const router = useRouter();
   const { id: mapId } = useParams<{ id: string }>();
   const mapRef = useMapStore((s) => s.mapRef);
-  const dirtyViewIds = useMapStore((s) => s.dirtyViewIds);
+  const dirtyViewIds = usePrivateMapStore((s) => s.dirtyViewIds);
   const { data: map } = useMapQuery();
   const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();

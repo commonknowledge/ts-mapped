@@ -1,19 +1,17 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { AreaSetCode } from "@/server/models/AreaSet";
 import { CalculationType, VisualisationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { ChoroplethContext } from "./context/ChoroplethContext";
-import { MapContext } from "./context/MapContext";
 import { useMapViews } from "./hooks/useMapViews";
+import { useMapStore } from "./stores/useMapStore";
 import type { AreaStat } from "@/server/models/Area";
 import type { ColumnType } from "@/server/models/DataSource";
 
 export const useAreaStats = () => {
-  const { boundingBox } = useContext(MapContext);
+  const boundingBox = useMapStore((s) => s.boundingBox);
   const { viewConfig } = useMapViews();
-  const {
-    choroplethLayerConfig: { areaSetCode },
-  } = useContext(ChoroplethContext);
+  const areaSetCode = useMapStore((s) => s.choroplethLayerConfig?.areaSetCode);
   const {
     calculationType,
     areaDataColumn: column,
@@ -31,6 +29,7 @@ export const useAreaStats = () => {
     !column && calculationType !== CalculationType.Count;
 
   const skipCondition =
+    !areaSetCode || // Skip if user has not selected an area set
     !dataSourceId || // Skip if user has not selected a data source
     !areaSetGroupCode || // Skip if user has not selected an area set group
     !viewIsChoropleth ||
@@ -58,7 +57,7 @@ export const useAreaStats = () => {
   const areaStatsQuery = useTanstackQuery(
     trpc.area.stats.queryOptions(
       {
-        areaSetCode,
+        areaSetCode: areaSetCode || AreaSetCode.WMC24,
         calculationType: calculationType || CalculationType.Value,
         dataSourceId,
         column: columnOrCount,

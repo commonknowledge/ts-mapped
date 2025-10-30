@@ -1,14 +1,25 @@
 import { useQueries } from "@tanstack/react-query";
-import { useContext } from "react";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMemo } from "react";
+import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
+import { useMapStore } from "@/app/map/[id]/stores/useMapStore";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicMapStore } from "../stores/usePublicMapStore";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function usePublicDataRecordsQueries() {
-  const { publicMap, searchLocation } = useContext(PublicMapContext);
-  const { view } = useMapViews();
+  const publicMap = usePublicMapStore((s) => s.publicMap);
+  const searchLocation = usePublicMapStore((s) => s.searchLocation);
+
+  const viewId = useMapStore((s) => s.viewId);
+  const { data: mapData } = useMapQuery();
+  // Get views directly from cache
+  const views = mapData?.views;
+  const view = useMemo(
+    () => views?.find((v) => v.id === viewId) || null,
+    [viewId, views],
+  );
+
   const trpc = useTRPC();
 
   return useQueries({
