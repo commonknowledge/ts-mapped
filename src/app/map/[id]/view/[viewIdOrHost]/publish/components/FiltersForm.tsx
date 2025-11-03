@@ -102,7 +102,10 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
             // text input
-            <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
+            <FormFieldWrapper
+              label={field.label || field.name}
+              id={`filters-${field.name}`}
+            >
               <Input
                 type="text"
                 autoComplete="off"
@@ -123,7 +126,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
                 }
               />
               <Label htmlFor={`filters-${field.name}`} className="font-normal">
-                {field.name}
+                {field.label || field.name}
               </Label>
             </div>
           ) : field?.options?.length ? (
