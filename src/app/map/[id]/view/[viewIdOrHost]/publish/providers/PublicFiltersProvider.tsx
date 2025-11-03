@@ -16,7 +16,6 @@ export default function PublicFiltersProvider({
 }) {
   const { publicMap, activeTabId } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
   const [publicFilters, setPublicFilters] = useState<
     Record<string, PublicFiltersFormValue[]>
@@ -27,7 +26,7 @@ export default function PublicFiltersProvider({
 
   useEffect(() => {
     // don't run it until user opens the filters
-    if (!publicMap || !filtersDialogOpen) {
+    if (!publicMap) {
       return;
     }
 
@@ -83,13 +82,11 @@ export default function PublicFiltersProvider({
 
       setFilterFields(fields);
     }
-  }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen]);
+  }, [publicMap, activeTabId, dataRecordsQueries]);
 
   return (
     <PublicFiltersContext
       value={{
-        filtersDialogOpen,
-        setFiltersDialogOpen,
         filterFields,
         setFilterFields,
         publicFilters,

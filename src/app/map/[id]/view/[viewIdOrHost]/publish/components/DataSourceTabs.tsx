@@ -7,12 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
-import CustomFilters from "./_transFriendlyGPs/Filters";
-import FiltersList from "./_transFriendlyGPs/FiltersList";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
-// import Filters from "./Filters";
+import Filters from "./Filters";
 import { getActiveFilters } from "./filtersHelpers";
+import FiltersList from "./FiltersList";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 interface DataSourceTabsProps {
@@ -138,14 +137,14 @@ function SingleDataSourceContent({
 
   const dataSourceId = dataRecordsQuery.data?.id;
   const activeFilters = getActiveFilters(
-    dataSourceId ? publicFilters[dataSourceId] : [],
+    dataSourceId ? publicFilters[dataSourceId] : []
   );
 
   const config =
     publicMap?.dataSourceConfigs?.length === 1
       ? publicMap?.dataSourceConfigs[0]
       : publicMap?.dataSourceConfigs.find(
-          (c) => c.dataSourceId === dataSourceId,
+          (c) => c.dataSourceId === dataSourceId
         );
 
   const getListingsLabel = () => {
@@ -169,12 +168,11 @@ function SingleDataSourceContent({
     <div
       className={cn(
         "flex flex-col gap-2 overflow-y-auto",
-        editable && "border border-neutral-200 border-dashed m-1 rounded-md",
+        editable && "border border-neutral-200 border-dashed m-1 rounded-md"
       )}
     >
       <div className="flex justify-between items-center gap-4 px-2">
-        {/* <Filters /> */}
-        <CustomFilters />
+        <Filters />
 
         {activeFilters?.length > 0 && (
           <Button type="button" variant="ghost" onClick={() => resetFilters()}>
