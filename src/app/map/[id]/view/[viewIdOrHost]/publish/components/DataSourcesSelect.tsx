@@ -80,6 +80,7 @@ export const createDataSourceConfig = (
     dataSourceId: dataSource.id,
     dataSourceLabel: dataSource.name,
     formUrl: "",
+    editFormUrl: "",
     nameLabel: "Name",
     nameColumns: dataSource.columnRoles.nameColumns || [],
     descriptionLabel: "",
