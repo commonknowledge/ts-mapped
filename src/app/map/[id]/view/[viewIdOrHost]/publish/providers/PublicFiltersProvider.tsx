@@ -25,6 +25,10 @@ export default function PublicFiltersProvider({
   >([]);
 
   useEffect(() => {
+    console.log(publicFilters);
+  }, [publicFilters]);
+
+  useEffect(() => {
     // don't run it until user opens the filters
     if (!publicMap) {
       return;

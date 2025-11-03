@@ -66,7 +66,10 @@ export default function CustomMultiSelect({
             <ChevronDown className="text-muted-foreground opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="max-w-full w-full">
+        <DropdownMenuContent
+          align="start"
+          className="max-w-full w-full text-sm"
+        >
           <Command shouldFilter={enableSearch}>
             {enableSearch && (
               <CommandInput

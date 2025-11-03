@@ -48,6 +48,14 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
     setValues(defaultEmptyValues);
   }, [activeTabId, fields, publicFilters]);
 
+  // update filters on values change
+  useEffect(() => {
+    if (activeTabId && values.length > 0) {
+      setPublicFilters((prev) => ({ ...prev, [activeTabId]: values }));
+      setSelectedRecord(null);
+    }
+  }, [values, activeTabId, setPublicFilters, setSelectedRecord]);
+
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>
       prev.map((v) => (v.name === name ? { ...v, value } : v)),
@@ -78,15 +86,6 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (activeTabId) {
-      setPublicFilters({ ...publicFilters, [activeTabId]: values });
-    }
-    // closing the data record sidebar when applying filters - to avoid showing details of a record that is filtered out
-    setSelectedRecord(null);
-  };
-
   const isChecked = (field: FilterField) => {
     const value = values.find((v) => v.name === field.name)?.value;
 
@@ -98,7 +97,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   };
 
   return (
-    <form className="flex flex-col gap-4 w-full" onChange={handleSubmit}>
+    <form className="flex flex-col gap-4 w-full">
       {fields.map((field) => (
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
@@ -165,14 +164,16 @@ const FiltersMultiSelect = ({
   };
 
   return (
-    <CustomMultiSelect
-      label={field.name}
-      id={`filters-${field.name}`}
-      allOptions={field.options || []}
-      selectedOptions={
-        values?.find((v) => v.name === field.name)?.selectedOptions || []
-      }
-      onChange={onChange}
-    />
+    <div className="my-2">
+      <CustomMultiSelect
+        label={field.label || field.name}
+        id={`filters-${field.name}`}
+        allOptions={field.options || []}
+        selectedOptions={
+          values?.find((v) => v.name === field.name)?.selectedOptions || []
+        }
+        onChange={onChange}
+      />
+    </div>
   );
 };

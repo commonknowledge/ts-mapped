@@ -26,4 +26,10 @@ export const TRANS_FRIENDLY_GPS_FILTERS = [
     name: "Shared Care Agreement",
     type: PublicMapColumnType.Boolean,
   },
+  {
+    name: "Shared Care Agreement Details",
+    type: PublicMapColumnType.CommaSeparatedList,
+    options: ["GenderCare", "GenderGP"],
+    label: "Shared care agreement with",
+  },
 ];

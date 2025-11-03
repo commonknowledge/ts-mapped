@@ -62,6 +62,8 @@ export interface PublicFiltersFormValue {
 export interface FilterField {
   name: string;
   type: PublicMapColumnType;
+
+  label?: string;
   options?: string[];
 }
 
