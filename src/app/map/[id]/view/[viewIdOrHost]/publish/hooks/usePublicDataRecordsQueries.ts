@@ -15,7 +15,7 @@ export function usePublicDataRecordsQueries() {
     queries:
       publicMap?.dataSourceConfigs.map((config) => {
         const filter = view?.dataSourceViews.find(
-          (dsv) => dsv.dataSourceId === config.dataSourceId
+          (dsv) => dsv.dataSourceId === config.dataSourceId,
         )?.filter;
 
         const sort = searchLocation
@@ -29,7 +29,7 @@ export function usePublicDataRecordsQueries() {
             sort,
             all: true,
           },
-          { refetchOnMount: "always" }
+          { refetchOnMount: "always" },
         );
       }) ?? [],
     combine: (results) => {
