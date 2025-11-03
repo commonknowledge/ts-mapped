@@ -2,13 +2,15 @@ import { createContext } from "react";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
+type SetPublicFilters = React.Dispatch<
+  React.SetStateAction<Record<string, PublicFiltersFormValue[]>>
+>;
+
 export const PublicFiltersContext = createContext<{
-  filtersDialogOpen: boolean;
-  setFiltersDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   filterFields: FilterField[];
   setFilterFields: React.Dispatch<React.SetStateAction<FilterField[]>>;
   publicFilters: Record<string, PublicFiltersFormValue[]>;
-  setPublicFilters: (r: Record<string, PublicFiltersFormValue[]>) => void;
+  setPublicFilters: SetPublicFilters;
   records: NonNullable<
     RouterOutputs["dataSource"]["byIdWithRecords"]
   >["records"];
@@ -18,8 +20,6 @@ export const PublicFiltersContext = createContext<{
     >
   >;
 }>({
-  filtersDialogOpen: false,
-  setFiltersDialogOpen: () => null,
   filterFields: [],
   setFilterFields: () => [],
   publicFilters: {},

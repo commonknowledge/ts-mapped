@@ -2,11 +2,9 @@
 
 import { CircleX } from "lucide-react";
 import { Fragment, useContext } from "react";
-import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Badge } from "@/shadcn/ui/badge";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
-import { toBoolean } from "../utils";
 import { getActiveFilters } from "./filtersHelpers";
 import type { PublicFiltersFormValue } from "@/types";
 
@@ -22,13 +20,13 @@ function FiltersListBadge({
       variant="outline"
       className="flex items-center gap-[0.4em] bg-white text-sm"
     >
-      {name}
       <button
         className="text-muted-foreground hover:text-primary cursor-pointer"
         onClick={onClick}
       >
         <CircleX size={16} />
       </button>
+      {name}
     </Badge>
   );
 }
@@ -77,7 +75,7 @@ export default function FiltersList() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 bg-muted">
+    <div className="flex flex-col gap-4 w-full shrink-0 overflow-x-auto p-4 bg-muted">
       <ul className="flex flex-wrap gap-2">
         {activeFilters.map((filter) =>
           filter.selectedOptions ? (
@@ -91,23 +89,13 @@ export default function FiltersList() {
                 </li>
               ))}
             </Fragment>
-          ) : filter.type === PublicMapColumnType.Boolean &&
-            toBoolean(filter.value) ? (
+          ) : (
             <li key={filter.name}>
               <FiltersListBadge
                 name={filter.name}
                 onClick={() => removeFilter(filter)}
               />
             </li>
-          ) : filter.type === PublicMapColumnType.String ? (
-            <li key={filter.value}>
-              <FiltersListBadge
-                name={filter.name}
-                onClick={() => removeFilter(filter)}
-              />
-            </li>
-          ) : (
-            <></>
           ),
         )}
       </ul>

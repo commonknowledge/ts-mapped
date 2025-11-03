@@ -27,7 +27,7 @@ export function usePublicDataRecordsQueries() {
             dataSourceId: config.dataSourceId,
             filter,
             sort,
-            page: 0,
+            all: true,
           },
           { refetchOnMount: "always" },
         );

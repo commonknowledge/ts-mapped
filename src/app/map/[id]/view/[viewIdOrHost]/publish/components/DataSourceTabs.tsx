@@ -7,12 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
-import CustomFilters from "./_transFriendlyGPs/Filters";
-import FiltersList from "./_transFriendlyGPs/FiltersList";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
-// import Filters from "./Filters";
+import Filters from "./Filters";
 import { getActiveFilters } from "./filtersHelpers";
+import FiltersList from "./FiltersList";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 interface DataSourceTabsProps {
@@ -174,8 +173,7 @@ function SingleDataSourceContent({
     >
       <div className="sticky top-0 py-2 border-b bg-white">
         <div className="flex justify-between items-center gap-4 px-2">
-          {/* <Filters /> */}
-          <CustomFilters />
+          <Filters />
 
           {activeFilters?.length > 0 && (
             <Button

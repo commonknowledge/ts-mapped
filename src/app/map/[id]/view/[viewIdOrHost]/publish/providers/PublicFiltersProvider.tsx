@@ -2,6 +2,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
+import { ALLOWED_FILTERS } from "../const";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
@@ -16,7 +17,6 @@ export default function PublicFiltersProvider({
 }) {
   const { publicMap, activeTabId } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
   const [publicFilters, setPublicFilters] = useState<
     Record<string, PublicFiltersFormValue[]>
@@ -27,7 +27,7 @@ export default function PublicFiltersProvider({
 
   useEffect(() => {
     // don't run it until user opens the filters
-    if (!publicMap || !filtersDialogOpen) {
+    if (!publicMap) {
       return;
     }
 
@@ -81,15 +81,22 @@ export default function PublicFiltersProvider({
         return col;
       });
 
-      setFilterFields(fields);
+      const allowedFields = ALLOWED_FILTERS.map((allowed) => {
+        const field = fields.find((f) => f.name === allowed.name);
+
+        return {
+          ...(field as FilterField),
+          label: allowed?.label,
+        };
+      }).filter((f) => !!f?.name);
+
+      setFilterFields(allowedFields);
     }
-  }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen]);
+  }, [publicMap, activeTabId, dataRecordsQueries]);
 
   return (
     <PublicFiltersContext
       value={{
-        filtersDialogOpen,
-        setFiltersDialogOpen,
         filterFields,
         setFilterFields,
         publicFilters,
