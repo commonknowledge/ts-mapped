@@ -63,7 +63,7 @@ export interface FilterField {
   name: string;
   type: PublicMapColumnType;
 
-  label?: string;
+  label?: string | undefined;
   options?: string[];
 }
 

@@ -2,6 +2,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
+import { ALLOWED_FILTERS } from "../const";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
@@ -23,10 +24,6 @@ export default function PublicFiltersProvider({
   const [records, setRecords] = useState<
     NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"]
   >([]);
-
-  useEffect(() => {
-    console.log(publicFilters);
-  }, [publicFilters]);
 
   useEffect(() => {
     // don't run it until user opens the filters
@@ -84,7 +81,16 @@ export default function PublicFiltersProvider({
         return col;
       });
 
-      setFilterFields(fields);
+      const allowedFields = ALLOWED_FILTERS.map((allowed) => {
+        const field = fields.find((f) => f.name === allowed.name);
+
+        return {
+          ...(field as FilterField),
+          label: allowed?.label,
+        };
+      }).filter((f) => !!f?.name);
+
+      setFilterFields(allowedFields);
     }
   }, [publicMap, activeTabId, dataRecordsQueries]);
 

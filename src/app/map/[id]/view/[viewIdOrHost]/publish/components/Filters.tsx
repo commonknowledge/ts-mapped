@@ -1,7 +1,7 @@
 "use client";
 
 import { ListFilter } from "lucide-react";
-// import { useContext } from "react";
+import { useContext } from "react";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -9,14 +9,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { TRANS_FRIENDLY_GPS_FILTERS, TRANS_FRIENDLY_GPS_LABEL } from "../const";
-// import { PublicFiltersContext } from "../context/PublicFiltersContext";
+import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import FiltersForm from "./FiltersForm";
 
 export default function Filters() {
-  // const { filterFields } = useContext(PublicFiltersContext);
-  const label = TRANS_FRIENDLY_GPS_LABEL;
-  const filterFields = TRANS_FRIENDLY_GPS_FILTERS;
+  const { filterFields } = useContext(PublicFiltersContext);
+  const label = "Services"; // TODO: make label dynamic
 
   return (
     <DropdownMenu>
