@@ -27,7 +27,7 @@ export default function MapWrapper({
     if (currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
-        "You are in draw mode. Click to add points. Double click to finish drawing.",
+        "You are in draw mode. Click to add points. Double click to finish drawing."
       );
     } else if (currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
@@ -55,13 +55,13 @@ export default function MapWrapper({
       {children}
 
       <div
-        className="absolute bottom-8 left-8 z-10 transition-transform duration-300"
+        className="absolute bottom-8 left-8 z-10 transition-transform duration-300 hidden md:block"
         style={positionLeft}
       >
         <MapStyleSelector />
       </div>
 
-      <div className="map-zoom-controls / absolute bottom-8 right-8 z-10 transition-transform duration-300">
+      <div className="map-zoom-controls / absolute bottom-8 right-8 z-10 transition-transform duration-300 hidden md:block">
         <ZoomControl />
       </div>
 
