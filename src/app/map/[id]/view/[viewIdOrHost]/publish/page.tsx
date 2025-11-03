@@ -58,6 +58,7 @@ export default async function PublicMapAdminPage({
         host: "",
         name: "My Public Map",
         description: "",
+        descriptionLong: "",
         descriptionLink: "",
         published: false,
         dataSourceConfigs: [],
