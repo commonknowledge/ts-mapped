@@ -28,15 +28,15 @@ export default function DataRecordSidebar() {
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId
+    (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId,
   );
 
   const name = buildName(
     dataSourceConfig?.nameColumns || [],
-    selectedRecordDetails.json
+    selectedRecordDetails.json,
   );
   const description = String(
-    selectedRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] || ""
+    selectedRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] || "",
   );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
@@ -93,7 +93,9 @@ export default function DataRecordSidebar() {
                 }}
                 placeholder="Label"
               >
-                <span className="text-muted-foreground">{columnConfig.label}</span>
+                <span className="text-muted-foreground">
+                  {columnConfig.label}
+                </span>
               </EditablePublicMapProperty>
             )}
             {columnConfig.type === PublicMapColumnType.Boolean ? (
@@ -111,7 +113,7 @@ export default function DataRecordSidebar() {
                 {columnConfig.sourceColumns
                   .map((c) => selectedRecordDetails.json[c])
                   .filter(Boolean)
-                  .join(", ") || "–"} 
+                  .join(", ") || "–"}
               </span>
             )}
           </div>
@@ -124,7 +126,7 @@ export default function DataRecordSidebar() {
             <a
               target="_blank"
               href={`${dataSourceConfig.formUrl}${jsonToAirtablePrefill(
-                selectedRecordDetails.json
+                selectedRecordDetails.json,
               )}`}
             >
               Submit an edit
@@ -171,7 +173,7 @@ function CommaSeparatedList({
     .flatMap((c) =>
       String(json[c] || "")
         .split(",")
-        .map((s) => s.trim())
+        .map((s) => s.trim()),
     )
     .filter((v) => Boolean(v));
 

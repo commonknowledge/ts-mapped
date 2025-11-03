@@ -138,14 +138,14 @@ function SingleDataSourceContent({
 
   const dataSourceId = dataRecordsQuery.data?.id;
   const activeFilters = getActiveFilters(
-    dataSourceId ? publicFilters[dataSourceId] : []
+    dataSourceId ? publicFilters[dataSourceId] : [],
   );
 
   const config =
     publicMap?.dataSourceConfigs?.length === 1
       ? publicMap?.dataSourceConfigs[0]
       : publicMap?.dataSourceConfigs.find(
-          (c) => c.dataSourceId === dataSourceId
+          (c) => c.dataSourceId === dataSourceId,
         );
 
   const getListingsLabel = () => {
@@ -169,7 +169,7 @@ function SingleDataSourceContent({
     <div
       className={cn(
         "flex flex-col overflow-y-auto text-sm",
-        editable && "border border-neutral-200 border-dashed m-1 rounded-md"
+        editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
       <div className="sticky top-0 py-2 border-b bg-white">
