@@ -397,6 +397,27 @@ export default function EditorDataSettings() {
                       }
                     />
                   </FormFieldWrapper>
+                  {dataSourceConfig.allowUserSubmit && (
+                    <FormFieldWrapper
+                      label="Submission form URL"
+                      id={`${dataSourceConfig.dataSourceId}-form-url`}
+                    >
+                      <Input
+                        type="url"
+                        id={`${dataSourceConfig.dataSourceId}-form-url`}
+                        value={dataSourceConfig.formUrl}
+                        onChange={(e) =>
+                          updateDataSourceConfig(
+                            dataSourceConfig.dataSourceId,
+                            {
+                              formUrl: e.target.value,
+                            },
+                          )
+                        }
+                      />
+                    </FormFieldWrapper>
+                  )}
+
                   <FormFieldWrapper label="Suggest edits" isHorizontal>
                     <Switch
                       checked={dataSourceConfig.allowUserEdit}
@@ -407,21 +428,26 @@ export default function EditorDataSettings() {
                       }
                     />
                   </FormFieldWrapper>
-                  <FormFieldWrapper
-                    label="Submission form URL"
-                    id={`${dataSourceConfig.dataSourceId}-form-url`}
-                  >
-                    <Input
-                      type="url"
-                      id={`${dataSourceConfig.dataSourceId}-form-url`}
-                      value={dataSourceConfig.formUrl}
-                      onChange={(e) =>
-                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
-                          formUrl: e.target.value,
-                        })
-                      }
-                    />
-                  </FormFieldWrapper>
+                  {dataSourceConfig.allowUserEdit && (
+                    <FormFieldWrapper
+                      label="Edit form URL"
+                      id={`${dataSourceConfig.dataSourceId}-edit-form-url`}
+                    >
+                      <Input
+                        type="url"
+                        id={`${dataSourceConfig.dataSourceId}-edit-form-url`}
+                        value={dataSourceConfig.editFormUrl}
+                        onChange={(e) =>
+                          updateDataSourceConfig(
+                            dataSourceConfig.dataSourceId,
+                            {
+                              editFormUrl: e.target.value,
+                            },
+                          )
+                        }
+                      />
+                    </FormFieldWrapper>
+                  )}
                 </fieldset>
               </div>
             </TabsContent>

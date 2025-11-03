@@ -28,6 +28,7 @@ export const publicMapDataSourceConfigSchema = z.object({
   dataSourceId: z.string(),
   dataSourceLabel: z.string(),
   formUrl: z.string(),
+  editFormUrl: z.string(),
   nameColumns: z.array(z.string()),
   nameLabel: z.string(),
   descriptionColumn: z.string(),
