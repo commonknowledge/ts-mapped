@@ -123,7 +123,7 @@ export default function DataRecordsList({
           <li
             key={r.id}
             className={cn(
-              "cursor-pointer rounded transition-all duration-200",
+              "rounded transition-all duration-200",
               isSelected ? "" : "hover:bg-accent",
             )}
             style={
@@ -134,7 +134,7 @@ export default function DataRecordsList({
             <button
               type="button"
               onClick={() => handleRecordClick(r)}
-              className="py-3 px-4 flex flex-col gap-2 / text-left cursor-pointer"
+              className="py-3 px-4 flex flex-col gap-[2px] / text-left cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <div
