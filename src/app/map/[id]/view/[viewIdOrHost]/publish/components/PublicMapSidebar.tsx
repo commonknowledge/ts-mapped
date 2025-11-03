@@ -1,6 +1,5 @@
 "use client";
 
-import { MapIcon } from "lucide-react";
 import { useContext } from "react";
 import { publicMapColourSchemes } from "@/app/map/[id]/styles";
 import { cn } from "@/shadcn/utils";
@@ -26,7 +25,7 @@ export default function PublicMapSidebar() {
   return (
     <div
       className={cn(
-        "absolute top-0 left-0 z-10 bg-white flex md:h-full md:pt-[var(--navbar-height)]",
+        "absolute top-0 left-0 z-100 bg-white flex md:h-full md:pt-[var(--navbar-height)]",
       )}
     >
       <div className="flex flex-col md:h-full md:w-[300px] border-r border-neutral-200">
@@ -38,13 +37,6 @@ export default function PublicMapSidebar() {
           >
             <div className="flex flex-col w-full items-start justify-between gap-2">
               <div className="flex items-center gap-2">
-                <MapIcon
-                  className="w-10 h-10 shrink-0"
-                  style={{
-                    fill: "white",
-                    stroke: activeColourScheme.primary,
-                  }}
-                />
                 <EditablePublicMapProperty
                   property="name"
                   placeholder="Map name"

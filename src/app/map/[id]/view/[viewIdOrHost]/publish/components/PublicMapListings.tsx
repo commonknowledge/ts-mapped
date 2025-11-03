@@ -17,7 +17,7 @@ export function PublicMapListings() {
     (q) => q.isPending,
   );
   return (
-    <div className="py-4 flex flex-col min-h-0">
+    <div className="flex flex-col min-h-0">
       {/* Listings */}
 
       <DataSourceTabs
