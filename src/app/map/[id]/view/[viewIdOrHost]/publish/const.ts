@@ -29,7 +29,16 @@ export const TRANS_FRIENDLY_GPS_FILTERS = [
   {
     name: "Shared Care Agreement Details",
     type: PublicMapColumnType.CommaSeparatedList,
-    options: ["GenderCare", "GenderGP"],
+    options: [
+      "GenderCare",
+      "GenderDoctors",
+      "GenderGP",
+      "London Transgender Clinic",
+      "Northern Gender Network",
+      "The Gender Hormone Clinic",
+      "YourGP",
+      "Another private doctor",
+    ],
     label: "Shared care agreement with",
   },
 ];
