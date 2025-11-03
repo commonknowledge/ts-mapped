@@ -1,4 +1,4 @@
-import { Lock, Map } from "lucide-react";
+import { Lock } from "lucide-react";
 import { useContext } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
@@ -34,7 +34,6 @@ export default function EditorNavbar() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <Map size={16} className="text-primary" />
             <BreadcrumbPage>{publicMap?.name}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>

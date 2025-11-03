@@ -167,11 +167,11 @@ function SingleDataSourceContent({
   return (
     <div
       className={cn(
-        "flex flex-col overflow-y-auto text-sm",
+        "flex flex-col text-sm overflow-auto",
         editable && "border border-neutral-200 border-dashed m-1 rounded-md",
       )}
     >
-      <div className="sticky top-0 py-2 border-b bg-white">
+      <div className="md:sticky top-0 py-2 border-b bg-white">
         <div className="flex justify-between items-center gap-4 px-2">
           <Filters />
 

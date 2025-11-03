@@ -51,14 +51,14 @@ export default function PublicMap() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative flex flex-col md:block">
           {/* Mobile Top Bar - Hidden on desktop */}
-          <div className="md:hidden absolute top-0 left-0 right-0 z-20">
+          <div className="md:hidden">
             <PublicMapTopBarMobile />
           </div>
 
           {/* Map - Full area */}
-          <div className="w-full h-full">
+          <div className="relative grow md:w-full md:h-full">
             <Map
               onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               hideDrawControls={true}
@@ -67,7 +67,7 @@ export default function PublicMap() {
             <a
               href="https://mapped.tools"
               target="_blank"
-              className="absolute top-4 right-4 flex flex-col items-center w-24 md:w-auto text-sm text-neutral-500"
+              className="absolute top-4 right-4 flex-col items-center w-24 md:w-auto text-sm text-neutral-500 hidden md:flex"
             >
               Made using Mapped
               <Image
@@ -81,7 +81,7 @@ export default function PublicMap() {
 
           {/* Mobile Listings - Overlay on bottom half */}
           <div
-            className="md:hidden absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-2xl shadow-2xl"
+            className="md:hidden bg-white border-t"
             style={{ height: "50vh" }}
           >
             <div className="overflow-y-auto h-full">
