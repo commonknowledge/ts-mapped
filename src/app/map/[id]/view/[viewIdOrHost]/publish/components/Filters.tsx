@@ -14,7 +14,7 @@ import FiltersForm from "./FiltersForm";
 
 export default function Filters() {
   const { filterFields } = useContext(PublicFiltersContext);
-  const label = "Services"; // TODO: make label dynamic
+  const label = "Services offered"; // TODO: make label dynamic
 
   return (
     <DropdownMenu>
