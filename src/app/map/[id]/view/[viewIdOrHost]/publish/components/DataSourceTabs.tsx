@@ -138,14 +138,14 @@ function SingleDataSourceContent({
 
   const dataSourceId = dataRecordsQuery.data?.id;
   const activeFilters = getActiveFilters(
-    dataSourceId ? publicFilters[dataSourceId] : [],
+    dataSourceId ? publicFilters[dataSourceId] : []
   );
 
   const config =
     publicMap?.dataSourceConfigs?.length === 1
       ? publicMap?.dataSourceConfigs[0]
       : publicMap?.dataSourceConfigs.find(
-          (c) => c.dataSourceId === dataSourceId,
+          (c) => c.dataSourceId === dataSourceId
         );
 
   const getListingsLabel = () => {
@@ -168,24 +168,29 @@ function SingleDataSourceContent({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 overflow-y-auto",
-        editable && "border border-neutral-200 border-dashed m-1 rounded-md",
+        "flex flex-col overflow-y-auto text-sm",
+        editable && "border border-neutral-200 border-dashed m-1 rounded-md"
       )}
     >
-      <div className="flex justify-between items-center gap-4 px-2">
-        {/* <Filters /> */}
-        <CustomFilters />
+      <div className="sticky top-0 py-2 border-b bg-white">
+        <div className="flex justify-between items-center gap-4 px-2">
+          {/* <Filters /> */}
+          <CustomFilters />
 
-        {activeFilters?.length > 0 && (
-          <Button type="button" variant="ghost" onClick={() => resetFilters()}>
-            Reset
-          </Button>
-        )}
+          {activeFilters?.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => resetFilters()}
+            >
+              Reset
+            </Button>
+          )}
+        </div>
+
+        <FiltersList />
+        <h2 className="px-4 mt-2 text-xs">{getListingsLabel()}</h2>
       </div>
-
-      <FiltersList />
-
-      <h2 className="px-4 mt-2 text-xs">{getListingsLabel()}</h2>
 
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}
@@ -194,7 +199,7 @@ function SingleDataSourceContent({
       />
 
       {!editable && config && config.formUrl && config.allowUserSubmit && (
-        <div className="sticky bottom-0 left-0 p-4 pb-0 / bg-white">
+        <div className="sticky bottom-0 left-0 p-4 / bg-white">
           <Button asChild={true} className="w-full">
             <a href={config.formUrl} target="_blank">
               Add a listing

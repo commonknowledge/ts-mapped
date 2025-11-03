@@ -28,20 +28,20 @@ export default function DataRecordSidebar() {
   }
 
   const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId,
+    (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId
   );
 
   const name = buildName(
     dataSourceConfig?.nameColumns || [],
-    selectedRecordDetails.json,
+    selectedRecordDetails.json
   );
   const description = String(
-    selectedRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] || "",
+    selectedRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] || ""
   );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
-    <div className="flex flex-col justify-between h-[100vh] overflow-auto w-[280px] p-4">
+    <div className="flex flex-col justify-between h-[100vh] overflow-auto w-[280px] p-4 text-sm">
       <div className={cn("flex flex-col gap-4")}>
         {/* Name */}
         <div className="flex flex-col gap-4">
@@ -53,11 +53,11 @@ export default function DataRecordSidebar() {
               }}
               placeholder="Name label"
             >
-              <span className="text-sm ">
+              <span className="text-muted-foreground">
                 {dataSourceConfig?.nameLabel || "Name"}
               </span>
             </EditablePublicMapProperty>
-            <span className="text-xl font-semibold">{name}</span>
+            <span className="text-lg font-semibold">{name}</span>
           </div>
           <div className="flex flex-col gap-2">
             {description && (
@@ -69,13 +69,13 @@ export default function DataRecordSidebar() {
                   }}
                   placeholder="Description label"
                 >
-                  <span className="text-sm">
+                  <span className="text-muted-foreground">
                     {dataSourceConfig?.descriptionLabel ||
                       dataSourceConfig?.descriptionColumn ||
                       "Description"}
                   </span>
                 </EditablePublicMapProperty>
-                <span className="text-lg">{description}</span>
+                <p>{description || "–"}</p>
               </div>
             )}
           </div>
@@ -93,7 +93,7 @@ export default function DataRecordSidebar() {
                 }}
                 placeholder="Label"
               >
-                <span className="text-sm">{columnConfig.label}</span>
+                <span className="text-muted-foreground">{columnConfig.label}</span>
               </EditablePublicMapProperty>
             )}
             {columnConfig.type === PublicMapColumnType.Boolean ? (
@@ -107,11 +107,11 @@ export default function DataRecordSidebar() {
                 json={selectedRecordDetails.json}
               />
             ) : (
-              <span className="text-lg">
+              <span>
                 {columnConfig.sourceColumns
                   .map((c) => selectedRecordDetails.json[c])
                   .filter(Boolean)
-                  .join(", ")}
+                  .join(", ") || "–"} 
               </span>
             )}
           </div>
@@ -120,11 +120,11 @@ export default function DataRecordSidebar() {
       {dataSourceConfig &&
         dataSourceConfig.formUrl &&
         dataSourceConfig.allowUserEdit && (
-          <Button asChild={true}>
+          <Button asChild={true} className="mt-6">
             <a
               target="_blank"
               href={`${dataSourceConfig.formUrl}${jsonToAirtablePrefill(
-                selectedRecordDetails.json,
+                selectedRecordDetails.json
               )}`}
             >
               Submit an edit
@@ -143,7 +143,7 @@ function CheckList({
   json: Record<string, unknown>;
 }) {
   return (
-    <div className="grid grid-cols-6 gap-2">
+    <>
       {sourceColumns.map((column) => (
         <div key={column} className="flex items-center gap-2">
           <div className="col-span-1">
@@ -156,7 +156,7 @@ function CheckList({
           <div className="col-span-5">{column}</div>
         </div>
       ))}
-    </div>
+    </>
   );
 }
 
@@ -167,11 +167,17 @@ function CommaSeparatedList({
   sourceColumns: string[];
   json: Record<string, unknown>;
 }) {
-  const values = sourceColumns.flatMap((c) =>
-    String(json[c] || "")
-      .split(",")
-      .map((s) => s.trim()),
-  );
+  const values = sourceColumns
+    .flatMap((c) =>
+      String(json[c] || "")
+        .split(",")
+        .map((s) => s.trim())
+    )
+    .filter((v) => Boolean(v));
+
+  if (!values?.length) {
+    return <p>–</p>;
+  }
 
   return (
     <div>
