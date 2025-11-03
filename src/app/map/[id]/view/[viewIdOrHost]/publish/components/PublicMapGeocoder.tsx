@@ -46,9 +46,7 @@ export default function PublicMapGeocoder({
           onChange={(e) => setSearch(e.target.value)}
           disabled={loading}
           placeholder="Search by address or postcode"
-          className={
-            className || "bg-white border rounded-md shadow-none pl-8"
-          }
+          className={className || "bg-white border rounded-md shadow-none pl-8"}
           style={
             {
               "--tw-ring-color": colourScheme?.primary,
@@ -70,13 +68,13 @@ export default function PublicMapGeocoder({
 
 async function doGeocode(search: string): Promise<[number, number] | null> {
   const geocodeUrl = new URL(
-    "https://api.mapbox.com/search/geocode/v6/forward"
+    "https://api.mapbox.com/search/geocode/v6/forward",
   );
   geocodeUrl.searchParams.set("q", search);
   geocodeUrl.searchParams.set("country", "GB");
   geocodeUrl.searchParams.set(
     "access_token",
-    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "",
   );
 
   const response = await fetch(geocodeUrl);
