@@ -134,7 +134,7 @@ export default function DataRecordsList({
             <button
               type="button"
               onClick={() => handleRecordClick(r)}
-              className="py-3 px-4 flex flex-col gap-[2px] / text-left cursor-pointer"
+              className="py-3 px-4 flex flex-col gap-[2px] w-full / text-left cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <div
@@ -144,7 +144,11 @@ export default function DataRecordsList({
                 <span className="font-medium flex-1">{getName(r)}</span>
                 {/* Only show arrow on mobile */}
                 <div className="text-xs text-neutral-500 md:hidden">
-                  {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                  {isExpanded ? (
+                    <ChevronDownIcon size={16} />
+                  ) : (
+                    <ChevronRightIcon size={16} />
+                  )}
                 </div>
               </div>
               {getDescription(r) && (

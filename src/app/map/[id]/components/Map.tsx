@@ -28,11 +28,11 @@ import {
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
-
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -55,6 +55,7 @@ export default function Map({
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
 }) {
+  const { isMobile } = useIsMobile();
   const {
     mapRef,
     setBoundingBox,
@@ -258,7 +259,7 @@ export default function Map({
     if (!map) return;
 
     const padding = {
-      left: showControls ? CONTROL_PANEL_WIDTH : 0,
+      left: isMobile || !showControls ? 0 : CONTROL_PANEL_WIDTH,
       top: 0,
       bottom: 0,
     };
@@ -274,7 +275,7 @@ export default function Map({
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-  }, [mapRef, showControls]);
+  }, [mapRef, showControls, isMobile]);
 
   useEffect(() => {
     const map = mapRef?.current;
@@ -311,7 +312,7 @@ export default function Map({
         ],
         {
           padding: {
-            left: CONTROL_PANEL_WIDTH + 100,
+            left: isMobile ? 100 : CONTROL_PANEL_WIDTH + 100,
             right: 100,
             top: 100,
             bottom: 100,
@@ -330,6 +331,7 @@ export default function Map({
     markerQueries?.data,
     markerQueries?.isFetching,
     placedMarkers,
+    isMobile,
   ]);
 
   return (
@@ -343,7 +345,7 @@ export default function Map({
           latitude: 54.2361,
           zoom: DEFAULT_ZOOM,
           padding: {
-            left: CONTROL_PANEL_WIDTH,
+            left: isMobile ? 0 : CONTROL_PANEL_WIDTH,
             top: 0,
             bottom: 0,
           },

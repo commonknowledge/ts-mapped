@@ -27,7 +27,7 @@ export default function MapWrapper({
     if (currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
-        "You are in draw mode. Click to add points. Double click to finish drawing."
+        "You are in draw mode. Click to add points. Double click to finish drawing.",
       );
     } else if (currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);

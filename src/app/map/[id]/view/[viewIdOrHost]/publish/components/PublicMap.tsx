@@ -81,7 +81,7 @@ export default function PublicMap() {
 
           {/* Mobile Listings - Overlay on bottom half */}
           <div
-            className="md:hidden bg-white rounded-t-2xl shadow-2xl"
+            className="md:hidden bg-white border-t"
             style={{ height: "50vh" }}
           >
             <div className="overflow-y-auto h-full">
