@@ -12,6 +12,7 @@ import {
   ResizablePanelGroup,
 } from "@/shadcn/ui/resizable";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useAreaStats } from "../data";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
@@ -23,8 +24,9 @@ import MapTable from "./table/MapTable";
 
 export default function PrivateMap() {
   const { mapRef, showControls, mapId } = useContext(MapContext);
-  const { areaStatsQuery, setLastLoadedSourceId } =
-    useContext(ChoroplethContext);
+
+  const areaStatsQuery = useAreaStats();
+  const { setLastLoadedSourceId } = useContext(ChoroplethContext);
 
   const { isPending: dataSourcesLoading } = useDataSources();
   const markerQueries = useMarkerQueries();

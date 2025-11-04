@@ -6,6 +6,7 @@ import Loading from "@/app/map/[id]/components/Loading";
 import Map from "@/app/map/[id]/components/Map";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { PublicMapContext } from "../context/PublicMapContext";
@@ -18,8 +19,8 @@ import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 export default function PublicMap() {
   const { mapId } = useContext(MapContext);
   const { editable } = useContext(PublicMapContext);
-  const { areaStatsQuery, setLastLoadedSourceId } =
-    useContext(ChoroplethContext);
+  const areaStatsQuery = useAreaStats();
+  const { setLastLoadedSourceId } = useContext(ChoroplethContext);
   const markerQueries = useMarkerQueries();
 
   const { data: map, isPending } = useMapQuery(mapId);
