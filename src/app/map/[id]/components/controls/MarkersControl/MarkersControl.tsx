@@ -4,7 +4,12 @@ import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useFolderMutations,
+  useFoldersQuery,
+} from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
@@ -17,13 +22,10 @@ import MarkersList from "./MarkersList";
 export default function MarkersControl() {
   const router = useRouter();
   const { mapConfig, updateMapConfig } = useMapConfig();
-  const {
-    placedMarkersLoading,
-    folders,
-    foldersLoading,
-    insertFolder,
-    handleDropPin,
-  } = useContext(MarkerAndTurfContext);
+  const { data: folders = [] } = useFoldersQuery();
+  const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
+  const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
+  const { handleDropPin } = useContext(MarkerAndTurfContext);
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
 
@@ -128,7 +130,7 @@ export default function MarkersControl() {
     },
   ];
 
-  const loading = foldersLoading || placedMarkersLoading;
+  const loading = isFoldersMutating || isPlacedMarkersMutating;
 
   return (
     <LayerControlWrapper>

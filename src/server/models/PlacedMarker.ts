@@ -1,6 +1,6 @@
 import z from "zod";
 import { pointSchema } from "./shared";
-import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
+import type { Generated, Insertable, Updateable } from "kysely";
 
 export const placedMarkerSchema = z.object({
   id: z.string(),
@@ -15,7 +15,6 @@ export const placedMarkerSchema = z.object({
 export type PlacedMarker = z.infer<typeof placedMarkerSchema>;
 export type PlacedMarkerTable = PlacedMarker & {
   id: Generated<string>;
-  createdAt: ColumnType<Date, string | undefined, never>;
 };
 export type NewPlacedMarker = Insertable<PlacedMarkerTable>;
 export type PlacedMarkerUpdate = Updateable<PlacedMarkerTable>;
