@@ -7,6 +7,7 @@ import logger from "@/server/services/logger";
 import type {
   AddressGeocodingConfig,
   AreaGeocodingConfig,
+  CoordinatesGeocodingConfig,
   GeocodingConfig,
 } from "../models/DataSource";
 import type { GeocodeResult, Point } from "../models/shared";
@@ -40,6 +41,9 @@ const _geocodeRecord = async (
   }
   if (geocodingConfig.type === "Address") {
     return geocodeRecordByAddress(dataRecord, geocodingConfig);
+  }
+  if (geocodingConfig.type === "Coordinates") {
+    return geocodeRecordByCoordinates(dataRecord, geocodingConfig);
   }
   throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
 };
@@ -136,6 +140,49 @@ const geocodeRecordByAddress = async (
   };
 
   const mappedAreas = await findAreasByPoint(JSON.stringify(feature.geometry));
+  for (const area of mappedAreas) {
+    geocodeResult.areas[area.areaSetCode] = area.code;
+  }
+
+  return geocodeResult;
+};
+
+const geocodeRecordByCoordinates = async (
+  dataRecord: MappingDataRecord,
+  geocodingConfig: CoordinatesGeocodingConfig,
+) => {
+  const dataRecordJson = dataRecord.json;
+  const { latitudeColumn, longitudeColumn } = geocodingConfig;
+
+  if (!(latitudeColumn in dataRecordJson)) {
+    throw new Error(`Missing latitude column "${latitudeColumn}" in row`);
+  }
+  if (!(longitudeColumn in dataRecordJson)) {
+    throw new Error(`Missing longitude column "${longitudeColumn}" in row`);
+  }
+
+  const lat = Number(dataRecordJson[latitudeColumn]);
+  const lng = Number(dataRecordJson[longitudeColumn]);
+
+  if (isNaN(lat) || isNaN(lng)) {
+    throw new Error(
+      `Invalid coordinates: latitude=${dataRecordJson[latitudeColumn]}, longitude=${dataRecordJson[longitudeColumn]}`,
+    );
+  }
+
+  const point = { lat, lng };
+  const geocodeResult: GeocodeResult = {
+    areas: {},
+    centralPoint: point,
+    samplePoint: point,
+  };
+
+  const mappedAreas = await findAreasByPoint(
+    JSON.stringify({
+      type: "Point",
+      coordinates: [lng, lat],
+    }),
+  );
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }
