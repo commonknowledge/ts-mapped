@@ -12,7 +12,7 @@ export const useAreaStats = () => {
   const { boundingBox } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const {
-    choroplethLayerConfig: { areaSetCode },
+    choroplethLayerConfig: { areaSetCode, requiresBoundingBox },
   } = useContext(ChoroplethContext);
   const {
     calculationType,
@@ -63,7 +63,7 @@ export const useAreaStats = () => {
         dataSourceId,
         column: columnOrCount,
         excludeColumns,
-        boundingBox,
+        boundingBox: requiresBoundingBox ? boundingBox : null,
       },
       { enabled: !skipCondition },
     ),
