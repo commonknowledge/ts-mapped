@@ -6,6 +6,7 @@ import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../context/PublicMapContext";
 import DataRecordSidebar from "./DataRecordSidebar";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
+import PublicMapDescriptionDialog from "./PublicMapDescriptionDialog";
 import PublicMapGeocoder from "./PublicMapGeocoder";
 import { PublicMapListings } from "./PublicMapListings";
 
@@ -33,7 +34,7 @@ export default function PublicMapSidebar() {
         <div className="flex flex-col gap-2 border-b border-neutral-200">
           <div
             style={{ backgroundColor: activeColourScheme.muted }}
-            className="p-4 flex flex-col gap-6"
+            className="p-4 flex flex-col gap-4"
           >
             <div className="flex flex-col w-full items-start justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -61,49 +62,19 @@ export default function PublicMapSidebar() {
                     )}
                   </p>
                 </EditablePublicMapProperty>
-                <EditablePublicMapProperty
-                  property="descriptionLink"
-                  placeholder="submissions@example.com"
-                >
-                  {publicMap.descriptionLink && (
-                    <a
-                      className="underline text-sm "
-                      style={{
-                        color: activeColourScheme.primary,
-                      }}
-                      href={`mailto:${publicMap.descriptionLink}`}
-                      target="_blank"
-                      onClick={(e) => editable && e.preventDefault()}
-                    >
-                      {publicMap.descriptionLink || (
-                        <span className="text-sm text-neutral-500 italic">
-                          Add a contact email
-                        </span>
-                      )}
-                    </a>
-                  )}
-                </EditablePublicMapProperty>
               </div>
-            ) : publicMap.description || publicMap.descriptionLink ? (
-              <div className="flex flex-col gap-4">
-                {publicMap.description ? <p>{publicMap.description}</p> : <></>}
-                {publicMap.descriptionLink ? (
-                  <a
-                    href={`mailto:${publicMap.descriptionLink}`}
-                    className="underline text-sm"
-                    target="_blank"
-                    style={{
-                      color: activeColourScheme.primary,
-                    }}
-                  >
-                    {publicMap.descriptionLink}
-                  </a>
-                ) : (
-                  <></>
-                )}
-              </div>
+            ) : publicMap.description ? (
+              <p className="text-sm">{publicMap.description}</p>
             ) : (
               <></>
+            )}
+
+            {(Boolean(publicMap.descriptionLong) ||
+              Boolean(publicMap.descriptionLink)) && (
+              <PublicMapDescriptionDialog
+                contactLink={publicMap.descriptionLink}
+                description={publicMap.descriptionLong}
+              />
             )}
 
             <PublicMapGeocoder

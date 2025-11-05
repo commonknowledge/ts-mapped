@@ -29,8 +29,6 @@ const RichTextEditor = ({
     return <></>;
   }
 
-  console.log(editor);
-
   return (
     <div className="flex flex-col gap-4">
       <MenuBar editor={editor} />

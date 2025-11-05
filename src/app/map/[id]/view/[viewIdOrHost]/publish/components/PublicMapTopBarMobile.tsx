@@ -3,6 +3,7 @@
 import { useContext } from "react";
 import { publicMapColourSchemes } from "@/app/map/[id]/styles";
 import { PublicMapContext } from "../context/PublicMapContext";
+import PublicMapDescriptionDialog from "./PublicMapDescriptionDialog";
 import PublicMapGeocoder from "./PublicMapGeocoder";
 
 export default function PublicMapTopBarMobile() {
@@ -26,6 +27,18 @@ export default function PublicMapTopBarMobile() {
         <h1 className="text-xl font-medium leading-tight text-balance tracking-tight truncate">
           {publicMap.name}
         </h1>
+
+        {Boolean(publicMap.description) && (
+          <p className="text-sm">{publicMap.description}</p>
+        )}
+
+        {(Boolean(publicMap.descriptionLong) ||
+          Boolean(publicMap.descriptionLink)) && (
+          <PublicMapDescriptionDialog
+            contactLink={publicMap.descriptionLink}
+            description={publicMap.descriptionLong}
+          />
+        )}
         <PublicMapGeocoder
           onGeocode={(p) => setSearchLocation(p)}
           colourScheme={activeColourScheme}
