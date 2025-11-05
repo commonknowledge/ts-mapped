@@ -40,7 +40,7 @@ export default function DataRecordsList({
     const allRecords = dataRecordsQuery?.data?.records || [];
     const dataSourceId = dataRecordsQuery.data?.id;
     const activeFilters = getActiveFilters(
-      dataSourceId ? publicFilters[dataSourceId] : undefined
+      dataSourceId ? publicFilters[dataSourceId] : undefined,
     );
 
     // if no filters are selected - show all records
@@ -60,7 +60,7 @@ export default function DataRecordsList({
   ]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id
+    (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
 
   const getName = (record: {
@@ -71,8 +71,8 @@ export default function DataRecordsList({
     if (!nameColumns?.length) {
       return record.externalId;
     }
-    const name = buildName(nameColumns, record.json);
-    return name || getDescription(record) || "Unknown";
+
+    return buildName(nameColumns, record.json);
   };
 
   const getDescription = (record: { json: Record<string, unknown> }) => {
@@ -124,7 +124,7 @@ export default function DataRecordsList({
             key={r.id}
             className={cn(
               "rounded transition-all duration-200",
-              isSelected ? "" : "hover:bg-accent"
+              isSelected ? "" : "hover:bg-accent",
             )}
             style={
               isSelected ? { backgroundColor: colourScheme.muted } : undefined
@@ -141,7 +141,9 @@ export default function DataRecordsList({
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: colourScheme.primary }}
                 />
-                <span className="font-medium flex-1">{getName(r)}</span>
+                <span className="font-medium flex-1">
+                  {getName(r) || getDescription(r) || "Unknown"}
+                </span>
                 {/* Only show arrow on mobile */}
                 <div className="text-xs text-neutral-500 md:hidden">
                   {isExpanded ? (
@@ -151,7 +153,7 @@ export default function DataRecordsList({
                   )}
                 </div>
               </div>
-              {getDescription(r) && (
+              {getDescription(r) && getName(r) && (
                 <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
               )}
             </button>
@@ -182,7 +184,7 @@ function MobileRecordDetails({
 }) {
   const name = buildName(dataSourceConfig?.nameColumns || [], record.json);
   const description = String(
-    record.json[dataSourceConfig?.descriptionColumn || ""] || ""
+    record.json[dataSourceConfig?.descriptionColumn || ""] || "",
   );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
@@ -289,7 +291,7 @@ function MobileCommaSeparatedList({
     String(json[c] || "")
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   return (

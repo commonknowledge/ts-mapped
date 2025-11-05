@@ -645,17 +645,18 @@ export default function Map({
             <PlacedMarkers />
             <Markers />
             {searchMarker && <SearchResultMarker />}
-            {hoverMarker && (
-              <Popup
-                longitude={hoverMarker.coordinates[0]}
-                latitude={hoverMarker.coordinates[1]}
-                closeButton={false}
-              >
-                <p className="font-sans font-semibold text-sm">
-                  {String(hoverMarker.properties[MARKER_NAME_KEY])}
-                </p>
-              </Popup>
-            )}
+            {hoverMarker &&
+              Boolean(hoverMarker?.properties?.[MARKER_NAME_KEY]) && (
+                <Popup
+                  longitude={hoverMarker.coordinates[0]}
+                  latitude={hoverMarker.coordinates[1]}
+                  closeButton={false}
+                >
+                  <p className="font-sans font-semibold text-sm">
+                    {String(hoverMarker.properties[MARKER_NAME_KEY])}
+                  </p>
+                </Popup>
+              )}
           </>
         )}
       </MapGL>

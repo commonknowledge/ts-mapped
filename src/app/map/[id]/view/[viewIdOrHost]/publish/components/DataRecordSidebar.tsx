@@ -31,13 +31,16 @@ export default function DataRecordSidebar() {
     (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId,
   );
 
-  const name = buildName(
-    dataSourceConfig?.nameColumns || [],
-    selectedRecordDetails.json,
-  );
   const description = String(
     selectedRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] || "",
   );
+  const name =
+    buildName(
+      dataSourceConfig?.nameColumns || [],
+      selectedRecordDetails.json,
+    ) ||
+    description ||
+    "Unknown";
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
