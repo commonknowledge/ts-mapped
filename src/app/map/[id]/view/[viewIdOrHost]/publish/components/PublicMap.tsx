@@ -38,8 +38,6 @@ export default function PublicMap() {
       className="flex flex-col h-screen lg:overflow-hidden"
       style={
         {
-          // "--primary": activeColourScheme.action,
-          // "--primary-foreground": activeColourScheme.actionForeground || "",
           "--navbar-height": showNavbar ? "" : 0,
         } as React.CSSProperties
       }
