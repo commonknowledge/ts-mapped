@@ -29,7 +29,6 @@ export const PublicMapContext = createContext<{
   recordSidebarVisible: boolean;
   setRecordSidebarVisible: (visible: boolean) => void;
   colourScheme: string;
-  setColourScheme: (scheme: string) => void;
 }>({
   publicMap: null,
   editable: false,
@@ -45,5 +44,4 @@ export const PublicMapContext = createContext<{
   recordSidebarVisible: false,
   setRecordSidebarVisible: () => null,
   colourScheme: "red",
-  setColourScheme: () => null,
 });

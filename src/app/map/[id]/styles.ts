@@ -101,8 +101,8 @@ export const publicMapColourSchemes: Record<
     primary: "#4DAB37",
     muted: "#4DAB3710",
   },
-  pink: {
+  ["trans-pride"]: {
     primary: "#E980C3",
-    muted: "#fff2fa",
+    muted: "#E7F8FF",
   },
 };

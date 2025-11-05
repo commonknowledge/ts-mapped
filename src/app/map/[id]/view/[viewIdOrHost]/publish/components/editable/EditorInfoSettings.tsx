@@ -1,7 +1,15 @@
 import { useContext } from "react";
+import { publicMapColourSchemes } from "@/app/map/[id]/styles";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import RichTextEditor from "@/components/forms/RichTextEditor";
 import { Input } from "@/shadcn/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { PublicMapContext } from "../../context/PublicMapContext";
 
@@ -51,6 +59,24 @@ export default function EditorInfoSettings() {
           className="w-full shadow-none"
           type="email"
         />
+      </FormFieldWrapper>
+
+      <FormFieldWrapper label="Colour scheme" id="Colour scheme">
+        <Select
+          value={publicMap?.colourScheme}
+          onValueChange={(value) => updatePublicMap({ colourScheme: value })}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select colour scheme" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.keys(publicMapColourSchemes).map((key) => (
+              <SelectItem value={key} key={key}>
+                {key}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </FormFieldWrapper>
     </div>
   );
