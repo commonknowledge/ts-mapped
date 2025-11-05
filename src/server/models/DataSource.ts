@@ -131,6 +131,7 @@ export enum GeocodingType {
   Address = "Address",
   Code = "Code",
   Name = "Name",
+  Coordinates = "Coordinates",
   None = "None",
 }
 
@@ -155,6 +156,16 @@ const codeGeocodingSchema = z.object({
   areaSetCode: z.nativeEnum(AreaSetCode),
 });
 
+const coordinatesGeocodingSchema = z.object({
+  type: z.literal(GeocodingType.Coordinates),
+  latitudeColumn: z.string().nonempty(),
+  longitudeColumn: z.string().nonempty(),
+});
+
+export type CoordinatesGeocodingConfig = z.infer<
+  typeof coordinatesGeocodingSchema
+>;
+
 const disabledGeocodingSchema = z.object({
   type: z.literal(GeocodingType.None),
 });
@@ -175,6 +186,7 @@ export const geocodingConfigSchema = z.discriminatedUnion("type", [
   addressGeocodingSchema,
   nameGeocodingSchema,
   codeGeocodingSchema,
+  coordinatesGeocodingSchema,
   disabledGeocodingSchema,
 ]);
 

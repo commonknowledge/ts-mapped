@@ -63,6 +63,7 @@ export const GeocodingTypeLabels: Record<GeocodingType | "Postcode", string> = {
   Address: 'Address, e.g. "113-115 Fonthill Road, N4 3HH"',
   Code: 'Area code, e.g. "E14001305"',
   Name: 'Area name, e.g. "Islington North"',
+  Coordinates: 'Latitude & Longitude coordinates',
   Postcode: "UK Postcode", // Front-end only
   None: "Disabled",
 };

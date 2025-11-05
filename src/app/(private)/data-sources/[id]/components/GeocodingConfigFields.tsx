@@ -31,6 +31,10 @@ export function GeocodingConfigFields({
   const columns = "columns" in geocodingConfig ? geocodingConfig.columns : [];
   const areaSetCode =
     "areaSetCode" in geocodingConfig ? geocodingConfig.areaSetCode : "";
+  const latitudeColumn =
+    "latitudeColumn" in geocodingConfig ? geocodingConfig.latitudeColumn : "";
+  const longitudeColumn =
+    "longitudeColumn" in geocodingConfig ? geocodingConfig.longitudeColumn : "";
 
   // Convert "Postcode" type to a valid geocoding config
   const onTypeChange = (type: FriendlyGeocodingType) => {
@@ -125,6 +129,31 @@ export function GeocodingConfigFields({
           options={locationColumnOptions}
           onValueChange={(column) => onChange({ column })}
         />
+      )}
+
+      {typeSelectValue === GeocodingType.Coordinates && (
+        <>
+          <CustomSelect
+            id="config-location-column-latitude"
+            label="Latitude column"
+            hint="Select which column contains latitude values."
+            value={latitudeColumn}
+            options={locationColumnOptions}
+            onValueChange={(latitudeColumn) =>
+              onChange({ latitudeColumn } as { latitudeColumn: string })
+            }
+          />
+          <CustomSelect
+            id="config-location-column-longitude"
+            label="Longitude column"
+            hint="Select which column contains longitude values."
+            value={longitudeColumn}
+            options={locationColumnOptions}
+            onValueChange={(longitudeColumn) =>
+              onChange({ longitudeColumn } as { longitudeColumn: string })
+            }
+          />
+        </>
       )}
 
       {typeSelectValue in AreaGeocodingType.Values && (
