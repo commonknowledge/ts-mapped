@@ -34,7 +34,7 @@ export default function PublicMapSidebar() {
         <div className="flex flex-col gap-2 border-b border-neutral-200">
           <div
             style={{ backgroundColor: activeColourScheme.muted }}
-            className="p-4 flex flex-col gap-4"
+            className="p-4 flex flex-col items-start gap-4"
           >
             <div className="flex flex-col w-full items-start justify-between gap-2">
               <div className="flex items-center gap-2">

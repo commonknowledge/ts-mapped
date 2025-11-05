@@ -1,6 +1,7 @@
-import { Search } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import type { Point } from "@/server/models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
@@ -38,15 +39,15 @@ export default function PublicMapGeocoder({
   };
 
   return (
-    <form className="flex flex-col gap-2" onSubmit={onSubmit}>
-      <div className="relative">
+    <form className="flex flex-col gap-2 w-full" onSubmit={onSubmit}>
+      <div className="flex items-center gap-2">
         <Input
           id="public-map-geocoder-input"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           disabled={loading}
           placeholder="Search by address or postcode"
-          className={className || "bg-white border rounded-md shadow-none pl-8"}
+          className={className || "bg-white border rounded-md shadow-none"}
           style={
             {
               "--tw-ring-color": colourScheme?.primary,
@@ -54,14 +55,13 @@ export default function PublicMapGeocoder({
             } as React.CSSProperties
           }
         />
-        <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4  pointer-events-none"
-          style={{
-            color: colourScheme?.primary || "#6b7280",
-          }}
-        />
+        <Button type="submit" aria-label="Search">
+          <SearchIcon />
+        </Button>
       </div>
-      {notFound && <small className="text-red-500">Not found</small>}
+      {notFound && (
+        <small className="text-red-500 font-semibold">Not found</small>
+      )}
     </form>
   );
 }
