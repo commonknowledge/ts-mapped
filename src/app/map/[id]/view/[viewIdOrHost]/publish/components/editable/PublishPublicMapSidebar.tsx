@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { Database, Settings } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
   VerticalTabs,
@@ -43,10 +44,12 @@ export default function PublishPublicMapSidebar() {
     trpc.publicMap.upsert.mutationOptions({
       onSuccess: (res) => {
         setPublishedHost(res.host);
+        toast.success("Your changes were saved!");
       },
       onError: (e) => {
         console.error("Failed to upsert public map", e);
         setError(e.message);
+        toast.error("Failed to save changes.");
       },
     }),
   );
