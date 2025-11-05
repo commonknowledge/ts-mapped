@@ -71,8 +71,8 @@ export default function DataRecordsList({
     if (!nameColumns?.length) {
       return record.externalId;
     }
-    const name = buildName(nameColumns, record.json);
-    return name || record.externalId;
+
+    return buildName(nameColumns, record.json);
   };
 
   const getDescription = (record: { json: Record<string, unknown> }) => {
@@ -141,7 +141,9 @@ export default function DataRecordsList({
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: colourScheme.primary }}
                 />
-                <span className="font-medium flex-1">{getName(r)}</span>
+                <span className="font-medium flex-1">
+                  {getName(r) || getDescription(r) || "Unknown"}
+                </span>
                 {/* Only show arrow on mobile */}
                 <div className="text-xs text-neutral-500 md:hidden">
                   {isExpanded ? (
@@ -151,7 +153,7 @@ export default function DataRecordsList({
                   )}
                 </div>
               </div>
-              {getDescription(r) && (
+              {getDescription(r) && getName(r) && (
                 <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
               )}
             </button>
