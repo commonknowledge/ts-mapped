@@ -177,10 +177,12 @@ const geocodeRecordByCoordinates = async (
     samplePoint: point,
   };
 
-  const mappedAreas = await findAreasByPoint(JSON.stringify({
-    type: "Point",
-    coordinates: [lng, lat],
-  }));
+  const mappedAreas = await findAreasByPoint(
+    JSON.stringify({
+      type: "Point",
+      coordinates: [lng, lat],
+    }),
+  );
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }
