@@ -101,4 +101,8 @@ export const publicMapColourSchemes: Record<
     primary: "#4DAB37",
     muted: "#4DAB3710",
   },
+  pink: {
+    primary: "#E980C3",
+    muted: "#fff2fa",
+  },
 };
