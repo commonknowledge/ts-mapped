@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useMemo } from "react";
+import { use, useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
 import {
   MapContext,
@@ -9,6 +9,7 @@ import {
 } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
+import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
 import type { MapViewConfig } from "@/server/models/MapView";
@@ -18,6 +19,7 @@ export function useMapViews() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
+  const { publicMap } = useContext(PublicMapContext);
 
   // Get views directly from cache
   const views = mapData?.views;
@@ -147,6 +149,7 @@ export function useMapViews() {
 
       const updatedViews =
         views?.map((v) => (v.id === view.id ? view : v)) || [];
+      const isPublicMap = publicMap?.id;
 
       setDirtyViewIds((ids) => ids.concat([view.id]));
 
@@ -164,7 +167,9 @@ export function useMapViews() {
         };
       });
 
-      updateViewMutate({ mapId, views: updatedViews });
+      if (!isPublicMap) {
+        updateViewMutate({ mapId, views: updatedViews });
+      }
     },
     [
       mapId,
@@ -173,6 +178,7 @@ export function useMapViews() {
       trpc.map.byId,
       updateViewMutate,
       views,
+      publicMap,
     ],
   );
 
