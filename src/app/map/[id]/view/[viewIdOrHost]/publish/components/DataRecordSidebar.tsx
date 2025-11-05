@@ -120,12 +120,12 @@ export default function DataRecordSidebar() {
         ))}
       </div>
       {dataSourceConfig &&
-        dataSourceConfig.formUrl &&
+        dataSourceConfig.editFormUrl &&
         dataSourceConfig.allowUserEdit && (
           <Button asChild={true} className="mt-6">
             <a
               target="_blank"
-              href={`${dataSourceConfig.formUrl}${jsonToAirtablePrefill(
+              href={`${dataSourceConfig.editFormUrl}${jsonToAirtablePrefill(
                 selectedRecordDetails.json,
               )}`}
             >
