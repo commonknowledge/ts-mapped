@@ -31,13 +31,14 @@ export default function PublicMapProvider({
   const [activePublishTab, setActivePublishTab] = useState<string>("settings");
   const [recordSidebarVisible, setRecordSidebarVisible] =
     useState<boolean>(false);
-  const [colourScheme, setColourScheme] = useState<string>("red");
 
   const updatePublicMap = (updates: Partial<PublicMap>) => {
     if (publicMap) {
       setPublicMap({ ...publicMap, ...updates });
     }
   };
+
+  const colourScheme = publicMap?.colourScheme || "red";
 
   const updateDataSourceConfig = (
     dataSourceId: string,
@@ -99,7 +100,6 @@ export default function PublicMapProvider({
         recordSidebarVisible,
         setRecordSidebarVisible,
         colourScheme,
-        setColourScheme,
       }}
     >
       {children}

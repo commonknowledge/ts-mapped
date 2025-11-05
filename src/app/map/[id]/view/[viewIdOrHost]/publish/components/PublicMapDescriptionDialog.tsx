@@ -26,7 +26,7 @@ export default function PublicMapDescriptionDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className="inline-block text-left text-sm text-muted-foreground hover:text-primary underline cursor-pointer">
+        <button className="inline-block text-left text-sm hover:text-primary underline cursor-pointer">
           About the project
         </button>
       </DialogTrigger>
