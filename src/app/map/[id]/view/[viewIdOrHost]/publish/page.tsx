@@ -22,11 +22,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     host: decodeURIComponent(viewIdOrHost),
   });
 
+  const OGImage = map?.imageUrl || "/og_image.png";
+
   return {
     title: Boolean(map?.name) ? `${map?.name} - Mapped` : "Mapped",
     description: map?.description || "",
     openGraph: {
-      images: ["/og_image.png"], // TODO: add project-speific image
+      images: [OGImage],
     },
   };
 }
@@ -65,6 +67,7 @@ export default async function PublicMapAdminPage({
         description: "",
         descriptionLong: "",
         descriptionLink: "",
+        imageUrl: "",
         published: false,
         dataSourceConfigs: [],
         createdAt: new Date(),
