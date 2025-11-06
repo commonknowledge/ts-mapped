@@ -65,6 +65,7 @@ export default async function PublicMapAdminPage({
         description: "",
         descriptionLong: "",
         descriptionLink: "",
+        imageUrl: "",
         published: false,
         dataSourceConfigs: [],
         createdAt: new Date(),
