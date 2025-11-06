@@ -24,6 +24,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: Boolean(map?.name) ? `${map?.name} - Mapped` : "Mapped",
+    description: map?.description || "",
+    openGraph: {
+      images: ["/og_image.png"], // TODO: add project-speific image
+    },
   };
 }
 
