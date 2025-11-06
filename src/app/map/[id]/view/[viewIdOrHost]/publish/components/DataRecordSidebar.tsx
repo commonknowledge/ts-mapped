@@ -1,5 +1,5 @@
 import { Check, X } from "lucide-react";
-import { useContext, useMemo } from "react";
+import { Fragment, useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
@@ -86,40 +86,54 @@ export default function DataRecordSidebar() {
         </div>
 
         {additionalColumns.map((columnConfig, i) => (
-          <div key={i} className="flex flex-col ">
-            {columnConfig.type !== PublicMapColumnType.Boolean && (
-              <EditablePublicMapProperty
-                additionalColumnProperty={{
-                  columnIndex: i,
-                  dataSourceId: selectedRecord.dataSourceId,
-                  property: "label",
-                }}
-                placeholder="Label"
-              >
-                <span className="text-muted-foreground">
-                  {columnConfig.label}
-                </span>
-              </EditablePublicMapProperty>
-            )}
+          <Fragment key={i}>
             {columnConfig.type === PublicMapColumnType.Boolean ? (
               <CheckList
                 sourceColumns={columnConfig.sourceColumns}
                 json={selectedRecordDetails.json}
               />
             ) : columnConfig.type === PublicMapColumnType.CommaSeparatedList ? (
-              <CommaSeparatedList
-                sourceColumns={columnConfig.sourceColumns}
-                json={selectedRecordDetails.json}
-              />
+              <div className="flex flex-col gap-1">
+                <EditablePublicMapProperty
+                  additionalColumnProperty={{
+                    columnIndex: i,
+                    dataSourceId: selectedRecord.dataSourceId,
+                    property: "label",
+                  }}
+                  placeholder="Label"
+                >
+                  <span className="text-muted-foreground">
+                    {columnConfig.label}
+                  </span>
+                </EditablePublicMapProperty>
+                <CommaSeparatedList
+                  sourceColumns={columnConfig.sourceColumns}
+                  json={selectedRecordDetails.json}
+                />
+              </div>
             ) : (
-              <span>
-                {columnConfig.sourceColumns
-                  .map((c) => selectedRecordDetails.json[c])
-                  .filter(Boolean)
-                  .join(", ") || "–"}
-              </span>
+              <div className="flex flex-col gap-1">
+                <EditablePublicMapProperty
+                  additionalColumnProperty={{
+                    columnIndex: i,
+                    dataSourceId: selectedRecord.dataSourceId,
+                    property: "label",
+                  }}
+                  placeholder="Label"
+                >
+                  <span className="text-muted-foreground">
+                    {columnConfig.label}
+                  </span>
+                </EditablePublicMapProperty>
+                <span>
+                  {columnConfig.sourceColumns
+                    .map((c) => selectedRecordDetails.json[c])
+                    .filter(Boolean)
+                    .join(", ") || "–"}
+                </span>
+              </div>
             )}
-          </div>
+          </Fragment>
         ))}
       </div>
       {dataSourceConfig &&
@@ -149,20 +163,20 @@ function CheckList({
 }) {
   return (
     <>
-      {sourceColumns.map((column) => (
-        <div key={column} className="flex items-center gap-2">
-          <div className="col-span-1">
-            {json[column] === "Unknown" ? (
-              <div className="w-4 h-4 text-center font-semibold">?</div>
-            ) : toBoolean(json[column]) ? (
-              <Check className="w-4 h-4" />
-            ) : (
-              <X className="w-4 h-4" />
-            )}
+      {sourceColumns.map((column) =>
+        json[column] === "Unknown" ? null : (
+          <div key={column} className="flex items-center gap-2">
+            <div className="col-span-1">
+              {toBoolean(json[column]) ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <X className="w-4 h-4" />
+              )}
+            </div>
+            <div className="col-span-5">{column}</div>
           </div>
-          <div className="col-span-5">{column}</div>
-        </div>
-      ))}
+        ),
+      )}
     </>
   );
 }
