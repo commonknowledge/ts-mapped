@@ -29,6 +29,10 @@ export const filterRecords = (
         filter.type === PublicMapColumnType.Boolean &&
         toBoolean(filter.value)
       ) {
+        if (record.json[filter.name] === "Unknown") {
+          return false;
+        }
+
         return toBoolean(record.json[filter.name]);
       }
 
