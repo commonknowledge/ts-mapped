@@ -27,12 +27,6 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/shadcn/ui/tabs";
-import {
   Table,
   TableBody,
   TableCell,
@@ -40,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { UserChart } from "./UserChart";
 
 export default function SuperadminPage() {
@@ -121,11 +116,10 @@ export default function SuperadminPage() {
 
   return (
     <div className="p-4 mx-auto max-w-7xl w-full">
-
       <Tabs defaultValue="users" className="w-full">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-medium tracking-tight ">Superadmin</h1>
-          <TabsList >
+          <TabsList>
             <TabsTrigger value="users">All Users</TabsTrigger>
             <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>
           </TabsList>
