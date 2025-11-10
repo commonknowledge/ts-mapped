@@ -142,7 +142,7 @@ function DataSourceMarkers({
       type="geojson"
       data={safeMarkers}
       cluster={true}
-      clusterMaxZoom={14}
+      clusterMaxZoom={11}
       clusterRadius={50}
       clusterProperties={{
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
