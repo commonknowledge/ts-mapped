@@ -245,7 +245,16 @@ function DataSourceMarkers({
         ]}
         minzoom={10}
         layout={{
-          "text-field": ["get", MARKER_NAME_KEY],
+          "text-field": [
+            "concat",
+            ["slice", ["get", MARKER_NAME_KEY], 0, 15],
+            [
+              "case",
+              [">", ["length", ["get", MARKER_NAME_KEY]], 15],
+              "...",
+              "",
+            ],
+          ],
           "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           "text-size": 12,
           "text-transform": "uppercase",
