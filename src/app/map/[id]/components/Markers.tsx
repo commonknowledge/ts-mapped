@@ -247,10 +247,10 @@ function DataSourceMarkers({
         layout={{
           "text-field": [
             "concat",
-            ["slice", ["get", MARKER_NAME_KEY], 0, 15],
+            ["slice", ["get", MARKER_NAME_KEY], 0, 20],
             [
               "case",
-              [">", ["length", ["get", MARKER_NAME_KEY]], 15],
+              [">", ["length", ["get", MARKER_NAME_KEY]], 20],
               "...",
               "",
             ],

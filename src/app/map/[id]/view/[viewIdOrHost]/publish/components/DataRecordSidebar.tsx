@@ -170,20 +170,20 @@ function CheckList({
 }) {
   return (
     <>
-      {sourceColumns.map((column) =>
-        json[column] === "Unknown" ? null : (
-          <div key={column} className="flex items-center gap-2">
-            <div className="col-span-1">
-              {toBoolean(json[column]) ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <X className="w-4 h-4" />
-              )}
-            </div>
-            <div className="col-span-5">{column}</div>
+      {sourceColumns.map((column) => (
+        <div key={column} className="flex items-center gap-2">
+          <div className="col-span-1">
+            {String(json[column]).toLowerCase() === "unknown" ? (
+              <div className="w-4 h-4 text-center font-semibold">?</div>
+            ) : toBoolean(json[column]) ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <X className="w-4 h-4" />
+            )}
           </div>
-        ),
-      )}
+          <div className="col-span-5">{column}</div>
+        </div>
+      ))}
     </>
   );
 }
