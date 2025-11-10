@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useContext } from "react";
-import { publicMapColourSchemes } from "@/app/map/[id]/styles";
+import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import RichTextEditor from "@/components/forms/RichTextEditor";
 import { uploadFile } from "@/services/uploads";
@@ -104,14 +104,14 @@ export default function EditorInfoSettings() {
 
       <FormFieldWrapper label="Colour scheme" id="Colour scheme">
         <Select
-          value={publicMap?.colourScheme}
-          onValueChange={(value) => updatePublicMap({ colourScheme: value })}
+          value={publicMap?.colorScheme}
+          onValueChange={(value) => updatePublicMap({ colorScheme: value })}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select colour scheme" />
           </SelectTrigger>
           <SelectContent>
-            {Object.keys(publicMapColourSchemes).map((key) => (
+            {Object.keys(publicMapColorSchemes).map((key) => (
               <SelectItem value={key} key={key}>
                 {key}
               </SelectItem>

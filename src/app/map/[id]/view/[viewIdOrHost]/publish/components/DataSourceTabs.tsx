@@ -12,10 +12,11 @@ import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
 import { getActiveFilters } from "./filtersHelpers";
 import FiltersList from "./FiltersList";
+import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 interface DataSourceTabsProps {
-  colourScheme: { primary: string; muted: string };
+  colorScheme: PublicMapColorScheme;
   editable: boolean;
   dataRecordsQueries: Record<
     string,
@@ -27,7 +28,7 @@ interface DataSourceTabsProps {
 }
 
 export default function DataSourceTabs({
-  colourScheme,
+  colorScheme,
   editable,
   dataRecordsQueries,
 }: DataSourceTabsProps) {
@@ -53,7 +54,7 @@ export default function DataSourceTabs({
           <SingleDataSourceContent
             dataRecordsQuery={dataRecordsQuery}
             editable={editable}
-            colourScheme={colourScheme}
+            colorScheme={colorScheme}
             onSelect={setSelectedRecord}
           />
         </>
@@ -104,7 +105,7 @@ export default function DataSourceTabs({
               <SingleDataSourceContent
                 dataRecordsQuery={dataRecordsQuery}
                 editable={editable}
-                colourScheme={colourScheme}
+                colorScheme={colorScheme}
                 onSelect={setSelectedRecord}
               />
             </TabsContent>
@@ -121,14 +122,14 @@ interface SingleDataSourceContentProps {
     isPending: boolean;
   };
   editable: boolean;
-  colourScheme: { primary: string; muted: string };
+  colorScheme: PublicMapColorScheme;
   onSelect: (r: { id: string; dataSourceId: string }) => void;
 }
 
 function SingleDataSourceContent({
   dataRecordsQuery,
   editable,
-  colourScheme,
+  colorScheme,
   onSelect,
 }: SingleDataSourceContentProps) {
   const { publicFilters, setPublicFilters, records } =
@@ -193,7 +194,7 @@ function SingleDataSourceContent({
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}
         onSelect={onSelect}
-        colourScheme={colourScheme}
+        colorScheme={colorScheme}
       />
 
       {!editable && config && config.formUrl && config.allowUserSubmit && (

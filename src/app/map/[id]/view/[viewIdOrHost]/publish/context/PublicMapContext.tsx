@@ -28,7 +28,7 @@ export const PublicMapContext = createContext<{
   setActivePublishTab: (tab: string) => void;
   recordSidebarVisible: boolean;
   setRecordSidebarVisible: (visible: boolean) => void;
-  colourScheme: string;
+  colorScheme: string;
 }>({
   publicMap: null,
   editable: false,
@@ -43,5 +43,5 @@ export const PublicMapContext = createContext<{
   setActivePublishTab: () => null,
   recordSidebarVisible: false,
   setRecordSidebarVisible: () => null,
-  colourScheme: "red",
+  colorScheme: "red",
 });

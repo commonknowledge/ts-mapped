@@ -3,17 +3,18 @@ import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
+import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { Point } from "@/server/models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
 import type { FormEvent } from "react";
 
 export default function PublicMapGeocoder({
   onGeocode,
-  colourScheme,
+  colorScheme,
   className,
 }: {
   onGeocode: (point: Point) => void;
-  colourScheme?: { primary: string; muted: string };
+  colorScheme?: PublicMapColorScheme;
   className?: string;
 }) {
   const { mapRef } = useContext(MapContext);
@@ -50,8 +51,8 @@ export default function PublicMapGeocoder({
           className={className || "bg-white border rounded-md shadow-none"}
           style={
             {
-              "--tw-ring-color": colourScheme?.primary,
-              "--ring": colourScheme?.primary,
+              "--tw-ring-color": colorScheme?.primary,
+              "--ring": colorScheme?.primary,
             } as React.CSSProperties
           }
         />

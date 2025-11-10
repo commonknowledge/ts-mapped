@@ -1,17 +1,17 @@
 import { LoaderPinwheel } from "lucide-react";
 import { useContext } from "react";
-import { publicMapColourSchemes } from "@/app/map/[id]/styles";
+import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import DataSourceTabs from "./DataSourceTabs";
 
 export function PublicMapListings() {
-  const { publicMap, editable, colourScheme } = useContext(PublicMapContext);
+  const { publicMap, editable, colorScheme } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
 
-  // Convert string colourScheme to actual color scheme object
-  const activeColourScheme =
-    publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red;
+  // Convert string colorScheme to actual color scheme object
+  const activeColorScheme =
+    publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;
 
   const loadingSources = Object.values(dataRecordsQueries).some(
     (q) => q.isPending,
@@ -21,7 +21,7 @@ export function PublicMapListings() {
       {/* Listings */}
 
       <DataSourceTabs
-        colourScheme={activeColourScheme}
+        colorScheme={activeColorScheme}
         editable={editable}
         dataRecordsQueries={dataRecordsQueries}
       />

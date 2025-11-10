@@ -62,7 +62,7 @@ export default async function PublicMapAdminPage({
         mapId: mapIdOrPublic,
         viewId: viewIdOrHost,
         host: "",
-        colourScheme: "red",
+        colorScheme: "red",
         name: "My Public Map",
         description: "",
         descriptionLong: "",

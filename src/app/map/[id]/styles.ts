@@ -82,27 +82,30 @@ export const CONTROL_PANEL_WIDTH = 280;
 
 export default mapStyles;
 
-export const publicMapColourSchemes: Record<
-  string,
-  {
-    primary: string;
-    muted: string;
-  }
-> = {
+export interface PublicMapColorScheme {
+  primary: string;
+  primaryMuted: string;
+  secondary?: string;
+  secondaryMuted?: string;
+}
+
+export const publicMapColorSchemes: Record<string, PublicMapColorScheme> = {
   red: {
     primary: "#FF6B6B",
-    muted: "#FF6B6B10",
+    primaryMuted: "#FF6B6B10",
   },
   blue: {
     primary: "#678DE3",
-    muted: "#678DE310",
+    primaryMuted: "#678DE310",
   },
   green: {
     primary: "#4DAB37",
-    muted: "#4DAB3710",
+    primaryMuted: "#4DAB3710",
   },
   ["trans-pride"]: {
-    primary: "#E980C3",
-    muted: "#E7F8FF",
+    primary: "#92C7DC",
+    primaryMuted: "#F6FDFF",
+    secondary: "FDF3F9",
+    secondaryMuted: "#FDF3F9",
   },
 };

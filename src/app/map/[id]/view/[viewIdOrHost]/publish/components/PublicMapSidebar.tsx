@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { publicMapColourSchemes } from "@/app/map/[id]/styles";
+import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../context/PublicMapContext";
 import DataRecordSidebar from "./DataRecordSidebar";
@@ -11,12 +11,12 @@ import PublicMapGeocoder from "./PublicMapGeocoder";
 import { PublicMapListings } from "./PublicMapListings";
 
 export default function PublicMapSidebar() {
-  const { publicMap, editable, setSearchLocation, colourScheme } =
+  const { publicMap, editable, setSearchLocation, colorScheme } =
     useContext(PublicMapContext);
 
-  // Convert string colourScheme to actual color scheme object
-  const activeColourScheme =
-    publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red;
+  // Convert string colorScheme to actual color scheme object
+  const activeColorScheme =
+    publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;
 
   // Should never happen
   if (!publicMap) {
@@ -33,7 +33,11 @@ export default function PublicMapSidebar() {
         {/* Header */}
         <div className="flex flex-col gap-2 border-b border-neutral-200">
           <div
-            style={{ backgroundColor: activeColourScheme.muted }}
+            style={{
+              backgroundColor:
+                activeColorScheme.secondaryMuted ||
+                activeColorScheme.primaryMuted,
+            }}
             className="p-4 flex flex-col items-start gap-4"
           >
             <div className="flex flex-col w-full items-start justify-between gap-2">
@@ -79,7 +83,7 @@ export default function PublicMapSidebar() {
 
             <PublicMapGeocoder
               onGeocode={(p) => setSearchLocation(p)}
-              colourScheme={activeColourScheme}
+              colorScheme={activeColorScheme}
             />
           </div>
         </div>

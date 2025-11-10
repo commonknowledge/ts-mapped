@@ -53,7 +53,7 @@ export const publicMapSchema = z.object({
   published: z.boolean(),
   dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
   createdAt: z.date(),
-  colourScheme: z.string(),
+  colorScheme: z.string(),
 });
 
 export type PublicMap = z.infer<typeof publicMapSchema>;

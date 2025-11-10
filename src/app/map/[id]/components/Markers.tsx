@@ -4,7 +4,7 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
-import { publicMapColourSchemes } from "@/app/map/[id]/styles";
+import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import {
   MARKER_ID_KEY,
   MARKER_MATCHED_KEY,
@@ -91,7 +91,7 @@ function DataSourceMarkers({
   isMembers: boolean;
 }) {
   const { records, publicFilters } = useContext(PublicFiltersContext);
-  const { publicMap, colourScheme } = useContext(PublicMapContext);
+  const { publicMap, colorScheme } = useContext(PublicMapContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     // Don't add MARKER_CLIENT_EXCLUDED_KEY property if no public filters exist
@@ -126,8 +126,8 @@ function DataSourceMarkers({
 
   const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
   const publicMapColor =
-    publicMap?.id && colourScheme
-      ? publicMapColourSchemes[colourScheme]?.primary
+    publicMap?.id && colorScheme
+      ? publicMapColorSchemes[colorScheme]?.primary
       : "";
   const color = publicMapColor
     ? publicMapColor

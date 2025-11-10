@@ -1,6 +1,7 @@
 import { Check, X } from "lucide-react";
 import { Fragment, useContext, useMemo } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
@@ -12,8 +13,11 @@ import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
   const { selectedRecord } = useContext(InspectorContext);
-  const { publicMap } = useContext(PublicMapContext);
+  const { publicMap, colorScheme } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
+
+  const activeColorScheme =
+    publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;
 
   const selectedRecordDetails = useMemo(() => {
     if (!selectedRecord) return null;
@@ -44,7 +48,10 @@ export default function DataRecordSidebar() {
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
-    <div className="flex flex-col justify-between h-[100vh] overflow-auto w-[280px] p-4 text-sm">
+    <div
+      className="flex flex-col justify-between h-[100vh] overflow-auto w-[280px] p-4 text-sm"
+      style={{ backgroundColor: activeColorScheme.primaryMuted }}
+    >
       <div className={cn("flex flex-col gap-4")}>
         {/* Name */}
         <div className="flex flex-col gap-4">

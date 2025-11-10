@@ -11,6 +11,7 @@ import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { buildName } from "../utils";
 import { filterRecords, getActiveFilters } from "./filtersHelpers";
+import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -21,13 +22,13 @@ interface DataRecordsListProps {
     isPending: boolean;
   };
   onSelect: (r: { id: string; dataSourceId: string }) => void;
-  colourScheme: { primary: string; muted: string };
+  colorScheme: PublicMapColorScheme;
 }
 
 export default function DataRecordsList({
   dataRecordsQuery,
   onSelect,
-  colourScheme,
+  colorScheme,
 }: DataRecordsListProps) {
   const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
@@ -127,7 +128,9 @@ export default function DataRecordsList({
               isSelected ? "" : "hover:bg-accent",
             )}
             style={
-              isSelected ? { backgroundColor: colourScheme.muted } : undefined
+              isSelected
+                ? { backgroundColor: colorScheme.primaryMuted }
+                : undefined
             }
           >
             {/* Main record item */}
@@ -139,7 +142,7 @@ export default function DataRecordsList({
               <div className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: colourScheme.primary }}
+                  style={{ backgroundColor: colorScheme.primary }}
                 />
                 <span className="font-medium flex-1">
                   {getName(r) || getDescription(r) || "Unknown"}

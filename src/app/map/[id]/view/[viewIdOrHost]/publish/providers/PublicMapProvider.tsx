@@ -38,7 +38,7 @@ export default function PublicMapProvider({
     }
   };
 
-  const colourScheme = publicMap?.colourScheme || "red";
+  const colorScheme = publicMap?.colorScheme || "red";
 
   const updateDataSourceConfig = (
     dataSourceId: string,
@@ -99,7 +99,7 @@ export default function PublicMapProvider({
         setActivePublishTab,
         recordSidebarVisible,
         setRecordSidebarVisible,
-        colourScheme,
+        colorScheme,
       }}
     >
       {children}
