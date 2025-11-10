@@ -98,6 +98,7 @@
     "react-map-gl": "^8.0.1",
     "react-resizable-panels": "^3.0.3",
     "react-youtube": "^10.1.0",
+    "recharts": "^3.4.1",
     "sanity": "^4.6.1",
     "sanity-plugin-mux-input": "^2.9.1",
     "sharp": "^0.34.4",
