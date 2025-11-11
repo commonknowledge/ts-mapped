@@ -69,7 +69,7 @@ export default function DataRecordsList({
       );
       item?.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: window.innerWidth < 768 ? "start" : "center",
       });
     }
   }, [selectedRecord?.id]);
