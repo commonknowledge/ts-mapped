@@ -86,9 +86,9 @@ export default function PublicFiltersProvider({
 
         return {
           ...(field as FilterField),
-          label: allowed?.label,
+          label: allowed.label,
         };
-      }).filter((f) => !!f?.name);
+      }).filter((f) => Boolean(f?.name));
 
       setFilterFields(allowedFields);
     }

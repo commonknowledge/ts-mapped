@@ -23,14 +23,8 @@ import EditorPublishSettings from "./EditorPublishSettings";
 import type { FormEvent } from "react";
 
 export default function PublishPublicMapSidebar() {
-  const {
-    publicMap,
-    activeTabId,
-    activePublishTab,
-    setActivePublishTab,
-    recordSidebarVisible,
-    setRecordSidebarVisible,
-  } = useContext(PublicMapContext);
+  const { publicMap, activeTabId, activePublishTab, setActivePublishTab } =
+    useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const { setSelectedRecord } = useContext(InspectorContext);
   const [hideSidebar] = useState(false);
@@ -56,7 +50,7 @@ export default function PublishPublicMapSidebar() {
 
   // Auto-select first record when data source tab changes and data panel is open
   useEffect(() => {
-    if (activePublishTab === "data" && recordSidebarVisible && activeTabId) {
+    if (activePublishTab === "data" && activeTabId) {
       const dataRecordsQuery = dataRecordsQueries[activeTabId];
       const records = dataRecordsQuery?.data?.records;
       if (records && records.length > 0) {
@@ -67,13 +61,7 @@ export default function PublishPublicMapSidebar() {
         });
       }
     }
-  }, [
-    activeTabId,
-    activePublishTab,
-    recordSidebarVisible,
-    dataRecordsQueries,
-    setSelectedRecord,
-  ]);
+  }, [activeTabId, activePublishTab, dataRecordsQueries, setSelectedRecord]);
 
   // Should never happen
   if (!publicMap) {
@@ -102,10 +90,6 @@ export default function PublishPublicMapSidebar() {
               onValueChange={(value) => {
                 setActivePublishTab(value);
                 if (value === "data") {
-                  if (!recordSidebarVisible) {
-                    setRecordSidebarVisible(true);
-                  }
-
                   // Select the first record from the active data source
                   const currentDataSourceId =
                     activeTabId ||

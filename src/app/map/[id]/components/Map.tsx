@@ -312,10 +312,10 @@ export default function Map({
         ],
         {
           padding: {
-            left: isMobile ? 100 : CONTROL_PANEL_WIDTH + 100,
-            right: 100,
-            top: 100,
-            bottom: 100,
+            left: isMobile ? 0 : CONTROL_PANEL_WIDTH + 100,
+            right: isMobile ? 0 : 100,
+            top: isMobile ? 0 : 100,
+            bottom: isMobile ? 0 : 100,
           },
           duration: 1000,
         },

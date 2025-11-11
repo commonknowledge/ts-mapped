@@ -18,7 +18,7 @@ function FiltersListBadge({
   return (
     <Badge
       variant="outline"
-      className="flex items-center gap-[0.4em] bg-white text-sm"
+      className="flex items-center font-normal gap-[0.4em] bg-white text-xs whitespace-normal"
     >
       <button
         className="text-muted-foreground hover:text-primary cursor-pointer"

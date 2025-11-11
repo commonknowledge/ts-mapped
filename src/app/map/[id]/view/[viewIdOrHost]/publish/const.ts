@@ -1,5 +1,9 @@
 export const ALLOWED_FILTERS = [
   {
+    name: "Referral to a GIC",
+    label: "Referral to a GIC",
+  },
+  {
     name: "Bridging Prescription with Recommendation",
     label: "Bridging prescription with recommendation",
   },

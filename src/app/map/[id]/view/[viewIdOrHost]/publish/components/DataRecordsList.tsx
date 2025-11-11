@@ -30,12 +30,12 @@ export default function DataRecordsList({
   onSelect,
   colorScheme,
 }: DataRecordsListProps) {
-  const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
+  const { publicMap } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedRecord } = useContext(InspectorContext);
   const { publicFilters, records, setRecords } =
     useContext(PublicFiltersContext);
-  const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
+  const [isExpandedMobile, setExpandedMobile] = useState(false);
 
   useEffect(() => {
     const allRecords = dataRecordsQuery?.data?.records || [];
@@ -93,12 +93,13 @@ export default function DataRecordsList({
         dataSourceId: dataRecordsQuery.data?.id,
       });
 
-      // On mobile: toggle accordion expansion
-      // On desktop: open sidebar
-      if (window.innerWidth < 768) {
-        setExpandedRecordId(expandedRecordId === record.id ? null : record.id);
+      if (
+        record.id === selectedRecord?.id &&
+        dataRecordsQuery.data?.id === selectedRecord?.dataSourceId
+      ) {
+        setExpandedMobile(!isExpandedMobile);
       } else {
-        setRecordSidebarVisible(true);
+        setExpandedMobile(true);
       }
     }
 
@@ -117,7 +118,6 @@ export default function DataRecordsList({
   return (
     <ul className="flex flex-col">
       {records.map((r) => {
-        const isExpanded = expandedRecordId === r.id;
         const isSelected = selectedRecord?.id === r.id;
 
         return (
@@ -149,7 +149,7 @@ export default function DataRecordsList({
                 </span>
                 {/* Only show arrow on mobile */}
                 <div className="text-xs text-neutral-500 md:hidden">
-                  {isExpanded ? (
+                  {isSelected && isExpandedMobile ? (
                     <ChevronDownIcon size={16} />
                   ) : (
                     <ChevronRightIcon size={16} />
@@ -162,7 +162,7 @@ export default function DataRecordsList({
             </button>
 
             {/* Expanded content - only on mobile */}
-            {isExpanded && (
+            {isSelected && isExpandedMobile && (
               <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
                 <MobileRecordDetails
                   record={r}

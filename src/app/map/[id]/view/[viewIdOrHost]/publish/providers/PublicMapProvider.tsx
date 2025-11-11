@@ -29,8 +29,6 @@ export default function PublicMapProvider({
   const [searchLocation, setSearchLocation] = useState<Point | null>(null);
 
   const [activePublishTab, setActivePublishTab] = useState<string>("settings");
-  const [recordSidebarVisible, setRecordSidebarVisible] =
-    useState<boolean>(false);
 
   const updatePublicMap = (updates: Partial<PublicMap>) => {
     if (publicMap) {
@@ -97,8 +95,6 @@ export default function PublicMapProvider({
         setActiveTabId,
         activePublishTab,
         setActivePublishTab,
-        recordSidebarVisible,
-        setRecordSidebarVisible,
         colorScheme,
       }}
     >
