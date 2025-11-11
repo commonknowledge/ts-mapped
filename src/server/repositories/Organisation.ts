@@ -30,8 +30,10 @@ export function findOrganisationsByUserId(userId: string) {
     )
     .where("organisationUser.userId", "=", userId)
     .selectAll("organisation")
+    .orderBy("createdAt asc")
     .execute();
 }
+
 export function findOrganisationForUser(
   organisationId: string,
   userId: string,
