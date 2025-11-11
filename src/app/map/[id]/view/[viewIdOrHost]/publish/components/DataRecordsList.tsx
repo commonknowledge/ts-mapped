@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
@@ -35,7 +35,8 @@ export default function DataRecordsList({
   const { selectedRecord } = useContext(InspectorContext);
   const { publicFilters, records, setRecords } =
     useContext(PublicFiltersContext);
-  const [isExpandedMobile, setExpandedMobile] = useState(false);
+  const [isExpanded, setExpanded] = useState(false);
+  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     const allRecords = dataRecordsQuery?.data?.records || [];
@@ -59,6 +60,19 @@ export default function DataRecordsList({
     dataRecordsQuery.data?.records,
     dataRecordsQuery.data?.id,
   ]);
+
+  useEffect(() => {
+    if (selectedRecord?.id) {
+      setExpanded(true);
+      const item = listRef.current?.querySelector<HTMLLIElement>(
+        `li[data-id="${selectedRecord.id}"]`,
+      );
+      item?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedRecord?.id]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
@@ -87,28 +101,28 @@ export default function DataRecordsList({
     id: string;
     geocodePoint?: Point | null;
   }) => {
+    let nextExpanded = isExpanded;
     if (dataRecordsQuery.data?.id) {
       onSelect({
         id: record.id,
         dataSourceId: dataRecordsQuery.data?.id,
       });
 
-      if (
-        record.id === selectedRecord?.id &&
-        dataRecordsQuery.data?.id === selectedRecord?.dataSourceId
-      ) {
-        setExpandedMobile(!isExpandedMobile);
+      if (record.id === selectedRecord?.id) {
+        nextExpanded = !isExpanded;
       } else {
-        setExpandedMobile(true);
+        nextExpanded = true;
       }
     }
 
-    if (record.geocodePoint) {
+    if (record.geocodePoint && nextExpanded) {
       mapRef?.current?.flyTo({
         center: record.geocodePoint,
         zoom: 14,
       });
     }
+
+    setExpanded(nextExpanded);
   };
 
   if (!records?.length) {
@@ -116,7 +130,7 @@ export default function DataRecordsList({
   }
 
   return (
-    <ul className="flex flex-col">
+    <ul className="flex flex-col" ref={listRef}>
       {records.map((r) => {
         const isSelected = selectedRecord?.id === r.id;
 
@@ -127,6 +141,7 @@ export default function DataRecordsList({
               "rounded transition-all duration-200",
               isSelected ? "" : "hover:bg-accent",
             )}
+            data-id={r.id}
             style={
               isSelected
                 ? { backgroundColor: colorScheme.primaryMuted }
@@ -149,7 +164,7 @@ export default function DataRecordsList({
                 </span>
                 {/* Only show arrow on mobile */}
                 <div className="text-xs text-neutral-500 md:hidden">
-                  {isSelected && isExpandedMobile ? (
+                  {isSelected && isExpanded ? (
                     <ChevronDownIcon size={16} />
                   ) : (
                     <ChevronRightIcon size={16} />
@@ -162,7 +177,7 @@ export default function DataRecordsList({
             </button>
 
             {/* Expanded content - only on mobile */}
-            {isSelected && isExpandedMobile && (
+            {isSelected && isExpanded && (
               <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
                 <MobileRecordDetails
                   record={r}
