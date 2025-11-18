@@ -6,7 +6,6 @@ import { mapConfigSchema, mapSchema } from "@/server/models/Map";
 import {
   CalculationType,
   MapStyleName,
-  VisualisationType,
   mapViewSchema,
 } from "@/server/models/MapView";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -82,7 +81,6 @@ export const mapRouter = router({
             showLocations: true,
             showMembers: true,
             showTurf: true,
-            visualisationType: VisualisationType.Choropleth,
           },
         });
       }

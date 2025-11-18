@@ -1,6 +1,6 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { CalculationType, VisualisationType } from "@/server/models/MapView";
+import { CalculationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { ChoroplethContext } from "./context/ChoroplethContext";
 import { MapContext } from "./context/MapContext";
@@ -19,21 +19,19 @@ export const useAreaStats = () => {
     areaDataColumn: column,
     areaDataSourceId: dataSourceId,
     areaSetGroupCode,
-    visualisationType,
   } = viewConfig;
 
   // Use a dummy column for counts to avoid un-necessary refetching
   const columnOrCount =
     calculationType === CalculationType.Count ? "__count" : column;
 
-  const viewIsChoropleth = visualisationType === VisualisationType.Choropleth;
   const isMissingDataColumn =
     !column && calculationType !== CalculationType.Count;
 
   const skipCondition =
+    !calculationType ||
     !dataSourceId || // Skip if user has not selected a data source
     !areaSetGroupCode || // Skip if user has not selected an area set group
-    !viewIsChoropleth ||
     isMissingDataColumn;
 
   const trpc = useTRPC();

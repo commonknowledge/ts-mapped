@@ -36,8 +36,7 @@ const getOptionIcon = (option: { label: string }) => {
 
 export function FillSelector() {
   const { viewConfig } = useMapViews();
-  const { isChoroplethVisible, fillLabel, fillOptions, hasShape } =
-    useBoundariesControl();
+  const { fillLabel, fillOptions, hasShape } = useBoundariesControl();
 
   return (
     <div className="space-y-1">
@@ -55,7 +54,7 @@ export function FillSelector() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className={`w-full justify-between h-auto py-2 px-2 shadow-none ${!isChoroplethVisible ? "opacity-50" : ""}`}
+              className={`w-full justify-between h-auto py-2 px-2 shadow-none ${viewConfig.calculationType ? "" : "opacity-50"}`}
               disabled={!hasShape}
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">

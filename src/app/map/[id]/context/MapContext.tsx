@@ -76,7 +76,6 @@ export const createNewViewConfig = (): MapViewConfig => {
     calculationType: CalculationType.Value,
     colorScheme: ColorScheme.RedBlue,
     reverseColorScheme: false,
-    visualisationType: null,
   };
 };
 

@@ -20,11 +20,7 @@ import {
 } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { AreaSetCode, AreaSetGroupCode } from "../models/AreaSet";
-import {
-  ColorScheme,
-  MapStyleName,
-  VisualisationType,
-} from "../models/MapView";
+import { ColorScheme, MapStyleName } from "../models/MapView";
 import { countDataRecordsForDataSource } from "../repositories/DataRecord";
 import type { MapView } from "../models/MapView";
 import type { DataSource } from "@/server/models/DataSource";
@@ -101,7 +97,6 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
       showLocations: true,
       showMembers: true,
       showTurf: true,
-      visualisationType: VisualisationType.Choropleth,
     },
     mapId: map.id,
     position: 0,

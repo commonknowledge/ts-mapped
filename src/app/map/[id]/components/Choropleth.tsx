@@ -3,11 +3,7 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext, getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import {
-  CalculationType,
-  ColorScheme,
-  VisualisationType,
-} from "@/server/models/MapView";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
 
@@ -88,7 +84,7 @@ export default function Choropleth() {
           type="circle"
         />
       </Source>
-      {viewConfig.areaSetGroupCode && viewConfig.visualisationType && (
+      {viewConfig.areaSetGroupCode && (
         <Source
           id={sourceId}
           key={layerId}
@@ -97,24 +93,22 @@ export default function Choropleth() {
           url={`mapbox://${sourceId}`}
         >
           {/* Fill Layer - only show for choropleth */}
-          <Layer
-            id={`${sourceId}-fill`}
-            beforeId={choroplethTopLayerId}
-            source={sourceId}
-            source-layer={layerId}
-            type="fill"
-            paint={{
-              "fill-color": fillColor,
-              "fill-opacity":
-                viewConfig.visualisationType === VisualisationType.Choropleth
-                  ? 0.8
-                  : 0,
-            }}
-          />
+          {viewConfig.showChoropleth && (
+            <Layer
+              id={`${sourceId}-fill`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="fill"
+              paint={{
+                "fill-color": fillColor,
+                "fill-opacity": 0.8,
+              }}
+            />
+          )}
 
           {/* Line Layer - show for both boundary-only and choropleth */}
-          {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
-            viewConfig.visualisationType === VisualisationType.Choropleth) && (
+          {
             <Layer
               id={`${sourceId}-line`}
               beforeId={choroplethTopLayerId}
@@ -126,7 +120,7 @@ export default function Choropleth() {
                 "line-width": 1,
               }}
             />
-          )}
+          }
 
           {/* Symbol Layer (Labels) */}
           {viewConfig.showLabels && (

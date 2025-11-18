@@ -67,12 +67,6 @@ export const dataSourceViewSchema = z.object({
 
 export type DataSourceView = z.infer<typeof dataSourceViewSchema>;
 
-export enum VisualisationType {
-  BoundaryOnly = "BoundaryOnly",
-  Choropleth = "Choropleth",
-}
-export const visualisationTypes = Object.values(VisualisationType);
-
 export enum CalculationType {
   Value = "Value",
   Count = "Count",
@@ -107,11 +101,11 @@ export const mapViewConfigSchema = z.object({
   excludeColumnsString: z.string(),
   mapStyleName: z.nativeEnum(MapStyleName),
   showBoundaryOutline: z.boolean(),
+  showChoropleth: z.boolean().optional(),
   showLabels: z.boolean(),
   showLocations: z.boolean(),
   showMembers: z.boolean(),
   showTurf: z.boolean(),
-  visualisationType: z.nativeEnum(VisualisationType).nullish(),
   calculationType: z.nativeEnum(CalculationType).nullish(),
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),

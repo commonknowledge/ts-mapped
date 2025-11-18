@@ -186,6 +186,10 @@ export function useMapViews() {
     (viewConfig: Partial<MapViewConfig>) => {
       if (!view) return;
 
+      if (viewConfig.calculationType || viewConfig.areaDataColumn) {
+        viewConfig.showChoropleth = true;
+      }
+
       return updateView({ ...view, config: { ...view.config, ...viewConfig } });
     },
     [updateView, view],

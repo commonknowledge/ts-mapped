@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import {
   useDataSources,
   useMembersDataSource,
@@ -6,11 +6,7 @@ import {
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
-import {
-  CalculationType,
-  ColorScheme,
-  VisualisationType,
-} from "@/server/models/MapView";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export function useBoundariesControl() {
@@ -22,19 +18,6 @@ export function useBoundariesControl() {
     () => allDataSources?.find((ds) => ds.name === "2024 GE Results"),
     [allDataSources],
   );
-
-  const isChoroplethVisible = useMemo(
-    () => viewConfig.visualisationType !== VisualisationType.BoundaryOnly,
-    [viewConfig.visualisationType],
-  );
-
-  const toggleChoropleth = useCallback(() => {
-    if (viewConfig.visualisationType === VisualisationType.BoundaryOnly) {
-      updateViewConfig({ visualisationType: VisualisationType.Choropleth });
-    } else {
-      updateViewConfig({ visualisationType: VisualisationType.BoundaryOnly });
-    }
-  }, [viewConfig.visualisationType, updateViewConfig]);
 
   const fillLabel = useMemo(() => {
     if (!viewConfig.areaDataSourceId || viewConfig.areaDataSourceId === "") {
@@ -97,7 +80,6 @@ export function useBoundariesControl() {
             label: "Member Count",
             onClick: () => {
               updateViewConfig({
-                visualisationType: VisualisationType.Choropleth,
                 areaDataSourceId: membersDataSource.id,
                 areaDataColumn: MAX_COLUMN_KEY,
                 calculationType: CalculationType.Count,
@@ -112,7 +94,6 @@ export function useBoundariesControl() {
           label: column.name,
           onClick: () => {
             updateViewConfig({
-              visualisationType: VisualisationType.Choropleth,
               areaDataSourceId: voteShareDataSource.id,
               areaDataColumn: column.name,
               calculationType: CalculationType.Value,
@@ -166,8 +147,6 @@ export function useBoundariesControl() {
     Boolean(viewConfig.areaDataSourceId);
 
   return {
-    isChoroplethVisible,
-    toggleChoropleth,
     fillLabel,
     shapeOptions,
     fillOptions,

@@ -6,7 +6,6 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { GeocodingType } from "@/server/models/DataSource";
-import { VisualisationType } from "@/server/models/MapView";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { getChoroplethLayerConfig } from "../sources";
 import type { ReactNode } from "react";
@@ -36,18 +35,11 @@ export default function ChoroplethProvider({
         : undefined;
 
     return getChoroplethLayerConfig(
-      viewConfig.visualisationType === VisualisationType.Choropleth
-        ? areaSetCode
-        : undefined,
+      areaSetCode,
       viewConfig.areaSetGroupCode,
       zoom,
     );
-  }, [
-    choroplethDataSource,
-    viewConfig.areaSetGroupCode,
-    viewConfig.visualisationType,
-    zoom,
-  ]);
+  }, [choroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
 
   return (
     <ChoroplethContext
