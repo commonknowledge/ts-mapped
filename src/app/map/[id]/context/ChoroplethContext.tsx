@@ -8,6 +8,9 @@ export const ChoroplethContext = createContext<{
   boundariesPanelOpen: boolean;
   setBoundariesPanelOpen: (open: boolean) => void;
 
+  selectedBivariateBucket: string | null;
+  setSelectedBivariateBucket: (b: string | null) => void;
+
   lastLoadedSourceId: string | undefined;
   setLastLoadedSourceId: (id: string) => void;
 
@@ -16,6 +19,8 @@ export const ChoroplethContext = createContext<{
 }>({
   boundariesPanelOpen: false,
   setBoundariesPanelOpen: () => null,
+  selectedBivariateBucket: null,
+  setSelectedBivariateBucket: () => null,
   choroplethLayerConfig: getChoroplethLayerConfig(null, null, DEFAULT_ZOOM),
   lastLoadedSourceId: undefined,
   setLastLoadedSourceId: () => null,

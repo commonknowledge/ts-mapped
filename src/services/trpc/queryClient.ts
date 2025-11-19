@@ -1,4 +1,5 @@
 import {
+  QueryCache,
   QueryClient,
   defaultShouldDehydrateQuery,
 } from "@tanstack/react-query";
@@ -8,7 +9,8 @@ export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 30 * 1000,
+        // Manually invalidate queries if they need to be refetched
+        staleTime: Infinity,
       },
       dehydrate: {
         serializeData: superjson.serialize,
@@ -33,5 +35,16 @@ export function createQueryClient() {
         },
       },
     },
+    queryCache: new QueryCache({
+      onError: (error) => {
+        if (
+          error.message.includes("You must be logged in to perform this action")
+        ) {
+          if (typeof window !== "undefined") {
+            window.location.reload();
+          }
+        }
+      },
+    }),
   });
 }

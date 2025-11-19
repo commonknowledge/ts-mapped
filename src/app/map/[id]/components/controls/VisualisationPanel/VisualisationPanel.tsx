@@ -46,6 +46,7 @@ import {
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { getValidAreaSetGroupCodes } from "../../../sources";
+import BivariateLegend from "../../BivariateLagend";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function VisualisationPanel({
@@ -260,18 +261,56 @@ export default function VisualisationPanel({
                   Select column to use for values
                 </Label>
                 <Select
-                  value={viewConfig.areaDataColumn || ""}
+                  value={viewConfig.areaDataColumn || NULL_UUID}
                   onValueChange={(value) =>
-                    updateViewConfig({ areaDataColumn: value })
+                    updateViewConfig({
+                      areaDataColumn: value === NULL_UUID ? "" : value,
+                    })
                   }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Choose a column..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={NULL_UUID}>None</SelectItem>
                     <SelectItem key={MAX_COLUMN_KEY} value={MAX_COLUMN_KEY}>
                       Highest-value column (String)
                     </SelectItem>
+                    {dataSources
+                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+                      ?.columnDefs.map((col) => (
+                        <SelectItem key={col.name} value={col.name}>
+                          {col.name} ({col.type})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+          {/* Secondary column selection */}
+          {(viewConfig.calculationType === CalculationType.Value ||
+            !viewConfig.calculationType) &&
+            viewConfig.areaDataSourceId &&
+            viewConfig.areaDataColumn &&
+            viewConfig.areaDataColumn !== MAX_COLUMN_KEY && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Select secondary column to use for values
+                </Label>
+                <Select
+                  value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
+                  onValueChange={(value) =>
+                    updateViewConfig({
+                      areaDataSecondaryColumn: value === NULL_UUID ? "" : value,
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a column..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NULL_UUID}>None</SelectItem>
                     {dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
                       ?.columnDefs.map((col) => (
@@ -381,76 +420,87 @@ export default function VisualisationPanel({
         )}
 
         {/* Color Scheme Selection */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Palette className="w-4 h-4 text-muted-foreground" />
-            <Label className="text-sm text-neutral-600">Color scheme</Label>
-          </div>
+        {!viewConfig.areaDataSecondaryColumn && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-muted-foreground" />
+              <Label className="text-sm text-neutral-600">Color scheme</Label>
+            </div>
 
-          <Select
-            value={viewConfig.colorScheme || ColorScheme.RedBlue}
-            onValueChange={(value) =>
-              updateViewConfig({
-                colorScheme: value as ColorScheme,
-              })
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choose color scheme..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ColorScheme.RedBlue}>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-blue-400 rounded"></div>
-                  Red to blue
-                </div>
-              </SelectItem>
-              <SelectItem value={ColorScheme.GreenYellowRed}>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded"></div>
-                  Green to red
-                </div>
-              </SelectItem>
-              <SelectItem value={ColorScheme.Viridis}>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-blue-400 to-green-400 rounded"></div>
-                  Viridis
-                </div>
-              </SelectItem>
-              <SelectItem value={ColorScheme.Plasma}>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 rounded"></div>
-                  Plasma
-                </div>
-              </SelectItem>
-              <SelectItem value={ColorScheme.Diverging}>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-blue-400 via-white to-red-400 rounded"></div>
-                  Diverging
-                </div>
-              </SelectItem>
-              <SelectItem value={ColorScheme.Sequential}>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-gray-200 to-blue-600 rounded"></div>
-                  Sequential
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center gap-2 py-2">
-            <Switch
-              id="color-scheme-switch"
-              checked={Boolean(viewConfig.reverseColorScheme)}
-              onCheckedChange={(v) =>
-                updateViewConfig({ reverseColorScheme: v })
+            <Select
+              value={viewConfig.colorScheme || ColorScheme.RedBlue}
+              onValueChange={(value) =>
+                updateViewConfig({
+                  colorScheme: value as ColorScheme,
+                })
               }
-            />
-            <label htmlFor="color-scheme-switch" className="text-sm">
-              Reversed color scheme
-            </label>
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose color scheme..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ColorScheme.RedBlue}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-blue-400 rounded"></div>
+                    Red to blue
+                  </div>
+                </SelectItem>
+                <SelectItem value={ColorScheme.GreenYellowRed}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded"></div>
+                    Green to red
+                  </div>
+                </SelectItem>
+                <SelectItem value={ColorScheme.Viridis}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-blue-400 to-green-400 rounded"></div>
+                    Viridis
+                  </div>
+                </SelectItem>
+                <SelectItem value={ColorScheme.Plasma}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 rounded"></div>
+                    Plasma
+                  </div>
+                </SelectItem>
+                <SelectItem value={ColorScheme.Diverging}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gradient-to-r from-blue-400 via-white to-red-400 rounded"></div>
+                    Diverging
+                  </div>
+                </SelectItem>
+                <SelectItem value={ColorScheme.Sequential}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gradient-to-r from-gray-200 to-blue-600 rounded"></div>
+                    Sequential
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center gap-2 py-2">
+              <Switch
+                id="color-scheme-switch"
+                checked={Boolean(viewConfig.reverseColorScheme)}
+                onCheckedChange={(v) =>
+                  updateViewConfig({ reverseColorScheme: v })
+                }
+              />
+              <label htmlFor="color-scheme-switch" className="text-sm">
+                Reversed color scheme
+              </label>
+            </div>
           </div>
-        </div>
+        )}
+        {viewConfig.areaDataColumn && viewConfig.areaDataSecondaryColumn && (
+          <div className="flex flex-col gap-2 rounded-sm bg-white border border-neutral-200 p-2">
+            <p className="flex gap-2 items-center text-xs font-mono">
+              <Database className="w-4 h-4 text-muted-foreground" />
+              Locality Data Legend
+            </p>
+            <BivariateLegend />
+          </div>
+        )}
       </>
 
       {/* Modal for data source selection */}

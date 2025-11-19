@@ -97,6 +97,7 @@ export const mapStyleNames = Object.values(MapStyleName);
 export const mapViewConfigSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
+  areaDataSecondaryColumn: z.string().optional(),
   areaSetGroupCode: areaSetGroupCode.nullish(),
   excludeColumnsString: z.string(),
   mapStyleName: z.nativeEnum(MapStyleName),

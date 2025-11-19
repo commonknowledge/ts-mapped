@@ -25,6 +25,9 @@ export default function ChoroplethProvider({
     string | undefined
   >();
   const [boundariesPanelOpen, setBoundariesPanelOpen] = useState(false);
+  const [selectedBivariateBucket, setSelectedBivariateBucket] = useState<
+    string | null
+  >(null);
 
   /* Derived State */
 
@@ -46,6 +49,8 @@ export default function ChoroplethProvider({
       value={{
         boundariesPanelOpen,
         setBoundariesPanelOpen,
+        selectedBivariateBucket,
+        setSelectedBivariateBucket,
 
         lastLoadedSourceId,
         setLastLoadedSourceId,

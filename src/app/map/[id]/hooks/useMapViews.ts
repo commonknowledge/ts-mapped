@@ -186,8 +186,19 @@ export function useMapViews() {
     (viewConfig: Partial<MapViewConfig>) => {
       if (!view) return;
 
+      // Re-display choropleth when the user selects a visualisation
       if (viewConfig.calculationType || viewConfig.areaDataColumn) {
         viewConfig.showChoropleth = true;
+      }
+
+      // Clear the selected columns when the user changes the data source
+      if (viewConfig.areaDataSourceId) {
+        if (!viewConfig.areaDataColumn) {
+          viewConfig.areaDataColumn = "";
+        }
+        if (!viewConfig.areaDataSecondaryColumn) {
+          viewConfig.areaDataSecondaryColumn = "";
+        }
       }
 
       return updateView({ ...view, config: { ...view.config, ...viewConfig } });

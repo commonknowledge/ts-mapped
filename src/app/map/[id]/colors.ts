@@ -13,7 +13,7 @@ import { useMemo } from "react";
 import { ColumnType } from "@/server/models/DataSource";
 import { ColorScheme } from "@/server/models/MapView";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
-import type { RouterOutputs } from "@/services/trpc/react";
+import type { CombinedAreaStats } from "./data";
 import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
 import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
@@ -30,6 +30,15 @@ export interface NumericColorScheme {
   isSingleValue?: boolean;
   singleColor?: string;
 }
+
+export const BIVARIATE_COLORS = [
+  // Low var1, increasing var2 →
+  ["#e8e8e8", "#ace4e4", "#5ac8c8"],
+  // Mid var1, increasing var2 →
+  ["#dfb0d6", "#a5add3", "#5698b9"],
+  // High var1, increasing var2 →
+  ["#be64ac", "#8c62aa", "#3b4994"],
+];
 
 const getInterpolator = (scheme: ColorScheme | undefined) => {
   switch (scheme) {
@@ -51,88 +60,105 @@ const getInterpolator = (scheme: ColorScheme | undefined) => {
   }
 };
 
+const getValueRange = (values: number[], isCount: boolean) => {
+  let minValue = null;
+  let maxValue = null;
+
+  for (const v of values) {
+    if (minValue === null || v < minValue) {
+      minValue = v;
+    }
+    if (maxValue === null || v > maxValue) {
+      maxValue = v;
+    }
+  }
+
+  // Override minValue for counts for full range of values
+  if (isCount) {
+    minValue = 0;
+  }
+  return { minValue: minValue || 0, maxValue: maxValue || 0 };
+};
+
 export const useColorScheme = (
-  areaStats: RouterOutputs["area"]["stats"] | null | undefined,
+  areaStats: CombinedAreaStats | null,
   scheme: ColorScheme,
   isCount: boolean,
   isReversed = false,
 ): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
-    if (!areaStats || !areaStats.stats.length) {
-      return null;
-    }
+    return getColorScheme(areaStats, scheme, isCount, isReversed);
+  }, [areaStats, isCount, scheme, isReversed]);
+};
 
-    const values = areaStats.stats.map((stat) => stat.value) as number[];
+const getColorScheme = (
+  areaStats: CombinedAreaStats | null,
+  scheme: ColorScheme,
+  isCount: boolean,
+  isReversed = false,
+): CategoricColorScheme | NumericColorScheme | null => {
+  if (!areaStats || !areaStats.stats.length) {
+    return null;
+  }
 
-    // ColumnType.String and others
-    if (areaStats.columnType !== ColumnType.Number) {
-      const distinctValues = new Set(values);
-      const colorScale = scaleOrdinal(schemeCategory10).domain(
-        distinctValues as Iterable<string>,
-      );
-      const colorMap: Record<string, string> = {};
-      distinctValues.forEach((v) => {
-        colorMap[v] = getCategoricalColor(v.toString(), colorScale);
-      });
-      return {
-        columnType: ColumnType.String,
-        colorMap,
-      };
-    }
+  const values = areaStats.stats.map((stat) => stat.primary);
 
-    // ColumnType.Number
-    let minValue = null;
-    let maxValue = null;
-    for (const v of values) {
-      if (minValue === null || v < minValue) {
-        minValue = v;
-      }
-      if (maxValue === null || v > maxValue) {
-        maxValue = v;
-      }
-    }
+  // ColumnType.String and others
+  if (areaStats.columnType !== ColumnType.Number) {
+    const distinctValues = new Set(values.map(String));
+    const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
+    const colorMap: Record<string, string> = {};
+    distinctValues.forEach((v) => {
+      colorMap[v] = getCategoricalColor(v, colorScale);
+    });
+    return {
+      columnType: ColumnType.String,
+      colorMap,
+    };
+  }
 
-    // Override minValue for counts for full range of values
-    if (isCount) {
-      minValue = 0;
-    }
+  // ColumnType.Number
+  const { minValue, maxValue } = getValueRange(
+    values.filter((v) => typeof v === "number"),
+    isCount,
+  );
 
-    // Handle case where all values are the same (e.g., all counts are 1)
-    if (minValue === maxValue) {
-      const domain = isReversed ? [1, 0] : [0, 1];
-      // For count records, create a simple color scheme
-      // Use a small range to ensure valid interpolation
-      const interpolator = getInterpolator(scheme);
-      const colorScale = scaleSequential()
-        .domain(domain) // Use 0-1 range for single values
-        .interpolator(interpolator);
-
-      return {
-        columnType: ColumnType.Number,
-        minValue: 0,
-        maxValue: 1,
-        colorScale,
-        isSingleValue: true,
-      };
-    }
-
-    const domain = (
-      isReversed ? [maxValue, minValue] : [minValue, maxValue]
-    ) as [number, number];
-
+  // Handle case where all values are the same (e.g., all counts are 1)
+  if (minValue === maxValue) {
+    const domain = isReversed ? [1, 0] : [0, 1];
+    // For count records, create a simple color scheme
+    // Use a small range to ensure valid interpolation
     const interpolator = getInterpolator(scheme);
     const colorScale = scaleSequential()
-      .domain(domain)
+      .domain(domain) // Use 0-1 range for single values
       .interpolator(interpolator);
 
     return {
       columnType: ColumnType.Number,
-      minValue: minValue ?? 0,
-      maxValue: maxValue ?? 0,
+      minValue: 0,
+      maxValue: 1,
       colorScale,
+      isSingleValue: true,
     };
-  }, [areaStats, isCount, scheme, isReversed]);
+  }
+
+  const domain = (isReversed ? [maxValue, minValue] : [minValue, maxValue]) as [
+    number,
+    number,
+  ];
+
+  const interpolator = getInterpolator(scheme);
+  const colorScale = scaleSequential()
+    .domain(domain)
+    .interpolator(interpolator);
+
+  return {
+    columnType: ColumnType.Number,
+    minValue,
+    maxValue,
+    colorScale,
+  };
 };
 
 const getCategoricalColor = (
@@ -143,14 +169,19 @@ const getCategoricalColor = (
 };
 
 export const useFillColor = (
-  areaStats: RouterOutputs["area"]["stats"] | null | undefined,
+  areaStats: CombinedAreaStats | null,
   scheme: ColorScheme,
   isCount: boolean,
   isReversed: boolean,
+  selectedBivariateBucket: string | null,
 ): DataDrivenPropertyValueSpecification<string> => {
-  const colorScheme = useColorScheme(areaStats, scheme, isCount);
   // useMemo to cache calculated fillColor
   return useMemo(() => {
+    if (areaStats?.secondaryStats) {
+      return getBivariateFillColor(areaStats, selectedBivariateBucket);
+    }
+
+    const colorScheme = getColorScheme(areaStats, scheme, isCount);
     if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
     }
@@ -208,5 +239,90 @@ export const useFillColor = (
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [colorScheme, isCount, isReversed]);
+  }, [areaStats, isCount, isReversed, scheme, selectedBivariateBucket]);
+};
+
+const getBivariateFillColor = (
+  areaStats: CombinedAreaStats,
+  selectedBivariateBucket: string | null,
+): DataDrivenPropertyValueSpecification<string> => {
+  const primaryValues = areaStats.stats
+    .map((s) => s.primary)
+    .filter((s) => typeof s === "number");
+  const secondaryValues = areaStats.stats
+    .map((s) => s.secondary)
+    .filter((s) => typeof s === "number");
+
+  const primaryRange = getValueRange(primaryValues, false);
+  const secondaryRange = getValueRange(secondaryValues, false);
+
+  const gridSize = 3;
+
+  // Calculate which grid cell each feature falls into
+  const primaryThresholds = Array.from(
+    { length: gridSize - 1 },
+    (_, i) =>
+      primaryRange.minValue +
+      ((i + 1) * (primaryRange.maxValue - primaryRange.minValue)) / gridSize,
+  );
+
+  const secondaryThresholds = Array.from(
+    { length: gridSize - 1 },
+    (_, i) =>
+      secondaryRange.minValue +
+      ((i + 1) * (secondaryRange.maxValue - secondaryRange.minValue)) /
+        gridSize,
+  );
+
+  // Build nested case expressions to map both values to colors
+  const getValue = ["feature-state", "value"];
+
+  const getSecondaryValue = ["feature-state", "secondaryValue"];
+
+  // Create nested case statements
+  const cases: DataDrivenPropertyValueSpecification<string> = ["case"];
+
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      const conditions: DataDrivenPropertyValueSpecification<string> = ["all"];
+
+      // Condition for dimension 1
+      if (i === 0) {
+        conditions.push(["<=", getValue, primaryThresholds[0]]);
+      } else if (i === gridSize - 1) {
+        conditions.push([">", getValue, primaryThresholds[i - 1]]);
+      } else {
+        conditions.push([
+          "all",
+          [">", getValue, primaryThresholds[i - 1]],
+          ["<=", getValue, primaryThresholds[i]],
+        ]);
+      }
+
+      // Condition for dimension 2
+      if (j === 0) {
+        conditions.push(["<=", getSecondaryValue, secondaryThresholds[0]]);
+      } else if (j === gridSize - 1) {
+        conditions.push([">", getSecondaryValue, secondaryThresholds[j - 1]]);
+      } else {
+        conditions.push([
+          "all",
+          [">", getSecondaryValue, secondaryThresholds[j - 1]],
+          ["<=", getSecondaryValue, secondaryThresholds[j]],
+        ]);
+      }
+
+      cases.push(conditions);
+      cases.push(
+        selectedBivariateBucket && selectedBivariateBucket !== `${i},${j}`
+          ? "rgba(0,0,0,0)"
+          : BIVARIATE_COLORS[i][j],
+      );
+    }
+  }
+
+  // Default color
+  cases.push(DEFAULT_FILL_COLOR);
+
+  return cases;
 };

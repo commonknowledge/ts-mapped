@@ -17,6 +17,7 @@ export default function Choropleth() {
     choroplethLayerConfig: {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
+    selectedBivariateBucket,
   } = useContext(ChoroplethContext);
 
   const areaStatsQuery = useAreaStats();
@@ -43,7 +44,7 @@ export default function Choropleth() {
           sourceLayer: layerId,
           id: stat.areaCode,
         },
-        { value: stat.value },
+        { value: stat.primary, secondaryValue: stat.secondary },
       );
       nextAreaCodesToClean[stat.areaCode] = true;
     });
@@ -66,6 +67,7 @@ export default function Choropleth() {
     viewConfig.colorScheme || ColorScheme.RedBlue,
     viewConfig.calculationType === CalculationType.Count,
     Boolean(viewConfig.reverseColorScheme),
+    selectedBivariateBucket,
   );
 
   const choroplethTopLayerId = "choropleth-top";
@@ -80,6 +82,11 @@ export default function Choropleth() {
       >
         <Layer
           id={choroplethTopLayerId}
+          source={choroplethTopLayerId}
+          type="circle"
+        />
+        <Layer
+          id={`${choroplethTopLayerId}-line`}
           source={choroplethTopLayerId}
           type="circle"
         />
@@ -111,7 +118,7 @@ export default function Choropleth() {
           {
             <Layer
               id={`${sourceId}-line`}
-              beforeId={choroplethTopLayerId}
+              beforeId={`${choroplethTopLayerId}-line`}
               source={sourceId}
               source-layer={layerId}
               type="line"

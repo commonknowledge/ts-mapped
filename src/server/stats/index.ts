@@ -7,17 +7,27 @@ import { ColumnType } from "../models/DataSource";
 import { CalculationType } from "../models/MapView";
 import type { AreaStat, BoundingBox } from "../models/Area";
 import type { AreaSetCode } from "../models/AreaSet";
+import type { DataSource } from "../models/DataSource";
 import type { Database } from "@/server/services/database";
 import type { CaseBuilder, CaseWhenBuilder } from "kysely";
 
-export const getAreaStats = async (
-  areaSetCode: AreaSetCode,
-  dataSourceId: string,
-  calculationType: CalculationType,
-  column: string,
-  excludeColumns: string[],
-  boundingBox: BoundingBox | null = null,
-) => {
+export const getAreaStats = async ({
+  areaSetCode,
+  dataSourceId,
+  calculationType,
+  column,
+  secondaryColumn,
+  excludeColumns,
+  boundingBox = null,
+}: {
+  areaSetCode: AreaSetCode;
+  dataSourceId: string;
+  calculationType: CalculationType;
+  column: string;
+  secondaryColumn?: string;
+  excludeColumns: string[];
+  boundingBox?: BoundingBox | null;
+}) => {
   if (column === MAX_COLUMN_KEY) {
     const stats = await getMaxColumnByArea(
       areaSetCode,
@@ -25,7 +35,12 @@ export const getAreaStats = async (
       excludeColumns,
       boundingBox,
     );
-    return { column, columnType: ColumnType.String, stats };
+    return {
+      column,
+      columnType: ColumnType.String,
+      stats,
+      secondaryStats: null,
+    };
   }
 
   if (calculationType === CalculationType.Count) {
@@ -34,7 +49,12 @@ export const getAreaStats = async (
       dataSourceId,
       boundingBox,
     );
-    return { column, columnType: ColumnType.Number, stats };
+    return {
+      column,
+      columnType: ColumnType.Number,
+      stats,
+      secondaryStats: null,
+    };
   }
 
   try {
@@ -43,40 +63,35 @@ export const getAreaStats = async (
       throw new Error(`Data source not found: ${dataSourceId}`);
     }
 
-    const columnDef = dataSource.columnDefs.find((c) => c.name === column);
-    if (!columnDef) {
-      throw new Error(`Data source column not found: ${column}`);
+    const primaryStats = await getColumnValueByArea(
+      dataSource,
+      areaSetCode,
+      calculationType,
+      column,
+      boundingBox,
+    );
+
+    if (!secondaryColumn) {
+      return { ...primaryStats, secondaryStats: null };
     }
 
-    let safeCalculationType = calculationType;
-    if (columnDef.type !== ColumnType.Number) {
-      safeCalculationType = CalculationType.Value;
-    }
-
-    const valueSelect =
-      safeCalculationType === CalculationType.Value
-        ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-        : db
-            .fn(safeCalculationType, [sql`(json->>${column})::float`])
-            .as("value");
-
-    const query = db
-      .selectFrom("dataRecord")
-      .select([
-        sql`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
-        valueSelect,
-      ])
-      .where("dataRecord.dataSourceId", "=", dataSourceId)
-      .where(getBoundingBoxSQL(boundingBox))
-      .groupBy("areaCode");
-
-    const result = await query.execute();
-    const stats = filterResult(result, columnDef.type);
-    return { column, columnType: columnDef.type, stats };
+    const secondaryStats = await getColumnValueByArea(
+      dataSource,
+      areaSetCode,
+      calculationType,
+      secondaryColumn,
+      boundingBox,
+    );
+    return { ...primaryStats, secondaryStats };
   } catch (error) {
     logger.error(`Failed to get area stats`, { error });
   }
-  return { column, columnType: ColumnType.Unknown, stats: [] };
+  return {
+    column,
+    columnType: ColumnType.Unknown,
+    stats: [],
+    secondaryStats: null,
+  };
 };
 
 export const getMaxColumnByArea = async (
@@ -164,6 +179,45 @@ export const getMaxColumnByArea = async (
     logger.error(`Failed to get area max column by area`, { error });
   }
   return [];
+};
+
+const getColumnValueByArea = async (
+  dataSource: DataSource,
+  areaSetCode: AreaSetCode,
+  calculationType: CalculationType,
+  column: string,
+  boundingBox: BoundingBox | null,
+) => {
+  const columnDef = dataSource.columnDefs.find((c) => c.name === column);
+  if (!columnDef) {
+    throw new Error(`Data source column not found: ${column}`);
+  }
+
+  let safeCalculationType = calculationType;
+  if (columnDef.type !== ColumnType.Number) {
+    safeCalculationType = CalculationType.Value;
+  }
+
+  const valueSelect =
+    safeCalculationType === CalculationType.Value
+      ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
+      : db
+          .fn(safeCalculationType, [sql`(json->>${column})::float`])
+          .as("value");
+
+  const query = db
+    .selectFrom("dataRecord")
+    .select([
+      sql`geocode_result->'areas'->>${areaSetCode}`.as("areaCode"),
+      valueSelect,
+    ])
+    .where("dataRecord.dataSourceId", "=", dataSource.id)
+    .where(getBoundingBoxSQL(boundingBox))
+    .groupBy("areaCode");
+
+  const result = await query.execute();
+  const stats = filterResult(result, columnDef.type);
+  return { column, columnType: columnDef.type, stats };
 };
 
 export const getRecordCountByArea = async (

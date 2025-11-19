@@ -124,8 +124,8 @@ export const dataSourceReadProcedure = publicProcedure
 
     if (!ctx.user) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Data source not found",
+        code: "UNAUTHORIZED",
+        message: "You must be logged in to perform this action.",
       });
     }
 
@@ -210,8 +210,8 @@ export const mapReadProcedure = publicProcedure
 
     if (!ctx.user?.id) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Map not found",
+        code: "UNAUTHORIZED",
+        message: "You must be logged in to perform this action.",
       });
     }
 

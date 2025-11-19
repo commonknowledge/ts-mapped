@@ -23,18 +23,12 @@ export const areaRouter = router({
         areaSetCode: z.nativeEnum(AreaSetCode),
         calculationType: z.nativeEnum(CalculationType),
         column: z.string(),
+        secondaryColumn: z.string().optional(),
         excludeColumns: z.array(z.string()),
         boundingBox: boundingBoxSchema.nullish(),
       }),
     )
     .query(({ input }) => {
-      return getAreaStats(
-        input.areaSetCode,
-        input.dataSourceId,
-        input.calculationType,
-        input.column,
-        input.excludeColumns,
-        input.boundingBox,
-      );
+      return getAreaStats(input);
     }),
 });
