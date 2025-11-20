@@ -16,32 +16,40 @@ export interface MapStyleConfig {
 const mapStyles: Record<MapStyleName, MapStyleConfig> = {
   Light: {
     name: "Light",
-    slug: "light-v11",
+    slug: "mapbox/light-v11",
     textColor: "#6D6D6D",
     textHaloColor: "#ffffff",
     thumbnail: ThumbLight,
   },
   Dark: {
     name: "Dark",
-    slug: "dark-v11",
+    slug: "mapbox/dark-v11",
     textColor: "#ffffff",
     textHaloColor: "#000000",
     thumbnail: ThumbDark,
   },
   Streets: {
     name: "Streets",
-    slug: "streets-v12",
+    slug: "mapbox/streets-v12",
     textColor: "#6D6D6D",
     textHaloColor: "#ffffff",
     thumbnail: ThumbStreets,
   },
   Satellite: {
     name: "Satellite",
-    slug: "satellite-v9",
+    slug: "mapbox/satellite-v9",
     textColor: "#ffffff",
     textHaloColor: "#000000",
     thumbnail: ThumbSatellite,
   },
+};
+
+export const hexMapStyle: MapStyleConfig = {
+  name: "Hex",
+  slug: "commonknowledge/cmi6buikj00cl01slbvyn7lxc",
+  textColor: "#6D6D6D",
+  textHaloColor: "#ffffff",
+  thumbnail: ThumbLight,
 };
 
 export interface mapNodeColor {

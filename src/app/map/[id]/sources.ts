@@ -1,4 +1,5 @@
 import { AreaSetCode, AreaSetGroupCode } from "@/server/models/AreaSet";
+import { MapType } from "@/server/models/MapView";
 import type { GeocodingConfig } from "@/server/models/DataSource";
 
 export interface ChoroplethLayerConfig {
@@ -65,15 +66,31 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
   ],
 };
 
-export const MAPBOX_SOURCE_IDS = Object.values(
-  CHOROPLETH_LAYER_CONFIGS,
-).flatMap((sources) => sources.map((source) => source.mapbox.sourceId));
+export const HEX_CHOROPLETH_LAYER_CONFIG: ChoroplethLayerConfig = {
+  areaSetCode: AreaSetCode.WMC24,
+  minZoom: 0,
+  requiresBoundingBox: false,
+  mapbox: {
+    featureCodeProperty: "id",
+    featureNameProperty: "n",
+    layerId: "output-6invyt",
+    sourceId: "commonknowledge.7a97ep7k",
+  },
+};
+
+export const MAPBOX_SOURCE_IDS = Object.values(CHOROPLETH_LAYER_CONFIGS)
+  .flatMap((sources) => sources.map((source) => source.mapbox.sourceId))
+  .concat([HEX_CHOROPLETH_LAYER_CONFIG.mapbox.sourceId]);
 
 export const getChoroplethLayerConfig = (
   dataSourceAreaSetCode: AreaSetCode | null | undefined,
   areaSetGroupCode: AreaSetGroupCode | null | undefined,
+  mapType: MapType | null | undefined,
   zoom: number,
 ) => {
+  if (mapType === MapType.Hex) {
+    return HEX_CHOROPLETH_LAYER_CONFIG;
+  }
   if (areaSetGroupCode) {
     const sources = CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode] || [];
     for (const source of sources) {

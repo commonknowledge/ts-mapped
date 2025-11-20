@@ -32,6 +32,7 @@ import {
   MARKER_NAME_KEY,
 } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { MapType } from "@/server/models/MapView";
 import { useTurfMutations } from "../hooks/useTurfs";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
@@ -60,15 +61,9 @@ export default function Map({
   hideDrawControls?: boolean;
 }) {
   const { isMobile } = useIsMobile();
-  const {
-    mapRef,
-    setBoundingBox,
-    setZoom,
-    pinDropMode,
-    showControls,
-    ready,
-    setReady,
-  } = useContext(MapContext);
+  const { mapRef, setBoundingBox, setZoom, pinDropMode, showControls } =
+    useContext(MapContext);
+  const [ready, setReady] = useState(false);
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
@@ -123,7 +118,7 @@ export default function Map({
     });
   }, [visibleTurfs, draw, viewConfig?.showTurf]);
 
-  // Hover behavior
+  // Hover and draw behavior
   useEffect(() => {
     if (!ready) {
       return;
@@ -179,17 +174,6 @@ export default function Map({
       }
     };
   }, [mapRef, markerLayers, ready]);
-
-  // Draw component cleanup
-  useEffect(() => {
-    const map = mapRef?.current;
-
-    return () => {
-      if (draw && map) {
-        map.getMap().removeControl(draw);
-      }
-    };
-  }, [draw, mapRef]);
 
   // Show/Hide labels
   const toggleLabelVisibility = useCallback(
@@ -279,7 +263,12 @@ export default function Map({
 
   useEffect(() => {
     const map = mapRef?.current;
-    if (!map || didInitialFit || markerQueries?.isFetching) {
+    if (
+      !map ||
+      didInitialFit ||
+      markerQueries?.isFetching ||
+      viewConfig.mapType === MapType.Hex
+    ) {
       return;
     }
 
@@ -332,6 +321,7 @@ export default function Map({
     markerQueries?.isFetching,
     placedMarkers,
     isMobile,
+    viewConfig.mapType,
   ]);
 
   return (
@@ -340,20 +330,40 @@ export default function Map({
       hideDrawControls={hideDrawControls}
     >
       <MapGL
-        initialViewState={{
-          longitude: -4.5481,
-          latitude: 54.2361,
-          zoom: DEFAULT_ZOOM,
-          padding: {
-            left: isMobile ? 0 : CONTROL_PANEL_WIDTH,
-            top: 0,
-            bottom: 0,
-          },
-        }}
+        key={viewConfig.mapType}
+        maxBounds={
+          viewConfig.mapType === MapType.Hex
+            ? [
+                [-9, -13],
+                [17, 2.4],
+              ]
+            : undefined
+        }
+        projection={
+          viewConfig.mapType === MapType.Hex ? "equirectangular" : "globe"
+        }
+        initialViewState={
+          viewConfig.mapType === MapType.Hex
+            ? {
+                longitude: 2.5,
+                latitude: -4.5,
+                zoom: 6,
+              }
+            : {
+                longitude: -4.5481,
+                latitude: 54.2361,
+                zoom: DEFAULT_ZOOM,
+                padding: {
+                  left: isMobile ? 0 : CONTROL_PANEL_WIDTH,
+                  top: 0,
+                  bottom: 0,
+                },
+              }
+        }
         ref={mapRef}
         style={{ flexGrow: 1 }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-        mapStyle={`mapbox://styles/mapbox/${getMapStyle(viewConfig).slug}`}
+        mapStyle={`mapbox://styles/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
         onClick={(e) => {
           const map = e.target;
@@ -476,7 +486,7 @@ export default function Map({
 
           toggleLabelVisibility(viewConfig.showLabels);
 
-          // Initialize draw if not already done
+          // Initialize draw
           if (!hideDrawControls && !draw) {
             const newDraw = new MapboxDraw({
               displayControlsDefault: false,
@@ -636,6 +646,13 @@ export default function Map({
               }
             });
           }
+        }}
+        onRemove={() => {
+          if (draw && mapRef?.current) {
+            mapRef.current.getMap().removeControl(draw);
+          }
+          setDraw(null);
+          setReady(false);
         }}
       >
         {ready && (

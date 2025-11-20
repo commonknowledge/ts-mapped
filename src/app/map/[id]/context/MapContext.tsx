@@ -4,8 +4,9 @@ import {
   CalculationType,
   ColorScheme,
   MapStyleName,
+  MapType,
 } from "@/server/models/MapView";
-import mapStyles from "../styles";
+import mapStyles, { hexMapStyle } from "../styles";
 import type { BoundingBox } from "@/server/models/Area";
 import type { MapConfig } from "@/server/models/Map";
 import type { MapViewConfig } from "@/server/models/MapView";
@@ -37,9 +38,6 @@ export const MapContext = createContext<{
   pinDropMode: boolean;
   setPinDropMode: (pinDropMode: boolean) => void;
 
-  ready: boolean;
-  setReady: (ready: boolean) => void;
-
   showControls: boolean;
   setShowControls: (showControls: boolean) => void;
 }>({
@@ -55,8 +53,6 @@ export const MapContext = createContext<{
   setZoom: () => null,
   pinDropMode: false,
   setPinDropMode: () => null,
-  ready: false,
-  setReady: () => null,
   showControls: true,
   setShowControls: () => null,
 });
@@ -90,5 +86,8 @@ export const getDataSourceIds = (mapConfig: MapConfig) => {
 };
 
 export const getMapStyle = (viewConfig: MapViewConfig) => {
+  if (viewConfig.mapType === MapType.Hex) {
+    return hexMapStyle;
+  }
   return mapStyles[viewConfig.mapStyleName] || Object.values(mapStyles)[0];
 };

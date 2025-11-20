@@ -86,6 +86,12 @@ export enum ColorScheme {
 }
 export const colorSchemes = Object.values(ColorScheme);
 
+export enum MapType {
+  Geo = "Geo",
+  Hex = "Hex",
+}
+export const mapTypes = Object.values(MapType);
+
 export enum MapStyleName {
   Light = "Light",
   Dark = "Dark",
@@ -101,6 +107,7 @@ export const mapViewConfigSchema = z.object({
   areaSetGroupCode: areaSetGroupCode.nullish(),
   excludeColumnsString: z.string(),
   mapStyleName: z.nativeEnum(MapStyleName),
+  mapType: z.nativeEnum(MapType).optional(),
   showBoundaryOutline: z.boolean(),
   showChoropleth: z.boolean().optional(),
   showLabels: z.boolean(),

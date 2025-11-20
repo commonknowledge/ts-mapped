@@ -40,9 +40,15 @@ export default function ChoroplethProvider({
     return getChoroplethLayerConfig(
       areaSetCode,
       viewConfig.areaSetGroupCode,
+      viewConfig.mapType,
       zoom,
     );
-  }, [choroplethDataSource, viewConfig.areaSetGroupCode, zoom]);
+  }, [
+    choroplethDataSource,
+    viewConfig.areaSetGroupCode,
+    viewConfig.mapType,
+    zoom,
+  ]);
 
   return (
     <ChoroplethContext

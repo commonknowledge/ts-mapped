@@ -21,7 +21,12 @@ export const ChoroplethContext = createContext<{
   setBoundariesPanelOpen: () => null,
   selectedBivariateBucket: null,
   setSelectedBivariateBucket: () => null,
-  choroplethLayerConfig: getChoroplethLayerConfig(null, null, DEFAULT_ZOOM),
+  choroplethLayerConfig: getChoroplethLayerConfig(
+    null,
+    null,
+    null,
+    DEFAULT_ZOOM,
+  ),
   lastLoadedSourceId: undefined,
   setLastLoadedSourceId: () => null,
 });

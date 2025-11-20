@@ -3,11 +3,12 @@ import Image from "next/image";
 import { useState } from "react";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { MapTypeLabels } from "@/labels";
+import { type MapStyleName, MapType, mapTypes } from "@/server/models/MapView";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import mapStyles from "../styles";
-import type { MapStyleName } from "@/server/models/MapView";
 
 export default function MapStyleSelector() {
   const [open, setOpen] = useState(false);
@@ -30,11 +31,58 @@ export default function MapStyleSelector() {
           </button>
         </div>
 
-        <form className="flex flex-col gap-6 p-3">
+        <form className="flex flex-col">
           <fieldset>
+            <legend className="sr-only">Select map type:</legend>
+
+            <div className="border-b p-3">
+              <div className="flex gap-2">
+                {mapTypes.map((type) => {
+                  const isDefault = !viewConfig.mapType && type === MapType.Geo;
+                  const isChecked = viewConfig.mapType === type || isDefault;
+
+                  return (
+                    <div
+                      key={type}
+                      className={cn(
+                        "flex flex-col items-center flex-grow-1 shadow-sm rounded-md p-3",
+                        "border-2 hover:border-blue-300",
+                        {
+                          "border-blue-300": isChecked,
+                        },
+                      )}
+                    >
+                      <input
+                        className="sr-only"
+                        type="radio"
+                        name="mapStyle"
+                        id={type}
+                        value={type}
+                        checked={isChecked}
+                        onChange={() =>
+                          updateViewConfig({
+                            mapType: type,
+                          })
+                        }
+                      />
+                      <label
+                        htmlFor={type}
+                        className="flex flex-col gap-1 / text-center text-xs text-muted-foreground / cursor-pointer"
+                      >
+                        <div className={cn("w-[56px] h-[56px]")}>
+                          {/* {thumbnail && <Image src={thumbnail} alt="" />} */}
+                        </div>
+                        {MapTypeLabels[type]}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <legend className="sr-only">Select map style:</legend>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 p-3 border-b">
               {Object.keys(mapStyles).map((code) => {
                 const styleName =
                   mapStyles[code as keyof typeof mapStyles].name;
@@ -59,14 +107,17 @@ export default function MapStyleSelector() {
                     />
                     <label
                       htmlFor={styleName}
-                      className="flex flex-col gap-1 / text-center text-xs text-muted-foreground / cursor-pointer"
+                      className={cn(
+                        "flex flex-col gap-1 / text-center text-xs text-muted-foreground / cursor-pointer",
+                        { "text-muted-foreground": !isChecked },
+                      )}
                     >
                       <div
                         className={cn(
                           "w-[56px] h-[56px] rounded-lg overflow-hidden bg-muted",
-                          "border-2 border-transparent hover:border-neutral-200",
+                          "border-2 border-transparent hover:border-blue-300",
                           {
-                            "border-blue-300 hover:border-blue-300": isChecked,
+                            "border-blue-300": isChecked,
                           },
                         )}
                       >
@@ -80,14 +131,16 @@ export default function MapStyleSelector() {
             </div>
           </fieldset>
 
-          <FormFieldWrapper label="Show labels" isHorizontal>
-            <Switch
-              checked={viewConfig.showLabels}
-              onCheckedChange={(checked) =>
-                updateViewConfig({ showLabels: checked })
-              }
-            />
-          </FormFieldWrapper>
+          <div className="p-3">
+            <FormFieldWrapper label="Show labels" isHorizontal>
+              <Switch
+                checked={viewConfig.showLabels}
+                onCheckedChange={(checked) =>
+                  updateViewConfig({ showLabels: checked })
+                }
+              />
+            </FormFieldWrapper>
+          </div>
         </form>
       </PopoverContent>
     </Popover>

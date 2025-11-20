@@ -33,7 +33,6 @@ export default function MapProvider({
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [pinDropMode, setPinDropMode] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [ready, setReady] = useState(false);
   const [viewId, setViewId] = useState<string | null>(initialViewId || null);
   const [dirtyViewIds, setDirtyViewIds] = useState<string[]>([]);
 
@@ -103,8 +102,6 @@ export default function MapProvider({
         setZoom,
         pinDropMode,
         setPinDropMode,
-        ready,
-        setReady,
         showControls,
         setShowControls,
       }}

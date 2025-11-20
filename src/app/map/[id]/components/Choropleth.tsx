@@ -3,7 +3,7 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext, getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import { CalculationType, ColorScheme, MapType } from "@/server/models/MapView";
 import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
 
@@ -130,7 +130,7 @@ export default function Choropleth() {
           }
 
           {/* Symbol Layer (Labels) */}
-          {viewConfig.showLabels && (
+          {viewConfig.mapType !== MapType.Hex && viewConfig.showLabels && (
             <Layer
               id={`${sourceId}-labels`}
               beforeId={choroplethTopLayerId}
