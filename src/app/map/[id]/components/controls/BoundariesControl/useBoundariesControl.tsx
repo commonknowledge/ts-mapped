@@ -6,8 +6,8 @@ import {
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
-import type { AreaSetGroupCode } from "@/server/models/AreaSet";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
+import { CalculationType, ColorScheme, MapType } from "@/server/models/MapView";
 
 export function useBoundariesControl() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -44,6 +44,17 @@ export function useBoundariesControl() {
       AreaSetGroupCodeLabels,
     ) as AreaSetGroupCode[];
 
+    if (viewConfig.mapType === MapType.Hex) {
+      return [
+        {
+          label: AreaSetGroupCodeLabels[AreaSetGroupCode.WMC24],
+          onClick: () => {
+            updateViewConfig({ areaSetGroupCode: AreaSetGroupCode.WMC24 });
+          },
+        },
+      ];
+    }
+
     return [
       {
         label: "None",
@@ -58,7 +69,7 @@ export function useBoundariesControl() {
         },
       })),
     ];
-  }, [updateViewConfig]);
+  }, [updateViewConfig, viewConfig.mapType]);
 
   const fillOptions = useMemo(() => {
     const baseOptions = [

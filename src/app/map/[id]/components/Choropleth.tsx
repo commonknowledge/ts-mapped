@@ -100,19 +100,17 @@ export default function Choropleth() {
           url={`mapbox://${sourceId}`}
         >
           {/* Fill Layer - only show for choropleth */}
-          {viewConfig.showChoropleth && (
-            <Layer
-              id={`${sourceId}-fill`}
-              beforeId={choroplethTopLayerId}
-              source={sourceId}
-              source-layer={layerId}
-              type="fill"
-              paint={{
-                "fill-color": fillColor,
-                "fill-opacity": 0.8,
-              }}
-            />
-          )}
+          <Layer
+            id={`${sourceId}-fill`}
+            beforeId={choroplethTopLayerId}
+            source={sourceId}
+            source-layer={layerId}
+            type="fill"
+            paint={{
+              "fill-color": fillColor,
+              "fill-opacity": viewConfig.showChoropleth ? 0.8 : 0,
+            }}
+          />
 
           {/* Line Layer - show for both boundary-only and choropleth */}
           {

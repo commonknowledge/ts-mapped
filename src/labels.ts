@@ -11,7 +11,6 @@ import type {
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "./server/models/DataSource";
-import type { MapType } from "./server/models/MapView";
 import type { DataSourceType } from "@/server/models/DataSource";
 import type z from "zod";
 
@@ -78,8 +77,3 @@ export const DataSourceRecordTypeLabels: Record<DataSourceRecordType, string> =
     Data: "Data",
     Other: "Other",
   };
-
-export const MapTypeLabels: Record<MapType, string> = {
-  Geo: "Geographic",
-  Hex: "Hex map",
-};

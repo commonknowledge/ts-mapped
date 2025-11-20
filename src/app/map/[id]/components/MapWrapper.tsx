@@ -1,13 +1,13 @@
 import { useContext, useEffect, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { MapType } from "@/server/models/MapView";
+import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 import ZoomControl from "./ZoomControl";
-
-// overriding styles of mapbox elements
-import "./MapWrapper.css";
+import "./MapWrapper.css"; // overriding styles of mapbox elements
 
 export default function MapWrapper({
   currentMode,
@@ -19,6 +19,7 @@ export default function MapWrapper({
   hideDrawControls?: boolean;
 }) {
   const { showControls } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
@@ -69,12 +70,14 @@ export default function MapWrapper({
         <>
           <InspectorPanel />
 
-          <div
-            className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
-            style={absolutelyCenter}
-          >
-            <MapMarkerAndAreaControls />
-          </div>
+          {viewConfig.mapType !== MapType.Hex && (
+            <div
+              className="absolute bottom-8 left-1/2 z-10 transition-transform duration-300"
+              style={absolutelyCenter}
+            >
+              <MapMarkerAndAreaControls />
+            </div>
+          )}
           {indicatorColor && (
             <div
               className="absolute top-0 left-0 w-full h-1"

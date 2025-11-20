@@ -7,12 +7,13 @@ import {
   MapContext,
   createNewViewConfig,
 } from "@/app/map/[id]/context/MapContext";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
+import { MapType, type MapViewConfig } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
-import type { MapViewConfig } from "@/server/models/MapView";
 
 export function useMapViews() {
   const { viewId, mapId, setViewId, setDirtyViewIds } = use(MapContext);
@@ -199,6 +200,15 @@ export function useMapViews() {
         if (!viewConfig.areaDataSecondaryColumn) {
           viewConfig.areaDataSecondaryColumn = "";
         }
+      }
+
+      // Set boundaries if the view is a hex map and no boundaries are set
+      if (
+        viewConfig.mapType === MapType.Hex &&
+        !viewConfig.areaSetGroupCode &&
+        !view.config.areaSetGroupCode
+      ) {
+        viewConfig.areaSetGroupCode = AreaSetGroupCode.WMC24;
       }
 
       return updateView({ ...view, config: { ...view.config, ...viewConfig } });

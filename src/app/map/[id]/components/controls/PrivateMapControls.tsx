@@ -3,7 +3,9 @@ import { useContext } from "react";
 
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { MapType } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
+import { useMapViews } from "../../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 
 import BoundariesControl from "./BoundariesControl/BoundariesControl";
@@ -14,6 +16,7 @@ import TurfsControl from "./TurfsControl/TurfsControl";
 export default function PrivateMapControls() {
   const { showControls, setShowControls } = useContext(MapContext);
   const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
+  const { viewConfig } = useMapViews();
 
   const onToggleControls = () => {
     setShowControls(!showControls);
@@ -63,9 +66,13 @@ export default function PrivateMapControls() {
             className="flex-1 overflow-y-auto / flex flex-col gap-3 p-2"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
-            <MembersControl />
-            <MarkersControl />
-            <TurfsControl />
+            {viewConfig.mapType !== MapType.Hex && (
+              <>
+                <MembersControl />
+                <MarkersControl />
+                <TurfsControl />
+              </>
+            )}
             <BoundariesControl />
           </div>
         </div>

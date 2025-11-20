@@ -1,5 +1,5 @@
 /* visually hidden */
-/* .map-wrapper .mapbox-gl-draw_ctrl-draw-btn.mapbox-gl-draw_polygon {
+.map-wrapper .mapbox-gl-draw_ctrl-draw-btn.mapbox-gl-draw_polygon {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -10,7 +10,7 @@
   clip-path: inset(100%);
   clip: rect(0 0 0 0);
   overflow: hidden;
-} */
+}
 
 /* search inout styles */
 .map-wrapper .mapboxgl-ctrl-geocoder.mapboxgl-ctrl {
