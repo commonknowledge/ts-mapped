@@ -65,7 +65,7 @@ export default function Choropleth() {
     areaCodesToClean.current = nextAreaCodesToClean;
   }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
 
-  /* Set cursor to pointer on hover over choropleth areas */
+  /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
     if (!mapRef?.current) {
       return;
@@ -75,6 +75,7 @@ export default function Choropleth() {
     const fillLayerId = `${sourceId}-fill`;
     const lineLayerId = `${sourceId}-line`;
     const prevPointer = { cursor: "" };
+    let hoveredFeatureId: string | number | undefined;
 
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
       if (!map.getLayer(fillLayerId) && !map.getLayer(lineLayerId)) {
@@ -86,11 +87,38 @@ export default function Choropleth() {
       });
 
       if (features?.length) {
+        const feature = features[0];
+
+        // Remove hover state from previous feature
+        if (hoveredFeatureId !== undefined) {
+          map.setFeatureState(
+            { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+            { hover: false },
+          );
+        }
+
+        // Set hover state on current feature
+        if (feature.id !== undefined) {
+          hoveredFeatureId = feature.id;
+          map.setFeatureState(
+            { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+            { hover: true },
+          );
+        }
+
         if (map.getCanvas().style.cursor !== "pointer") {
           prevPointer.cursor = map.getCanvas().style.cursor || "";
         }
         map.getCanvas().style.cursor = "pointer";
       } else {
+        if (hoveredFeatureId !== undefined) {
+          map.setFeatureState(
+            { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+            { hover: false },
+          );
+          hoveredFeatureId = undefined;
+        }
+
         if (map.getCanvas().style.cursor === "pointer") {
           map.getCanvas().style.cursor = prevPointer.cursor;
         }
@@ -98,6 +126,13 @@ export default function Choropleth() {
     };
 
     const onMouseLeave = () => {
+      if (hoveredFeatureId !== undefined) {
+        map.setFeatureState(
+          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          { hover: false },
+        );
+        hoveredFeatureId = undefined;
+      }
       map.getCanvas().style.cursor = prevPointer.cursor;
     };
 
@@ -107,12 +142,20 @@ export default function Choropleth() {
     map.on("mouseleave", onMouseLeave as any);
 
     return () => {
+      // Clean up hover state on unmount
+      if (hoveredFeatureId !== undefined) {
+        map.setFeatureState(
+          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          { hover: false },
+        );
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map.off("mousemove", onMouseMove as any);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map.off("mouseleave", onMouseLeave as any);
     };
-  }, [mapRef, sourceId]);
+  }, [mapRef, sourceId, layerId]);
 
   const fillColor = useFillColor(
     areaStatsQuery?.data,
@@ -154,12 +197,42 @@ export default function Choropleth() {
             type="fill"
             paint={{
               "fill-color": fillColor,
-              "fill-opacity":
+              "fill-opacity": [
+                "case",
+                ["feature-state", "hover"],
+                // When hovering, increase opacity to make it appear darker
+                viewConfig.visualisationType === VisualisationType.Choropleth
+                  ? 1
+                  : 0,
+                // Normal opacity
                 viewConfig.visualisationType === VisualisationType.Choropleth
                   ? 0.8
                   : 0,
+              ],
             }}
           />
+
+          {/* Hover overlay layer - darkens areas on hover (only for choropleth) */}
+          {viewConfig.visualisationType === VisualisationType.Choropleth && (
+            <Layer
+              id={`${sourceId}-hover-overlay`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="fill"
+              paint={{
+                "fill-color": "#000000",
+                "fill-opacity": [
+                  "case",
+                  ["boolean", ["feature-state", "hover"], false],
+                  // When hovering, apply darkness
+                  0.2,
+                  // Otherwise completely transparent
+                  0,
+                ],
+              }}
+            />
+          )}
 
           {/* Line Layer - show for both boundary-only and choropleth */}
           {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
