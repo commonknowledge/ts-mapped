@@ -54,18 +54,6 @@ export default function Choropleth() {
             type="fill"
             paint={{
               "fill-color": fillColor,
-              "fill-opacity": [
-                "case",
-                ["feature-state", "hover"],
-                // When hovering, increase opacity to make it appear darker
-                viewConfig.visualisationType === VisualisationType.Choropleth
-                  ? 1
-                  : 0,
-                // Normal opacity
-                viewConfig.visualisationType === VisualisationType.Choropleth
-                  ? 0.8
-                  : 0,
-              ],
             }}
           />
 
@@ -83,7 +71,7 @@ export default function Choropleth() {
                   "case",
                   ["boolean", ["feature-state", "hover"], false],
                   // When hovering, apply darkness
-                  0.2,
+                  0.25,
                   // Otherwise completely transparent
                   0,
                 ],
