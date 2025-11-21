@@ -9,7 +9,7 @@ type AreaStatsData = {
   stats: AreaStat[];
 } | null;
 
-export function useAreaStatsFeatureState(
+export function useChoroplethAreaStats(
   mapRef: React.RefObject<MapRef | null> | null,
   areaStatsData: AreaStatsData,
   sourceId: string,

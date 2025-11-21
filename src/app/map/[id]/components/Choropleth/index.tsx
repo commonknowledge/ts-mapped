@@ -11,7 +11,7 @@ import {
   ColorScheme,
   VisualisationType,
 } from "@/server/models/MapView";
-import { useAreaStatsFeatureState } from "./useAreaStats";
+import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
 import { useChoroplethClick } from "./useChoroplethClick";
 import { useChoroplethHover } from "./useChoroplethHover";
 
@@ -30,7 +30,7 @@ export default function Choropleth() {
   const areaStatsQuery = useAreaStats();
 
   // Custom hooks for effects
-  useAreaStatsFeatureState(
+  useChoroplethAreaStats(
     mapRef,
     areaStatsQuery.data,
     sourceId,
