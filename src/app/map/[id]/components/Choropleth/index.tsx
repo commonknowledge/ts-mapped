@@ -103,16 +103,21 @@ export default function Choropleth() {
               paint={{
                 "line-color": [
                   "case",
-                  ["boolean", ["feature-state", "active"], false],
+                  ["==", ["feature-state", "active"], true],
                   "rgb(37, 99, 235)",
                   "#999",
                 ],
                 "line-width": [
                   "case",
-                  ["boolean", ["feature-state", "active"], false],
+                  ["==", ["feature-state", "active"], true],
                   2,
                   1,
                 ],
+                "line-opacity": 1,
+              }}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
               }}
             />
           )}

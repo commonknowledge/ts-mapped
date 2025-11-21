@@ -13,7 +13,7 @@ export function useChoroplethClick() {
     areaSetCode,
   } = choroplethLayerConfig;
 
-  const activeFeatureId = useRef<string | number | undefined>(undefined);
+  const activeFeatureId = useRef<string | undefined>(undefined);
 
   /* Handle clicks on choropleth areas to set active state */
   useEffect(() => {
@@ -52,12 +52,13 @@ export function useChoroplethClick() {
             );
           }
 
-          // Set active state on current feature
-          activeFeatureId.current = feature.id;
+          // Use areaCode as the ID for feature state (matches promoteId)
+          activeFeatureId.current = areaCode;
           map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: feature.id },
+            { source: sourceId, sourceLayer: layerId, id: areaCode },
             { active: true },
           );
+     
 
           // Prevent default context menu
           e.originalEvent.preventDefault();
@@ -95,6 +96,7 @@ export function useChoroplethClick() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map.off("click", onClick as any);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     mapRef,
     sourceId,
@@ -102,7 +104,7 @@ export function useChoroplethClick() {
     featureCodeProperty,
     featureNameProperty,
     areaSetCode,
-    resetInspector,
-    setSelectedBoundary,
+    // NOTE: resetInspector and setSelectedBoundary are called but not included as deps
+    // to prevent the effect from re-running and clearing active state
   ]);
 }
