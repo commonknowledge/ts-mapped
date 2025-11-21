@@ -1,11 +1,21 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shadcn/ui/alert-dialog";
 import type {
   DropdownItem,
   DropdownSeparator,
@@ -27,6 +37,7 @@ export default function PrivateMapNavbarControls({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
   const duplicateNameRef = useRef<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { mutate: deleteMapMutation } = useMutation(
     trpc.map.delete.mutationOptions({
@@ -113,13 +124,13 @@ export default function PrivateMapNavbarControls({
 
   const handleDelete = async () => {
     if (!mapId) return;
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this map? This action cannot be undone.",
-      )
-    )
-      return;
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (!mapId) return;
     deleteMapMutation({ mapId });
+    setShowDeleteDialog(false);
   };
 
   const handleDuplicate = async () => {
@@ -211,15 +222,38 @@ export default function PrivateMapNavbarControls({
   };
 
   return (
-    <IconButtonWithTooltip
-      align="start"
-      side="right"
-      tooltip="Map options"
-      dropdownLabel="Map options"
-      dropdownItems={getDropdownItems()}
-      onMenuToggle={onMenuToggle}
-    >
-      <MoreHorizontal className="w-4 h-4" />
-    </IconButtonWithTooltip>
+    <>
+      <IconButtonWithTooltip
+        align="start"
+        side="right"
+        tooltip="Map options"
+        dropdownLabel="Map options"
+        dropdownItems={getDropdownItems()}
+        onMenuToggle={onMenuToggle}
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </IconButtonWithTooltip>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete map</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this map? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
