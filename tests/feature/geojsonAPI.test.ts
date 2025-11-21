@@ -148,7 +148,6 @@ describe("GeoJSON REST API", () => {
         },
       },
     );
-    console.log("response", await response.json());
     expect(response.status).toBe(404);
   });
 
