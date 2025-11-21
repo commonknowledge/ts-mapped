@@ -1,30 +1,44 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useContext } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shadcn/ui/dropdown-menu";
+import type {
+  DropdownItem,
+  DropdownSeparator,
+} from "@/components/MultiDropdownMenu";
 
 export default function PrivateMapNavbarControls({
   setIsEditingName,
+  mapId: propMapId,
+  onMenuToggle,
 }: {
-  setIsEditingName: (isEditing: boolean) => void;
+  setIsEditingName?: (isEditing: boolean) => void;
+  mapId: string;
+  onMenuToggle?: (isOpen: boolean) => void;
 }) {
-  const { mapId } = useContext(MapContext);
+  const mapId = propMapId;
   const router = useRouter();
+  const pathname = usePathname();
+  const { organisationId } = useOrganisations();
+  const queryClient = useQueryClient();
   const trpc = useTRPC();
   const { mutate } = useMutation(
     trpc.map.delete.mutationOptions({
       onSuccess: () => {
-        router.push("/dashboard");
+        // Invalidate the map list query to refresh dashboard
+        queryClient.invalidateQueries({
+          queryKey: trpc.map.list.queryKey({
+            organisationId: organisationId || "",
+          }),
+        });
+
+        // Only navigate to dashboard if user isn't already on it
+        if (!pathname || !pathname.startsWith("/dashboard")) {
+          router.push("/dashboard");
+        }
       },
       onError: () => {
         toast.error("Failed to delete map.");
@@ -43,24 +57,42 @@ export default function PrivateMapNavbarControls({
     mutate({ mapId });
   };
 
+  const getDropdownItems = (): (DropdownItem | DropdownSeparator)[] => {
+    const items: (DropdownItem | DropdownSeparator)[] = [];
+
+    if (setIsEditingName) {
+      items.push({
+        type: "item" as const,
+        label: "Rename map",
+        onClick: () => setIsEditingName(true),
+      });
+    }
+
+    items.push({
+      type: "item" as const,
+      label: "Delete map",
+      onClick: handleDelete,
+    });
+
+    items.push({
+      type: "item" as const,
+      label: "Duplicate",
+      onClick: () => null,
+    });
+
+    return items;
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="!p-1">
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => setIsEditingName(true)}>
-          Rename map
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleDelete}
-          className="text-red-600 focus:text-red-600"
-        >
-          Delete map
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <IconButtonWithTooltip
+      align="start"
+      side="right"
+      tooltip="Map options"
+      dropdownLabel="Map options"
+      dropdownItems={getDropdownItems()}
+      onMenuToggle={onMenuToggle}
+    >
+      <MoreHorizontal className="w-4 h-4" />
+    </IconButtonWithTooltip>
   );
 }
