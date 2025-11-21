@@ -3,7 +3,7 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
-  closestCenter,
+  closestCorners,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -403,7 +403,7 @@ export default function MarkersList() {
     <div className="relative pt-2">
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
