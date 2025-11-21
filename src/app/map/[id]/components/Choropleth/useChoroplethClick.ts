@@ -6,7 +6,8 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 export function useChoroplethClick() {
   const { mapRef } = useContext(MapContext);
   const { choroplethLayerConfig } = useContext(ChoroplethContext);
-  const { resetInspector, setSelectedBoundary } = useContext(InspectorContext);
+  const { resetInspector, setSelectedBoundary, selectedBoundary } =
+    useContext(InspectorContext);
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
@@ -106,4 +107,20 @@ export function useChoroplethClick() {
     // NOTE: resetInspector and setSelectedBoundary are called but not included as deps
     // to prevent the effect from re-running and clearing active state
   ]);
+
+  // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
+  useEffect(() => {
+    if (selectedBoundary === null && mapRef?.current && activeFeatureId.current !== undefined) {
+      const map = mapRef.current;
+      map.setFeatureState(
+        {
+          source: sourceId,
+          sourceLayer: layerId,
+          id: activeFeatureId.current,
+        },
+        { active: false },
+      );
+      activeFeatureId.current = undefined;
+    }
+  }, [selectedBoundary, mapRef, sourceId, layerId]);
 }
