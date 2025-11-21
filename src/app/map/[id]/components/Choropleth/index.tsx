@@ -1,64 +1,27 @@
 import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { useFillColor } from "@/app/map/[id]/colors";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
-import { MapContext, getMapStyle } from "@/app/map/[id]/context/MapContext";
-import { useAreaStats } from "@/app/map/[id]/data";
+import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import {
-  CalculationType,
-  ColorScheme,
-  VisualisationType,
-} from "@/server/models/MapView";
+import { VisualisationType } from "@/server/models/MapView";
 import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
 import { useChoroplethClick } from "./useChoroplethClick";
 import { useChoroplethHover } from "./useChoroplethHover";
 
 export default function Choropleth() {
-  const { mapRef } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const {
-    lastLoadedSourceId,
     choroplethLayerConfig: {
-      areaSetCode,
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
   } = useContext(ChoroplethContext);
-  const { setSelectedBoundary, resetInspector } = useContext(InspectorContext);
-
-  const areaStatsQuery = useAreaStats();
+  const choroplethTopLayerId = "choropleth-top";
 
   // Custom hooks for effects
-  useChoroplethAreaStats(
-    mapRef,
-    areaStatsQuery.data,
-    sourceId,
-    layerId,
-    lastLoadedSourceId,
-  );
+  const fillColor = useChoroplethAreaStats();
+  useChoroplethHover();
+  useChoroplethClick();
 
-  useChoroplethHover(mapRef, sourceId, layerId);
-
-  useChoroplethClick(
-    mapRef,
-    sourceId,
-    layerId,
-    featureCodeProperty,
-    featureNameProperty,
-    areaSetCode,
-    resetInspector,
-    setSelectedBoundary,
-  );
-
-  const fillColor = useFillColor(
-    areaStatsQuery?.data,
-    viewConfig.colorScheme || ColorScheme.RedBlue,
-    viewConfig.calculationType === CalculationType.Count,
-    Boolean(viewConfig.reverseColorScheme),
-  );
-
-  const choroplethTopLayerId = "choropleth-top";
   return (
     <>
       {/* Position layer */}

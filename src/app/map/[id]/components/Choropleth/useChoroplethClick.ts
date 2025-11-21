@@ -1,18 +1,18 @@
-import { useEffect, useRef } from "react";
-import type { SelectedBoundary } from "@/app/map/[id]/context/InspectorContext";
-import type { AreaSetCode } from "@/server/models/AreaSet";
-import type { MapRef } from "react-map-gl/mapbox";
+import { useContext, useEffect, useRef } from "react";
+import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
 
-export function useChoroplethClick(
-  mapRef: React.RefObject<MapRef | null> | null,
-  sourceId: string,
-  layerId: string,
-  featureCodeProperty: string,
-  featureNameProperty: string,
-  areaSetCode: AreaSetCode,
-  resetInspector: () => void,
-  setSelectedBoundary: (args: SelectedBoundary | null) => void,
-) {
+export function useChoroplethClick() {
+  const { mapRef } = useContext(MapContext);
+  const { choroplethLayerConfig } = useContext(ChoroplethContext);
+  const { resetInspector, setSelectedBoundary } = useContext(InspectorContext);
+
+  const {
+    mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
+    areaSetCode,
+  } = choroplethLayerConfig;
+
   const activeFeatureId = useRef<string | number | undefined>(undefined);
 
   /* Handle clicks on choropleth areas to set active state */

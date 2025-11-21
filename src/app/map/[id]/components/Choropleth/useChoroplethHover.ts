@@ -1,11 +1,14 @@
-import { useEffect } from "react";
-import type { MapRef } from "react-map-gl/mapbox";
+import { useContext, useEffect } from "react";
+import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
 
-export function useChoroplethHover(
-  mapRef: React.RefObject<MapRef | null> | null,
-  sourceId: string,
-  layerId: string,
-) {
+export function useChoroplethHover() {
+  const { mapRef } = useContext(MapContext);
+  const { choroplethLayerConfig } = useContext(ChoroplethContext);
+  const {
+    mapbox: { sourceId, layerId },
+  } = choroplethLayerConfig;
+
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
     if (!mapRef?.current) {

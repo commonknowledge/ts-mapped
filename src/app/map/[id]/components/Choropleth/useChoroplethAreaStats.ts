@@ -1,23 +1,35 @@
-import { useEffect, useRef } from "react";
-import type { AreaStat } from "@/server/models/Area";
-import type { ColumnType } from "@/server/models/DataSource";
-import type { MapRef } from "react-map-gl/mapbox";
+import { useContext, useEffect, useRef } from "react";
+import { useFillColor } from "@/app/map/[id]/colors";
+import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useAreaStats } from "@/app/map/[id]/data";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import {
+  CalculationType,
+  ColorScheme,
+} from "@/server/models/MapView";
 
-type AreaStatsData = {
-  column: string;
-  columnType: ColumnType;
-  stats: AreaStat[];
-} | null;
+export function useChoroplethAreaStats() {
+  const { mapRef } = useContext(MapContext);
+  const { choroplethLayerConfig, lastLoadedSourceId } = useContext(ChoroplethContext);
+  const {
+    mapbox: { sourceId, layerId },
+  } = choroplethLayerConfig;
 
-export function useChoroplethAreaStats(
-  mapRef: React.RefObject<MapRef | null> | null,
-  areaStatsData: AreaStatsData,
-  sourceId: string,
-  layerId: string,
-  lastLoadedSourceId: string | undefined,
-) {
+  const { viewConfig } = useMapViews();
+  const areaStatsQuery = useAreaStats();
+  const areaStatsData = areaStatsQuery.data;
+
   // Keep track of area codes that have feature state, to clean if necessary
   const areaCodesToClean = useRef<Record<string, boolean>>({});
+
+  // Get fill color
+  const fillColor = useFillColor(
+    areaStatsData,
+    viewConfig.colorScheme || ColorScheme.RedBlue,
+    viewConfig.calculationType === CalculationType.Count,
+    Boolean(viewConfig.reverseColorScheme),
+  );
 
   useEffect(() => {
     if (!areaStatsData || !mapRef?.current) {
@@ -57,4 +69,6 @@ export function useChoroplethAreaStats(
     }
     areaCodesToClean.current = nextAreaCodesToClean;
   }, [areaStatsData, lastLoadedSourceId, layerId, mapRef, sourceId]);
+
+  return fillColor;
 }
