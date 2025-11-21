@@ -65,6 +65,55 @@ export default function Choropleth() {
     areaCodesToClean.current = nextAreaCodesToClean;
   }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
 
+  /* Set cursor to pointer on hover over choropleth areas */
+  useEffect(() => {
+    if (!mapRef?.current) {
+      return;
+    }
+
+    const map = mapRef.current;
+    const fillLayerId = `${sourceId}-fill`;
+    const lineLayerId = `${sourceId}-line`;
+    const prevPointer = { cursor: "" };
+
+    const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      if (!map.getLayer(fillLayerId) && !map.getLayer(lineLayerId)) {
+        return;
+      }
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [fillLayerId, lineLayerId].filter((l) => map.getLayer(l)),
+      });
+
+      if (features?.length) {
+        if (map.getCanvas().style.cursor !== "pointer") {
+          prevPointer.cursor = map.getCanvas().style.cursor || "";
+        }
+        map.getCanvas().style.cursor = "pointer";
+      } else {
+        if (map.getCanvas().style.cursor === "pointer") {
+          map.getCanvas().style.cursor = prevPointer.cursor;
+        }
+      }
+    };
+
+    const onMouseLeave = () => {
+      map.getCanvas().style.cursor = prevPointer.cursor;
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on("mousemove", onMouseMove as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.on("mouseleave", onMouseLeave as any);
+
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.off("mousemove", onMouseMove as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      map.off("mouseleave", onMouseLeave as any);
+    };
+  }, [mapRef, sourceId]);
+
   const fillColor = useFillColor(
     areaStatsQuery?.data,
     viewConfig.colorScheme || ColorScheme.RedBlue,
