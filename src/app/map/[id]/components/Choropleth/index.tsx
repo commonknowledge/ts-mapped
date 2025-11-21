@@ -101,18 +101,8 @@ export default function Choropleth() {
               source-layer={layerId}
               type="line"
               paint={{
-                "line-color": [
-                  "case",
-                  ["==", ["feature-state", "active"], true],
-                  "rgb(37, 99, 235)",
-                  "#999",
-                ],
-                "line-width": [
-                  "case",
-                  ["==", ["feature-state", "active"], true],
-                  2,
-                  1,
-                ],
+                "line-color": "#999",
+                "line-width": 1,
                 "line-opacity": 1,
               }}
               layout={{
@@ -121,6 +111,38 @@ export default function Choropleth() {
               }}
             />
           )}
+
+          {/* Active outline drawn above other lines */}
+          <Layer
+            id={`${sourceId}-active-outline`}
+            source={sourceId}
+            source-layer={layerId}
+            type="line"
+            paint={{
+              "line-color": [
+                "case",
+                ["==", ["feature-state", "active"], true],
+                "rgb(37, 99, 235)",
+                "rgba(37, 99, 235, 0)",
+              ],
+              "line-width": [
+                "case",
+                ["==", ["feature-state", "active"], true],
+                2,
+                0,
+              ],
+              "line-opacity": [
+                "case",
+                ["==", ["feature-state", "active"], true],
+                1,
+                0,
+              ],
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
+            }}
+          />
 
           {/* Symbol Layer (Labels) */}
           {viewConfig.showLabels && (
