@@ -4,14 +4,12 @@ import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import {
-  CalculationType,
-  ColorScheme,
-} from "@/server/models/MapView";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
 
 export function useChoroplethAreaStats() {
   const { mapRef } = useContext(MapContext);
-  const { choroplethLayerConfig, lastLoadedSourceId } = useContext(ChoroplethContext);
+  const { choroplethLayerConfig, lastLoadedSourceId } =
+    useContext(ChoroplethContext);
   const {
     mapbox: { sourceId, layerId },
   } = choroplethLayerConfig;

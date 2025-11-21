@@ -58,7 +58,6 @@ export function useChoroplethClick() {
             { source: sourceId, sourceLayer: layerId, id: areaCode },
             { active: true },
           );
-     
 
           // Prevent default context menu
           e.originalEvent.preventDefault();
