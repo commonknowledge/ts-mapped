@@ -110,7 +110,11 @@ export function useChoroplethClick() {
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
   useEffect(() => {
-    if (selectedBoundary === null && mapRef?.current && activeFeatureId.current !== undefined) {
+    if (
+      selectedBoundary === null &&
+      mapRef?.current &&
+      activeFeatureId.current !== undefined
+    ) {
       const map = mapRef.current;
       map.setFeatureState(
         {
