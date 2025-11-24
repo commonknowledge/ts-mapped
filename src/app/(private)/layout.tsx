@@ -15,11 +15,7 @@ export default async function PrivateLayout({
   children: React.ReactNode;
 }>) {
   const serverSession = await getServerSession();
-
-  if (!serverSession.currentUser) {
-    return redirect("/");
-  }
-
+  if (!serverSession.currentUser) redirect("/");
   return (
     <DesktopOnly>
       <div className="flex h-screen with-feeback-widget">

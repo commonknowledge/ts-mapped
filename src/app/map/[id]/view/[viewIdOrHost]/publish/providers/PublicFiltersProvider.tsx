@@ -2,8 +2,10 @@
 
 import { useContext, useEffect, useState } from "react";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
+import { ALLOWED_FILTERS } from "../const";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 import type { ReactNode } from "react";
@@ -13,9 +15,8 @@ export default function PublicFiltersProvider({
 }: {
   children: ReactNode;
 }) {
-  const { publicMap, activeTabId, dataRecordsQueries } =
-    useContext(PublicMapContext);
-  const [filtersDialogOpen, setFiltersDialogOpen] = useState<boolean>(false);
+  const { publicMap, activeTabId } = useContext(PublicMapContext);
+  const dataRecordsQueries = usePublicDataRecordsQueries();
   const [filterFields, setFilterFields] = useState<FilterField[]>([]);
   const [publicFilters, setPublicFilters] = useState<
     Record<string, PublicFiltersFormValue[]>
@@ -26,7 +27,7 @@ export default function PublicFiltersProvider({
 
   useEffect(() => {
     // don't run it until user opens the filters
-    if (!publicMap || !filtersDialogOpen) {
+    if (!publicMap) {
       return;
     }
 
@@ -80,15 +81,22 @@ export default function PublicFiltersProvider({
         return col;
       });
 
-      setFilterFields(fields);
+      const allowedFields = ALLOWED_FILTERS.map((allowed) => {
+        const field = fields.find((f) => f.name === allowed.name);
+
+        return {
+          ...(field as FilterField),
+          label: allowed.label,
+        };
+      }).filter((f) => Boolean(f?.name));
+
+      setFilterFields(allowedFields);
     }
-  }, [publicMap, activeTabId, dataRecordsQueries, filtersDialogOpen]);
+  }, [publicMap, activeTabId, dataRecordsQueries]);
 
   return (
     <PublicFiltersContext
       value={{
-        filtersDialogOpen,
-        setFiltersDialogOpen,
         filterFields,
         setFilterFields,
         publicFilters,

@@ -1,42 +1,17 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
-import { useContext } from "react";
-import { toast } from "sonner";
 import { AvatarInput } from "@/components/forms/AvatarInput";
 import FormFieldWrapper, {
   FormFieldError,
 } from "@/components/forms/FormFieldWrapper";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
-import { useTRPC } from "@/services/trpc/react";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 
 export default function OrganisationSettingsForm() {
-  const { getOrganisation, updateOrganisation: updateLocalOrganisation } =
-    useContext(OrganisationsContext);
-  const currentOrganisation = getOrganisation();
-
-  const trpc = useTRPC();
-  const {
-    mutate: updateOrganisation,
-    error,
-    isPending,
-  } = useMutation(
-    trpc.organisation.update.mutationOptions({
-      onSuccess: (res) => {
-        toast.success("Organisation settings updated!");
-        if (currentOrganisation) {
-          form.reset();
-          updateLocalOrganisation(currentOrganisation.id, res);
-        }
-      },
-      onError: () => {
-        toast.error("Failed to update organisation settings");
-      },
-    }),
-  );
+  const { currentOrganisation, updateOrganisation, isUpdating, updateError } =
+    useOrganisations();
 
   const form = useForm({
     defaultValues: {
@@ -45,12 +20,13 @@ export default function OrganisationSettingsForm() {
     },
     onSubmit: async ({ value }) => {
       if (!currentOrganisation) return;
-      updateOrganisation({ organisationId: currentOrganisation?.id, ...value });
+      updateOrganisation({ organisationId: currentOrganisation.id, ...value });
+      form.reset();
     },
   });
 
-  const fieldErrors = error?.data?.zodError?.fieldErrors;
-  const formError = error?.data?.formError;
+  const fieldErrors = updateError?.data?.zodError?.fieldErrors;
+  const formError = updateError?.data?.formError;
 
   return (
     <form
@@ -95,10 +71,10 @@ export default function OrganisationSettingsForm() {
       <form.Subscribe selector={(state) => state.isDefaultValue}>
         {(isDefaultValue) => (
           <div className="flex gap-4">
-            <Button type="submit" disabled={isPending || isDefaultValue}>
+            <Button type="submit" disabled={isUpdating || isDefaultValue}>
               Save changes
             </Button>
-            {!isDefaultValue && !isPending && (
+            {!isDefaultValue && !isUpdating && (
               <Button
                 type="button"
                 variant="secondary"

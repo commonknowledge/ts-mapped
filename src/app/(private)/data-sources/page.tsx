@@ -2,16 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Database, LoaderPinwheel, PlusIcon } from "lucide-react";
-import { useContext } from "react";
 import { Link } from "@/components/Link";
 import PageHeader from "@/components/PageHeader";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { useOrganisations } from "@/hooks/useOrganisations";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import UserDataSourcesList from "./components/UserDataSourcesList";
 
 export default function DataSourcesPage() {
-  const { organisationId } = useContext(OrganisationsContext);
+  const { organisationId } = useOrganisations();
 
   const trpc = useTRPC();
   const { data: dataSources, isPending } = useQuery(

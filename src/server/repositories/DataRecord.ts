@@ -287,3 +287,27 @@ export function upsertDataRecord(dataRecord: NewDataRecord) {
     .returningAll()
     .executeTakeFirstOrThrow();
 }
+
+export const markDataRecordsAsDirty = async (
+  batch: string[],
+  dataSourceId: string,
+) => {
+  await db
+    .insertInto("dataRecord")
+    .values(
+      batch.map((id) => ({
+        externalId: id,
+        dataSourceId,
+        json: {},
+        needsImport: true,
+        needsEnrich: true,
+      })),
+    )
+    .onConflict((oc) =>
+      oc.columns(["externalId", "dataSourceId"]).doUpdateSet({
+        needsImport: true,
+        needsEnrich: true,
+      }),
+    )
+    .execute();
+};

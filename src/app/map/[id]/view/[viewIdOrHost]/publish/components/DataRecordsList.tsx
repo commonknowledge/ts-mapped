@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
@@ -11,6 +11,7 @@ import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { buildName } from "../utils";
 import { filterRecords, getActiveFilters } from "./filtersHelpers";
+import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -21,20 +22,21 @@ interface DataRecordsListProps {
     isPending: boolean;
   };
   onSelect: (r: { id: string; dataSourceId: string }) => void;
-  colourScheme: { primary: string; muted: string };
+  colorScheme: PublicMapColorScheme;
 }
 
 export default function DataRecordsList({
   dataRecordsQuery,
   onSelect,
-  colourScheme,
+  colorScheme,
 }: DataRecordsListProps) {
-  const { publicMap, setRecordSidebarVisible } = useContext(PublicMapContext);
+  const { publicMap } = useContext(PublicMapContext);
   const { mapRef } = useContext(MapContext);
   const { selectedRecord } = useContext(InspectorContext);
   const { publicFilters, records, setRecords } =
     useContext(PublicFiltersContext);
-  const [expandedRecordId, setExpandedRecordId] = useState<string | null>(null);
+  const [isExpanded, setExpanded] = useState(false);
+  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     const allRecords = dataRecordsQuery?.data?.records || [];
@@ -59,6 +61,19 @@ export default function DataRecordsList({
     dataRecordsQuery.data?.id,
   ]);
 
+  useEffect(() => {
+    if (selectedRecord?.id) {
+      setExpanded(true);
+      const item = listRef.current?.querySelector<HTMLLIElement>(
+        `li[data-id="${selectedRecord.id}"]`,
+      );
+      item?.scrollIntoView({
+        behavior: "smooth",
+        block: window.innerWidth < 768 ? "start" : "center",
+      });
+    }
+  }, [selectedRecord?.id]);
+
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
@@ -71,40 +86,43 @@ export default function DataRecordsList({
     if (!nameColumns?.length) {
       return record.externalId;
     }
-    const name = buildName(nameColumns, record.json);
-    return name || record.externalId;
+
+    return buildName(nameColumns, record.json);
   };
 
   const getDescription = (record: { json: Record<string, unknown> }) => {
     const descriptionColumn = dataSourceConfig?.descriptionColumn;
-    return descriptionColumn ? String(record.json[descriptionColumn]) : null;
+    return descriptionColumn && Boolean(record.json[descriptionColumn])
+      ? `${record.json[descriptionColumn]}`
+      : "";
   };
 
   const handleRecordClick = (record: {
     id: string;
     geocodePoint?: Point | null;
   }) => {
+    let nextExpanded = isExpanded;
     if (dataRecordsQuery.data?.id) {
       onSelect({
         id: record.id,
         dataSourceId: dataRecordsQuery.data?.id,
       });
 
-      // On mobile: toggle accordion expansion
-      // On desktop: open sidebar
-      if (window.innerWidth < 768) {
-        setExpandedRecordId(expandedRecordId === record.id ? null : record.id);
+      if (record.id === selectedRecord?.id) {
+        nextExpanded = !isExpanded;
       } else {
-        setRecordSidebarVisible(true);
+        nextExpanded = true;
       }
     }
 
-    if (record.geocodePoint) {
+    if (record.geocodePoint && nextExpanded) {
       mapRef?.current?.flyTo({
         center: record.geocodePoint,
         zoom: 14,
       });
     }
+
+    setExpanded(nextExpanded);
   };
 
   if (!records?.length) {
@@ -112,46 +130,54 @@ export default function DataRecordsList({
   }
 
   return (
-    <ul className="flex flex-col">
+    <ul className="flex flex-col" ref={listRef}>
       {records.map((r) => {
-        const isExpanded = expandedRecordId === r.id;
         const isSelected = selectedRecord?.id === r.id;
 
         return (
           <li
             key={r.id}
             className={cn(
-              "cursor-pointer rounded transition-all duration-200",
+              "rounded transition-all duration-200",
               isSelected ? "" : "hover:bg-accent",
             )}
+            data-id={r.id}
             style={
-              isSelected ? { backgroundColor: colourScheme.muted } : undefined
+              isSelected
+                ? { backgroundColor: colorScheme.primaryMuted }
+                : undefined
             }
           >
             {/* Main record item */}
-            <div
-              role="button"
+            <button
+              type="button"
               onClick={() => handleRecordClick(r)}
-              className="py-3 px-4 flex flex-col gap-2"
+              className="py-3 px-4 flex flex-col gap-[2px] w-full / text-left cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: colourScheme.primary }}
+                  style={{ backgroundColor: colorScheme.primary }}
                 />
-                <span className="font-medium flex-1">{getName(r)}</span>
+                <span className="font-medium flex-1">
+                  {getName(r) || getDescription(r) || "Unknown"}
+                </span>
                 {/* Only show arrow on mobile */}
                 <div className="text-xs text-neutral-500 md:hidden">
-                  {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                  {isSelected && isExpanded ? (
+                    <ChevronDownIcon size={16} />
+                  ) : (
+                    <ChevronRightIcon size={16} />
+                  )}
                 </div>
               </div>
-              {getDescription(r) && (
+              {getDescription(r) && getName(r) && (
                 <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
               )}
-            </div>
+            </button>
 
             {/* Expanded content - only on mobile */}
-            {isExpanded && (
+            {isSelected && isExpanded && (
               <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
                 <MobileRecordDetails
                   record={r}

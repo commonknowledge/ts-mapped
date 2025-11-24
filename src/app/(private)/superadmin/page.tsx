@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { Separator } from "@/shadcn/ui/separator";
 import {
   Table,
   TableBody,
@@ -35,6 +34,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
+import { UserChart } from "./UserChart";
 
 export default function SuperadminPage() {
   const { currentUser } = useCurrentUser();
@@ -115,12 +116,40 @@ export default function SuperadminPage() {
 
   return (
     <div className="p-4 mx-auto max-w-7xl w-full">
-      <h1 className="text-3xl font-medium tracking-tight mb-8">Superadmin</h1>
+      <Tabs defaultValue="users" className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-medium tracking-tight ">Superadmin</h1>
+          <TabsList>
+            <TabsTrigger value="users">All Users</TabsTrigger>
+            <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>
+          </TabsList>
+        </div>
 
-      <Separator className="mb-8" />
-
-      <div className="space-y-8">
-        <div>
+        <TabsContent value="users" className="mt-6">
+          <div className="mb-8">
+            <UserChart users={users} />
+          </div>
+          <h2 className="text-2xl font-medium mb-4">All Users</h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Email</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Organisation</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users?.map((u) => (
+                <TableRow key={u.id}>
+                  <TableCell>{u.email}</TableCell>
+                  <TableCell>{u.name}</TableCell>
+                  <TableCell>{u.organisations.join(", ")}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
+        <TabsContent value="invitations" className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-medium">Pending Invitations</h2>
 
@@ -260,30 +289,8 @@ export default function SuperadminPage() {
               )}
             </TableBody>
           </Table>
-        </div>
-
-        <div>
-          <h2 className="text-2xl font-medium mb-4">All Users</h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Organisation</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users?.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell>{u.name}</TableCell>
-                  <TableCell>{u.organisations.join(", ")}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

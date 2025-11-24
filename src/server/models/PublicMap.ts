@@ -28,6 +28,7 @@ export const publicMapDataSourceConfigSchema = z.object({
   dataSourceId: z.string(),
   dataSourceLabel: z.string(),
   formUrl: z.string(),
+  editFormUrl: z.string(),
   nameColumns: z.array(z.string()),
   nameLabel: z.string(),
   descriptionColumn: z.string(),
@@ -44,12 +45,15 @@ export const publicMapSchema = z.object({
   host: z.string(),
   name: z.string(),
   description: z.string(),
+  descriptionLong: z.string(),
   descriptionLink: z.string(),
+  imageUrl: z.string().nullish(),
   mapId: z.string(),
   viewId: z.string(),
   published: z.boolean(),
   dataSourceConfigs: z.array(publicMapDataSourceConfigSchema),
   createdAt: z.date(),
+  colorScheme: z.string(),
 });
 
 export type PublicMap = z.infer<typeof publicMapSchema>;

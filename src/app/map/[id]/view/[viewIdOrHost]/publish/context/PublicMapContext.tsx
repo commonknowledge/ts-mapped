@@ -10,13 +10,6 @@ import type { RouterOutputs } from "@/services/trpc/react";
 export const PublicMapContext = createContext<{
   publicMap: RouterOutputs["publicMap"]["getPublished"];
   editable: boolean;
-  dataRecordsQueries: Record<
-    string,
-    {
-      data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
-      isPending: boolean;
-    }
-  >;
   searchLocation: Point | null;
   setSearchLocation: (p: Point | null) => void;
   updatePublicMap: (publicMap: Partial<PublicMap>) => void;
@@ -33,14 +26,10 @@ export const PublicMapContext = createContext<{
   setActiveTabId: (tabId: string | null) => void;
   activePublishTab: string;
   setActivePublishTab: (tab: string) => void;
-  recordSidebarVisible: boolean;
-  setRecordSidebarVisible: (visible: boolean) => void;
-  colourScheme: string;
-  setColourScheme: (scheme: string) => void;
+  colorScheme: string;
 }>({
   publicMap: null,
   editable: false,
-  dataRecordsQueries: {},
   searchLocation: null,
   setSearchLocation: () => null,
   updatePublicMap: () => null,
@@ -50,8 +39,5 @@ export const PublicMapContext = createContext<{
   setActiveTabId: () => null,
   activePublishTab: "settings",
   setActivePublishTab: () => null,
-  recordSidebarVisible: false,
-  setRecordSidebarVisible: () => null,
-  colourScheme: "red",
-  setColourScheme: () => null,
+  colorScheme: "red",
 });

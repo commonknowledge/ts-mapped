@@ -3,10 +3,16 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { MARKER_MATCHED_KEY, MARKER_NAME_KEY } from "@/constants";
-import { MARKER_ID_KEY } from "@/constants";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { publicMapColorSchemes } from "@/app/map/[id]/styles";
+import {
+  MARKER_ID_KEY,
+  MARKER_MATCHED_KEY,
+  MARKER_NAME_KEY,
+} from "@/constants";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
+import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { PointFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
 
@@ -29,7 +35,8 @@ function rgbaString(hex: string, alpha: number) {
 export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
-  const { markerQueries } = useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
+  const { getDataSourceVisibility } = useContext(MarkerAndTurfContext);
 
   const memberMarkers = useMemo(
     () =>
@@ -49,7 +56,7 @@ export default function Markers() {
 
   return (
     <>
-      {memberMarkers && viewConfig.showMembers && (
+      {memberMarkers && getDataSourceVisibility(memberMarkers.dataSourceId) && (
         <DataSourceMarkers
           key={memberMarkers.dataSourceId}
           dataSourceMarkers={memberMarkers}
@@ -57,7 +64,11 @@ export default function Markers() {
         />
       )}
       {otherMarkers.map((markers) => {
-        if (!markers || !viewConfig.showLocations) {
+        if (
+          !markers ||
+          !viewConfig.showLocations ||
+          !getDataSourceVisibility(markers.dataSourceId)
+        ) {
           return null;
         }
         return (
@@ -80,6 +91,7 @@ function DataSourceMarkers({
   isMembers: boolean;
 }) {
   const { records, publicFilters } = useContext(PublicFiltersContext);
+  const { publicMap, colorScheme } = useContext(PublicMapContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     // Don't add MARKER_CLIENT_EXCLUDED_KEY property if no public filters exist
@@ -113,7 +125,15 @@ function DataSourceMarkers({
   ];
 
   const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
-  const colors = isMembers ? mapColors.member : mapColors.dataSource;
+  const publicMapColor =
+    publicMap?.id && colorScheme
+      ? publicMapColorSchemes[colorScheme]?.primary
+      : "";
+  const color = publicMapColor
+    ? publicMapColor
+    : isMembers
+      ? mapColors.member.color
+      : mapColors.dataSource.color;
 
   return (
     <Source
@@ -122,7 +142,7 @@ function DataSourceMarkers({
       type="geojson"
       data={safeMarkers}
       cluster={true}
-      clusterMaxZoom={14}
+      clusterMaxZoom={11}
       clusterRadius={50}
       clusterProperties={{
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
@@ -170,17 +190,17 @@ function DataSourceMarkers({
             ["linear"],
             ["heatmap-density"],
             0,
-            rgbaString(colors.color, 0),
+            rgbaString(color, 0),
             0.2,
-            rgbaString(colors.color, 0.2),
+            rgbaString(color, 0.2),
             0.4,
-            rgbaString(colors.color, 0.4),
+            rgbaString(color, 0.4),
             0.6,
-            rgbaString(colors.color, 0.6),
+            rgbaString(color, 0.6),
             0.8,
-            rgbaString(colors.color, 0.8),
+            rgbaString(color, 0.8),
             1,
-            rgbaString(colors.color, 1),
+            rgbaString(color, 1),
           ],
           // Adjust radius by zoom
           "heatmap-radius": [
@@ -208,7 +228,7 @@ function DataSourceMarkers({
         ]}
         paint={{
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
-          "circle-color": colors.color,
+          "circle-color": color,
           "circle-opacity": ["case", NOT_MATCHED_CASE, 0.5, 1],
           "circle-stroke-width": 1,
           "circle-stroke-color": "#ffffff",
@@ -225,14 +245,23 @@ function DataSourceMarkers({
         ]}
         minzoom={10}
         layout={{
-          "text-field": ["get", MARKER_NAME_KEY],
+          "text-field": [
+            "concat",
+            ["slice", ["get", MARKER_NAME_KEY], 0, 20],
+            [
+              "case",
+              [">", ["length", ["get", MARKER_NAME_KEY]], 20],
+              "...",
+              "",
+            ],
+          ],
           "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           "text-size": 12,
           "text-transform": "uppercase",
           "text-offset": [0, -1.25],
         }}
         paint={{
-          "text-color": colors.color,
+          "text-color": color,
           "text-halo-color": "#ffffff",
           "text-halo-width": 1,
         }}

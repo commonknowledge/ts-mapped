@@ -1,27 +1,22 @@
 "use client";
 
-import { MapIcon } from "lucide-react";
 import { useContext } from "react";
-import { publicMapColourSchemes } from "@/app/map/[id]/styles";
+import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../context/PublicMapContext";
 import DataRecordSidebar from "./DataRecordSidebar";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
+import PublicMapDescriptionDialog from "./PublicMapDescriptionDialog";
 import PublicMapGeocoder from "./PublicMapGeocoder";
 import { PublicMapListings } from "./PublicMapListings";
 
 export default function PublicMapSidebar() {
-  const {
-    publicMap,
-    editable,
-    setSearchLocation,
-    recordSidebarVisible,
-    colourScheme,
-  } = useContext(PublicMapContext);
+  const { publicMap, editable, setSearchLocation, colorScheme } =
+    useContext(PublicMapContext);
 
-  // Convert string colourScheme to actual color scheme object
-  const activeColourScheme =
-    publicMapColourSchemes[colourScheme] || publicMapColourSchemes.red;
+  // Convert string colorScheme to actual color scheme object
+  const activeColorScheme =
+    publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;
 
   // Should never happen
   if (!publicMap) {
@@ -31,25 +26,22 @@ export default function PublicMapSidebar() {
   return (
     <div
       className={cn(
-        "absolute top-0 left-0 z-10 bg-white flex md:h-full md:pt-[var(--navbar-height)]",
+        "absolute top-0 left-0 z-100 bg-white flex md:h-full md:pt-[var(--navbar-height)]",
       )}
     >
       <div className="flex flex-col md:h-full md:w-[300px] border-r border-neutral-200">
         {/* Header */}
         <div className="flex flex-col gap-2 border-b border-neutral-200">
           <div
-            style={{ backgroundColor: activeColourScheme.muted }}
-            className="p-4 flex flex-col gap-6"
+            style={{
+              backgroundColor:
+                activeColorScheme.secondaryMuted ||
+                activeColorScheme.primaryMuted,
+            }}
+            className="p-4 flex flex-col items-start gap-4"
           >
             <div className="flex flex-col w-full items-start justify-between gap-2">
               <div className="flex items-center gap-2">
-                <MapIcon
-                  className="w-10 h-10 shrink-0"
-                  style={{
-                    fill: "white",
-                    stroke: activeColourScheme.primary,
-                  }}
-                />
                 <EditablePublicMapProperty
                   property="name"
                   placeholder="Map name"
@@ -74,61 +66,31 @@ export default function PublicMapSidebar() {
                     )}
                   </p>
                 </EditablePublicMapProperty>
-                <EditablePublicMapProperty
-                  property="descriptionLink"
-                  placeholder="submissions@example.com"
-                >
-                  {publicMap.descriptionLink && (
-                    <a
-                      className="underline text-sm "
-                      style={{
-                        color: activeColourScheme.primary,
-                      }}
-                      href={`mailto:${publicMap.descriptionLink}`}
-                      target="_blank"
-                      onClick={(e) => editable && e.preventDefault()}
-                    >
-                      {publicMap.descriptionLink || (
-                        <span className="text-sm text-neutral-500 italic">
-                          Add a contact email
-                        </span>
-                      )}
-                    </a>
-                  )}
-                </EditablePublicMapProperty>
               </div>
-            ) : publicMap.description || publicMap.descriptionLink ? (
-              <div className="flex flex-col gap-4">
-                {publicMap.description ? <p>{publicMap.description}</p> : <></>}
-                {publicMap.descriptionLink ? (
-                  <a
-                    href={`mailto:${publicMap.descriptionLink}`}
-                    className="underline text-sm"
-                    target="_blank"
-                    style={{
-                      color: activeColourScheme.primary,
-                    }}
-                  >
-                    {publicMap.descriptionLink}
-                  </a>
-                ) : (
-                  <></>
-                )}
-              </div>
+            ) : publicMap.description ? (
+              <p className="text-sm">{publicMap.description}</p>
             ) : (
               <></>
             )}
 
+            {(Boolean(publicMap.descriptionLong) ||
+              Boolean(publicMap.descriptionLink)) && (
+              <PublicMapDescriptionDialog
+                contactLink={publicMap.descriptionLink}
+                description={publicMap.descriptionLong}
+              />
+            )}
+
             <PublicMapGeocoder
               onGeocode={(p) => setSearchLocation(p)}
-              colourScheme={activeColourScheme}
+              colorScheme={activeColorScheme}
             />
           </div>
         </div>
         <PublicMapListings />
       </div>
 
-      {recordSidebarVisible && <DataRecordSidebar />}
+      <DataRecordSidebar />
     </div>
   );
 }

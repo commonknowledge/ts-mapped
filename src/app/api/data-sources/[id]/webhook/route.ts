@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
+import { markDataRecordsAsDirty } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
-import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { enqueue } from "@/server/services/queue";
 import { batchAsync } from "@/server/utils";
@@ -17,6 +17,10 @@ const handler = async (
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) {
     return new NextResponse("Not found", { status: 404 });
+  }
+
+  if (!dataSource.autoEnrich && !dataSource.autoImport) {
+    return new NextResponse("OK");
   }
 
   const adaptor = getDataSourceAdaptor(dataSource);
@@ -36,15 +40,7 @@ const handler = async (
   const batches = batchAsync(externalRecordIds, DATA_RECORDS_JOB_BATCH_SIZE);
 
   for await (const batch of batches) {
-    await db
-      .updateTable("dataRecord")
-      .where("externalId", "in", batch)
-      .where("dataSourceId", "=", dataSourceId)
-      .set({
-        needsEnrich: dataSource.autoEnrich,
-        needsImport: dataSource.autoImport,
-      })
-      .execute();
+    await markDataRecordsAsDirty(batch, dataSourceId);
   }
 
   if (dataSource.autoImport) {

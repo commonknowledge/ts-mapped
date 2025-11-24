@@ -4,20 +4,15 @@ import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
+import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
-import { Switch } from "@/shadcn/ui/switch";
+import { Label } from "@/shadcn/ui/label";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { toBoolean } from "../utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
-export default function FiltersForm({
-  fields,
-  closeDialog,
-}: {
-  fields: FilterField[];
-  closeDialog: () => void;
-}) {
+export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
@@ -53,6 +48,14 @@ export default function FiltersForm({
     setValues(defaultEmptyValues);
   }, [activeTabId, fields, publicFilters]);
 
+  // update filters on values change
+  useEffect(() => {
+    if (activeTabId && values.length > 0) {
+      setPublicFilters((prev) => ({ ...prev, [activeTabId]: values }));
+      setSelectedRecord(null);
+    }
+  }, [values, activeTabId, setPublicFilters, setSelectedRecord]);
+
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>
       prev.map((v) => (v.name === name ? { ...v, value } : v)),
@@ -83,17 +86,6 @@ export default function FiltersForm({
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (activeTabId) {
-      setPublicFilters({ ...publicFilters, [activeTabId]: values });
-    }
-    // closing the data record sidebar when applying filters - to avoid showing details of a record that is filtered out
-    setSelectedRecord(null);
-    // closing filters dialog
-    closeDialog();
-  };
-
   const isChecked = (field: FilterField) => {
     const value = values.find((v) => v.name === field.name)?.value;
 
@@ -105,12 +97,15 @@ export default function FiltersForm({
   };
 
   return (
-    <form className="flex flex-col gap-6 w-full" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-4 w-full">
       {fields.map((field) => (
         <div key={field.name}>
           {field.type === PublicMapColumnType.String ? (
             // text input
-            <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
+            <FormFieldWrapper
+              label={field.label || field.name}
+              id={`filters-${field.name}`}
+            >
               <Input
                 type="text"
                 autoComplete="off"
@@ -121,20 +116,19 @@ export default function FiltersForm({
               />
             </FormFieldWrapper>
           ) : field.type === PublicMapColumnType.Boolean ? (
-            // boolean swicth
-            <FormFieldWrapper label={field.name} id={`filters-${field.name}`}>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={isChecked(field)}
-                  onCheckedChange={(checked) =>
-                    handleChange(field.name, checked ? "Yes" : "No")
-                  }
-                />
-                <span className="text-sm">
-                  {isChecked(field) ? "Yes" : "No"}
-                </span>
-              </div>
-            </FormFieldWrapper>
+            // boolean checkbox
+            <div className="flex gap-2">
+              <Checkbox
+                id={`filters-${field.name}`}
+                checked={isChecked(field)}
+                onCheckedChange={(checked) =>
+                  handleChange(field.name, checked ? "Yes" : "")
+                }
+              />
+              <Label htmlFor={`filters-${field.name}`} className="font-normal">
+                {field.label || field.name}
+              </Label>
+            </div>
           ) : field?.options?.length ? (
             // multiselect
             <FiltersMultiSelect
@@ -147,7 +141,7 @@ export default function FiltersForm({
           )}
         </div>
       ))}
-      <div>
+      <div className="sr-only">
         <Button type="submit">Filter</Button>
       </div>
     </form>
@@ -173,14 +167,16 @@ const FiltersMultiSelect = ({
   };
 
   return (
-    <CustomMultiSelect
-      label={field.name}
-      id={`filters-${field.name}`}
-      allOptions={field.options || []}
-      selectedOptions={
-        values?.find((v) => v.name === field.name)?.selectedOptions || []
-      }
-      onChange={onChange}
-    />
+    <div className="my-2">
+      <CustomMultiSelect
+        label={field.label || field.name}
+        id={`filters-${field.name}`}
+        allOptions={field.options || []}
+        selectedOptions={
+          values?.find((v) => v.name === field.name)?.selectedOptions || []
+        }
+        onChange={onChange}
+      />
+    </div>
   );
 };

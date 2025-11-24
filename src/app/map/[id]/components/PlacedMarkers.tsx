@@ -1,18 +1,26 @@
 import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { FeatureCollection, Point } from "geojson";
 
 export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
-  const { folders, placedMarkers, selectedPlacedMarkerId } =
+  const { data: folders = [] } = useFoldersQuery();
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { selectedPlacedMarkerId, getMarkerVisibility } =
     useContext(MarkerAndTurfContext);
 
   const visiblePlacedMarkers = useMemo(() => {
     return placedMarkers.filter((marker) => {
+      if (!getMarkerVisibility(marker.id)) {
+        return false;
+      }
+
       if (!marker.folderId) return true;
 
       const parentFolder = folders.find(
@@ -21,7 +29,7 @@ export default function PlacedMarkers() {
 
       return !parentFolder?.hideMarkers;
     });
-  }, [placedMarkers, folders]);
+  }, [placedMarkers, folders, getMarkerVisibility]);
 
   const features: FeatureCollection<Point> = {
     type: "FeatureCollection",

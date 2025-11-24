@@ -1,5 +1,5 @@
 import z from "zod";
-import type { Generated, Insertable, Updateable } from "kysely";
+import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export const polygonSchema = z.object({
   bbox: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
@@ -22,6 +22,7 @@ export const turfSchema = z.object({
 export type Turf = z.infer<typeof turfSchema>;
 export type TurfTable = Turf & {
   id: Generated<string>;
+  createdAt: ColumnType<Date, Date | undefined, never>;
 };
 
 export type NewTurf = Insertable<TurfTable>;

@@ -1,21 +1,19 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { CalculationType, VisualisationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import type { AreaStat, BoundingBox } from "@/server/models/Area";
-import type { AreaSetCode } from "@/server/models/AreaSet";
+import { ChoroplethContext } from "./context/ChoroplethContext";
+import { MapContext } from "./context/MapContext";
+import { useMapViews } from "./hooks/useMapViews";
+import type { AreaStat } from "@/server/models/Area";
 import type { ColumnType } from "@/server/models/DataSource";
-import type { MapViewConfig } from "@/server/models/MapView";
 
-export const useAreaStats = ({
-  viewConfig,
-  areaSetCode,
-  boundingBox,
-}: {
-  viewConfig: MapViewConfig;
-  areaSetCode: AreaSetCode;
-  boundingBox?: BoundingBox | null;
-}) => {
+export const useAreaStats = () => {
+  const { boundingBox } = useContext(MapContext);
+  const { viewConfig } = useMapViews();
+  const {
+    choroplethLayerConfig: { areaSetCode, requiresBoundingBox },
+  } = useContext(ChoroplethContext);
   const {
     calculationType,
     areaDataColumn: column,
@@ -65,7 +63,7 @@ export const useAreaStats = ({
         dataSourceId,
         column: columnOrCount,
         excludeColumns,
-        boundingBox,
+        boundingBox: requiresBoundingBox ? boundingBox : null,
       },
       { enabled: !skipCondition },
     ),

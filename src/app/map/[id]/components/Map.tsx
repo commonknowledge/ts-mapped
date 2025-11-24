@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
+import { v4 as uuidv4 } from "uuid";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
@@ -22,17 +23,20 @@ import {
 import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import {
   DEFAULT_ZOOM,
   MARKER_DATA_SOURCE_ID_KEY,
   MARKER_ID_KEY,
   MARKER_NAME_KEY,
 } from "@/constants";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { useTurfMutations } from "../hooks/useTurfs";
 import { MAPBOX_SOURCE_IDS } from "../sources";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
 import FilterMarkers from "./FilterMarkers";
-
 import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
@@ -55,6 +59,7 @@ export default function Map({
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
 }) {
+  const { isMobile } = useIsMobile();
   const {
     mapRef,
     setBoundingBox,
@@ -66,15 +71,9 @@ export default function Map({
   } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
-  const {
-    deleteTurf,
-    insertTurf,
-    updateTurf,
-    turfs,
-    searchMarker,
-    placedMarkers,
-    markerQueries,
-  } = useContext(MarkerAndTurfContext);
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const { searchMarker, visibleTurfs } = useContext(MarkerAndTurfContext);
+  const markerQueries = useMarkerQueries();
   const {
     resetInspector,
     setSelectedRecord,
@@ -106,21 +105,23 @@ export default function Map({
     [mapConfig],
   );
 
+  const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
+
   // draw existing turfs
   useEffect(() => {
-    if (!turfs || !draw || !viewConfig?.showTurf) return;
+    if (!visibleTurfs || !draw) return;
 
     draw.deleteAll();
 
     // Add existing polygons from your array
-    turfs.forEach((turf) => {
+    visibleTurfs.forEach((turf) => {
       draw.add({
         type: "Feature",
         properties: { ...turf },
         geometry: turf.polygon,
       });
     });
-  }, [turfs, draw, viewConfig?.showTurf]);
+  }, [visibleTurfs, draw, viewConfig?.showTurf]);
 
   // Hover behavior
   useEffect(() => {
@@ -213,35 +214,6 @@ export default function Map({
     [mapRef, styleLoaded],
   );
 
-  const toggleDrawVisibility = useCallback(
-    (visible: boolean) => {
-      const map = mapRef?.current;
-
-      // all draw layers
-      const drawLayerIds = [
-        "gl-draw-polygon-fill.cold",
-        "gl-draw-polygon-stroke.cold",
-        "gl-draw-polygon-and-line-vertex-halo-active.cold",
-        "gl-draw-polygon-and-line-vertex-active.cold",
-      ];
-
-      if (map && styleLoaded) {
-        // draw layers that actually exist on our map
-        const style = map.getStyle();
-        const layerIds = style.layers
-          .filter((layer) => drawLayerIds.includes(layer.id))
-          .map((layer) => layer.id);
-
-        layerIds.forEach((id) => {
-          map
-            .getMap()
-            .setLayoutProperty(id, "visibility", visible ? "visible" : "none");
-        });
-      }
-    },
-    [mapRef, styleLoaded],
-  );
-
   const getClickedPolygonFeature = (
     draw: MapboxDraw,
     e: MapMouseEvent,
@@ -275,10 +247,6 @@ export default function Map({
   };
 
   useEffect(() => {
-    toggleDrawVisibility(viewConfig.showTurf);
-  }, [viewConfig.showTurf, toggleDrawVisibility]);
-
-  useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
   }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
@@ -291,7 +259,7 @@ export default function Map({
     if (!map) return;
 
     const padding = {
-      left: showControls ? CONTROL_PANEL_WIDTH : 0,
+      left: isMobile || !showControls ? 0 : CONTROL_PANEL_WIDTH,
       top: 0,
       bottom: 0,
     };
@@ -307,7 +275,7 @@ export default function Map({
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-  }, [mapRef, showControls]);
+  }, [mapRef, showControls, isMobile]);
 
   useEffect(() => {
     const map = mapRef?.current;
@@ -344,10 +312,10 @@ export default function Map({
         ],
         {
           padding: {
-            left: CONTROL_PANEL_WIDTH + 100,
-            right: 100,
-            top: 100,
-            bottom: 100,
+            left: isMobile ? 0 : CONTROL_PANEL_WIDTH + 100,
+            right: isMobile ? 0 : 100,
+            top: isMobile ? 0 : 100,
+            bottom: isMobile ? 0 : 100,
           },
           duration: 1000,
         },
@@ -363,17 +331,21 @@ export default function Map({
     markerQueries?.data,
     markerQueries?.isFetching,
     placedMarkers,
+    isMobile,
   ]);
 
   return (
-    <MapWrapper currentMode={pinDropMode ? "pin_drop" : currentMode}>
+    <MapWrapper
+      currentMode={pinDropMode ? "pin_drop" : currentMode}
+      hideDrawControls={hideDrawControls}
+    >
       <MapGL
         initialViewState={{
           longitude: -4.5481,
           latitude: 54.2361,
           zoom: DEFAULT_ZOOM,
           padding: {
-            left: CONTROL_PANEL_WIDTH,
+            left: isMobile ? 0 : CONTROL_PANEL_WIDTH,
             top: 0,
             bottom: 0,
           },
@@ -576,6 +548,7 @@ export default function Map({
                 const area = turf.area(feature);
                 const roundedArea = Math.round(area * 100) / 100;
                 insertTurf({
+                  id: uuidv4(),
                   label: feature.properties?.name || "",
                   notes: "",
                   area: roundedArea,
@@ -672,17 +645,18 @@ export default function Map({
             <PlacedMarkers />
             <Markers />
             {searchMarker && <SearchResultMarker />}
-            {hoverMarker && (
-              <Popup
-                longitude={hoverMarker.coordinates[0]}
-                latitude={hoverMarker.coordinates[1]}
-                closeButton={false}
-              >
-                <p className="font-sans font-semibold text-sm">
-                  {String(hoverMarker.properties[MARKER_NAME_KEY])}
-                </p>
-              </Popup>
-            )}
+            {hoverMarker &&
+              Boolean(hoverMarker?.properties?.[MARKER_NAME_KEY]) && (
+                <Popup
+                  longitude={hoverMarker.coordinates[0]}
+                  latitude={hoverMarker.coordinates[1]}
+                  closeButton={false}
+                >
+                  <p className="font-sans font-semibold text-sm">
+                    {String(hoverMarker.properties[MARKER_NAME_KEY])}
+                  </p>
+                </Popup>
+              )}
           </>
         )}
       </MapGL>

@@ -2,7 +2,6 @@ import { createContext } from "react";
 import { DEFAULT_ZOOM } from "@/constants";
 import { getChoroplethLayerConfig } from "../sources";
 import type { ChoroplethLayerConfig } from "../sources";
-import type { RouterOutputs } from "@/services/trpc/react";
 
 export const ChoroplethContext = createContext<{
   /* State */
@@ -12,12 +11,6 @@ export const ChoroplethContext = createContext<{
   lastLoadedSourceId: string | undefined;
   setLastLoadedSourceId: (id: string) => void;
 
-  /* Queries */
-  areaStatsQuery: {
-    data: RouterOutputs["area"]["stats"] | null | undefined;
-    isFetching: boolean;
-  } | null;
-
   /* Derived Properties */
   choroplethLayerConfig: ChoroplethLayerConfig;
 }>({
@@ -26,5 +19,4 @@ export const ChoroplethContext = createContext<{
   choroplethLayerConfig: getChoroplethLayerConfig(null, null, DEFAULT_ZOOM),
   lastLoadedSourceId: undefined,
   setLastLoadedSourceId: () => null,
-  areaStatsQuery: null,
 });

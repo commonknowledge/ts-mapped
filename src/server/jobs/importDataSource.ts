@@ -134,7 +134,9 @@ export const typeJson = (
     if (columnType === ColumnType.Object) {
       typedValue = typeJson(value as Record<string, unknown>).typedJson;
     } else if (columnType === ColumnType.Number) {
-      typedValue = Number(value);
+      typedValue = parseNumber(value);
+    } else if (columnType === ColumnType.Empty) {
+      typedValue = "";
     }
     columnDefs.push({ name: key, type: columnType });
     typedJson[key] = typedValue;
@@ -175,14 +177,28 @@ const getType = (value: unknown): ColumnType => {
   }
 
   if (typeof value === "string") {
-    const trimmedValue = value.trim();
+    const trimmedValue = value.trim().replace(/%$/, "");
     if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(trimmedValue)) {
       return ColumnType.Number;
+    }
+    if (!trimmedValue || trimmedValue === "-") {
+      return ColumnType.Empty;
     }
     return ColumnType.String;
   }
 
   return ColumnType.String;
+};
+
+/**
+ * Parse numbers according to the typing logic above:
+ * - Remove percent signs
+ */
+const parseNumber = (value: unknown): number => {
+  if (typeof value !== "string") {
+    return Number(value);
+  }
+  return Number(value.replace(/%$/, ""));
 };
 
 const addColumnDefs = (

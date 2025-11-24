@@ -9,6 +9,7 @@ import {
   VisualisationType,
 } from "@/server/models/MapView";
 import { useFillColor } from "../colors";
+import { useAreaStats } from "../data";
 
 export default function Choropleth() {
   // Keep track of area codes that have feature state, to clean if necessary
@@ -16,12 +17,13 @@ export default function Choropleth() {
   const { mapRef } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const {
-    areaStatsQuery,
     lastLoadedSourceId,
     choroplethLayerConfig: {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
   } = useContext(ChoroplethContext);
+
+  const areaStatsQuery = useAreaStats();
 
   /* Set Mapbox feature state on receiving new AreaStats */
   useEffect(() => {

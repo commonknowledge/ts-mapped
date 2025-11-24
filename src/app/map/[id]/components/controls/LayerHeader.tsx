@@ -1,54 +1,88 @@
-import React from "react";
-import { Label } from "@/shadcn/ui/label";
-import LayerCollapseToggle from "./LayerCollapseToggle";
-import LayerVisibilityToggle from "./LayerVisibilityToggle";
+import { ChevronDown } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { useContext } from "react";
+import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { TooltipProvider } from "@/shadcn/ui/tooltip";
+import { cn } from "@/shadcn/utils";
+import LayerTypeIcon from "../LayerTypeIcon";
+import type { LayerType } from "@/types";
+
 export default function LayerHeader({
   label,
-  color,
-  showLayer,
-  setLayer,
+  type,
   expanded,
   setExpanded,
   children,
+  enableVisibilityToggle = false,
 }: {
   label: string;
-  showLayer: boolean;
+  type: LayerType;
   expanded: boolean;
+  setExpanded: (expanded: boolean) => void;
 
   children?: React.ReactNode;
-  color?: string;
-  setExpanded?: (expanded: boolean) => void;
-  setLayer?: (layer: boolean) => void;
+  enableVisibilityToggle?: boolean;
 }) {
+  const { getLayerVisibility, hideLayer, showLayer } =
+    useContext(MarkerAndTurfContext);
+
+  const isLayerVisible = getLayerVisibility(type);
+
+  const toggleLayerVisiblity = () => {
+    if (isLayerVisible) {
+      hideLayer(type);
+    } else {
+      showLayer(type);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between relative">
-      <div className="group / grow / flex items-center gap-1">
-        {color && (
-          <div
-            className="w-3 h-3 flex items-center justify-center rounded-full"
-            style={{
-              backgroundColor: color,
-              opacity: showLayer && expanded ? 1 : 0.5,
-            }}
-          ></div>
+      <div className="group flex items-center gap-1">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className={cn(
+            "flex items-center gap-2 hover:bg-neutral-100 rounded px-1 py-2 -mx-1 / text-sm font-medium cursor-pointer",
+            isLayerVisible ? "opacity-100" : "opacity-70",
+          )}
+        >
+          <ChevronDown
+            size={16}
+            className={cn(
+              "transition-transform",
+              expanded ? "rotate-0" : "-rotate-90",
+            )}
+          />
+
+          <LayerTypeIcon type={type} />
+
+          {label}
+        </button>
+
+        {enableVisibilityToggle && (
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="p-2 rounded bg-neutral-100 hover:neutral-200 cursor-pointer"
+                    aria-label="Toggle layer visibility"
+                    onClick={() => toggleLayerVisiblity()}
+                  >
+                    {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <>{isLayerVisible ? "Hide all" : "Show all"}</>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         )}
-
-        <Label>{label}</Label>
-
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-          {setExpanded && (
-            <LayerCollapseToggle
-              expanded={expanded}
-              setExpanded={setExpanded}
-            />
-          )}
-          {setLayer && (
-            <LayerVisibilityToggle layer={showLayer} setLayer={setLayer} />
-          )}
-        </div>
       </div>
 
-      <div className="shrink-0 transition-opacity ml-auto flex flex-row items-center">
+      <div className="shrink-0 ml-auto flex flex-row items-center">
         {children}
       </div>
     </div>
