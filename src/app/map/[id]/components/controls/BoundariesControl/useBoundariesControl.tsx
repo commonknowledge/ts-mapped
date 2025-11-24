@@ -115,7 +115,7 @@ export function useBoundariesControl() {
               visualisationType: VisualisationType.Choropleth,
               areaDataSourceId: voteShareDataSource.id,
               areaDataColumn: column.name,
-              calculationType: CalculationType.Value,
+              calculationType: CalculationType.Avg,
             });
           },
         }))

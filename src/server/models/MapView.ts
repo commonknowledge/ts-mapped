@@ -74,10 +74,9 @@ export enum VisualisationType {
 export const visualisationTypes = Object.values(VisualisationType);
 
 export enum CalculationType {
-  Value = "Value",
   Count = "Count",
   Sum = "Sum",
-  Average = "Average",
+  Avg = "Avg",
 }
 export const calculationTypes = Object.values(CalculationType);
 export const calculationType = z.nativeEnum(CalculationType);

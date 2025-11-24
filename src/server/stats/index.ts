@@ -48,17 +48,11 @@ export const getAreaStats = async (
       throw new Error(`Data source column not found: ${column}`);
     }
 
-    let safeCalculationType = calculationType;
-    if (columnDef.type !== ColumnType.Number) {
-      safeCalculationType = CalculationType.Value;
-    }
-
+    // Select is always MODE for ColumnType !== Number
     const valueSelect =
-      safeCalculationType === CalculationType.Value
+      columnDef.type !== ColumnType.Number
         ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-        : db
-            .fn(safeCalculationType, [sql`(json->>${column})::float`])
-            .as("value");
+        : db.fn(calculationType, [sql`(json->>${column})::float`]).as("value");
 
     const query = db
       .selectFrom("dataRecord")
@@ -69,6 +63,8 @@ export const getAreaStats = async (
       .where("dataRecord.dataSourceId", "=", dataSourceId)
       .where(getBoundingBoxSQL(boundingBox))
       .groupBy("areaCode");
+
+    console.log("q", query.compile().sql);
 
     const result = await query.execute();
     const stats = filterResult(result, columnDef.type);

@@ -18,6 +18,7 @@ const AREA_SET_SIZES: Record<AreaSetCode, number> = {
   [AreaSetCode.OA21]: 1,
   [AreaSetCode.MSOA21]: 2,
   [AreaSetCode.WMC24]: 4,
+  [AreaSetCode.UKR18]: 6,
 };
 
 // Configs within a group should be in descending order of minZoom
@@ -25,6 +26,19 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
   AreaSetGroupCode,
   ChoroplethLayerConfig[]
 > = {
+  UKR18: [
+    {
+      areaSetCode: AreaSetCode.UKR18,
+      minZoom: 0,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "eer18cd",
+        featureNameProperty: "eer18nm",
+        layerId: "regions-29o2db",
+        sourceId: "commonknowledge.dlbkjy9x",
+      },
+    },
+  ],
   WMC24: [
     {
       areaSetCode: AreaSetCode.WMC24,
@@ -134,4 +148,37 @@ export const getValidAreaSetGroupCodes = (
 
   // Default to all options
   return Object.values(AreaSetGroupCode);
+};
+
+// Return true if data might be aggregated when viewing stats for a data source using the provided boundaries
+// E.G. If a data source is geocoded by WMC24, and the user is viewing the data using the WMC24 boundaries, this should return false
+// However if the same data source is being viewed using the UKR18 boundaries, this should return true
+export const dataRecordsWillAggregate = (
+  dataSourceGeocodingConfig: GeocodingConfig | null | undefined,
+  targetAreaSetGroupCode: AreaSetGroupCode | null | undefined,
+) => {
+  if (!dataSourceGeocodingConfig || !targetAreaSetGroupCode) {
+    return false;
+  }
+
+  const areaSetCode =
+    "areaSetCode" in dataSourceGeocodingConfig
+      ? dataSourceGeocodingConfig.areaSetCode
+      : null;
+
+  // If data is not geocoded by area code, it will always be aggregated when getting area stats
+  if (!areaSetCode) {
+    return true;
+  }
+
+  const sourceAreaSize = AREA_SET_SIZES[areaSetCode];
+
+  // Return true if any of the area sets in the group are larger than the areas used to geocode the data source
+  const targetAreaSetSizes = CHOROPLETH_LAYER_CONFIGS[
+    targetAreaSetGroupCode
+  ].map((c) => AREA_SET_SIZES[c.areaSetCode]);
+  return (
+    targetAreaSetSizes.filter((targetSize) => targetSize > sourceAreaSize)
+      .length > 0
+  );
 };

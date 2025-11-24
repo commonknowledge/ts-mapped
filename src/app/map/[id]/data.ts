@@ -59,7 +59,7 @@ export const useAreaStats = () => {
     trpc.area.stats.queryOptions(
       {
         areaSetCode,
-        calculationType: calculationType || CalculationType.Value,
+        calculationType: calculationType || CalculationType.Avg,
         dataSourceId,
         column: columnOrCount,
         excludeColumns,

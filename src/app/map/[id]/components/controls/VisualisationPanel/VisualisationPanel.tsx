@@ -19,6 +19,7 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
+import { ColumnType } from "@/server/models/DataSource";
 import {
   CalculationType,
   ColorScheme,
@@ -49,7 +50,10 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import { getValidAreaSetGroupCodes } from "../../../sources";
+import {
+  dataRecordsWillAggregate,
+  getValidAreaSetGroupCodes,
+} from "../../../sources";
 import VisualisationShapeLibrarySelector from "./VisualisationShapeLibrarySelector";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
@@ -276,13 +280,12 @@ export default function VisualisationPanel({
             <div className="grid grid-cols-2 gap-2">
               <button
                 className={`p-3 rounded-lg border-2 text-center transition-all ${
-                  viewConfig.calculationType === CalculationType.Value ||
-                  !viewConfig.calculationType
+                  viewConfig.calculationType !== CalculationType.Count
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
                 onClick={() =>
-                  updateViewConfig({ calculationType: CalculationType.Value })
+                  updateViewConfig({ calculationType: CalculationType.Avg })
                 }
               >
                 <div className="w-6 h-6 mx-auto mb-2 bg-gray-300 rounded"></div>
@@ -307,36 +310,68 @@ export default function VisualisationPanel({
             </div>
 
             {/* Column Selection for "Use existing values" */}
-            {(viewConfig.calculationType === CalculationType.Value ||
-              !viewConfig.calculationType) &&
+            {viewConfig.calculationType !== CalculationType.Count &&
               viewConfig.areaDataSourceId && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Select column to use for values
-                  </Label>
-                  <Select
-                    value={viewConfig.areaDataColumn || ""}
-                    onValueChange={(value) =>
-                      updateViewConfig({ areaDataColumn: value })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose a column..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem key={MAX_COLUMN_KEY} value={MAX_COLUMN_KEY}>
-                        Highest-value column (String)
-                      </SelectItem>
-                      {dataSources
-                        ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                        ?.columnDefs.map((col) => (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Select column to use for values
+                    </Label>
+                    <Select
+                      value={viewConfig.areaDataColumn || ""}
+                      onValueChange={(value) =>
+                        updateViewConfig({ areaDataColumn: value })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choose a column..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem key={MAX_COLUMN_KEY} value={MAX_COLUMN_KEY}>
+                          Highest-value column (String)
+                        </SelectItem>
+                        {dataSource?.columnDefs.map((col) => (
                           <SelectItem key={col.name} value={col.name}>
                             {col.name} ({col.type})
                           </SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {dataSource?.columnDefs.find(
+                    (c) => c.name === viewConfig.areaDataColumn,
+                  )?.type === ColumnType.Number &&
+                    dataRecordsWillAggregate(
+                      dataSource?.geocodingConfig,
+                      viewConfig.areaSetGroupCode,
+                    ) && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Select numeric aggregation type
+                        </Label>
+                        <Select
+                          value={viewConfig.calculationType || ""}
+                          onValueChange={(value) =>
+                            updateViewConfig({
+                              calculationType: value as CalculationType,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choose an aggregation..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={CalculationType.Avg}>
+                              Average
+                            </SelectItem>
+                            <SelectItem value={CalculationType.Sum}>
+                              Sum
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                </>
               )}
 
             {/* Geographic Column Reference for "Count records" */}

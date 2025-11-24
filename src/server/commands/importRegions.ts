@@ -10,7 +10,7 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getBaseDir } from "@/server/utils";
 
-const AREA_SET_CODE = AreaSetCode.UKREGIONCOUNTRY18;
+const AREA_SET_CODE = AreaSetCode.UKR18;
 
 const importRegions = async () => {
   const regionsGeojsonPath = join(
@@ -51,9 +51,12 @@ const importRegions = async () => {
       VALUES (
         ${name},
         ${code},
-        ST_SetSRID(
-          ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}),
-          4326
+        ST_Transform(
+          ST_SetSRID(
+            ST_GeomFromGeoJSON(${JSON.stringify(feature.geometry)}),
+            27700  -- Set the original EPSG:27700 (British National Grid)
+          ),
+          4326  -- Convert to WGS 84
         )::geography,
         ${areaSet.id}
       )
