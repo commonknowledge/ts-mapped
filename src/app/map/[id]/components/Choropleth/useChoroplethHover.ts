@@ -86,10 +86,14 @@ export function useChoroplethHover() {
     return () => {
       // Clean up hover state on unmount
       if (hoveredFeatureId !== undefined) {
-        map.setFeatureState(
-          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-          { hover: false },
-        );
+        try {
+          map.setFeatureState(
+            { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+            { hover: false },
+          );
+        } catch {
+          // Ignore error clearing feature state
+        }
       }
 
       map.off("mousemove", onMouseMove);

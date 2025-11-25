@@ -82,14 +82,18 @@ export function useChoroplethClick() {
     return () => {
       // Clean up active state on unmount
       if (activeFeatureId.current !== undefined) {
-        map?.setFeatureState(
-          {
-            source: sourceId,
-            sourceLayer: layerId,
-            id: activeFeatureId.current,
-          },
-          { active: false },
-        );
+        try {
+          map?.setFeatureState(
+            {
+              source: sourceId,
+              sourceLayer: layerId,
+              id: activeFeatureId.current,
+            },
+            { active: false },
+          );
+        } catch {
+          // Ignore error clearing feature state
+        }
       }
 
       map.off("click", onClick);
