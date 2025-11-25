@@ -13,7 +13,6 @@ import {
 } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
   MapContext,
@@ -74,18 +73,8 @@ export default function Map({
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { searchMarker, visibleTurfs } = useContext(MarkerAndTurfContext);
   const markerQueries = useMarkerQueries();
-  const {
-    resetInspector,
-    setSelectedRecord,
-    setSelectedTurf,
-    setSelectedBoundary,
-  } = useContext(InspectorContext);
-  const {
-    choroplethLayerConfig: {
-      areaSetCode,
-      mapbox: { sourceId, layerId, featureNameProperty, featureCodeProperty },
-    },
-  } = useContext(ChoroplethContext);
+  const { resetInspector, setSelectedRecord, setSelectedTurf } =
+    useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -402,50 +391,6 @@ export default function Map({
               return;
             } else {
               resetInspector();
-            }
-
-            if (
-              sourceId &&
-              layerId &&
-              featureCodeProperty &&
-              featureNameProperty
-            ) {
-              try {
-                const boundaryFeatures = map.queryRenderedFeatures(e.point, {
-                  layers: [`${sourceId}-fill`, `${sourceId}-line`],
-                });
-
-                if (boundaryFeatures.length > 0) {
-                  const feature = boundaryFeatures[0];
-                  const areaCode = feature.properties?.[
-                    featureCodeProperty
-                  ] as string;
-                  const areaName = feature.properties?.[
-                    featureNameProperty
-                  ] as string;
-
-                  if (areaCode && areaName) {
-                    // Prevent default context menu
-                    e.originalEvent.preventDefault();
-
-                    resetInspector();
-
-                    setSelectedBoundary({
-                      id: feature?.id as string,
-                      areaCode: areaCode,
-                      areaSetCode: areaSetCode,
-                      sourceLayerId: feature?.sourceLayer as string,
-                      name: areaName,
-                      properties: feature?.properties,
-                    });
-
-                    return;
-                  }
-                }
-              } catch (error) {
-                // Silently ignore errors - layers might not exist yet
-                console.debug("Boundary query failed:", error);
-              }
             }
           }
         }}

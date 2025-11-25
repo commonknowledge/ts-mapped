@@ -1,78 +1,27 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { MapContext, getMapStyle } from "@/app/map/[id]/context/MapContext";
+import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import {
-  CalculationType,
-  ColorScheme,
-  VisualisationType,
-} from "@/server/models/MapView";
-import { useFillColor } from "../colors";
-import { useAreaStats } from "../data";
+import { VisualisationType } from "@/server/models/MapView";
+import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
+import { useChoroplethClick } from "./useChoroplethClick";
+import { useChoroplethHover } from "./useChoroplethHover";
 
 export default function Choropleth() {
-  // Keep track of area codes that have feature state, to clean if necessary
-  const areaCodesToClean = useRef<Record<string, boolean>>({});
-  const { mapRef } = useContext(MapContext);
   const { viewConfig } = useMapViews();
   const {
-    lastLoadedSourceId,
     choroplethLayerConfig: {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
   } = useContext(ChoroplethContext);
-
-  const areaStatsQuery = useAreaStats();
-
-  /* Set Mapbox feature state on receiving new AreaStats */
-  useEffect(() => {
-    if (!areaStatsQuery?.data || !mapRef?.current) {
-      return;
-    }
-
-    // Check if the source exists before proceeding
-    const source = mapRef.current.getSource(sourceId);
-    if (!source) {
-      return;
-    }
-
-    // Overwrite previous feature states then remove any that weren't
-    // overwritten, to avoid flicker and a bug where gaps would appear
-    const nextAreaCodesToClean: Record<string, boolean> = {};
-    areaStatsQuery.data.stats.forEach((stat) => {
-      mapRef.current?.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerId,
-          id: stat.areaCode,
-        },
-        { value: stat.value },
-      );
-      nextAreaCodesToClean[stat.areaCode] = true;
-    });
-
-    // Remove lingering feature states
-    for (const areaCode of Object.keys(areaCodesToClean.current)) {
-      if (!nextAreaCodesToClean[areaCode]) {
-        mapRef?.current?.removeFeatureState({
-          source: sourceId,
-          sourceLayer: layerId,
-          id: areaCode,
-        });
-      }
-    }
-    areaCodesToClean.current = nextAreaCodesToClean;
-  }, [areaStatsQuery, lastLoadedSourceId, layerId, mapRef, sourceId]);
-
-  const fillColor = useFillColor(
-    areaStatsQuery?.data,
-    viewConfig.colorScheme || ColorScheme.RedBlue,
-    viewConfig.calculationType === CalculationType.Count,
-    Boolean(viewConfig.reverseColorScheme),
-  );
-
   const choroplethTopLayerId = "choropleth-top";
+
+  // Custom hooks for effects
+  const fillColor = useChoroplethAreaStats();
+  useChoroplethHover();
+  useChoroplethClick();
+
   return (
     <>
       {/* Position layer */}
@@ -105,12 +54,30 @@ export default function Choropleth() {
             type="fill"
             paint={{
               "fill-color": fillColor,
-              "fill-opacity":
-                viewConfig.visualisationType === VisualisationType.Choropleth
-                  ? 0.8
-                  : 0,
             }}
           />
+
+          {/* Hover overlay layer - darkens areas on hover (only for choropleth) */}
+          {viewConfig.visualisationType === VisualisationType.Choropleth && (
+            <Layer
+              id={`${sourceId}-hover-overlay`}
+              beforeId={choroplethTopLayerId}
+              source={sourceId}
+              source-layer={layerId}
+              type="fill"
+              paint={{
+                "fill-color": "#000000",
+                "fill-opacity": [
+                  "case",
+                  ["boolean", ["feature-state", "hover"], false],
+                  // When hovering, apply darkness
+                  0.25,
+                  // Otherwise completely transparent
+                  0,
+                ],
+              }}
+            />
+          )}
 
           {/* Line Layer - show for both boundary-only and choropleth */}
           {(viewConfig.visualisationType === VisualisationType.BoundaryOnly ||
@@ -124,9 +91,46 @@ export default function Choropleth() {
               paint={{
                 "line-color": "#999",
                 "line-width": 1,
+                "line-opacity": 1,
+              }}
+              layout={{
+                "line-cap": "round",
+                "line-join": "round",
               }}
             />
           )}
+
+          {/* Active outline drawn above other lines */}
+          <Layer
+            id={`${sourceId}-active-outline`}
+            source={sourceId}
+            source-layer={layerId}
+            type="line"
+            paint={{
+              "line-color": [
+                "case",
+                ["==", ["feature-state", "active"], true],
+                "rgb(37, 99, 235)",
+                "rgba(37, 99, 235, 0)",
+              ],
+              "line-width": [
+                "case",
+                ["==", ["feature-state", "active"], true],
+                2,
+                0,
+              ],
+              "line-opacity": [
+                "case",
+                ["==", ["feature-state", "active"], true],
+                1,
+                0,
+              ],
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
+            }}
+          />
 
           {/* Symbol Layer (Labels) */}
           {viewConfig.showLabels && (
