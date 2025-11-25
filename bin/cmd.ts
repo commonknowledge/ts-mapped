@@ -191,9 +191,9 @@ program
   .command("regeocode")
   .description("Re-geocode all data records (e.g. after adding a new area set)")
   .option("--id <id>", "The data source ID")
-  .option("--exclude <excludeId>", "A data source ID to exclude")
+  .option("--exclude <exclude>", "A data source ID to exclude")
   .action(async (options) => {
-    await regeocode(options.id || null, options.excludeId || null);
+    await regeocode(options.id || null, options.exclude || null);
   });
 
 program
