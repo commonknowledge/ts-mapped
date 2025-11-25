@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
@@ -105,12 +105,12 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     mapConfig.membersDataSourceId,
   ]);
 
-  const resetInspector = () => {
+  const resetInspector = useCallback(() => {
     setSelectedRecord(null);
     setSelectedTurf(null);
     setSelectedBoundary(null);
     setInspectorContent(null);
-  };
+  }, []);
 
   return (
     <InspectorContext

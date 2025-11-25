@@ -80,10 +80,8 @@ export function useChoroplethHover() {
       map.getCanvas().style.cursor = prevPointer.cursor;
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    map.on("mousemove", onMouseMove as any);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    map.on("mouseleave", onMouseLeave as any);
+    map.on("mousemove", onMouseMove);
+    map.on("mouseleave", onMouseLeave);
 
     return () => {
       // Clean up hover state on unmount
@@ -94,10 +92,8 @@ export function useChoroplethHover() {
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      map.off("mousemove", onMouseMove as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      map.off("mouseleave", onMouseLeave as any);
+      map.off("mousemove", onMouseMove);
+      map.off("mouseleave", onMouseLeave);
     };
   }, [mapRef, sourceId, layerId]);
 }

@@ -77,8 +77,7 @@ export function useChoroplethClick() {
       }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    map.on("click", onClick as any);
+    map.on("click", onClick);
 
     return () => {
       // Clean up active state on unmount
@@ -93,10 +92,8 @@ export function useChoroplethClick() {
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      map.off("click", onClick as any);
+      map.off("click", onClick);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     mapRef,
     sourceId,
@@ -104,8 +101,8 @@ export function useChoroplethClick() {
     featureCodeProperty,
     featureNameProperty,
     areaSetCode,
-    // NOTE: resetInspector and setSelectedBoundary are called but not included as deps
-    // to prevent the effect from re-running and clearing active state
+    resetInspector,
+    setSelectedBoundary,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
