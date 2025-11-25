@@ -1,6 +1,6 @@
 import * as turf from "@turf/turf";
-import { CHOROPLETH_LAYER_CONFIGS } from "@/app/map/[id]/sources";
 import { AreaSetCodeLabels } from "@/labels";
+import { CHOROPLETH_LAYER_CONFIGS } from "../Choropleth/configs";
 import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";

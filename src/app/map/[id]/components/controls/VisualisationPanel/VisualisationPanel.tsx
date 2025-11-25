@@ -45,8 +45,8 @@ import {
   TooltipTrigger,
 } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import { getValidAreaSetGroupCodes } from "../../../sources";
 import BivariateLegend from "../../BivariateLagend";
+import { getValidAreaSetGroupCodes } from "../../Choropleth/areas";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function VisualisationPanel({

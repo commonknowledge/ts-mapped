@@ -168,13 +168,19 @@ const getCategoricalColor = (
   return PARTY_COLORS[key.toLowerCase()] ?? colorScale(key);
 };
 
-export const useFillColor = (
-  areaStats: CombinedAreaStats | null,
-  scheme: ColorScheme,
-  isCount: boolean,
-  isReversed: boolean,
-  selectedBivariateBucket: string | null,
-): DataDrivenPropertyValueSpecification<string> => {
+export const useFillColor = ({
+  areaStats,
+  scheme,
+  isCount,
+  isReversed,
+  selectedBivariateBucket,
+}: {
+  areaStats: CombinedAreaStats | null;
+  scheme: ColorScheme;
+  isCount: boolean;
+  isReversed: boolean;
+  selectedBivariateBucket: string | null;
+}): DataDrivenPropertyValueSpecification<string> => {
   // useMemo to cache calculated fillColor
   return useMemo(() => {
     if (areaStats?.secondaryStats) {

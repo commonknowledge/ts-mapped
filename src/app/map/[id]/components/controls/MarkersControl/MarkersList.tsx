@@ -3,7 +3,7 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
-  closestCenter,
+  closestCorners,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -194,23 +194,20 @@ export default function MarkersList() {
           folderId = over.id.toString().replace("folder-", "");
         }
 
-        // Only update cache if the marker is not already in this folder
-        if (activeMarker.folderId !== folderId) {
-          const folderMarkers = currentMarkers.filter(
-            (m) => m.folderId === folderId,
-          );
+        const folderMarkers = currentMarkers.filter(
+          (m) => m.folderId === folderId,
+        );
 
-          const newPosition = append
-            ? getNewLastPosition(folderMarkers)
-            : getNewFirstPosition(folderMarkers);
+        const newPosition = append
+          ? getNewLastPosition(folderMarkers)
+          : getNewFirstPosition(folderMarkers);
 
-          // Update CACHE only - no mutation sent to server
-          updateMarkerInCache({
-            ...activeMarker,
-            folderId,
-            position: newPosition,
-          });
-        }
+        // Update CACHE only - no mutation sent to server
+        updateMarkerInCache({
+          ...activeMarker,
+          folderId,
+          position: newPosition,
+        });
       } else if (over.id === "unassigned") {
         // Only update cache if the marker is not already unassigned
         if (activeMarker.folderId !== null) {
@@ -403,7 +400,7 @@ export default function MarkersList() {
     <div className="relative pt-2">
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}

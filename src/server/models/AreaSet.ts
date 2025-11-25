@@ -19,6 +19,13 @@ export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
 
 export const areaSetGroupCode = z.nativeEnum(AreaSetGroupCode);
 
+export const AreaSetSizes: Record<AreaSetCode, number> = {
+  [AreaSetCode.PC]: 1,
+  [AreaSetCode.OA21]: 1,
+  [AreaSetCode.MSOA21]: 2,
+  [AreaSetCode.WMC24]: 4,
+};
+
 export const areaSetSchema = z.object({
   id: z.number(),
   code: areaSetCode,

@@ -7,7 +7,7 @@ import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { GeocodingType } from "@/server/models/DataSource";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { getChoroplethLayerConfig } from "../sources";
+import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
 import type { ReactNode } from "react";
 
 export default function ChoroplethProvider({

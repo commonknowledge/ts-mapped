@@ -25,6 +25,7 @@ export interface MultiDropdownMenuProps {
   align?: "center" | "start" | "end";
   side?: "top" | "bottom" | "left" | "right";
   preventAutoFocus?: boolean;
+  onMenuToggle?: (isOpen: boolean) => void;
 }
 
 // Dropdown item types
@@ -78,6 +79,7 @@ export default function MultiDropdownMenu({
   align,
   side,
   preventAutoFocus,
+  onMenuToggle,
 }: MultiDropdownMenuProps) {
   const renderDropdownItem = (item: DropdownMenuItemType, index: number) => {
     switch (item.type) {
@@ -156,7 +158,7 @@ export default function MultiDropdownMenu({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={onMenuToggle}>
       <DropdownMenuTrigger>
         <Button
           variant={variant || "ghost"}
@@ -173,6 +175,7 @@ export default function MultiDropdownMenu({
       <DropdownMenuContent
         align={align}
         side={side}
+        className="pointer-events-auto"
         onCloseAutoFocus={(event) => {
           if (preventAutoFocus) {
             event.preventDefault();

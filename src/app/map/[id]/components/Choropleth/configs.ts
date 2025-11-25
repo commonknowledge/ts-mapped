@@ -1,6 +1,6 @@
-import { AreaSetCode, AreaSetGroupCode } from "@/server/models/AreaSet";
+import { AreaSetCode, AreaSetSizes } from "@/server/models/AreaSet";
 import { MapType } from "@/server/models/MapView";
-import type { GeocodingConfig } from "@/server/models/DataSource";
+import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export interface ChoroplethLayerConfig {
   areaSetCode: AreaSetCode;
@@ -13,13 +13,6 @@ export interface ChoroplethLayerConfig {
     sourceId: string;
   };
 }
-
-const AREA_SET_SIZES: Record<AreaSetCode, number> = {
-  [AreaSetCode.PC]: 1,
-  [AreaSetCode.OA21]: 1,
-  [AreaSetCode.MSOA21]: 2,
-  [AreaSetCode.WMC24]: 4,
-};
 
 // Configs within a group should be in descending order of minZoom
 export const CHOROPLETH_LAYER_CONFIGS: Record<
@@ -106,8 +99,8 @@ export const getChoroplethLayerConfig = ({
         // If the data source is configured for an area set, don't show smaller shapes than that
         // (to avoid displaying gaps on the map)
         if (
-          AREA_SET_SIZES[dataSourceAreaSetCode] <=
-          AREA_SET_SIZES[source.areaSetCode]
+          AreaSetSizes[dataSourceAreaSetCode] <=
+          AreaSetSizes[source.areaSetCode]
         ) {
           return source;
         }
@@ -115,45 +108,4 @@ export const getChoroplethLayerConfig = ({
     }
   }
   return CHOROPLETH_LAYER_CONFIGS["WMC24"][0];
-};
-
-// Return the area set groups that are valid as visualisation options
-// for a given data source geocoding config
-export const getValidAreaSetGroupCodes = (
-  dataSourceGeocodingConfig: GeocodingConfig | null | undefined,
-): AreaSetGroupCode[] => {
-  if (!dataSourceGeocodingConfig) {
-    return [];
-  }
-
-  const areaSetCode =
-    "areaSetCode" in dataSourceGeocodingConfig
-      ? dataSourceGeocodingConfig.areaSetCode
-      : null;
-
-  if (areaSetCode) {
-    // Get a list of area sets that are smaller or equal in size
-    // to the data source area set
-    const dataSourceAreaSize = AREA_SET_SIZES[areaSetCode];
-    const validAreaSets = Object.keys(AREA_SET_SIZES).filter(
-      (code) => AREA_SET_SIZES[code as AreaSetCode] >= dataSourceAreaSize,
-    );
-
-    // Get the associated group for each valid area set
-    // Uses the above CHOROPLETH_LAYER_CONFIGS to match area set to group
-    const validAreaGroups = new Set<AreaSetGroupCode>();
-    for (const areaSetCode of validAreaSets) {
-      for (const areaSetGroupCode of Object.keys(CHOROPLETH_LAYER_CONFIGS)) {
-        const sources =
-          CHOROPLETH_LAYER_CONFIGS[areaSetGroupCode as AreaSetGroupCode];
-        if (sources.some((s) => s.areaSetCode === areaSetCode)) {
-          validAreaGroups.add(areaSetGroupCode as AreaSetGroupCode);
-        }
-      }
-    }
-    return validAreaGroups.values().toArray();
-  }
-
-  // Default to all options
-  return Object.values(AreaSetGroupCode);
 };

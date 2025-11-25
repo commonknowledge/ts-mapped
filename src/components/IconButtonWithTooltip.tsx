@@ -14,6 +14,7 @@ import type { MultiDropdownMenuProps } from "./MultiDropdownMenu";
 type IconButtonWithTooltipProps = Partial<MultiDropdownMenuProps> & {
   tooltip: string;
   onClick?: () => void;
+  onMenuToggle?: (isOpen: boolean) => void;
 };
 
 export default function IconButtonWithTooltip({
@@ -28,6 +29,7 @@ export default function IconButtonWithTooltip({
   align,
   side,
   buttonClassName = "",
+  onMenuToggle,
 }: IconButtonWithTooltipProps) {
   return (
     <TooltipProvider>
@@ -42,8 +44,12 @@ export default function IconButtonWithTooltip({
               dropdownSubIcon={dropdownSubIcon}
               align={align}
               side={side}
-              buttonClassName={cn(buttonClassName, "w-6 h-6")}
+              buttonClassName={cn(
+                buttonClassName,
+                "w-6 h-6 pointer-events-auto",
+              )}
               buttonSize="icon"
+              onMenuToggle={onMenuToggle}
             >
               {children}
             </MultiDropdownMenu>
@@ -52,7 +58,7 @@ export default function IconButtonWithTooltip({
               variant="ghost"
               size="icon"
               className={cn(
-                "text-muted-foreground hover:text-primary transition-colors h-6 w-6",
+                "text-muted-foreground hover:text-primary transition-colors h-6 w-6 pointer-events-auto",
                 buttonClassName,
               )}
               onClick={onClick}
@@ -62,7 +68,7 @@ export default function IconButtonWithTooltip({
             </Button>
           )}
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent className="pointer-events-none">
           <p>{tooltip}</p>
         </TooltipContent>
       </Tooltip>
