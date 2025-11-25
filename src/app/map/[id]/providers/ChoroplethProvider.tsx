@@ -37,12 +37,12 @@ export default function ChoroplethProvider({
         ? choroplethDataSource?.geocodingConfig?.areaSetCode
         : undefined;
 
-    return getChoroplethLayerConfig(
-      areaSetCode,
-      viewConfig.areaSetGroupCode,
-      viewConfig.mapType,
+    return getChoroplethLayerConfig({
+      dataSourceAreaSetCode: areaSetCode,
+      areaSetGroupCode: viewConfig.areaSetGroupCode,
+      mapType: viewConfig.mapType,
       zoom,
-    );
+    });
   }, [
     choroplethDataSource,
     viewConfig.areaSetGroupCode,

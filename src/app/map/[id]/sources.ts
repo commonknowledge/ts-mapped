@@ -82,12 +82,17 @@ export const MAPBOX_SOURCE_IDS = Object.values(CHOROPLETH_LAYER_CONFIGS)
   .flatMap((sources) => sources.map((source) => source.mapbox.sourceId))
   .concat([HEX_CHOROPLETH_LAYER_CONFIG.mapbox.sourceId]);
 
-export const getChoroplethLayerConfig = (
-  dataSourceAreaSetCode: AreaSetCode | null | undefined,
-  areaSetGroupCode: AreaSetGroupCode | null | undefined,
-  mapType: MapType | null | undefined,
-  zoom: number,
-) => {
+export const getChoroplethLayerConfig = ({
+  dataSourceAreaSetCode,
+  areaSetGroupCode,
+  mapType,
+  zoom,
+}: {
+  dataSourceAreaSetCode?: AreaSetCode | null;
+  areaSetGroupCode?: AreaSetGroupCode | null;
+  mapType?: MapType | null;
+  zoom: number;
+}) => {
   if (mapType === MapType.Hex) {
     return HEX_CHOROPLETH_LAYER_CONFIG;
   }
