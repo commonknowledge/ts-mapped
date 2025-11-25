@@ -69,7 +69,7 @@ export const createNewViewConfig = (): MapViewConfig => {
     showMembers: true,
     showLocations: true,
     showTurf: true,
-    calculationType: CalculationType.Value,
+    calculationType: CalculationType.Avg,
     colorScheme: ColorScheme.RedBlue,
     reverseColorScheme: false,
   };

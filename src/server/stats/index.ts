@@ -193,17 +193,11 @@ const getColumnValueByArea = async (
     throw new Error(`Data source column not found: ${column}`);
   }
 
-  let safeCalculationType = calculationType;
-  if (columnDef.type !== ColumnType.Number) {
-    safeCalculationType = CalculationType.Value;
-  }
-
+  // Select is always MODE for ColumnType !== Number
   const valueSelect =
-    safeCalculationType === CalculationType.Value
+    columnDef.type !== ColumnType.Number
       ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-      : db
-          .fn(safeCalculationType, [sql`(json->>${column})::float`])
-          .as("value");
+      : db.fn(calculationType, [sql`(json->>${column})::float`]).as("value");
 
   const query = db
     .selectFrom("dataRecord")

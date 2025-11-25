@@ -1,10 +1,7 @@
 import { createContext } from "react";
 import { DEFAULT_ZOOM } from "@/constants";
-import {
-  getChoroplethLayerConfig,
-} from "../components/Choropleth/configs";
-import type {
-  ChoroplethLayerConfig} from "../components/Choropleth/configs";
+import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
+import type { ChoroplethLayerConfig } from "../components/Choropleth/configs";
 
 export const ChoroplethContext = createContext<{
   /* State */

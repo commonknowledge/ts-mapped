@@ -107,7 +107,7 @@ export function useBoundariesControl() {
             updateViewConfig({
               areaDataSourceId: voteShareDataSource.id,
               areaDataColumn: column.name,
-              calculationType: CalculationType.Value,
+              calculationType: CalculationType.Avg,
             });
           },
         }))

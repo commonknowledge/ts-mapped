@@ -5,6 +5,8 @@ import importConstituencies from "@/server/commands/importConstituencies";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
+import importRegions from "@/server/commands/importRegions";
+import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import Invite from "@/server/emails/invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
@@ -59,6 +61,13 @@ program
   .description("Import Westminster Constituencies")
   .action(async () => {
     await importConstituencies();
+  });
+
+program
+  .command("importRegions")
+  .description("Import English Regions & Nations")
+  .action(async () => {
+    await importRegions();
   });
 
 program
@@ -176,6 +185,14 @@ program
 
       logger.info(`Invitation token: ${token}`);
     }
+  });
+
+program
+  .command("regeocode")
+  .description("Re-geocode all data records (e.g. after adding a new area set)")
+  .option("--id <id>", "The data source ID")
+  .action(async (options) => {
+    await regeocode(options.id || null);
   });
 
 program

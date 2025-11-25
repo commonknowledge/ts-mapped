@@ -43,3 +43,36 @@ export const getValidAreaSetGroupCodes = (
   // Default to all options
   return Object.values(AreaSetGroupCode);
 };
+
+// Return true if data might be aggregated when viewing stats for a data source using the provided boundaries
+// E.G. If a data source is geocoded by WMC24, and the user is viewing the data using the WMC24 boundaries, this should return false
+// However if the same data source is being viewed using the UKR18 boundaries, this should return true
+export const dataRecordsWillAggregate = (
+  dataSourceGeocodingConfig: GeocodingConfig | null | undefined,
+  targetAreaSetGroupCode: AreaSetGroupCode | null | undefined,
+) => {
+  if (!dataSourceGeocodingConfig || !targetAreaSetGroupCode) {
+    return false;
+  }
+
+  const areaSetCode =
+    "areaSetCode" in dataSourceGeocodingConfig
+      ? dataSourceGeocodingConfig.areaSetCode
+      : null;
+
+  // If data is not geocoded by area code, it will always be aggregated when getting area stats
+  if (!areaSetCode) {
+    return true;
+  }
+
+  const sourceAreaSize = AreaSetSizes[areaSetCode];
+
+  // Return true if any of the area sets in the group are larger than the areas used to geocode the data source
+  const targetAreaSetSizes = CHOROPLETH_LAYER_CONFIGS[
+    targetAreaSetGroupCode
+  ].map((c) => AreaSetSizes[c.areaSetCode]);
+  return (
+    targetAreaSetSizes.filter((targetSize) => targetSize > sourceAreaSize)
+      .length > 0
+  );
+};
