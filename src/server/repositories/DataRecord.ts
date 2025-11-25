@@ -148,6 +148,9 @@ export async function findPageForDataRecord(
     q = applySort(q, s, nameColumns);
   }
 
+  // Default sort by ID
+  q = q.orderBy("id asc");
+
   const rowNumQuery = db
     .selectFrom(q.as("dataRecordIds"))
     .select(["id", sql`ROW_NUMBER() OVER ()`.as("rowNum")]);
@@ -158,7 +161,11 @@ export async function findPageForDataRecord(
     .where("id", "=", dataRecordId)
     .executeTakeFirst();
 
-  const rowIndex = Number(rowNumForRecordQuery?.rowNum || 1) - 1;
+  if (rowNumForRecordQuery === undefined) {
+    return null;
+  }
+
+  const rowIndex = Number(rowNumForRecordQuery.rowNum || 1) - 1;
   const pageIndex = Math.floor(rowIndex / DATA_RECORDS_PAGE_SIZE);
 
   return pageIndex;
