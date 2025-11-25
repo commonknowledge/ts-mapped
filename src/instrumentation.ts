@@ -18,8 +18,10 @@ export async function register() {
       process.exit(1);
     }
 
-    const { runWorker } = await import("./server/services/queue");
-    await runWorker();
+    if (getBooleanEnvVar("SKIP_WORKER")) {
+      const { runWorker } = await import("./server/services/queue");
+      await runWorker();
+    }
 
     if (process.env.NODE_ENV !== "production") {
       try {
@@ -39,3 +41,11 @@ export async function register() {
 }
 
 export const onRequestError = Sentry.captureRequestError;
+
+const getBooleanEnvVar = (varName: string): boolean => {
+  const v = process.env[varName];
+  if (!v) {
+    return false;
+  }
+  return v !== "0" && v.toLowerCase() !== "false";
+};
