@@ -194,7 +194,12 @@ export default function PrivateMapNavbar() {
                 </p>
               )}
             </div>
-            <PrivateMapNavbarControls setIsEditingName={setIsEditingName} />
+            {mapId && (
+              <PrivateMapNavbarControls
+                setIsEditingName={setIsEditingName}
+                mapId={mapId}
+              />
+            )}
           </div>
           <MapViews />
         </div>
