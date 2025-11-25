@@ -4,10 +4,16 @@ import { db } from "../services/database";
 import logger from "../services/logger";
 import { batch } from "../utils";
 
-const regeocode = async (dataSourceId: string | null = null) => {
+const regeocode = async (
+  dataSourceId: string | null = null,
+  excludeDataSourceId: string | null = null,
+) => {
   let dataSourceQuery = db.selectFrom("dataSource").selectAll();
   if (dataSourceId) {
     dataSourceQuery = dataSourceQuery.where("id", "=", dataSourceId);
+  }
+  if (excludeDataSourceId) {
+    dataSourceQuery = dataSourceQuery.where("id", "!=", excludeDataSourceId);
   }
   const dataSources = await dataSourceQuery.execute();
   for (const dataSource of dataSources) {
