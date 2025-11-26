@@ -29,6 +29,8 @@ import { stopPublicTunnel } from "@/server/services/urls";
 
 const program = new Command();
 
+let keepAlive = false;
+
 program
   .command("ensureOrganisationMap")
   .option(
@@ -209,15 +211,18 @@ program
   .description("Run the worker process")
   .option("--queue <queue>", "Specify the queue to process")
   .action(async (options) => {
+    keepAlive = true;
     await runWorker(options.queue);
   });
 
 program.hook("postAction", async () => {
-  logger.info("Done.");
-  await db.destroy();
-  await getPubSub().quit();
-  await getRedisClient().quit();
-  await stopPublicTunnel();
+  if (!keepAlive) {
+    logger.info("Done.");
+    await db.destroy();
+    await getPubSub().quit();
+    await getRedisClient().quit();
+    await stopPublicTunnel();
+  }
 });
 
 program.parse(process.argv);

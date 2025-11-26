@@ -1,19 +1,9 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
-import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-import { point as turfPoint } from "@turf/helpers";
 import * as turf from "@turf/turf";
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import {
   MapContext,
   getDataSourceIds,
@@ -24,14 +14,11 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import {
-  DEFAULT_ZOOM,
-  MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_ID_KEY,
-  MARKER_NAME_KEY,
-} from "@/constants";
+import { DEFAULT_ZOOM, MARKER_NAME_KEY } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
+import { getClickedPolygonFeature, useMapClick } from "../hooks/useMapClick";
+import { useMapHover } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfs";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
@@ -43,14 +30,6 @@ import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
-import type {
-  Feature,
-  FeatureCollection,
-  Geometry,
-  MultiPolygon,
-  Point,
-} from "geojson";
-import type { MapMouseEvent } from "mapbox-gl";
 
 export default function Map({
   onSourceLoad,
@@ -68,8 +47,6 @@ export default function Map({
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { searchMarker, visibleTurfs } = useContext(MarkerAndTurfContext);
   const markerQueries = useMarkerQueries();
-  const { resetInspector, setSelectedRecord, setSelectedTurf } =
-    useContext(InspectorContext);
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
@@ -78,8 +55,9 @@ export default function Map({
     properties: Record<string, unknown>;
   } | null>(null);
   const [currentMode, setCurrentMode] = useState<string | null>("");
-  const prevPointer = useRef("");
   const [didInitialFit, setDidInitialFit] = useState(false);
+
+  const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
 
   const markerLayers = useMemo(
     () =>
@@ -89,7 +67,8 @@ export default function Map({
     [mapConfig],
   );
 
-  const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
+  useMapClick({ markerLayers, draw, currentMode });
+  useMapHover({ markerLayers, draw, setHoverMarker });
 
   // draw existing turfs
   useEffect(() => {
@@ -115,54 +94,18 @@ export default function Map({
 
     const map = mapRef?.current;
 
-    const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
-      if (map) {
-        const features = map.queryRenderedFeatures(e.point, {
-          // Filter out layers that aren't ready
-          layers: markerLayers.filter((layer) => map.getLayer(layer)),
-        });
-        if (features?.length) {
-          const feature = features[0];
-          setHoverMarker({
-            coordinates: [e.lngLat.lng, e.lngLat.lat],
-            properties: feature.properties || {},
-          });
-          if (map.getCanvas().style.cursor !== "pointer") {
-            prevPointer.current = map.getCanvas().style.cursor || "";
-          }
-          map.getCanvas().style.cursor = "pointer";
-        } else {
-          setHoverMarker(null);
-          if (map.getCanvas().style.cursor === "pointer") {
-            map.getCanvas().style.cursor = prevPointer.current;
-          }
-        }
-      }
-    };
-
-    const onMouseLeave = () => {
-      if (map) {
-        setHoverMarker(null);
-        map.getCanvas().style.cursor = "";
-      }
-    };
-
     const handleModeChange = (e: DrawModeChangeEvent) => {
       setCurrentMode(e.mode);
     };
 
-    map?.on("mousemove", onMouseMove);
-    map?.on("mouseleave", onMouseLeave);
     map?.on("draw.modechange", handleModeChange);
 
     return () => {
       if (map) {
-        map.off("mousemove", onMouseMove);
-        map.off("mouseleave", onMouseLeave);
         map.off("draw.modechange", handleModeChange);
       }
     };
-  }, [mapRef, markerLayers, ready]);
+  }, [mapRef, ready]);
 
   // Show/Hide labels
   const toggleLabelVisibility = useCallback(
@@ -186,38 +129,6 @@ export default function Map({
     },
     [mapRef, styleLoaded],
   );
-
-  const getClickedPolygonFeature = (
-    draw: MapboxDraw,
-    e: MapMouseEvent,
-  ): Feature<Polygon | MultiPolygon> | null => {
-    const drawData: FeatureCollection = draw.getAll();
-
-    if (drawData.features.length === 0) return null;
-
-    const point: Feature<Point> = turfPoint([e.lngLat.lng, e.lngLat.lat]);
-
-    // Type guard — no `any` or unsafe casts
-    const isPolygonFeature = (
-      f: unknown,
-    ): f is Feature<Polygon | MultiPolygon> => {
-      if (typeof f !== "object" || f === null) return false;
-
-      if (!("geometry" in f)) return false;
-
-      const geometry = (f as { geometry?: Geometry }).geometry;
-      if (!geometry) return false;
-
-      return geometry.type === "Polygon" || geometry.type === "MultiPolygon";
-    };
-
-    const polygonFeature = drawData.features.find(
-      (feature: Feature): feature is Feature<Polygon | MultiPolygon> =>
-        isPolygonFeature(feature) && booleanPointInPolygon(point, feature),
-    );
-
-    return polygonFeature ?? null;
-  };
 
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
@@ -354,56 +265,6 @@ export default function Map({
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle={`mapbox://styles/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
-        onClick={(e) => {
-          const map = e.target;
-          const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
-          const features = map.queryRenderedFeatures(e.point, {
-            layers: validMarkerLayers,
-          });
-
-          if (features.length && features[0].geometry.type === "Point") {
-            const properties = features[0].properties;
-
-            const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
-            const dataSourceId = properties
-              ? properties[MARKER_DATA_SOURCE_ID_KEY]
-              : null;
-
-            resetInspector();
-            setSelectedRecord({
-              id: dataRecordId,
-              dataSourceId: dataSourceId,
-              properties: properties,
-            });
-
-            map.flyTo({
-              center: features[0].geometry.coordinates as [number, number],
-              zoom: 12,
-            });
-
-            return;
-          } else {
-            resetInspector();
-          }
-
-          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
-            const polygonFeature = getClickedPolygonFeature(draw, e);
-
-            if (polygonFeature) {
-              draw.changeMode("simple_select", { featureIds: [] });
-
-              setSelectedTurf({
-                id: polygonFeature.properties?.id,
-                name: polygonFeature.properties?.label,
-                geometry: polygonFeature.geometry as Polygon,
-              });
-
-              return;
-            } else {
-              resetInspector();
-            }
-          }
-        }}
         onDblClick={(e) => {
           if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
             const polygonFeature = getClickedPolygonFeature(draw, e);
@@ -598,6 +459,7 @@ export default function Map({
           }
           setDraw(null);
           setReady(false);
+          setStyleLoaded(false);
         }}
       >
         {ready && (
