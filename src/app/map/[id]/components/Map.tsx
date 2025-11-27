@@ -67,8 +67,8 @@ export default function Map({
     [mapConfig],
   );
 
-  useMapClick({ markerLayers, draw, currentMode });
-  useMapHover({ markerLayers, draw, setHoverMarker });
+  useMapClick({ markerLayers, draw, currentMode, ready });
+  useMapHover({ markerLayers, draw, setHoverMarker, ready });
 
   // draw existing turfs
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function Map({
     });
   }, [visibleTurfs, draw, viewConfig?.showTurf]);
 
-  // Hover and draw behavior
+  // Save draw mode in context
   useEffect(() => {
     if (!ready) {
       return;

@@ -8,6 +8,7 @@ export function useMapHover({
   markerLayers,
   setHoverMarker,
   draw,
+  ready,
 }: {
   markerLayers: string[];
   setHoverMarker: (
@@ -17,6 +18,7 @@ export function useMapHover({
     } | null,
   ) => void;
   draw: MapboxDraw | null;
+  ready: boolean;
 }) {
   const { mapRef } = useContext(MapContext);
   const { choroplethLayerConfig } = useContext(ChoroplethContext);
@@ -26,7 +28,7 @@ export function useMapHover({
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
-    if (!mapRef?.current) {
+    if (!mapRef?.current || !ready) {
       return;
     }
 
@@ -185,5 +187,5 @@ export function useMapHover({
       map.off("mousemove", onMouseMove);
       map.off("mouseleave", onMouseLeave);
     };
-  }, [mapRef, sourceId, layerId, markerLayers, setHoverMarker, draw]);
+  }, [mapRef, sourceId, layerId, markerLayers, setHoverMarker, draw, ready]);
 }
