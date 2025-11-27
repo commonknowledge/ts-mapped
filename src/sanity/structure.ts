@@ -1,4 +1,11 @@
-import { FileText, Info, LifeBuoy, Newspaper, Puzzle, Video } from "lucide-react";
+import {
+  FileText,
+  Info,
+  LifeBuoy,
+  Newspaper,
+  Puzzle,
+  Video,
+} from "lucide-react";
 import { map } from "rxjs";
 import type { StructureResolver } from "sanity/structure";
 
@@ -96,6 +103,9 @@ export const structure: StructureResolver = (S, context) => {
         S.document().schemaType("about").documentId("about"),
       ),
 
-      S.listItem().title("Support").icon(LifeBuoy).child(S.documentTypeList("support").title("Support")),
+      S.listItem()
+        .title("Support")
+        .icon(LifeBuoy)
+        .child(S.documentTypeList("support").title("Support")),
     ]);
 };

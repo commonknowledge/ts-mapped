@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import React from "react";
 import { Button } from "@/shadcn/ui/button";
 import { Link } from "../Link";
-import { usePathname } from "next/navigation";
 
 export default function CTA() {
   const pathname = usePathname();
