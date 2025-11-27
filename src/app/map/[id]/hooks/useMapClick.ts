@@ -19,10 +19,12 @@ export function useMapClick({
   draw,
   currentMode,
   markerLayers,
+  ready,
 }: {
   draw: MapboxDraw | null;
   currentMode: string | null;
   markerLayers: string[];
+  ready: boolean;
 }) {
   const { mapRef, pinDropMode } = useContext(MapContext);
   const { choroplethLayerConfig } = useContext(ChoroplethContext);
@@ -43,7 +45,7 @@ export function useMapClick({
 
   /* Handle clicks to set active state */
   useEffect(() => {
-    if (!mapRef?.current) {
+    if (!mapRef?.current || !ready) {
       return;
     }
 
@@ -209,6 +211,7 @@ export function useMapClick({
     currentMode,
     pinDropMode,
     setSelectedTurf,
+    ready,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
