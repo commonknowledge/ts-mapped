@@ -21,7 +21,7 @@ interface DataRecordsListProps {
     data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
     isPending: boolean;
   };
-  onSelect: (r: { id: string; dataSourceId: string }) => void;
+  onSelect: (r: { id: string; dataSourceId: string; name: string }) => void;
   colorScheme: PublicMapColorScheme;
 }
 
@@ -99,6 +99,7 @@ export default function DataRecordsList({
 
   const handleRecordClick = (record: {
     id: string;
+    json: Record<string, unknown>;
     geocodePoint?: Point | null;
   }) => {
     let nextExpanded = isExpanded;
@@ -106,6 +107,9 @@ export default function DataRecordsList({
       onSelect({
         id: record.id,
         dataSourceId: dataRecordsQuery.data?.id,
+        name: dataRecordsQuery.data.columnRoles.nameColumns
+          .map((c) => record.json[c])
+          .join(" "),
       });
 
       if (record.id === selectedRecord?.id) {

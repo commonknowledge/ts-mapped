@@ -52,7 +52,7 @@ export function getMarkersInsidePolygon(
 
 export function getRecordsInsideBoundary(
   data: {
-    records: RecordsResponse;
+    recordsResponse: RecordsResponse;
     dataSource: DataSource | null;
   }[],
   boundaryFeature: Polygon | MultiPolygon | null | undefined,
@@ -62,7 +62,7 @@ export function getRecordsInsideBoundary(
   }
 
   return data.map((d) => {
-    const recordsInsideTurf = d.records.records.filter((r) => {
+    const recordsInsideTurf = d.recordsResponse.records.filter((r) => {
       const coordinates = [r?.geocodePoint?.lng, r?.geocodePoint?.lat];
 
       return checkIfPointInPolygon(coordinates, boundaryFeature);
@@ -70,9 +70,9 @@ export function getRecordsInsideBoundary(
 
     return {
       dataSource: d.dataSource,
-      records: {
+      recordsResponse: {
         count: {
-          ...d.records.count,
+          ...d.recordsResponse.count,
           matched: recordsInsideTurf?.length ?? 0,
         },
         records: recordsInsideTurf,
@@ -81,9 +81,11 @@ export function getRecordsInsideBoundary(
   });
 }
 
-export const checkIfAnyRecords = (markers: { records: RecordsResponse }[]) => {
+export const checkIfAnyRecords = (
+  markers: { recordsResponse: RecordsResponse }[],
+) => {
   const allRecords = markers
-    .flatMap((marker) => marker.records.records)
+    .flatMap((marker) => marker.recordsResponse.records)
     .filter((r) => Boolean(r));
 
   return allRecords?.length > 0;
@@ -93,17 +95,14 @@ const placedMarkerToRecord = (marker: PlacedMarker): RecordData => {
   return {
     id: marker.id,
     geocodePoint: marker.point,
-    json: {
-      name: marker.label || "Placed marker",
-      notes: marker.notes || "",
-    },
+    name: marker.label || "Placed marker",
   };
 };
 
 export const mapPlacedMarkersToRecordsResponse = (
   markers: PlacedMarker[],
   folders: Folder[],
-): { records: RecordsResponse; folder: Folder | null }[] => {
+): { recordsResponse: RecordsResponse; folder: Folder | null }[] => {
   if (!markers?.length) {
     return [];
   }
@@ -124,7 +123,7 @@ export const mapPlacedMarkersToRecordsResponse = (
 
     return {
       folder: folder,
-      records: {
+      recordsResponse: {
         count: { matched: markers.length },
         records: markers.map((marker) => placedMarkerToRecord(marker)),
       },

@@ -27,13 +27,13 @@ import {
 } from "@/shadcn/ui/command";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
+import { getDataRecordName } from "@/utils/text";
 import { mapColors } from "../../styles";
 import type {
   DropdownMenuItemType,
   DropdownSubComponent,
   DropdownSubMenu,
 } from "@/components/MultiDropdownMenu";
-import type { DataRecord } from "@/server/models/DataRecord";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { MapConfig } from "@/server/models/Map";
 import type { RecordFilterInput } from "@/server/models/MapView";
@@ -365,21 +365,6 @@ function DataRecordCommand({
       { placeholderData: keepPreviousData },
     ),
   );
-  const getItemLabel = useCallback(
-    (record: DataRecord) => {
-      const nameColumns = dataSource?.columnRoles.nameColumns;
-      if (!nameColumns?.length) return record.externalId;
-
-      const label = nameColumns
-        .map((column) => record.json[column])
-        .map((name) => (typeof name === "string" ? name.trim() : null))
-        .filter(Boolean)
-        .join(" ");
-
-      return label || record.externalId;
-    },
-    [dataSource?.columnRoles.nameColumns],
-  );
 
   return (
     <Command shouldFilter={false}>
@@ -416,9 +401,14 @@ function DataRecordCommand({
               <CommandItem
                 key={record.id}
                 className="cursor-pointer"
-                onSelect={() => onSelectRecord(record.id, getItemLabel(record))}
+                onSelect={() =>
+                  onSelectRecord(
+                    record.id,
+                    getDataRecordName(record, dataSource),
+                  )
+                }
               >
-                {getItemLabel(record)}
+                {getDataRecordName(record, dataSource)}
               </CommandItem>
             ))}
           </CommandGroup>

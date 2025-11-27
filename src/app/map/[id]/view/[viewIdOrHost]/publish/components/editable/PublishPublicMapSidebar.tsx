@@ -58,6 +58,10 @@ export default function PublishPublicMapSidebar() {
         setSelectedRecord({
           id: firstRecord.id,
           dataSourceId: activeTabId,
+          name:
+            dataRecordsQuery.data?.columnRoles.nameColumns
+              .map((c) => firstRecord.json[c])
+              .join(" ") || `ID: ${firstRecord.id}`,
         });
       }
     }
@@ -98,13 +102,17 @@ export default function PublishPublicMapSidebar() {
                     currentDataSourceId &&
                     dataRecordsQueries[currentDataSourceId]
                   ) {
-                    const firstRecord =
-                      dataRecordsQueries[currentDataSourceId]?.data
-                        ?.records?.[0];
+                    const dataSourceQuery =
+                      dataRecordsQueries[currentDataSourceId];
+                    const firstRecord = dataSourceQuery?.data?.records?.[0];
                     if (firstRecord) {
                       setSelectedRecord({
                         id: firstRecord.id,
                         dataSourceId: currentDataSourceId,
+                        name:
+                          dataSourceQuery?.data?.columnRoles.nameColumns
+                            .map((c) => firstRecord.json[c])
+                            .join(" ") || `ID: ${firstRecord.id}`,
                       });
                     }
                   }

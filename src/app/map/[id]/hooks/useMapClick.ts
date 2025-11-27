@@ -4,7 +4,6 @@ import { useContext, useEffect, useRef } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { MARKER_DATA_SOURCE_ID_KEY, MARKER_ID_KEY } from "@/constants";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
   Feature,
@@ -80,20 +79,16 @@ export function useMapClick({
 
       if (
         markerFeatures.length &&
-        markerFeatures[0].geometry.type === "Point"
+        markerFeatures[0].geometry.type === "Point" &&
+        markerFeatures[0].properties
       ) {
         const properties = markerFeatures[0].properties;
 
-        const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
-        const dataSourceId = properties
-          ? properties[MARKER_DATA_SOURCE_ID_KEY]
-          : null;
-
         resetInspector();
         setSelectedRecord({
-          id: dataRecordId,
-          dataSourceId: dataSourceId,
-          properties: properties,
+          id: properties.id,
+          dataSourceId: properties.dataSourceId,
+          name: properties.name,
         });
 
         map.flyTo({

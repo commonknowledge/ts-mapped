@@ -1,7 +1,7 @@
 import LayerTypeIcon from "@/app/map/[id]/components/LayerTypeIcon";
 import type { LayerType } from "@/types";
 
-export default function TurfMarkerButton({
+export default function MarkerButton({
   label,
   type,
   onClick,

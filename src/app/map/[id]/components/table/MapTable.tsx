@@ -12,12 +12,15 @@ import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
+import { getDataRecordName } from "@/utils/text";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {
   id: string;
+  externalId: string;
+  json: Record<string, unknown>;
   geocodePoint?: { lng: number; lat: number } | null;
 }
 
@@ -144,7 +147,11 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedRecord({ id: row.id, dataSourceId: dataSource.id });
+    setSelectedRecord({
+      id: row.id,
+      dataSourceId: dataSource.id,
+      name: getDataRecordName(row, dataSource),
+    });
   };
 
   const updateDataSourceView = (update: Partial<DataSourceView>) => {

@@ -17,8 +17,8 @@ export interface InspectorContent {
 export interface SelectedRecord {
   id: string;
   dataSourceId: string;
+  name: string;
   point?: Point | null;
-  properties?: Record<string, unknown> | null;
 }
 
 export interface SelectedTurf {

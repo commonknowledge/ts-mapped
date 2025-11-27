@@ -8,7 +8,6 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
-import { MARKER_ID_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/server/models/MapView";
 import type {
@@ -80,8 +79,7 @@ export default function FilterMarkers() {
                     (dsm) => dsm?.dataSourceId === filterMarker.dataSourceId,
                   );
             const marker = allMarkers?.markers?.find(
-              (feature) =>
-                feature.properties[MARKER_ID_KEY] === filterMarker.dataRecordId,
+              (feature) => feature.properties.id === filterMarker.dataRecordId,
             );
             if (marker) {
               return circle(marker.geometry.coordinates, filterMarker.radius, {

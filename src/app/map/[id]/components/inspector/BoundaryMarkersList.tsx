@@ -7,7 +7,6 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 
@@ -32,12 +31,11 @@ export default function BoundaryMarkersList() {
 
   const data = markerQueries?.data?.map((result, i) => ({
     dataSource: getDataSourceById(dataSourceIds[i]),
-    records: {
+    recordsResponse: {
       count: { matched: 0 },
       records: result?.markers?.map((marker) => ({
-        id: marker.properties?.[MARKER_ID_KEY] as string,
-        name: marker?.properties?.[MARKER_NAME_KEY] as string,
-        json: marker.properties,
+        id: marker.properties?.id as string,
+        name: marker?.properties?.name as string,
         geocodePoint: {
           lng: marker?.geometry?.coordinates?.[0],
           lat: marker?.geometry?.coordinates?.[1],
@@ -103,7 +101,7 @@ export default function BoundaryMarkersList() {
       {members && (
         <MembersList
           dataSource={members.dataSource}
-          records={members.records}
+          records={members.recordsResponse}
         />
       )}
 
@@ -122,7 +120,7 @@ export default function BoundaryMarkersList() {
               <PlacedMarkersList
                 key={`placed-markers-${markersGroup.folder?.id || "no-folder"}-${index}`}
                 folder={markersGroup.folder}
-                records={markersGroup.records}
+                records={markersGroup.recordsResponse}
               />
             ))}
 
@@ -131,7 +129,7 @@ export default function BoundaryMarkersList() {
               <MarkersList
                 key={`markers-${markersGroup.dataSource?.id || "no-datasource"}-${index}`}
                 dataSource={markersGroup.dataSource}
-                records={markersGroup.records}
+                records={markersGroup.recordsResponse}
               />
             ))}
         </div>

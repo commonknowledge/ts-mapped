@@ -2,18 +2,9 @@ import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType, type RecordData, type RecordsResponse } from "@/types";
-import TurfMarkerButton from "./TurfMarkerButton";
+import MarkerButton from "./MarkerButton";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
-
-const getDisplayName = (dataSource: DataSource | null, record: RecordData) => {
-  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
-  return record.name
-    ? record.name
-    : nameColumn
-      ? String(record.json[nameColumn] ?? "")
-      : `Id: ${record.id}`;
-};
 
 export const MembersList = ({
   records,
@@ -32,10 +23,7 @@ export const MembersList = ({
       id: record.id,
       dataSourceId: dataSource?.id as string,
       point: record.geocodePoint,
-      properties: {
-        ...record.json,
-        __name: getDisplayName(dataSource, record),
-      },
+      name: record.name,
     });
   };
 
@@ -50,11 +38,10 @@ export const MembersList = ({
       ) : memberRecords.length > 0 ? (
         <ul>
           {memberRecords.map((record) => {
-            const displayName = getDisplayName(dataSource, record);
             return (
               <li key={record.id}>
-                <TurfMarkerButton
-                  label={displayName}
+                <MarkerButton
+                  label={record.name}
                   type={LayerType.Member}
                   onClick={() => onRecordClick(record)}
                 />
@@ -78,7 +65,6 @@ export const MarkersList = ({
 }) => {
   const { setSelectedRecord } = useContext(InspectorContext);
 
-  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
 
@@ -87,14 +73,7 @@ export const MarkersList = ({
       id: record.id,
       dataSourceId: dataSource?.id as string,
       point: record.geocodePoint,
-      properties: {
-        ...record.json,
-        __name: record?.name
-          ? record.name
-          : nameColumn
-            ? record.json[nameColumn]
-            : "",
-      },
+      name: record.name,
     });
   };
 
@@ -113,11 +92,10 @@ export const MarkersList = ({
 
       <ul>
         {recordsList.map((record) => {
-          const displayName = getDisplayName(dataSource, record);
           return (
             <li key={record.id}>
-              <TurfMarkerButton
-                label={displayName}
+              <MarkerButton
+                label={record.name}
                 type={LayerType.Marker}
                 onClick={() => onRecordClick(record)}
               />
@@ -147,9 +125,7 @@ export const PlacedMarkersList = ({
       id: record.id,
       dataSourceId: "",
       point: record.geocodePoint,
-      properties: {
-        __name: record.json?.name || "",
-      },
+      name: record.name,
     });
   };
 
@@ -167,8 +143,8 @@ export const PlacedMarkersList = ({
         {recordsList.map((record) => {
           return (
             <li key={record.id}>
-              <TurfMarkerButton
-                label={record.json?.name as string}
+              <MarkerButton
+                label={record.name}
                 type={LayerType.Marker}
                 onClick={() => onRecordClick(record)}
               />

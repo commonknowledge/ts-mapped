@@ -9,7 +9,7 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { type RecordsResponse } from "@/types";
+import { getDataRecordName } from "@/utils/text";
 import {
   checkIfAnyRecords,
   getMarkersInsidePolygon,
@@ -17,6 +17,7 @@ import {
   mapTurfToGeoFeature,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
+import type { RecordData } from "@/types";
 
 export default function TurfMarkersList() {
   const { getDataSourceById } = useDataSources();
@@ -40,13 +41,38 @@ export default function TurfMarkersList() {
       ),
     ),
     combine: (results) => ({
-      data: results.map((result, i) => ({
-        dataSource: getDataSourceById(dataSourceIds[i]),
-        records: (result.data as RecordsResponse) ?? {
-          count: { matched: 0 },
-          records: [],
-        },
-      })),
+      data: results.map((result, i) => {
+        const dataSource = getDataSourceById(dataSourceIds[i]);
+
+        if (!result.data) {
+          return {
+            dataSource,
+            recordsResponse: {
+              count: { matched: 0 },
+              records: [],
+            },
+          };
+        }
+
+        const geocodedRecords: RecordData[] = [];
+        for (const r of result.data.records) {
+          if (r.geocodePoint) {
+            geocodedRecords.push({
+              id: r.id,
+              name: getDataRecordName(r, dataSource),
+              geocodePoint: r.geocodePoint,
+            });
+          }
+        }
+
+        return {
+          dataSource,
+          recordsResponse: {
+            count: result.data.count,
+            records: geocodedRecords,
+          },
+        };
+      }),
       isFetching: results.some((r) => r.isFetching),
     }),
   });
@@ -88,7 +114,7 @@ export default function TurfMarkersList() {
       {members && (
         <MembersList
           dataSource={members.dataSource}
-          records={members.records}
+          records={members.recordsResponse}
         />
       )}
 
@@ -107,7 +133,7 @@ export default function TurfMarkersList() {
               <PlacedMarkersList
                 key={index}
                 folder={markersGroup.folder}
-                records={markersGroup.records}
+                records={markersGroup.recordsResponse}
               ></PlacedMarkersList>
             ))}
 
@@ -116,7 +142,7 @@ export default function TurfMarkersList() {
               <MarkersList
                 key={index}
                 dataSource={markersGroup.dataSource}
-                records={markersGroup.records}
+                records={markersGroup.recordsResponse}
               ></MarkersList>
             ))}
         </div>

@@ -123,7 +123,7 @@ interface SingleDataSourceContentProps {
   };
   editable: boolean;
   colorScheme: PublicMapColorScheme;
-  onSelect: (r: { id: string; dataSourceId: string }) => void;
+  onSelect: (r: { id: string; dataSourceId: string; name: string }) => void;
 }
 
 function SingleDataSourceContent({

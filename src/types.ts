@@ -39,6 +39,16 @@ export interface PointFeature {
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 
+export interface MarkerFeature {
+  type: "Feature";
+  properties: {
+    id: string;
+    name: string;
+    matched?: boolean;
+  };
+  geometry: { coordinates: [number, number]; type: "Point" };
+}
+
 export interface TaggedRecord {
   externalId: string;
   json: Record<string, unknown>;
@@ -69,9 +79,8 @@ export interface FilterField {
 
 export interface RecordData {
   id: string;
-  json: Record<string, unknown>;
   geocodePoint: Point;
-  name?: string;
+  name: string;
 }
 
 export interface RecordsResponse {

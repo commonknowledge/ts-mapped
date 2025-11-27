@@ -5,18 +5,13 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
-import {
-  MARKER_ID_KEY,
-  MARKER_MATCHED_KEY,
-  MARKER_NAME_KEY,
-} from "@/constants";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { PointFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
 
-const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";
+const MARKER_CLIENT_EXCLUDED_KEY = "clientExcluded";
 
 function hexToRgb(hex: string) {
   const normalized = hex.replace("#", "");
@@ -98,7 +93,13 @@ function DataSourceMarkers({
     if (Object.keys(publicFilters).length === 0) {
       return {
         type: "FeatureCollection",
-        features: dataSourceMarkers.markers,
+        features: dataSourceMarkers.markers.map((f) => ({
+          ...f,
+          properties: {
+            ...f.properties,
+            dataSourceId: dataSourceMarkers.dataSourceId,
+          },
+        })),
       };
     }
 
@@ -110,17 +111,18 @@ function DataSourceMarkers({
         ...f,
         properties: {
           ...f.properties,
+          dataSourceId: dataSourceMarkers.dataSourceId,
           [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(
-            String(f.properties[MARKER_ID_KEY]),
+            String(f.properties.id),
           ),
         },
       })),
     };
-  }, [dataSourceMarkers.markers, publicFilters, records]);
+  }, [dataSourceMarkers, publicFilters, records]);
 
   const NOT_MATCHED_CASE = [
     "any",
-    ["!", ["get", MARKER_MATCHED_KEY]],
+    ["!", ["get", "matched"]],
     ["==", ["get", MARKER_CLIENT_EXCLUDED_KEY], true],
   ];
 
@@ -247,13 +249,8 @@ function DataSourceMarkers({
         layout={{
           "text-field": [
             "concat",
-            ["slice", ["get", MARKER_NAME_KEY], 0, 20],
-            [
-              "case",
-              [">", ["length", ["get", MARKER_NAME_KEY]], 20],
-              "...",
-              "",
-            ],
+            ["slice", ["get", "name"], 0, 20],
+            ["case", [">", ["length", ["get", "name"]], 20], "...", ""],
           ],
           "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           "text-size": 12,
