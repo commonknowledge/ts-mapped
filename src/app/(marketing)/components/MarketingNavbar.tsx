@@ -38,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Docs", href: "/docs" },
   { label: "News", href: "/news" },
   { label: "About", href: "/about" },
+  { label: "Support", href: "/support" },
 ];
 
 export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {

@@ -1,4 +1,4 @@
-import { FileText, Info, Newspaper, Puzzle, Video } from "lucide-react";
+import { FileText, Info, LifeBuoy, Newspaper, Puzzle, Video } from "lucide-react";
 import { map } from "rxjs";
 import type { StructureResolver } from "sanity/structure";
 
@@ -95,5 +95,7 @@ export const structure: StructureResolver = (S, context) => {
         // that we're editing the single instance of the document
         S.document().schemaType("about").documentId("about"),
       ),
+
+      S.listItem().title("Support").icon(LifeBuoy).child(S.documentTypeList("support").title("Support")),
     ]);
 };

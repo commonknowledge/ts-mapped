@@ -6,6 +6,7 @@ import { homepageVideosType } from "./homepageVideos";
 import { newsSchema } from "./news";
 import { solutionsType } from "./solutions";
 import { youtubeType } from "./youtubeType";
+import { supportType } from "./support";
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -17,5 +18,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     youtubeType,
     aboutType,
     homepageVideosType,
+    supportType,
   ],
 };
