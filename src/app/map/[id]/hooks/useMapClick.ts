@@ -261,7 +261,12 @@ export const getClickedPolygonFeature = (
     const geometry = (f as { geometry?: Geometry }).geometry;
     if (!geometry) return false;
 
-    return geometry.type === "Polygon" || geometry.type === "MultiPolygon";
+    if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") {
+      return false;
+    }
+
+    // Ignore weird initial polygon when beginning to draw a turf
+    return !geometry.coordinates.some((c) => c.length === 1 && c[0] === null);
   };
 
   const polygonFeature = drawData.features.find(
