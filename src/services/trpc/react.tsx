@@ -1,11 +1,13 @@
 "use client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import {
+  TRPCClientError,
   createTRPCClient,
   httpBatchLink,
   httpSubscriptionLink,
   splitLink,
 } from "@trpc/client";
+import { observable } from "@trpc/server/observable";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
@@ -16,6 +18,7 @@ import {
 import { createQueryClient } from "./queryClient";
 import type { AppRouter } from "@/server/trpc/router";
 import type { QueryClient } from "@tanstack/react-query";
+import type { TRPCLink } from "@trpc/client";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
@@ -48,6 +51,33 @@ function getUrl() {
 superjson.registerCustom(clientDataSourceSerializer, "DataSource");
 superjson.registerCustom(hasPasswordHashSerializer, "HasPasswordHash");
 
+const errorLink: TRPCLink<AppRouter> = () => {
+  return ({ next, op }) => {
+    return observable((observer) => {
+      const unsubscribe = next(op).subscribe({
+        next(value) {
+          observer.next(value);
+        },
+        error(err) {
+          if (
+            err instanceof TRPCClientError &&
+            err.data?.code === "UNAUTHORIZED" &&
+            typeof window !== "undefined"
+          ) {
+            window.location.href = "/";
+            return;
+          }
+          observer.error(err);
+        },
+        complete() {
+          observer.complete();
+        },
+      });
+      return unsubscribe;
+    });
+  };
+};
+
 export function TRPCReactProvider(
   props: Readonly<{ children: React.ReactNode }>,
 ) {
@@ -59,6 +89,7 @@ export function TRPCReactProvider(
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
+        errorLink,
         splitLink({
           condition: (op) => op.type === "subscription",
           true: httpSubscriptionLink({

@@ -4,7 +4,6 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Link } from "@/components/Link";
-import { useCurrentUser } from "@/hooks";
 import { urlFor } from "@/sanity/lib/image";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
@@ -18,6 +17,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/shadcn/ui/navigation-menu";
 import { cn } from "@/shadcn/utils";
+import type { CurrentUser } from "@/authTypes";
 
 interface Solution {
   _id: string;
@@ -40,8 +40,13 @@ const NAV_ITEMS: NavItem[] = [
   { label: "About", href: "/about" },
 ];
 
-export const MarketingNavbar = ({ solutions }: { solutions: Solution[] }) => {
-  const { currentUser } = useCurrentUser();
+export const MarketingNavbar = ({
+  currentUser,
+  solutions,
+}: {
+  currentUser: CurrentUser | null;
+  solutions: Solution[];
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
 

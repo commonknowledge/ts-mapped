@@ -1,6 +1,7 @@
 import { GithubIcon, HeartHandshakeIcon, MailIcon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
+import { getServerSession } from "@/auth";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
 import CTA from "@/components/marketing/CTA";
@@ -16,9 +17,13 @@ export default async function Layout({
   const solutions = await client.fetch(
     `*[_type == "solutions"] | order(position asc)`,
   );
+  const serverSession = await getServerSession();
   return (
     <>
-      <MarketingNavbar solutions={solutions} />
+      <MarketingNavbar
+        currentUser={serverSession.currentUser}
+        solutions={solutions}
+      />
 
       {children}
 

@@ -1,5 +1,4 @@
 import {
-  QueryCache,
   QueryClient,
   defaultShouldDehydrateQuery,
 } from "@tanstack/react-query";
@@ -21,30 +20,6 @@ export function createQueryClient() {
       hydrate: {
         deserializeData: superjson.deserialize,
       },
-      mutations: {
-        onError: (error) => {
-          if (
-            error.message.includes(
-              "You must be logged in to perform this action",
-            )
-          ) {
-            if (typeof window !== "undefined") {
-              window.location.reload();
-            }
-          }
-        },
-      },
     },
-    queryCache: new QueryCache({
-      onError: (error) => {
-        if (
-          error.message.includes("You must be logged in to perform this action")
-        ) {
-          if (typeof window !== "undefined") {
-            window.location.reload();
-          }
-        }
-      },
-    }),
   });
 }
