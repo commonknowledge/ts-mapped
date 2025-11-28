@@ -5,8 +5,6 @@ import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MapType } from "@/server/models/MapView";
 import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
-import { useChoroplethClick } from "./useChoroplethClick";
-import { useChoroplethHover } from "./useChoroplethHover";
 
 export default function Choropleth() {
   const { viewConfig } = useMapViews();
@@ -19,8 +17,6 @@ export default function Choropleth() {
 
   // Custom hooks for effects
   const fillColor = useChoroplethAreaStats();
-  useChoroplethHover();
-  useChoroplethClick();
 
   return (
     <>
