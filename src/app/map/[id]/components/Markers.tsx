@@ -41,17 +41,17 @@ export default function Markers() {
   const memberMarkers = useMemo(
     () =>
       markerQueries?.data.find(
-        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
+        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId
       ),
-    [markerQueries, mapConfig.membersDataSourceId],
+    [markerQueries, mapConfig.membersDataSourceId]
   );
 
   const otherMarkers = useMemo(
     () =>
       mapConfig.markerDataSourceIds.map((id) =>
-        markerQueries?.data.find((dsm) => dsm.dataSourceId === id),
+        markerQueries?.data.find((dsm) => dsm.dataSourceId === id)
       ),
-    [markerQueries, mapConfig.markerDataSourceIds],
+    [markerQueries, mapConfig.markerDataSourceIds]
   );
 
   return (
@@ -111,7 +111,7 @@ function DataSourceMarkers({
         properties: {
           ...f.properties,
           [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(
-            String(f.properties[MARKER_ID_KEY]),
+            String(f.properties[MARKER_ID_KEY])
           ),
         },
       })),
@@ -148,75 +148,127 @@ function DataSourceMarkers({
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
       }}
     >
-      <Layer
-        id={`${sourceId}-heatmap`}
-        type="heatmap"
-        source={sourceId}
-        filter={["has", "point_count"]}
-        paint={{
-          // Adjust weight based on matched_count and point_count
-          "heatmap-weight": [
-            "*",
-            ["case", ["==", ["get", "matched_count"], 0], 0.5, 1.5],
-            [
-              "interpolate",
-              ["exponential", 0.5],
-              ["get", "point_count"],
-              1,
-              0.5,
-              10,
-              1,
-              100,
-              1.5,
-              1000,
-              2,
-              10000,
-              2.5,
+      {publicMap ? (
+        [
+          <Layer
+            id={`${sourceId}-circles`}
+            key={`${sourceId}-circles`}
+            type="circle"
+            source={sourceId}
+            filter={["has", "point_count"]}
+            paint={{
+              // Circle radius based on point_count
+              "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["get", "point_count"],
+                1,
+                15,
+                10,
+                25,
+                100,
+                35,
+                1000,
+                50,
+                10000,
+                70,
+              ],
+              // Circle color
+              "circle-color": color,
+              // Opacity based on matched_count
+              "circle-opacity": [
+                "case",
+                ["==", ["get", "matched_count"], 0],
+                0.5,
+                0.8,
+              ],
+            }}
+          />,
+
+          <Layer
+            id={`${sourceId}-circle-labels`}
+            key={`${sourceId}-circle-labels`}
+            type="symbol"
+            source={sourceId}
+            filter={["has", "point_count"]}
+            layout={{
+              "text-field": ["get", "point_count"],
+              "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              "text-size": 12,
+            }}
+          />
+          ]
+      ) : (
+        <Layer
+          id={`${sourceId}-heatmap`}
+          type="heatmap"
+          source={sourceId}
+          filter={["has", "point_count"]}
+          paint={{
+            // Adjust weight based on matched_count and point_count
+            "heatmap-weight": [
+              "*",
+              ["case", ["==", ["get", "matched_count"], 0], 0.5, 1.5],
+              [
+                "interpolate",
+                ["exponential", 0.5],
+                ["get", "point_count"],
+                1,
+                0.5,
+                10,
+                1,
+                100,
+                1.5,
+                1000,
+                2,
+                10000,
+                2.5,
+              ],
             ],
-          ],
-          // Increase intensity as zoom level increases
-          "heatmap-intensity": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            1,
-            15,
-            3,
-          ],
-          // Color ramp for heatmap
-          "heatmap-color": [
-            "interpolate",
-            ["linear"],
-            ["heatmap-density"],
-            0,
-            rgbaString(color, 0),
-            0.2,
-            rgbaString(color, 0.2),
-            0.4,
-            rgbaString(color, 0.4),
-            0.6,
-            rgbaString(color, 0.6),
-            0.8,
-            rgbaString(color, 0.8),
-            1,
-            rgbaString(color, 1),
-          ],
-          // Adjust radius by zoom
-          "heatmap-radius": [
-            "interpolate",
-            ["linear"],
-            ["get", "point_count"],
-            2,
-            50,
-            100,
-            100,
-            1000,
-            200,
-          ],
-          "heatmap-opacity": 0.7,
-        }}
-      />
+            // Increase intensity as zoom level increases
+            "heatmap-intensity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              0,
+              1,
+              15,
+              3,
+            ],
+            // Color ramp for heatmap
+            "heatmap-color": [
+              "interpolate",
+              ["linear"],
+              ["heatmap-density"],
+              0,
+              rgbaString(color, 0),
+              0.2,
+              rgbaString(color, 0.2),
+              0.4,
+              rgbaString(color, 0.4),
+              0.6,
+              rgbaString(color, 0.6),
+              0.8,
+              rgbaString(color, 0.8),
+              1,
+              rgbaString(color, 1),
+            ],
+            // Adjust radius by zoom
+            "heatmap-radius": [
+              "interpolate",
+              ["linear"],
+              ["get", "point_count"],
+              2,
+              50,
+              100,
+              100,
+              1000,
+              200,
+            ],
+            "heatmap-opacity": 0.7,
+          }}
+        />
+      )}
       <Layer
         id={`${sourceId}-pins`}
         type="circle"
