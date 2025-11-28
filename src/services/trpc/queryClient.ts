@@ -4,6 +4,7 @@ import {
   defaultShouldDehydrateQuery,
 } from "@tanstack/react-query";
 import superjson from "superjson";
+import { UNAUTHORIZED_MESSAGE } from "@/constants";
 
 export function createQueryClient() {
   return new QueryClient({
@@ -23,11 +24,7 @@ export function createQueryClient() {
       },
       mutations: {
         onError: (error) => {
-          if (
-            error.message.includes(
-              "You must be logged in to perform this action",
-            )
-          ) {
+          if (error.message.includes(UNAUTHORIZED_MESSAGE)) {
             if (typeof window !== "undefined") {
               window.location.reload();
             }
@@ -37,9 +34,7 @@ export function createQueryClient() {
     },
     queryCache: new QueryCache({
       onError: (error) => {
-        if (
-          error.message.includes("You must be logged in to perform this action")
-        ) {
+        if (error.message.includes(UNAUTHORIZED_MESSAGE)) {
           if (typeof window !== "undefined") {
             window.location.reload();
           }

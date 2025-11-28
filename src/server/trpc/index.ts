@@ -2,7 +2,7 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
-import { ADMIN_USER_EMAIL } from "@/constants";
+import { ADMIN_USER_EMAIL, UNAUTHORIZED_MESSAGE } from "@/constants";
 import {
   hasPasswordHashSerializer,
   serverDataSourceSerializer,
@@ -68,7 +68,7 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.user)
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "You must be logged in to perform this action.",
+      message: UNAUTHORIZED_MESSAGE,
     });
   return next({ ctx: { user: ctx.user } });
 });
@@ -125,7 +125,7 @@ export const dataSourceReadProcedure = publicProcedure
     if (!ctx.user) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "You must be logged in to perform this action.",
+        message: UNAUTHORIZED_MESSAGE,
       });
     }
 
@@ -211,7 +211,7 @@ export const mapReadProcedure = publicProcedure
     if (!ctx.user?.id) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "You must be logged in to perform this action.",
+        message: UNAUTHORIZED_MESSAGE,
       });
     }
 

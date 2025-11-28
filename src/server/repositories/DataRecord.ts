@@ -171,6 +171,14 @@ export async function findPageForDataRecord(
   return pageIndex;
 }
 
+export function findDataRecordById(id: string) {
+  return db
+    .selectFrom("dataRecord")
+    .where("id", "=", id)
+    .selectAll()
+    .executeTakeFirst();
+}
+
 export async function findDataRecordsByDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,

@@ -14,12 +14,7 @@ export const DATA_RECORDS_JOB_BATCH_SIZE = 100;
 
 export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";
 
-// export const MARKER_ID_KEY = "__recordId";
-// export const MARKER_DATA_SOURCE_ID_KEY = "__dataSourceId";
-// export const MARKER_NAME_KEY = "__name";
-// export const MARKER_MATCHED_KEY = "__matched";
-// export const MARKER_RADIUS_KEY = "__radius";
-// Different database derived column name because underscores get mangled by camelCase translation
+// Derived column in query result
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 
 export const MAX_COLUMN_KEY = "__maxColumn";
@@ -30,3 +25,6 @@ export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
 export const SORT_BY_LOCATION = "__location";
 // Special sort column to sort by `dataSource.columnRoles.nameColumns`
 export const SORT_BY_NAME_COLUMNS = "__name";
+
+export const UNAUTHORIZED_MESSAGE =
+  "You are not authorized to perform this action";

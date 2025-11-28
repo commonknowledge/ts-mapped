@@ -1,9 +1,16 @@
-import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  ArrowLeftIcon,
+  MapPinIcon,
+  TableIcon,
+  XIcon,
+} from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
@@ -25,6 +32,19 @@ export default function InspectorPanel() {
   const { setSelectedDataSourceId, selectedDataSourceId } =
     useContext(TableContext);
 
+  const trpc = useTRPC();
+  const { data: recordData, isFetching: recordLoading } = useQuery(
+    trpc.dataRecord.byId.queryOptions(
+      {
+        dataSourceId: selectedRecord?.dataSourceId || "",
+        id: selectedRecord?.id || "",
+      },
+      {
+        enabled: Boolean(selectedRecord),
+      },
+    ),
+  );
+
   if (!Boolean(inspectorContent)) {
     return <></>;
   }
@@ -34,6 +54,8 @@ export default function InspectorPanel() {
   const isDetailsView =
     (selectedTurf && type !== LayerType.Turf) ||
     (selectedBoundary && type !== LayerType.Boundary);
+
+  const allProperties = { ...properties, ...recordData?.json };
 
   const onCloseDetailsView = () => {
     setSelectedRecord(null);
@@ -51,7 +73,7 @@ export default function InspectorPanel() {
     <div
       id="inspector-panel"
       className={cn(
-        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 py-5 h-fit",
+        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 py-5 h-fit max-h-full",
         tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
       )}
     >
@@ -108,7 +130,11 @@ export default function InspectorPanel() {
             </div>
           )}
 
-          <PropertiesList properties={properties} />
+          {recordLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <PropertiesList properties={allProperties} />
+          )}
 
           {type === LayerType.Turf && <TurfMarkersList />}
 
