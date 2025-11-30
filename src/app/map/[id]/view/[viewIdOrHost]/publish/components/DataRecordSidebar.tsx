@@ -264,47 +264,45 @@ function CheckList({
     <>
       {sourceColumns.map((column) => (
         <div key={column} className="flex items-center gap-2">
-          <div className="col-span-1">
-            {String(json[column]).toLowerCase() === "unknown" ? (
-              dataSourceConfig?.unknownTooltip ? (
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="w-4 h-4 text-center font-semibold">?</div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {dataSourceConfig?.unknownTooltip}
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <div className="w-4 h-4 text-center font-semibold">?</div>
-              )
-            ) : toBoolean(json[column]) ? (
-              dataSourceConfig?.positiveTooltip ? (
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Check className="w-4 h-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {dataSourceConfig?.positiveTooltip}
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Check className="w-4 h-4" />
-              )
-            ) : dataSourceConfig?.negativeTooltip ? (
+          {String(json[column]).toLowerCase() === "unknown" ? (
+            dataSourceConfig?.unknownTooltip ? (
               <Tooltip>
                 <TooltipTrigger>
-                  <X className="w-4 h-4" />
+                  <div className="w-4 h-5 text-center font-semibold">?</div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {dataSourceConfig?.negativeTooltip}
+                  {dataSourceConfig?.unknownTooltip}
                 </TooltipContent>
               </Tooltip>
             ) : (
-              <X className="w-4 h-4" />
-            )}
-          </div>
-          <div className="col-span-5">{column}</div>
+              <div className="w-4 h-5 text-center font-semibold">?</div>
+            )
+          ) : toBoolean(json[column]) ? (
+            dataSourceConfig?.positiveTooltip ? (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Check className="w-4 h-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  {dataSourceConfig?.positiveTooltip}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Check className="w-4 h-4" />
+            )
+          ) : dataSourceConfig?.negativeTooltip ? (
+            <Tooltip>
+              <TooltipTrigger>
+                <X className="w-4 h-4" />
+              </TooltipTrigger>
+              <TooltipContent>
+                {dataSourceConfig?.negativeTooltip}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <X className="w-4 h-4" />
+          )}
+          <div>{column}</div>
         </div>
       ))}
     </>
