@@ -1,5 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
-import { useContext } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
@@ -27,6 +27,7 @@ export default function MapTable() {
   const { getDataSourceById } = useDataSources();
   const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
+  const [lookingUpPage, setLookingUpPage] = useState(false);
 
   const {
     selectedDataSourceId,
@@ -35,10 +36,16 @@ export default function MapTable() {
     setTablePage,
   } = useContext(TableContext);
 
-  const { data: dataRecordsResult, isPending: dataRecordsLoading } =
+  const dataSourceView = view?.dataSourceViews.find(
+    (dsv) => dsv.dataSourceId === selectedDataSourceId,
+  );
+
+  const { data: dataRecordsResult, isFetching: dataRecordsLoading } =
     useDataRecords(selectedDataSourceId, tablePage);
 
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const { mutate: tagRecords } = useMutation(
     trpc.mapView.tagRecordsWithViewName.mutationOptions({
       onSuccess: () => {
@@ -49,6 +56,77 @@ export default function MapTable() {
       },
     }),
   );
+
+  // Skip to the correct page when the selected record changes
+  // Use two effects: one to mark a lookup as required, and one to do it
+  // This prevents other state changes from re-triggering the lookup
+  // Open to other solutions to this, double useEffect doesn't feel right
+  useEffect(() => {
+    if (selectedDataSourceId && selectedRecord?.id) {
+      setLookingUpPage(true);
+    }
+  }, [selectedDataSourceId, selectedRecord?.id]);
+
+  useEffect(() => {
+    const fetchPage = async () => {
+      if (!lookingUpPage) {
+        return;
+      }
+
+      if (dataRecordsLoading) {
+        // Don't clear loading state here to avoid flicker
+        return;
+      }
+
+      if (!selectedDataSourceId || !selectedRecord?.id) {
+        setLookingUpPage(false);
+        return;
+      }
+
+      const recordInCurrentPage = dataRecordsResult?.records.some(
+        (r) => r.id === selectedRecord.id,
+      );
+
+      if (recordInCurrentPage) {
+        setLookingUpPage(false);
+        return;
+      }
+
+      try {
+        const pageIndex = await queryClient.fetchQuery(
+          trpc.dataRecord.findPageIndex.queryOptions({
+            dataSourceId: selectedDataSourceId,
+            dataRecordId: selectedRecord.id,
+            search: dataSourceView?.search,
+            filter: dataSourceView?.filter,
+            sort: dataSourceView?.sort,
+          }),
+        );
+
+        if (pageIndex !== null && pageIndex !== tablePage) {
+          setTablePage(pageIndex);
+        }
+      } catch (error) {
+        console.error("Failed to fetch page:", error);
+      }
+
+      setLookingUpPage(false);
+    };
+
+    fetchPage();
+  }, [
+    dataRecordsLoading,
+    dataRecordsResult?.records,
+    dataSourceView,
+    lookingUpPage,
+    queryClient,
+    selectedDataSourceId,
+    selectedRecord?.id,
+    setTablePage,
+    tablePage,
+    trpc.dataRecord.findPageIndex,
+    view,
+  ]);
 
   if (!selectedDataSourceId || !view) {
     return null;
@@ -69,9 +147,6 @@ export default function MapTable() {
     setSelectedRecord({ id: row.id, dataSourceId: dataSource.id });
   };
 
-  const dataSourceView = view.dataSourceViews.find(
-    (dsv) => dsv.dataSourceId === dataSource.id,
-  );
   const updateDataSourceView = (update: Partial<DataSourceView>) => {
     let dataSourceViews = view.dataSourceViews;
 
@@ -125,7 +200,7 @@ export default function MapTable() {
       <DataTable
         title={dataSource.name}
         buttons={[syncToCRMButton]}
-        loading={dataRecordsLoading}
+        loading={dataRecordsLoading || lookingUpPage}
         columns={dataSource.columnDefs}
         data={dataRecordsResult?.records || []}
         recordCount={dataRecordsResult?.count}
