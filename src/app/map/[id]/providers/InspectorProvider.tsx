@@ -39,9 +39,7 @@ const HIDDEN_PROPERTIES = [
 const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
-    null,
-  );
+  const [selectedRecords, setSelectedRecords] = useState<SelectedRecord[]>([]);
   const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
   const [selectedBoundary, setSelectedBoundary] =
     useState<SelectedBoundary | null>(null);
@@ -51,7 +49,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // if no selected marker / member to inspect
-    if (!selectedRecord || !selectedRecord?.properties) {
+    if (!selectedRecords.length || !selectedRecords[0].properties) {
       // check if area selected
       if (selectedTurf?.id) {
         setInspectorContent({
@@ -77,7 +75,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const dataSourceId = selectedRecord?.dataSourceId;
+    const dataSourceId = selectedRecords[0].dataSourceId;
 
     const dataSource = dataSourceId ? getDataSourceById(dataSourceId) : null;
     const type =
@@ -86,27 +84,27 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         : LayerType.Marker;
 
     const filteredProperties = Object.fromEntries(
-      Object.entries(selectedRecord.properties).filter(
+      Object.entries(selectedRecords[0].properties).filter(
         ([key]) => !HIDDEN_PROPERTIES.includes(key),
       ),
     );
 
     setInspectorContent({
       type: type,
-      name: selectedRecord?.properties?.[MARKER_NAME_KEY],
+      name: selectedRecords[0]?.properties?.[MARKER_NAME_KEY],
       properties: filteredProperties,
       dataSource: dataSource,
     });
   }, [
     getDataSourceById,
-    selectedRecord,
     selectedTurf,
     selectedBoundary,
     mapConfig.membersDataSourceId,
+    selectedRecords,
   ]);
 
   const resetInspector = useCallback(() => {
-    setSelectedRecord(null);
+    setSelectedRecords([]);
     setSelectedTurf(null);
     setSelectedBoundary(null);
     setInspectorContent(null);
@@ -117,8 +115,8 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
       value={{
         inspectorContent,
         setInspectorContent,
-        selectedRecord,
-        setSelectedRecord,
+        selectedRecords,
+        setSelectedRecords,
         selectedTurf,
         setSelectedTurf,
         selectedBoundary,

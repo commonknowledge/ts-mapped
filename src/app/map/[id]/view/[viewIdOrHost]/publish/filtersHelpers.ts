@@ -1,5 +1,5 @@
 import { PublicMapColumnType } from "@/server/models/PublicMap";
-import { toBoolean } from "../utils";
+import { toBoolean } from "./utils";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { PublicFiltersFormValue } from "@/types";
 

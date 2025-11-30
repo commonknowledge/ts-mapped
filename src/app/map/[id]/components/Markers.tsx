@@ -6,6 +6,7 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import {
+  MARKER_DATA_SOURCE_ID_KEY,
   MARKER_ID_KEY,
   MARKER_MATCHED_KEY,
   MARKER_NAME_KEY,
@@ -41,17 +42,17 @@ export default function Markers() {
   const memberMarkers = useMemo(
     () =>
       markerQueries?.data.find(
-        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId
+        (dsm) => dsm.dataSourceId === mapConfig.membersDataSourceId,
       ),
-    [markerQueries, mapConfig.membersDataSourceId]
+    [markerQueries, mapConfig.membersDataSourceId],
   );
 
   const otherMarkers = useMemo(
     () =>
       mapConfig.markerDataSourceIds.map((id) =>
-        markerQueries?.data.find((dsm) => dsm.dataSourceId === id)
+        markerQueries?.data.find((dsm) => dsm.dataSourceId === id),
       ),
-    [markerQueries, mapConfig.markerDataSourceIds]
+    [markerQueries, mapConfig.markerDataSourceIds],
   );
 
   return (
@@ -90,7 +91,7 @@ function DataSourceMarkers({
   dataSourceMarkers: { dataSourceId: string; markers: PointFeature[] };
   isMembers: boolean;
 }) {
-  const { records, publicFilters } = useContext(PublicFiltersContext);
+  const { recordGroups, publicFilters } = useContext(PublicFiltersContext);
   const { publicMap, colorScheme } = useContext(PublicMapContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
@@ -103,7 +104,9 @@ function DataSourceMarkers({
     }
 
     // Add MARKER_CLIENT_EXCLUDED_KEY if public filters are set and marker is not matched
-    const recordIds = (records || []).map((r) => r.id).filter(Boolean);
+    const recordIds = (recordGroups || [])
+      .flatMap((r) => r.children.map((c) => c.id))
+      .filter(Boolean);
     return {
       type: "FeatureCollection",
       features: dataSourceMarkers.markers.map((f) => ({
@@ -111,12 +114,12 @@ function DataSourceMarkers({
         properties: {
           ...f.properties,
           [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(
-            String(f.properties[MARKER_ID_KEY])
+            String(f.properties[MARKER_ID_KEY]),
           ),
         },
       })),
     };
-  }, [dataSourceMarkers.markers, publicFilters, records]);
+  }, [dataSourceMarkers.markers, publicFilters, recordGroups]);
 
   const NOT_MATCHED_CASE = [
     "any",
@@ -142,10 +145,20 @@ function DataSourceMarkers({
       type="geojson"
       data={safeMarkers}
       cluster={true}
-      clusterMaxZoom={11}
+      clusterMaxZoom={publicMap ? 22 : 11}
       clusterRadius={50}
       clusterProperties={{
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
+        ids: [
+          "concat",
+          [
+            "concat",
+            ["get", MARKER_ID_KEY],
+            ":",
+            ["get", MARKER_DATA_SOURCE_ID_KEY],
+            ",",
+          ],
+        ],
       }}
     >
       {publicMap ? (
@@ -186,8 +199,8 @@ function DataSourceMarkers({
           />,
 
           <Layer
-            id={`${sourceId}-circle-labels`}
-            key={`${sourceId}-circle-labels`}
+            id={`${sourceId}-counts`}
+            key={`${sourceId}-counts`}
             type="symbol"
             source={sourceId}
             filter={["has", "point_count"]}
@@ -196,8 +209,8 @@ function DataSourceMarkers({
               "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
               "text-size": 12,
             }}
-          />
-          ]
+          />,
+        ]
       ) : (
         <Layer
           id={`${sourceId}-heatmap`}

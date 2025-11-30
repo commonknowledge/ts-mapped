@@ -40,8 +40,8 @@ export const InspectorContext = createContext<{
   inspectorContent: InspectorContent | null;
   resetInspector: () => void;
   setInspectorContent: (r: InspectorContent) => void;
-  selectedRecord: SelectedRecord | null;
-  setSelectedRecord: (r: SelectedRecord | null) => void;
+  selectedRecords: SelectedRecord[];
+  setSelectedRecords: (r: SelectedRecord[]) => void;
   selectedBoundary: SelectedBoundary | null;
   setSelectedBoundary: (r: SelectedBoundary | null) => void;
 
@@ -51,8 +51,8 @@ export const InspectorContext = createContext<{
   inspectorContent: null,
   resetInspector: () => null,
   setInspectorContent: () => null,
-  selectedRecord: null,
-  setSelectedRecord: () => null,
+  selectedRecords: [],
+  setSelectedRecords: () => null,
   selectedTurf: null,
   setSelectedTurf: () => null,
   selectedBoundary: null,

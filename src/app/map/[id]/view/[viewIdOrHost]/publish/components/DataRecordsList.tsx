@@ -10,10 +10,9 @@ import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { buildName } from "../utils";
-import { filterRecords, getActiveFilters } from "./filtersHelpers";
+import type { RecordGroup } from "../utils";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
-import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 interface DataRecordsListProps {
@@ -21,74 +20,37 @@ interface DataRecordsListProps {
     data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
     isPending: boolean;
   };
-  onSelect: (r: { id: string; dataSourceId: string }) => void;
   colorScheme: PublicMapColorScheme;
 }
 
 export default function DataRecordsList({
   dataRecordsQuery,
-  onSelect,
   colorScheme,
 }: DataRecordsListProps) {
-  const { publicMap } = useContext(PublicMapContext);
+  const { publicMap, setSelectedRecordGroupId, selectedRecordGroupId } =
+    useContext(PublicMapContext);
+  const { setSelectedRecords } = useContext(InspectorContext);
   const { mapRef } = useContext(MapContext);
-  const { selectedRecord } = useContext(InspectorContext);
-  const { publicFilters, records, setRecords } =
-    useContext(PublicFiltersContext);
+  const { recordGroups } = useContext(PublicFiltersContext);
   const [isExpanded, setExpanded] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
-    const allRecords = dataRecordsQuery?.data?.records || [];
-    const dataSourceId = dataRecordsQuery.data?.id;
-    const activeFilters = getActiveFilters(
-      dataSourceId ? publicFilters[dataSourceId] : undefined,
-    );
-
-    // if no filters are selected - show all records
-    if (!activeFilters?.length) {
-      setRecords(allRecords);
-      return;
-    }
-
-    const filteredRecords = filterRecords(activeFilters, allRecords);
-
-    setRecords(filteredRecords);
-  }, [
-    publicFilters,
-    setRecords,
-    dataRecordsQuery.data?.records,
-    dataRecordsQuery.data?.id,
-  ]);
-
-  useEffect(() => {
-    if (selectedRecord?.id) {
+    if (selectedRecordGroupId) {
       setExpanded(true);
       const item = listRef.current?.querySelector<HTMLLIElement>(
-        `li[data-id="${selectedRecord.id}"]`,
+        `li[data-id="${selectedRecordGroupId}"]`,
       );
       item?.scrollIntoView({
         behavior: "smooth",
         block: window.innerWidth < 768 ? "start" : "center",
       });
     }
-  }, [selectedRecord?.id]);
+  }, [selectedRecordGroupId]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
-
-  const getName = (record: {
-    externalId: string;
-    json: Record<string, unknown>;
-  }) => {
-    const nameColumns = dataSourceConfig?.nameColumns;
-    if (!nameColumns?.length) {
-      return record.externalId;
-    }
-
-    return buildName(nameColumns, record.json);
-  };
 
   const getDescription = (record: { json: Record<string, unknown> }) => {
     const descriptionColumn = dataSourceConfig?.descriptionColumn;
@@ -97,27 +59,24 @@ export default function DataRecordsList({
       : "";
   };
 
-  const handleRecordClick = (record: {
-    id: string;
-    geocodePoint?: Point | null;
-  }) => {
+  const handleRecordClick = (groupedRecord: RecordGroup) => {
     let nextExpanded = isExpanded;
-    if (dataRecordsQuery.data?.id) {
-      onSelect({
-        id: record.id,
-        dataSourceId: dataRecordsQuery.data?.id,
-      });
-
-      if (record.id === selectedRecord?.id) {
-        nextExpanded = !isExpanded;
-      } else {
-        nextExpanded = true;
-      }
+    setSelectedRecords(
+      groupedRecord.children.map((c) => ({
+        id: c.id,
+        dataSourceId: c.dataSourceId,
+      })),
+    );
+    if (groupedRecord.id === selectedRecordGroupId) {
+      nextExpanded = !isExpanded;
+    } else {
+      nextExpanded = true;
     }
+    setSelectedRecordGroupId(groupedRecord.id);
 
-    if (record.geocodePoint && nextExpanded) {
+    if (groupedRecord.geocodePoint && nextExpanded) {
       mapRef?.current?.flyTo({
-        center: record.geocodePoint,
+        center: groupedRecord.geocodePoint,
         zoom: 14,
       });
     }
@@ -125,23 +84,27 @@ export default function DataRecordsList({
     setExpanded(nextExpanded);
   };
 
-  if (!records?.length) {
+  if (!recordGroups?.length) {
     return <></>;
   }
 
   return (
     <ul className="flex flex-col" ref={listRef}>
-      {records.map((r) => {
-        const isSelected = selectedRecord?.id === r.id;
+      {recordGroups.map((recordGroup) => {
+        const isSelected = selectedRecordGroupId === recordGroup.id;
+
+        // Show first non-empty description
+        const descriptions = recordGroup.children.map((c) => getDescription(c));
+        const description = descriptions.find(Boolean);
 
         return (
           <li
-            key={r.id}
+            key={recordGroup.id}
             className={cn(
               "rounded transition-all duration-200",
               isSelected ? "" : "hover:bg-accent",
             )}
-            data-id={r.id}
+            data-id={recordGroup.id}
             style={
               isSelected
                 ? { backgroundColor: colorScheme.primaryMuted }
@@ -151,7 +114,7 @@ export default function DataRecordsList({
             {/* Main record item */}
             <button
               type="button"
-              onClick={() => handleRecordClick(r)}
+              onClick={() => handleRecordClick(recordGroup)}
               className="py-3 px-4 flex flex-col gap-[2px] w-full / text-left cursor-pointer"
             >
               <div className="flex items-center gap-2">
@@ -159,9 +122,7 @@ export default function DataRecordsList({
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: colorScheme.primary }}
                 />
-                <span className="font-medium flex-1">
-                  {getName(r) || getDescription(r) || "Unknown"}
-                </span>
+                <span className="font-medium flex-1">{recordGroup.name}</span>
                 {/* Only show arrow on mobile */}
                 <div className="text-xs text-neutral-500 md:hidden">
                   {isSelected && isExpanded ? (
@@ -171,8 +132,8 @@ export default function DataRecordsList({
                   )}
                 </div>
               </div>
-              {getDescription(r) && getName(r) && (
-                <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
+              {description && description !== recordGroup.name && (
+                <span className="text-sm ml-[1.1rem]">{description}</span>
               )}
             </button>
 
@@ -180,7 +141,7 @@ export default function DataRecordsList({
             {isSelected && isExpanded && (
               <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
                 <MobileRecordDetails
-                  record={r}
+                  recordGroup={recordGroup}
                   dataSourceConfig={dataSourceConfig}
                 />
               </div>
@@ -194,13 +155,19 @@ export default function DataRecordsList({
 
 // Mobile-optimized record details component for accordion
 function MobileRecordDetails({
-  record,
+  recordGroup,
   dataSourceConfig,
 }: {
-  record: { json: Record<string, unknown> };
+  recordGroup: RecordGroup;
   dataSourceConfig?: PublicMapDataSourceConfig;
 }) {
-  const name = buildName(dataSourceConfig?.nameColumns || [], record.json);
+  const [groupIndex, setGroupIndex] = useState(0);
+  const record = recordGroup.children[groupIndex];
+  if (!record) {
+    return null;
+  }
+
+  const name = buildName(dataSourceConfig, record);
   const description = String(
     record.json[dataSourceConfig?.descriptionColumn || ""] || "",
   );
@@ -209,24 +176,44 @@ function MobileRecordDetails({
   return (
     <div className="flex flex-col gap-3 pt-3">
       {/* Name and Description */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-neutral-600 font-medium">
-            {dataSourceConfig?.nameLabel || "Name"}
-          </span>
-          <span className="text-base font-semibold">{name}</span>
-        </div>
-
-        {description && (
+      <div className="flex">
+        <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-neutral-600 font-medium">
-              {dataSourceConfig?.descriptionLabel ||
-                dataSourceConfig?.descriptionColumn ||
-                "Description"}
+              {dataSourceConfig?.nameLabel || "Name"}
             </span>
-            <span className="text-sm">{description}</span>
+            <span className="text-base font-semibold">{name}</span>
           </div>
-        )}
+
+          {description && name !== description && (
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-neutral-600 font-medium">
+                {dataSourceConfig?.descriptionLabel ||
+                  dataSourceConfig?.descriptionColumn ||
+                  "Description"}
+              </span>
+              <span className="text-sm">{description}</span>
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setGroupIndex(groupIndex - 1);
+          }}
+          disabled={groupIndex <= 0}
+        >
+          &lt;
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setGroupIndex(groupIndex + 1);
+          }}
+          disabled={groupIndex >= recordGroup.children.length - 1}
+        >
+          &gt;
+        </button>
       </div>
 
       {/* Additional Columns */}

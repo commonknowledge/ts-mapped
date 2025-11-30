@@ -1,16 +1,15 @@
 "use client";
 
 import { useContext } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
+import { getActiveFilters } from "../filtersHelpers";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
-import { getActiveFilters } from "./filtersHelpers";
 import FiltersList from "./FiltersList";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -34,7 +33,6 @@ export default function DataSourceTabs({
 }: DataSourceTabsProps) {
   const { publicMap, activeTabId, setActiveTabId } =
     useContext(PublicMapContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
 
   if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
@@ -55,7 +53,6 @@ export default function DataSourceTabs({
             dataRecordsQuery={dataRecordsQuery}
             editable={editable}
             colorScheme={colorScheme}
-            onSelect={setSelectedRecord}
           />
         </>
       )
@@ -106,7 +103,6 @@ export default function DataSourceTabs({
                 dataRecordsQuery={dataRecordsQuery}
                 editable={editable}
                 colorScheme={colorScheme}
-                onSelect={setSelectedRecord}
               />
             </TabsContent>
           )
@@ -123,16 +119,14 @@ interface SingleDataSourceContentProps {
   };
   editable: boolean;
   colorScheme: PublicMapColorScheme;
-  onSelect: (r: { id: string; dataSourceId: string }) => void;
 }
 
 function SingleDataSourceContent({
   dataRecordsQuery,
   editable,
   colorScheme,
-  onSelect,
 }: SingleDataSourceContentProps) {
-  const { publicFilters, setPublicFilters, records } =
+  const { publicFilters, setPublicFilters, recordGroups } =
     useContext(PublicFiltersContext);
   const { publicMap } = useContext(PublicMapContext);
 
@@ -149,11 +143,11 @@ function SingleDataSourceContent({
         );
 
   const getListingsLabel = () => {
-    if (!records?.length) {
+    if (!recordGroups?.length) {
       return "No matching listings";
     }
 
-    return `${records.length} ${records.length === 1 ? "listing" : "listings"}`;
+    return `${recordGroups.length} ${recordGroups.length === 1 ? "listing" : "listings"}`;
   };
 
   const resetFilters = () => {
@@ -193,7 +187,6 @@ function SingleDataSourceContent({
 
       <DataRecordsList
         dataRecordsQuery={dataRecordsQuery}
-        onSelect={onSelect}
         colorScheme={colorScheme}
       />
 

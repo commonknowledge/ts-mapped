@@ -22,21 +22,23 @@ export const MembersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setSelectedRecords } = useContext(InspectorContext);
 
   const memberRecords = records.records ?? [];
   const total = records.count.matched ?? 0;
 
   const onRecordClick = (record: RecordData) => {
-    setSelectedRecord({
-      id: record.id,
-      dataSourceId: dataSource?.id as string,
-      point: record.geocodePoint,
-      properties: {
-        ...record.json,
-        __name: getDisplayName(dataSource, record),
+    setSelectedRecords([
+      {
+        id: record.id,
+        dataSourceId: dataSource?.id as string,
+        point: record.geocodePoint,
+        properties: {
+          ...record.json,
+          __name: getDisplayName(dataSource, record),
+        },
       },
-    });
+    ]);
   };
 
   return (
@@ -76,26 +78,28 @@ export const MarkersList = ({
   records: RecordsResponse;
   dataSource: DataSource | null;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setSelectedRecords } = useContext(InspectorContext);
 
   const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
 
   const onRecordClick = (record: RecordData) => {
-    setSelectedRecord({
-      id: record.id,
-      dataSourceId: dataSource?.id as string,
-      point: record.geocodePoint,
-      properties: {
-        ...record.json,
-        __name: record?.name
-          ? record.name
-          : nameColumn
-            ? record.json[nameColumn]
-            : "",
+    setSelectedRecords([
+      {
+        id: record.id,
+        dataSourceId: dataSource?.id as string,
+        point: record.geocodePoint,
+        properties: {
+          ...record.json,
+          __name: record?.name
+            ? record.name
+            : nameColumn
+              ? record.json[nameColumn]
+              : "",
+        },
       },
-    });
+    ]);
   };
 
   if (recordsList.length === 0) {
@@ -136,21 +140,23 @@ export const PlacedMarkersList = ({
   folder: Folder | null;
   records: RecordsResponse;
 }) => {
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setSelectedRecords } = useContext(InspectorContext);
 
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
   const name = folder?.name || "No folder";
 
   const onRecordClick = (record: RecordData) => {
-    setSelectedRecord({
-      id: record.id,
-      dataSourceId: "",
-      point: record.geocodePoint,
-      properties: {
-        __name: record.json?.name || "",
+    setSelectedRecords([
+      {
+        id: record.id,
+        dataSourceId: "",
+        point: record.geocodePoint,
+        properties: {
+          __name: record.json?.name || "",
+        },
       },
-    });
+    ]);
   };
 
   if (recordsList.length === 0) {

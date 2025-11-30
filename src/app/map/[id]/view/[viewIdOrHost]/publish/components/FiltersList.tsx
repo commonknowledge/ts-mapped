@@ -5,7 +5,7 @@ import { Fragment, useContext } from "react";
 import { Badge } from "@/shadcn/ui/badge";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
-import { getActiveFilters } from "./filtersHelpers";
+import { getActiveFilters } from "../filtersHelpers";
 import type { PublicFiltersFormValue } from "@/types";
 
 function FiltersListBadge({

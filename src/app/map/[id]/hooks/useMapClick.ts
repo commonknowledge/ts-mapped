@@ -33,7 +33,7 @@ export function useMapClick({
     resetInspector,
     setSelectedBoundary,
     selectedBoundary,
-    setSelectedRecord,
+    setSelectedRecords,
     setSelectedTurf,
   } = useContext(InspectorContext);
 
@@ -86,22 +86,45 @@ export function useMapClick({
       ) {
         const properties = markerFeatures[0].properties;
 
-        const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
-        const dataSourceId = properties
-          ? properties[MARKER_DATA_SOURCE_ID_KEY]
-          : null;
+        if (properties?.cluster) {
+          const ids = properties ? properties.ids : "";
+          const records = [];
+          for (const idAndDataSource of ids.split(",").filter(Boolean)) {
+            const [id, dataSourceId] = idAndDataSource.split(":");
+            records.push({
+              id,
+              dataSourceId,
+              properties: {},
+            });
+          }
 
-        resetInspector();
-        setSelectedRecord({
-          id: dataRecordId,
-          dataSourceId: dataSourceId,
-          properties: properties,
-        });
+          resetInspector();
+          setSelectedRecords(records);
 
-        map.flyTo({
-          center: markerFeatures[0].geometry.coordinates as [number, number],
-          zoom: 12,
-        });
+          map.flyTo({
+            center: markerFeatures[0].geometry.coordinates as [number, number],
+            zoom: map.getZoom() + 1,
+          });
+        } else {
+          const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
+          const dataSourceId = properties
+            ? properties[MARKER_DATA_SOURCE_ID_KEY]
+            : null;
+
+          resetInspector();
+          setSelectedRecords([
+            {
+              id: dataRecordId,
+              dataSourceId: dataSourceId,
+              properties: properties,
+            },
+          ]);
+
+          map.flyTo({
+            center: markerFeatures[0].geometry.coordinates as [number, number],
+            zoom: 12,
+          });
+        }
 
         return true;
       }
@@ -211,12 +234,12 @@ export function useMapClick({
     resetInspector,
     setSelectedBoundary,
     markerLayers,
-    setSelectedRecord,
     draw,
     currentMode,
     pinDropMode,
     setSelectedTurf,
     ready,
+    setSelectedRecords,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)

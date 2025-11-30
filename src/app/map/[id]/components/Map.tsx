@@ -62,7 +62,12 @@ export default function Map({
   const markerLayers = useMemo(
     () =>
       getDataSourceIds(mapConfig)
-        .flatMap((id) => [`${id}-markers-pins`, `${id}-markers-labels`])
+        .flatMap((id) => [
+          `${id}-markers-circles`,
+          `${id}-markers-counts`,
+          `${id}-markers-pins`,
+          `${id}-markers-labels`,
+        ])
         .concat(["search-history-pins", "search-history-labels"]),
     [mapConfig],
   );

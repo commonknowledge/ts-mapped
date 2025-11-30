@@ -27,6 +27,8 @@ export const PublicMapContext = createContext<{
   activePublishTab: string;
   setActivePublishTab: (tab: string) => void;
   colorScheme: string;
+  selectedRecordGroupId: string | null;
+  setSelectedRecordGroupId: (id: string) => void;
 }>({
   publicMap: null,
   editable: false,
@@ -40,4 +42,6 @@ export const PublicMapContext = createContext<{
   activePublishTab: "settings",
   setActivePublishTab: () => null,
   colorScheme: "red",
+  selectedRecordGroupId: null,
+  setSelectedRecordGroupId: () => null,
 });

@@ -1,5 +1,5 @@
 import { Check, X } from "lucide-react";
-import { Fragment, useContext, useMemo } from "react";
+import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
@@ -8,43 +8,64 @@ import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
-import { buildName, jsonToAirtablePrefill, toBoolean } from "../utils";
+import { groupRecords, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
-  const { selectedRecord } = useContext(InspectorContext);
-  const { publicMap, colorScheme } = useContext(PublicMapContext);
+  const { selectedRecords } = useContext(InspectorContext);
+  const { publicMap, colorScheme, setSelectedRecordGroupId } =
+    useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
+  const [groupIndex, setGroupIndex] = useState(0);
+  const [childIndex, setChildIndex] = useState(0);
 
   const activeColorScheme =
     publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;
 
-  const selectedRecordDetails = useMemo(() => {
-    if (!selectedRecord) return null;
-    const dataRecordsQuery = dataRecordsQueries[selectedRecord.dataSourceId];
+  const selectedRecordsDetails = useMemo(() => {
+    if (!selectedRecords.length) {
+      return [];
+    }
+    const dataRecordsQuery =
+      dataRecordsQueries[selectedRecords[0].dataSourceId];
     const records = dataRecordsQuery?.data?.records;
+    return selectedRecords
+      .map((record) => records?.find((r) => r.id === record.id))
+      .filter((r) => r !== undefined);
+  }, [dataRecordsQueries, selectedRecords]);
 
-    return records?.find((r) => r.id === selectedRecord.id);
-  }, [dataRecordsQueries, selectedRecord]);
+  const dataSourceConfig = publicMap?.dataSourceConfigs.find(
+    (dsc) => dsc.dataSourceId === selectedRecords[0]?.dataSourceId,
+  );
 
-  if (!selectedRecord || !selectedRecordDetails || !publicMap) {
+  const recordGroups = useMemo(() => {
+    return groupRecords(dataSourceConfig, selectedRecordsDetails);
+  }, [dataSourceConfig, selectedRecordsDetails]);
+
+  const recordGroup = recordGroups[groupIndex];
+  const selectedRecordDetails = recordGroup?.children[childIndex];
+
+  // Reset indices when selectedRecords changes
+  useEffect(() => {
+    setGroupIndex(0);
+    setChildIndex(0);
+  }, [selectedRecords]);
+
+  // Update the selected record group in context so the list
+  // sidebar can scroll to the correct record
+  useEffect(() => {
+    if (recordGroup) {
+      setSelectedRecordGroupId(recordGroup.id);
+    }
+  }, [recordGroup, setSelectedRecordGroupId]);
+
+  if (!recordGroup || !selectedRecordDetails || !publicMap) {
     return <></>;
   }
-
-  const dataSourceConfig = publicMap.dataSourceConfigs.find(
-    (dsc) => dsc.dataSourceId === selectedRecord?.dataSourceId,
-  );
 
   const description = String(
     selectedRecordDetails.json[dataSourceConfig?.descriptionColumn || ""] || "",
   );
-  const name =
-    buildName(
-      dataSourceConfig?.nameColumns || [],
-      selectedRecordDetails.json,
-    ) ||
-    description ||
-    "Unknown";
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
@@ -55,26 +76,50 @@ export default function DataRecordSidebar() {
       <div className={cn("flex flex-col gap-4")}>
         {/* Name */}
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col">
-            <EditablePublicMapProperty
-              dataSourceProperty={{
-                dataSourceId: selectedRecord.dataSourceId,
-                property: "nameLabel",
-              }}
-              placeholder="Name label"
-            >
-              <span className="text-muted-foreground">
-                {dataSourceConfig?.nameLabel || "Name"}
-              </span>
-            </EditablePublicMapProperty>
-            <span className="text-lg font-semibold">{name}</span>
+          <div className="flex mr-auto">
+            <div className="flex flex-col">
+              <EditablePublicMapProperty
+                dataSourceProperty={{
+                  dataSourceId: selectedRecordDetails.dataSourceId,
+                  property: "nameLabel",
+                }}
+                placeholder="Name label"
+              >
+                <span className="text-muted-foreground">
+                  {dataSourceConfig?.nameLabel || "Name"}
+                </span>
+              </EditablePublicMapProperty>
+              <span className="text-lg font-semibold">{recordGroup.name}</span>
+            </div>
+            <div className="flex">
+              <button
+                type="button"
+                onClick={() => {
+                  setGroupIndex(groupIndex - 1);
+                  setChildIndex(0);
+                }}
+                disabled={groupIndex <= 0}
+              >
+                &lt;
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGroupIndex(groupIndex + 1);
+                  setChildIndex(0);
+                }}
+                disabled={groupIndex >= recordGroups.length - 1}
+              >
+                &gt;
+              </button>
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            {description && (
+          <div className="flex mr-auto">
+            <div className="flex flex-col gap-2">
               <div className="flex flex-col ">
                 <EditablePublicMapProperty
                   dataSourceProperty={{
-                    dataSourceId: selectedRecord.dataSourceId,
+                    dataSourceId: selectedRecordDetails.dataSourceId,
                     property: "descriptionLabel",
                   }}
                   placeholder="Description label"
@@ -85,9 +130,33 @@ export default function DataRecordSidebar() {
                       "Description"}
                   </span>
                 </EditablePublicMapProperty>
-                <p>{description || "–"}</p>
+                <p>
+                  {description && description !== recordGroup.name
+                    ? description
+                    : "–"}
+                </p>
               </div>
-            )}
+            </div>
+            <div className="flex">
+              <button
+                type="button"
+                onClick={() => {
+                  setChildIndex(childIndex - 1);
+                }}
+                disabled={childIndex <= 0}
+              >
+                &lt;
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setChildIndex(childIndex + 1);
+                }}
+                disabled={childIndex >= recordGroup.children.length - 1}
+              >
+                &gt;
+              </button>
+            </div>
           </div>
           <Separator />
         </div>
@@ -104,7 +173,7 @@ export default function DataRecordSidebar() {
                 <EditablePublicMapProperty
                   additionalColumnProperty={{
                     columnIndex: i,
-                    dataSourceId: selectedRecord.dataSourceId,
+                    dataSourceId: selectedRecordDetails.dataSourceId,
                     property: "label",
                   }}
                   placeholder="Label"
@@ -123,7 +192,7 @@ export default function DataRecordSidebar() {
                 <EditablePublicMapProperty
                   additionalColumnProperty={{
                     columnIndex: i,
-                    dataSourceId: selectedRecord.dataSourceId,
+                    dataSourceId: selectedRecordDetails.dataSourceId,
                     property: "label",
                   }}
                   placeholder="Label"

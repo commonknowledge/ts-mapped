@@ -25,7 +25,7 @@ export default function MapTable() {
   const { mapRef } = useContext(MapContext);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
+  const { selectedRecords, setSelectedRecords } = useContext(InspectorContext);
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
 
   const {
@@ -66,7 +66,7 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedRecord({ id: row.id, dataSourceId: dataSource.id });
+    setSelectedRecords([{ id: row.id, dataSourceId: dataSource.id }]);
   };
 
   const dataSourceView = view.dataSourceViews.find(
@@ -137,7 +137,8 @@ export default function MapTable() {
         sort={dataSourceView?.sort || []}
         setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
-        selectedRecordId={selectedRecord?.id}
+        // TODO: make this work for multiple selected records
+        selectedRecordId={selectedRecords[0]?.id}
         onClose={() => handleDataSourceSelect("")}
       />
     </div>

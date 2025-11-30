@@ -26,7 +26,7 @@ export default function PublishPublicMapSidebar() {
   const { publicMap, activeTabId, activePublishTab, setActivePublishTab } =
     useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setSelectedRecords } = useContext(InspectorContext);
   const [hideSidebar] = useState(false);
   const [, setError] = useState("");
   const [publishedHost, setPublishedHost] = useState(
@@ -55,13 +55,15 @@ export default function PublishPublicMapSidebar() {
       const records = dataRecordsQuery?.data?.records;
       if (records && records.length > 0) {
         const firstRecord = records[0];
-        setSelectedRecord({
-          id: firstRecord.id,
-          dataSourceId: activeTabId,
-        });
+        setSelectedRecords([
+          {
+            id: firstRecord.id,
+            dataSourceId: activeTabId,
+          },
+        ]);
       }
     }
-  }, [activeTabId, activePublishTab, dataRecordsQueries, setSelectedRecord]);
+  }, [activeTabId, activePublishTab, dataRecordsQueries, setSelectedRecords]);
 
   // Should never happen
   if (!publicMap) {
@@ -102,10 +104,12 @@ export default function PublishPublicMapSidebar() {
                       dataRecordsQueries[currentDataSourceId]?.data
                         ?.records?.[0];
                     if (firstRecord) {
-                      setSelectedRecord({
-                        id: firstRecord.id,
-                        dataSourceId: currentDataSourceId,
-                      });
+                      setSelectedRecords([
+                        {
+                          id: firstRecord.id,
+                          dataSourceId: currentDataSourceId,
+                        },
+                      ]);
                     }
                   }
                 }
