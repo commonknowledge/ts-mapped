@@ -8,6 +8,7 @@ import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { TRPCReactProvider } from "@/services/trpc/react";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import { Toaster } from "@/shadcn/ui/sonner";
+import { getAbsoluteUrl } from "@/utils/appUrl";
 import type { Organisation } from "@/server/models/Organisation";
 import type { Metadata } from "next";
 import "nprogress/nprogress.css";
@@ -30,6 +31,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getAbsoluteUrl()),
   title: "Mapped",
 };
 

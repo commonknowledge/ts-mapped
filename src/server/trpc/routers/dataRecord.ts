@@ -8,7 +8,7 @@ import {
 import { dataSourceReadProcedure, router } from "../index";
 
 export const dataRecordRouter = router({
-  findPage: dataSourceReadProcedure
+  findPageIndex: dataSourceReadProcedure
     .input(
       z.object({
         dataRecordId: z.string(),
@@ -17,19 +17,14 @@ export const dataRecordRouter = router({
         sort: z.array(recordSortSchema).optional(),
       }),
     )
-    .query(
-      async ({
-        input: { dataRecordId, dataSourceId, filter, search, sort },
-      }) => {
-        const page = await findPageForDataRecord(
-          dataRecordId,
-          dataSourceId,
-          filter,
-          search,
-          sort || [],
-        );
-        return page || 0;
-      },
+    .query(({ input: { dataRecordId, dataSourceId, filter, search, sort } }) =>
+      findPageForDataRecord(
+        dataRecordId,
+        dataSourceId,
+        filter,
+        search,
+        sort || [],
+      ),
     ),
 
   list: dataSourceReadProcedure
