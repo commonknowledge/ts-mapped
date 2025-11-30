@@ -122,7 +122,7 @@ export function useMapClick({
 
           map.flyTo({
             center: markerFeatures[0].geometry.coordinates as [number, number],
-            zoom: 12,
+            zoom: Math.max(12, map.getZoom()),
           });
         }
 

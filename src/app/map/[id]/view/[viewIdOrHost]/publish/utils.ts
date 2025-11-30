@@ -94,7 +94,7 @@ export const groupRecords = (
 export const isWithin = (
   point1: { lat: number; lng: number } | null,
   point2: { lat: number; lng: number } | null,
-  metres = 50,
+  metres = 200,
 ): boolean => {
   if (!point1 || !point2) {
     // Return true if both points are null

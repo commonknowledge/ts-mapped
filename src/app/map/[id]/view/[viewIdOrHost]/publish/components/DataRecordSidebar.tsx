@@ -76,8 +76,8 @@ export default function DataRecordSidebar() {
       <div className={cn("flex flex-col gap-4")}>
         {/* Name */}
         <div className="flex flex-col gap-4">
-          <div className="flex mr-auto">
-            <div className="flex flex-col">
+          <div className="flex items-center">
+            <div className="flex flex-col mr-auto">
               <EditablePublicMapProperty
                 dataSourceProperty={{
                   dataSourceId: selectedRecordDetails.dataSourceId,
@@ -91,71 +91,56 @@ export default function DataRecordSidebar() {
               </EditablePublicMapProperty>
               <span className="text-lg font-semibold">{recordGroup.name}</span>
             </div>
-            <div className="flex">
-              <button
-                type="button"
-                onClick={() => {
-                  setGroupIndex(groupIndex - 1);
-                  setChildIndex(0);
-                }}
-                disabled={groupIndex <= 0}
-              >
-                &lt;
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setGroupIndex(groupIndex + 1);
-                  setChildIndex(0);
-                }}
-                disabled={groupIndex >= recordGroups.length - 1}
-              >
-                &gt;
-              </button>
-            </div>
-          </div>
-          <div className="flex mr-auto">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col ">
-                <EditablePublicMapProperty
-                  dataSourceProperty={{
-                    dataSourceId: selectedRecordDetails.dataSourceId,
-                    property: "descriptionLabel",
+            {recordGroups.length > 1 && (
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  className="p-0"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    setGroupIndex(groupIndex - 1);
+                    setChildIndex(0);
                   }}
-                  placeholder="Description label"
+                  disabled={groupIndex <= 0}
                 >
-                  <span className="text-muted-foreground">
-                    {dataSourceConfig?.descriptionLabel ||
-                      dataSourceConfig?.descriptionColumn ||
-                      "Description"}
-                  </span>
-                </EditablePublicMapProperty>
-                <p>
-                  {description && description !== recordGroup.name
-                    ? description
-                    : "–"}
-                </p>
+                  &lt;
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    setGroupIndex(groupIndex + 1);
+                    setChildIndex(0);
+                  }}
+                  disabled={groupIndex >= recordGroups.length - 1}
+                >
+                  &gt;
+                </Button>
               </div>
-            </div>
-            <div className="flex">
-              <button
-                type="button"
-                onClick={() => {
-                  setChildIndex(childIndex - 1);
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col ">
+              <EditablePublicMapProperty
+                dataSourceProperty={{
+                  dataSourceId: selectedRecordDetails.dataSourceId,
+                  property: "descriptionLabel",
                 }}
-                disabled={childIndex <= 0}
+                placeholder="Description label"
               >
-                &lt;
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setChildIndex(childIndex + 1);
-                }}
-                disabled={childIndex >= recordGroup.children.length - 1}
-              >
-                &gt;
-              </button>
+                <span className="text-muted-foreground">
+                  {dataSourceConfig?.descriptionLabel ||
+                    dataSourceConfig?.descriptionColumn ||
+                    "Description"}
+                </span>
+              </EditablePublicMapProperty>
+              <p>
+                {description && description !== recordGroup.name
+                  ? description
+                  : "–"}
+              </p>
             </div>
           </div>
           <Separator />
@@ -211,6 +196,34 @@ export default function DataRecordSidebar() {
             )}
           </Fragment>
         ))}
+
+        {recordGroup.children.length > 1 && (
+          <div className="flex gap-1 justify-center">
+            <Button
+              type="button"
+              className="p-0"
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                setChildIndex(childIndex - 1);
+              }}
+              disabled={childIndex <= 0}
+            >
+              &lt;
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                setChildIndex(childIndex + 1);
+              }}
+              disabled={childIndex >= recordGroup.children.length - 1}
+            >
+              &gt;
+            </Button>
+          </div>
+        )}
       </div>
       {dataSourceConfig &&
         dataSourceConfig.editFormUrl &&
