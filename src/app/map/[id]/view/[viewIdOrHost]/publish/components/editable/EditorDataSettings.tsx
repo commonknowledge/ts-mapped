@@ -382,6 +382,59 @@ export default function EditorDataSettings() {
                 </div>
                 <fieldset className="flex flex-col gap-6 / mt-8">
                   <div>
+                    <legend className="text-base font-medium">Tooltips</legend>
+                  </div>
+
+                  <FormFieldWrapper
+                    label="Positive icon (✓)"
+                    id={`${dataSourceConfig.dataSourceId}-positive-tooltip`}
+                  >
+                    <Input
+                      type="text"
+                      id={`${dataSourceConfig.dataSourceId}-positive-tooltip`}
+                      value={dataSourceConfig.positiveTooltip || ""}
+                      onChange={(e) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          positiveTooltip: e.target.value,
+                        })
+                      }
+                    />
+                  </FormFieldWrapper>
+
+                  <FormFieldWrapper
+                    label="Negative icon (×)"
+                    id={`${dataSourceConfig.dataSourceId}-negative-tooltip`}
+                  >
+                    <Input
+                      type="text"
+                      id={`${dataSourceConfig.dataSourceId}-negative-tooltip`}
+                      value={dataSourceConfig.negativeTooltip || ""}
+                      onChange={(e) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          negativeTooltip: e.target.value,
+                        })
+                      }
+                    />
+                  </FormFieldWrapper>
+
+                  <FormFieldWrapper
+                    label="Unknown icon (?)"
+                    id={`${dataSourceConfig.dataSourceId}-unknown-tooltip`}
+                  >
+                    <Input
+                      type="text"
+                      id={`${dataSourceConfig.dataSourceId}-unknown-tooltip`}
+                      value={dataSourceConfig.unknownTooltip || ""}
+                      onChange={(e) =>
+                        updateDataSourceConfig(dataSourceConfig.dataSourceId, {
+                          unknownTooltip: e.target.value,
+                        })
+                      }
+                    />
+                  </FormFieldWrapper>
+                </fieldset>
+                <fieldset className="flex flex-col gap-6 / mt-8">
+                  <div>
                     <legend className="text-base font-medium">
                       User actions
                     </legend>
@@ -398,24 +451,44 @@ export default function EditorDataSettings() {
                     />
                   </FormFieldWrapper>
                   {dataSourceConfig.allowUserSubmit && (
-                    <FormFieldWrapper
-                      label="Submission form URL"
-                      id={`${dataSourceConfig.dataSourceId}-form-url`}
-                    >
-                      <Input
-                        type="url"
+                    <>
+                      <FormFieldWrapper
+                        label="Submit button text"
+                        id={`${dataSourceConfig.dataSourceId}-submit-button-text`}
+                      >
+                        <Input
+                          type="text"
+                          id={`${dataSourceConfig.dataSourceId}-submit-button-text`}
+                          value={dataSourceConfig.formButtonText || ""}
+                          onChange={(e) =>
+                            updateDataSourceConfig(
+                              dataSourceConfig.dataSourceId,
+                              {
+                                formButtonText: e.target.value,
+                              },
+                            )
+                          }
+                        />
+                      </FormFieldWrapper>
+                      <FormFieldWrapper
+                        label="Submission form URL"
                         id={`${dataSourceConfig.dataSourceId}-form-url`}
-                        value={dataSourceConfig.formUrl}
-                        onChange={(e) =>
-                          updateDataSourceConfig(
-                            dataSourceConfig.dataSourceId,
-                            {
-                              formUrl: e.target.value,
-                            },
-                          )
-                        }
-                      />
-                    </FormFieldWrapper>
+                      >
+                        <Input
+                          type="url"
+                          id={`${dataSourceConfig.dataSourceId}-form-url`}
+                          value={dataSourceConfig.formUrl}
+                          onChange={(e) =>
+                            updateDataSourceConfig(
+                              dataSourceConfig.dataSourceId,
+                              {
+                                formUrl: e.target.value,
+                              },
+                            )
+                          }
+                        />
+                      </FormFieldWrapper>
+                    </>
                   )}
 
                   <FormFieldWrapper label="Suggest edits" isHorizontal>
@@ -429,24 +502,44 @@ export default function EditorDataSettings() {
                     />
                   </FormFieldWrapper>
                   {dataSourceConfig.allowUserEdit && (
-                    <FormFieldWrapper
-                      label="Edit form URL"
-                      id={`${dataSourceConfig.dataSourceId}-edit-form-url`}
-                    >
-                      <Input
-                        type="url"
+                    <>
+                      <FormFieldWrapper
+                        label="Suggest edit button text"
+                        id={`${dataSourceConfig.dataSourceId}-edit-button-text`}
+                      >
+                        <Input
+                          type="text"
+                          id={`${dataSourceConfig.dataSourceId}-edit-button-text`}
+                          value={dataSourceConfig.editFormButtonText || ""}
+                          onChange={(e) =>
+                            updateDataSourceConfig(
+                              dataSourceConfig.dataSourceId,
+                              {
+                                editFormButtonText: e.target.value,
+                              },
+                            )
+                          }
+                        />
+                      </FormFieldWrapper>
+                      <FormFieldWrapper
+                        label="Edit form URL"
                         id={`${dataSourceConfig.dataSourceId}-edit-form-url`}
-                        value={dataSourceConfig.editFormUrl}
-                        onChange={(e) =>
-                          updateDataSourceConfig(
-                            dataSourceConfig.dataSourceId,
-                            {
-                              editFormUrl: e.target.value,
-                            },
-                          )
-                        }
-                      />
-                    </FormFieldWrapper>
+                      >
+                        <Input
+                          type="url"
+                          id={`${dataSourceConfig.dataSourceId}-edit-form-url`}
+                          value={dataSourceConfig.editFormUrl}
+                          onChange={(e) =>
+                            updateDataSourceConfig(
+                              dataSourceConfig.dataSourceId,
+                              {
+                                editFormUrl: e.target.value,
+                              },
+                            )
+                          }
+                        />
+                      </FormFieldWrapper>
+                    </>
                   )}
                 </fieldset>
               </div>

@@ -190,11 +190,11 @@ function SingleDataSourceContent({
         colorScheme={colorScheme}
       />
 
-      {!editable && config && config.formUrl && config.allowUserSubmit && (
+      {config && config.formUrl && config.allowUserSubmit && (
         <div className="sticky bottom-0 left-0 p-4 / bg-white">
           <Button asChild={true} className="w-full">
             <a href={config.formUrl} target="_blank">
-              Add a listing
+              {config.formButtonText || "Add a listing"}
             </a>
           </Button>
         </div>

@@ -5,6 +5,7 @@ import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
@@ -70,7 +71,7 @@ export default function DataRecordSidebar() {
 
   return (
     <div
-      className="flex flex-col justify-between h-[100vh] overflow-auto w-[280px] p-4 text-sm"
+      className="flex flex-col justify-between h-full overflow-auto w-[280px] p-4 text-sm"
       style={{ backgroundColor: activeColorScheme.primaryMuted }}
     >
       <div className={cn("flex flex-col gap-4")}>
@@ -150,6 +151,7 @@ export default function DataRecordSidebar() {
           <Fragment key={i}>
             {columnConfig.type === PublicMapColumnType.Boolean ? (
               <CheckList
+                dataSourceConfig={dataSourceConfig}
                 sourceColumns={columnConfig.sourceColumns}
                 json={selectedRecordDetails.json}
               />
@@ -235,7 +237,7 @@ export default function DataRecordSidebar() {
                 selectedRecordDetails.json,
               )}`}
             >
-              Submit an edit
+              {dataSourceConfig.editFormButtonText || "Submit an edit"}
             </a>
           </Button>
         )}
@@ -244,9 +246,17 @@ export default function DataRecordSidebar() {
 }
 
 function CheckList({
+  dataSourceConfig,
   sourceColumns,
   json,
 }: {
+  dataSourceConfig:
+    | {
+        positiveTooltip?: string;
+        negativeTooltip?: string;
+        unknownTooltip?: string;
+      }
+    | undefined;
   sourceColumns: string[];
   json: Record<string, unknown>;
 }) {
@@ -256,9 +266,40 @@ function CheckList({
         <div key={column} className="flex items-center gap-2">
           <div className="col-span-1">
             {String(json[column]).toLowerCase() === "unknown" ? (
-              <div className="w-4 h-4 text-center font-semibold">?</div>
+              dataSourceConfig?.unknownTooltip ? (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="w-4 h-4 text-center font-semibold">?</div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {dataSourceConfig?.unknownTooltip}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <div className="w-4 h-4 text-center font-semibold">?</div>
+              )
             ) : toBoolean(json[column]) ? (
-              <Check className="w-4 h-4" />
+              dataSourceConfig?.positiveTooltip ? (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Check className="w-4 h-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {dataSourceConfig?.positiveTooltip}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Check className="w-4 h-4" />
+              )
+            ) : dataSourceConfig?.negativeTooltip ? (
+              <Tooltip>
+                <TooltipTrigger>
+                  <X className="w-4 h-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  {dataSourceConfig?.negativeTooltip}
+                </TooltipContent>
+              </Tooltip>
             ) : (
               <X className="w-4 h-4" />
             )}

@@ -62,10 +62,10 @@ export default function MapTable() {
   // This prevents other state changes from re-triggering the lookup
   // Open to other solutions to this, double useEffect doesn't feel right
   useEffect(() => {
-    if (selectedDataSourceId && selectedRecord?.id) {
+    if (selectedDataSourceId && selectedRecords.length) {
       setLookingUpPage(true);
     }
-  }, [selectedDataSourceId, selectedRecord?.id]);
+  }, [selectedDataSourceId, selectedRecords.length]);
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -77,6 +77,12 @@ export default function MapTable() {
         // Don't clear loading state here to avoid flicker
         return;
       }
+
+      if (!selectedRecords.length) {
+        return;
+      }
+
+      const selectedRecord = selectedRecords[0];
 
       if (!selectedDataSourceId || !selectedRecord?.id) {
         setLookingUpPage(false);
@@ -121,7 +127,7 @@ export default function MapTable() {
     lookingUpPage,
     queryClient,
     selectedDataSourceId,
-    selectedRecord?.id,
+    selectedRecords,
     setTablePage,
     tablePage,
     trpc.dataRecord.findPageIndex,

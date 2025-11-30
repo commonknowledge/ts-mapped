@@ -28,12 +28,17 @@ export const publicMapDataSourceConfigSchema = z.object({
   dataSourceId: z.string(),
   dataSourceLabel: z.string(),
   formUrl: z.string(),
+  formButtonText: z.string().optional(),
   editFormUrl: z.string(),
+  editFormButtonText: z.string().optional(),
   nameColumns: z.array(z.string()),
   nameLabel: z.string(),
   descriptionColumn: z.string(),
   descriptionLabel: z.string(),
   additionalColumns: z.array(publicMapColumnSchema),
+  positiveTooltip: z.string().optional(),
+  negativeTooltip: z.string().optional(),
+  unknownTooltip: z.string().optional(),
 });
 
 export type PublicMapDataSourceConfig = z.infer<
