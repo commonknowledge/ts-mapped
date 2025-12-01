@@ -9,6 +9,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { PublicMapContext } from "../context/PublicMapContext";
 import EditorNavbar from "./editable/EditorNavbar";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
@@ -24,6 +25,8 @@ export default function PublicMap() {
   const markerQueries = useMarkerQueries();
 
   const { data: map, isPending } = useMapQuery(mapId);
+
+  const isMobile = useIsMobile();
 
   if (!map || isPending) {
     return <Loading />;
@@ -49,9 +52,7 @@ export default function PublicMap() {
       )}
       <div className="grow flex flex-col md:flex-row">
         {/* Desktop Sidebar - Hidden on mobile */}
-        <div className="hidden md:block">
-          <PublicMapSidebar />
-        </div>
+        {!isMobile && <PublicMapSidebar />}
 
         {/* Main Content Area */}
         <div className="flex-1 relative flex flex-col md:block">
@@ -83,14 +84,13 @@ export default function PublicMap() {
           </div>
 
           {/* Mobile Listings - Overlay on bottom half */}
-          <div
-            className="md:hidden bg-white border-t"
-            style={{ height: "50vh" }}
-          >
-            <div className="overflow-y-auto h-full">
-              <PublicMapListings />
+          {isMobile && (
+            <div className="bg-white border-t" style={{ height: "50vh" }}>
+              <div className="overflow-y-auto h-full">
+                <PublicMapListings />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Editor Sidebar */}
           {editable && <PublishPublicMapSidebar />}

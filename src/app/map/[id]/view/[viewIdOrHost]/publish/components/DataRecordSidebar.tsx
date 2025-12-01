@@ -13,9 +13,9 @@ import { groupRecords, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
-  const { selectedRecords } = useContext(InspectorContext);
-  const { publicMap, colorScheme, setSelectedRecordGroupId } =
-    useContext(PublicMapContext);
+  const { selectedRecords, setSelectedRecordIndex } =
+    useContext(InspectorContext);
+  const { publicMap, colorScheme } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const [groupIndex, setGroupIndex] = useState(0);
   const [childIndex, setChildIndex] = useState(0);
@@ -52,13 +52,21 @@ export default function DataRecordSidebar() {
     setChildIndex(0);
   }, [selectedRecords]);
 
-  // Update the selected record group in context so the list
+  // Update the selected record in context so the list
   // sidebar can scroll to the correct record
   useEffect(() => {
-    if (recordGroup) {
-      setSelectedRecordGroupId(recordGroup.id);
+    if (selectedRecordDetails) {
+      const recordIndex = selectedRecords.findIndex(
+        (r) => r.id === selectedRecordDetails.id,
+      );
+      if (recordIndex !== undefined) {
+        setSelectedRecordIndex(recordIndex);
+        return;
+      }
     }
-  }, [recordGroup, setSelectedRecordGroupId]);
+    // Reset to record 0 if selectedRecord not found
+    setSelectedRecordIndex(0);
+  }, [selectedRecordDetails, selectedRecords, setSelectedRecordIndex]);
 
   if (!recordGroup || !selectedRecordDetails || !publicMap) {
     return <></>;

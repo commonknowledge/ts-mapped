@@ -42,9 +42,14 @@ export const InspectorContext = createContext<{
   setInspectorContent: (r: InspectorContent) => void;
   selectedRecords: SelectedRecord[];
   setSelectedRecords: (r: SelectedRecord[]) => void;
+  selectedRecordIndex: number;
+  setSelectedRecordIndex: (i: number) => void;
+  // Change selectedRecord by setting the correct index.
+  // Not directly settable to prevent getting out-of-sync
+  // with selectedRecords.
+  selectedRecord: SelectedRecord | null;
   selectedBoundary: SelectedBoundary | null;
   setSelectedBoundary: (r: SelectedBoundary | null) => void;
-
   selectedTurf: SelectedTurf | null;
   setSelectedTurf: (r: SelectedTurf | null) => void;
 }>({
@@ -53,6 +58,9 @@ export const InspectorContext = createContext<{
   setInspectorContent: () => null,
   selectedRecords: [],
   setSelectedRecords: () => null,
+  selectedRecordIndex: 0,
+  setSelectedRecordIndex: () => null,
+  selectedRecord: null,
   selectedTurf: null,
   setSelectedTurf: () => null,
   selectedBoundary: null,

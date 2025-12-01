@@ -91,7 +91,7 @@ function DataSourceMarkers({
   dataSourceMarkers: { dataSourceId: string; markers: PointFeature[] };
   isMembers: boolean;
 }) {
-  const { recordGroups, publicFilters } = useContext(PublicFiltersContext);
+  const { filteredRecords, publicFilters } = useContext(PublicFiltersContext);
   const { publicMap, colorScheme } = useContext(PublicMapContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
@@ -104,9 +104,7 @@ function DataSourceMarkers({
     }
 
     // Add MARKER_CLIENT_EXCLUDED_KEY if public filters are set and marker is not matched
-    const recordIds = (recordGroups || [])
-      .flatMap((r) => r.children.map((c) => c.id))
-      .filter(Boolean);
+    const recordIds = (filteredRecords || []).map((r) => r.id).filter(Boolean);
     return {
       type: "FeatureCollection",
       features: dataSourceMarkers.markers.map((f) => ({
@@ -119,7 +117,7 @@ function DataSourceMarkers({
         },
       })),
     };
-  }, [dataSourceMarkers.markers, publicFilters, recordGroups]);
+  }, [dataSourceMarkers.markers, filteredRecords, publicFilters]);
 
   const NOT_MATCHED_CASE = [
     "any",

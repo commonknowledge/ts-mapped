@@ -4,7 +4,6 @@ import type { DataRecord } from "@/server/models/DataRecord";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 
 export interface RecordGroup {
-  id: string;
   name: string;
   geocodePoint: { lat: number; lng: number } | null;
   children: DataRecord[];
@@ -79,7 +78,6 @@ export const groupRecords = (
         updateRecordGroupGeocodePoint(group, record);
       } else {
         groups.push({
-          id: `${name}:${record.geocodePoint?.lng}:${record.geocodePoint?.lat}`,
           name,
           geocodePoint: record.geocodePoint,
           children: [record],
@@ -132,6 +130,5 @@ const updateRecordGroupGeocodePoint = (
   }
   if (shouldUpdate) {
     group.geocodePoint = record.geocodePoint;
-    group.id = `${group.name}:${group.geocodePoint?.lng}:${group.geocodePoint?.lat}`;
   }
 };

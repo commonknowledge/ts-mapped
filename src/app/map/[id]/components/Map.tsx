@@ -4,6 +4,7 @@ import * as turf from "@turf/turf";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
+import { MapBoundsContext } from "@/app/map/[id]/context/MapBoundsContext";
 import {
   MapContext,
   getDataSourceIds,
@@ -38,9 +39,9 @@ export default function Map({
   onSourceLoad: (sourceId: string) => void;
   hideDrawControls?: boolean;
 }) {
-  const { isMobile } = useIsMobile();
-  const { mapRef, setBoundingBox, setZoom, pinDropMode, showControls } =
-    useContext(MapContext);
+  const isMobile = useIsMobile();
+  const { mapRef, setZoom, pinDropMode, showControls } = useContext(MapContext);
+  const { setBoundingBox } = useContext(MapBoundsContext);
   const [ready, setReady] = useState(false);
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();

@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { RecordGroup } from "../utils";
+import type { DataRecord } from "@/server/models/DataRecord";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 type SetPublicFilters = React.Dispatch<
@@ -10,10 +10,10 @@ export const PublicFiltersContext = createContext<{
   filterFields: FilterField[];
   publicFilters: Record<string, PublicFiltersFormValue[]>;
   setPublicFilters: SetPublicFilters;
-  recordGroups: RecordGroup[];
+  filteredRecords: DataRecord[];
 }>({
   filterFields: [],
   publicFilters: {},
   setPublicFilters: () => null,
-  recordGroups: [],
+  filteredRecords: [],
 });

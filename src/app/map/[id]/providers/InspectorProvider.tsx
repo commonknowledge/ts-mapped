@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
@@ -39,7 +39,8 @@ const HIDDEN_PROPERTIES = [
 const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const [selectedRecords, setSelectedRecords] = useState<SelectedRecord[]>([]);
+  const [selectedRecords, _setSelectedRecords] = useState<SelectedRecord[]>([]);
+  const [selectedRecordIndex, setSelectedRecordIndex] = useState(0);
   const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
   const [selectedBoundary, setSelectedBoundary] =
     useState<SelectedBoundary | null>(null);
@@ -47,9 +48,20 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const [inspectorContent, setInspectorContent] =
     useState<InspectorContent | null>(null);
 
+  const setSelectedRecords = useCallback((records: SelectedRecord[]) => {
+    _setSelectedRecords(records);
+    setSelectedRecordIndex(0);
+  }, []);
+
+  // Change this by setting the correct index. Not set directly to prevent
+  // getting out-of-sync with selectedRecords.
+  const selectedRecord: SelectedRecord | null = useMemo(() => {
+    return selectedRecords[selectedRecordIndex] || selectedRecords[0] || null;
+  }, [selectedRecordIndex, selectedRecords]);
+
   useEffect(() => {
     // if no selected marker / member to inspect
-    if (!selectedRecords.length || !selectedRecords[0].properties) {
+    if (!selectedRecord || !selectedRecord.properties) {
       // check if area selected
       if (selectedTurf?.id) {
         setInspectorContent({
@@ -75,7 +87,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const dataSourceId = selectedRecords[0].dataSourceId;
+    const dataSourceId = selectedRecord.dataSourceId;
 
     const dataSource = dataSourceId ? getDataSourceById(dataSourceId) : null;
     const type =
@@ -84,14 +96,14 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         : LayerType.Marker;
 
     const filteredProperties = Object.fromEntries(
-      Object.entries(selectedRecords[0].properties).filter(
+      Object.entries(selectedRecord.properties).filter(
         ([key]) => !HIDDEN_PROPERTIES.includes(key),
       ),
     );
 
     setInspectorContent({
       type: type,
-      name: selectedRecords[0]?.properties?.[MARKER_NAME_KEY],
+      name: selectedRecord?.properties?.[MARKER_NAME_KEY],
       properties: filteredProperties,
       dataSource: dataSource,
     });
@@ -100,7 +112,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     selectedTurf,
     selectedBoundary,
     mapConfig.membersDataSourceId,
-    selectedRecords,
+    selectedRecord,
   ]);
 
   const resetInspector = useCallback(() => {
@@ -108,7 +120,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     setSelectedTurf(null);
     setSelectedBoundary(null);
     setInspectorContent(null);
-  }, []);
+  }, [setSelectedRecords]);
 
   return (
     <InspectorContext
@@ -117,6 +129,9 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         setInspectorContent,
         selectedRecords,
         setSelectedRecords,
+        selectedRecordIndex,
+        setSelectedRecordIndex,
+        selectedRecord,
         selectedTurf,
         setSelectedTurf,
         selectedBoundary,

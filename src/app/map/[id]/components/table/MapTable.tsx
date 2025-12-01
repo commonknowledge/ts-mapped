@@ -7,18 +7,22 @@ import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { MARKER_NAME_KEY } from "@/constants";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
+import { buildName } from "@/utils/text";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {
   id: string;
+  externalId: string;
   geocodePoint?: { lng: number; lat: number } | null;
+  json: Record<string, unknown>;
 }
 
 export default function MapTable() {
@@ -150,7 +154,16 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedRecords([{ id: row.id, dataSourceId: dataSource.id }]);
+    setSelectedRecords([
+      {
+        id: row.id,
+        dataSourceId: dataSource.id,
+        properties: {
+          ...row.json,
+          [MARKER_NAME_KEY]: buildName(dataSource, row),
+        },
+      },
+    ]);
   };
 
   const updateDataSourceView = (update: Partial<DataSourceView>) => {

@@ -11,6 +11,7 @@ import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord"
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/PublicMap";
+import { buildName } from "@/utils/text";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { DataSource } from "@/server/models/DataSource";
 import type { RecordFilterInput } from "@/server/models/MapView";
@@ -63,7 +64,6 @@ export async function GET(
             number,
             number,
           ];
-          const nameColumns = dataSource?.columnRoles.nameColumns;
           const feature: PointFeature = {
             type: "Feature",
             properties: {
@@ -71,12 +71,7 @@ export async function GET(
               [MARKER_ID_KEY]: dr.id,
               [MARKER_DATA_SOURCE_ID_KEY]: dr.dataSourceId,
               // If no name column is specified, show the ID as the marker name instead
-              [MARKER_NAME_KEY]: nameColumns?.length
-                ? nameColumns
-                    .map((c) => dr.json[c])
-                    .filter(Boolean)
-                    .join(" ")
-                : dr.externalId,
+              [MARKER_NAME_KEY]: buildName(dataSource, dr),
               [MARKER_MATCHED_KEY]: dr[MARKER_MATCHED_COLUMN],
             },
             geometry: {

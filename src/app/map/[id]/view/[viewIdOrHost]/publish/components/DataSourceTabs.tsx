@@ -126,7 +126,7 @@ function SingleDataSourceContent({
   editable,
   colorScheme,
 }: SingleDataSourceContentProps) {
-  const { publicFilters, setPublicFilters, recordGroups } =
+  const { publicFilters, setPublicFilters, filteredRecords } =
     useContext(PublicFiltersContext);
   const { publicMap } = useContext(PublicMapContext);
 
@@ -143,11 +143,11 @@ function SingleDataSourceContent({
         );
 
   const getListingsLabel = () => {
-    if (!recordGroups?.length) {
+    if (!filteredRecords?.length) {
       return "No matching listings";
     }
 
-    return `${recordGroups.length} ${recordGroups.length === 1 ? "listing" : "listings"}`;
+    return `${filteredRecords.length} ${filteredRecords.length === 1 ? "listing" : "listings"}`;
   };
 
   const resetFilters = () => {

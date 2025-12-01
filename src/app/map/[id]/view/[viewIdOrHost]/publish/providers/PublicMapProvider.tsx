@@ -81,10 +81,6 @@ export default function PublicMapProvider({
     }
   };
 
-  const [selectedRecordGroupId, setSelectedRecordGroupId] = useState<
-    string | null
-  >(null);
-
   return (
     <PublicMapContext
       value={{
@@ -100,8 +96,6 @@ export default function PublicMapProvider({
         activePublishTab,
         setActivePublishTab,
         colorScheme,
-        selectedRecordGroupId,
-        setSelectedRecordGroupId,
       }}
     >
       {children}

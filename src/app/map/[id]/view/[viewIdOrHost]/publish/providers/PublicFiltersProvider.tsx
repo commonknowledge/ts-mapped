@@ -7,7 +7,6 @@ import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { filterRecords, getActiveFilters } from "../filtersHelpers";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
-import { groupRecords } from "../utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 import type { ReactNode } from "react";
 
@@ -92,14 +91,10 @@ export default function PublicFiltersProvider({
     return allowedFields;
   }, [publicMap, activeTabId, dataRecordsQueries]);
 
-  const recordGroups = useMemo(() => {
+  const filteredRecords = useMemo(() => {
     if (!publicMap) {
       return [];
     }
-
-    const dataSourceConfig = activeTabId
-      ? publicMap.dataSourceConfigs.find((c) => c.dataSourceId === activeTabId)
-      : publicMap.dataSourceConfigs[0];
 
     const dataRecordsQuery = activeTabId
       ? dataRecordsQueries?.[activeTabId]
@@ -114,7 +109,7 @@ export default function PublicFiltersProvider({
       ? filterRecords(activeFilters, allRecords)
       : allRecords;
 
-    return groupRecords(dataSourceConfig, filteredRecords);
+    return filteredRecords;
   }, [activeTabId, dataRecordsQueries, publicFilters, publicMap]);
 
   return (
@@ -123,7 +118,7 @@ export default function PublicFiltersProvider({
         filterFields,
         publicFilters,
         setPublicFilters,
-        recordGroups,
+        filteredRecords,
       }}
     >
       {children}
