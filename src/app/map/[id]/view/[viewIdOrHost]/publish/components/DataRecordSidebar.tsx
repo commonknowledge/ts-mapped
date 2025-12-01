@@ -2,6 +2,7 @@ import { Check, X } from "lucide-react";
 import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
@@ -13,7 +14,8 @@ import { groupRecords, jsonToAirtablePrefill, toBoolean } from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
-  const { selectedRecords, setSelectedRecordIndex } =
+  const isMobile = useIsMobile();
+  const { selectedRecords, setSelectedRecordIndex, resetInspector } =
     useContext(InspectorContext);
   const { publicMap, colorScheme } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
@@ -79,10 +81,25 @@ export default function DataRecordSidebar() {
 
   return (
     <div
-      className="flex flex-col justify-between h-full overflow-auto w-[280px] p-4 text-sm"
+      className={cn(
+        "flex flex-col justify-between h-full overflow-auto md:w-[280px] p-4 text-sm",
+        isMobile ? "absolute left-0 top-0 w-full h-full" : "",
+      )}
       style={{ backgroundColor: activeColorScheme.primaryMuted }}
     >
-      <div className={cn("flex flex-col gap-4")}>
+      <div className={"flex flex-col gap-4"}>
+        {isMobile && (
+          <Button
+            type="button"
+            variant="link"
+            className="p-0 mr-auto h-4"
+            onClick={() => {
+              resetInspector();
+            }}
+          >
+            &lt; Back
+          </Button>
+        )}
         {/* Name */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center">

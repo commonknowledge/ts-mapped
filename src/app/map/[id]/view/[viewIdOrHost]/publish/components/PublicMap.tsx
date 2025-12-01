@@ -13,7 +13,6 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { PublicMapContext } from "../context/PublicMapContext";
 import EditorNavbar from "./editable/EditorNavbar";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
-import { PublicMapListings } from "./PublicMapListings";
 import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 
@@ -85,9 +84,12 @@ export default function PublicMap() {
 
           {/* Mobile Listings - Overlay on bottom half */}
           {isMobile && (
-            <div className="bg-white border-t" style={{ height: "50vh" }}>
+            <div
+              className="bg-white border-t relative"
+              style={{ height: "50vh" }}
+            >
               <div className="overflow-y-auto h-full">
-                <PublicMapListings />
+                <PublicMapSidebar />
               </div>
             </div>
           )}
