@@ -11,7 +11,7 @@ import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord"
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
 import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/PublicMap";
-import { buildName } from "@/utils/text";
+import { buildName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { DataSource } from "@/server/models/DataSource";
 import type { RecordFilterInput } from "@/server/models/MapView";

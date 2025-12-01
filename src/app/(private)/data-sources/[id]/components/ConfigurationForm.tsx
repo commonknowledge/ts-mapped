@@ -31,6 +31,12 @@ export default function ConfigurationForm({
     dataSource.columnRoles.nameColumns || [],
   );
 
+  const [dateColumn, setDateColumn] = useState<string>(
+    dataSource.columnRoles.dateColumn || "",
+  );
+
+  const [dateFormat, setDateFormat] = useState<string>(dataSource.dateFormat);
+
   // Geocoding config
   const [geocodingConfig, setGeocodingConfig] = useState(
     dataSource.geocodingConfig,
@@ -61,7 +67,7 @@ export default function ConfigurationForm({
     }),
   );
 
-  const columnRoles = { nameColumns };
+  const columnRoles = { nameColumns, dateColumn };
 
   const { data: validGeocodingConfig } =
     geocodingConfigSchema.safeParse(geocodingConfig);
@@ -76,6 +82,7 @@ export default function ConfigurationForm({
       columnRoles,
       geocodingConfig: validGeocodingConfig,
       autoImport,
+      dateFormat,
     });
   };
 
@@ -87,6 +94,10 @@ export default function ConfigurationForm({
         dataSource={dataSource}
         nameColumns={nameColumns}
         setNameColumns={setNameColumns}
+        dateColumn={dateColumn}
+        setDateColumn={setDateColumn}
+        dateFormat={dateFormat}
+        setDateFormat={setDateFormat}
       />
 
       <GeocodingConfigFields

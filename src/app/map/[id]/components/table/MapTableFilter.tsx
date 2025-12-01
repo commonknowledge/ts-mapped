@@ -27,7 +27,7 @@ import {
 } from "@/shadcn/ui/command";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
-import { buildName } from "@/utils/text";
+import { buildName } from "@/utils/dataRecord";
 import { mapColors } from "../../styles";
 import type {
   DropdownMenuItemType,

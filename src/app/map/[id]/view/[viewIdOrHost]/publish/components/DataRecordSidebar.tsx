@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { Check, X } from "lucide-react";
 import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
@@ -8,6 +9,7 @@ import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
+import { parseDate } from "@/utils/dataRecord";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import { groupRecords, jsonToAirtablePrefill, toBoolean } from "../utils";
@@ -35,6 +37,13 @@ export default function DataRecordSidebar() {
     return selectedRecords
       .map((record) => records?.find((r) => r.id === record.id))
       .filter((r) => r !== undefined);
+  }, [dataRecordsQueries, selectedRecords]);
+
+  const dataSource = useMemo(() => {
+    if (!selectedRecords.length) {
+      return null;
+    }
+    return dataRecordsQueries[selectedRecords[0].dataSourceId].data;
   }, [dataRecordsQueries, selectedRecords]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
@@ -79,6 +88,8 @@ export default function DataRecordSidebar() {
   );
   const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
+  const date = parseDate(dataSource, selectedRecordDetails);
+
   return (
     <div
       className={cn(
@@ -102,7 +113,7 @@ export default function DataRecordSidebar() {
         )}
         {/* Name */}
         <div className="flex flex-col gap-4">
-          <div className="flex items-center">
+          <div className="flex items-center gap-1">
             <div className="flex flex-col mr-auto">
               <EditablePublicMapProperty
                 dataSourceProperty={{
@@ -147,8 +158,8 @@ export default function DataRecordSidebar() {
               </div>
             )}
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-col ">
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-col">
               <EditablePublicMapProperty
                 dataSourceProperty={{
                   dataSourceId: selectedRecordDetails.dataSourceId,
@@ -170,6 +181,39 @@ export default function DataRecordSidebar() {
             </div>
           </div>
           <Separator />
+        </div>
+
+        <div className="flex gap-1 items-center">
+          <span className="mr-auto font-mono uppercase">
+            {format(date, "d MMMM yyyy")}
+          </span>
+          {recordGroup.children.length > 1 && (
+            <div className="flex gap-1 justify-center">
+              <Button
+                type="button"
+                className="p-0"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  setChildIndex(childIndex - 1);
+                }}
+                disabled={childIndex <= 0}
+              >
+                &lt;
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  setChildIndex(childIndex + 1);
+                }}
+                disabled={childIndex >= recordGroup.children.length - 1}
+              >
+                &gt;
+              </Button>
+            </div>
+          )}
         </div>
 
         {additionalColumns.map((columnConfig, i) => (
@@ -223,34 +267,6 @@ export default function DataRecordSidebar() {
             )}
           </Fragment>
         ))}
-
-        {recordGroup.children.length > 1 && (
-          <div className="flex gap-1 justify-center">
-            <Button
-              type="button"
-              className="p-0"
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                setChildIndex(childIndex - 1);
-              }}
-              disabled={childIndex <= 0}
-            >
-              &lt;
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                setChildIndex(childIndex + 1);
-              }}
-              disabled={childIndex >= recordGroup.children.length - 1}
-            >
-              &gt;
-            </Button>
-          </div>
-        )}
       </div>
       {dataSourceConfig &&
         dataSourceConfig.editFormUrl &&

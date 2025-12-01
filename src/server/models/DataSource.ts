@@ -210,6 +210,7 @@ export const columnDefSchema = z.object({
 export type ColumnDef = z.infer<typeof columnDefSchema>;
 
 export const columnRolesSchema = z.object({
+  dateColumn: z.string().optional(),
   nameColumns: z.array(z.string()),
 });
 
@@ -240,6 +241,7 @@ export const dataSourceSchema = z.object({
   organisationId: z.string(),
   public: z.boolean(),
   createdAt: z.date(),
+  dateFormat: z.string(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;
@@ -247,6 +249,7 @@ export type DataSource = z.infer<typeof dataSourceSchema>;
 export type DataSourceTable = DataSource & {
   id: Generated<string>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
+  dateFormat: Generated<string>;
 };
 
 export type NewDataSource = Insertable<DataSourceTable>;
