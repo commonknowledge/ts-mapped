@@ -51,8 +51,19 @@ export default function DataRecordSidebar() {
   );
 
   const recordGroups = useMemo(() => {
-    return groupRecords(dataSourceConfig, selectedRecordsDetails);
-  }, [dataSourceConfig, selectedRecordsDetails]);
+    const groups = groupRecords(dataSourceConfig, selectedRecordsDetails);
+    // Sort children by date
+    return groups.map((g) => {
+      return {
+        ...g,
+        children: g.children.toSorted((a, b) => {
+          const aDate = parseDate(dataSource, a);
+          const bDate = parseDate(dataSource, b);
+          return aDate < bDate ? 1 : -1;
+        }),
+      };
+    });
+  }, [dataSource, dataSourceConfig, selectedRecordsDetails]);
 
   const recordGroup = recordGroups[groupIndex];
   const selectedRecordDetails = recordGroup?.children[childIndex];
