@@ -1,19 +1,12 @@
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { MARKER_NAME_KEY } from "@/constants";
 import { LayerType, type RecordData, type RecordsResponse } from "@/types";
+import { buildName } from "@/utils/dataRecord";
 import TurfMarkerButton from "./TurfMarkerButton";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
-
-const getDisplayName = (dataSource: DataSource | null, record: RecordData) => {
-  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
-  return record.name
-    ? record.name
-    : nameColumn
-      ? String(record.json[nameColumn] ?? "")
-      : `Id: ${record.id}`;
-};
 
 export const MembersList = ({
   records,
@@ -35,7 +28,13 @@ export const MembersList = ({
         point: record.geocodePoint,
         properties: {
           ...record.json,
-          __name: getDisplayName(dataSource, record),
+          [MARKER_NAME_KEY]: buildName(dataSource, {
+            ...record,
+            // The externalId is not present as this data comes from the marker GeoJSON
+            // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
+            // but to load data when needed from the backend
+            externalId: "Unknown",
+          }),
         },
       },
     ]);
@@ -52,7 +51,13 @@ export const MembersList = ({
       ) : memberRecords.length > 0 ? (
         <ul>
           {memberRecords.map((record) => {
-            const displayName = getDisplayName(dataSource, record);
+            const displayName = buildName(dataSource, {
+              ...record,
+              // The externalId is not present as this data comes from the marker GeoJSON
+              // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
+              // but to load data when needed from the backend
+              externalId: "Unknown",
+            });
             return (
               <li key={record.id}>
                 <TurfMarkerButton
@@ -80,7 +85,6 @@ export const MarkersList = ({
 }) => {
   const { setSelectedRecords } = useContext(InspectorContext);
 
-  const nameColumn = dataSource?.columnRoles?.nameColumns?.[0];
   const recordsList = records.records ?? [];
   const total = records.count.matched ?? 0;
 
@@ -92,11 +96,13 @@ export const MarkersList = ({
         point: record.geocodePoint,
         properties: {
           ...record.json,
-          __name: record?.name
-            ? record.name
-            : nameColumn
-              ? record.json[nameColumn]
-              : "",
+          [MARKER_NAME_KEY]: buildName(dataSource, {
+            ...record,
+            // The externalId is not present as this data comes from the marker GeoJSON
+            // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
+            // but to load data when needed from the backend
+            externalId: "Unknown",
+          }),
         },
       },
     ]);
@@ -117,11 +123,16 @@ export const MarkersList = ({
 
       <ul>
         {recordsList.map((record) => {
-          const displayName = getDisplayName(dataSource, record);
           return (
             <li key={record.id}>
               <TurfMarkerButton
-                label={displayName}
+                label={buildName(dataSource, {
+                  ...record,
+                  // The externalId is not present as this data comes from the marker GeoJSON
+                  // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
+                  // but to load data when needed from the backend
+                  externalId: "Unknown",
+                })}
                 type={LayerType.Marker}
                 onClick={() => onRecordClick(record)}
               />
@@ -153,7 +164,7 @@ export const PlacedMarkersList = ({
         dataSourceId: "",
         point: record.geocodePoint,
         properties: {
-          __name: record.json?.name || "",
+          [MARKER_NAME_KEY]: record.json?.name || "",
         },
       },
     ]);
