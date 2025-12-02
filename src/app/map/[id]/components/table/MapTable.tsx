@@ -7,7 +7,6 @@ import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { MARKER_NAME_KEY } from "@/constants";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
@@ -29,7 +28,7 @@ export default function MapTable() {
   const { mapRef } = useContext(MapContext);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { selectedRecords, setSelectedRecords } = useContext(InspectorContext);
+  const { focusedRecord, setFocusedRecord } = useContext(InspectorContext);
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
   const [lookingUpPage, setLookingUpPage] = useState(false);
 
@@ -66,10 +65,10 @@ export default function MapTable() {
   // This prevents other state changes from re-triggering the lookup
   // Open to other solutions to this, double useEffect doesn't feel right
   useEffect(() => {
-    if (selectedDataSourceId && selectedRecords.length) {
+    if (selectedDataSourceId && focusedRecord) {
       setLookingUpPage(true);
     }
-  }, [selectedDataSourceId, selectedRecords.length]);
+  }, [focusedRecord, selectedDataSourceId]);
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -82,19 +81,17 @@ export default function MapTable() {
         return;
       }
 
-      if (!selectedRecords.length) {
+      if (!focusedRecord) {
         return;
       }
 
-      const selectedRecord = selectedRecords[0];
-
-      if (!selectedDataSourceId || !selectedRecord?.id) {
+      if (!selectedDataSourceId || !focusedRecord?.id) {
         setLookingUpPage(false);
         return;
       }
 
       const recordInCurrentPage = dataRecordsResult?.records.some(
-        (r) => r.id === selectedRecord.id,
+        (r) => r.id === focusedRecord.id,
       );
 
       if (recordInCurrentPage) {
@@ -106,7 +103,7 @@ export default function MapTable() {
         const pageIndex = await queryClient.fetchQuery(
           trpc.dataRecord.findPageIndex.queryOptions({
             dataSourceId: selectedDataSourceId,
-            dataRecordId: selectedRecord.id,
+            dataRecordId: focusedRecord.id,
             search: dataSourceView?.search,
             filter: dataSourceView?.filter,
             sort: dataSourceView?.sort,
@@ -128,10 +125,10 @@ export default function MapTable() {
     dataRecordsLoading,
     dataRecordsResult?.records,
     dataSourceView,
+    focusedRecord,
     lookingUpPage,
     queryClient,
     selectedDataSourceId,
-    selectedRecords,
     setTablePage,
     tablePage,
     trpc.dataRecord.findPageIndex,
@@ -154,16 +151,12 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedRecords([
-      {
-        id: row.id,
-        dataSourceId: dataSource.id,
-        properties: {
-          ...row.json,
-          [MARKER_NAME_KEY]: buildName(dataSource, row),
-        },
-      },
-    ]);
+    setFocusedRecord({
+      id: row.id,
+      dataSourceId: dataSource.id,
+      name: buildName(dataSource, row),
+      geocodePoint: row.geocodePoint,
+    });
   };
 
   const updateDataSourceView = (update: Partial<DataSourceView>) => {
@@ -231,8 +224,7 @@ export default function MapTable() {
         sort={dataSourceView?.sort || []}
         setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
-        // TODO: make this work for multiple selected records
-        selectedRecordId={selectedRecords[0]?.id}
+        selectedRecordId={focusedRecord?.id}
         onClose={() => handleDataSourceSelect("")}
       />
     </div>

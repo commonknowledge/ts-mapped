@@ -1,9 +1,11 @@
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { TableContext } from "@/app/map/[id]/context/TableContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
@@ -18,12 +20,25 @@ export default function InspectorPanel() {
     resetInspector,
     selectedBoundary,
     selectedTurf,
-    selectedRecords,
-    setSelectedRecords,
+    focusedRecord,
+    setFocusedRecord,
   } = useContext(InspectorContext);
   const { mapRef } = useContext(MapContext);
   const { setSelectedDataSourceId, selectedDataSourceId } =
     useContext(TableContext);
+
+  const trpc = useTRPC();
+  const { data: recordData, isFetching: recordLoading } = useQuery(
+    trpc.dataRecord.byId.queryOptions(
+      {
+        dataSourceId: focusedRecord?.dataSourceId || "",
+        id: focusedRecord?.id || "",
+      },
+      {
+        enabled: Boolean(focusedRecord),
+      },
+    ),
+  );
 
   if (!Boolean(inspectorContent)) {
     return <></>;
@@ -36,14 +51,14 @@ export default function InspectorPanel() {
     (selectedBoundary && type !== LayerType.Boundary);
 
   const onCloseDetailsView = () => {
-    setSelectedRecords([]);
+    setFocusedRecord(null);
   };
 
   const flyToMarker = () => {
     const map = mapRef?.current;
 
-    if (map && selectedRecords[0]?.point) {
-      map.flyTo({ center: selectedRecords[0].point, zoom: 12 });
+    if (map && focusedRecord?.geocodePoint) {
+      map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
     }
   };
 
@@ -108,7 +123,13 @@ export default function InspectorPanel() {
             </div>
           )}
 
-          <PropertiesList properties={properties} />
+          {recordLoading ? (
+            <span>Loading...</span>
+          ) : (
+            <PropertiesList
+              properties={{ ...properties, ...recordData?.json }}
+            />
+          )}
 
           {type === LayerType.Turf && <TurfMarkersList />}
 
@@ -116,7 +137,7 @@ export default function InspectorPanel() {
 
           {(isDetailsView || dataSource) && (
             <div className="flex flex-col gap-3 border-t pt-4">
-              {isDetailsView && selectedRecords[0]?.point && (
+              {isDetailsView && focusedRecord?.geocodePoint && (
                 <Button onClick={() => flyToMarker()}>
                   <MapPinIcon />
                   View on map

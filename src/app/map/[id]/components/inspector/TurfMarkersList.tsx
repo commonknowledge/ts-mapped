@@ -9,14 +9,14 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { type RecordsResponse } from "@/types";
+import { buildName } from "@/utils/dataRecord";
 import {
-  checkIfAnyRecords,
   getMarkersInsidePolygon,
-  mapPlacedMarkersToRecordsResponse,
+  groupPlacedMarkersByFolder,
   mapTurfToGeoFeature,
 } from "./helpers";
 import { MarkersList, MembersList, PlacedMarkersList } from "./MarkersLists";
+import type { MarkerFeature } from "@/types";
 
 export default function TurfMarkersList() {
   const { getDataSourceById } = useDataSources();
@@ -40,13 +40,35 @@ export default function TurfMarkersList() {
       ),
     ),
     combine: (results) => ({
-      data: results.map((result, i) => ({
-        dataSource: getDataSourceById(dataSourceIds[i]),
-        records: (result.data as RecordsResponse) ?? {
-          count: { matched: 0 },
-          records: [],
-        },
-      })),
+      data: results.map((result, i) => {
+        const dataSource = getDataSourceById(dataSourceIds[i]);
+        return {
+          dataSource,
+          markers: result.data
+            ? result.data.records
+                .filter((r) => r.geocodePoint !== null)
+                .map(
+                  (r): MarkerFeature => ({
+                    type: "Feature",
+                    geometry: {
+                      // [0, 0] should never happen because this query is filtering by geocodePoint
+                      coordinates: [
+                        r.geocodePoint?.lng || 0,
+                        r.geocodePoint?.lat || 0,
+                      ],
+                      type: "Point",
+                    },
+                    properties: {
+                      id: r.id,
+                      name: buildName(dataSource, r),
+                      dataSourceId: r.dataSourceId,
+                      matched: true,
+                    },
+                  }),
+                )
+            : [],
+        };
+      }),
       isFetching: results.some((r) => r.isFetching),
     }),
   });
@@ -71,12 +93,12 @@ export default function TurfMarkersList() {
     return mapTurfToGeoFeature(selectedTurf);
   }, [selectedTurf]);
 
-  const mappedPlacedMarkers = useMemo(() => {
+  const placedMarkersInArea = useMemo(() => {
     const activePlacedMarkers = getMarkersInsidePolygon(
       placedMarkers,
       turfFeature?.geometry,
     );
-    return mapPlacedMarkersToRecordsResponse(activePlacedMarkers, folders);
+    return groupPlacedMarkersByFolder(activePlacedMarkers, folders);
   }, [folders, placedMarkers, turfFeature]);
 
   if (isFetching) {
@@ -88,39 +110,39 @@ export default function TurfMarkersList() {
       {members && (
         <MembersList
           dataSource={members.dataSource}
-          records={members.records}
+          markers={members.markers}
+          areaType="area"
         />
       )}
 
-      {(markers?.length > 0 || mappedPlacedMarkers.length > 0) && (
-        <div className="flex flex-col gap-3">
-          <h2 className="text-xs font-mono uppercase text-muted-foreground">
-            Markers in this area
-          </h2>
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xs font-mono uppercase text-muted-foreground">
+          Markers in this area
+        </h2>
 
-          {!checkIfAnyRecords([...mappedPlacedMarkers, ...markers]) && (
+        {placedMarkersInArea.length === 0 &&
+          markers.every((m) => m.markers.length === 0) && (
             <p>No markers in this area</p>
           )}
 
-          {mappedPlacedMarkers.length > 0 &&
-            mappedPlacedMarkers.map((markersGroup, index) => (
-              <PlacedMarkersList
-                key={index}
-                folder={markersGroup.folder}
-                records={markersGroup.records}
-              ></PlacedMarkersList>
-            ))}
+        {placedMarkersInArea.length > 0 &&
+          placedMarkersInArea.map((markersGroup) => (
+            <PlacedMarkersList
+              key={`placed-markers-${markersGroup.folder?.id || "no-folder"}`}
+              folder={markersGroup.folder}
+              placedMarkers={markersGroup.placedMarkers}
+            />
+          ))}
 
-          {markers?.length > 0 &&
-            markers.map((markersGroup, index) => (
-              <MarkersList
-                key={index}
-                dataSource={markersGroup.dataSource}
-                records={markersGroup.records}
-              ></MarkersList>
-            ))}
-        </div>
-      )}
+        {markers?.length > 0 &&
+          markers.map((markersGroup) => (
+            <MarkersList
+              key={`markers-${markersGroup.dataSource?.id || "no-datasource"}`}
+              dataSource={markersGroup.dataSource}
+              markers={markersGroup.markers}
+            />
+          ))}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 // Only import library types and generated types into this file
 import type { PublicMapColumnType } from "./server/models/PublicMap";
-import type { Point } from "@/server/models/shared";
 import type { Geometry } from "geojson";
 
 export interface AreaStat {
@@ -39,6 +38,17 @@ export interface PointFeature {
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 
+export interface MarkerFeature {
+  type: "Feature";
+  properties: {
+    id: string;
+    name: string;
+    dataSourceId: string;
+    matched: boolean;
+  };
+  geometry: { coordinates: [number, number]; type: "Point" };
+}
+
 export interface TaggedRecord {
   externalId: string;
   json: Record<string, unknown>;
@@ -65,18 +75,6 @@ export interface FilterField {
 
   label?: string | undefined;
   options?: string[];
-}
-
-export interface RecordData {
-  id: string;
-  json: Record<string, unknown>;
-  geocodePoint: Point;
-  name?: string;
-}
-
-export interface RecordsResponse {
-  count: { matched: number };
-  records: RecordData[];
 }
 
 export enum LayerType {

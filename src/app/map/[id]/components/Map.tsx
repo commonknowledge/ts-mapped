@@ -15,7 +15,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { DEFAULT_ZOOM, MARKER_NAME_KEY } from "@/constants";
+import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
 import { getClickedPolygonFeature, useMapClick } from "../hooks/useMapClick";
@@ -285,7 +285,7 @@ export default function Map({
               );
 
               // Prevent default map zoom on double-click
-              e.originalEvent.preventDefault();
+              e.preventDefault();
               return;
             }
           }
@@ -475,18 +475,17 @@ export default function Map({
             <PlacedMarkers />
             <Markers />
             {searchMarker && <SearchResultMarker />}
-            {hoverMarker &&
-              Boolean(hoverMarker?.properties?.[MARKER_NAME_KEY]) && (
-                <Popup
-                  longitude={hoverMarker.coordinates[0]}
-                  latitude={hoverMarker.coordinates[1]}
-                  closeButton={false}
-                >
-                  <p className="font-sans font-semibold text-sm">
-                    {String(hoverMarker.properties[MARKER_NAME_KEY])}
-                  </p>
-                </Popup>
-              )}
+            {hoverMarker && Boolean(hoverMarker?.properties?.name) && (
+              <Popup
+                longitude={hoverMarker.coordinates[0]}
+                latitude={hoverMarker.coordinates[1]}
+                closeButton={false}
+              >
+                <p className="font-sans font-semibold text-sm">
+                  {String(hoverMarker.properties.name)}
+                </p>
+              </Popup>
+            )}
           </>
         )}
       </MapGL>

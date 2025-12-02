@@ -10,6 +10,7 @@ const TableProvider = ({ children }: { children: ReactNode }) => {
 
   const handleDataSourceSelect = useCallback(
     (dataSourceId: string) => {
+      setTablePage(0);
       if (selectedDataSourceId === dataSourceId) {
         setSelectedDataSourceId("");
         return;

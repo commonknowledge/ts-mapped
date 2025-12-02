@@ -6,7 +6,7 @@ import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
-import type { PointFeature } from "@/types";
+import type { MarkerFeature } from "@/types";
 
 export function useMarkerQueries() {
   const { mapConfig } = useMapConfig();
@@ -46,7 +46,7 @@ export function useMarkerQueries() {
             throw new Error(`Bad response: ${response.status}`);
           }
           const data = await response.json();
-          return data as PointFeature[];
+          return data as MarkerFeature[];
         },
       };
     }),

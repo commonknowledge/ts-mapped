@@ -3,10 +3,9 @@ import { AreaSetCodeLabels } from "@/labels";
 import { CHOROPLETH_LAYER_CONFIGS } from "../Choropleth/configs";
 import type { SelectedTurf } from "@/app/map/[id]/context/InspectorContext";
 import type { AreaSetCode } from "@/server/models/AreaSet";
-import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
-import type { RecordData, RecordsResponse } from "@/types";
+import type { MarkerFeature } from "@/types";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 
 export const mapTurfToGeoFeature = (turf: SelectedTurf | null) => {
@@ -50,73 +49,40 @@ export function getMarkersInsidePolygon(
   });
 }
 
-export function getRecordsInsideBoundary(
-  data: {
-    records: RecordsResponse;
-    dataSource: DataSource | null;
-  }[],
+export function getMarkersInsideBoundary(
+  markerQueriesData: { dataSourceId: string; markers: MarkerFeature[] }[],
   boundaryFeature: Polygon | MultiPolygon | null | undefined,
 ) {
   if (!boundaryFeature) {
     return [];
   }
 
-  return data.map((d) => {
-    const recordsInsideTurf = d.records.records.filter((r) => {
-      const coordinates = [r?.geocodePoint?.lng, r?.geocodePoint?.lat];
-
-      return checkIfPointInPolygon(coordinates, boundaryFeature);
-    });
-
+  return markerQueriesData.map((d) => {
     return {
-      dataSource: d.dataSource,
-      records: {
-        count: {
-          ...d.records.count,
-          matched: recordsInsideTurf?.length ?? 0,
-        },
-        records: recordsInsideTurf,
-      },
+      dataSourceId: d.dataSourceId,
+      markers: d.markers.filter((r) => {
+        return checkIfPointInPolygon(r.geometry.coordinates, boundaryFeature);
+      }),
     };
   });
 }
 
-export const checkIfAnyRecords = (markers: { records: RecordsResponse }[]) => {
-  const allRecords = markers
-    .flatMap((marker) => marker.records.records)
-    .filter((r) => Boolean(r));
-
-  return allRecords?.length > 0;
-};
-
-const placedMarkerToRecord = (marker: PlacedMarker): RecordData => {
-  return {
-    id: marker.id,
-    geocodePoint: marker.point,
-    json: {
-      name: marker.label || "Placed marker",
-      notes: marker.notes || "",
-    },
-  };
-};
-
-export const mapPlacedMarkersToRecordsResponse = (
-  markers: PlacedMarker[],
+export const groupPlacedMarkersByFolder = (
+  placedMarkers: PlacedMarker[],
   folders: Folder[],
-): { records: RecordsResponse; folder: Folder | null }[] => {
-  if (!markers?.length) {
+): { placedMarkers: PlacedMarker[]; folder: Folder | null }[] => {
+  if (!placedMarkers.length) {
     return [];
   }
 
-  const markersByFolderId = markers.reduce<Record<string, PlacedMarker[]>>(
-    (acc, marker) => {
-      const key = marker.folderId || "no-folder";
-      acc[key] = acc[key] || [];
-      acc[key].push(marker);
-      return acc;
-    },
-    {},
-  );
+  const markersByFolderId = placedMarkers.reduce<
+    Record<string, PlacedMarker[]>
+  >((acc, marker) => {
+    const key = marker.folderId || "no-folder";
+    acc[key] = acc[key] || [];
+    acc[key].push(marker);
+    return acc;
+  }, {});
 
   return Object.keys(markersByFolderId).map((folderId) => {
     const folder = folders.find((folder) => folder.id === folderId) ?? null;
@@ -124,10 +90,7 @@ export const mapPlacedMarkersToRecordsResponse = (
 
     return {
       folder: folder,
-      records: {
-        count: { matched: markers.length },
-        records: markers.map((marker) => placedMarkerToRecord(marker)),
-      },
+      placedMarkers: markers,
     };
   });
 };

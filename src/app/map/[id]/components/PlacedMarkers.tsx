@@ -4,7 +4,6 @@ import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContex
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { MARKER_ID_KEY, MARKER_NAME_KEY } from "@/constants";
 import { mapColors } from "../styles";
 import type { FeatureCollection, Point } from "geojson";
 
@@ -36,8 +35,8 @@ export default function PlacedMarkers() {
     features: visiblePlacedMarkers.map((marker) => ({
       type: "Feature",
       properties: {
-        [MARKER_ID_KEY]: marker.id,
-        [MARKER_NAME_KEY]: marker.label,
+        id: marker.id,
+        name: marker.label,
       },
       geometry: {
         type: "Point",
@@ -73,7 +72,7 @@ export default function PlacedMarkers() {
           source="search-history"
           minzoom={12}
           layout={{
-            "text-field": ["get", MARKER_NAME_KEY],
+            "text-field": ["get", "name"],
             "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
             "text-size": 12,
             "text-transform": "uppercase",
@@ -93,7 +92,7 @@ export default function PlacedMarkers() {
             id="search-history-selected-marker-ring"
             type="circle"
             source="search-history"
-            filter={["==", ["get", MARKER_ID_KEY], selectedMarker.id]}
+            filter={["==", ["get", "id"], selectedMarker.id]}
             paint={{
               "circle-radius": [
                 "interpolate",

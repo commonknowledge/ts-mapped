@@ -1,7 +1,9 @@
+import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
 import {
   countDataRecordsForDataSource,
+  findDataRecordById,
   findDataRecordsByDataSource,
   findPageForDataRecord,
 } from "@/server/repositories/DataRecord";
@@ -26,7 +28,18 @@ export const dataRecordRouter = router({
         sort || [],
       ),
     ),
-
+  byId: dataSourceReadProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const record = await findDataRecordById(input.id);
+      if (!record) {
+        throw new TRPCError({
+          message: "Data record not found",
+          code: "NOT_FOUND",
+        });
+      }
+      return record;
+    }),
   list: dataSourceReadProcedure
     .input(
       z.object({

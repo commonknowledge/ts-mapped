@@ -13,7 +13,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
-import { groupRecords } from "../utils";
+import { buildName, groupRecords } from "../utils";
 import type { RecordGroup } from "../utils";
 import type { SelectedRecord } from "@/app/map/[id]/context/InspectorContext";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
@@ -128,6 +128,8 @@ const RecordGroupItem = memo(function RecordGroupItem({
           recordGroup.children.map((c) => ({
             id: c.id,
             dataSourceId: c.dataSourceId,
+            name: buildName(dataSourceConfig, c),
+            geocodePoint: c.geocodePoint,
           })),
         );
       }
@@ -139,7 +141,7 @@ const RecordGroupItem = memo(function RecordGroupItem({
         });
       }
     },
-    [isSelected, mapRef, setSelectedRecords],
+    [dataSourceConfig, isSelected, mapRef, setSelectedRecords],
   );
 
   return (

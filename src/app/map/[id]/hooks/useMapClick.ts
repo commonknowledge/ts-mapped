@@ -4,7 +4,6 @@ import { useContext, useEffect, useRef } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { MARKER_DATA_SOURCE_ID_KEY, MARKER_ID_KEY } from "@/constants";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
   Feature,
@@ -90,11 +89,15 @@ export function useMapClick({
           const ids = properties ? properties.ids : "";
           const records = [];
           for (const idAndDataSource of ids.split(",").filter(Boolean)) {
-            const [id, dataSourceId] = idAndDataSource.split(":");
+            const [id, dataSourceId, name] = idAndDataSource.split(":");
             records.push({
               id,
               dataSourceId,
-              properties: {},
+              name,
+              geocodePoint: {
+                lng: markerFeatures[0].geometry.coordinates[1],
+                lat: markerFeatures[0].geometry.coordinates[0],
+              },
             });
           }
 
@@ -106,19 +109,20 @@ export function useMapClick({
             zoom: map.getZoom() + 1,
           });
         } else {
-          const dataRecordId = properties ? properties[MARKER_ID_KEY] : null;
-          const dataSourceId = properties
-            ? properties[MARKER_DATA_SOURCE_ID_KEY]
-            : null;
-
           resetInspector();
-          setSelectedRecords([
-            {
-              id: dataRecordId,
-              dataSourceId: dataSourceId,
-              properties: properties,
-            },
-          ]);
+          if (markerFeatures[0].properties) {
+            setSelectedRecords([
+              {
+                id: markerFeatures[0].properties.id,
+                dataSourceId: markerFeatures[0].properties.dataSourceId || "",
+                name: markerFeatures[0].properties.name,
+                geocodePoint: {
+                  lng: markerFeatures[0].geometry.coordinates[1],
+                  lat: markerFeatures[0].geometry.coordinates[0],
+                },
+              },
+            ]);
+          }
 
           map.flyTo({
             center: markerFeatures[0].geometry.coordinates as [number, number],

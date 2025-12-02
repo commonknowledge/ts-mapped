@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
-import {
-  MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_ID_KEY,
-  MARKER_MATCHED_COLUMN,
-  MARKER_MATCHED_KEY,
-  MARKER_NAME_KEY,
-} from "@/constants";
+import { MARKER_MATCHED_COLUMN } from "@/constants";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
@@ -67,12 +61,10 @@ export async function GET(
           const feature: PointFeature = {
             type: "Feature",
             properties: {
-              ...dr.json,
-              [MARKER_ID_KEY]: dr.id,
-              [MARKER_DATA_SOURCE_ID_KEY]: dr.dataSourceId,
-              // If no name column is specified, show the ID as the marker name instead
-              [MARKER_NAME_KEY]: buildName(dataSource, dr),
-              [MARKER_MATCHED_KEY]: dr[MARKER_MATCHED_COLUMN],
+              id: dr.id,
+              dataSourceId: dr.dataSourceId,
+              name: buildName(dataSource, dr),
+              matched: dr[MARKER_MATCHED_COLUMN],
             },
             geometry: {
               type: "Point",

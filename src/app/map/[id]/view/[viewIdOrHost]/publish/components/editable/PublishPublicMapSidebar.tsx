@@ -15,6 +15,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
+import { buildName } from "@/utils/dataRecord";
 import { PublicMapContext } from "../../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
 import EditorDataSettings from "./EditorDataSettings";
@@ -59,6 +60,8 @@ export default function PublishPublicMapSidebar() {
           {
             id: firstRecord.id,
             dataSourceId: activeTabId,
+            name: buildName(dataRecordsQuery.data, firstRecord),
+            geocodePoint: firstRecord.geocodePoint,
           },
         ]);
       }
@@ -96,10 +99,9 @@ export default function PublishPublicMapSidebar() {
                   const currentDataSourceId =
                     activeTabId ||
                     publicMap?.dataSourceConfigs[0]?.dataSourceId;
-                  if (
-                    currentDataSourceId &&
-                    dataRecordsQueries[currentDataSourceId]
-                  ) {
+                  const dataRecordsQuery =
+                    dataRecordsQueries[currentDataSourceId];
+                  if (currentDataSourceId) {
                     const firstRecord =
                       dataRecordsQueries[currentDataSourceId]?.data
                         ?.records?.[0];
@@ -108,6 +110,8 @@ export default function PublishPublicMapSidebar() {
                         {
                           id: firstRecord.id,
                           dataSourceId: currentDataSourceId,
+                          name: buildName(dataRecordsQuery.data, firstRecord),
+                          geocodePoint: firstRecord.geocodePoint,
                         },
                       ]);
                     }

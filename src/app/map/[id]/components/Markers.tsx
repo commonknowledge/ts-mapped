@@ -5,16 +5,10 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
-import {
-  MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_ID_KEY,
-  MARKER_MATCHED_KEY,
-  MARKER_NAME_KEY,
-} from "@/constants";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
-import type { PointFeature } from "@/types";
+import type { MarkerFeature } from "@/types";
 import type { FeatureCollection } from "geojson";
 
 const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";
@@ -88,7 +82,7 @@ function DataSourceMarkers({
   dataSourceMarkers,
   isMembers,
 }: {
-  dataSourceMarkers: { dataSourceId: string; markers: PointFeature[] };
+  dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
 }) {
   const { filteredRecords, publicFilters } = useContext(PublicFiltersContext);
@@ -111,9 +105,7 @@ function DataSourceMarkers({
         ...f,
         properties: {
           ...f.properties,
-          [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(
-            String(f.properties[MARKER_ID_KEY]),
-          ),
+          [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(f.properties.id),
         },
       })),
     };
@@ -121,7 +113,7 @@ function DataSourceMarkers({
 
   const NOT_MATCHED_CASE = [
     "any",
-    ["!", ["get", MARKER_MATCHED_KEY]],
+    ["!", ["get", "matched"]],
     ["==", ["get", MARKER_CLIENT_EXCLUDED_KEY], true],
   ];
 
@@ -151,9 +143,11 @@ function DataSourceMarkers({
           "concat",
           [
             "concat",
-            ["get", MARKER_ID_KEY],
+            ["get", "id"],
             ":",
-            ["get", MARKER_DATA_SOURCE_ID_KEY],
+            ["get", "dataSourceId"],
+            ":",
+            ["get", "name"],
             ",",
           ],
         ],
@@ -310,13 +304,8 @@ function DataSourceMarkers({
         layout={{
           "text-field": [
             "concat",
-            ["slice", ["get", MARKER_NAME_KEY], 0, 20],
-            [
-              "case",
-              [">", ["length", ["get", MARKER_NAME_KEY]], 20],
-              "...",
-              "",
-            ],
+            ["slice", ["get", "name"], 0, 20],
+            ["case", [">", ["length", ["get", "name"]], 20], "...", ""],
           ],
           "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
           "text-size": 12,
