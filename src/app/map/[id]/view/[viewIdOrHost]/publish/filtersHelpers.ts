@@ -1,5 +1,5 @@
 import { PublicMapColumnType } from "@/server/models/PublicMap";
-import { toBoolean } from "./utils";
+import { toBooleanOrUnknown } from "./utils";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { PublicFiltersFormValue } from "@/types";
 
@@ -25,15 +25,8 @@ export const filterRecords = (
 
   return allRecords.filter((record) => {
     return activeFilters.every((filter) => {
-      if (
-        filter.type === PublicMapColumnType.Boolean &&
-        toBoolean(filter.value)
-      ) {
-        if (record.json[filter.name] === "Unknown") {
-          return false;
-        }
-
-        return toBoolean(record.json[filter.name]);
+      if (filter.type === PublicMapColumnType.Boolean) {
+        return toBooleanOrUnknown(record.json[filter.name]);
       }
 
       if (filter.type === PublicMapColumnType.String && filter.value) {

@@ -1,7 +1,10 @@
-import * as turf from "@turf/distance";
+import distance from "@turf/distance";
 import { point } from "@turf/helpers";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
+
+// TODO: make this configurable in public map config
+const UNKNOWN_VALUES = ["Unknown", "I didn't ask"];
 
 export interface RecordGroup {
   name: string;
@@ -40,6 +43,17 @@ export const toBoolean = (val: unknown): boolean => {
   return Boolean(val);
 };
 
+export const toBooleanOrUnknown = (val: unknown): boolean | null => {
+  if (
+    UNKNOWN_VALUES.some((v) =>
+      String(val).toLowerCase().startsWith(v.toLowerCase()),
+    )
+  ) {
+    return null;
+  }
+  return toBoolean(val);
+};
+
 export function jsonToAirtablePrefill(data: Record<string, unknown>): string {
   const queryParams = Object.entries(data)
     .map(
@@ -73,15 +87,20 @@ export const groupRecords = (
       const group = groups.find((c) =>
         isWithin(c.geocodePoint, record.geocodePoint),
       );
-      if (group) {
-        group.children.push(record);
-        updateRecordGroupGeocodePoint(group, record);
-      } else {
+      if (!group) {
         groups.push({
           name,
           geocodePoint: record.geocodePoint,
           children: [record],
         });
+        continue;
+      }
+      const isDuplicate = group.children.some(
+        (c) => JSON.stringify(c.json) === JSON.stringify(record.json),
+      );
+      if (!isDuplicate) {
+        group.children.push(record);
+        updateRecordGroupGeocodePoint(group, record);
       }
     }
     recordGroups = recordGroups.concat(groups);
@@ -100,7 +119,7 @@ export const isWithin = (
   }
   const from = point([point1.lng, point1.lat]);
   const to = point([point2.lng, point2.lat]);
-  const d = turf.distance(from, to, { units: "meters" });
+  const d = distance(from, to, { units: "meters" });
 
   return d <= metres;
 };
@@ -109,7 +128,6 @@ export const isWithin = (
 // record.geocodePoint < group.geocodePoint.
 // This ensures consistent geocodePoint values for groups,
 // regardless of the order of the child records.
-// Also updates the group id.
 const updateRecordGroupGeocodePoint = (
   group: RecordGroup,
   record: DataRecord,

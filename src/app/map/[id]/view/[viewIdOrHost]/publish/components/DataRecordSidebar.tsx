@@ -12,12 +12,16 @@ import { cn } from "@/shadcn/utils";
 import { parseDate } from "@/utils/dataRecord";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
-import { groupRecords, jsonToAirtablePrefill, toBoolean } from "../utils";
+import {
+  groupRecords,
+  jsonToAirtablePrefill,
+  toBooleanOrUnknown,
+} from "../utils";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
   const isMobile = useIsMobile();
-  const { selectedRecords, setSelectedRecordIndex, resetInspector } =
+  const { selectedRecords, setFocusedRecord, resetInspector } =
     useContext(InspectorContext);
   const { publicMap, colorScheme } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
@@ -74,21 +78,11 @@ export default function DataRecordSidebar() {
     setChildIndex(0);
   }, [selectedRecords]);
 
-  // Update the selected record in context so the list
+  // Update the focused record in context so the list
   // sidebar can scroll to the correct record
   useEffect(() => {
-    if (selectedRecordDetails) {
-      const recordIndex = selectedRecords.findIndex(
-        (r) => r.id === selectedRecordDetails.id,
-      );
-      if (recordIndex !== undefined) {
-        setSelectedRecordIndex(recordIndex);
-        return;
-      }
-    }
-    // Reset to record 0 if selectedRecord not found
-    setSelectedRecordIndex(0);
-  }, [selectedRecordDetails, selectedRecords, setSelectedRecordIndex]);
+    setFocusedRecord(selectedRecordDetails || null);
+  }, [selectedRecordDetails, selectedRecords, setFocusedRecord]);
 
   if (!recordGroup || !selectedRecordDetails || !publicMap) {
     return <></>;
@@ -316,7 +310,7 @@ function CheckList({
     <>
       {sourceColumns.map((column) => (
         <div key={column} className="flex items-center gap-2">
-          {String(json[column]).toLowerCase() === "unknown" ? (
+          {toBooleanOrUnknown(json[column]) === null ? (
             dataSourceConfig?.unknownTooltip ? (
               <Tooltip>
                 <TooltipTrigger>
@@ -329,7 +323,7 @@ function CheckList({
             ) : (
               <div className="w-4 h-5 text-center font-semibold">?</div>
             )
-          ) : toBoolean(json[column]) ? (
+          ) : toBooleanOrUnknown(json[column]) ? (
             dataSourceConfig?.positiveTooltip ? (
               <Tooltip>
                 <TooltipTrigger>

@@ -98,8 +98,13 @@ export default function PublicFiltersProvider({
 
     const dataRecordsQuery = activeTabId
       ? dataRecordsQueries?.[activeTabId]
-      : dataRecordsQueries?.[0];
-    const allRecords = dataRecordsQuery?.data?.records || [];
+      : dataRecordsQueries?.[publicMap.dataSourceConfigs[0]?.dataSourceId];
+
+    if (!dataRecordsQuery) {
+      return [];
+    }
+
+    const allRecords = dataRecordsQuery.data?.records || [];
     const dataSourceId = dataRecordsQuery.data?.id;
     const activeFilters = getActiveFilters(
       dataSourceId ? publicFilters[dataSourceId] : undefined,

@@ -35,22 +35,22 @@ export default function DataRecordsList({
   colorScheme,
 }: DataRecordsListProps) {
   const { publicMap } = useContext(PublicMapContext);
-  const { setSelectedRecords, selectedRecord } = useContext(InspectorContext);
+  const { setSelectedRecords, focusedRecord } = useContext(InspectorContext);
   const { mapRef } = useContext(MapContext);
   const { filteredRecords } = useContext(PublicFiltersContext);
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
-    if (selectedRecord) {
+    if (focusedRecord) {
       const item = listRef.current?.querySelector<HTMLLIElement>(
-        `li[data-id~="${selectedRecord.id}"]`,
+        `li[data-id~="${focusedRecord.id}"]`,
       );
       item?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     }
-  }, [selectedRecord]);
+  }, [focusedRecord]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
@@ -69,7 +69,7 @@ export default function DataRecordsList({
     <ul className="flex flex-col" ref={listRef}>
       {recordGroups.map((recordGroup) => {
         const isSelected = recordGroup.children.some(
-          (c) => c.id === selectedRecord?.id,
+          (c) => c.id === focusedRecord?.id,
         );
 
         // Separate with spaces so the above selector for scrolling is more efficient
