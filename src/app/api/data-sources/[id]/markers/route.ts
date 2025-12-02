@@ -9,7 +9,7 @@ import { buildName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { DataSource } from "@/server/models/DataSource";
 import type { RecordFilterInput } from "@/server/models/MapView";
-import type { PointFeature } from "@/types";
+import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 import type { NextRequest } from "next/server";
 
 /**
@@ -58,11 +58,11 @@ export async function GET(
             number,
             number,
           ];
-          const feature: PointFeature = {
+          const feature: MarkerFeatureWithoutDataSourceId = {
             type: "Feature",
+            // Minimal properties to support large numbers of markers (1000+)
             properties: {
               id: dr.id,
-              dataSourceId: dr.dataSourceId,
               name: buildName(dataSource, dr),
               matched: dr[MARKER_MATCHED_COLUMN],
             },

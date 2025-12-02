@@ -32,18 +32,25 @@ export interface ExternalRecord {
   json: Record<string, unknown>;
 }
 
-export interface PointFeature {
-  type: "Feature";
-  properties: Record<string, string | number | boolean>;
-  geometry: { coordinates: [number, number]; type: "Point" };
-}
-
 export interface MarkerFeature {
   type: "Feature";
   properties: {
     id: string;
     name: string;
     dataSourceId: string;
+    matched: boolean;
+  };
+  geometry: { coordinates: [number, number]; type: "Point" };
+}
+
+// Used in the markers/route.ts GeoJSON response
+// As dataSourceId is known in the request parameters
+// so doesn't need to be included in the response body
+export interface MarkerFeatureWithoutDataSourceId {
+  type: "Feature";
+  properties: {
+    id: string;
+    name: string;
     matched: boolean;
   };
   geometry: { coordinates: [number, number]; type: "Point" };

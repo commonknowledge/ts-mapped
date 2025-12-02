@@ -13,7 +13,7 @@ import { parseDate } from "@/utils/dataRecord";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import {
-  buildName,
+  buildPublicMapName,
   groupRecords,
   jsonToAirtablePrefill,
   toBooleanOrUnknown,
@@ -86,7 +86,7 @@ export default function DataRecordSidebar() {
       selectedRecordDetails
         ? {
             id: selectedRecordDetails.id,
-            name: buildName(dataSourceConfig, selectedRecordDetails),
+            name: buildPublicMapName(dataSourceConfig, selectedRecordDetails),
             dataSourceId: selectedRecordDetails.dataSourceId,
             geocodePoint: selectedRecordDetails.geocodePoint,
           }

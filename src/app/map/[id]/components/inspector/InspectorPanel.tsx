@@ -35,7 +35,7 @@ export default function InspectorPanel() {
         id: focusedRecord?.id || "",
       },
       {
-        enabled: Boolean(focusedRecord),
+        enabled: Boolean(focusedRecord?.dataSourceId),
       },
     ),
   );

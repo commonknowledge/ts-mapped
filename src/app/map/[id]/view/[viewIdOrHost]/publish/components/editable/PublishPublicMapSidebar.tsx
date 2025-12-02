@@ -15,9 +15,9 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import { buildName } from "@/utils/dataRecord";
 import { PublicMapContext } from "../../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
+import { buildPublicMapName } from "../../utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
 import EditorPublishSettings from "./EditorPublishSettings";
@@ -56,17 +56,26 @@ export default function PublishPublicMapSidebar() {
       const records = dataRecordsQuery?.data?.records;
       if (records && records.length > 0) {
         const firstRecord = records[0];
+        const dataSourceConfig = publicMap?.dataSourceConfigs.find(
+          (config) => config.dataSourceId === activeTabId,
+        );
         setSelectedRecords([
           {
             id: firstRecord.id,
             dataSourceId: activeTabId,
-            name: buildName(dataRecordsQuery.data, firstRecord),
+            name: buildPublicMapName(dataSourceConfig, firstRecord),
             geocodePoint: firstRecord.geocodePoint,
           },
         ]);
       }
     }
-  }, [activeTabId, activePublishTab, dataRecordsQueries, setSelectedRecords]);
+  }, [
+    activeTabId,
+    activePublishTab,
+    dataRecordsQueries,
+    setSelectedRecords,
+    publicMap?.dataSourceConfigs,
+  ]);
 
   // Should never happen
   if (!publicMap) {
@@ -94,23 +103,24 @@ export default function PublishPublicMapSidebar() {
               value={activePublishTab}
               onValueChange={(value) => {
                 setActivePublishTab(value);
-                if (value === "data") {
+                if (value === "data" && activeTabId) {
                   // Select the first record from the active data source
-                  const currentDataSourceId =
-                    activeTabId ||
-                    publicMap?.dataSourceConfigs[0]?.dataSourceId;
-                  const dataRecordsQuery =
-                    dataRecordsQueries[currentDataSourceId];
-                  if (currentDataSourceId) {
+                  const dataSourceConfig = publicMap?.dataSourceConfigs.find(
+                    (dsc) => dsc.dataSourceId === activeTabId,
+                  );
+                  if (dataSourceConfig) {
                     const firstRecord =
-                      dataRecordsQueries[currentDataSourceId]?.data
+                      dataRecordsQueries[dataSourceConfig.dataSourceId]?.data
                         ?.records?.[0];
                     if (firstRecord) {
                       setSelectedRecords([
                         {
                           id: firstRecord.id,
-                          dataSourceId: currentDataSourceId,
-                          name: buildName(dataRecordsQuery.data, firstRecord),
+                          dataSourceId: dataSourceConfig.dataSourceId,
+                          name: buildPublicMapName(
+                            dataSourceConfig,
+                            firstRecord,
+                          ),
                           geocodePoint: firstRecord.geocodePoint,
                         },
                       ]);

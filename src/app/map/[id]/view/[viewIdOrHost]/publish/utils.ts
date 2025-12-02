@@ -12,7 +12,7 @@ export interface RecordGroup {
   children: DataRecord[];
 }
 
-export const buildName = (
+export const buildPublicMapName = (
   dataSourceConfig: PublicMapDataSourceConfig | null | undefined,
   record: { json: Record<string, unknown> },
 ) => {
@@ -71,7 +71,7 @@ export const groupRecords = (
 ) => {
   const recordsByName: Record<string, DataRecord[]> = {};
   for (const r of records) {
-    const name = buildName(dataSourceConfig, r);
+    const name = buildPublicMapName(dataSourceConfig, r);
     if (recordsByName[name]?.length) {
       recordsByName[name].push(r);
     } else {

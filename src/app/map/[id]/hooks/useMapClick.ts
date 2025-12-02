@@ -95,8 +95,8 @@ export function useMapClick({
               dataSourceId,
               name,
               geocodePoint: {
-                lng: markerFeatures[0].geometry.coordinates[1],
-                lat: markerFeatures[0].geometry.coordinates[0],
+                lng: markerFeatures[0].geometry.coordinates[0],
+                lat: markerFeatures[0].geometry.coordinates[1],
               },
             });
           }
@@ -117,8 +117,8 @@ export function useMapClick({
                 dataSourceId: markerFeatures[0].properties.dataSourceId || "",
                 name: markerFeatures[0].properties.name,
                 geocodePoint: {
-                  lng: markerFeatures[0].geometry.coordinates[1],
-                  lat: markerFeatures[0].geometry.coordinates[0],
+                  lng: markerFeatures[0].geometry.coordinates[0],
+                  lat: markerFeatures[0].geometry.coordinates[1],
                 },
               },
             ]);
