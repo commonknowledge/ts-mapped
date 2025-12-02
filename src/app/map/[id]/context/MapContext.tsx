@@ -7,7 +7,6 @@ import {
   MapType,
 } from "@/server/models/MapView";
 import mapStyles, { hexMapStyle } from "../styles";
-import type { BoundingBox } from "@/server/models/Area";
 import type { MapConfig } from "@/server/models/Map";
 import type { MapViewConfig } from "@/server/models/MapView";
 import type { RefObject } from "react";
@@ -19,10 +18,6 @@ export const MapContext = createContext<{
 
   /* Map Ref */
   mapRef: RefObject<MapRef | null> | null;
-
-  /* State */
-  boundingBox: BoundingBox | null;
-  setBoundingBox: (boundingBox: BoundingBox | null) => void;
 
   /* Active View ID */
   viewId: string | null;
@@ -43,8 +38,6 @@ export const MapContext = createContext<{
 }>({
   mapId: null,
   mapRef: null,
-  boundingBox: null,
-  setBoundingBox: () => null,
   viewId: null,
   setViewId: () => null,
   dirtyViewIds: [],

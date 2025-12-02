@@ -21,5 +21,5 @@ export function useIsMobile() {
     };
   }, []);
 
-  return { isMobile: isMobile ?? false };
+  return isMobile ?? false;
 }

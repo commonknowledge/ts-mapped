@@ -11,7 +11,6 @@ import { DEFAULT_ZOOM } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { getNewLastPosition } from "../utils";
-import type { BoundingBox } from "@/server/models/Area";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { ReactNode } from "react";
 import type { MapRef } from "react-map-gl/mapbox";
@@ -29,7 +28,6 @@ export default function MapProvider({
   const mapRef = useRef<MapRef>(null);
 
   /* Map State */
-  const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [pinDropMode, setPinDropMode] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -92,8 +90,6 @@ export default function MapProvider({
       value={{
         mapId,
         mapRef,
-        boundingBox,
-        setBoundingBox,
         viewId,
         setViewId,
         dirtyViewIds,

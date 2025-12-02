@@ -215,6 +215,7 @@ export const dataSourceRouter = router({
         columnRoles: input.columnRoles,
         enrichments: input.enrichments,
         geocodingConfig: input.geocodingConfig,
+        dateFormat: input.dateFormat,
       } as DataSourceUpdate;
 
       // Keep track of whether webhooks need to be enabled/disabled

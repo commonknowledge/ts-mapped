@@ -27,6 +27,7 @@ import {
 } from "@/shadcn/ui/command";
 import { Input } from "@/shadcn/ui/input";
 import { Toggle } from "@/shadcn/ui/toggle";
+import { buildName } from "@/utils/dataRecord";
 import { mapColors } from "../../styles";
 import type {
   DropdownMenuItemType,
@@ -367,18 +368,9 @@ function DataRecordCommand({
   );
   const getItemLabel = useCallback(
     (record: DataRecord) => {
-      const nameColumns = dataSource?.columnRoles.nameColumns;
-      if (!nameColumns?.length) return record.externalId;
-
-      const label = nameColumns
-        .map((column) => record.json[column])
-        .map((name) => (typeof name === "string" ? name.trim() : null))
-        .filter(Boolean)
-        .join(" ");
-
-      return label || record.externalId;
+      return buildName(dataSource, record);
     },
-    [dataSource?.columnRoles.nameColumns],
+    [dataSource],
   );
 
   return (

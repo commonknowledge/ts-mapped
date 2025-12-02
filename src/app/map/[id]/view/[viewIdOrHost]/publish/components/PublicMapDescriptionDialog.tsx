@@ -27,12 +27,12 @@ export default function PublicMapDescriptionDialog({
     <Dialog>
       <DialogTrigger asChild>
         <button className="inline-block text-left text-sm hover:text-primary underline cursor-pointer">
-          About the project
+          About the map
         </button>
       </DialogTrigger>
       <DialogContent className="max-w-[50ch] gap-0">
         <DialogHeader>
-          <DialogTitle>About the project</DialogTitle>
+          <DialogTitle>About the map</DialogTitle>
 
           {/* leave empty to avoid a11y warnings */}
           <DialogDescription></DialogDescription>

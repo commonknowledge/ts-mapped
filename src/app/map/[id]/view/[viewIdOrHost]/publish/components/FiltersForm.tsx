@@ -16,7 +16,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
-  const { setSelectedRecord } = useContext(InspectorContext);
+  const { setSelectedRecords } = useContext(InspectorContext);
 
   // setting default values
   useEffect(() => {
@@ -52,9 +52,9 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   useEffect(() => {
     if (activeTabId && values.length > 0) {
       setPublicFilters((prev) => ({ ...prev, [activeTabId]: values }));
-      setSelectedRecord(null);
+      setSelectedRecords([]);
     }
-  }, [values, activeTabId, setPublicFilters, setSelectedRecord]);
+  }, [values, activeTabId, setPublicFilters, setSelectedRecords]);
 
   const handleChange = (name: string, value: string) => {
     setValues((prev) =>

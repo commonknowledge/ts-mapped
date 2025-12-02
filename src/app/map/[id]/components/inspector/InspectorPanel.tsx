@@ -18,8 +18,8 @@ export default function InspectorPanel() {
     resetInspector,
     selectedBoundary,
     selectedTurf,
-    selectedRecord,
-    setSelectedRecord,
+    selectedRecords,
+    setSelectedRecords,
   } = useContext(InspectorContext);
   const { mapRef } = useContext(MapContext);
   const { setSelectedDataSourceId, selectedDataSourceId } =
@@ -36,14 +36,14 @@ export default function InspectorPanel() {
     (selectedBoundary && type !== LayerType.Boundary);
 
   const onCloseDetailsView = () => {
-    setSelectedRecord(null);
+    setSelectedRecords([]);
   };
 
   const flyToMarker = () => {
     const map = mapRef?.current;
 
-    if (map && selectedRecord?.point) {
-      map.flyTo({ center: selectedRecord.point, zoom: 12 });
+    if (map && selectedRecords[0]?.point) {
+      map.flyTo({ center: selectedRecords[0].point, zoom: 12 });
     }
   };
 
@@ -51,7 +51,7 @@ export default function InspectorPanel() {
     <div
       id="inspector-panel"
       className={cn(
-        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 py-5 h-fit",
+        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 py-5 h-fit max-h-full",
         tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
       )}
     >
@@ -116,7 +116,7 @@ export default function InspectorPanel() {
 
           {(isDetailsView || dataSource) && (
             <div className="flex flex-col gap-3 border-t pt-4">
-              {isDetailsView && selectedRecord?.point && (
+              {isDetailsView && selectedRecords[0]?.point && (
                 <Button onClick={() => flyToMarker()}>
                   <MapPinIcon />
                   View on map

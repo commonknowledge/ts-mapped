@@ -1,95 +1,115 @@
 "use client";
 
-import { Check, ChevronDownIcon, ChevronRightIcon, X } from "lucide-react";
-import { useContext, useEffect, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { PublicMapColumnType } from "@/server/models/PublicMap";
-import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
-import { buildName } from "../utils";
-import { filterRecords, getActiveFilters } from "./filtersHelpers";
+import { groupRecords } from "../utils";
+import type { RecordGroup } from "../utils";
+import type { SelectedRecord } from "@/app/map/[id]/context/InspectorContext";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
-import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
+import type { RefObject } from "react";
+import type { MapRef } from "react-map-gl/mapbox";
 
 interface DataRecordsListProps {
   dataRecordsQuery: {
     data: RouterOutputs["dataSource"]["byIdWithRecords"] | undefined;
     isPending: boolean;
   };
-  onSelect: (r: { id: string; dataSourceId: string }) => void;
   colorScheme: PublicMapColorScheme;
 }
 
 export default function DataRecordsList({
   dataRecordsQuery,
-  onSelect,
   colorScheme,
 }: DataRecordsListProps) {
   const { publicMap } = useContext(PublicMapContext);
+  const { setSelectedRecords, focusedRecord } = useContext(InspectorContext);
   const { mapRef } = useContext(MapContext);
-  const { selectedRecord } = useContext(InspectorContext);
-  const { publicFilters, records, setRecords } =
-    useContext(PublicFiltersContext);
-  const [isExpanded, setExpanded] = useState(false);
+  const { filteredRecords } = useContext(PublicFiltersContext);
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
-    const allRecords = dataRecordsQuery?.data?.records || [];
-    const dataSourceId = dataRecordsQuery.data?.id;
-    const activeFilters = getActiveFilters(
-      dataSourceId ? publicFilters[dataSourceId] : undefined,
-    );
-
-    // if no filters are selected - show all records
-    if (!activeFilters?.length) {
-      setRecords(allRecords);
-      return;
-    }
-
-    const filteredRecords = filterRecords(activeFilters, allRecords);
-
-    setRecords(filteredRecords);
-  }, [
-    publicFilters,
-    setRecords,
-    dataRecordsQuery.data?.records,
-    dataRecordsQuery.data?.id,
-  ]);
-
-  useEffect(() => {
-    if (selectedRecord?.id) {
-      setExpanded(true);
+    if (focusedRecord) {
       const item = listRef.current?.querySelector<HTMLLIElement>(
-        `li[data-id="${selectedRecord.id}"]`,
+        `li[data-id~="${focusedRecord.id}"]`,
       );
       item?.scrollIntoView({
         behavior: "smooth",
-        block: window.innerWidth < 768 ? "start" : "center",
+        block: "center",
       });
     }
-  }, [selectedRecord?.id]);
+  }, [focusedRecord]);
 
   const dataSourceConfig = publicMap?.dataSourceConfigs.find(
     (dsc) => dsc.dataSourceId === dataRecordsQuery.data?.id,
   );
 
-  const getName = (record: {
-    externalId: string;
-    json: Record<string, unknown>;
-  }) => {
-    const nameColumns = dataSourceConfig?.nameColumns;
-    if (!nameColumns?.length) {
-      return record.externalId;
-    }
+  const recordGroups = useMemo(
+    () => groupRecords(dataSourceConfig, filteredRecords),
+    [dataSourceConfig, filteredRecords],
+  );
 
-    return buildName(nameColumns, record.json);
-  };
+  if (!recordGroups?.length) {
+    return <></>;
+  }
 
+  return (
+    <ul className="flex flex-col" ref={listRef}>
+      {recordGroups.map((recordGroup) => {
+        const isSelected = recordGroup.children.some(
+          (c) => c.id === focusedRecord?.id,
+        );
+
+        // Separate with spaces so the above selector for scrolling is more efficient
+        const id = recordGroup.children.map((c) => c.id).join(" ");
+
+        return (
+          <RecordGroupItem
+            key={id}
+            colorScheme={colorScheme}
+            dataSourceConfig={dataSourceConfig}
+            id={id}
+            isSelected={isSelected}
+            mapRef={mapRef}
+            recordGroup={recordGroup}
+            setSelectedRecords={setSelectedRecords}
+          />
+        );
+      })}
+    </ul>
+  );
+}
+
+// memo(...) ensures that the function is only re-run when the props change
+const RecordGroupItem = memo(function RecordGroupItem({
+  colorScheme,
+  dataSourceConfig,
+  id,
+  isSelected,
+  mapRef,
+  recordGroup,
+  setSelectedRecords,
+}: {
+  colorScheme: PublicMapColorScheme;
+  dataSourceConfig: PublicMapDataSourceConfig | undefined;
+  id: string;
+  isSelected: boolean;
+  mapRef: RefObject<MapRef | null> | null;
+  recordGroup: RecordGroup;
+  setSelectedRecords: (records: SelectedRecord[]) => void;
+}) {
   const getDescription = (record: { json: Record<string, unknown> }) => {
     const descriptionColumn = dataSourceConfig?.descriptionColumn;
     return descriptionColumn && Boolean(record.json[descriptionColumn])
@@ -97,231 +117,59 @@ export default function DataRecordsList({
       : "";
   };
 
-  const handleRecordClick = (record: {
-    id: string;
-    geocodePoint?: Point | null;
-  }) => {
-    let nextExpanded = isExpanded;
-    if (dataRecordsQuery.data?.id) {
-      onSelect({
-        id: record.id,
-        dataSourceId: dataRecordsQuery.data?.id,
-      });
+  // Show first non-empty description
+  const descriptions = recordGroup.children.map((c) => getDescription(c));
+  const description = descriptions.find(Boolean);
 
-      if (record.id === selectedRecord?.id) {
-        nextExpanded = !isExpanded;
-      } else {
-        nextExpanded = true;
-      }
-    }
-
-    if (record.geocodePoint && nextExpanded) {
-      mapRef?.current?.flyTo({
-        center: record.geocodePoint,
-        zoom: 14,
-      });
-    }
-
-    setExpanded(nextExpanded);
-  };
-
-  if (!records?.length) {
-    return <></>;
-  }
-
-  return (
-    <ul className="flex flex-col" ref={listRef}>
-      {records.map((r) => {
-        const isSelected = selectedRecord?.id === r.id;
-
-        return (
-          <li
-            key={r.id}
-            className={cn(
-              "rounded transition-all duration-200",
-              isSelected ? "" : "hover:bg-accent",
-            )}
-            data-id={r.id}
-            style={
-              isSelected
-                ? { backgroundColor: colorScheme.primaryMuted }
-                : undefined
-            }
-          >
-            {/* Main record item */}
-            <button
-              type="button"
-              onClick={() => handleRecordClick(r)}
-              className="py-3 px-4 flex flex-col gap-[2px] w-full / text-left cursor-pointer"
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: colorScheme.primary }}
-                />
-                <span className="font-medium flex-1">
-                  {getName(r) || getDescription(r) || "Unknown"}
-                </span>
-                {/* Only show arrow on mobile */}
-                <div className="text-xs text-neutral-500 md:hidden">
-                  {isSelected && isExpanded ? (
-                    <ChevronDownIcon size={16} />
-                  ) : (
-                    <ChevronRightIcon size={16} />
-                  )}
-                </div>
-              </div>
-              {getDescription(r) && getName(r) && (
-                <span className="text-sm ml-[1.1rem]">{getDescription(r)}</span>
-              )}
-            </button>
-
-            {/* Expanded content - only on mobile */}
-            {isSelected && isExpanded && (
-              <div className="px-4 pb-4 border-b border-neutral-200 md:hidden">
-                <MobileRecordDetails
-                  record={r}
-                  dataSourceConfig={dataSourceConfig}
-                />
-              </div>
-            )}
-          </li>
+  const handleRecordClick = useCallback(
+    (recordGroup: RecordGroup) => {
+      if (!isSelected) {
+        setSelectedRecords(
+          recordGroup.children.map((c) => ({
+            id: c.id,
+            dataSourceId: c.dataSourceId,
+          })),
         );
-      })}
-    </ul>
-  );
-}
+      }
 
-// Mobile-optimized record details component for accordion
-function MobileRecordDetails({
-  record,
-  dataSourceConfig,
-}: {
-  record: { json: Record<string, unknown> };
-  dataSourceConfig?: PublicMapDataSourceConfig;
-}) {
-  const name = buildName(dataSourceConfig?.nameColumns || [], record.json);
-  const description = String(
-    record.json[dataSourceConfig?.descriptionColumn || ""] || "",
+      if (recordGroup.geocodePoint) {
+        mapRef?.current?.flyTo({
+          center: recordGroup.geocodePoint,
+          zoom: 14,
+        });
+      }
+    },
+    [isSelected, mapRef, setSelectedRecords],
   );
-  const additionalColumns = dataSourceConfig?.additionalColumns || [];
 
   return (
-    <div className="flex flex-col gap-3 pt-3">
-      {/* Name and Description */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-neutral-600 font-medium">
-            {dataSourceConfig?.nameLabel || "Name"}
-          </span>
-          <span className="text-base font-semibold">{name}</span>
-        </div>
-
-        {description && (
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-neutral-600 font-medium">
-              {dataSourceConfig?.descriptionLabel ||
-                dataSourceConfig?.descriptionColumn ||
-                "Description"}
-            </span>
-            <span className="text-sm">{description}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Additional Columns */}
-      {additionalColumns.length > 0 && (
-        <>
-          <Separator />
-          <div className="flex flex-col gap-3">
-            {additionalColumns.map((columnConfig, i: number) => (
-              <div key={i} className="flex flex-col gap-1">
-                {columnConfig.type !== PublicMapColumnType.Boolean && (
-                  <span className="text-xs text-neutral-600 font-medium">
-                    {columnConfig.label}
-                  </span>
-                )}
-                {columnConfig.type === PublicMapColumnType.Boolean ? (
-                  <MobileCheckList
-                    sourceColumns={columnConfig.sourceColumns}
-                    json={record.json}
-                  />
-                ) : columnConfig.type ===
-                  PublicMapColumnType.CommaSeparatedList ? (
-                  <MobileCommaSeparatedList
-                    sourceColumns={columnConfig.sourceColumns}
-                    json={record.json}
-                  />
-                ) : (
-                  <span className="text-sm">
-                    {columnConfig.sourceColumns
-                      .map((c: string) => record.json[c])
-                      .filter(Boolean)
-                      .join(", ")}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </>
+    <li
+      className={cn(
+        "rounded transition-all duration-200",
+        isSelected ? "" : "hover:bg-accent",
       )}
-    </div>
-  );
-}
-
-function MobileCheckList({
-  sourceColumns,
-  json,
-}: {
-  sourceColumns: string[];
-  json: Record<string, unknown>;
-}) {
-  const toBoolean = (val: unknown): boolean => {
-    if (!val) return false;
-    if (["false", "0", "no"].includes(String(val).toLowerCase())) return false;
-    return Boolean(val);
-  };
-
-  return (
-    <div className="flex flex-col gap-1">
-      {sourceColumns.map((column) => (
-        <div key={column} className="flex items-center gap-2">
-          {toBoolean(json[column]) ? (
-            <Check className="w-3 h-3 text-green-600" />
-          ) : (
-            <X className="w-3 h-3 text-red-600" />
-          )}
-          <span className="text-xs">{column}</span>
+      data-id={id}
+      style={
+        isSelected ? { backgroundColor: colorScheme.primaryMuted } : undefined
+      }
+    >
+      {/* Main record item */}
+      <button
+        type="button"
+        onClick={() => handleRecordClick(recordGroup)}
+        className="py-3 px-4 flex flex-col gap-[2px] w-full / text-left cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <div
+            className="w-2.5 h-2.5 rounded-full"
+            style={{ backgroundColor: colorScheme.primary }}
+          />
+          <span className="font-medium flex-1">{recordGroup.name}</span>
         </div>
-      ))}
-    </div>
+        {description && description !== recordGroup.name && (
+          <span className="text-sm ml-[1.1rem]">{description}</span>
+        )}
+      </button>
+    </li>
   );
-}
-
-function MobileCommaSeparatedList({
-  sourceColumns,
-  json,
-}: {
-  sourceColumns: string[];
-  json: Record<string, unknown>;
-}) {
-  const values = sourceColumns.flatMap((c) =>
-    String(json[c] || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-  );
-
-  return (
-    <div className="flex flex-wrap gap-1">
-      {values.map((v) => (
-        <span
-          className="inline-block rounded-full bg-neutral-100 px-2 py-1 text-xs"
-          key={v}
-        >
-          {v}
-        </span>
-      ))}
-    </div>
-  );
-}
+});

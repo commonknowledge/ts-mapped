@@ -7,25 +7,29 @@ import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { MARKER_NAME_KEY } from "@/constants";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
+import { buildName } from "@/utils/dataRecord";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {
   id: string;
+  externalId: string;
   geocodePoint?: { lng: number; lat: number } | null;
+  json: Record<string, unknown>;
 }
 
 export default function MapTable() {
   const { mapRef } = useContext(MapContext);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { selectedRecord, setSelectedRecord } = useContext(InspectorContext);
+  const { selectedRecords, setSelectedRecords } = useContext(InspectorContext);
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
   const [lookingUpPage, setLookingUpPage] = useState(false);
 
@@ -62,10 +66,10 @@ export default function MapTable() {
   // This prevents other state changes from re-triggering the lookup
   // Open to other solutions to this, double useEffect doesn't feel right
   useEffect(() => {
-    if (selectedDataSourceId && selectedRecord?.id) {
+    if (selectedDataSourceId && selectedRecords.length) {
       setLookingUpPage(true);
     }
-  }, [selectedDataSourceId, selectedRecord?.id]);
+  }, [selectedDataSourceId, selectedRecords.length]);
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -77,6 +81,12 @@ export default function MapTable() {
         // Don't clear loading state here to avoid flicker
         return;
       }
+
+      if (!selectedRecords.length) {
+        return;
+      }
+
+      const selectedRecord = selectedRecords[0];
 
       if (!selectedDataSourceId || !selectedRecord?.id) {
         setLookingUpPage(false);
@@ -121,7 +131,7 @@ export default function MapTable() {
     lookingUpPage,
     queryClient,
     selectedDataSourceId,
-    selectedRecord?.id,
+    selectedRecords,
     setTablePage,
     tablePage,
     trpc.dataRecord.findPageIndex,
@@ -144,7 +154,16 @@ export default function MapTable() {
       center: [row.geocodePoint.lng, row.geocodePoint.lat],
       zoom: 15,
     });
-    setSelectedRecord({ id: row.id, dataSourceId: dataSource.id });
+    setSelectedRecords([
+      {
+        id: row.id,
+        dataSourceId: dataSource.id,
+        properties: {
+          ...row.json,
+          [MARKER_NAME_KEY]: buildName(dataSource, row),
+        },
+      },
+    ]);
   };
 
   const updateDataSourceView = (update: Partial<DataSourceView>) => {
@@ -212,7 +231,8 @@ export default function MapTable() {
         sort={dataSourceView?.sort || []}
         setSort={(sort) => updateDataSourceView({ sort })}
         onRowClick={handleRowClick}
-        selectedRecordId={selectedRecord?.id}
+        // TODO: make this work for multiple selected records
+        selectedRecordId={selectedRecords[0]?.id}
         onClose={() => handleDataSourceSelect("")}
       />
     </div>

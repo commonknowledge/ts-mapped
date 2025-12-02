@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
 import ChoroplethProvider from "../../../providers/ChoroplethProvider";
 import InspectorProvider from "../../../providers/InspectorProvider";
+import MapBoundsProvider from "../../../providers/MapBoundsProvider";
 import MapProvider from "../../../providers/MapProvider";
 import MarkerAndTurfProvider from "../../../providers/MarkerAndTurfProvider";
 import PublicMap from "./components/PublicMap";
@@ -77,17 +78,19 @@ export default async function PublicMapAdminPage({
 
   return (
     <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
-      <InspectorProvider>
-        <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
-          <PublicFiltersProvider>
-            <ChoroplethProvider>
-              <MarkerAndTurfProvider>
-                <PublicMap />
-              </MarkerAndTurfProvider>
-            </ChoroplethProvider>
-          </PublicFiltersProvider>
-        </PublicMapProvider>
-      </InspectorProvider>
+      <MapBoundsProvider>
+        <InspectorProvider>
+          <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
+            <PublicFiltersProvider>
+              <ChoroplethProvider>
+                <MarkerAndTurfProvider>
+                  <PublicMap />
+                </MarkerAndTurfProvider>
+              </ChoroplethProvider>
+            </PublicFiltersProvider>
+          </PublicMapProvider>
+        </InspectorProvider>
+      </MapBoundsProvider>
     </MapProvider>
   );
 }

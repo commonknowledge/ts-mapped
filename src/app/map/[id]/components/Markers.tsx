@@ -6,6 +6,7 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import {
+  MARKER_DATA_SOURCE_ID_KEY,
   MARKER_ID_KEY,
   MARKER_MATCHED_KEY,
   MARKER_NAME_KEY,
@@ -90,7 +91,7 @@ function DataSourceMarkers({
   dataSourceMarkers: { dataSourceId: string; markers: PointFeature[] };
   isMembers: boolean;
 }) {
-  const { records, publicFilters } = useContext(PublicFiltersContext);
+  const { filteredRecords, publicFilters } = useContext(PublicFiltersContext);
   const { publicMap, colorScheme } = useContext(PublicMapContext);
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
@@ -103,7 +104,7 @@ function DataSourceMarkers({
     }
 
     // Add MARKER_CLIENT_EXCLUDED_KEY if public filters are set and marker is not matched
-    const recordIds = (records || []).map((r) => r.id).filter(Boolean);
+    const recordIds = (filteredRecords || []).map((r) => r.id).filter(Boolean);
     return {
       type: "FeatureCollection",
       features: dataSourceMarkers.markers.map((f) => ({
@@ -116,7 +117,7 @@ function DataSourceMarkers({
         },
       })),
     };
-  }, [dataSourceMarkers.markers, publicFilters, records]);
+  }, [dataSourceMarkers.markers, filteredRecords, publicFilters]);
 
   const NOT_MATCHED_CASE = [
     "any",
@@ -142,81 +143,143 @@ function DataSourceMarkers({
       type="geojson"
       data={safeMarkers}
       cluster={true}
-      clusterMaxZoom={11}
+      clusterMaxZoom={publicMap ? 22 : 11}
       clusterRadius={50}
       clusterProperties={{
         matched_count: ["+", ["case", NOT_MATCHED_CASE, 0, 1]],
+        ids: [
+          "concat",
+          [
+            "concat",
+            ["get", MARKER_ID_KEY],
+            ":",
+            ["get", MARKER_DATA_SOURCE_ID_KEY],
+            ",",
+          ],
+        ],
       }}
     >
-      <Layer
-        id={`${sourceId}-heatmap`}
-        type="heatmap"
-        source={sourceId}
-        filter={["has", "point_count"]}
-        paint={{
-          // Adjust weight based on matched_count and point_count
-          "heatmap-weight": [
-            "*",
-            ["case", ["==", ["get", "matched_count"], 0], 0.5, 1.5],
-            [
-              "interpolate",
-              ["exponential", 0.5],
-              ["get", "point_count"],
-              1,
-              0.5,
-              10,
-              1,
-              100,
-              1.5,
-              1000,
-              2,
-              10000,
-              2.5,
+      {publicMap ? (
+        [
+          <Layer
+            id={`${sourceId}-circles`}
+            key={`${sourceId}-circles`}
+            type="circle"
+            source={sourceId}
+            filter={["has", "point_count"]}
+            paint={{
+              // Circle radius based on point_count
+              "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["get", "point_count"],
+                1,
+                15,
+                10,
+                25,
+                100,
+                35,
+                1000,
+                50,
+                10000,
+                70,
+              ],
+              // Circle color
+              "circle-color": color,
+              // Opacity based on matched_count
+              "circle-opacity": [
+                "case",
+                ["==", ["get", "matched_count"], 0],
+                0.5,
+                0.8,
+              ],
+            }}
+          />,
+
+          <Layer
+            id={`${sourceId}-counts`}
+            key={`${sourceId}-counts`}
+            type="symbol"
+            source={sourceId}
+            filter={["has", "point_count"]}
+            layout={{
+              "text-field": ["get", "point_count"],
+              "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              "text-size": 12,
+            }}
+          />,
+        ]
+      ) : (
+        <Layer
+          id={`${sourceId}-heatmap`}
+          type="heatmap"
+          source={sourceId}
+          filter={["has", "point_count"]}
+          paint={{
+            // Adjust weight based on matched_count and point_count
+            "heatmap-weight": [
+              "*",
+              ["case", ["==", ["get", "matched_count"], 0], 0.5, 1.5],
+              [
+                "interpolate",
+                ["exponential", 0.5],
+                ["get", "point_count"],
+                1,
+                0.5,
+                10,
+                1,
+                100,
+                1.5,
+                1000,
+                2,
+                10000,
+                2.5,
+              ],
             ],
-          ],
-          // Increase intensity as zoom level increases
-          "heatmap-intensity": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            1,
-            15,
-            3,
-          ],
-          // Color ramp for heatmap
-          "heatmap-color": [
-            "interpolate",
-            ["linear"],
-            ["heatmap-density"],
-            0,
-            rgbaString(color, 0),
-            0.2,
-            rgbaString(color, 0.2),
-            0.4,
-            rgbaString(color, 0.4),
-            0.6,
-            rgbaString(color, 0.6),
-            0.8,
-            rgbaString(color, 0.8),
-            1,
-            rgbaString(color, 1),
-          ],
-          // Adjust radius by zoom
-          "heatmap-radius": [
-            "interpolate",
-            ["linear"],
-            ["get", "point_count"],
-            2,
-            50,
-            100,
-            100,
-            1000,
-            200,
-          ],
-          "heatmap-opacity": 0.7,
-        }}
-      />
+            // Increase intensity as zoom level increases
+            "heatmap-intensity": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              0,
+              1,
+              15,
+              3,
+            ],
+            // Color ramp for heatmap
+            "heatmap-color": [
+              "interpolate",
+              ["linear"],
+              ["heatmap-density"],
+              0,
+              rgbaString(color, 0),
+              0.2,
+              rgbaString(color, 0.2),
+              0.4,
+              rgbaString(color, 0.4),
+              0.6,
+              rgbaString(color, 0.6),
+              0.8,
+              rgbaString(color, 0.8),
+              1,
+              rgbaString(color, 1),
+            ],
+            // Adjust radius by zoom
+            "heatmap-radius": [
+              "interpolate",
+              ["linear"],
+              ["get", "point_count"],
+              2,
+              50,
+              100,
+              100,
+              1000,
+              200,
+            ],
+            "heatmap-opacity": 0.7,
+          }}
+        />
+      )}
       <Layer
         id={`${sourceId}-pins`}
         type="circle"

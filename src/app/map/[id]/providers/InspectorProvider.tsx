@@ -39,7 +39,8 @@ const HIDDEN_PROPERTIES = [
 const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const [selectedRecord, setSelectedRecord] = useState<SelectedRecord | null>(
+  const [selectedRecords, _setSelectedRecords] = useState<SelectedRecord[]>([]);
+  const [focusedRecord, _setFocusedRecord] = useState<SelectedRecord | null>(
     null,
   );
   const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
@@ -49,9 +50,29 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const [inspectorContent, setInspectorContent] =
     useState<InspectorContent | null>(null);
 
+  // Custom setter to keep selectedRecords and focusedRecord in sync
+  const setSelectedRecords = useCallback((records: SelectedRecord[]) => {
+    _setSelectedRecords(records);
+    _setFocusedRecord(records.length ? records[0] : null);
+  }, []);
+
+  // Custom setter to keep selectedRecords and focusedRecord in sync
+  const setFocusedRecord = useCallback(
+    (record: SelectedRecord | null) => {
+      _setFocusedRecord(record);
+      if (!record) {
+        return;
+      }
+      if (!selectedRecords.some((sr) => sr.id === record.id)) {
+        _setSelectedRecords([record]);
+      }
+    },
+    [selectedRecords],
+  );
+
   useEffect(() => {
     // if no selected marker / member to inspect
-    if (!selectedRecord || !selectedRecord?.properties) {
+    if (!focusedRecord || !focusedRecord.properties) {
       // check if area selected
       if (selectedTurf?.id) {
         setInspectorContent({
@@ -77,7 +98,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const dataSourceId = selectedRecord?.dataSourceId;
+    const dataSourceId = focusedRecord.dataSourceId;
 
     const dataSource = dataSourceId ? getDataSourceById(dataSourceId) : null;
     const type =
@@ -86,39 +107,41 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         : LayerType.Marker;
 
     const filteredProperties = Object.fromEntries(
-      Object.entries(selectedRecord.properties).filter(
+      Object.entries(focusedRecord.properties).filter(
         ([key]) => !HIDDEN_PROPERTIES.includes(key),
       ),
     );
 
     setInspectorContent({
       type: type,
-      name: selectedRecord?.properties?.[MARKER_NAME_KEY],
+      name: focusedRecord?.properties?.[MARKER_NAME_KEY],
       properties: filteredProperties,
       dataSource: dataSource,
     });
   }, [
     getDataSourceById,
-    selectedRecord,
     selectedTurf,
     selectedBoundary,
     mapConfig.membersDataSourceId,
+    focusedRecord,
   ]);
 
   const resetInspector = useCallback(() => {
-    setSelectedRecord(null);
+    setSelectedRecords([]);
     setSelectedTurf(null);
     setSelectedBoundary(null);
     setInspectorContent(null);
-  }, []);
+  }, [setSelectedRecords]);
 
   return (
     <InspectorContext
       value={{
         inspectorContent,
         setInspectorContent,
-        selectedRecord,
-        setSelectedRecord,
+        selectedRecords,
+        setSelectedRecords,
+        focusedRecord,
+        setFocusedRecord,
         selectedTurf,
         setSelectedTurf,
         selectedBoundary,
