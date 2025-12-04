@@ -4,7 +4,7 @@ import type { DataRecord } from "@/server/models/DataRecord";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 
 // TODO: make this configurable in public map config
-const UNKNOWN_VALUES = ["Unknown", "I didn't ask"];
+const UNKNOWN_VALUES = ["Unknown", "I didn't ask", "Not applicable"];
 
 export interface RecordGroup {
   name: string;
