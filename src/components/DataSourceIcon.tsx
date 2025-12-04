@@ -293,12 +293,40 @@ const ActionNetworkSVG = () => (
   </svg>
 );
 
+const PayloadCMSSVG = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 256 256"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect width="256" height="256" fill="none" />
+    <path
+      d="M128 32L32 96v128l96 64 96-64V96L128 32z"
+      fill="#000000"
+      stroke="#000000"
+      strokeWidth="8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M128 96v128M32 96l96 64 96-64"
+      stroke="#FFFFFF"
+      strokeWidth="8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </svg>
+);
+
 const dataSourceIcons: Record<DataSourceType, React.ReactNode> = {
   [DataSourceType.ActionNetwork]: <ActionNetworkSVG />,
   [DataSourceType.Airtable]: <AirtableIconSVG />,
   [DataSourceType.CSV]: <File size={16} />,
   [DataSourceType.GoogleSheets]: <GoogleSheetsIconSVG />,
   [DataSourceType.Mailchimp]: <MailchimpIconSVG />,
+  [DataSourceType.PayloadCMS]: <PayloadCMSSVG />,
 };
 
 const DataSourceIcon = ({
