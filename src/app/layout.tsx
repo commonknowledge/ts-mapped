@@ -10,7 +10,7 @@ import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import { Toaster } from "@/shadcn/ui/sonner";
 import { getAbsoluteUrl } from "@/utils/appUrl";
 import type { Organisation } from "@/server/models/Organisation";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "nprogress/nprogress.css";
 import "./global.css";
 
@@ -33,11 +33,12 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getAbsoluteUrl()),
   title: "Mapped",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default async function RootLayout({

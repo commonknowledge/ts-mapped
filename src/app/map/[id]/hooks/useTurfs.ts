@@ -66,6 +66,12 @@ export function useTurfMutations() {
 
         return { previousData };
       },
+      onSuccess: () => {
+        // Invalidate all list queries, as they all might filter based on this turf
+        queryClient.invalidateQueries({
+          queryKey: trpc.dataRecord.list.queryKey(),
+        });
+      },
       onError: (_err, _variables, context) => {
         // Rollback on error
         if (mapId && context?.previousData) {

@@ -11,14 +11,14 @@ export interface InspectorContent {
   type: LayerType | undefined;
   name: string | unknown;
   properties: Record<string, unknown> | null;
-  dataSource: DataSource | null;
+  dataSource?: DataSource | null;
 }
 
 export interface SelectedRecord {
   id: string;
-  dataSourceId: string;
-  point?: Point | null;
-  properties?: Record<string, unknown> | null;
+  dataSourceId?: string; // Not present for PlacedMarkers
+  name: string;
+  geocodePoint: Point | null;
 }
 
 export interface SelectedTurf {

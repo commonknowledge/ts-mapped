@@ -13,6 +13,7 @@ import { parseDate } from "@/utils/dataRecord";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import {
+  buildPublicMapName,
   groupRecords,
   jsonToAirtablePrefill,
   toBooleanOrUnknown,
@@ -32,7 +33,7 @@ export default function DataRecordSidebar() {
     publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;
 
   const selectedRecordsDetails = useMemo(() => {
-    if (!selectedRecords.length) {
+    if (!selectedRecords.length || !selectedRecords[0].dataSourceId) {
       return [];
     }
     const dataRecordsQuery =
@@ -44,7 +45,7 @@ export default function DataRecordSidebar() {
   }, [dataRecordsQueries, selectedRecords]);
 
   const dataSource = useMemo(() => {
-    if (!selectedRecords.length) {
+    if (!selectedRecords.length || !selectedRecords[0].dataSourceId) {
       return null;
     }
     return dataRecordsQueries[selectedRecords[0].dataSourceId].data;
@@ -54,9 +55,9 @@ export default function DataRecordSidebar() {
     (dsc) => dsc.dataSourceId === selectedRecords[0]?.dataSourceId,
   );
 
+  // Group records and sort children by date
   const recordGroups = useMemo(() => {
     const groups = groupRecords(dataSourceConfig, selectedRecordsDetails);
-    // Sort children by date
     return groups.map((g) => {
       return {
         ...g,
@@ -81,8 +82,17 @@ export default function DataRecordSidebar() {
   // Update the focused record in context so the list
   // sidebar can scroll to the correct record
   useEffect(() => {
-    setFocusedRecord(selectedRecordDetails || null);
-  }, [selectedRecordDetails, selectedRecords, setFocusedRecord]);
+    setFocusedRecord(
+      selectedRecordDetails
+        ? {
+            id: selectedRecordDetails.id,
+            name: buildPublicMapName(dataSourceConfig, selectedRecordDetails),
+            dataSourceId: selectedRecordDetails.dataSourceId,
+            geocodePoint: selectedRecordDetails.geocodePoint,
+          }
+        : null,
+    );
+  }, [dataSourceConfig, selectedRecordDetails, setFocusedRecord]);
 
   if (!recordGroup || !selectedRecordDetails || !publicMap) {
     return <></>;

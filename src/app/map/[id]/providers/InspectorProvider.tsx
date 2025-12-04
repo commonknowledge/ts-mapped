@@ -5,16 +5,6 @@ import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/help
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import {
-  MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_ID_KEY,
-  MARKER_MATCHED_KEY,
-  MARKER_NAME_KEY,
-  MARKER_RADIUS_KEY,
-  MAX_COLUMN_KEY,
-  SORT_BY_LOCATION,
-  SORT_BY_NAME_COLUMNS,
-} from "@/constants";
 import { LayerType } from "@/types";
 
 import type {
@@ -24,17 +14,6 @@ import type {
   SelectedTurf,
 } from "@/app/map/[id]/context/InspectorContext";
 import type { ReactNode } from "react";
-
-const HIDDEN_PROPERTIES = [
-  MARKER_ID_KEY,
-  MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_NAME_KEY,
-  MARKER_MATCHED_KEY,
-  MARKER_RADIUS_KEY,
-  MAX_COLUMN_KEY,
-  SORT_BY_LOCATION,
-  SORT_BY_NAME_COLUMNS,
-];
 
 const InspectorProvider = ({ children }: { children: ReactNode }) => {
   const { getDataSourceById } = useDataSources();
@@ -72,7 +51,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // if no selected marker / member to inspect
-    if (!focusedRecord || !focusedRecord.properties) {
+    if (!focusedRecord) {
       // check if area selected
       if (selectedTurf?.id) {
         setInspectorContent({
@@ -85,7 +64,6 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         setInspectorContent({
           type: LayerType.Boundary,
           name: selectedBoundary.name,
-          dataSource: null,
           properties: {
             ["Area Code"]: selectedBoundary?.areaCode,
             Dataset: getBoundaryDatasetName(selectedBoundary?.sourceLayerId),
@@ -106,16 +84,10 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         ? LayerType.Member
         : LayerType.Marker;
 
-    const filteredProperties = Object.fromEntries(
-      Object.entries(focusedRecord.properties).filter(
-        ([key]) => !HIDDEN_PROPERTIES.includes(key),
-      ),
-    );
-
     setInspectorContent({
       type: type,
-      name: focusedRecord?.properties?.[MARKER_NAME_KEY],
-      properties: filteredProperties,
+      name: focusedRecord.name,
+      properties: null,
       dataSource: dataSource,
     });
   }, [

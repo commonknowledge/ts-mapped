@@ -293,7 +293,10 @@ export function DataTable({
                     {columns
                       .filter((c) => !hiddenColumns.includes(c.name))
                       .map((column) => (
-                        <TableCell key={column.name}>
+                        <TableCell
+                          key={column.name}
+                          className="whitespace-normal"
+                        >
                           {renderCell(row.json[column.name])}
                         </TableCell>
                       ))}
@@ -311,7 +314,7 @@ export function DataTable({
               )}
               {lastPageIndex > 0 && (
                 <TableRow>
-                  <TableCell colSpan={columns.length + 1} className="p-0">
+                  <TableCell colSpan={columns.length} className="p-0">
                     <div className="flex items-center gap-2 p-2">
                       <Button
                         variant="outline"

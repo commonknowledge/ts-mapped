@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
-import {
-  MARKER_DATA_SOURCE_ID_KEY,
-  MARKER_ID_KEY,
-  MARKER_MATCHED_COLUMN,
-  MARKER_MATCHED_KEY,
-  MARKER_NAME_KEY,
-} from "@/constants";
+import { MARKER_MATCHED_COLUMN } from "@/constants";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
@@ -15,7 +9,7 @@ import { buildName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { DataSource } from "@/server/models/DataSource";
 import type { RecordFilterInput } from "@/server/models/MapView";
-import type { PointFeature } from "@/types";
+import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 import type { NextRequest } from "next/server";
 
 /**
@@ -64,15 +58,13 @@ export async function GET(
             number,
             number,
           ];
-          const feature: PointFeature = {
+          const feature: MarkerFeatureWithoutDataSourceId = {
             type: "Feature",
+            // Minimal properties to support large numbers of markers (1000+)
             properties: {
-              ...dr.json,
-              [MARKER_ID_KEY]: dr.id,
-              [MARKER_DATA_SOURCE_ID_KEY]: dr.dataSourceId,
-              // If no name column is specified, show the ID as the marker name instead
-              [MARKER_NAME_KEY]: buildName(dataSource, dr),
-              [MARKER_MATCHED_KEY]: dr[MARKER_MATCHED_COLUMN],
+              id: dr.id,
+              name: buildName(dataSource, dr),
+              matched: dr[MARKER_MATCHED_COLUMN],
             },
             geometry: {
               type: "Point",

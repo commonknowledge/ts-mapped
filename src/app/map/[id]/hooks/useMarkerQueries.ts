@@ -6,7 +6,7 @@ import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
-import type { PointFeature } from "@/types";
+import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 
 export function useMarkerQueries() {
   const { mapConfig } = useMapConfig();
@@ -45,8 +45,13 @@ export function useMarkerQueries() {
           if (!response.ok) {
             throw new Error(`Bad response: ${response.status}`);
           }
-          const data = await response.json();
-          return data as PointFeature[];
+          const data =
+            (await response.json()) as MarkerFeatureWithoutDataSourceId[];
+          // Add dataSourceId to the marker properties, ultimately to support marker click handlers
+          return data.map((d) => ({
+            ...d,
+            properties: { ...d.properties, dataSourceId },
+          }));
         },
       };
     }),

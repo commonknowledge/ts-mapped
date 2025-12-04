@@ -1,6 +1,5 @@
 // Only import library types and generated types into this file
 import type { PublicMapColumnType } from "./server/models/PublicMap";
-import type { Point } from "@/server/models/shared";
 import type { Geometry } from "geojson";
 
 export interface AreaStat {
@@ -33,9 +32,27 @@ export interface ExternalRecord {
   json: Record<string, unknown>;
 }
 
-export interface PointFeature {
+export interface MarkerFeature {
   type: "Feature";
-  properties: Record<string, string | number | boolean>;
+  properties: {
+    id: string;
+    name: string;
+    dataSourceId: string;
+    matched: boolean;
+  };
+  geometry: { coordinates: [number, number]; type: "Point" };
+}
+
+// Used in the markers/route.ts GeoJSON response
+// As dataSourceId is known in the request parameters
+// so doesn't need to be included in the response body
+export interface MarkerFeatureWithoutDataSourceId {
+  type: "Feature";
+  properties: {
+    id: string;
+    name: string;
+    matched: boolean;
+  };
   geometry: { coordinates: [number, number]; type: "Point" };
 }
 
@@ -65,18 +82,6 @@ export interface FilterField {
 
   label?: string | undefined;
   options?: string[];
-}
-
-export interface RecordData {
-  id: string;
-  json: Record<string, unknown>;
-  geocodePoint: Point;
-  name?: string;
-}
-
-export interface RecordsResponse {
-  count: { matched: number };
-  records: RecordData[];
 }
 
 export enum LayerType {

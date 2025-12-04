@@ -1,41 +1,36 @@
 import { useContext } from "react";
 import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { MARKER_NAME_KEY } from "@/constants";
-import { LayerType, type RecordData, type RecordsResponse } from "@/types";
-import { buildName } from "@/utils/dataRecord";
-import TurfMarkerButton from "./TurfMarkerButton";
+import { LayerType } from "@/types";
+import MarkerButton from "./MarkerButton";
 import type { DataSource } from "@/server/models/DataSource";
 import type { Folder } from "@/server/models/Folder";
+import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { MarkerFeature } from "@/types";
 
 export const MembersList = ({
-  records,
+  markers,
   dataSource,
+  areaType,
 }: {
-  records: RecordsResponse;
+  markers: MarkerFeature[];
   dataSource: DataSource | null;
+  areaType: "area" | "boundary";
 }) => {
   const { setSelectedRecords } = useContext(InspectorContext);
 
-  const memberRecords = records.records ?? [];
-  const total = records.count.matched ?? 0;
+  const total = markers.length;
 
-  const onRecordClick = (record: RecordData) => {
+  const onRecordClick = (marker: MarkerFeature) => {
     setSelectedRecords([
       {
-        id: record.id,
-        dataSourceId: dataSource?.id as string,
-        point: record.geocodePoint,
-        properties: {
-          ...record.json,
-          [MARKER_NAME_KEY]: buildName(dataSource, {
-            ...record,
-            // The externalId is not present as this data comes from the marker GeoJSON
-            // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
-            // but to load data when needed from the backend
-            externalId: "Unknown",
-          }),
+        id: marker.properties.id,
+        dataSourceId: marker.properties.dataSourceId,
+        geocodePoint: {
+          lng: marker.geometry.coordinates[0],
+          lat: marker.geometry.coordinates[1],
         },
+        name: marker.properties.name,
       },
     ]);
   };
@@ -43,72 +38,58 @@ export const MembersList = ({
   return (
     <div className="flex flex-col gap-2">
       <h2 className="text-xs font-mono uppercase text-muted-foreground">
-        Members in this area {total > 0 && <>({total})</>}
+        Members in this {areaType} {total > 0 && <>({total})</>}
       </h2>
 
       {!dataSource ? (
         <p>No members data source found.</p>
-      ) : memberRecords.length > 0 ? (
+      ) : markers.length > 0 ? (
         <ul>
-          {memberRecords.map((record) => {
-            const displayName = buildName(dataSource, {
-              ...record,
-              // The externalId is not present as this data comes from the marker GeoJSON
-              // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
-              // but to load data when needed from the backend
-              externalId: "Unknown",
-            });
+          {markers.map((marker) => {
             return (
-              <li key={record.id}>
-                <TurfMarkerButton
-                  label={displayName}
+              <li key={marker.properties.id}>
+                <MarkerButton
+                  label={marker.properties.name}
                   type={LayerType.Member}
-                  onClick={() => onRecordClick(record)}
+                  onClick={() => onRecordClick(marker)}
                 />
               </li>
             );
           })}
         </ul>
       ) : (
-        <p>No members in this area.</p>
+        <p>No members in this {areaType}.</p>
       )}
     </div>
   );
 };
 
 export const MarkersList = ({
-  records,
+  markers,
   dataSource,
 }: {
-  records: RecordsResponse;
+  markers: MarkerFeature[];
   dataSource: DataSource | null;
 }) => {
   const { setSelectedRecords } = useContext(InspectorContext);
 
-  const recordsList = records.records ?? [];
-  const total = records.count.matched ?? 0;
+  const total = markers.length;
 
-  const onRecordClick = (record: RecordData) => {
+  const onRecordClick = (marker: MarkerFeature) => {
     setSelectedRecords([
       {
-        id: record.id,
-        dataSourceId: dataSource?.id as string,
-        point: record.geocodePoint,
-        properties: {
-          ...record.json,
-          [MARKER_NAME_KEY]: buildName(dataSource, {
-            ...record,
-            // The externalId is not present as this data comes from the marker GeoJSON
-            // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
-            // but to load data when needed from the backend
-            externalId: "Unknown",
-          }),
+        id: marker.properties.id,
+        dataSourceId: marker.properties.dataSourceId,
+        geocodePoint: {
+          lng: marker.geometry.coordinates[0],
+          lat: marker.geometry.coordinates[1],
         },
+        name: marker.properties.name,
       },
     ]);
   };
 
-  if (recordsList.length === 0) {
+  if (markers.length === 0) {
     return <></>;
   }
 
@@ -122,19 +103,13 @@ export const MarkersList = ({
       </h3>
 
       <ul>
-        {recordsList.map((record) => {
+        {markers.map((marker) => {
           return (
-            <li key={record.id}>
-              <TurfMarkerButton
-                label={buildName(dataSource, {
-                  ...record,
-                  // The externalId is not present as this data comes from the marker GeoJSON
-                  // TODO: Refactor the inspector to not use marker GeoJSON data (so it can be reduced in size),
-                  // but to load data when needed from the backend
-                  externalId: "Unknown",
-                })}
+            <li key={marker.properties.id}>
+              <MarkerButton
+                label={marker.properties.name}
                 type={LayerType.Marker}
-                onClick={() => onRecordClick(record)}
+                onClick={() => onRecordClick(marker)}
               />
             </li>
           );
@@ -146,31 +121,27 @@ export const MarkersList = ({
 
 export const PlacedMarkersList = ({
   folder,
-  records,
+  placedMarkers,
 }: {
   folder: Folder | null;
-  records: RecordsResponse;
+  placedMarkers: PlacedMarker[];
 }) => {
   const { setSelectedRecords } = useContext(InspectorContext);
 
-  const recordsList = records.records ?? [];
-  const total = records.count.matched ?? 0;
+  const total = placedMarkers.length;
   const name = folder?.name || "No folder";
 
-  const onRecordClick = (record: RecordData) => {
+  const onRecordClick = (marker: PlacedMarker) => {
     setSelectedRecords([
       {
-        id: record.id,
-        dataSourceId: "",
-        point: record.geocodePoint,
-        properties: {
-          [MARKER_NAME_KEY]: record.json?.name || "",
-        },
+        id: marker.id,
+        geocodePoint: marker.point,
+        name: marker.label,
       },
     ]);
   };
 
-  if (recordsList.length === 0) {
+  if (placedMarkers.length === 0) {
     return <></>;
   }
 
@@ -181,13 +152,13 @@ export const PlacedMarkersList = ({
       </h3>
 
       <ul>
-        {recordsList.map((record) => {
+        {placedMarkers.map((marker) => {
           return (
-            <li key={record.id}>
-              <TurfMarkerButton
-                label={record.json?.name as string}
+            <li key={marker.id}>
+              <MarkerButton
+                label={marker.label}
                 type={LayerType.Marker}
-                onClick={() => onRecordClick(record)}
+                onClick={() => onRecordClick(marker)}
               />
             </li>
           );
