@@ -44,6 +44,8 @@ export default function ConfigurationForm({
 
   const [autoImport, setAutoImport] = useState(dataSource.autoImport);
 
+  const [isPublic, setIsPublic] = useState(dataSource.public);
+
   // Form state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -83,6 +85,7 @@ export default function ConfigurationForm({
       geocodingConfig: validGeocodingConfig,
       autoImport,
       dateFormat,
+      public: isPublic,
     });
   };
 
@@ -138,6 +141,14 @@ export default function ConfigurationForm({
           )}
         </>
       )}
+
+      <FormFieldWrapper
+        label="Share this data with the Movement Data Library"
+        hint="Warning: this will make the data publicly available."
+        isHorizontal
+      >
+        <Switch checked={isPublic} onCheckedChange={(v) => setIsPublic(v)} />
+      </FormFieldWrapper>
 
       <Button
         disabled={!validGeocodingConfig || loading}
