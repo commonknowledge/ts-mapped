@@ -36,6 +36,7 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
+import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import {
   dataRecordsWillAggregate,
   getValidAreaSetGroupCodes,
@@ -51,14 +52,15 @@ export default function VisualisationPanel({
   const { viewConfig, updateViewConfig } = useMapViews();
   const { boundariesPanelOpen, setBoundariesPanelOpen } =
     useContext(ChoroplethContext);
-  const { data: dataSources } = useDataSources();
+  const { data: dataSources, getDataSourceById } = useDataSources();
   const dataSource = useChoroplethDataSource();
 
-  // Add this state
   const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
-  // Add these states
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
+    null,
+  );
 
   // Update the filtering logic to include search
   const filteredAndSearchedDataSources = useMemo(() => {
@@ -69,8 +71,8 @@ export default function VisualisationPanel({
         (ds) =>
           ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ds.columnDefs.some((col) =>
-            col.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+            col.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
 
@@ -95,7 +97,7 @@ export default function VisualisationPanel({
     <div
       className={cn(
         "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-100"
+        "absolute top-0 h-full z-100",
       )}
       style={{
         left: positionLeft,
@@ -179,13 +181,13 @@ export default function VisualisationPanel({
               <SelectValue placeholder="Choose boundaries..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NULL_UUID}>No Locality</SelectItem>
+              <SelectItem value={NULL_UUID}>No locality</SelectItem>
               {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
                 (code) => (
                   <SelectItem key={code} value={code}>
                     {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
                   </SelectItem>
-                )
+                ),
               )}
             </SelectContent>
           </Select>
@@ -219,7 +221,7 @@ export default function VisualisationPanel({
               <SelectValue placeholder="Choose calculation..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="counts">Record counts</SelectItem>
+              <SelectItem value="counts">Count by area</SelectItem>
               <SelectItem value="values">Data values</SelectItem>
             </SelectContent>
           </Select>
@@ -294,7 +296,7 @@ export default function VisualisationPanel({
                     {dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
                       ?.columnDefs.filter(
-                        (col) => col.type === ColumnType.Number
+                        (col) => col.type === ColumnType.Number,
                       )
                       .map((col) => (
                         <SelectItem key={col.name} value={col.name}>
@@ -310,7 +312,7 @@ export default function VisualisationPanel({
             columnOneIsNumber &&
             dataRecordsWillAggregate(
               dataSource?.geocodingConfig,
-              viewConfig.areaSetGroupCode
+              viewConfig.areaSetGroupCode,
             ) && (
               <>
                 <Label
@@ -410,45 +412,19 @@ export default function VisualisationPanel({
                   className="w-full"
                   id="choropleth-color-scheme-select"
                 >
-                  <SelectValue placeholder="Choose color scheme..." />
+                  <SelectValue placeholder="Choose colour scheme..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ColorScheme.RedBlue}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-blue-400 rounded"></div>
-                      Red to blue
-                    </div>
-                  </SelectItem>
-                  <SelectItem value={ColorScheme.GreenYellowRed}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded"></div>
-                      Green to red
-                    </div>
-                  </SelectItem>
-                  <SelectItem value={ColorScheme.Viridis}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-blue-400 to-green-400 rounded"></div>
-                      Viridis
-                    </div>
-                  </SelectItem>
-                  <SelectItem value={ColorScheme.Plasma}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 rounded"></div>
-                      Plasma
-                    </div>
-                  </SelectItem>
-                  <SelectItem value={ColorScheme.Diverging}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gradient-to-r from-blue-400 via-white to-red-400 rounded"></div>
-                      Diverging
-                    </div>
-                  </SelectItem>
-                  <SelectItem value={ColorScheme.Sequential}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gradient-to-r from-gray-200 to-blue-600 rounded"></div>
-                      Sequential
-                    </div>
-                  </SelectItem>
+                  {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
+                    <SelectItem
+                      key={index}
+                      value={option.value}
+                      className="flex items-center gap-2"
+                    >
+                      <div className={`w-4 h-4 rounded ${option.color}`} />
+                      <span className="truncate">{option.label}</span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -513,7 +489,22 @@ export default function VisualisationPanel({
                     className="text-left"
                     key={ds.id}
                     onClick={() => {
-                      updateViewConfig({ areaDataSourceId: ds.id });
+                      const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
+                      if (!selectedAreaSetGroup) {
+                        updateViewConfig({ areaDataSourceId: ds.id });
+                        setIsModalOpen(false);
+                        return;
+                      }
+                      const dataSource = getDataSourceById(ds.id);
+                      const validAreaSetGroups = getValidAreaSetGroupCodes(
+                        dataSource?.geocodingConfig,
+                      );
+                      if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
+                        updateViewConfig({ areaDataSourceId: ds.id });
+                        setIsModalOpen(false);
+                        return;
+                      }
+                      setInvalidDataSourceId(ds.id);
                       setIsModalOpen(false);
                     }}
                   >
@@ -532,6 +523,54 @@ export default function VisualisationPanel({
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal for handling invalid data source / boundary combination */}
+      <Dialog
+        open={Boolean(invalidDataSourceId)}
+        onOpenChange={(o) => {
+          if (!o) {
+            setInvalidDataSourceId(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Select new boundaries</DialogTitle>
+          </DialogHeader>
+
+          <p>
+            The data source you have selected does not fit into your selected
+            boundaries (
+            {viewConfig.areaSetGroupCode
+              ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
+              : "unknown"}
+            ). Please select alternative boundaries, or cancel.
+          </p>
+
+          <Select
+            onValueChange={(value) => {
+              updateViewConfig({
+                areaSetGroupCode: value as AreaSetGroupCode,
+                areaDataSourceId: invalidDataSourceId || "",
+              });
+              setInvalidDataSourceId(null);
+            }}
+          >
+            <SelectTrigger className="w-full min-w-0">
+              <SelectValue placeholder="Choose boundaries..." />
+            </SelectTrigger>
+            <SelectContent>
+              {getValidAreaSetGroupCodes(
+                getDataSourceById(invalidDataSourceId)?.geocodingConfig,
+              ).map((code) => (
+                <SelectItem key={code} value={code}>
+                  {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </DialogContent>
       </Dialog>
     </div>

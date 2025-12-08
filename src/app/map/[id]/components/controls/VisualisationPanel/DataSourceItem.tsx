@@ -1,8 +1,6 @@
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { cn } from "@/shadcn/utils";
-import type {
-  DataSourceType,
-} from "@/server/models/DataSource";
+import type { DataSourceType } from "@/server/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceItemType = NonNullable<
@@ -11,7 +9,7 @@ type DataSourceItemType = NonNullable<
 
 // Helper function to get data source type from config
 const getDataSourceType = (
-  dataSource: DataSourceItemType
+  dataSource: DataSourceItemType,
 ): DataSourceType | "unknown" => {
   try {
     const config = dataSource.config;
@@ -50,7 +48,7 @@ export function DataSourceItem({
     <div
       className={cn(
         "flex flex-col p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
-        className
+        className,
       )}
     >
       <div className="flex gap-2 items-center">
