@@ -21,11 +21,11 @@ export function useBoundariesControl() {
 
   const fillLabel = useMemo(() => {
     if (!viewConfig.areaDataSourceId || viewConfig.areaDataSourceId === "") {
-      return "No Fill";
+      return "No fill";
     }
 
     if (viewConfig.calculationType === CalculationType.Count) {
-      return "Member Count";
+      return "Record count";
     }
 
     if (
@@ -36,7 +36,7 @@ export function useBoundariesControl() {
       return viewConfig.areaDataColumn;
     }
 
-    return "Data Visualization";
+    return "Data visualization";
   }, [viewConfig, voteShareDataSource]);
 
   const shapeOptions = useMemo(() => {
@@ -74,7 +74,7 @@ export function useBoundariesControl() {
   const fillOptions = useMemo(() => {
     const baseOptions = [
       {
-        label: "No Fill",
+        label: "No fill",
         onClick: () => {
           updateViewConfig({
             areaDataSourceId: "",
@@ -88,7 +88,7 @@ export function useBoundariesControl() {
     const memberCountOption = membersDataSource
       ? [
           {
-            label: "Member Count",
+            label: "Member count",
             onClick: () => {
               updateViewConfig({
                 areaDataSourceId: membersDataSource.id,
@@ -154,8 +154,7 @@ export function useBoundariesControl() {
 
   const hasShape = Boolean(viewConfig.areaSetGroupCode);
   const hasDataSource =
-    Boolean(viewConfig.areaDataSourceId) &&
-    Boolean(viewConfig.areaDataSourceId);
+    Boolean(viewConfig.areaDataSourceId)
 
   return {
     fillLabel,

@@ -34,7 +34,7 @@ const getOptionIcon = (option: { label: string }) => {
   return <BarChart3 className="w-4 h-4" />;
 };
 
-export function FillSelector() {
+export default function FillSelector() {
   const { viewConfig } = useMapViews();
   const { fillLabel, fillOptions, hasShape } = useBoundariesControl();
 
