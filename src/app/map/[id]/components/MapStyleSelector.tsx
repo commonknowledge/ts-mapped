@@ -1,8 +1,7 @@
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { HexagonIcon, Layers, MapIcon, X } from "lucide-react";
 import Image from "next/image";
-import { useContext, useState } from "react";
-import { memo } from "react";
+import { useContext, useState, memo } from "react";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { NULL_UUID } from "@/constants";
