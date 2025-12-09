@@ -2,13 +2,10 @@ import { SettingsIcon } from "lucide-react";
 import { useContext, useState } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import { Separator } from "@/shadcn/ui/separator";
 import { LayerType } from "@/types";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
-import { FillSelector } from "./FillSelector";
-import { LegendControl } from "./LegendControl";
-import { ShapeSelector } from "./ShapeSelector";
+import LegendControl from "./LegendControl";
 import { useBoundariesControl } from "./useBoundariesControl";
 
 export default function BoundariesControl() {
@@ -20,7 +17,7 @@ export default function BoundariesControl() {
   return (
     <LayerControlWrapper>
       <LayerHeader
-        label="Boundaries"
+        label="Data visualisation"
         type={LayerType.Boundary}
         expanded={expanded}
         setExpanded={setExpanded}
@@ -37,9 +34,11 @@ export default function BoundariesControl() {
 
       {expanded && (
         <div className="space-y-2 py-2">
-          <ShapeSelector />
+          {/* Controls removed from here 2025-12-08. */}
+          {/* Potentially could be restored. Remove if still not restored by 2025-03-01 */}
+          {/* <ShapeSelector />
           <Separator />
-          <FillSelector />
+          <FillSelector /> */}
           {hasDataSource && <LegendControl />}
         </div>
       )}

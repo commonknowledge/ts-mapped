@@ -12,7 +12,7 @@ import {
 } from "@/shadcn/ui/dropdown-menu";
 import { useBoundariesControl } from "./useBoundariesControl";
 
-export function ShapeSelector() {
+export default function ShapeSelector() {
   const { viewConfig } = useMapViews();
   const { shapeOptions } = useBoundariesControl();
 

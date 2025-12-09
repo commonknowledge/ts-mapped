@@ -1,17 +1,37 @@
+import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { HexagonIcon, Layers, MapIcon, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import { NULL_UUID } from "@/constants";
+import { AreaSetGroupCodeLabels } from "@/labels";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { type MapStyleName, MapType, mapTypes } from "@/server/models/MapView";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import { Switch } from "@/shadcn/ui/switch";
+import { Tooltip, TooltipContent } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
+import { ChoroplethContext } from "../context/ChoroplethContext";
+import { useChoroplethDataSource } from "../hooks/useDataSources";
 import mapStyles from "../styles";
+import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
 
 export default function MapStyleSelector() {
   const [open, setOpen] = useState(false);
   const { viewConfig, updateViewConfig } = useMapViews();
+  const dataSource = useChoroplethDataSource();
+  const validAreaSetGroups = getValidAreaSetGroupCodes(
+    dataSource?.geocodingConfig,
+  );
+  const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -88,61 +108,115 @@ export default function MapStyleSelector() {
             </div>
 
             {viewConfig.mapType !== MapType.Hex && (
-              <div className="flex flex-col gap-1 p-3 border-b">
-                <span className="text-muted-foreground font-mono uppercase text-sm">
-                  Base map
-                </span>
+              <>
+                <div className="flex flex-col gap-1 p-3 border-b">
+                  <span className="text-muted-foreground font-mono uppercase text-sm">
+                    Base map
+                  </span>
 
-                <legend className="sr-only">Select map style:</legend>
+                  <legend className="sr-only">Select map style:</legend>
 
-                <div className="flex gap-2">
-                  {Object.keys(mapStyles).map((code) => {
-                    const styleName =
-                      mapStyles[code as keyof typeof mapStyles].name;
-                    const thumbnail =
-                      mapStyles[code as keyof typeof mapStyles].thumbnail;
-                    const isChecked = viewConfig.mapStyleName === styleName;
+                  <div className="flex gap-2">
+                    {Object.keys(mapStyles).map((code) => {
+                      const styleName =
+                        mapStyles[code as keyof typeof mapStyles].name;
+                      const thumbnail =
+                        mapStyles[code as keyof typeof mapStyles].thumbnail;
+                      const isChecked = viewConfig.mapStyleName === styleName;
 
-                    return (
-                      <div key={styleName}>
-                        <input
-                          className="sr-only"
-                          type="radio"
-                          name="mapStyle"
-                          id={styleName}
-                          value={styleName}
-                          checked={isChecked}
-                          onChange={() =>
-                            updateViewConfig({
-                              mapStyleName: styleName as MapStyleName,
-                            })
-                          }
-                        />
-                        <label
-                          htmlFor={styleName}
-                          className={cn(
-                            "flex flex-col gap-1 / text-center text-xs text-muted-foreground / cursor-pointer",
-                            { "text-muted-foreground": !isChecked },
-                          )}
-                        >
-                          <div
+                      return (
+                        <div key={styleName}>
+                          <input
+                            className="sr-only"
+                            type="radio"
+                            name="mapStyle"
+                            id={styleName}
+                            value={styleName}
+                            checked={isChecked}
+                            onChange={() =>
+                              updateViewConfig({
+                                mapStyleName: styleName as MapStyleName,
+                              })
+                            }
+                          />
+                          <label
+                            htmlFor={styleName}
                             className={cn(
-                              "w-[56px] h-[56px] rounded-lg overflow-hidden bg-muted",
-                              "border-2 border-transparent hover:border-blue-300",
-                              {
-                                "border-blue-300": isChecked,
-                              },
+                              "flex flex-col gap-1 / text-center text-xs text-muted-foreground / cursor-pointer",
+                              { "text-muted-foreground": !isChecked },
                             )}
                           >
-                            {thumbnail && <Image src={thumbnail} alt="" />}
-                          </div>
-                          {styleName}
-                        </label>
-                      </div>
-                    );
-                  })}
+                            <div
+                              className={cn(
+                                "w-[56px] h-[56px] rounded-lg overflow-hidden bg-muted",
+                                "border-2 border-transparent hover:border-blue-300",
+                                {
+                                  "border-blue-300": isChecked,
+                                },
+                              )}
+                            >
+                              {thumbnail && <Image src={thumbnail} alt="" />}
+                            </div>
+                            {styleName}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+                <div className="flex flex-col gap-1 p-3 border-b">
+                  <span className="text-muted-foreground font-mono uppercase text-sm">
+                    Boundaries
+                  </span>
+                  <Select
+                    value={viewConfig.areaSetGroupCode || NULL_UUID}
+                    onValueChange={(value) => {
+                      if (
+                        value === NULL_UUID ||
+                        validAreaSetGroups.includes(value)
+                      ) {
+                        updateViewConfig({
+                          areaSetGroupCode:
+                            value === NULL_UUID
+                              ? null
+                              : (value as AreaSetGroupCode),
+                        });
+                        return;
+                      }
+                      setOpen(false);
+                      setBoundariesPanelOpen(true);
+                    }}
+                  >
+                    <SelectTrigger className="w-full min-w-0">
+                      <SelectValue placeholder="Choose boundaries..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NULL_UUID}>No locality</SelectItem>
+                      {Object.values(AreaSetGroupCode).map((code) =>
+                        validAreaSetGroups.includes(code) ? (
+                          <SelectItem key={code} value={code}>
+                            {AreaSetGroupCodeLabels[code]}
+                          </SelectItem>
+                        ) : (
+                          <Tooltip key={code}>
+                            <TooltipTrigger asChild>
+                              <SelectItem
+                                className="text-muted-foreground hover:text-muted-foreground focus:text-muted-foreground"
+                                value={code}
+                              >
+                                {AreaSetGroupCodeLabels[code]}
+                              </SelectItem>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Not available with the current data visualisation
+                            </TooltipContent>
+                          </Tooltip>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
             )}
           </fieldset>
 

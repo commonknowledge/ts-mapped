@@ -3,7 +3,7 @@ import Legend from "@/app/map/[id]/components/Legend";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useBoundariesControl } from "./useBoundariesControl";
 
-export function LegendControl() {
+export default function LegendControl() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const { hasShape } = useBoundariesControl();
 

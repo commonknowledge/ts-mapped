@@ -1,11 +1,8 @@
 import {
-  ArrowUpDown,
-  Calculator,
   CircleAlert,
   Database,
-  Info,
   Palette,
-  Pentagon,
+  PieChart,
   PlusIcon,
   X,
 } from "lucide-react";
@@ -16,7 +13,6 @@ import {
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { DataSourceItem } from "@/components/DataSourceItem";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
@@ -39,18 +35,13 @@ import {
 } from "@/shadcn/ui/select";
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import BivariateLegend from "../../BivariateLagend";
+import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import {
   dataRecordsWillAggregate,
   getValidAreaSetGroupCodes,
 } from "../../Choropleth/areas";
+import { DataSourceItem } from "./DataSourceItem";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function VisualisationPanel({
@@ -61,14 +52,15 @@ export default function VisualisationPanel({
   const { viewConfig, updateViewConfig } = useMapViews();
   const { boundariesPanelOpen, setBoundariesPanelOpen } =
     useContext(ChoroplethContext);
-  const { data: dataSources } = useDataSources();
+  const { data: dataSources, getDataSourceById } = useDataSources();
   const dataSource = useChoroplethDataSource();
 
-  // Add this state
   const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
-  // Add these states
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
+    null,
+  );
 
   // Update the filtering logic to include search
   const filteredAndSearchedDataSources = useMemo(() => {
@@ -84,10 +76,22 @@ export default function VisualisationPanel({
       );
     }
 
+    if (activeTab === "public") {
+      // Include only public data sources
+      sources = sources.filter((ds) => ds.public);
+    } else if (activeTab === "user") {
+      // Include only user data sources
+      sources = sources.filter((ds) => !ds.public);
+    }
+
     return sources;
-  }, [dataSources, searchQuery]);
+  }, [activeTab, dataSources, searchQuery]);
 
   if (!boundariesPanelOpen) return null;
+
+  const columnOneIsNumber =
+    dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
+      ?.type === ColumnType.Number;
 
   return (
     <div
@@ -99,78 +103,68 @@ export default function VisualisationPanel({
         left: positionLeft,
       }}
     >
-      <div className="space-y-3">
-        <div className="flex justify-between items-start gap-6 / text-sm">
-          <h3 className="mt-2 font-medium">Create visualization</h3>
-          <button
-            aria-label="Close visualization panel"
-            className="text-muted-foreground hover:text-primary cursor-pointer"
-            onClick={() => setBoundariesPanelOpen(false)}
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <div className="flex justify-between items-start gap-6 / text-sm">
+        <h3 className="mt-2 font-medium">Create visualisation</h3>
+        <button
+          aria-label="Close visualisation panel"
+          className="text-muted-foreground hover:text-primary cursor-pointer"
+          onClick={() => setBoundariesPanelOpen(false)}
+        >
+          <X size={20} />
+        </button>
       </div>
 
-      <>
-        <Separator />
-        {/* Data Source Selection */}
-        <div className="space-y-2">
-          <Label className="text-sm text-neutral-600">
-            <Database className="w-4 h-4 text-muted-foreground" /> Data source
+      <Separator />
+
+      {/* Data Source Selection */}
+      <div className="space-y-2 mb-4">
+        <Label className="text-sm">
+          <Database className="w-4 h-4 text-muted-foreground" /> Data source
+        </Label>
+
+        {viewConfig.areaDataSourceId && dataSource ? (
+          // Show selected data source as a card
+          <button
+            type="button"
+            onClick={() => {
+              setIsModalOpen(true);
+            }}
+          >
+            <DataSourceItem
+              className="shadow-xs"
+              dataSource={{
+                ...dataSource,
+              }}
+            />
+          </button>
+        ) : (
+          // Show button to open modal when no data source selected
+
+          <Button
+            variant="outline"
+            className="w-full justify-between h-10"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <span>Select a data source</span>
+            <PlusIcon className="w-4 h-4 ml-2 flex-shrink-0" />
+          </Button>
+        )}
+      </div>
+
+      <div className="space-y-2 mb-4">
+        <p className="flex gap-2 items-center text-sm font-medium">
+          <PieChart className="w-4 h-4 text-muted-foreground" />
+          Visualisation
+        </p>
+
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 items-center">
+          <Label
+            htmlFor="choropleth-boundary-select"
+            className="text-sm text-muted-foreground font-normal"
+          >
+            Boundaries
           </Label>
 
-          {viewConfig.areaDataSourceId && dataSource ? (
-            // Show selected data source as a card
-            <div className="space-y-2">
-              <button
-                type="button"
-                className="text-left"
-                onClick={() => {
-                  setIsModalOpen(true);
-                }}
-              >
-                <DataSourceItem
-                  className="border-blue-500 bg-blue-50 hover:bg-blue-100"
-                  dataSource={{
-                    ...dataSource,
-                  }}
-                />
-              </button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  updateViewConfig({
-                    areaDataSourceId: "",
-                    areaDataColumn: "",
-                  })
-                }
-                className="text-xs text-gray-500 hover:text-gray-700"
-              >
-                Change data source
-              </Button>
-            </div>
-          ) : (
-            // Show button to open modal when no data source selected
-
-            <Button
-              variant="outline"
-              className="w-full justify-between h-10"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <span>Select a data source</span>
-              <PlusIcon className="w-4 h-4 ml-2 flex-shrink-0" />
-            </Button>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">
-            <Pentagon className="w-4 h-4 text-muted-foreground" />
-            Select map locality shapes
-          </Label>
           <Select
             value={viewConfig.areaSetGroupCode || NULL_UUID}
             onValueChange={(value) =>
@@ -180,11 +174,14 @@ export default function VisualisationPanel({
               })
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              className="w-full min-w-0"
+              id="choropleth-boundary-select"
+            >
               <SelectValue placeholder="Choose boundaries..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NULL_UUID}>No Locality</SelectItem>
+              <SelectItem value={NULL_UUID}>No locality</SelectItem>
               {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
                 (code) => (
                   <SelectItem key={code} value={code}>
@@ -194,73 +191,49 @@ export default function VisualisationPanel({
               )}
             </SelectContent>
           </Select>
-          {!viewConfig.areaDataSourceId && (
-            <div className="flex items-center gap-2">
-              <CircleAlert className="w-4 h-4 text-yellow-500" />
-              <p className="text-xs text-gray-500">
-                No data source selected. Please select a data source to create a
-                choropleth.
-              </p>
-            </div>
-          )}
-          {viewConfig.areaDataSourceId &&
-            viewConfig.areaDataColumn &&
-            !viewConfig.areaSetGroupCode && (
-              <div className="flex items-center gap-2">
-                <CircleAlert className="w-4 h-4 text-yellow-500" />
-                <p className="text-xs text-gray-500">
-                  No locality shapes selected. Please select a locality set to
-                  render the filled map.
-                </p>
-              </div>
-            )}
-        </div>
 
-        {/* Calculation Type */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Calculator className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium">Calculation</h3>
-          </div>
+          <Label
+            htmlFor="choropleth-calculation-select"
+            className="text-sm text-muted-foreground font-normal"
+          >
+            Display
+          </Label>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              className={`p-3 rounded-lg border-2 text-center transition-all ${
-                viewConfig.calculationType !== CalculationType.Count
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-              onClick={() =>
-                updateViewConfig({ calculationType: CalculationType.Avg })
-              }
+          <Select
+            value={
+              viewConfig.calculationType === CalculationType.Count
+                ? "counts"
+                : "values"
+            }
+            onValueChange={(value) =>
+              updateViewConfig({
+                calculationType:
+                  value === "counts"
+                    ? CalculationType.Count
+                    : CalculationType.Avg,
+              })
+            }
+          >
+            <SelectTrigger
+              className="w-full min-w-0"
+              id="choropleth-calculation-select"
             >
-              <div className="w-6 h-6 mx-auto mb-2 bg-gray-300 rounded"></div>
-              <span className="text-xs">Use existing values</span>
-            </button>
+              <SelectValue placeholder="Choose calculation..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="counts">Count by area</SelectItem>
+              <SelectItem value="values">Data values</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <button
-              className={`p-3 rounded-lg border-2 text-center transition-all ${
-                viewConfig.calculationType === CalculationType.Count
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-              onClick={() =>
-                updateViewConfig({ calculationType: CalculationType.Count })
-              }
-            >
-              <div className="w-6 h-6 mx-auto mb-2 bg-blue-400 rounded flex items-center justify-center text-white text-xs font-bold">
-                #
-              </div>
-              <span className="text-xs">Count records</span>
-            </button>
-          </div>
-
-          {/* Column Selection for "Use existing values" */}
           {viewConfig.calculationType !== CalculationType.Count &&
             viewConfig.areaDataSourceId && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Select column to use for values
+              <>
+                <Label
+                  htmlFor="choropleth-column-1-select"
+                  className="text-sm text-muted-foreground font-normal"
+                >
+                  Column 1
                 </Label>
                 <Select
                   value={viewConfig.areaDataColumn || NULL_UUID}
@@ -270,7 +243,10 @@ export default function VisualisationPanel({
                     })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    className="w-full min-w-0"
+                    id="choropleth-column-1-select"
+                  >
                     <SelectValue placeholder="Choose a column..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -287,17 +263,19 @@ export default function VisualisationPanel({
                       ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </>
             )}
 
-          {/* Secondary column selection */}
           {viewConfig.calculationType !== CalculationType.Count &&
             viewConfig.areaDataSourceId &&
             viewConfig.areaDataColumn &&
-            viewConfig.areaDataColumn !== MAX_COLUMN_KEY && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Select secondary column to use for values
+            columnOneIsNumber && (
+              <>
+                <Label
+                  htmlFor="choropleth-column-2-select"
+                  className="text-sm text-muted-foreground font-normal"
+                >
+                  Column 2
                 </Label>
                 <Select
                   value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
@@ -307,33 +285,41 @@ export default function VisualisationPanel({
                     })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    className="w-full min-w-0"
+                    id="choropleth-column-2-select"
+                  >
                     <SelectValue placeholder="Choose a column..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NULL_UUID}>None</SelectItem>
                     {dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                      ?.columnDefs.map((col) => (
+                      ?.columnDefs.filter(
+                        (col) => col.type === ColumnType.Number,
+                      )
+                      .map((col) => (
                         <SelectItem key={col.name} value={col.name}>
                           {col.name} ({col.type})
                         </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </>
             )}
 
-          {dataSource?.columnDefs.find(
-            (c) => c.name === viewConfig.areaDataColumn,
-          )?.type === ColumnType.Number &&
+          {viewConfig.calculationType !== CalculationType.Count &&
+            columnOneIsNumber &&
             dataRecordsWillAggregate(
               dataSource?.geocodingConfig,
               viewConfig.areaSetGroupCode,
             ) && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Select numeric aggregation type
+              <>
+                <Label
+                  htmlFor="choropleth-aggregation-select"
+                  className="text-sm text-muted-foreground font-normal"
+                >
+                  Aggregation
                 </Label>
                 <Select
                   value={viewConfig.calculationType || ""}
@@ -343,7 +329,10 @@ export default function VisualisationPanel({
                     })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    className="w-full"
+                    id="choropleth-aggregation-select"
+                  >
                     <SelectValue placeholder="Choose an aggregation..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -351,84 +340,27 @@ export default function VisualisationPanel({
                     <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            )}
-
-          {/* Geographic Column Reference for "Count records" */}
-          {viewConfig.calculationType === CalculationType.Count &&
-            viewConfig.areaDataSourceId && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Info className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800">
-                    Count records
-                  </span>
-                </div>
-                <p className="text-xs text-blue-700">
-                  This will count the number of records in each geographic area
-                  based on the boundary shapes you{"'"}ve selected.
-                </p>
-              </div>
+              </>
             )}
         </div>
-
-        {/* Boundary Matching - only show for count calculations or when column is selected */}
-        {(viewConfig.calculationType === CalculationType.Count ||
-          viewConfig.areaDataColumn) &&
-          viewConfig.areaSetGroupCode && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
-                <Label className="text-xs text-muted-foreground font-normal">
-                  Your data boundary will be matched with the map boundaries
-                  that you&apos;ve selected
-                </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-sm space-y-2">
-                      <p className="text-sm font-medium">Smart Matching</p>
-                      <p className="text-xs">
-                        We automatically match your data to map boundaries based
-                        on what you select.
-                      </p>
-
-                      <div className="space-y-2">
-                        <div className="text-xs">
-                          <span className="font-medium">Example:</span> Your
-                          data has postcode &quot;SW1 1AA&quot;
-                        </div>
-
-                        <div className="space-y-1 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                            <span>
-                              <strong>Postcodes:</strong> Matches
-                              &quot;SW1&quot;
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                            <span>
-                              <strong>Constituencies:</strong> Matches
-                              &quot;Westminster&quot;
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                            <span>
-                              <strong>MSOAs:</strong> Matches
-                              &quot;E05000001&quot;
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+        {!viewConfig.areaDataSourceId && (
+          <div className="flex items-center gap-2">
+            <CircleAlert className="w-4 h-4 text-yellow-500" />
+            <p className="text-xs text-gray-500">
+              No data source selected. Please select a data source to create a
+              choropleth.
+            </p>
+          </div>
+        )}
+        {viewConfig.areaDataSourceId &&
+          viewConfig.areaDataColumn &&
+          !viewConfig.areaSetGroupCode && (
+            <div className="flex items-center gap-2">
+              <CircleAlert className="w-4 h-4 text-yellow-500" />
+              <p className="text-xs text-gray-500">
+                No locality shapes selected. Please select a locality set to
+                render the filled map.
+              </p>
             </div>
           )}
 
@@ -449,96 +381,77 @@ export default function VisualisationPanel({
             />
           </div>
         )}
+      </div>
 
+      <div className="space-y-2 mb-4">
         {/* Color Scheme Selection */}
-        {!viewConfig.areaDataSecondaryColumn && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Palette className="w-4 h-4 text-muted-foreground" />
-              <Label className="text-sm text-neutral-600">Color scheme</Label>
-            </div>
+        <p className="flex gap-2 items-center text-sm font-medium">
+          <Palette className="w-4 h-4 text-muted-foreground" />
+          Style
+        </p>
 
-            <Select
-              value={viewConfig.colorScheme || ColorScheme.RedBlue}
-              onValueChange={(value) =>
-                updateViewConfig({
-                  colorScheme: value as ColorScheme,
-                })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose color scheme..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ColorScheme.RedBlue}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-red-400 to-blue-400 rounded"></div>
-                    Red to blue
-                  </div>
-                </SelectItem>
-                <SelectItem value={ColorScheme.GreenYellowRed}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 rounded"></div>
-                    Green to red
-                  </div>
-                </SelectItem>
-                <SelectItem value={ColorScheme.Viridis}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-blue-400 to-green-400 rounded"></div>
-                    Viridis
-                  </div>
-                </SelectItem>
-                <SelectItem value={ColorScheme.Plasma}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 rounded"></div>
-                    Plasma
-                  </div>
-                </SelectItem>
-                <SelectItem value={ColorScheme.Diverging}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-blue-400 via-white to-red-400 rounded"></div>
-                    Diverging
-                  </div>
-                </SelectItem>
-                <SelectItem value={ColorScheme.Sequential}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-gray-200 to-blue-600 rounded"></div>
-                    Sequential
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 items-center">
+          {!viewConfig.areaDataSecondaryColumn && (
+            <>
+              <Label
+                htmlFor="choropleth-color-scheme-select"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                Colour scheme
+              </Label>
 
-            <div className="flex items-center gap-2 py-2">
+              <Select
+                value={viewConfig.colorScheme || ColorScheme.RedBlue}
+                onValueChange={(value) =>
+                  updateViewConfig({
+                    colorScheme: value as ColorScheme,
+                  })
+                }
+              >
+                <SelectTrigger
+                  className="w-full"
+                  id="choropleth-color-scheme-select"
+                >
+                  <SelectValue placeholder="Choose colour scheme..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
+                    <SelectItem
+                      key={index}
+                      value={option.value}
+                      className="flex items-center gap-2"
+                    >
+                      <div className={`w-4 h-4 rounded ${option.color}`} />
+                      <span className="truncate">{option.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Label
+                htmlFor="choropleth-color-scheme-switch"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                Reverse
+              </Label>
+
               <Switch
-                id="color-scheme-switch"
+                id="choropleth-color-scheme-switch"
                 checked={Boolean(viewConfig.reverseColorScheme)}
                 onCheckedChange={(v) =>
                   updateViewConfig({ reverseColorScheme: v })
                 }
               />
-              <label htmlFor="color-scheme-switch" className="text-sm">
-                Reversed color scheme
-              </label>
-            </div>
-          </div>
-        )}
-        {viewConfig.areaDataColumn && viewConfig.areaDataSecondaryColumn && (
-          <div className="flex flex-col gap-2 rounded-sm bg-white border border-neutral-200 p-2">
-            <p className="flex gap-2 items-center text-xs font-mono">
-              <Database className="w-4 h-4 text-muted-foreground" />
-              Locality Data Legend
-            </p>
-            <BivariateLegend />
-          </div>
-        )}
-      </>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Modal for data source selection */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
           <DialogHeader>
-            <DialogTitle>Select data source for visualization</DialogTitle>
+            <DialogTitle>Select data source for visualisation</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col">
@@ -576,7 +489,22 @@ export default function VisualisationPanel({
                     className="text-left"
                     key={ds.id}
                     onClick={() => {
-                      updateViewConfig({ areaDataSourceId: ds.id });
+                      const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
+                      if (!selectedAreaSetGroup) {
+                        updateViewConfig({ areaDataSourceId: ds.id });
+                        setIsModalOpen(false);
+                        return;
+                      }
+                      const dataSource = getDataSourceById(ds.id);
+                      const validAreaSetGroups = getValidAreaSetGroupCodes(
+                        dataSource?.geocodingConfig,
+                      );
+                      if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
+                        updateViewConfig({ areaDataSourceId: ds.id });
+                        setIsModalOpen(false);
+                        return;
+                      }
+                      setInvalidDataSourceId(ds.id);
                       setIsModalOpen(false);
                     }}
                   >
@@ -595,6 +523,54 @@ export default function VisualisationPanel({
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal for handling invalid data source / boundary combination */}
+      <Dialog
+        open={Boolean(invalidDataSourceId)}
+        onOpenChange={(o) => {
+          if (!o) {
+            setInvalidDataSourceId(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Select new boundaries</DialogTitle>
+          </DialogHeader>
+
+          <p>
+            The data source you have selected does not fit into your selected
+            boundaries (
+            {viewConfig.areaSetGroupCode
+              ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
+              : "unknown"}
+            ). Please select alternative boundaries, or cancel.
+          </p>
+
+          <Select
+            onValueChange={(value) => {
+              updateViewConfig({
+                areaSetGroupCode: value as AreaSetGroupCode,
+                areaDataSourceId: invalidDataSourceId || "",
+              });
+              setInvalidDataSourceId(null);
+            }}
+          >
+            <SelectTrigger className="w-full min-w-0">
+              <SelectValue placeholder="Choose boundaries..." />
+            </SelectTrigger>
+            <SelectContent>
+              {getValidAreaSetGroupCodes(
+                getDataSourceById(invalidDataSourceId)?.geocodingConfig,
+              ).map((code) => (
+                <SelectItem key={code} value={code}>
+                  {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </DialogContent>
       </Dialog>
     </div>
