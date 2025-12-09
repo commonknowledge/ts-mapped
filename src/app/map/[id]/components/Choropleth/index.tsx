@@ -17,6 +17,7 @@ export default function Choropleth() {
 
   // Custom hooks for effects
   const fillColor = useChoroplethAreaStats();
+  const opacity = (viewConfig.choroplethOpacityPct ?? 80) / 100;
 
   return (
     <>
@@ -55,7 +56,7 @@ export default function Choropleth() {
             type="fill"
             paint={{
               "fill-color": fillColor,
-              "fill-opacity": viewConfig.showChoropleth ? 0.8 : 0,
+              "fill-opacity": viewConfig.showChoropleth ? opacity : 0,
             }}
           />
 
