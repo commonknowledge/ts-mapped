@@ -55,6 +55,7 @@ export default function ChoroplethProvider({
       value={{
         boundariesPanelOpen,
         setBoundariesPanelOpen,
+
         selectedBivariateBucket,
         setSelectedBivariateBucket,
 
