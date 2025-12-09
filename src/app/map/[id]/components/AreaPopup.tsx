@@ -98,7 +98,7 @@ export default function AreaPopup({
               {viewConfig.areaDataSecondaryColumn}: {String(areaStat.secondary)}
             </p>
           </div>
-        )}{" "}
+        )}
       </div>
     </Popup>
   );
