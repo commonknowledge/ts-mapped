@@ -36,6 +36,7 @@ export const getAreaStats = async ({
       boundingBox,
     );
     return {
+      areaSetCode,
       column,
       columnType: ColumnType.String,
       stats,
@@ -50,6 +51,7 @@ export const getAreaStats = async ({
       boundingBox,
     );
     return {
+      areaSetCode,
       column,
       columnType: ColumnType.Number,
       stats,
@@ -72,7 +74,7 @@ export const getAreaStats = async ({
     );
 
     if (!secondaryColumn) {
-      return { ...primaryStats, secondaryStats: null };
+      return { ...primaryStats, areaSetCode, secondaryStats: null };
     }
 
     const secondaryStats = await getColumnValueByArea(
@@ -82,11 +84,12 @@ export const getAreaStats = async ({
       secondaryColumn,
       boundingBox,
     );
-    return { ...primaryStats, secondaryStats };
+    return { ...primaryStats, areaSetCode, secondaryStats };
   } catch (error) {
     logger.error(`Failed to get area stats`, { error });
   }
   return {
+    areaSetCode,
     column,
     columnType: ColumnType.Unknown,
     stats: [],

@@ -30,6 +30,7 @@ import MapWrapper from "./MapWrapper";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
@@ -56,6 +57,12 @@ export default function Map({
     coordinates: [number, number];
     properties: Record<string, unknown>;
   } | null>(null);
+  const [hoverArea, setHoverArea] = useState<{
+    areaSetCode: AreaSetCode;
+    code: string;
+    name: string;
+    coordinates: [number, number];
+  } | null>(null);
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
@@ -71,11 +78,11 @@ export default function Map({
           `${id}-markers-labels`,
         ])
         .concat(["search-history-pins", "search-history-labels"]),
-    [mapConfig]
+    [mapConfig],
   );
 
   useMapClick({ markerLayers, draw, currentMode, ready });
-  useMapHover({ markerLayers, draw, setHoverMarker, ready });
+  useMapHover({ markerLayers, draw, setHoverMarker, setHoverArea, ready });
 
   // draw existing turfs
   useEffect(() => {
@@ -123,7 +130,7 @@ export default function Map({
         const style = map.getStyle();
         const labelLayerIds = style.layers
           .filter(
-            (layer) => layer.type === "symbol" && layer.layout?.["text-field"]
+            (layer) => layer.type === "symbol" && layer.layout?.["text-field"],
           )
           .map((layer) => layer.id);
 
@@ -134,7 +141,7 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded]
+    [mapRef, styleLoaded],
   );
 
   useEffect(() => {
@@ -214,7 +221,7 @@ export default function Map({
             bottom: isMobile ? 0 : 100,
           },
           duration: 1000,
-        }
+        },
       );
     }
 
@@ -282,7 +289,7 @@ export default function Map({
                 "direct_select",
                 {
                   featureId: polygonFeature.id,
-                }
+                },
               );
 
               // Prevent default map zoom on double-click
@@ -395,7 +402,7 @@ export default function Map({
                     area: roundedArea,
                     polygon: feature.geometry as Polygon,
                     createdAt: new Date(
-                      feature?.properties?.createdAt as string
+                      feature?.properties?.createdAt as string,
                     ),
                   });
                 });
@@ -448,7 +455,7 @@ export default function Map({
                 Array.isArray(layer.layout["text-field"]) &&
                 layer.layout["text-field"][0] === "coalesce" &&
                 layer.layout["text-field"].find(
-                  (i) => Array.isArray(i) && i.includes("name")
+                  (i) => Array.isArray(i) && i.includes("name"),
                 )
               ) {
                 map.setLayoutProperty(layer.id, "text-field", [
@@ -487,7 +494,7 @@ export default function Map({
                 </p>
               </Popup>
             )}
-            <AreaPopup />
+            {hoverArea && <AreaPopup {...hoverArea} />}
           </>
         )}
       </MapGL>

@@ -5,6 +5,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { ChoroplethContext } from "./context/ChoroplethContext";
 import { MapBoundsContext } from "./context/MapBoundsContext";
 import { useMapViews } from "./hooks/useMapViews";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { ColumnType } from "@/server/models/DataSource";
 
 export interface CombinedAreaStat {
@@ -14,6 +15,7 @@ export interface CombinedAreaStat {
 }
 
 export interface CombinedAreaStats {
+  areaSetCode: AreaSetCode;
   column: string;
   columnType: ColumnType;
   stats: CombinedAreaStat[];
@@ -54,6 +56,7 @@ export const useAreaStats = () => {
 
   // Deduplicate stats by area code
   const [dedupedAreaStats, setDedupedAreaStats] = useState<{
+    areaSetCode: AreaSetCode;
     column: string;
     columnType: ColumnType;
     stats: Record<string, CombinedAreaStat>;
@@ -114,7 +117,10 @@ export const useAreaStats = () => {
         { areaCode: string; primary?: unknown; secondary?: unknown }
       > = {};
       for (const stat of areaStatsQuery.data.stats) {
-        nextStats[stat.areaCode] = { ...stat, primary: stat.value };
+        nextStats[stat.areaCode] = {
+          areaCode: stat.areaCode,
+          primary: stat.value,
+        };
       }
 
       for (const stat of areaStatsQuery.data.secondaryStats?.stats || []) {
@@ -126,6 +132,7 @@ export const useAreaStats = () => {
 
       if (!prev) {
         return {
+          areaSetCode: areaStatsQuery.data.areaSetCode,
           column: areaStatsQuery.data.column,
           columnType: areaStatsQuery.data.columnType,
           stats: nextStats,
@@ -157,6 +164,7 @@ export const useAreaStats = () => {
   const areaStats = useMemo((): CombinedAreaStats | null => {
     return dedupedAreaStats
       ? {
+          areaSetCode: dedupedAreaStats.areaSetCode,
           column: dedupedAreaStats.column,
           columnType: dedupedAreaStats.columnType,
           stats: Object.values(dedupedAreaStats.stats),

@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
 import ChoroplethProvider from "../../../providers/ChoroplethProvider";
-import HoverAreaProvider from "../../../providers/HoverAreaProvider";
 import InspectorProvider from "../../../providers/InspectorProvider";
 import MapBoundsProvider from "../../../providers/MapBoundsProvider";
 import MapProvider from "../../../providers/MapProvider";
@@ -85,9 +84,7 @@ export default async function PublicMapAdminPage({
             <PublicFiltersProvider>
               <ChoroplethProvider>
                 <MarkerAndTurfProvider>
-                  <HoverAreaProvider>
-                    <PublicMap />
-                  </HoverAreaProvider>
+                  <PublicMap />
                 </MarkerAndTurfProvider>
               </ChoroplethProvider>
             </PublicFiltersProvider>

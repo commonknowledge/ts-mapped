@@ -2,6 +2,7 @@ import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { HexagonIcon, Layers, MapIcon, X } from "lucide-react";
 import Image from "next/image";
 import { useContext, useState } from "react";
+import { memo } from "react";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { NULL_UUID } from "@/constants";
@@ -24,7 +25,7 @@ import { useChoroplethDataSource } from "../hooks/useDataSources";
 import mapStyles from "../styles";
 import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
 
-export default function MapStyleSelector() {
+export default memo(function MapStyleSelector() {
   const [open, setOpen] = useState(false);
   const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
@@ -236,4 +237,4 @@ export default function MapStyleSelector() {
       </PopoverContent>
     </Popover>
   );
-}
+});

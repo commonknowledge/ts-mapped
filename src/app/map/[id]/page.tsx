@@ -4,7 +4,6 @@ import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
 import ChoroplethProvider from "./providers/ChoroplethProvider";
-import HoverAreaProvider from "./providers/HoverAreaProvider";
 import InspectorProvider from "./providers/InspectorProvider";
 import MapBoundsProvider from "./providers/MapBoundsProvider";
 import MapProvider from "./providers/MapProvider";
@@ -37,16 +36,14 @@ export default async function MapPage({
         <InspectorProvider>
           <ChoroplethProvider>
             <MarkerAndTurfProvider>
-              <HoverAreaProvider>
-                <TableProvider>
-                  <DesktopOnly>
-                    <div className="with-feeback-widget">
-                      <PrivateMap />
-                      <SentryFeedbackWidget />
-                    </div>
-                  </DesktopOnly>
-                </TableProvider>
-              </HoverAreaProvider>
+              <TableProvider>
+                <DesktopOnly>
+                  <div className="with-feeback-widget">
+                    <PrivateMap />
+                    <SentryFeedbackWidget />
+                  </div>
+                </DesktopOnly>
+              </TableProvider>
             </MarkerAndTurfProvider>
           </ChoroplethProvider>
         </InspectorProvider>

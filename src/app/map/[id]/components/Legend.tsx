@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { Switch } from "@/shadcn/ui/switch";
+import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_COLOR_SCHEMES, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
@@ -127,7 +128,14 @@ export default function Legend() {
       ) : (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="flex flex-col cursor-pointer">
+            <div
+              className={cn(
+                "flex flex-col",
+                areaStats?.columnType === ColumnType.Number
+                  ? "cursor-pointer"
+                  : "",
+              )}
+            >
               <p className="flex items-center font-medium px-2 ">
                 {dataSource?.name}
               </p>
@@ -141,43 +149,47 @@ export default function Legend() {
               <div className="flex px-2 ">{makeBars()}</div>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Choose colour scheme</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
-              <DropdownMenuItem
-                key={index}
-                onClick={() => updateViewConfig({ colorScheme: option.value })}
-                className="flex items-center gap-2"
-              >
-                <div className={`w-4 h-4 rounded ${option.color}`} />
-                <span className="truncate">{option.label}</span>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <div className="flex items-center gap-2 px-2 py-1.5">
-              <Switch
-                id="reverse-color-scheme-switch"
-                checked={Boolean(viewConfig?.reverseColorScheme)}
-                onClick={() =>
-                  updateViewConfig({
-                    reverseColorScheme: !viewConfig?.reverseColorScheme,
-                  })
-                }
-                onCheckedChange={() =>
-                  updateViewConfig({
-                    reverseColorScheme: !viewConfig?.reverseColorScheme,
-                  })
-                }
-              />
-              <label
-                htmlFor="reverse-color-scheme-switch"
-                className="text-sm cursor-pointer"
-              >
-                Reverse colors
-              </label>
-            </div>
-          </DropdownMenuContent>
+          {areaStats?.columnType === ColumnType.Number && (
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Choose colour scheme</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  onClick={() =>
+                    updateViewConfig({ colorScheme: option.value })
+                  }
+                  className="flex items-center gap-2"
+                >
+                  <div className={`w-4 h-4 rounded ${option.color}`} />
+                  <span className="truncate">{option.label}</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <Switch
+                  id="reverse-color-scheme-switch"
+                  checked={Boolean(viewConfig?.reverseColorScheme)}
+                  onClick={() =>
+                    updateViewConfig({
+                      reverseColorScheme: !viewConfig?.reverseColorScheme,
+                    })
+                  }
+                  onCheckedChange={() =>
+                    updateViewConfig({
+                      reverseColorScheme: !viewConfig?.reverseColorScheme,
+                    })
+                  }
+                />
+                <label
+                  htmlFor="reverse-color-scheme-switch"
+                  className="text-sm cursor-pointer"
+                >
+                  Reverse colors
+                </label>
+              </div>
+            </DropdownMenuContent>
+          )}
         </DropdownMenu>
       )}
     </div>

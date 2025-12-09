@@ -1,13 +1,14 @@
 import { useContext, useEffect } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { HoverAreaContext } from "@/app/map/[id]/context/HoverAreaContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { getClickedPolygonFeature } from "./useMapClick";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 export function useMapHover({
   markerLayers,
   setHoverMarker,
+  setHoverArea,
   draw,
   ready,
 }: {
@@ -16,16 +17,24 @@ export function useMapHover({
     m: {
       coordinates: [number, number];
       properties: Record<string, unknown>;
-    } | null
+    } | null,
+  ) => void;
+  setHoverArea: (
+    a: {
+      areaSetCode: AreaSetCode;
+      code: string;
+      name: string;
+      coordinates: [number, number];
+    } | null,
   ) => void;
   draw: MapboxDraw | null;
   ready: boolean;
 }) {
   const { mapRef } = useContext(MapContext);
   const { choroplethLayerConfig } = useContext(ChoroplethContext);
-  const { setHoverAreaCode } = useContext(HoverAreaContext);
   const {
-    mapbox: { sourceId, layerId },
+    areaSetCode,
+    mapbox: { sourceId, layerId, featureNameProperty },
   } = choroplethLayerConfig;
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
@@ -44,9 +53,9 @@ export function useMapHover({
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
           { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-          { hover: false }
+          { hover: false },
         );
-        setHoverAreaCode(null);
+        setHoverArea(null);
         hoveredFeatureId = undefined;
       }
     };
@@ -71,7 +80,7 @@ export function useMapHover({
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
           { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-          { hover: false }
+          { hover: false },
         );
         hoveredFeatureId = undefined;
       }
@@ -136,7 +145,7 @@ export function useMapHover({
         if (hoveredFeatureId !== undefined) {
           map.setFeatureState(
             { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-            { hover: false }
+            { hover: false },
           );
         }
 
@@ -145,11 +154,15 @@ export function useMapHover({
           hoveredFeatureId = feature.id;
           map.setFeatureState(
             { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-            { hover: true }
+            { hover: true },
           );
-          setHoverAreaCode({
+          setHoverArea({
             coordinates: [e.lngLat.lng, e.lngLat.lat],
+            areaSetCode,
             code: String(feature.id),
+            name: String(
+              feature.properties?.[featureNameProperty] || feature.id,
+            ),
           });
         }
 
@@ -163,10 +176,10 @@ export function useMapHover({
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
           { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-          { hover: false }
+          { hover: false },
         );
         hoveredFeatureId = undefined;
-        setHoverAreaCode(null);
+        setHoverArea(null);
       }
 
       if (map.getCanvas().style.cursor === "pointer") {
@@ -185,7 +198,7 @@ export function useMapHover({
         try {
           map.setFeatureState(
             { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-            { hover: false }
+            { hover: false },
           );
         } catch {
           // Ignore error clearing feature state
@@ -203,6 +216,8 @@ export function useMapHover({
     setHoverMarker,
     draw,
     ready,
-    setHoverAreaCode,
+    setHoverArea,
+    featureNameProperty,
+    areaSetCode,
   ]);
 }
