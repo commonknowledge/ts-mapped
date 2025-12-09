@@ -141,7 +141,7 @@ export function useMapHover({
       if (features?.length) {
         const feature = features[0];
 
-        // Remove hover state from previous
+        // Remove hover state from previous feature
         if (hoveredFeatureId !== undefined) {
           map.setFeatureState(
             { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
