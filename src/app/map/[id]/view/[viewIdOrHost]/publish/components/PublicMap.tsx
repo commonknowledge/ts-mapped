@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useContext } from "react";
+
 import Loading from "@/app/map/[id]/components/Loading";
 import Map from "@/app/map/[id]/components/Map";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapId } from "@/app/map/[id]/hooks/useMapState";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
@@ -17,7 +17,7 @@ import PublicMapSidebar from "./PublicMapSidebar";
 import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 
 export default function PublicMap() {
-  const { mapId } = useContext(MapContext);
+  const mapId = useMapId();
   const { editable } = useContext(PublicMapContext);
   const areaStatsQuery = useAreaStats();
   const { setLastLoadedSourceId } = useChoropleth();

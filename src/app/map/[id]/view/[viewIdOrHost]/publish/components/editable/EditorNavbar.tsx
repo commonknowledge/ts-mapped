@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
-import { useContext } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+
+import { useMapId } from "@/app/map/[id]/hooks/useMapState";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import {
@@ -14,7 +14,7 @@ import {
 import { PublicMapContext } from "../../context/PublicMapContext";
 
 export default function EditorNavbar() {
-  const { mapId } = useContext(MapContext);
+  const mapId = useMapId();
   const { data: map } = useMapQuery(mapId);
   const { publicMap } = useContext(PublicMapContext);
 
