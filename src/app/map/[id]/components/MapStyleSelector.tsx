@@ -1,8 +1,9 @@
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { HexagonIcon, Layers, MapIcon, X } from "lucide-react";
 import Image from "next/image";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
@@ -19,7 +20,6 @@ import {
 import { Switch } from "@/shadcn/ui/switch";
 import { Tooltip, TooltipContent } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import { ChoroplethContext } from "../context/ChoroplethContext";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
 import mapStyles from "../styles";
 import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
@@ -31,7 +31,7 @@ export default function MapStyleSelector() {
   const validAreaSetGroups = getValidAreaSetGroupCodes(
     dataSource?.geocodingConfig,
   );
-  const { setBoundariesPanelOpen } = useContext(ChoroplethContext);
+  const { setBoundariesPanelOpen } = useChoropleth();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

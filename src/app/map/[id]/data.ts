@@ -1,9 +1,9 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalculationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { ChoroplethContext } from "./context/ChoroplethContext";
 import { useMapBounds } from "./hooks/useMapBounds";
+import { useChoropleth } from "./hooks/useChoropleth";
 import { useMapViews } from "./hooks/useMapViews";
 import type { ColumnType } from "@/server/models/DataSource";
 
@@ -28,7 +28,7 @@ export const useAreaStats = () => {
   const { viewConfig } = useMapViews();
   const {
     choroplethLayerConfig: { areaSetCode, requiresBoundingBox },
-  } = useContext(ChoroplethContext);
+  } = useChoropleth();
   const {
     calculationType,
     areaDataColumn: column,

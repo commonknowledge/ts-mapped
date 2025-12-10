@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { getClickedPolygonFeature } from "./useMapClick";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
@@ -21,7 +21,7 @@ export function useMapHover({
   ready: boolean;
 }) {
   const { mapRef } = useContext(MapContext);
-  const { choroplethLayerConfig } = useContext(ChoroplethContext);
+  const { choroplethLayerConfig } = useChoropleth();
   const {
     mapbox: { sourceId, layerId },
   } = choroplethLayerConfig;

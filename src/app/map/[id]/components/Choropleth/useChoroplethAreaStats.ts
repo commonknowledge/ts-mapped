@@ -1,15 +1,15 @@
 import { useContext, useEffect, useRef } from "react";
 import { useFillColor } from "@/app/map/[id]/colors";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useAreaStats } from "@/app/map/[id]/data";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
 
 export function useChoroplethAreaStats() {
   const { mapRef } = useContext(MapContext);
   const { choroplethLayerConfig, lastLoadedSourceId, selectedBivariateBucket } =
-    useContext(ChoroplethContext);
+    useChoropleth();
   const {
     mapbox: { sourceId, layerId },
   } = choroplethLayerConfig;
