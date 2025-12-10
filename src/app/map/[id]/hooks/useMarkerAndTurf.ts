@@ -90,7 +90,7 @@ export function useMarkerAndTurf() {
           setDataSourceVisibilityState(mapConfig.membersDataSourceId, true);
         }
       } else if (layer === LayerType.Turf) {
-        turfs.map((t) => setTurfVisibilityState(t.id, true));
+        turfs.forEach((t) => setTurfVisibilityState(t.id, true));
       }
     },
     [
@@ -112,7 +112,7 @@ export function useMarkerAndTurf() {
           setDataSourceVisibilityState(mapConfig.membersDataSourceId, false);
         }
       } else if (layer === LayerType.Turf) {
-        turfs.map((t) => setTurfVisibilityState(t.id, false));
+        turfs.forEach((t) => setTurfVisibilityState(t.id, false));
       }
     },
     [
@@ -133,9 +133,7 @@ export function useMarkerAndTurf() {
   const getLayerVisibility = useCallback(
     (layer: LayerType) => {
       if (layer === LayerType.Turf) {
-        return (
-          Boolean(visibleTurfs?.length) && !hiddenLayers.includes(layer)
-        );
+        return Boolean(visibleTurfs?.length) && !hiddenLayers.includes(layer);
       }
 
       return !hiddenLayers.includes(layer);

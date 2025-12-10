@@ -14,8 +14,7 @@ import type { Turf } from "@/server/models/Turf";
 
 export default function TurfItem({ turf }: { turf: Turf }) {
   const { mapRef, showControls } = useContext(MapContext);
-  const { getTurfVisibility, setTurfVisibilityState } =
-    useMarkerAndTurf();
+  const { getTurfVisibility, setTurfVisibilityState } = useMarkerAndTurf();
   const { updateTurf, deleteTurf } = useTurfMutations();
 
   const [isEditing, setEditing] = useState(false);

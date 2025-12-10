@@ -25,8 +25,7 @@ export default function LayerHeader({
   children?: React.ReactNode;
   enableVisibilityToggle?: boolean;
 }) {
-  const { getLayerVisibility, hideLayer, showLayer } =
-    useMarkerAndTurf();
+  const { getLayerVisibility, hideLayer, showLayer } = useMarkerAndTurf();
 
   const isLayerVisible = getLayerVisibility(type);
 

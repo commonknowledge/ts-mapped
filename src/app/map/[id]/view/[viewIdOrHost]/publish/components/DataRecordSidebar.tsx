@@ -23,8 +23,7 @@ import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 
 export default function DataRecordSidebar() {
   const isMobile = useIsMobile();
-  const { selectedRecords, setFocusedRecord, resetInspector } =
-    useInspector();
+  const { selectedRecords, setFocusedRecord, resetInspector } = useInspector();
   const { publicMap, colorScheme } = useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const [groupIndex, setGroupIndex] = useState(0);

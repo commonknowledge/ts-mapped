@@ -1,6 +1,6 @@
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 "use client";
 
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { SearchBox as _SearchBox } from "@mapbox/search-js-react";
 import mapboxgl from "mapbox-gl";
 import { useContext, useState } from "react";

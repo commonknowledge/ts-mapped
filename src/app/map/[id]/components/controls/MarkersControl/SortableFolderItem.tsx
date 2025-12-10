@@ -66,8 +66,7 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const { getMarkerVisibility, setMarkerVisibilityState } =
-    useMarkerAndTurf();
+  const { getMarkerVisibility, setMarkerVisibilityState } = useMarkerAndTurf();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
 

@@ -12,8 +12,7 @@ export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { selectedPlacedMarkerId, getMarkerVisibility } =
-    useMarkerAndTurf();
+  const { selectedPlacedMarkerId, getMarkerVisibility } = useMarkerAndTurf();
 
   const visiblePlacedMarkers = useMemo(() => {
     return placedMarkers.filter((marker) => {
