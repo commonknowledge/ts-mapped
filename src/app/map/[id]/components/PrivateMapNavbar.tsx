@@ -26,7 +26,7 @@ import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
 import { useMapId, useMapRef, useDirtyViewIds } from "../hooks/useMapState";
 
 /**
- * TODO: Move complex logic into MapProvider
+ * TODO: Move complex logic into custom hooks or MapInitializer
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
