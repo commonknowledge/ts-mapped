@@ -16,13 +16,24 @@ export interface CombinedAreaStat {
 
 export interface CombinedAreaStats {
   areaSetCode: AreaSetCode;
-  column: string;
-  columnType: ColumnType;
-  stats: CombinedAreaStat[];
-  secondaryStats: {
+  calculationType: CalculationType;
+  dataSourceId: string;
+
+  primary: {
     column: string;
     columnType: ColumnType;
+    maxValue: number;
+    minValue: number;
   } | null;
+
+  secondary: {
+    column: string;
+    columnType: ColumnType;
+    maxValue: number;
+    minValue: number;
+  } | null;
+
+  stats: CombinedAreaStat[];
 }
 
 export const useAreaStats = () => {
@@ -57,13 +68,24 @@ export const useAreaStats = () => {
   // Deduplicate stats by area code
   const [dedupedAreaStats, setDedupedAreaStats] = useState<{
     areaSetCode: AreaSetCode;
-    column: string;
-    columnType: ColumnType;
-    stats: Record<string, CombinedAreaStat>;
-    secondaryStats: {
+    calculationType: CalculationType;
+    dataSourceId: string;
+
+    primary: {
       column: string;
       columnType: ColumnType;
+      maxValue: number;
+      minValue: number;
     } | null;
+
+    secondary: {
+      column: string;
+      columnType: ColumnType;
+      maxValue: number;
+      minValue: number;
+    } | null;
+
+    stats: Record<string, CombinedAreaStat>;
   } | null>();
 
   const excludeColumns = useMemo(() => {
@@ -116,14 +138,16 @@ export const useAreaStats = () => {
         string,
         { areaCode: string; primary?: unknown; secondary?: unknown }
       > = {};
-      for (const stat of areaStatsQuery.data.stats) {
+      const primaryStats = areaStatsQuery.data.primary?.stats || [];
+      for (const stat of primaryStats) {
         nextStats[stat.areaCode] = {
           areaCode: stat.areaCode,
           primary: stat.value,
         };
       }
 
-      for (const stat of areaStatsQuery.data.secondaryStats?.stats || []) {
+      const secondaryStats = areaStatsQuery.data.secondary?.stats || [];
+      for (const stat of secondaryStats) {
         const prevStat = nextStats[stat.areaCode] || {
           areaCode: stat.areaCode,
         };
@@ -133,24 +157,36 @@ export const useAreaStats = () => {
       if (!prev) {
         return {
           areaSetCode: areaStatsQuery.data.areaSetCode,
-          column: areaStatsQuery.data.column,
-          columnType: areaStatsQuery.data.columnType,
-          stats: nextStats,
-          secondaryStats: areaStatsQuery.data.secondaryStats
+          calculationType: areaStatsQuery.data.calculationType,
+          dataSourceId: areaStatsQuery.data.dataSourceId,
+          primary: areaStatsQuery.data.primary
             ? {
-                column: areaStatsQuery.data.secondaryStats.column,
-                columnType: areaStatsQuery.data.secondaryStats.columnType,
+                column: areaStatsQuery.data.primary.column,
+                columnType: areaStatsQuery.data.primary.columnType,
+                maxValue: areaStatsQuery.data.primary.maxValue,
+                minValue: areaStatsQuery.data.primary.minValue,
+                stats: primaryStats,
               }
             : null,
+          secondary: areaStatsQuery.data.secondary
+            ? {
+                column: areaStatsQuery.data.secondary.column,
+                columnType: areaStatsQuery.data.secondary.columnType,
+                maxValue: areaStatsQuery.data.secondary.maxValue,
+                minValue: areaStatsQuery.data.secondary.minValue,
+                stats: secondaryStats,
+              }
+            : null,
+          stats: nextStats,
         };
       }
+
       if (
-        prev.column === areaStatsQuery.data.column &&
-        prev.columnType === areaStatsQuery.data.columnType &&
-        prev.secondaryStats?.column ===
-          areaStatsQuery.data.secondaryStats?.column &&
-        prev.secondaryStats?.columnType ===
-          areaStatsQuery.data.secondaryStats?.columnType
+        prev.areaSetCode === areaStatsQuery.data.areaSetCode &&
+        prev.calculationType === areaStatsQuery.data.calculationType &&
+        prev.dataSourceId === areaStatsQuery.data.dataSourceId &&
+        prev.primary?.column === areaStatsQuery.data.primary?.column &&
+        prev.secondary?.column === areaStatsQuery.data.secondary?.column
       ) {
         return {
           ...prev,
@@ -164,16 +200,8 @@ export const useAreaStats = () => {
   const areaStats = useMemo((): CombinedAreaStats | null => {
     return dedupedAreaStats
       ? {
-          areaSetCode: dedupedAreaStats.areaSetCode,
-          column: dedupedAreaStats.column,
-          columnType: dedupedAreaStats.columnType,
+          ...dedupedAreaStats,
           stats: Object.values(dedupedAreaStats.stats),
-          secondaryStats: dedupedAreaStats.secondaryStats
-            ? {
-                column: dedupedAreaStats.secondaryStats.column,
-                columnType: dedupedAreaStats.secondaryStats.columnType,
-              }
-            : null,
         }
       : null;
   }, [dedupedAreaStats]);

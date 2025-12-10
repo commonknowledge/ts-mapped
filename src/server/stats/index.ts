@@ -11,6 +11,34 @@ import type { DataSource } from "../models/DataSource";
 import type { Database } from "@/server/services/database";
 import type { CaseBuilder, CaseWhenBuilder } from "kysely";
 
+interface AreaStats {
+  areaSetCode: AreaSetCode;
+  calculationType: CalculationType;
+  dataSourceId: string;
+
+  primary?: {
+    column: string;
+    columnType: ColumnType;
+    maxValue: number;
+    minValue: number;
+    stats: {
+      areaCode: string;
+      value?: unknown;
+    }[];
+  };
+
+  secondary?: {
+    column: string;
+    columnType: ColumnType;
+    maxValue: number;
+    minValue: number;
+    stats: {
+      areaCode: string;
+      value?: unknown;
+    }[];
+  };
+}
+
 export const getAreaStats = async ({
   areaSetCode,
   dataSourceId,
@@ -27,7 +55,13 @@ export const getAreaStats = async ({
   secondaryColumn?: string;
   excludeColumns: string[];
   boundingBox?: BoundingBox | null;
-}) => {
+}): Promise<AreaStats> => {
+  const areaStats: AreaStats = {
+    areaSetCode,
+    calculationType,
+    dataSourceId,
+  };
+
   if (column === MAX_COLUMN_KEY) {
     const stats = await getMaxColumnByArea(
       areaSetCode,
@@ -35,13 +69,15 @@ export const getAreaStats = async ({
       excludeColumns,
       boundingBox,
     );
-    return {
-      areaSetCode,
+    const { maxValue, minValue } = getValueRange(stats);
+    areaStats.primary = {
       column,
       columnType: ColumnType.String,
+      maxValue,
+      minValue,
       stats,
-      secondaryStats: null,
     };
+    return areaStats;
   }
 
   if (calculationType === CalculationType.Count) {
@@ -50,13 +86,15 @@ export const getAreaStats = async ({
       dataSourceId,
       boundingBox,
     );
-    return {
-      areaSetCode,
+    const { maxValue } = getValueRange(stats);
+    areaStats.primary = {
       column,
       columnType: ColumnType.Number,
+      minValue: 0, // Force count min to be 0 (areas with no records have count = 0 implicitly)
+      maxValue,
       stats,
-      secondaryStats: null,
     };
+    return areaStats;
   }
 
   try {
@@ -72,9 +110,14 @@ export const getAreaStats = async ({
       column,
       boundingBox,
     );
+    const valueRange = getValueRange(primaryStats.stats);
+    areaStats.primary = {
+      ...primaryStats,
+      ...valueRange,
+    };
 
     if (!secondaryColumn) {
-      return { ...primaryStats, areaSetCode, secondaryStats: null };
+      return areaStats;
     }
 
     const secondaryStats = await getColumnValueByArea(
@@ -84,17 +127,16 @@ export const getAreaStats = async ({
       secondaryColumn,
       boundingBox,
     );
-    return { ...primaryStats, areaSetCode, secondaryStats };
+    const secondaryValueRange = getValueRange(secondaryStats.stats);
+    areaStats.secondary = {
+      ...secondaryStats,
+      ...secondaryValueRange,
+    };
+    return areaStats;
   } catch (error) {
     logger.error(`Failed to get area stats`, { error });
   }
-  return {
-    areaSetCode,
-    column,
-    columnType: ColumnType.Unknown,
-    stats: [],
-    secondaryStats: null,
-  };
+  return areaStats;
 };
 
 export const getMaxColumnByArea = async (
@@ -284,4 +326,21 @@ const filterResult = (result: unknown[], columnType: ColumnType) => {
     }
   }
   return filtered;
+};
+
+const getValueRange = (stats: { areaCode: string; value?: unknown }[]) => {
+  let minValue = null;
+  let maxValue = null;
+
+  const values = stats.map((s) => s.value).filter((s) => typeof s === "number");
+  for (const v of values) {
+    if (minValue === null || v < minValue) {
+      minValue = v;
+    }
+    if (maxValue === null || v > maxValue) {
+      maxValue = v;
+    }
+  }
+
+  return { minValue: minValue || 0, maxValue: maxValue || 0 };
 };
