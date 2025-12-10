@@ -2,13 +2,15 @@ import { Plus } from "lucide-react";
 import { Marker, Popup } from "react-map-gl/mapbox";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
-import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import {
+  usePlacedMarkerMutations,
+  usePlacedMarkerState,
+} from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "../styles";
 import type { Feature } from "geojson";
 
 export default function SearchResultMarker() {
-  const { searchMarker, setSearchMarker } = useMarkers();
+  const { searchMarker, setSearchMarker } = usePlacedMarkerState();
   const { insertPlacedMarker } = usePlacedMarkerMutations();
 
   const center = getFeatureCenter(searchMarker);

@@ -1,6 +1,6 @@
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType } from "@/types";
+import { useLayers } from "../../hooks/useLayers";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
 import type { DataSourceType } from "@/server/models/DataSource";
@@ -22,8 +22,7 @@ export default function DataSourceItem({
   handleDataSourceSelect: (id: string) => void;
   layerType: LayerType;
 }) {
-  const { setDataSourceVisibilityState, getDataSourceVisibility } =
-    useMarkers();
+  const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const layerColor =
     layerType === LayerType.Member
       ? mapColors.member.color
@@ -37,7 +36,7 @@ export default function DataSourceItem({
       layerType={layerType}
       isVisible={isVisible}
       onVisibilityToggle={() =>
-        setDataSourceVisibilityState(dataSource?.id, !isVisible)
+        setDataSourceVisibility(dataSource?.id, !isVisible)
       }
     >
       <button

@@ -1,11 +1,11 @@
 import { MapPin } from "lucide-react";
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
-import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import VectorSquare from "@/components/icons/VectorSquare";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { useHandleDropPin } from "../hooks/usePlacedMarkers";
+import { useTurfState } from "../hooks/useTurfs";
 
 export default function MapMarkerAndAreaControls() {
-  const { handleDropPin } = useMarkers();
+  const { handleDropPin } = useHandleDropPin();
   const { handleAddArea } = useTurfState();
 
   return (

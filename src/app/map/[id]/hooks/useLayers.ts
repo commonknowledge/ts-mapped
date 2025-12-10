@@ -5,17 +5,35 @@ import { useCallback } from "react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
 import { hiddenLayersAtom } from "../atoms/layerAtoms";
-import { useMarkers } from "./useMarkers";
-import { useTurfsQuery } from "./useTurfs";
-import { useTurfState } from "./useTurfState";
+import { dataSourceVisibilityAtom } from "../atoms/markerAtoms";
+import { useTurfState, useTurfsQuery } from "./useTurfs";
 
 export function useLayers() {
   const { mapConfig } = useMapConfig();
   const { data: turfs = [] } = useTurfsQuery();
-  const { setDataSourceVisibilityState } = useMarkers();
-  const { setTurfVisibilityState, visibleTurfs } = useTurfState();
-
+  const { setTurfVisibility, visibleTurfs } = useTurfState();
   const [hiddenLayers, setHiddenLayers] = useAtom(hiddenLayersAtom);
+
+  const [dataSourceVisibility, _setDataSourceVisibility] = useAtom(
+    dataSourceVisibilityAtom,
+  );
+
+  const setDataSourceVisibility = useCallback(
+    (dataSourceId: string, isVisible: boolean) => {
+      _setDataSourceVisibility((prev) => ({
+        ...prev,
+        [dataSourceId]: isVisible,
+      }));
+    },
+    [_setDataSourceVisibility],
+  );
+
+  const getDataSourceVisibility = useCallback(
+    (dataSourceId: string) => {
+      return dataSourceVisibility[dataSourceId] ?? true; // Default to visible
+    },
+    [dataSourceVisibility],
+  );
 
   const showLayer = useCallback(
     (layer: LayerType) => {
@@ -24,18 +42,18 @@ export function useLayers() {
       // TODO: add logic for markers
       if (layer === LayerType.Member) {
         if (mapConfig.membersDataSourceId) {
-          setDataSourceVisibilityState(mapConfig.membersDataSourceId, true);
+          setDataSourceVisibility(mapConfig.membersDataSourceId, true);
         }
       } else if (layer === LayerType.Turf) {
-        turfs.forEach((t) => setTurfVisibilityState(t.id, true));
+        turfs.forEach((t) => setTurfVisibility(t.id, true));
       }
     },
     [
       setHiddenLayers,
       mapConfig.membersDataSourceId,
+      setDataSourceVisibility,
       turfs,
-      setDataSourceVisibilityState,
-      setTurfVisibilityState,
+      setTurfVisibility,
     ],
   );
 
@@ -46,18 +64,18 @@ export function useLayers() {
       // TODO: add logic for markers
       if (layer === LayerType.Member) {
         if (mapConfig.membersDataSourceId) {
-          setDataSourceVisibilityState(mapConfig.membersDataSourceId, false);
+          setDataSourceVisibility(mapConfig.membersDataSourceId, false);
         }
       } else if (layer === LayerType.Turf) {
-        turfs.forEach((t) => setTurfVisibilityState(t.id, false));
+        turfs.forEach((t) => setTurfVisibility(t.id, false));
       }
     },
     [
       setHiddenLayers,
       mapConfig.membersDataSourceId,
+      setDataSourceVisibility,
       turfs,
-      setDataSourceVisibilityState,
-      setTurfVisibilityState,
+      setTurfVisibility,
     ],
   );
 
@@ -77,5 +95,7 @@ export function useLayers() {
     showLayer,
     hideLayer,
     getLayerVisibility,
+    getDataSourceVisibility,
+    setDataSourceVisibility,
   };
 }

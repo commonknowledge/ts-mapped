@@ -2,11 +2,12 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
-import { usePlacedMarkerMutations } from "../../../hooks/usePlacedMarkers";
+import {
+  usePlacedMarkerMutations,
+  usePlacedMarkerState,
+} from "../../../hooks/usePlacedMarkers";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
@@ -32,9 +33,9 @@ export default function SortableMarkerItem({
 
   const {
     setSelectedPlacedMarkerId,
-    getMarkerVisibility,
-    setMarkerVisibilityState,
-  } = useMarkers();
+    getPlacedMarkerVisibility,
+    setPlacedMarkerVisibility,
+  } = usePlacedMarkerState();
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
   const { mapRef } = useContext(MapContext);
   const [isEditing, setEditing] = useState(false);
@@ -42,7 +43,7 @@ export default function SortableMarkerItem({
 
   // Check if this marker is the one being dragged (even outside its container)
   const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
-  const isVisible = getMarkerVisibility(marker.id);
+  const isVisible = getPlacedMarkerVisibility(marker.id);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -92,7 +93,7 @@ export default function SortableMarkerItem({
         layerType={LayerType.Marker}
         isVisible={isVisible}
         onVisibilityToggle={() =>
-          setMarkerVisibilityState(marker.id, !isVisible)
+          setPlacedMarkerVisibility(marker.id, !isVisible)
         }
       >
         {isEditing ? (

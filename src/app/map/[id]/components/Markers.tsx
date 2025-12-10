@@ -4,8 +4,8 @@ import { Layer, Source } from "react-map-gl/mapbox";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
+import { useLayers } from "../hooks/useLayers";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
@@ -32,7 +32,7 @@ export default function Markers() {
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const markerQueries = useMarkerQueries();
-  const { getDataSourceVisibility } = useMarkers();
+  const { getDataSourceVisibility } = useLayers();
 
   const memberMarkers = useMemo(
     () =>
