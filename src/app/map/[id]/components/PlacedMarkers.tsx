@@ -2,7 +2,7 @@ import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "../styles";
@@ -12,7 +12,7 @@ export default function PlacedMarkers() {
   const { viewConfig } = useMapViews();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { selectedPlacedMarkerId, getMarkerVisibility } = useMarkerAndTurf();
+  const { selectedPlacedMarkerId, getMarkerVisibility } = useMarkers();
 
   const visiblePlacedMarkers = useMemo(() => {
     return placedMarkers.filter((marker) => {

@@ -4,7 +4,7 @@ import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import {
   useFolderMutations,
   useFoldersQuery,
@@ -26,7 +26,7 @@ export default function MarkersControl() {
   const { data: folders = [] } = useFoldersQuery();
   const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
-  const { handleDropPin } = useMarkerAndTurf();
+  const { handleDropPin } = useMarkers();
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
 

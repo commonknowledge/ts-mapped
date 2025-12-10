@@ -6,7 +6,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { usePlacedMarkerMutations } from "../../../hooks/usePlacedMarkers";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
@@ -34,7 +34,7 @@ export default function SortableMarkerItem({
     setSelectedPlacedMarkerId,
     getMarkerVisibility,
     setMarkerVisibilityState,
-  } = useMarkerAndTurf();
+  } = useMarkers();
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
   const { mapRef } = useContext(MapContext);
   const [isEditing, setEditing] = useState(false);

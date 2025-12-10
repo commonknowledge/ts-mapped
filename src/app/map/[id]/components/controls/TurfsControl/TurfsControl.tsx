@@ -4,14 +4,14 @@ import { useContext, useState } from "react";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
 import { useTurfsQuery } from "../../../hooks/useTurfs";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
 import TurfItem from "./TurfItem";
 
 export default function AreasControl() {
-  const { handleAddArea } = useMarkerAndTurf();
+  const { handleAddArea } = useTurfState();
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const { data: turfs = [] } = useTurfsQuery();

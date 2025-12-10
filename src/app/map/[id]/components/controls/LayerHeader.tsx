@@ -1,4 +1,4 @@
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useLayers } from "@/app/map/[id]/hooks/useLayers";
 import { ChevronDown } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 import { useContext } from "react";
@@ -25,7 +25,7 @@ export default function LayerHeader({
   children?: React.ReactNode;
   enableVisibilityToggle?: boolean;
 }) {
-  const { getLayerVisibility, hideLayer, showLayer } = useMarkerAndTurf();
+  const { getLayerVisibility, hideLayer, showLayer } = useLayers();
 
   const isLayerVisible = getLayerVisibility(type);
 

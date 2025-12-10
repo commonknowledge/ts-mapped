@@ -1,4 +1,4 @@
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { useContext } from "react";
 
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -25,7 +25,7 @@ export default function DataSourceItem({
   layerType: LayerType;
 }) {
   const { setDataSourceVisibilityState, getDataSourceVisibility } =
-    useMarkerAndTurf();
+    useMarkers();
   const layerColor =
     layerType === LayerType.Member
       ? mapColors.member.color

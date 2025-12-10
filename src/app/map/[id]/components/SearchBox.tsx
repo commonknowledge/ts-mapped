@@ -1,6 +1,6 @@
 "use client";
 
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { SearchBox as _SearchBox } from "@mapbox/search-js-react";
 import mapboxgl from "mapbox-gl";
 import { useContext, useState } from "react";
@@ -10,7 +10,7 @@ import styles from "./SearchBox.module.css";
 
 export function SearchBox() {
   const { mapRef } = useContext(MapContext);
-  const { setSearchMarker } = useMarkerAndTurf();
+  const { setSearchMarker } = useMarkers();
   const [search, setSearch] = useState("");
 
   return (

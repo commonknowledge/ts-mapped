@@ -5,7 +5,8 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
 import { useMapBounds } from "@/app/map/[id]/hooks/useMapBounds";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
+import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import {
   MapContext,
   getDataSourceIds,
@@ -47,7 +48,8 @@ export default function Map({
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { searchMarker, visibleTurfs } = useMarkerAndTurf();
+  const { searchMarker } = useMarkers();
+  const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
 

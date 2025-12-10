@@ -5,12 +5,12 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { mapColors } from "../styles";
 import type { Feature } from "geojson";
 
 export default function SearchResultMarker() {
-  const { searchMarker, setSearchMarker } = useMarkerAndTurf();
+  const { searchMarker, setSearchMarker } = useMarkers();
   const { insertPlacedMarker } = usePlacedMarkerMutations();
 
   const center = getFeatureCenter(searchMarker);
