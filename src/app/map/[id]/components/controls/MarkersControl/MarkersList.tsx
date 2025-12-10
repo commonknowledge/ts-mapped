@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useContext, useMemo, useState } from "react";
+import { use, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";

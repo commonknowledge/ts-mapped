@@ -2,9 +2,9 @@ import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";

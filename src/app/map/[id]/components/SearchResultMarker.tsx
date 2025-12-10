@@ -1,11 +1,10 @@
 import { Plus } from "lucide-react";
-import { useContext } from "react";
 import { Marker, Popup } from "react-map-gl/mapbox";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
+import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "../styles";
 import type { Feature } from "geojson";
 

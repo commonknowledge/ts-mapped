@@ -5,6 +5,7 @@ import { Database, Settings } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import {
   VerticalTabs,
   VerticalTabsContent,
@@ -17,7 +18,6 @@ import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { buildPublicMapName } from "../../utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";

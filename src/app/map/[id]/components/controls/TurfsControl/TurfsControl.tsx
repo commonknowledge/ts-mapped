@@ -1,10 +1,10 @@
 import { ArrowRight, PlusIcon } from "lucide-react";
-import { useContext, useState } from "react";
+import { useState } from "react";
 
+import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
 import { useTurfsQuery } from "../../../hooks/useTurfs";
-import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";

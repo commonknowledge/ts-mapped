@@ -1,6 +1,7 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
+import unusedImports from "eslint-plugin-unused-imports";
 import tseslint from "typescript-eslint";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,8 +19,12 @@ const eslintConfig = [
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   {
+    plugins: {
+      "unused-imports": unusedImports,
+    },
     rules: {
       "@typescript-eslint/consistent-type-imports": "error",
+      "unused-imports/no-unused-imports": "error",
       "import/order": [
         "error",
         {

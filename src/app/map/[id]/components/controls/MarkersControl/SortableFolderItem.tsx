@@ -11,14 +11,14 @@ import {
   Folder as FolderClosed,
   FolderOpen,
 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";

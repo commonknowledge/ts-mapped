@@ -3,10 +3,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { usePlacedMarkerMutations } from "../../../hooks/usePlacedMarkers";
-import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";

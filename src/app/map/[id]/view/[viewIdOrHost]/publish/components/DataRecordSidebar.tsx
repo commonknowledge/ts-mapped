@@ -2,9 +2,9 @@ import { format } from "date-fns";
 import { Check, X } from "lucide-react";
 import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";

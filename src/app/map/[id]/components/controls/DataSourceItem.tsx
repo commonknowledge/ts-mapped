@@ -1,5 +1,4 @@
 import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
-import { useContext } from "react";
 
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType } from "@/types";

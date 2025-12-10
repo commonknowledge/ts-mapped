@@ -5,8 +5,8 @@ import { useCallback } from "react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
 import { hiddenLayersAtom } from "../atoms/layerAtoms";
-import { useTurfsQuery } from "./useTurfs";
 import { useMarkers } from "./useMarkers";
+import { useTurfsQuery } from "./useTurfs";
 import { useTurfState } from "./useTurfState";
 
 export function useLayers() {

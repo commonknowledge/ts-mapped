@@ -137,6 +137,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "jsdom": "^26.1.0",
     "kysely-ctl": "^0.12.1",
     "madge": "^8.0.0",

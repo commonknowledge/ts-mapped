@@ -1,7 +1,6 @@
+import { MapPin } from "lucide-react";
 import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
-import { MapPin } from "lucide-react";
-import { useContext } from "react";
 
 import VectorSquare from "@/components/icons/VectorSquare";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";

@@ -4,8 +4,8 @@ import { toast } from "sonner";
 
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useFeatureFlagEnabled } from "@/hooks";
