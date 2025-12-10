@@ -16,7 +16,7 @@ import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { buildPublicMapName, groupRecords } from "../utils";
 import type { RecordGroup } from "../utils";
-import type { SelectedRecord } from "@/app/map/[id]/context/InspectorContext";
+import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { PublicMapDataSourceConfig } from "@/server/models/PublicMap";
 import type { RouterOutputs } from "@/services/trpc/react";

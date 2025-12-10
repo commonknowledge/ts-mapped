@@ -4,7 +4,7 @@ import type {
   SelectedBoundary,
   SelectedRecord,
   SelectedTurf,
-} from "@/app/map/[id]/context/InspectorContext";
+} from "@/app/map/[id]/types/inspector";
 
 export const selectedRecordsAtom = atom<SelectedRecord[]>([]);
 export const focusedRecordAtom = atom<SelectedRecord | null>(null);

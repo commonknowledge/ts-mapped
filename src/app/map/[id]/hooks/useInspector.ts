@@ -13,7 +13,7 @@ import {
   selectedRecordsAtom,
   selectedTurfAtom,
 } from "../atoms/inspectorAtoms";
-import type { SelectedRecord } from "@/app/map/[id]/context/InspectorContext";
+import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 
 export function useInspector() {
   const { getDataSourceById } = useDataSources();
