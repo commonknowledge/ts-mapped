@@ -18,10 +18,9 @@ import {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Check, Layers, Plus, X } from "lucide-react";
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
-  MapContext,
   createNewViewConfig,
 } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -42,11 +41,12 @@ import {
   getNewPositionBefore,
   sortByPositionAndId,
 } from "../utils";
+import { useMapId, useSetViewId, useDirtyViewIds } from "../hooks/useMapState";
 import type { View } from "../types";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function MapViews() {
-  const { mapId } = useContext(MapContext);
+  const mapId = useMapId();
 
   const { views, insertView, updateView } = useMapViews();
 
@@ -206,7 +206,8 @@ function SortableViewItem({
   setRenamingViewId: (id: string | null) => void;
   view: View;
 }) {
-  const { setViewId: setSelectedViewId, dirtyViewIds } = useContext(MapContext);
+  const setSelectedViewId = useSetViewId();
+  const dirtyViewIds = useDirtyViewIds();
 
   const { views, deleteView, updateView, view: selectedView } = useMapViews();
   const [editName, setEditName] = useState(view.name);

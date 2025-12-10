@@ -1,7 +1,6 @@
 "use client";
 
-import { useContext, useEffect } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
@@ -21,9 +20,12 @@ import Loading from "./Loading";
 import Map from "./Map";
 import PrivateMapNavbar from "./PrivateMapNavbar";
 import MapTable from "./table/MapTable";
+import { useMapRef, useShowControls, useMapId } from "../hooks/useMapState";
 
 export default function PrivateMap() {
-  const { mapRef, showControls, mapId } = useContext(MapContext);
+  const mapRef = useMapRef();
+  const showControls = useShowControls();
+  const mapId = useMapId();
 
   const areaStatsQuery = useAreaStats();
   const { setLastLoadedSourceId } = useChoropleth();

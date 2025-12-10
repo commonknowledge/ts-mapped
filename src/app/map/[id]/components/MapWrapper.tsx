@@ -1,5 +1,4 @@
-import { useContext, useEffect, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
@@ -8,6 +7,7 @@ import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 import ZoomControl from "./ZoomControl";
 import "./MapWrapper.css"; // overriding styles of mapbox elements
+import { useShowControls } from "../hooks/useMapState";
 
 export default function MapWrapper({
   currentMode,
@@ -18,7 +18,7 @@ export default function MapWrapper({
   children: React.ReactNode;
   hideDrawControls?: boolean;
 }) {
-  const { showControls } = useContext(MapContext);
+  const showControls = useShowControls();
   const { viewConfig } = useMapViews();
 
   const [message, setMessage] = useState<string>("");

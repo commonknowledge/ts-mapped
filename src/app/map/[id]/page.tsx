@@ -4,7 +4,7 @@ import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
 import { JotaiProvider } from "./providers/JotaiProvider";
-import MapProvider from "./providers/MapProvider";
+import MapInitializer from "./components/MapInitializer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -28,14 +28,14 @@ export default async function MapPage({
 
   return (
     <JotaiProvider>
-      <MapProvider mapId={id} viewId={viewId}>
+      <MapInitializer mapId={id} viewId={viewId}>
         <DesktopOnly>
           <div className="with-feeback-widget">
             <PrivateMap />
             <SentryFeedbackWidget />
           </div>
         </DesktopOnly>
-      </MapProvider>
+      </MapInitializer>
     </JotaiProvider>
   );
 }

@@ -1,11 +1,10 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import * as turf from "@turf/turf";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
 import {
-  MapContext,
   getDataSourceIds,
   getMapStyle,
 } from "@/app/map/[id]/context/MapContext";
@@ -30,8 +29,10 @@ import MarkerPopup from "./MarkerPopup";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import { useMapRefAtom, useSetZoom, usePinDropMode, useShowControls } from "../hooks/useMapState";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
+import type { MapRef } from "react-map-gl/mapbox";
 
 export default function Map({
   onSourceLoad,
@@ -41,7 +42,11 @@ export default function Map({
   hideDrawControls?: boolean;
 }) {
   const isMobile = useIsMobile();
-  const { mapRef, setZoom, pinDropMode, showControls } = useContext(MapContext);
+  const localMapRef = useRef<MapRef>(null);
+  const [, setMapRef] = useMapRefAtom();
+  const setZoom = useSetZoom();
+  const pinDropMode = usePinDropMode();
+  const showControls = useShowControls();
   const { setBoundingBox } = useMapBounds();
   const [ready, setReady] = useState(false);
   const { viewConfig } = useMapViews();
@@ -56,6 +61,11 @@ export default function Map({
   const [didInitialFit, setDidInitialFit] = useState(false);
 
   const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
+  
+  // Sync local ref to jotai atom
+  useEffect(() => {
+    setMapRef(localMapRef);
+  }, [setMapRef]);
 
   const markerLayers = useMemo(
     () =>
@@ -95,7 +105,7 @@ export default function Map({
       return;
     }
 
-    const map = mapRef?.current;
+    const map = localMapRef?.current;
 
     const handleModeChange = (e: DrawModeChangeEvent) => {
       setCurrentMode(e.mode);
@@ -108,12 +118,12 @@ export default function Map({
         map.off("draw.modechange", handleModeChange);
       }
     };
-  }, [mapRef, ready]);
+  }, [localMapRef, ready]);
 
   // Show/Hide labels
   const toggleLabelVisibility = useCallback(
     (show: boolean) => {
-      const map = mapRef?.current;
+      const map = localMapRef?.current;
 
       if (map && styleLoaded) {
         const style = map.getStyle();
@@ -130,19 +140,19 @@ export default function Map({
         });
       }
     },
-    [mapRef, styleLoaded],
+    [localMapRef, styleLoaded],
   );
 
   useEffect(() => {
     toggleLabelVisibility(viewConfig.showLabels);
-  }, [mapRef, toggleLabelVisibility, viewConfig.showLabels]);
+  }, [localMapRef, toggleLabelVisibility, viewConfig.showLabels]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const map = mapRef?.current;
+    const map = localMapRef?.current;
     if (!map) return;
 
     const padding = {
@@ -162,10 +172,10 @@ export default function Map({
       duration: 300,
       easing: (t) => t * (2 - t),
     });
-  }, [mapRef, showControls, isMobile]);
+  }, [localMapRef, showControls, isMobile]);
 
   useEffect(() => {
-    const map = mapRef?.current;
+    const map = localMapRef?.current;
     if (
       !map ||
       didInitialFit ||
@@ -219,7 +229,7 @@ export default function Map({
     didInitialFit,
     mapConfig.markerDataSourceIds,
     mapConfig.membersDataSourceId,
-    mapRef,
+    localMapRef,
     markerQueries?.data,
     markerQueries?.isFetching,
     placedMarkers,
@@ -263,7 +273,7 @@ export default function Map({
                 },
               }
         }
-        ref={mapRef}
+        ref={localMapRef}
         style={{ flexGrow: 1 }}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle={`mapbox://styles/${getMapStyle(viewConfig).slug}`}
@@ -288,7 +298,7 @@ export default function Map({
           }
         }}
         onLoad={() => {
-          const map = mapRef?.current;
+          const map = localMapRef?.current;
           if (!map) {
             return;
           }
@@ -431,7 +441,7 @@ export default function Map({
           onSourceLoad(e.style.globalId);
           setStyleLoaded(true);
 
-          const map = mapRef?.current?.getMap();
+          const map = localMapRef?.current?.getMap();
           if (map) {
             const layers = map.getStyle().layers;
             if (!layers) return;
@@ -457,8 +467,8 @@ export default function Map({
           }
         }}
         onRemove={() => {
-          if (draw && mapRef?.current) {
-            mapRef.current.getMap().removeControl(draw);
+          if (draw && localMapRef?.current) {
+            localMapRef.current.getMap().removeControl(draw);
           }
           setDraw(null);
           setReady(false);

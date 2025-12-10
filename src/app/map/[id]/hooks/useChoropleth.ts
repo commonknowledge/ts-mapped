@@ -1,8 +1,7 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { useContext, useMemo } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMemo } from "react";
 import { GeocodingType } from "@/server/models/DataSource";
 import {
   boundariesPanelOpenAtom,
@@ -12,9 +11,10 @@ import {
 import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
 import { useChoroplethDataSource } from "./useDataSources";
 import { useMapViews } from "./useMapViews";
+import { useZoom } from "./useMapState";
 
 export function useChoropleth() {
-  const { zoom } = useContext(MapContext);
+  const zoom = useZoom();
   const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 

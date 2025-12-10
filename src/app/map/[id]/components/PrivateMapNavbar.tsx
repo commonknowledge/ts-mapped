@@ -6,14 +6,12 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
@@ -25,13 +23,16 @@ import { useMapConfig } from "../hooks/useMapConfig";
 import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
+import { useMapId, useMapRef, useDirtyViewIds } from "../hooks/useMapState";
 
 /**
  * TODO: Move complex logic into MapProvider
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapId, mapRef, dirtyViewIds } = useContext(MapContext);
+  const mapId = useMapId();
+  const mapRef = useMapRef();
+  const dirtyViewIds = useDirtyViewIds();
   const { data: map } = useMapQuery(mapId);
   const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();

@@ -1,9 +1,9 @@
 import { useAtom } from "jotai";
-import { useContext, useEffect } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
+import { useMapRef } from "./useMapState";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 export function useMapHover({
@@ -15,7 +15,7 @@ export function useMapHover({
   draw: MapboxDraw | null;
   ready: boolean;
 }) {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const { choroplethLayerConfig } = useChoropleth();
   const {
     areaSetCode,
