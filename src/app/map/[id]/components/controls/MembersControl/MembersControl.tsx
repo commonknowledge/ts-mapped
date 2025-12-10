@@ -1,12 +1,12 @@
 import { DatabaseIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useState } from "react";
 import {
   useDataSources,
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useTable } from "@/app/map/[id]/hooks/useTable";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
@@ -23,8 +23,7 @@ export default function MembersControl() {
   const dataSource = useMembersDataSource();
   const { data: allDataSources, isPending: allDataSourcesLoading } =
     useDataSources();
-  const { selectedDataSourceId, handleDataSourceSelect } =
-    useContext(TableContext);
+  const { selectedDataSourceId, handleDataSourceSelect } = useTable();
   const [expanded, setExpanded] = useState(true);
 
   const isSelected = dataSource

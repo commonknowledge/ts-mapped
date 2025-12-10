@@ -3,9 +3,9 @@
 import { useContext, useEffect } from "react";
 import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
+import { useTable } from "@/app/map/[id]/hooks/useTable";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -30,7 +30,7 @@ export default function PrivateMap() {
 
   const { isPending: dataSourcesLoading } = useDataSources();
   const markerQueries = useMarkerQueries();
-  const { selectedDataSourceId } = useContext(TableContext);
+  const { selectedDataSourceId } = useTable();
 
   const { data: map, isPending } = useMapQuery(mapId);
   // Resize map when UI changes
