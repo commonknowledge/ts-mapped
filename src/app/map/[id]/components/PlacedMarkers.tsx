@@ -1,9 +1,9 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "../styles";
 import type { FeatureCollection, Point } from "geojson";

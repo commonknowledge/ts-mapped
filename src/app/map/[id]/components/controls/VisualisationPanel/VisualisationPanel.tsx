@@ -7,11 +7,11 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import {
   useChoroplethDataSource,
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
-import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";

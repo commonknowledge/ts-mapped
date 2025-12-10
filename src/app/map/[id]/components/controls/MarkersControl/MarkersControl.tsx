@@ -1,15 +1,15 @@
 import { Check, FolderPlusIcon, LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import {
   useFolderMutations,
   useFoldersQuery,
 } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";

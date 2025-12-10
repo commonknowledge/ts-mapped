@@ -2,8 +2,8 @@ import { useContext, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
 
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { mapColors } from "../styles";

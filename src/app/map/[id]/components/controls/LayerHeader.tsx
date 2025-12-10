@@ -1,7 +1,6 @@
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { ChevronDown } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
-import { useContext } from "react";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { TooltipProvider } from "@/shadcn/ui/tooltip";

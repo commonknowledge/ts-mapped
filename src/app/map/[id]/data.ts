@@ -2,8 +2,8 @@ import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { CalculationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
-import { useMapBounds } from "./hooks/useMapBounds";
 import { useChoropleth } from "./hooks/useChoropleth";
+import { useMapBounds } from "./hooks/useMapBounds";
 import { useMapViews } from "./hooks/useMapViews";
 import type { ColumnType } from "@/server/models/DataSource";
 

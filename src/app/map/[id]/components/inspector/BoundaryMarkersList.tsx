@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel } from "lucide-react";
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { AreaSetCode } from "@/server/models/AreaSet";

@@ -1,6 +1,5 @@
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { MapPin } from "lucide-react";
-import { useContext } from "react";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 
 import VectorSquare from "@/components/icons/VectorSquare";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";

@@ -1,4 +1,3 @@
-import { useContext } from "react";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType } from "@/types";

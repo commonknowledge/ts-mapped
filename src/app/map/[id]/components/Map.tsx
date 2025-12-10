@@ -4,16 +4,16 @@ import * as turf from "@turf/turf";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import MapGL, { Popup } from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import { useMapBounds } from "@/app/map/[id]/hooks/useMapBounds";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import {
   MapContext,
   getDataSourceIds,
   getMapStyle,
 } from "@/app/map/[id]/context/MapContext";
+import { useMapBounds } from "@/app/map/[id]/hooks/useMapBounds";
 
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";

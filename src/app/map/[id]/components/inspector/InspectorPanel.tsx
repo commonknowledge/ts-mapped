@@ -3,8 +3,8 @@ import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
 
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
