@@ -2,10 +2,11 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { usePlacedMarkerMutations } from "../../../hooks/usePlacedMarkers";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
@@ -33,7 +34,7 @@ export default function SortableMarkerItem({
     setSelectedPlacedMarkerId,
     getMarkerVisibility,
     setMarkerVisibilityState,
-  } = useContext(MarkerAndTurfContext);
+  } = useMarkerAndTurf();
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
   const { mapRef } = useContext(MapContext);
   const [isEditing, setEditing] = useState(false);

@@ -12,12 +12,13 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { useContext, useMemo, useState } from "react";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
@@ -66,7 +67,7 @@ export default function SortableFolderItem({
   };
 
   const { getMarkerVisibility, setMarkerVisibilityState } =
-    useContext(MarkerAndTurfContext);
+    useMarkerAndTurf();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
 

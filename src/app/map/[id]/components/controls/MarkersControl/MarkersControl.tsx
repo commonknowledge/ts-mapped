@@ -2,8 +2,9 @@ import { Check, FolderPlusIcon, LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import {
   useFolderMutations,
   useFoldersQuery,
@@ -25,7 +26,7 @@ export default function MarkersControl() {
   const { data: folders = [] } = useFoldersQuery();
   const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
-  const { handleDropPin } = useContext(MarkerAndTurfContext);
+  const { handleDropPin } = useMarkerAndTurf();
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
 

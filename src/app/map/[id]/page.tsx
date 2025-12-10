@@ -4,7 +4,6 @@ import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
 import MapProvider from "./providers/MapProvider";
-import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -28,14 +27,12 @@ export default async function MapPage({
 
   return (
     <MapProvider mapId={id} viewId={viewId}>
-      <MarkerAndTurfProvider>
-        <DesktopOnly>
-          <div className="with-feeback-widget">
-            <PrivateMap />
-            <SentryFeedbackWidget />
-          </div>
-        </DesktopOnly>
-      </MarkerAndTurfProvider>
+      <DesktopOnly>
+        <div className="with-feeback-widget">
+          <PrivateMap />
+          <SentryFeedbackWidget />
+        </div>
+      </DesktopOnly>
     </MapProvider>
   );
 }
