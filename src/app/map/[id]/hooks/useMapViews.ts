@@ -1,10 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useContext, useMemo } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
 import {
-  MapContext,
   createNewViewConfig,
 } from "@/app/map/[id]/context/MapContext";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
@@ -13,10 +12,14 @@ import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import { useMapQuery } from "./useMapQuery";
+import { useViewId, useMapId, useSetViewId, useSetDirtyViewIds } from "./useMapState";
 import type { View } from "../types";
 
 export function useMapViews() {
-  const { viewId, mapId, setViewId, setDirtyViewIds } = use(MapContext);
+  const viewId = useViewId();
+  const mapId = useMapId();
+  const setViewId = useSetViewId();
+  const setDirtyViewIds = useSetDirtyViewIds();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);

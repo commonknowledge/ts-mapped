@@ -1,7 +1,5 @@
 import { PanelLeft } from "lucide-react";
-import { useContext } from "react";
 
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { MapType } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
@@ -12,9 +10,10 @@ import BoundariesControl from "./BoundariesControl/BoundariesControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
 import MembersControl from "./MembersControl/MembersControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
+import { useShowControlsAtom } from "../../hooks/useMapState";
 
 export default function PrivateMapControls() {
-  const { showControls, setShowControls } = useContext(MapContext);
+  const [showControls, setShowControls] = useShowControlsAtom();
   const { setBoundariesPanelOpen } = useChoropleth();
   const { viewConfig } = useMapViews();
 

@@ -14,9 +14,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import {
   useFolderMutations,
@@ -43,6 +42,7 @@ import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
+import { useMapId } from "../../../hooks/useMapState";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type {
   DragEndEvent,
@@ -51,7 +51,7 @@ import type {
 } from "@dnd-kit/core";
 
 export default function MarkersList() {
-  const { mapId } = use(MapContext);
+  const mapId = useMapId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { viewConfig } = useMapViews();
