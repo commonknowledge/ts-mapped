@@ -3,7 +3,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { CalculationType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { ChoroplethContext } from "./context/ChoroplethContext";
-import { MapBoundsContext } from "./context/MapBoundsContext";
+import { useMapBounds } from "./hooks/useMapBounds";
 import { useMapViews } from "./hooks/useMapViews";
 import type { ColumnType } from "@/server/models/DataSource";
 
@@ -24,7 +24,7 @@ export interface CombinedAreaStats {
 }
 
 export const useAreaStats = () => {
-  const { boundingBox } = useContext(MapBoundsContext);
+  const { boundingBox } = useMapBounds();
   const { viewConfig } = useMapViews();
   const {
     choroplethLayerConfig: { areaSetCode, requiresBoundingBox },

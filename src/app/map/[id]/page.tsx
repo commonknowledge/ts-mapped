@@ -5,7 +5,6 @@ import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
 import ChoroplethProvider from "./providers/ChoroplethProvider";
 import InspectorProvider from "./providers/InspectorProvider";
-import MapBoundsProvider from "./providers/MapBoundsProvider";
 import MapProvider from "./providers/MapProvider";
 import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
 import TableProvider from "./providers/TableProvider";
@@ -32,22 +31,20 @@ export default async function MapPage({
 
   return (
     <MapProvider mapId={id} viewId={viewId}>
-      <MapBoundsProvider>
-        <InspectorProvider>
-          <ChoroplethProvider>
-            <MarkerAndTurfProvider>
-              <TableProvider>
-                <DesktopOnly>
-                  <div className="with-feeback-widget">
-                    <PrivateMap />
-                    <SentryFeedbackWidget />
-                  </div>
-                </DesktopOnly>
-              </TableProvider>
-            </MarkerAndTurfProvider>
-          </ChoroplethProvider>
-        </InspectorProvider>
-      </MapBoundsProvider>
+      <InspectorProvider>
+        <ChoroplethProvider>
+          <MarkerAndTurfProvider>
+            <TableProvider>
+              <DesktopOnly>
+                <div className="with-feeback-widget">
+                  <PrivateMap />
+                  <SentryFeedbackWidget />
+                </div>
+              </DesktopOnly>
+            </TableProvider>
+          </MarkerAndTurfProvider>
+        </ChoroplethProvider>
+      </InspectorProvider>
     </MapProvider>
   );
 }
