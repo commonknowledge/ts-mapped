@@ -3,7 +3,6 @@ import { getServerSession } from "@/auth";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
-import InspectorProvider from "./providers/InspectorProvider";
 import MapProvider from "./providers/MapProvider";
 import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
 import type { Metadata } from "next";
@@ -29,16 +28,14 @@ export default async function MapPage({
 
   return (
     <MapProvider mapId={id} viewId={viewId}>
-      <InspectorProvider>
-        <MarkerAndTurfProvider>
-          <DesktopOnly>
-            <div className="with-feeback-widget">
-              <PrivateMap />
-              <SentryFeedbackWidget />
-            </div>
-          </DesktopOnly>
-        </MarkerAndTurfProvider>
-      </InspectorProvider>
+      <MarkerAndTurfProvider>
+        <DesktopOnly>
+          <div className="with-feeback-widget">
+            <PrivateMap />
+            <SentryFeedbackWidget />
+          </div>
+        </DesktopOnly>
+      </MarkerAndTurfProvider>
     </MapProvider>
   );
 }

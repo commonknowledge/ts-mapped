@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Database, Settings } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+
 import {
   VerticalTabs,
   VerticalTabsContent,
@@ -17,6 +17,7 @@ import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
 import { PublicMapContext } from "../../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { buildPublicMapName } from "../../utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
@@ -27,7 +28,7 @@ export default function PublishPublicMapSidebar() {
   const { publicMap, activeTabId, activePublishTab, setActivePublishTab } =
     useContext(PublicMapContext);
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const { setSelectedRecords } = useContext(InspectorContext);
+  const { setSelectedRecords } = useInspector();
   const [hideSidebar] = useState(false);
   const [, setError] = useState("");
   const [publishedHost, setPublishedHost] = useState(

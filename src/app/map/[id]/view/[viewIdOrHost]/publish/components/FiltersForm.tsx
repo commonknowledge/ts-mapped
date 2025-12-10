@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
@@ -16,7 +16,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
   const { activeTabId } = useContext(PublicMapContext);
-  const { setSelectedRecords } = useContext(InspectorContext);
+  const { setSelectedRecords } = useInspector();
 
   // setting default values
   useEffect(() => {

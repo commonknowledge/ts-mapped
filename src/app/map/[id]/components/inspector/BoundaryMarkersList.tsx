@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel } from "lucide-react";
 import { useContext, useMemo } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
@@ -24,7 +25,7 @@ export default function BoundaryMarkersList() {
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const markerQueries = useMarkerQueries();
-  const { selectedBoundary } = useContext(InspectorContext);
+  const { selectedBoundary } = useInspector();
 
   const trpc = useTRPC();
   const { data: areaData, isPending: areaDataLoading } = useQuery(
