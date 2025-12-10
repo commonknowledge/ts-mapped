@@ -1,6 +1,6 @@
 import { atom } from "jotai";
-import { LayerType } from "@/types";
 import type { Turf } from "@/server/models/Turf";
+import type { LayerType } from "@/types";
 import type { Feature } from "geojson";
 
 export const editingTurfAtom = atom<Turf | null>(null);

@@ -1,12 +1,11 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback, useEffect } from "react";
 import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
-import type { SelectedRecord } from "@/app/map/[id]/context/InspectorContext";
 import {
   focusedRecordAtom,
   inspectorContentAtom,
@@ -14,6 +13,7 @@ import {
   selectedRecordsAtom,
   selectedTurfAtom,
 } from "../atoms/inspectorAtoms";
+import type { SelectedRecord } from "@/app/map/[id]/context/InspectorContext";
 
 export function useInspector() {
   const { getDataSourceById } = useDataSources();

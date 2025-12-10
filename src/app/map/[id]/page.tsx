@@ -3,6 +3,7 @@ import { getServerSession } from "@/auth";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
+import { JotaiProvider } from "./providers/JotaiProvider";
 import MapProvider from "./providers/MapProvider";
 import type { Metadata } from "next";
 
@@ -26,13 +27,15 @@ export default async function MapPage({
   const { viewId } = await searchParams;
 
   return (
-    <MapProvider mapId={id} viewId={viewId}>
-      <DesktopOnly>
-        <div className="with-feeback-widget">
-          <PrivateMap />
-          <SentryFeedbackWidget />
-        </div>
-      </DesktopOnly>
-    </MapProvider>
+    <JotaiProvider>
+      <MapProvider mapId={id} viewId={viewId}>
+        <DesktopOnly>
+          <div className="with-feeback-widget">
+            <PrivateMap />
+            <SentryFeedbackWidget />
+          </div>
+        </DesktopOnly>
+      </MapProvider>
+    </JotaiProvider>
   );
 }

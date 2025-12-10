@@ -6,8 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
-import { usePlacedMarkerMutations } from "../hooks/usePlacedMarkers";
-import { useTurfsQuery } from "../hooks/useTurfs";
 import {
   dataSourceVisibilityAtom,
   editingTurfAtom,
@@ -17,6 +15,8 @@ import {
   selectedPlacedMarkerIdAtom,
   turfVisibilityAtom,
 } from "../atoms/markerAndTurfAtoms";
+import { usePlacedMarkerMutations } from "../hooks/usePlacedMarkers";
+import { useTurfsQuery } from "../hooks/useTurfs";
 
 export function useMarkerAndTurf() {
   const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
