@@ -1,4 +1,3 @@
-import { createContext } from "react";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -35,29 +34,3 @@ export interface SelectedBoundary {
   name: string;
   properties?: Record<string, unknown> | null;
 }
-
-export const InspectorContext = createContext<{
-  inspectorContent: InspectorContent | null;
-  resetInspector: () => void;
-  setInspectorContent: (r: InspectorContent) => void;
-  selectedRecords: SelectedRecord[];
-  setSelectedRecords: (r: SelectedRecord[]) => void;
-  focusedRecord: SelectedRecord | null;
-  setFocusedRecord: (r: SelectedRecord | null) => void;
-  selectedBoundary: SelectedBoundary | null;
-  setSelectedBoundary: (r: SelectedBoundary | null) => void;
-  selectedTurf: SelectedTurf | null;
-  setSelectedTurf: (r: SelectedTurf | null) => void;
-}>({
-  inspectorContent: null,
-  resetInspector: () => null,
-  setInspectorContent: () => null,
-  selectedRecords: [],
-  setSelectedRecords: () => null,
-  focusedRecord: null,
-  setFocusedRecord: () => null,
-  selectedTurf: null,
-  setSelectedTurf: () => null,
-  selectedBoundary: null,
-  setSelectedBoundary: () => null,
-});

@@ -1,7 +1,6 @@
-import { useContext } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { getMapStyle } from "@/app/map/[id]/context/MapContext";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MapType } from "@/server/models/MapView";
 import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
@@ -12,7 +11,7 @@ export default function Choropleth() {
     choroplethLayerConfig: {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
-  } = useContext(ChoroplethContext);
+  } = useChoropleth();
   const choroplethTopLayerId = "choropleth-top";
 
   // Custom hooks for effects

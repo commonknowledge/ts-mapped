@@ -1,16 +1,15 @@
 import { ArrowRight, PlusIcon } from "lucide-react";
-import { useContext, useState } from "react";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useState } from "react";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
-import { useTurfsQuery } from "../../../hooks/useTurfs";
+import { useTurfState, useTurfsQuery } from "../../../hooks/useTurfs";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
 import TurfItem from "./TurfItem";
 
 export default function AreasControl() {
-  const { handleAddArea } = useContext(MarkerAndTurfContext);
+  const { handleAddArea } = useTurfState();
   const [isAddingArea, setAddingArea] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const { data: turfs = [] } = useTurfsQuery();

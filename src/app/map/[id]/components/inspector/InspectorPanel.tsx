@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useContext } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -22,10 +23,9 @@ export default function InspectorPanel() {
     selectedTurf,
     focusedRecord,
     setFocusedRecord,
-  } = useContext(InspectorContext);
+  } = useInspector();
   const { mapRef } = useContext(MapContext);
-  const { setSelectedDataSourceId, selectedDataSourceId } =
-    useContext(TableContext);
+  const { setSelectedDataSourceId, selectedDataSourceId } = useTable();
 
   const trpc = useTRPC();
   const { data: recordData, isFetching: recordLoading } = useQuery(

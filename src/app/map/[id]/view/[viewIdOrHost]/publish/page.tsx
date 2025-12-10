@@ -1,11 +1,8 @@
 import { notFound } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
-import ChoroplethProvider from "../../../providers/ChoroplethProvider";
-import InspectorProvider from "../../../providers/InspectorProvider";
-import MapBoundsProvider from "../../../providers/MapBoundsProvider";
+import { JotaiProvider } from "../../../providers/JotaiProvider";
 import MapProvider from "../../../providers/MapProvider";
-import MarkerAndTurfProvider from "../../../providers/MarkerAndTurfProvider";
 import PublicMap from "./components/PublicMap";
 import PublicFiltersProvider from "./providers/PublicFiltersProvider";
 import PublicMapProvider from "./providers/PublicMapProvider";
@@ -77,20 +74,14 @@ export default async function PublicMapAdminPage({
   }
 
   return (
-    <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
-      <MapBoundsProvider>
-        <InspectorProvider>
-          <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
-            <PublicFiltersProvider>
-              <ChoroplethProvider>
-                <MarkerAndTurfProvider>
-                  <PublicMap />
-                </MarkerAndTurfProvider>
-              </ChoroplethProvider>
-            </PublicFiltersProvider>
-          </PublicMapProvider>
-        </InspectorProvider>
-      </MapBoundsProvider>
-    </MapProvider>
+    <JotaiProvider>
+      <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
+        <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
+          <PublicFiltersProvider>
+            <PublicMap />
+          </PublicFiltersProvider>
+        </PublicMapProvider>
+      </MapProvider>
+    </JotaiProvider>
   );
 }

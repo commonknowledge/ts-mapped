@@ -1,30 +1,29 @@
+import { useAtom } from "jotai";
 import { useContext, useEffect } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
+import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 export function useMapHover({
   markerLayers,
-  setHoverMarker,
   draw,
   ready,
 }: {
   markerLayers: string[];
-  setHoverMarker: (
-    m: {
-      coordinates: [number, number];
-      properties: Record<string, unknown>;
-    } | null,
-  ) => void;
   draw: MapboxDraw | null;
   ready: boolean;
 }) {
   const { mapRef } = useContext(MapContext);
-  const { choroplethLayerConfig } = useContext(ChoroplethContext);
+  const { choroplethLayerConfig } = useChoropleth();
   const {
-    mapbox: { sourceId, layerId },
+    areaSetCode,
+    mapbox: { sourceId, layerId, featureNameProperty },
   } = choroplethLayerConfig;
+
+  const [, setHoverArea] = useHoverArea();
+  const [, setHoverMarker] = useHoverMarker();
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
@@ -44,8 +43,9 @@ export function useMapHover({
           { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
           { hover: false },
         );
+        setHoverArea(null);
+        hoveredFeatureId = undefined;
       }
-      hoveredFeatureId = undefined;
     };
 
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
@@ -137,13 +137,21 @@ export function useMapHover({
           );
         }
 
-        // Set hover state on current feature
         if (feature.id !== undefined) {
+          // Set hover state on current feature
           hoveredFeatureId = feature.id;
           map.setFeatureState(
             { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
             { hover: true },
           );
+          setHoverArea({
+            coordinates: [e.lngLat.lng, e.lngLat.lat],
+            areaSetCode,
+            code: String(feature.id),
+            name: String(
+              feature.properties?.[featureNameProperty] || feature.id,
+            ),
+          });
         }
 
         if (map.getCanvas().style.cursor !== "pointer") {
@@ -159,6 +167,7 @@ export function useMapHover({
           { hover: false },
         );
         hoveredFeatureId = undefined;
+        setHoverArea(null);
       }
 
       if (map.getCanvas().style.cursor === "pointer") {
@@ -187,5 +196,24 @@ export function useMapHover({
       map.off("mousemove", onMouseMove);
       map.off("mouseleave", onMouseLeave);
     };
-  }, [mapRef, sourceId, layerId, markerLayers, setHoverMarker, draw, ready]);
+  }, [
+    mapRef,
+    sourceId,
+    layerId,
+    markerLayers,
+    setHoverMarker,
+    draw,
+    ready,
+    setHoverArea,
+    featureNameProperty,
+    areaSetCode,
+  ]);
+}
+
+export function useHoverArea() {
+  return useAtom(hoverAreaAtom);
+}
+
+export function useHoverMarker() {
+  return useAtom(hoverMarkerAtom);
 }

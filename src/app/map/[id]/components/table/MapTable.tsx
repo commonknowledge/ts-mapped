@@ -1,12 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
@@ -28,7 +29,7 @@ export default function MapTable() {
   const { mapRef } = useContext(MapContext);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { focusedRecord, setFocusedRecord } = useContext(InspectorContext);
+  const { focusedRecord, setFocusedRecord } = useInspector();
   const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
   const [lookingUpPage, setLookingUpPage] = useState(false);
 
@@ -37,7 +38,7 @@ export default function MapTable() {
     handleDataSourceSelect,
     tablePage,
     setTablePage,
-  } = useContext(TableContext);
+  } = useTable();
 
   const dataSourceView = view?.dataSourceViews.find(
     (dsv) => dsv.dataSourceId === selectedDataSourceId,

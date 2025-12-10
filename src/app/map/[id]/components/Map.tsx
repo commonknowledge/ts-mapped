@@ -2,15 +2,14 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import * as turf from "@turf/turf";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import MapGL, { Popup } from "react-map-gl/mapbox";
+import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import { MapBoundsContext } from "@/app/map/[id]/context/MapBoundsContext";
 import {
   MapContext,
   getDataSourceIds,
   getMapStyle,
 } from "@/app/map/[id]/context/MapContext";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMapBounds } from "@/app/map/[id]/hooks/useMapBounds";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
@@ -20,12 +19,14 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
 import { getClickedPolygonFeature, useMapClick } from "../hooks/useMapClick";
 import { useMapHover } from "../hooks/useMapHover";
-import { useTurfMutations } from "../hooks/useTurfs";
+import { useTurfMutations, useTurfState } from "../hooks/useTurfs";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import AreaPopup from "./AreaPopup";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
 import MapWrapper from "./MapWrapper";
+import MarkerPopup from "./MarkerPopup";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
@@ -41,20 +42,16 @@ export default function Map({
 }) {
   const isMobile = useIsMobile();
   const { mapRef, setZoom, pinDropMode, showControls } = useContext(MapContext);
-  const { setBoundingBox } = useContext(MapBoundsContext);
+  const { setBoundingBox } = useMapBounds();
   const [ready, setReady] = useState(false);
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { searchMarker, visibleTurfs } = useContext(MarkerAndTurfContext);
+  const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
-  const [hoverMarker, setHoverMarker] = useState<{
-    coordinates: [number, number];
-    properties: Record<string, unknown>;
-  } | null>(null);
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
@@ -74,7 +71,7 @@ export default function Map({
   );
 
   useMapClick({ markerLayers, draw, currentMode, ready });
-  useMapHover({ markerLayers, draw, setHoverMarker, ready });
+  useMapHover({ markerLayers, draw, ready });
 
   // draw existing turfs
   useEffect(() => {
@@ -474,18 +471,9 @@ export default function Map({
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />
-            {searchMarker && <SearchResultMarker />}
-            {hoverMarker && Boolean(hoverMarker?.properties?.name) && (
-              <Popup
-                longitude={hoverMarker.coordinates[0]}
-                latitude={hoverMarker.coordinates[1]}
-                closeButton={false}
-              >
-                <p className="font-sans font-semibold text-sm">
-                  {String(hoverMarker.properties.name)}
-                </p>
-              </Popup>
-            )}
+            <SearchResultMarker />
+            <MarkerPopup />
+            <AreaPopup />
           </>
         )}
       </MapGL>

@@ -14,10 +14,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useContext, useMemo, useState } from "react";
+import { use, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
-import { TableContext } from "@/app/map/[id]/context/TableContext";
 import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import {
   useFolderMutations,
@@ -28,6 +27,7 @@ import {
   usePlacedMarkerMutations,
   usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { useTable } from "@/app/map/[id]/hooks/useTable";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -59,8 +59,7 @@ export default function MarkersList() {
   const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { updatePlacedMarker } = usePlacedMarkerMutations();
-  const { selectedDataSourceId, handleDataSourceSelect } =
-    useContext(TableContext);
+  const { selectedDataSourceId, handleDataSourceSelect } = useTable();
   const markerDataSources = useMarkerDataSources();
 
   const [activeId, setActiveId] = useState<string | null>(null);

@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { LayerType } from "@/types";
 import MarkerButton from "./MarkerButton";
@@ -17,7 +16,7 @@ export const MembersList = ({
   dataSource: DataSource | null;
   areaType: "area" | "boundary";
 }) => {
-  const { setSelectedRecords } = useContext(InspectorContext);
+  const { setSelectedRecords } = useInspector();
 
   const total = markers.length;
 
@@ -71,8 +70,7 @@ export const MarkersList = ({
   markers: MarkerFeature[];
   dataSource: DataSource | null;
 }) => {
-  const { setSelectedRecords } = useContext(InspectorContext);
-
+  const { setSelectedRecords } = useInspector();
   const total = markers.length;
 
   const onRecordClick = (marker: MarkerFeature) => {
@@ -126,8 +124,7 @@ export const PlacedMarkersList = ({
   folder: Folder | null;
   placedMarkers: PlacedMarker[];
 }) => {
-  const { setSelectedRecords } = useContext(InspectorContext);
-
+  const { setSelectedRecords } = useInspector();
   const total = placedMarkers.length;
   const name = folder?.name || "No folder";
 

@@ -1,39 +1,38 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useAtom } from "jotai";
+import { useCallback, useEffect } from "react";
 import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
+import {
+  focusedRecordAtom,
+  inspectorContentAtom,
+  selectedBoundaryAtom,
+  selectedRecordsAtom,
+  selectedTurfAtom,
+} from "../atoms/inspectorAtoms";
+import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 
-import type {
-  InspectorContent,
-  SelectedBoundary,
-  SelectedRecord,
-  SelectedTurf,
-} from "@/app/map/[id]/context/InspectorContext";
-import type { ReactNode } from "react";
-
-const InspectorProvider = ({ children }: { children: ReactNode }) => {
+export function useInspector() {
   const { getDataSourceById } = useDataSources();
   const { mapConfig } = useMapConfig();
-  const [selectedRecords, _setSelectedRecords] = useState<SelectedRecord[]>([]);
-  const [focusedRecord, _setFocusedRecord] = useState<SelectedRecord | null>(
-    null,
-  );
-  const [selectedTurf, setSelectedTurf] = useState<SelectedTurf | null>(null);
-  const [selectedBoundary, setSelectedBoundary] =
-    useState<SelectedBoundary | null>(null);
 
-  const [inspectorContent, setInspectorContent] =
-    useState<InspectorContent | null>(null);
+  const [selectedRecords, _setSelectedRecords] = useAtom(selectedRecordsAtom);
+  const [focusedRecord, _setFocusedRecord] = useAtom(focusedRecordAtom);
+  const [selectedTurf, setSelectedTurf] = useAtom(selectedTurfAtom);
+  const [selectedBoundary, setSelectedBoundary] = useAtom(selectedBoundaryAtom);
+  const [inspectorContent, setInspectorContent] = useAtom(inspectorContentAtom);
 
   // Custom setter to keep selectedRecords and focusedRecord in sync
-  const setSelectedRecords = useCallback((records: SelectedRecord[]) => {
-    _setSelectedRecords(records);
-    _setFocusedRecord(records.length ? records[0] : null);
-  }, []);
+  const setSelectedRecords = useCallback(
+    (records: SelectedRecord[]) => {
+      _setSelectedRecords(records);
+      _setFocusedRecord(records.length ? records[0] : null);
+    },
+    [_setSelectedRecords, _setFocusedRecord],
+  );
 
   // Custom setter to keep selectedRecords and focusedRecord in sync
   const setFocusedRecord = useCallback(
@@ -46,7 +45,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
         _setSelectedRecords([record]);
       }
     },
-    [selectedRecords],
+    [selectedRecords, _setSelectedRecords, _setFocusedRecord],
   );
 
   useEffect(() => {
@@ -96,6 +95,7 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     selectedBoundary,
     mapConfig.membersDataSourceId,
     focusedRecord,
+    setInspectorContent,
   ]);
 
   const resetInspector = useCallback(() => {
@@ -103,27 +103,24 @@ const InspectorProvider = ({ children }: { children: ReactNode }) => {
     setSelectedTurf(null);
     setSelectedBoundary(null);
     setInspectorContent(null);
-  }, [setSelectedRecords]);
+  }, [
+    setSelectedRecords,
+    setSelectedTurf,
+    setSelectedBoundary,
+    setInspectorContent,
+  ]);
 
-  return (
-    <InspectorContext
-      value={{
-        inspectorContent,
-        setInspectorContent,
-        selectedRecords,
-        setSelectedRecords,
-        focusedRecord,
-        setFocusedRecord,
-        selectedTurf,
-        setSelectedTurf,
-        selectedBoundary,
-        setSelectedBoundary,
-        resetInspector,
-      }}
-    >
-      {children}
-    </InspectorContext>
-  );
-};
-
-export default InspectorProvider;
+  return {
+    inspectorContent,
+    setInspectorContent,
+    selectedRecords,
+    setSelectedRecords,
+    focusedRecord,
+    setFocusedRecord,
+    selectedTurf,
+    setSelectedTurf,
+    selectedBoundary,
+    setSelectedBoundary,
+    resetInspector,
+  };
+}

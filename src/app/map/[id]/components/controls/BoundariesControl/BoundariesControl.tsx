@@ -1,6 +1,6 @@
 import { SettingsIcon } from "lucide-react";
-import { useContext, useState } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
+import { useState } from "react";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
 import LayerControlWrapper from "../LayerControlWrapper";
@@ -11,8 +11,7 @@ import { useBoundariesControl } from "./useBoundariesControl";
 export default function BoundariesControl() {
   const [expanded, setExpanded] = useState(true);
   const { hasDataSource } = useBoundariesControl();
-  const { boundariesPanelOpen, setBoundariesPanelOpen } =
-    useContext(ChoroplethContext);
+  const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
 
   return (
     <LayerControlWrapper>

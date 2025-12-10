@@ -1,9 +1,10 @@
 import { point as turfPoint } from "@turf/helpers";
 import { booleanPointInPolygon } from "@turf/turf";
 import { useContext, useEffect, useRef } from "react";
-import { ChoroplethContext } from "@/app/map/[id]/context/ChoroplethContext";
-import { InspectorContext } from "@/app/map/[id]/context/InspectorContext";
+
 import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
+import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
   Feature,
@@ -27,14 +28,14 @@ export function useMapClick({
   ready: boolean;
 }) {
   const { mapRef, pinDropMode } = useContext(MapContext);
-  const { choroplethLayerConfig } = useContext(ChoroplethContext);
+  const { choroplethLayerConfig } = useChoropleth();
   const {
     resetInspector,
     setSelectedBoundary,
     selectedBoundary,
     setSelectedRecords,
     setSelectedTurf,
-  } = useContext(InspectorContext);
+  } = useInspector();
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },

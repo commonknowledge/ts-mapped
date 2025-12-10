@@ -1,12 +1,11 @@
-import { useContext } from "react";
 import { BIVARIATE_COLORS } from "../colors";
-import { ChoroplethContext } from "../context/ChoroplethContext";
+import { useChoropleth } from "../hooks/useChoropleth";
 import { useMapViews } from "../hooks/useMapViews";
 
 export default function BivariateLegend() {
   const { viewConfig } = useMapViews();
   const { selectedBivariateBucket, setSelectedBivariateBucket } =
-    useContext(ChoroplethContext);
+    useChoropleth();
 
   return (
     <div className="grid grid-cols-[auto_1fr] gap-2">

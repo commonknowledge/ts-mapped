@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { Switch } from "@/shadcn/ui/switch";
+import { cn } from "@/shadcn/utils";
+import { formatNumber } from "@/utils/text";
 import { CHOROPLETH_COLOR_SCHEMES, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
@@ -24,12 +26,11 @@ export default function Legend() {
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
 
-  const colorScheme = useColorScheme(
+  const colorScheme = useColorScheme({
     areaStats,
-    viewConfig.colorScheme || ColorScheme.RedBlue,
-    viewConfig.calculationType === CalculationType.Count,
-    Boolean(viewConfig.reverseColorScheme),
-  );
+    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
+    isReversed: Boolean(viewConfig.reverseColorScheme),
+  });
   if (!colorScheme) {
     return null;
   }
@@ -120,14 +121,23 @@ export default function Legend() {
         <Database className="w-4 h-4 text-muted-foreground" />
         Locality Data Legend
       </p>
-      {viewConfig.areaDataColumn && viewConfig.areaDataSecondaryColumn ? (
+      {areaStats?.calculationType !== CalculationType.Count &&
+      viewConfig.areaDataColumn &&
+      viewConfig.areaDataSecondaryColumn ? (
         <div className="p-2 pt-0">
           <BivariateLegend />
         </div>
       ) : (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="flex flex-col cursor-pointer">
+            <div
+              className={cn(
+                "flex flex-col",
+                areaStats?.primary?.columnType === ColumnType.Number
+                  ? "cursor-pointer"
+                  : "",
+              )}
+            >
               <p className="flex items-center font-medium px-2 ">
                 {dataSource?.name}
               </p>
@@ -141,84 +151,49 @@ export default function Legend() {
               <div className="flex px-2 ">{makeBars()}</div>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Choose colour scheme</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
-              <DropdownMenuItem
-                key={index}
-                onClick={() => updateViewConfig({ colorScheme: option.value })}
-                className="flex items-center gap-2"
-              >
-                <div className={`w-4 h-4 rounded ${option.color}`} />
-                <span className="truncate">{option.label}</span>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <div className="flex items-center gap-2 px-2 py-1.5">
-              <Switch
-                id="reverse-color-scheme-switch"
-                checked={Boolean(viewConfig?.reverseColorScheme)}
-                onClick={() =>
-                  updateViewConfig({
-                    reverseColorScheme: !viewConfig?.reverseColorScheme,
-                  })
-                }
-                onCheckedChange={() =>
-                  updateViewConfig({
-                    reverseColorScheme: !viewConfig?.reverseColorScheme,
-                  })
-                }
-              />
-              <label
-                htmlFor="reverse-color-scheme-switch"
-                className="text-sm cursor-pointer"
-              >
-                Reverse colors
-              </label>
-            </div>
-          </DropdownMenuContent>
+          {areaStats?.primary?.columnType === ColumnType.Number && (
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Choose colour scheme</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  onClick={() =>
+                    updateViewConfig({ colorScheme: option.value })
+                  }
+                  className="flex items-center gap-2"
+                >
+                  <div className={`w-4 h-4 rounded ${option.color}`} />
+                  <span className="truncate">{option.label}</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <Switch
+                  id="reverse-color-scheme-switch"
+                  checked={Boolean(viewConfig?.reverseColorScheme)}
+                  onClick={() =>
+                    updateViewConfig({
+                      reverseColorScheme: !viewConfig?.reverseColorScheme,
+                    })
+                  }
+                  onCheckedChange={() =>
+                    updateViewConfig({
+                      reverseColorScheme: !viewConfig?.reverseColorScheme,
+                    })
+                  }
+                />
+                <label
+                  htmlFor="reverse-color-scheme-switch"
+                  className="text-sm cursor-pointer"
+                >
+                  Reverse colours
+                </label>
+              </div>
+            </DropdownMenuContent>
+          )}
         </DropdownMenu>
       )}
     </div>
   );
 }
-
-/**
- * Display a shortened version of the number according
- * to its size, to 3 significant figures.
- *
- * If v > 1 trillion, print e.g. 1.23t
- * If v > 1 billion, print e.g. 1.23b
- * If v > 1 million, print e.g. 1.23m
- * If v > 1 thousand, print e.g. 1.23k
- * Otherwise print to 3 s.f.
- */
-const formatNumber = (v: number): string => {
-  if (!isFinite(v)) return String(v);
-
-  const sign = v < 0 ? "-" : "";
-  const av = Math.abs(v);
-
-  const to3sf = (n: number) => {
-    // Use toPrecision to get 3 significant figures then clean up
-    const s = n.toPrecision(3);
-    // Convert exponential form to a plain number string when possible
-    if (s.includes("e")) {
-      return Number(s).toString();
-    }
-    // Strip trailing zeros from decimals (e.g. 12.00 -> 12)
-    if (s.includes(".")) {
-      return s.replace(/0+$/, "").replace(/\.$/, "");
-    }
-
-    return s;
-  };
-
-  if (av >= 1e12) return sign + to3sf(av / 1e12) + "t";
-  if (av >= 1e9) return sign + to3sf(av / 1e9) + "b";
-  if (av >= 1e6) return sign + to3sf(av / 1e6) + "m";
-  if (av >= 1e3) return sign + to3sf(av / 1e3) + "k";
-
-  return sign + to3sf(av);
-};

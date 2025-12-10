@@ -11,13 +11,14 @@ import {
   Folder as FolderClosed,
   FolderOpen,
 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
-import { MarkerAndTurfContext } from "@/app/map/[id]/context/MarkerAndTurfContext";
+import { useMemo, useState } from "react";
+
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
+import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
@@ -65,8 +66,8 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const { getMarkerVisibility, setMarkerVisibilityState } =
-    useContext(MarkerAndTurfContext);
+  const { getPlacedMarkerVisibility, setPlacedMarkerVisibility } =
+    usePlacedMarkerState();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
 
@@ -110,8 +111,9 @@ export default function SortableFolderItem({
   };
 
   const visibleMarkers = useMemo(
-    () => sortedMarkers.filter((marker) => getMarkerVisibility(marker.id)),
-    [sortedMarkers, getMarkerVisibility],
+    () =>
+      sortedMarkers.filter((marker) => getPlacedMarkerVisibility(marker.id)),
+    [sortedMarkers, getPlacedMarkerVisibility],
   );
   const isFolderVisible = sortedMarkers?.length
     ? Boolean(visibleMarkers?.length)
@@ -119,7 +121,7 @@ export default function SortableFolderItem({
 
   const onVisibilityToggle = () => {
     sortedMarkers.forEach((marker) =>
-      setMarkerVisibilityState(marker.id, !isFolderVisible),
+      setPlacedMarkerVisibility(marker.id, !isFolderVisible),
     );
   };
 

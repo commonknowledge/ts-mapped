@@ -5,10 +5,17 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { use, useCallback } from "react";
+import { useAtom } from "jotai";
+import { use, useCallback, useContext } from "react";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
+import {
+  placedMarkerVisibilityAtom,
+  searchMarkerAtom,
+  selectedPlacedMarkerIdAtom,
+} from "../atoms/markerAtoms";
 import { getNewLastPosition } from "../utils";
 import { useMapQuery } from "./useMapQuery";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -180,3 +187,77 @@ export function usePlacedMarkerMutations() {
     isMutating: isUpsertMutating > 0,
   };
 }
+
+export function usePlacedMarkerState() {
+  const [selectedPlacedMarkerId, setSelectedPlacedMarkerId] = useAtom(
+    selectedPlacedMarkerIdAtom,
+  );
+  const [searchMarker, setSearchMarker] = useAtom(searchMarkerAtom);
+  const [placedMarkerVisibility, _setPlacedMarkerVisibility] = useAtom(
+    placedMarkerVisibilityAtom,
+  );
+
+  const setPlacedMarkerVisibility = useCallback(
+    (markerId: string, isVisible: boolean) => {
+      _setPlacedMarkerVisibility((prev) => ({
+        ...prev,
+        [markerId]: isVisible,
+      }));
+    },
+    [_setPlacedMarkerVisibility],
+  );
+
+  const getPlacedMarkerVisibility = useCallback(
+    (markerId: string) => {
+      return placedMarkerVisibility[markerId] ?? true; // Default to visible
+    },
+    [placedMarkerVisibility],
+  );
+
+  return {
+    selectedPlacedMarkerId,
+    setSelectedPlacedMarkerId,
+    searchMarker,
+    setSearchMarker,
+    setPlacedMarkerVisibility,
+    getPlacedMarkerVisibility,
+  };
+}
+
+export const useHandleDropPin = () => {
+  const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
+  const { insertPlacedMarker } = usePlacedMarkerMutations();
+
+  const handleDropPin = useCallback(() => {
+    const map = mapRef?.current;
+    if (!map || !mapId) return;
+    setPinDropMode(true);
+    map.getCanvas().style.cursor = "crosshair";
+
+    const clickHandler = (e: mapboxgl.MapMouseEvent) => {
+      insertPlacedMarker({
+        id: uuidv4(),
+        label: `Dropped Pin (${e.lngLat.lat.toFixed(4)}, ${e.lngLat.lng.toFixed(4)})`,
+        notes: "",
+        point: e.lngLat,
+        folderId: null,
+      });
+
+      // Reset cursor
+      map.getCanvas().style.cursor = "";
+      map.off("click", clickHandler);
+
+      setPinDropMode(false);
+
+      // Fly to the new marker
+      map.flyTo({
+        center: e.lngLat,
+        zoom: 14,
+      });
+    };
+
+    map.once("click", clickHandler);
+  }, [mapRef, mapId, setPinDropMode, insertPlacedMarker]);
+
+  return { handleDropPin };
+};

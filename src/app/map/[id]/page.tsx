@@ -3,12 +3,8 @@ import { getServerSession } from "@/auth";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
-import ChoroplethProvider from "./providers/ChoroplethProvider";
-import InspectorProvider from "./providers/InspectorProvider";
-import MapBoundsProvider from "./providers/MapBoundsProvider";
+import { JotaiProvider } from "./providers/JotaiProvider";
 import MapProvider from "./providers/MapProvider";
-import MarkerAndTurfProvider from "./providers/MarkerAndTurfProvider";
-import TableProvider from "./providers/TableProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,23 +27,15 @@ export default async function MapPage({
   const { viewId } = await searchParams;
 
   return (
-    <MapProvider mapId={id} viewId={viewId}>
-      <MapBoundsProvider>
-        <InspectorProvider>
-          <ChoroplethProvider>
-            <MarkerAndTurfProvider>
-              <TableProvider>
-                <DesktopOnly>
-                  <div className="with-feeback-widget">
-                    <PrivateMap />
-                    <SentryFeedbackWidget />
-                  </div>
-                </DesktopOnly>
-              </TableProvider>
-            </MarkerAndTurfProvider>
-          </ChoroplethProvider>
-        </InspectorProvider>
-      </MapBoundsProvider>
-    </MapProvider>
+    <JotaiProvider>
+      <MapProvider mapId={id} viewId={viewId}>
+        <DesktopOnly>
+          <div className="with-feeback-widget">
+            <PrivateMap />
+            <SentryFeedbackWidget />
+          </div>
+        </DesktopOnly>
+      </MapProvider>
+    </JotaiProvider>
   );
 }
