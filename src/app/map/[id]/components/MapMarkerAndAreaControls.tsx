@@ -1,11 +1,12 @@
 import { MapPin } from "lucide-react";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
-
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
+import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import VectorSquare from "@/components/icons/VectorSquare";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 
 export default function MapMarkerAndAreaControls() {
-  const { handleAddArea, handleDropPin } = useMarkerAndTurf();
+  const { handleDropPin } = useMarkers();
+  const { handleAddArea } = useTurfState();
 
   return (
     <div className="flex gap-1 p-1 rounded-xl shadow-sm bg-white ">

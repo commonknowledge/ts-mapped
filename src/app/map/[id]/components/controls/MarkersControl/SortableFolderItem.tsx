@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
@@ -66,7 +66,7 @@ export default function SortableFolderItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const { getMarkerVisibility, setMarkerVisibilityState } = useMarkerAndTurf();
+  const { getMarkerVisibility, setMarkerVisibilityState } = useMarkers();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
 

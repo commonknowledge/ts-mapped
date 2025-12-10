@@ -9,7 +9,7 @@ import {
   useFoldersQuery,
 } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -26,7 +26,7 @@ export default function MarkersControl() {
   const { data: folders = [] } = useFoldersQuery();
   const { isMutating: isPlacedMarkersMutating } = usePlacedMarkerMutations();
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
-  const { handleDropPin } = useMarkerAndTurf();
+  const { handleDropPin } = useMarkers();
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
 

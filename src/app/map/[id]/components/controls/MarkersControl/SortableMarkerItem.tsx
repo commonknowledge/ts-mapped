@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useMarkers } from "@/app/map/[id]/hooks/useMarkers";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { usePlacedMarkerMutations } from "../../../hooks/usePlacedMarkers";
@@ -34,7 +34,7 @@ export default function SortableMarkerItem({
     setSelectedPlacedMarkerId,
     getMarkerVisibility,
     setMarkerVisibilityState,
-  } = useMarkerAndTurf();
+  } = useMarkers();
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
   const { mapRef } = useContext(MapContext);
   const [isEditing, setEditing] = useState(false);

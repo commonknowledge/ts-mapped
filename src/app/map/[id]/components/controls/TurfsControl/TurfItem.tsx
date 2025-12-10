@@ -2,7 +2,7 @@ import * as turfLib from "@turf/turf";
 import { useContext, useState } from "react";
 import { MapContext } from "@/app/map/[id]/context/MapContext";
 
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
+import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { useTurfMutations } from "../../../hooks/useTurfs";
@@ -14,7 +14,7 @@ import type { Turf } from "@/server/models/Turf";
 
 export default function TurfItem({ turf }: { turf: Turf }) {
   const { mapRef, showControls } = useContext(MapContext);
-  const { getTurfVisibility, setTurfVisibilityState } = useMarkerAndTurf();
+  const { getTurfVisibility, setTurfVisibilityState } = useTurfState();
   const { updateTurf, deleteTurf } = useTurfMutations();
 
   const [isEditing, setEditing] = useState(false);

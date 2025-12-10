@@ -10,12 +10,11 @@ import {
   getMapStyle,
 } from "@/app/map/[id]/context/MapContext";
 import { useMapBounds } from "@/app/map/[id]/hooks/useMapBounds";
-
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useMarkerAndTurf } from "@/app/map/[id]/hooks/useMarkerAndTurf";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { useTurfState } from "@/app/map/[id]/hooks/useTurfState";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
@@ -49,7 +48,7 @@ export default function Map({
   const { viewConfig } = useMapViews();
   const { mapConfig } = useMapConfig();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { visibleTurfs } = useMarkerAndTurf();
+  const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
 
