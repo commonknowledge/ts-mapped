@@ -11,7 +11,7 @@ import {
 } from "d3-scale-chromatic";
 import { useMemo } from "react";
 import { ColumnType } from "@/server/models/DataSource";
-import { ColorScheme } from "@/server/models/MapView";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
 import type { CombinedAreaStats } from "./data";
 import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
@@ -93,44 +93,30 @@ const getInterpolator = (scheme: ColorScheme | undefined) => {
   }
 };
 
-const getValueRange = (values: number[], isCount: boolean) => {
-  let minValue = null;
-  let maxValue = null;
-
-  for (const v of values) {
-    if (minValue === null || v < minValue) {
-      minValue = v;
-    }
-    if (maxValue === null || v > maxValue) {
-      maxValue = v;
-    }
-  }
-
-  // Override minValue for counts for full range of values
-  if (isCount) {
-    minValue = 0;
-  }
-  return { minValue: minValue || 0, maxValue: maxValue || 0 };
-};
-
-export const useColorScheme = (
-  areaStats: CombinedAreaStats | null,
-  scheme: ColorScheme,
-  isCount: boolean,
-  isReversed = false,
-): CategoricColorScheme | NumericColorScheme | null => {
+export const useColorScheme = ({
+  areaStats,
+  scheme,
+  isReversed,
+}: {
+  areaStats: CombinedAreaStats | null;
+  scheme: ColorScheme;
+  isReversed: boolean;
+}): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
-    return getColorScheme(areaStats, scheme, isCount, isReversed);
-  }, [areaStats, isCount, scheme, isReversed]);
+    return getColorScheme({ areaStats, scheme, isReversed });
+  }, [areaStats, scheme, isReversed]);
 };
 
-const getColorScheme = (
-  areaStats: CombinedAreaStats | null,
-  scheme: ColorScheme,
-  isCount: boolean,
-  isReversed = false,
-): CategoricColorScheme | NumericColorScheme | null => {
+const getColorScheme = ({
+  areaStats,
+  scheme,
+  isReversed,
+}: {
+  areaStats: CombinedAreaStats | null;
+  scheme: ColorScheme;
+  isReversed: boolean;
+}): CategoricColorScheme | NumericColorScheme | null => {
   if (!areaStats || !areaStats.stats.length) {
     return null;
   }
@@ -138,7 +124,7 @@ const getColorScheme = (
   const values = areaStats.stats.map((stat) => stat.primary);
 
   // ColumnType.String and others
-  if (areaStats.columnType !== ColumnType.Number) {
+  if (areaStats.primary?.columnType !== ColumnType.Number) {
     const distinctValues = new Set(values.map(String));
     const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
@@ -152,12 +138,10 @@ const getColorScheme = (
   }
 
   // ColumnType.Number
-  const { minValue, maxValue } = getValueRange(
-    values.filter((v) => typeof v === "number"),
-    isCount,
-  );
 
   // Handle case where all values are the same (e.g., all counts are 1)
+  const minValue = areaStats.primary.minValue;
+  const maxValue = areaStats.primary.maxValue;
   if (minValue === maxValue) {
     const domain = isReversed ? [1, 0] : [0, 1];
     // For count records, create a simple color scheme
@@ -204,23 +188,22 @@ const getCategoricalColor = (
 export const useFillColor = ({
   areaStats,
   scheme,
-  isCount,
   isReversed,
   selectedBivariateBucket,
 }: {
   areaStats: CombinedAreaStats | null;
   scheme: ColorScheme;
-  isCount: boolean;
   isReversed: boolean;
   selectedBivariateBucket: string | null;
 }): DataDrivenPropertyValueSpecification<string> => {
   // useMemo to cache calculated fillColor
   return useMemo(() => {
-    if (areaStats?.secondaryStats) {
+    if (areaStats?.secondary) {
       return getBivariateFillColor(areaStats, selectedBivariateBucket);
     }
 
-    const colorScheme = getColorScheme(areaStats, scheme, isCount);
+    const isCount = areaStats?.calculationType === CalculationType.Count;
+    const colorScheme = getColorScheme({ areaStats, scheme, isReversed });
     if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
     }
@@ -278,39 +261,31 @@ export const useFillColor = ({
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [areaStats, isCount, isReversed, scheme, selectedBivariateBucket]);
+  }, [areaStats, isReversed, scheme, selectedBivariateBucket]);
 };
 
 const getBivariateFillColor = (
   areaStats: CombinedAreaStats,
   selectedBivariateBucket: string | null,
 ): DataDrivenPropertyValueSpecification<string> => {
-  const primaryValues = areaStats.stats
-    .map((s) => s.primary)
-    .filter((s) => typeof s === "number");
-  const secondaryValues = areaStats.stats
-    .map((s) => s.secondary)
-    .filter((s) => typeof s === "number");
-
-  const primaryRange = getValueRange(primaryValues, false);
-  const secondaryRange = getValueRange(secondaryValues, false);
-
   const gridSize = 3;
+
+  const primaryMin = areaStats.primary?.minValue || 0;
+  const primaryMax = areaStats.primary?.maxValue || 0;
+
+  const secondaryMin = areaStats.secondary?.minValue || 0;
+  const secondaryMax = areaStats.secondary?.maxValue || 0;
 
   // Calculate which grid cell each feature falls into
   const primaryThresholds = Array.from(
     { length: gridSize - 1 },
-    (_, i) =>
-      primaryRange.minValue +
-      ((i + 1) * (primaryRange.maxValue - primaryRange.minValue)) / gridSize,
+    (_, i) => primaryMin + ((i + 1) * (primaryMax - primaryMin)) / gridSize,
   );
 
   const secondaryThresholds = Array.from(
     { length: gridSize - 1 },
     (_, i) =>
-      secondaryRange.minValue +
-      ((i + 1) * (secondaryRange.maxValue - secondaryRange.minValue)) /
-        gridSize,
+      secondaryMin + ((i + 1) * (secondaryMax - secondaryMin)) / gridSize,
   );
 
   // Build nested case expressions to map both values to colors

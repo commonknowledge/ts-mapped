@@ -4,7 +4,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import { ColorScheme } from "@/server/models/MapView";
 
 export function useChoroplethAreaStats() {
   const { mapRef } = useContext(MapContext);
@@ -25,7 +25,6 @@ export function useChoroplethAreaStats() {
   const fillColor = useFillColor({
     areaStats,
     scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
-    isCount: viewConfig.calculationType === CalculationType.Count,
     isReversed: Boolean(viewConfig.reverseColorScheme),
     selectedBivariateBucket,
   });

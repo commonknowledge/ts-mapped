@@ -390,7 +390,7 @@ export default function VisualisationPanel({
         </p>
 
         <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 items-center">
-          {!viewConfig.areaDataSecondaryColumn && (
+          {!viewConfig.areaDataSecondaryColumn && columnOneIsNumber && (
             <>
               <Label
                 htmlFor="choropleth-color-scheme-select"
@@ -428,28 +428,6 @@ export default function VisualisationPanel({
               </Select>
 
               <Label
-                htmlFor="choropleth-opacity"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Opacity (%)
-              </Label>
-
-              <Input
-                id="choropleth-opacity"
-                type="number"
-                min="0"
-                max="100"
-                value={viewConfig.choroplethOpacityPct ?? 80}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  const choroplethOpacityPct = isNaN(v)
-                    ? 80
-                    : Math.max(0, Math.min(v, 100));
-                  updateViewConfig({ choroplethOpacityPct });
-                }}
-              />
-
-              <Label
                 htmlFor="choropleth-color-scheme-switch"
                 className="text-sm text-muted-foreground font-normal"
               >
@@ -465,6 +443,27 @@ export default function VisualisationPanel({
               />
             </>
           )}
+          <Label
+            htmlFor="choropleth-opacity"
+            className="text-sm text-muted-foreground font-normal"
+          >
+            Opacity (%)
+          </Label>
+
+          <Input
+            id="choropleth-opacity"
+            type="number"
+            min="0"
+            max="100"
+            value={viewConfig.choroplethOpacityPct ?? 80}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              const choroplethOpacityPct = isNaN(v)
+                ? 80
+                : Math.max(0, Math.min(v, 100));
+              updateViewConfig({ choroplethOpacityPct });
+            }}
+          />
         </div>
       </div>
 

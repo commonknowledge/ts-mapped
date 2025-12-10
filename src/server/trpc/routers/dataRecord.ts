@@ -1,8 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
+import { AreaSetCode } from "@/server/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
 import {
   countDataRecordsForDataSource,
+  findDataRecordByDataSourceAndAreaCode,
   findDataRecordById,
   findDataRecordsByDataSource,
   findPageForDataRecord,
@@ -39,6 +41,20 @@ export const dataRecordRouter = router({
         });
       }
       return record;
+    }),
+  byAreaCode: dataSourceReadProcedure
+    .input(
+      z.object({
+        areaSetCode: z.nativeEnum(AreaSetCode),
+        areaCode: z.string(),
+      }),
+    )
+    .query(({ input }) => {
+      return findDataRecordByDataSourceAndAreaCode(
+        input.dataSourceId,
+        input.areaSetCode,
+        input.areaCode,
+      );
     }),
   list: dataSourceReadProcedure
     .input(
