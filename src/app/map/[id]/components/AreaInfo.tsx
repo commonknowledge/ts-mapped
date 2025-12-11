@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
+import { useEffect, useState } from "react";
 
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
@@ -15,6 +16,7 @@ import {
 } from "@/shadcn/ui/table";
 import { formatNumber } from "@/utils/text";
 
+import { compareAreasAtom } from "../atoms/mapStateAtoms";
 import { selectedAreasAtom } from "../atoms/selectedAreasAtom";
 import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
@@ -69,11 +71,28 @@ const toRGBA = (expressionResult: unknown) => {
 
 export default function AreaInfo() {
   const [hoverArea] = useHoverArea();
+  const [debouncedHoverArea, setDebouncedHoverArea] =
+    useState<typeof hoverArea>(null);
+  const [hoveredRowArea, setHoveredRowArea] = useState<{
+    code: string;
+    areaSetCode: string;
+    name: string;
+    coordinates: [number, number];
+  } | null>(null);
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
+  const compareAreasMode = useAtom(compareAreasAtom)[0];
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
+
+  // Debounce hoverArea changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedHoverArea(hoverArea);
+    }, 5);
+    return () => clearTimeout(timer);
+  }, [hoverArea]);
 
   const fillColor = useFillColor({
     areaStats,
@@ -88,6 +107,7 @@ export default function AreaInfo() {
 
   // Combine selected areas and hover area, avoiding duplicates
   const areasToDisplay = [];
+  const multipleAreas = selectedAreas.length > 1;
 
   // Add all selected areas
   for (const selectedArea of selectedAreas) {
@@ -101,20 +121,58 @@ export default function AreaInfo() {
   }
 
   // Add hover area only if it's not already in selected areas
-  if (hoverArea) {
+  if (debouncedHoverArea) {
     const isHoverAreaSelected = selectedAreas.some(
       (a) =>
-        a.code === hoverArea.code && a.areaSetCode === hoverArea.areaSetCode,
+        a.code === debouncedHoverArea.code &&
+        a.areaSetCode === debouncedHoverArea.areaSetCode,
     );
     if (!isHoverAreaSelected) {
       areasToDisplay.push({
-        code: hoverArea.code,
-        name: hoverArea.name,
-        areaSetCode: hoverArea.areaSetCode,
-        coordinates: hoverArea.coordinates,
+        code: debouncedHoverArea.code,
+        name: debouncedHoverArea.name,
+        areaSetCode: debouncedHoverArea.areaSetCode,
+        coordinates: debouncedHoverArea.coordinates,
         isSelected: false,
       });
     }
+  }
+
+  // Add hovered row area even if it's no longer in hoverArea
+  if (hoveredRowArea) {
+    const isAreaAlreadyDisplayed = areasToDisplay.some(
+      (a) =>
+        a.code === hoveredRowArea.code &&
+        a.areaSetCode === hoveredRowArea.areaSetCode,
+    );
+    if (!isAreaAlreadyDisplayed) {
+      areasToDisplay.push({
+        code: hoveredRowArea.code,
+        name: hoveredRowArea.name,
+        areaSetCode: hoveredRowArea.areaSetCode,
+        coordinates: hoveredRowArea.coordinates,
+        isSelected: false,
+      });
+    }
+  }
+
+  // Show empty state if compare mode is on but no areas to display
+  if (compareAreasMode && areasToDisplay.length === 0) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15, type: "tween" }}
+          className="bg-white rounded shadow-lg p-4 relative pointer-events-auto"
+        >
+          <p className="text-sm text-muted-foreground">
+            Click on areas to compare their data
+          </p>
+        </motion.div>
+      </AnimatePresence>
+    );
   }
 
   const statLabel =
@@ -188,7 +246,7 @@ export default function AreaInfo() {
             className="border-none"
             style={{ tableLayout: "fixed", width: "100%" }}
           >
-            {areasToDisplay.length > 1 && (
+            {multipleAreas && (
               <TableHeader className="">
                 <TableRow className="border-none hover:bg-transparent uppercase font-mono">
                   <TableHead className="py-2 px-3 text-left w-3/12 h-8" />
@@ -223,17 +281,27 @@ export default function AreaInfo() {
                     )
                   : "-";
 
-                const isSingleRow = areasToDisplay.length === 1;
-
                 return (
                   <TableRow
                     key={`${area.areaSetCode}-${area.code}`}
-                    className="border-none font-medium hover:bg-neutral-50 cursor-pointer"
+                    className={`border-none font-medium ${
+                      area.isSelected
+                        ? "hover:bg-neutral-50 cursor-pointer"
+                        : "cursor-default"
+                    }`}
                     style={
                       area.isSelected
                         ? { borderLeft: "4px solid var(--brandGreen)" }
                         : undefined
                     }
+                    onMouseEnter={() => {
+                      if (!area.isSelected) {
+                        setHoveredRowArea(area);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredRowArea(null);
+                    }}
                     onClick={() => {
                       if (area.isSelected) {
                         // Remove from selected areas
@@ -270,7 +338,7 @@ export default function AreaInfo() {
                       </div>
                     </TableCell>
                     <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
-                      {isSingleRow ? (
+                      {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
                             {statLabel}:
@@ -282,7 +350,7 @@ export default function AreaInfo() {
                       )}
                     </TableCell>
                     <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
-                      {isSingleRow ? (
+                      {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
                             {viewConfig.areaDataSecondaryColumn || "Secondary"}:
