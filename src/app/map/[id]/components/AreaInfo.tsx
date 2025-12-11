@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
+import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 
 import { ColumnType } from "@/server/models/DataSource";
-import { CalculationType } from "@/server/models/MapView";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import {
   Table,
   TableBody,
@@ -15,6 +16,7 @@ import {
 import { formatNumber } from "@/utils/text";
 
 import { selectedAreasAtom } from "../atoms/selectedAreasAtom";
+import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
 import { useHoverArea } from "../hooks/useMapHover";
@@ -52,6 +54,19 @@ const getDisplayValue = (
   return formatNumber(value);
 };
 
+const toRGBA = (expressionResult: unknown) => {
+  if (
+    !expressionResult ||
+    !Array.isArray(expressionResult) ||
+    expressionResult.length < 3
+  ) {
+    return `rgba(0, 0, 0, 0)`;
+  }
+  const [r, g, b, ...rest] = expressionResult;
+  const a = rest.length ? rest[0] : 1;
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
+
 export default function AreaInfo() {
   const [hoverArea] = useHoverArea();
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
@@ -59,6 +74,13 @@ export default function AreaInfo() {
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
+
+    const fillColor = useFillColor({
+      areaStats,
+      scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
+      isReversed: Boolean(viewConfig.reverseColorScheme),
+      selectedBivariateBucket: null,
+    });
 
   if (!areaStats) {
     return null;
@@ -100,6 +122,46 @@ export default function AreaInfo() {
       ? `${choroplethDataSource?.name || "Unknown"} count`
       : viewConfig.areaDataColumn;
 
+  const { result, value: fillColorExpression } = expression.createExpression([
+    "to-rgba",
+    fillColor,
+  ]);
+
+  if (result !== "success") {
+    console.error(
+      "Attempted to parse invalid MapboxGL expression",
+      JSON.stringify(fillColor),
+      fillColorExpression,
+    );
+  }
+
+  // Helper to get color for an area based on fillColor expression
+  const getAreaColor = (area: {
+    code: string;
+    areaSetCode: string;
+  }): string => {
+    const areaStat =
+      areaStats.areaSetCode === area.areaSetCode
+        ? areaStats.stats.find((s) => s.areaCode === area.code)
+        : null;
+
+    if (!areaStat || result !== "success") {
+      return "rgba(200, 200, 200, 1)";
+    }
+
+    // For bivariate color schemes, evaluate with both primary and secondary values
+    const colorResult = fillColorExpression.evaluate(
+      { zoom: 0 },
+      { type: "Polygon", properties: {} },
+      {
+        value: areaStat.primary || 0,
+        secondaryValue: areaStat.secondary || 0,
+      },
+    );
+
+    return toRGBA(colorResult);
+  };
+
   return (
     <AnimatePresence mode="wait">
       {areasToDisplay.length > 0 && (
@@ -129,7 +191,7 @@ export default function AreaInfo() {
         {areasToDisplay.length > 1 && (
           <TableHeader className="">
             <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-              <TableHead className="py-2 px-3  text-left w-3/12 h-8" />
+              <TableHead className="py-2 px-3 text-left w-3/12 h-8" />
               <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
                 {statLabel}
               </TableHead>
@@ -199,11 +261,17 @@ export default function AreaInfo() {
                 }}
               >
                 <TableCell className="py-2 px-3 w-3/12 truncate h-8">
-                  {area.name}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded flex-shrink-0"
+                      style={{ backgroundColor: getAreaColor(area) }}
+                    />
+                    <span className="truncate">{area.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
                   {isSingleRow ? (
-                    <div className="flex flex-row justify-center items-center">
+                    <div className="flex flex-row justify-center items-center text-right">
                       <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
                         {statLabel}:
                       </span>
@@ -215,7 +283,7 @@ export default function AreaInfo() {
                 </TableCell>
                 <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
                   {isSingleRow ? (
-                    <div className="flex flex-row justify-center items-center">
+                    <div className="flex flex-row justify-center items-center text-right">
                       <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
                         {viewConfig.areaDataSecondaryColumn || "Secondary"}:
                       </span>
