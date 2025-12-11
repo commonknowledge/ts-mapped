@@ -1,3 +1,5 @@
+import { useAtom } from "jotai";
+
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType } from "@/server/models/MapView";
 import {
@@ -9,6 +11,8 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 import { formatNumber } from "@/utils/text";
+
+import { selectedAreasAtom } from "../atoms/selectedAreasAtom";
 import { useAreaStats } from "../data";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
 import { useHoverArea } from "../hooks/useMapHover";
@@ -48,21 +52,46 @@ const getDisplayValue = (
 
 export default function AreaInfo() {
   const [hoverArea] = useHoverArea();
+  const [selectedAreas] = useAtom(selectedAreasAtom);
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
 
-  if (!hoverArea || !areaStats) {
+  if (!areaStats) {
     return null;
   }
 
-  const areaStat =
-    areaStats.areaSetCode === hoverArea.areaSetCode
-      ? areaStats.stats.find((s) => s.areaCode === hoverArea.code)
-      : null;
+  // Combine selected areas and hover area, avoiding duplicates
+  const areasToDisplay = [];
 
-  if (!areaStat) {
+  // Add all selected areas
+  for (const selectedArea of selectedAreas) {
+    areasToDisplay.push({
+      code: selectedArea.code,
+      name: selectedArea.name,
+      areaSetCode: selectedArea.areaSetCode,
+      isSelected: true,
+    });
+  }
+
+  // Add hover area only if it's not already in selected areas
+  if (hoverArea) {
+    const isHoverAreaSelected = selectedAreas.some(
+      (a) =>
+        a.code === hoverArea.code && a.areaSetCode === hoverArea.areaSetCode,
+    );
+    if (!isHoverAreaSelected) {
+      areasToDisplay.push({
+        code: hoverArea.code,
+        name: hoverArea.name,
+        areaSetCode: hoverArea.areaSetCode,
+        isSelected: false,
+      });
+    }
+  }
+
+  if (areasToDisplay.length === 0) {
     return null;
   }
 
@@ -71,46 +100,67 @@ export default function AreaInfo() {
       ? `${choroplethDataSource?.name || "Unknown"} count`
       : viewConfig.areaDataColumn;
 
-  const primaryValue = getDisplayValue(
-    areaStats.calculationType,
-    areaStats.primary,
-    areaStat.primary,
-  );
-  const secondaryValue = getDisplayValue(
-    areaStats.calculationType,
-    areaStats.secondary,
-    areaStat.secondary,
-  );
-
   return (
-    <div className="bg-white rounded-lg shadow-sm p-0 border border-border overflow-hidden">
+    <div className="bg-white rounded shadow-lg p-0  overflow-hidden">
       <Table
         className="border-none"
         style={{ tableLayout: "fixed", width: "100%" }}
       >
         <TableHeader className="">
           <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-            <TableHead className="py-2 px-3  text-left w-3/12 h-10" />
-            <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-10">
+            <TableHead className="py-2 px-3  text-left w-3/12 h-8" />
+            <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
               {statLabel}
             </TableHead>
-            <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-10">
+            <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
               {viewConfig.areaDataSecondaryColumn || "Secondary"}
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow className="border-none hover:bg-neutral-50 font-medium">
-            <TableCell className="py-2 px-3 w-3/12 truncate h-10">
-              {hoverArea.name}
-            </TableCell>
-            <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-10">
-              {primaryValue}
-            </TableCell>
-            <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-10">
-              {secondaryValue}
-            </TableCell>
-          </TableRow>
+          {areasToDisplay.map((area) => {
+            const areaStat =
+              areaStats.areaSetCode === area.areaSetCode
+                ? areaStats.stats.find((s) => s.areaCode === area.code)
+                : null;
+
+            const primaryValue = areaStat
+              ? getDisplayValue(
+                  areaStats.calculationType,
+                  areaStats.primary,
+                  areaStat.primary,
+                )
+              : "-";
+            const secondaryValue = areaStat
+              ? getDisplayValue(
+                  areaStats.calculationType,
+                  areaStats.secondary,
+                  areaStat.secondary,
+                )
+              : "-";
+
+            return (
+              <TableRow
+                key={`${area.areaSetCode}-${area.code}`}
+                className="border-none font-medium hover:bg-neutral-50"
+                style={
+                  area.isSelected
+                    ? { borderLeft: "4px solid var(--brandGreen)" }
+                    : undefined
+                }
+              >
+                <TableCell className="py-2 px-3 w-3/12 truncate h-8">
+                  {area.name}
+                </TableCell>
+                <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
+                  {primaryValue}
+                </TableCell>
+                <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
+                  {secondaryValue}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

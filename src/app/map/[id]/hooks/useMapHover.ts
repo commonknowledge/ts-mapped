@@ -36,6 +36,7 @@ export function useMapHover({
     const lineLayerId = `${sourceId}-line`;
     const prevPointer = { cursor: "" };
     let hoveredFeatureId: string | number | undefined;
+    let isCtrlPressed = false;
 
     const clearAreaHover = () => {
       if (hoveredFeatureId !== undefined) {
@@ -45,6 +46,26 @@ export function useMapHover({
         );
         setHoverArea(null);
         hoveredFeatureId = undefined;
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "c" || e.key === "C") {
+        isCtrlPressed = true;
+        const canvas = map.getCanvas();
+        if (canvas.style.cursor === "pointer") {
+          canvas.style.cursor = "copy";
+        }
+      }
+    };
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "c" || e.key === "C") {
+        isCtrlPressed = false;
+        const canvas = map.getCanvas();
+        if (canvas.style.cursor === "copy") {
+          canvas.style.cursor = "pointer";
+        }
       }
     };
 
@@ -154,10 +175,13 @@ export function useMapHover({
           });
         }
 
-        if (map.getCanvas().style.cursor !== "pointer") {
+        if (
+          map.getCanvas().style.cursor !== "pointer" &&
+          map.getCanvas().style.cursor !== "copy"
+        ) {
           prevPointer.cursor = map.getCanvas().style.cursor || "";
         }
-        map.getCanvas().style.cursor = "pointer";
+        map.getCanvas().style.cursor = isCtrlPressed ? "copy" : "pointer";
         return true;
       }
 
@@ -170,7 +194,10 @@ export function useMapHover({
         setHoverArea(null);
       }
 
-      if (map.getCanvas().style.cursor === "pointer") {
+      if (
+        map.getCanvas().style.cursor === "pointer" ||
+        map.getCanvas().style.cursor === "copy"
+      ) {
         map.getCanvas().style.cursor = prevPointer.cursor;
       }
 
@@ -179,6 +206,8 @@ export function useMapHover({
 
     map.on("mousemove", onMouseMove);
     map.on("mouseleave", onMouseLeave);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
 
     return () => {
       // Clean up hover state on unmount
@@ -195,6 +224,8 @@ export function useMapHover({
 
       map.off("mousemove", onMouseMove);
       map.off("mouseleave", onMouseLeave);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
   }, [
     mapRef,
