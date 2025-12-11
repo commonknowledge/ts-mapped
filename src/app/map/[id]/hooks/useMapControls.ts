@@ -6,10 +6,8 @@ import { pinDropModeAtom, showControlsAtom } from "../atoms/mapStateAtoms";
  * Includes showControls (sidebar visibility) and pinDropMode (pin dropping interaction)
  */
 export function useMapControls() {
-  const showControls = useAtomValue(showControlsAtom);
-  const setShowControls = useSetAtom(showControlsAtom);
-  const pinDropMode = useAtomValue(pinDropModeAtom);
-  const setPinDropMode = useSetAtom(pinDropModeAtom);
+  const [showControls, setShowControls] = useAtom(showControlsAtom);
+  const [pinDropMode, setPinDropMode] = useAtom(pinDropModeAtom);
 
   return {
     showControls,

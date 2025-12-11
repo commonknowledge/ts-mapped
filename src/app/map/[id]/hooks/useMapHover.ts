@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
+import { compareAreasAtom } from "../atoms/mapStateAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
@@ -24,6 +25,7 @@ export function useMapHoverEffect({
 
   const [, setHoverArea] = useHoverArea();
   const [, setHoverMarker] = useHoverMarker();
+  const [compareAreasMode, setCompareAreasMode] = useAtom(compareAreasAtom);
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
@@ -36,7 +38,6 @@ export function useMapHoverEffect({
     const lineLayerId = `${sourceId}-line`;
     const prevPointer = { cursor: "" };
     let hoveredFeatureId: string | number | undefined;
-    let isCtrlPressed = false;
 
     const clearAreaHover = () => {
       if (hoveredFeatureId !== undefined) {
@@ -50,8 +51,8 @@ export function useMapHoverEffect({
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "c" || e.key === "C") {
-        isCtrlPressed = true;
+      if ((e.key === "c" || e.key === "C") && !e.repeat) {
+        setCompareAreasMode(true);
         const canvas = map.getCanvas();
         if (canvas.style.cursor === "pointer") {
           canvas.style.cursor = "copy";
@@ -61,7 +62,7 @@ export function useMapHoverEffect({
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === "c" || e.key === "C") {
-        isCtrlPressed = false;
+        setCompareAreasMode(false);
         const canvas = map.getCanvas();
         if (canvas.style.cursor === "copy") {
           canvas.style.cursor = "pointer";
@@ -181,7 +182,7 @@ export function useMapHoverEffect({
         ) {
           prevPointer.cursor = map.getCanvas().style.cursor || "";
         }
-        map.getCanvas().style.cursor = isCtrlPressed ? "copy" : "pointer";
+        map.getCanvas().style.cursor = compareAreasMode ? "copy" : "pointer";
         return true;
       }
 

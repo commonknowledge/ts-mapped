@@ -1,7 +1,8 @@
 import { point as turfPoint } from "@turf/helpers";
 import { booleanPointInPolygon } from "@turf/turf";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
+import { compareAreasAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
 import { selectedAreasAtom } from "@/app/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
@@ -40,6 +41,7 @@ export function useMapClickEffect({
     setSelectedTurf,
   } = useInspector();
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
+  const compareAreasMode = useAtomValue(compareAreasAtom);
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
@@ -102,19 +104,6 @@ export function useMapClickEffect({
     const map = mapRef.current;
     const fillLayerId = `${sourceId}-fill`;
     const lineLayerId = `${sourceId}-line`;
-    let isCKeyPressed = false;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "c" || e.key === "C") && !e.repeat) {
-        isCKeyPressed = true;
-      }
-    };
-
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "c" || e.key === "C") {
-        isCKeyPressed = false;
-      }
-    };
 
     const handleMarkerClick = (e: mapboxgl.MapMouseEvent): boolean => {
       const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
@@ -318,8 +307,8 @@ export function useMapClickEffect({
         return;
       }
 
-      // Check if 'c' key is pressed
-      if (isCKeyPressed) {
+      // Check if compare areas mode is active
+      if (compareAreasMode) {
         if (handleCtrlAreaClick(e)) {
           return;
         }
@@ -341,8 +330,6 @@ export function useMapClickEffect({
     };
 
     map.on("click", onClick);
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
 
     return () => {
       // Clean up active state on unmount
@@ -362,8 +349,6 @@ export function useMapClickEffect({
       }
 
       map.off("click", onClick);
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
     };
   }, [
     mapRef,
@@ -382,6 +367,7 @@ export function useMapClickEffect({
     ready,
     setSelectedRecords,
     setSelectedAreas,
+    compareAreasMode,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)

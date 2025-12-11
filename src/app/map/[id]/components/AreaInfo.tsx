@@ -75,12 +75,12 @@ export default function AreaInfo() {
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
 
-    const fillColor = useFillColor({
-      areaStats,
-      scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
-      isReversed: Boolean(viewConfig.reverseColorScheme),
-      selectedBivariateBucket: null,
-    });
+  const fillColor = useFillColor({
+    areaStats,
+    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
+    isReversed: Boolean(viewConfig.reverseColorScheme),
+    selectedBivariateBucket: null,
+  });
 
   if (!areaStats) {
     return null;
@@ -172,132 +172,132 @@ export default function AreaInfo() {
           transition={{ duration: 0.15, type: "tween" }}
           className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto"
         >
-      {selectedAreas.length > 0 && (
-        <button
-          className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
-          aria-label="Clear selected areas"
-          onClick={() => setSelectedAreas([])}
-        >
-          <XIcon
-            size={16}
-            className="text-neutral-600 hover:text-neutral-900"
-          />
-        </button>
-      )}
-      <Table
-        className="border-none"
-        style={{ tableLayout: "fixed", width: "100%" }}
-      >
-        {areasToDisplay.length > 1 && (
-          <TableHeader className="">
-            <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-              <TableHead className="py-2 px-3 text-left w-3/12 h-8" />
-              <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
-                {statLabel}
-              </TableHead>
-              <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
-                {viewConfig.areaDataSecondaryColumn || "Secondary"}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-        )}
-        <TableBody>
-          {areasToDisplay.map((area) => {
-            const areaStat =
-              areaStats.areaSetCode === area.areaSetCode
-                ? areaStats.stats.find((s) => s.areaCode === area.code)
-                : null;
+          {selectedAreas.length > 0 && (
+            <button
+              className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
+              aria-label="Clear selected areas"
+              onClick={() => setSelectedAreas([])}
+            >
+              <XIcon
+                size={16}
+                className="text-neutral-600 hover:text-neutral-900"
+              />
+            </button>
+          )}
+          <Table
+            className="border-none"
+            style={{ tableLayout: "fixed", width: "100%" }}
+          >
+            {areasToDisplay.length > 1 && (
+              <TableHeader className="">
+                <TableRow className="border-none hover:bg-transparent uppercase font-mono">
+                  <TableHead className="py-2 px-3 text-left w-3/12 h-8" />
+                  <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
+                    {statLabel}
+                  </TableHead>
+                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
+                    {viewConfig.areaDataSecondaryColumn || "Secondary"}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+            )}
+            <TableBody>
+              {areasToDisplay.map((area) => {
+                const areaStat =
+                  areaStats.areaSetCode === area.areaSetCode
+                    ? areaStats.stats.find((s) => s.areaCode === area.code)
+                    : null;
 
-            const primaryValue = areaStat
-              ? getDisplayValue(
-                  areaStats.calculationType,
-                  areaStats.primary,
-                  areaStat.primary,
-                )
-              : "-";
-            const secondaryValue = areaStat
-              ? getDisplayValue(
-                  areaStats.calculationType,
-                  areaStats.secondary,
-                  areaStat.secondary,
-                )
-              : "-";
+                const primaryValue = areaStat
+                  ? getDisplayValue(
+                      areaStats.calculationType,
+                      areaStats.primary,
+                      areaStat.primary,
+                    )
+                  : "-";
+                const secondaryValue = areaStat
+                  ? getDisplayValue(
+                      areaStats.calculationType,
+                      areaStats.secondary,
+                      areaStat.secondary,
+                    )
+                  : "-";
 
-            const isSingleRow = areasToDisplay.length === 1;
+                const isSingleRow = areasToDisplay.length === 1;
 
-            return (
-              <TableRow
-                key={`${area.areaSetCode}-${area.code}`}
-                className="border-none font-medium hover:bg-neutral-50 cursor-pointer"
-                style={
-                  area.isSelected
-                    ? { borderLeft: "4px solid var(--brandGreen)" }
-                    : undefined
-                }
-                onClick={() => {
-                  if (area.isSelected) {
-                    // Remove from selected areas
-                    setSelectedAreas(
-                      selectedAreas.filter(
-                        (a) =>
-                          !(
-                            a.code === area.code &&
-                            a.areaSetCode === area.areaSetCode
+                return (
+                  <TableRow
+                    key={`${area.areaSetCode}-${area.code}`}
+                    className="border-none font-medium hover:bg-neutral-50 cursor-pointer"
+                    style={
+                      area.isSelected
+                        ? { borderLeft: "4px solid var(--brandGreen)" }
+                        : undefined
+                    }
+                    onClick={() => {
+                      if (area.isSelected) {
+                        // Remove from selected areas
+                        setSelectedAreas(
+                          selectedAreas.filter(
+                            (a) =>
+                              !(
+                                a.code === area.code &&
+                                a.areaSetCode === area.areaSetCode
+                              ),
                           ),
-                      ),
-                    );
-                  } else {
-                    // Add to selected areas
-                    setSelectedAreas([
-                      ...selectedAreas,
-                      {
-                        code: area.code,
-                        name: area.name,
-                        areaSetCode: area.areaSetCode,
-                        coordinates: area.coordinates,
-                      },
-                    ]);
-                  }
-                }}
-              >
-                <TableCell className="py-2 px-3 w-3/12 truncate h-8">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded flex-shrink-0"
-                      style={{ backgroundColor: getAreaColor(area) }}
-                    />
-                    <span className="truncate">{area.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
-                  {isSingleRow ? (
-                    <div className="flex flex-row justify-center items-center text-right">
-                      <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                        {statLabel}:
-                      </span>
-                      <span>{primaryValue}</span>
-                    </div>
-                  ) : (
-                    primaryValue
-                  )}
-                </TableCell>
-                <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
-                  {isSingleRow ? (
-                    <div className="flex flex-row justify-center items-center text-right">
-                      <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                        {viewConfig.areaDataSecondaryColumn || "Secondary"}:
-                      </span>
-                      <span>{secondaryValue}</span>
-                    </div>
-                  ) : (
-                    secondaryValue
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                        );
+                      } else {
+                        // Add to selected areas
+                        setSelectedAreas([
+                          ...selectedAreas,
+                          {
+                            code: area.code,
+                            name: area.name,
+                            areaSetCode: area.areaSetCode,
+                            coordinates: area.coordinates,
+                          },
+                        ]);
+                      }
+                    }}
+                  >
+                    <TableCell className="py-2 px-3 w-3/12 truncate h-8">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-4 h-4 rounded flex-shrink-0"
+                          style={{ backgroundColor: getAreaColor(area) }}
+                        />
+                        <span className="truncate">{area.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
+                      {isSingleRow ? (
+                        <div className="flex flex-row justify-center items-center text-right">
+                          <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                            {statLabel}:
+                          </span>
+                          <span>{primaryValue}</span>
+                        </div>
+                      ) : (
+                        primaryValue
+                      )}
+                    </TableCell>
+                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
+                      {isSingleRow ? (
+                        <div className="flex flex-row justify-center items-center text-right">
+                          <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                            {viewConfig.areaDataSecondaryColumn || "Secondary"}:
+                          </span>
+                          <span>{secondaryValue}</span>
+                        </div>
+                      ) : (
+                        secondaryValue
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </motion.div>
       )}
     </AnimatePresence>
