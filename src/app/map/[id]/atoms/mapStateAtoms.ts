@@ -9,3 +9,4 @@ export const dirtyViewIdsAtom = atom<string[]>([]);
 export const zoomAtom = atom<number>(DEFAULT_ZOOM);
 export const pinDropModeAtom = atom<boolean>(false);
 export const showControlsAtom = atom<boolean>(true);
+export const compareAreasAtom = atom<boolean>(false);

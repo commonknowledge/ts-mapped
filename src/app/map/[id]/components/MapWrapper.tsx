@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
+import { useInspector } from "../hooks/useInspector";
 import { useShowControls } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import AreaInfo from "./AreaInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
@@ -20,6 +22,8 @@ export default function MapWrapper({
 }) {
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
+  const { inspectorContent } = useInspector();
+  const inspectorVisible = Boolean(inspectorContent);
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
@@ -54,6 +58,21 @@ export default function MapWrapper({
   return (
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
+
+      <div
+        className="absolute top-5 z-10 transition-transform duration-300 hidden md:block"
+        style={{
+          left: "32px",
+          right: inspectorVisible ? "280px" : "32px",
+          ...positionLeft,
+          width: showControls
+            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "248px" : "0px"})`
+            : `calc(100% - 64px - ${inspectorVisible ? "248px" : "0px"})`,
+          transition: "right 0.3s, width 0.3s",
+        }}
+      >
+        <AreaInfo />
+      </div>
 
       <div
         className="absolute bottom-8 left-8 z-10 transition-transform duration-300 hidden md:block"

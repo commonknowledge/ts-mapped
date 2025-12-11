@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
+import { compareAreasAtom } from "../atoms/mapStateAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
@@ -24,6 +25,7 @@ export function useMapHoverEffect({
 
   const [, setHoverArea] = useHoverArea();
   const [, setHoverMarker] = useHoverMarker();
+  const [compareAreasMode, setCompareAreasMode] = useAtom(compareAreasAtom);
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
@@ -48,6 +50,26 @@ export function useMapHoverEffect({
       }
     };
 
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "c" || e.key === "C") && !e.repeat) {
+        setCompareAreasMode(true);
+        const canvas = map.getCanvas();
+        if (canvas.style.cursor === "pointer") {
+          canvas.style.cursor = "copy";
+        }
+      }
+    };
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "c" || e.key === "C") {
+        setCompareAreasMode(false);
+        const canvas = map.getCanvas();
+        if (canvas.style.cursor === "copy") {
+          canvas.style.cursor = "pointer";
+        }
+      }
+    };
+
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
       if (handleHoverMarker(e)) {
         clearAreaHover();
@@ -62,16 +84,14 @@ export function useMapHoverEffect({
       if (handleHoverArea(e)) {
         return;
       }
+
+      // Clear area hover if mouse is not over any feature
+      clearAreaHover();
     };
 
     const onMouseLeave = () => {
-      if (hoveredFeatureId !== undefined) {
-        map.setFeatureState(
-          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-          { hover: false },
-        );
-        hoveredFeatureId = undefined;
-      }
+      clearAreaHover();
+      setHoverMarker(null);
       map.getCanvas().style.cursor = prevPointer.cursor;
     };
 
@@ -154,10 +174,13 @@ export function useMapHoverEffect({
           });
         }
 
-        if (map.getCanvas().style.cursor !== "pointer") {
+        if (
+          map.getCanvas().style.cursor !== "pointer" &&
+          map.getCanvas().style.cursor !== "copy"
+        ) {
           prevPointer.cursor = map.getCanvas().style.cursor || "";
         }
-        map.getCanvas().style.cursor = "pointer";
+        map.getCanvas().style.cursor = compareAreasMode ? "copy" : "pointer";
         return true;
       }
 
@@ -170,7 +193,10 @@ export function useMapHoverEffect({
         setHoverArea(null);
       }
 
-      if (map.getCanvas().style.cursor === "pointer") {
+      if (
+        map.getCanvas().style.cursor === "pointer" ||
+        map.getCanvas().style.cursor === "copy"
+      ) {
         map.getCanvas().style.cursor = prevPointer.cursor;
       }
 
@@ -178,7 +204,9 @@ export function useMapHoverEffect({
     };
 
     map.on("mousemove", onMouseMove);
-    map.on("mouseleave", onMouseLeave);
+    map.on("mouseout", onMouseLeave);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
 
     return () => {
       // Clean up hover state on unmount
@@ -194,7 +222,9 @@ export function useMapHoverEffect({
       }
 
       map.off("mousemove", onMouseMove);
-      map.off("mouseleave", onMouseLeave);
+      map.off("mouseout", onMouseLeave);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
   }, [
     mapRef,
@@ -207,6 +237,8 @@ export function useMapHoverEffect({
     setHoverArea,
     featureNameProperty,
     areaSetCode,
+    compareAreasMode,
+    setCompareAreasMode,
   ]);
 }
 
