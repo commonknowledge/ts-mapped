@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
+import { useShowControls } from "../hooks/useMapState";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import InspectorPanel from "./inspector/InspectorPanel";
@@ -7,7 +8,6 @@ import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 import ZoomControl from "./ZoomControl";
 import "./MapWrapper.css"; // overriding styles of mapbox elements
-import { useShowControls } from "../hooks/useMapState";
 
 export default function MapWrapper({
   currentMode,

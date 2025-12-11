@@ -12,7 +12,9 @@ import {
 } from "@/shadcn/ui/resizable";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAreaStats } from "../data";
+import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
 import { useMapQuery } from "../hooks/useMapQuery";
+import { useMapId, useMapRef, useShowControls } from "../hooks/useMapState";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
@@ -20,7 +22,6 @@ import Loading from "./Loading";
 import Map from "./Map";
 import PrivateMapNavbar from "./PrivateMapNavbar";
 import MapTable from "./table/MapTable";
-import { useMapRef, useShowControls, useMapId } from "../hooks/useMapState";
 
 export default function PrivateMap() {
   const mapRef = useMapRef();
@@ -35,6 +36,10 @@ export default function PrivateMap() {
   const { selectedDataSourceId } = useTable();
 
   const { data: map, isPending } = useMapQuery(mapId);
+
+  // Ensure a map view exists
+  useInitialMapViewEffect();
+
   // Resize map when UI changes
   useEffect(() => {
     if (mapRef?.current) {

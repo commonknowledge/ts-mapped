@@ -34,9 +34,11 @@ export const mapRouter = router({
   list: organisationProcedure.query(async ({ ctx }) => {
     return findMapsByOrganisationId(ctx.organisation.id);
   }),
-  create: organisationProcedure.mutation(({ ctx }) => {
-    return createMap(ctx.organisation.id);
-  }),
+  create: organisationProcedure
+    .input(z.object({ name: z.string().optional() }))
+    .mutation(({ ctx, input }) => {
+      return createMap(ctx.organisation.id, input.name);
+    }),
   createFromDataSource: organisationProcedure
     .input(z.object({ dataSourceId: z.string() }))
     .mutation(async ({ ctx, input }) => {

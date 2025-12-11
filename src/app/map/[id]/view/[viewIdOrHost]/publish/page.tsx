@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
-import { JotaiProvider } from "../../../providers/JotaiProvider";
-import MapProvider from "../../../providers/MapProvider";
+import MapJotaiProvider from "../../../providers/MapJotaiProvider";
 import PublicMap from "./components/PublicMap";
 import PublicFiltersProvider from "./providers/PublicFiltersProvider";
 import PublicMapProvider from "./providers/PublicMapProvider";
@@ -74,14 +73,12 @@ export default async function PublicMapAdminPage({
   }
 
   return (
-    <JotaiProvider>
-      <MapProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
-        <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
-          <PublicFiltersProvider>
-            <PublicMap />
-          </PublicFiltersProvider>
-        </PublicMapProvider>
-      </MapProvider>
-    </JotaiProvider>
+    <MapJotaiProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
+      <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
+        <PublicFiltersProvider>
+          <PublicMap />
+        </PublicFiltersProvider>
+      </PublicMapProvider>
+    </MapJotaiProvider>
   );
 }

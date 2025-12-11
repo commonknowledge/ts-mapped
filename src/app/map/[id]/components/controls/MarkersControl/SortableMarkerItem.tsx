@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useMapRef } from "../../../hooks/useMapState";
 import {
   usePlacedMarkerMutations,
   usePlacedMarkerState,
@@ -10,7 +11,6 @@ import {
 import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
-import { useMapRef } from "../../../hooks/useMapState";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function SortableMarkerItem({

@@ -3,6 +3,7 @@ import { PanelLeft } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { MapType } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
+import { useShowControlsAtom } from "../../hooks/useMapState";
 import { useMapViews } from "../../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 
@@ -10,7 +11,6 @@ import BoundariesControl from "./BoundariesControl/BoundariesControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
 import MembersControl from "./MembersControl/MembersControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
-import { useShowControlsAtom } from "../../hooks/useMapState";
 
 export default function PrivateMapControls() {
   const [showControls, setShowControls] = useShowControlsAtom();

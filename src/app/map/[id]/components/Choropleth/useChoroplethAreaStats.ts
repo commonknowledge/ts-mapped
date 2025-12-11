@@ -1,10 +1,10 @@
-import { useContext, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useFillColor } from "@/app/map/[id]/colors";
-import { useMapRef } from "../../hooks/useMapState";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { ColorScheme } from "@/server/models/MapView";
+import { useMapRef } from "../../hooks/useMapState";
 
 export function useChoroplethAreaStats() {
   const mapRef = useMapRef();

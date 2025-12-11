@@ -16,7 +16,7 @@ import type {
 } from "geojson";
 import type { MapMouseEvent } from "mapbox-gl";
 
-export function useMapClick({
+export function useMapClickEffect({
   draw,
   currentMode,
   markerLayers,

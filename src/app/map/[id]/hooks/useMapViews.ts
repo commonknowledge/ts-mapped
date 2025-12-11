@@ -3,16 +3,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
-import {
-  createNewViewConfig,
-} from "@/app/map/[id]/context/MapContext";
+import { createNewViewConfig } from "@/app/map/[id]/context/MapContext";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { MapType, type MapViewConfig } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import { useMapQuery } from "./useMapQuery";
-import { useViewId, useMapId, useSetViewId, useSetDirtyViewIds } from "./useMapState";
+import {
+  useMapId,
+  useSetDirtyViewIds,
+  useSetViewId,
+  useViewId,
+} from "./useMapState";
 import type { View } from "../types";
 
 export function useMapViews() {

@@ -20,9 +20,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Check, Layers, Plus, X } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import {
-  createNewViewConfig,
-} from "@/app/map/[id]/context/MapContext";
+import { createNewViewConfig } from "@/app/map/[id]/context/MapContext";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import { Button } from "@/shadcn/ui/button";
@@ -35,13 +33,13 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
+import { useDirtyViewIds, useMapId, useSetViewId } from "../hooks/useMapState";
 import {
   compareByPositionAndId,
   getNewPositionAfter,
   getNewPositionBefore,
   sortByPositionAndId,
 } from "../utils";
-import { useMapId, useSetViewId, useDirtyViewIds } from "../hooks/useMapState";
 import type { View } from "../types";
 import type { DragEndEvent } from "@dnd-kit/core";
 

@@ -1,8 +1,8 @@
 import { SearchIcon } from "lucide-react";
 import { useState } from "react";
+import { useMapRef } from "@/app/map/[id]/hooks/useMapState";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
-import { useMapRef } from "@/app/map/[id]/hooks/useMapState";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
 import type { Point } from "@/server/models/shared";
 import type { Point as GeoJSONPoint } from "geojson";

@@ -10,8 +10,8 @@ import {
 } from "../atoms/choroplethAtoms";
 import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
 import { useChoroplethDataSource } from "./useDataSources";
-import { useMapViews } from "./useMapViews";
 import { useZoom } from "./useMapState";
+import { useMapViews } from "./useMapViews";
 
 export function useChoropleth() {
   const zoom = useZoom();

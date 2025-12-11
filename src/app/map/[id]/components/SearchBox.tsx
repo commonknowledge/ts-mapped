@@ -3,9 +3,9 @@
 import { SearchBox as _SearchBox } from "@mapbox/search-js-react";
 import mapboxgl from "mapbox-gl";
 import { useState } from "react";
+import { useMapRef } from "../hooks/useMapState";
 import { usePlacedMarkerState } from "../hooks/usePlacedMarkers";
 import styles from "./SearchBox.module.css";
-import { useMapRef } from "../hooks/useMapState";
 
 export function SearchBox() {
   const mapRef = useMapRef();

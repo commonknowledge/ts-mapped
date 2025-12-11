@@ -3,8 +3,7 @@ import { getServerSession } from "@/auth";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import PrivateMap from "./components/PrivateMap";
-import { JotaiProvider } from "./providers/JotaiProvider";
-import MapInitializer from "./components/MapInitializer";
+import MapJotaiProvider from "./providers/MapJotaiProvider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -27,15 +26,13 @@ export default async function MapPage({
   const { viewId } = await searchParams;
 
   return (
-    <JotaiProvider>
-      <MapInitializer mapId={id} viewId={viewId}>
-        <DesktopOnly>
-          <div className="with-feeback-widget">
-            <PrivateMap />
-            <SentryFeedbackWidget />
-          </div>
-        </DesktopOnly>
-      </MapInitializer>
-    </JotaiProvider>
+    <MapJotaiProvider mapId={id} viewId={viewId}>
+      <DesktopOnly>
+        <div className="with-feedback-widget">
+          <PrivateMap />
+          <SentryFeedbackWidget />
+        </div>
+      </DesktopOnly>
+    </MapJotaiProvider>
   );
 }

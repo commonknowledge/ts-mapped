@@ -6,7 +6,7 @@ import { getClickedPolygonFeature } from "./useMapClick";
 import { useMapRef } from "./useMapState";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
-export function useMapHover({
+export function useMapHoverEffect({
   markerLayers,
   draw,
   ready,

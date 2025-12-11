@@ -20,13 +20,13 @@ import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { useMapConfig } from "../hooks/useMapConfig";
+import { useDirtyViewIds, useMapId, useMapRef } from "../hooks/useMapState";
 import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
-import { useMapId, useMapRef, useDirtyViewIds } from "../hooks/useMapState";
 
 /**
- * TODO: Move complex logic into custom hooks or MapInitializer
+ * TODO: Move complex logic into custom hooks
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
@@ -54,12 +54,16 @@ export default function PrivateMapNavbar() {
 
   const { mutate: updateMap, isPending } = useMutation(
     trpc.map.update.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
         setIsEditingName(false);
         if (mapId) {
           queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
             if (!old) return old;
-            return { ...old, name: editedName };
+            return {
+              ...old,
+              name: variables.name || old.name,
+              imageUrl: variables.imageUrl || old.imageUrl,
+            };
           });
         }
       },

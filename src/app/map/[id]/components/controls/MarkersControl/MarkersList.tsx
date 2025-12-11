@@ -37,12 +37,12 @@ import {
 } from "@/app/map/[id]/utils";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
+import { useMapId } from "../../../hooks/useMapState";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
-import { useMapId } from "../../../hooks/useMapState";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type {
   DragEndEvent,

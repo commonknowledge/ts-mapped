@@ -8,11 +8,11 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import { useMapRef } from "../../hooks/useMapState";
 import LayerTypeIcon from "../LayerTypeIcon";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
-import { useMapRef } from "../../hooks/useMapState";
 
 export default function InspectorPanel() {
   const {

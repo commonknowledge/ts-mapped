@@ -13,9 +13,9 @@ import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
+import { useMapRef } from "../../hooks/useMapState";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
-import { useMapRef } from "../../hooks/useMapState";
 import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {

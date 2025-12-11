@@ -1,12 +1,12 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
+  dirtyViewIdsAtom,
   mapIdAtom,
   mapRefAtom,
-  viewIdAtom,
-  dirtyViewIdsAtom,
-  zoomAtom,
   pinDropModeAtom,
   showControlsAtom,
+  viewIdAtom,
+  zoomAtom,
 } from "../atoms/mapStateAtoms";
 
 export function useMapId() {
@@ -23,10 +23,6 @@ export function useSetMapId() {
 
 export function useMapRef() {
   return useAtomValue(mapRefAtom);
-}
-
-export function useMapRefAtom() {
-  return useAtom(mapRefAtom);
 }
 
 export function useViewId() {

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { useOrganisations } from "@/hooks/useOrganisations";
@@ -36,8 +36,15 @@ export default function PrivateMapNavbarControls({
   const { organisationId } = useOrganisations();
   const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const duplicateNameRef = useRef<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const { mutateAsync: updateMapAsync } = useMutation(
+    trpc.map.update.mutationOptions(),
+  );
+
+  const { mutateAsync: updateViewsAsync } = useMutation(
+    trpc.map.updateViews.mutationOptions(),
+  );
 
   const { mutate: deleteMapMutation } = useMutation(
     trpc.map.delete.mutationOptions({
@@ -68,35 +75,26 @@ export default function PrivateMapNavbarControls({
           trpc.map.byId.queryKey({ mapId }),
         );
 
-        const targetName = duplicateNameRef.current || "Untitled Map (copy)";
-
         if (originalMap) {
-          // Update the new map with the name, config, and image
-          await queryClient
-            .getMutationCache()
-            .build(queryClient, trpc.map.update.mutationOptions())
-            .execute({
-              mapId: newMap.id,
-              name: targetName,
-              config: originalMap.config,
-              imageUrl: originalMap.imageUrl,
-            });
+          // Update the new map with the config, and image
+          await updateMapAsync({
+            mapId: newMap.id,
+            config: originalMap.config,
+            imageUrl: originalMap.imageUrl,
+          });
 
           // Copy views if they exist
           if (originalMap.views && originalMap.views.length > 0) {
-            await queryClient
-              .getMutationCache()
-              .build(queryClient, trpc.map.updateViews.mutationOptions())
-              .execute({
-                mapId: newMap.id,
-                views: originalMap.views.map((view) => ({
-                  id: view.id,
-                  name: view.name,
-                  position: view.position,
-                  config: view.config,
-                  dataSourceViews: view.dataSourceViews,
-                })),
-              });
+            await updateViewsAsync({
+              mapId: newMap.id,
+              views: originalMap.views.map((view) => ({
+                id: view.id,
+                name: view.name,
+                position: view.position,
+                config: view.config,
+                dataSourceViews: view.dataSourceViews,
+              })),
+            });
           }
         }
 
@@ -113,11 +111,9 @@ export default function PrivateMapNavbarControls({
         }
 
         toast.success("Map duplicated successfully");
-        duplicateNameRef.current = null; // Reset after use
       },
       onError: () => {
         toast.error("Failed to duplicate map.");
-        duplicateNameRef.current = null; // Reset on error
       },
     }),
   );
@@ -158,41 +154,8 @@ export default function PrivateMapNavbarControls({
       return;
     }
 
-    // Get all maps to determine the copy number
-    const allMaps = queryClient.getQueryData(
-      trpc.map.list.queryKey({ organisationId }),
-    );
-
-    // Generate the new name with copy suffix
-    const baseName = originalMap.name;
-
-    // Check if there are existing copies
-    const copyPattern = new RegExp(
-      `^${baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\(copy(?: (\\d+))?\\)$`,
-    );
-    let maxCopyNumber = 0;
-
-    allMaps?.forEach((map) => {
-      const match = map.name.match(copyPattern);
-      if (match) {
-        const copyNum = match[1] ? parseInt(match[1], 10) : 1;
-        maxCopyNumber = Math.max(maxCopyNumber, copyNum);
-      }
-    });
-
-    // Generate new name
-    let newName: string;
-    if (maxCopyNumber === 0) {
-      newName = `${baseName} (copy)`;
-    } else {
-      newName = `${baseName} (copy ${maxCopyNumber + 1})`;
-    }
-
-    // Store the name in ref for use in onSuccess
-    duplicateNameRef.current = newName;
-
     // Create the new map
-    createMapMutation({ organisationId });
+    createMapMutation({ organisationId, name: `${originalMap.name} (copy)` });
   };
 
   const getDropdownItems = (): (DropdownItem | DropdownSeparator)[] => {
