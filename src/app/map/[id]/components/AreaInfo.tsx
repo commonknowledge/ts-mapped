@@ -1,5 +1,13 @@
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType } from "@/server/models/MapView";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shadcn/ui/table";
 import { formatNumber } from "@/utils/text";
 import { useAreaStats } from "../data";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
@@ -75,19 +83,36 @@ export default function AreaInfo() {
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-3 border border-border">
-      <div className="text-xs font-semibold text-muted-foreground mb-1">
-        {hoverArea.name}
-      </div>
-      <div className="text-sm font-medium text-foreground">
-        {primaryValue}
-        {secondaryValue !== "-" && (
-          <span className="text-xs text-muted-foreground ml-2">
-            / {secondaryValue}
-          </span>
-        )}
-      </div>
-      <div className="text-xs text-muted-foreground mt-1">{statLabel}</div>
+    <div className="bg-white rounded-lg shadow-sm p-0 border border-border overflow-hidden">
+      <Table
+        className="border-none"
+        style={{ tableLayout: "fixed", width: "100%" }}
+      >
+        <TableHeader className="">
+          <TableRow className="border-none hover:bg-transparent uppercase font-mono">
+            <TableHead className="py-2 px-3  text-left w-3/12 h-10" />
+            <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-10">
+              {statLabel}
+            </TableHead>
+            <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-10">
+              {viewConfig.areaDataSecondaryColumn || "Secondary"}
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow className="border-none hover:bg-neutral-50 font-medium">
+            <TableCell className="py-2 px-3 w-3/12 truncate h-10">
+              {hoverArea.name}
+            </TableCell>
+            <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-10">
+              {primaryValue}
+            </TableCell>
+            <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-10">
+              {secondaryValue}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
   );
 }
