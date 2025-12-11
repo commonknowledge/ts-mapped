@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
 
@@ -94,17 +95,21 @@ export default function AreaInfo() {
     }
   }
 
-  if (areasToDisplay.length === 0) {
-    return null;
-  }
-
   const statLabel =
     areaStats.calculationType === CalculationType.Count
       ? `${choroplethDataSource?.name || "Unknown"} count`
       : viewConfig.areaDataColumn;
 
   return (
-    <div className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto">
+    <AnimatePresence mode="wait">
+      {areasToDisplay.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15, type: "tween" }}
+          className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto"
+        >
       {selectedAreas.length > 0 && (
         <button
           className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
@@ -225,6 +230,8 @@ export default function AreaInfo() {
           })}
         </TableBody>
       </Table>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
