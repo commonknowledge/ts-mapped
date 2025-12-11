@@ -214,6 +214,22 @@ export function useMapClickEffect({
         const areaName = feature.properties?.[featureNameProperty] as string;
 
         if (areaCode && areaName && feature.id !== undefined) {
+          // Check if clicking the same active area
+          if (activeFeatureId.current === areaCode) {
+            // Deactivate the current area
+            map.setFeatureState(
+              {
+                source: sourceId,
+                sourceLayer: layerId,
+                id: activeFeatureId.current,
+              },
+              { active: false },
+            );
+            activeFeatureId.current = undefined;
+            resetInspector();
+            return true;
+          }
+
           // Remove active state from previous feature
           if (activeFeatureId.current !== undefined) {
             map.setFeatureState(
