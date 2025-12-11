@@ -3,6 +3,7 @@ import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { MapType } from "@/server/models/MapView";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import AreaInfo from "./AreaInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
@@ -54,6 +55,20 @@ export default function MapWrapper({
   return (
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
+
+      <div
+        className="absolute top-8 z-10 transition-transform duration-300 hidden md:block"
+        style={{
+          left: "32px",
+          right: "32px",
+          ...positionLeft,
+          width: showControls
+            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px)`
+            : "calc(100% - 64px)",
+        }}
+      >
+        <AreaInfo />
+      </div>
 
       <div
         className="absolute bottom-8 left-8 z-10 transition-transform duration-300 hidden md:block"

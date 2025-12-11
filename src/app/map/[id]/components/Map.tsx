@@ -21,7 +21,6 @@ import { getClickedPolygonFeature, useMapClick } from "../hooks/useMapClick";
 import { useMapHover } from "../hooks/useMapHover";
 import { useTurfMutations, useTurfState } from "../hooks/useTurfs";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
-import AreaPopup from "./AreaPopup";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
@@ -473,7 +472,6 @@ export default function Map({
             <Markers />
             <SearchResultMarker />
             <MarkerPopup />
-            <AreaPopup />
           </>
         )}
       </MapGL>
