@@ -1,6 +1,6 @@
 import { SearchIcon } from "lucide-react";
-import { useContext, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useState } from "react";
+import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
@@ -17,7 +17,7 @@ export default function PublicMapGeocoder({
   colorScheme?: PublicMapColorScheme;
   className?: string;
 }) {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);

@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
-import { useContext } from "react";
 
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -10,6 +8,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import { useMapRef } from "../../hooks/useMapCore";
 import LayerTypeIcon from "../LayerTypeIcon";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
@@ -24,7 +23,7 @@ export default function InspectorPanel() {
     focusedRecord,
     setFocusedRecord,
   } = useInspector();
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const { setSelectedDataSourceId, selectedDataSourceId } = useTable();
 
   const trpc = useTRPC();

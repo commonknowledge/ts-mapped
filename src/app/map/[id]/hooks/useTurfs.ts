@@ -2,22 +2,22 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { use, useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { editingTurfAtom, turfVisibilityAtom } from "../atoms/turfAtoms";
+import { useMapId, useMapRef } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { Turf } from "@/server/models/Turf";
 
 export function useTurfsQuery() {
-  const { mapId } = use(MapContext);
+  const mapId = useMapId();
   const { data: mapData, isFetching } = useMapQuery(mapId);
   return { data: mapData?.turfs, isFetching };
 }
 
 export function useTurfMutations() {
-  const { mapId } = use(MapContext);
+  const mapId = useMapId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -156,7 +156,7 @@ export function useTurfMutations() {
 }
 
 export function useTurfState() {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const { data: turfs = [] } = useTurfsQuery();
 
   const [editingTurf, setEditingTurf] = useAtom(editingTurfAtom);

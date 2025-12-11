@@ -1,13 +1,13 @@
 import { circle } from "@turf/turf";
-import { useContext, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Layer, Source } from "react-map-gl/mapbox";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
+import { useMapRef } from "../hooks/useMapCore";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/server/models/MapView";
 import type {
@@ -19,7 +19,7 @@ import type {
 import type { LngLatBoundsLike } from "mapbox-gl";
 
 export default function FilterMarkers() {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const { mapConfig } = useMapConfig();
   const { view } = useMapViews();
   const markerQueries = useMarkerQueries();

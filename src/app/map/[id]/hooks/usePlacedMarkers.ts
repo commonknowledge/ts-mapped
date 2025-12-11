@@ -6,10 +6,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { use, useCallback, useContext } from "react";
+import { useCallback } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import {
   placedMarkerVisibilityAtom,
@@ -17,11 +16,13 @@ import {
   selectedPlacedMarkerIdAtom,
 } from "../atoms/markerAtoms";
 import { getNewLastPosition } from "../utils";
+import { useSetPinDropMode } from "./useMapControls";
+import { useMapId, useMapRef } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export function usePlacedMarkersQuery() {
-  const { mapId } = use(MapContext);
+  const mapId = useMapId();
   const { data: mapData, isFetching } = useMapQuery(mapId);
   return {
     data: mapData?.placedMarkers,
@@ -30,7 +31,7 @@ export function usePlacedMarkersQuery() {
 }
 
 export function usePlacedMarkerMutations() {
-  const { mapId } = use(MapContext);
+  const mapId = useMapId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -225,7 +226,9 @@ export function usePlacedMarkerState() {
 }
 
 export const useHandleDropPin = () => {
-  const { mapRef, mapId, setPinDropMode } = useContext(MapContext);
+  const mapRef = useMapRef();
+  const mapId = useMapId();
+  const setPinDropMode = useSetPinDropMode();
   const { insertPlacedMarker } = usePlacedMarkerMutations();
 
   const handleDropPin = useCallback(() => {

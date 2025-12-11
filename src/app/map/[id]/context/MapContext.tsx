@@ -1,5 +1,3 @@
-import { createContext } from "react";
-import { DEFAULT_ZOOM } from "@/constants";
 import {
   CalculationType,
   ColorScheme,
@@ -9,46 +7,6 @@ import {
 import mapStyles, { hexMapStyle } from "../styles";
 import type { MapConfig } from "@/server/models/Map";
 import type { MapViewConfig } from "@/server/models/MapView";
-import type { RefObject } from "react";
-import type { MapRef } from "react-map-gl/mapbox";
-
-export const MapContext = createContext<{
-  /* Map ID from URL */
-  mapId: string | null;
-
-  /* Map Ref */
-  mapRef: RefObject<MapRef | null> | null;
-
-  /* Active View ID */
-  viewId: string | null;
-  setViewId: (id: string) => void;
-
-  /* Dirty Views Tracking */
-  dirtyViewIds: string[];
-  setDirtyViewIds: (ids: string[] | ((prev: string[]) => string[])) => void;
-
-  zoom: number;
-  setZoom: (zoom: number) => void;
-
-  pinDropMode: boolean;
-  setPinDropMode: (pinDropMode: boolean) => void;
-
-  showControls: boolean;
-  setShowControls: (showControls: boolean) => void;
-}>({
-  mapId: null,
-  mapRef: null,
-  viewId: null,
-  setViewId: () => null,
-  dirtyViewIds: [],
-  setDirtyViewIds: () => null,
-  zoom: DEFAULT_ZOOM,
-  setZoom: () => null,
-  pinDropMode: false,
-  setPinDropMode: () => null,
-  showControls: true,
-  setShowControls: () => null,
-});
 
 export const createNewViewConfig = (): MapViewConfig => {
   return {
