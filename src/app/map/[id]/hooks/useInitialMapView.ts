@@ -4,8 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import { createNewViewConfig } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
+import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
-import { useMapId, useViewIdAtom } from "./useMapState";
+import { useViewIdAtom } from "./useMapViews";
 
 /**
  * Hook to initialize the map view.

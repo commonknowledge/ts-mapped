@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { useMapRef, usePinDropMode } from "./useMapState";
+import { usePinDropMode } from "./useMapControls";
+import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
   Feature,

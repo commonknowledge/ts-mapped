@@ -10,7 +10,7 @@ import {
 } from "../atoms/choroplethAtoms";
 import { getChoroplethLayerConfig } from "../components/Choropleth/configs";
 import { useChoroplethDataSource } from "./useDataSources";
-import { useZoom } from "./useMapState";
+import { useZoom } from "./useMapCamera";
 import { useMapViews } from "./useMapViews";
 
 export function useChoropleth() {

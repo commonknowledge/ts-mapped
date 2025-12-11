@@ -16,8 +16,9 @@ import {
   selectedPlacedMarkerIdAtom,
 } from "../atoms/markerAtoms";
 import { getNewLastPosition } from "../utils";
+import { useSetPinDropMode } from "./useMapControls";
+import { useMapId, useMapRef } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
-import { useMapId, useMapRef, useSetPinDropMode } from "./useMapState";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export function usePlacedMarkersQuery() {

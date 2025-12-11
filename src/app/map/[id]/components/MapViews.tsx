@@ -33,7 +33,8 @@ import {
 import { Input } from "@/shadcn/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import { useDirtyViewIds, useMapId, useSetViewId } from "../hooks/useMapState";
+import { useMapId } from "../hooks/useMapCore";
+import { useDirtyViewIds, useSetViewId } from "../hooks/useMapViews";
 import {
   compareByPositionAndId,
   getNewPositionAfter,

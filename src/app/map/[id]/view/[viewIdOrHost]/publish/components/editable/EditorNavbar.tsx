@@ -1,8 +1,8 @@
 import { Lock } from "lucide-react";
 
 import { useContext } from "react";
+import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
-import { useMapId } from "@/app/map/[id]/hooks/useMapState";
 import Navbar from "@/components/layout/Navbar";
 import {
   Breadcrumb,

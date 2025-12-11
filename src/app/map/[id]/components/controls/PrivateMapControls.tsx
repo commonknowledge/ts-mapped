@@ -3,7 +3,7 @@ import { PanelLeft } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { MapType } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
-import { useShowControlsAtom } from "../../hooks/useMapState";
+import { useShowControlsAtom } from "../../hooks/useMapControls";
 import { useMapViews } from "../../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 

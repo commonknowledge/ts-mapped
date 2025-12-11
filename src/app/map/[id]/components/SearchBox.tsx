@@ -3,7 +3,7 @@
 import { SearchBox as _SearchBox } from "@mapbox/search-js-react";
 import mapboxgl from "mapbox-gl";
 import { useState } from "react";
-import { useMapRef } from "../hooks/useMapState";
+import { useMapRef } from "../hooks/useMapCore";
 import { usePlacedMarkerState } from "../hooks/usePlacedMarkers";
 import styles from "./SearchBox.module.css";
 

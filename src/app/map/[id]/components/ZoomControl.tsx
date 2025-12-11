@@ -1,5 +1,5 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useMapRef } from "../hooks/useMapState";
+import { useMapRef } from "../hooks/useMapCore";
 
 export default function ZoomControl() {
   const mapRef = useMapRef();

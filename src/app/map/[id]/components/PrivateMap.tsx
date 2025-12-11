@@ -13,8 +13,9 @@ import {
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAreaStats } from "../data";
 import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
+import { useShowControls } from "../hooks/useMapControls";
+import { useMapId, useMapRef } from "../hooks/useMapCore";
 import { useMapQuery } from "../hooks/useMapQuery";
-import { useMapId, useMapRef, useShowControls } from "../hooks/useMapState";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";

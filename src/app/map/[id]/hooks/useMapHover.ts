@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
-import { useMapRef } from "./useMapState";
+import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 export function useMapHoverEffect({

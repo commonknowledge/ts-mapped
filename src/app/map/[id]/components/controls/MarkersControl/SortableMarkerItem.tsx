@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
-import { useMapRef } from "../../../hooks/useMapState";
+import { useMapRef } from "../../../hooks/useMapCore";
 import {
   usePlacedMarkerMutations,
   usePlacedMarkerState,

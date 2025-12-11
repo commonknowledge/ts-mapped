@@ -3,8 +3,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useTRPC } from "@/services/trpc/react";
+import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
-import { useMapId } from "./useMapState";
 import type { MapConfig } from "@/server/models/Map";
 
 export function useMapConfig() {

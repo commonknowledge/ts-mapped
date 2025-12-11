@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
-import { useShowControls } from "../hooks/useMapState";
+import { useShowControls } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import InspectorPanel from "./inspector/InspectorPanel";

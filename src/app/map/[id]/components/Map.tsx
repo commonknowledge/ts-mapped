@@ -16,17 +16,14 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
+import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
   useMapClickEffect,
 } from "../hooks/useMapClick";
+import { usePinDropMode, useShowControls } from "../hooks/useMapControls";
+import { useMapRef } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
-import {
-  useMapRef,
-  usePinDropMode,
-  useSetZoom,
-  useShowControls,
-} from "../hooks/useMapState";
 import { useTurfMutations, useTurfState } from "../hooks/useTurfs";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import AreaPopup from "./AreaPopup";

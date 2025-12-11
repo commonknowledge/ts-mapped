@@ -8,7 +8,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import { useMapRef } from "../../hooks/useMapState";
+import { useMapRef } from "../../hooks/useMapCore";
 import LayerTypeIcon from "../LayerTypeIcon";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";

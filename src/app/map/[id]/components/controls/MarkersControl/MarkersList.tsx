@@ -37,7 +37,7 @@ import {
 } from "@/app/map/[id]/utils";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
-import { useMapId } from "../../../hooks/useMapState";
+import { useMapId } from "../../../hooks/useMapCore";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";

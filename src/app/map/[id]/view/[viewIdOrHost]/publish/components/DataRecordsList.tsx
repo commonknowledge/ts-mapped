@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { useMapRef } from "@/app/map/[id]/hooks/useMapState";
+import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";

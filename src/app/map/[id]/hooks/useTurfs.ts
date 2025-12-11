@@ -6,8 +6,8 @@ import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/services/trpc/react";
 import { editingTurfAtom, turfVisibilityAtom } from "../atoms/turfAtoms";
+import { useMapId, useMapRef } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
-import { useMapId, useMapRef } from "./useMapState";
 import type { Turf } from "@/server/models/Turf";
 
 export function useTurfsQuery() {
