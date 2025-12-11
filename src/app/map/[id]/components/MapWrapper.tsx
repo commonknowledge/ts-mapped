@@ -1,7 +1,7 @@
-import { useContext, useEffect, useState } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
 import { useInspector } from "../hooks/useInspector";
+import { useShowControls } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import AreaInfo from "./AreaInfo";
@@ -20,7 +20,7 @@ export default function MapWrapper({
   children: React.ReactNode;
   hideDrawControls?: boolean;
 }) {
-  const { showControls } = useContext(MapContext);
+  const showControls = useShowControls();
   const { viewConfig } = useMapViews();
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);

@@ -1,14 +1,13 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { useCallback, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
 import {
   focusedRecordAtom,
-  inspectorContentAtom,
   selectedBoundaryAtom,
   selectedRecordsAtom,
   selectedTurfAtom,
@@ -23,7 +22,6 @@ export function useInspector() {
   const [focusedRecord, _setFocusedRecord] = useAtom(focusedRecordAtom);
   const [selectedTurf, setSelectedTurf] = useAtom(selectedTurfAtom);
   const [selectedBoundary, setSelectedBoundary] = useAtom(selectedBoundaryAtom);
-  const [inspectorContent, setInspectorContent] = useAtom(inspectorContentAtom);
 
   // Custom setter to keep selectedRecords and focusedRecord in sync
   const setSelectedRecords = useCallback(
@@ -48,31 +46,28 @@ export function useInspector() {
     [selectedRecords, _setSelectedRecords, _setFocusedRecord],
   );
 
-  useEffect(() => {
+  const inspectorContent = useMemo(() => {
     // if no selected marker / member to inspect
     if (!focusedRecord) {
       // check if area selected
       if (selectedTurf?.id) {
-        setInspectorContent({
+        return {
           type: LayerType.Turf,
           name: selectedTurf.name || "Area",
           properties: null,
           dataSource: null,
-        });
+        };
       } else if (selectedBoundary?.name) {
-        setInspectorContent({
+        return {
           type: LayerType.Boundary,
           name: selectedBoundary.name,
           properties: {
             ["Area Code"]: selectedBoundary?.areaCode,
             Dataset: getBoundaryDatasetName(selectedBoundary?.sourceLayerId),
           },
-        });
-      } else {
-        setInspectorContent(null);
+        };
       }
-
-      return;
+      return null;
     }
 
     const dataSourceId = focusedRecord.dataSourceId;
@@ -83,36 +78,31 @@ export function useInspector() {
         ? LayerType.Member
         : LayerType.Marker;
 
-    setInspectorContent({
+    return {
       type: type,
       name: focusedRecord.name,
       properties: null,
       dataSource: dataSource,
-    });
+    };
   }, [
-    getDataSourceById,
-    selectedTurf,
-    selectedBoundary,
-    mapConfig.membersDataSourceId,
     focusedRecord,
-    setInspectorContent,
+    getDataSourceById,
+    mapConfig.membersDataSourceId,
+    selectedBoundary?.areaCode,
+    selectedBoundary?.name,
+    selectedBoundary?.sourceLayerId,
+    selectedTurf?.id,
+    selectedTurf?.name,
   ]);
 
   const resetInspector = useCallback(() => {
     setSelectedRecords([]);
     setSelectedTurf(null);
     setSelectedBoundary(null);
-    setInspectorContent(null);
-  }, [
-    setSelectedRecords,
-    setSelectedTurf,
-    setSelectedBoundary,
-    setInspectorContent,
-  ]);
+  }, [setSelectedRecords, setSelectedTurf, setSelectedBoundary]);
 
   return {
     inspectorContent,
-    setInspectorContent,
     selectedRecords,
     setSelectedRecords,
     focusedRecord,

@@ -9,8 +9,8 @@ import {
   useRef,
 } from "react";
 
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
@@ -37,7 +37,7 @@ export default function DataRecordsList({
 }: DataRecordsListProps) {
   const { publicMap } = useContext(PublicMapContext);
   const { setSelectedRecords, focusedRecord } = useInspector();
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const { filteredRecords } = useContext(PublicFiltersContext);
   const listRef = useRef<HTMLUListElement>(null);
 

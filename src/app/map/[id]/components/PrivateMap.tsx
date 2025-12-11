@@ -1,7 +1,6 @@
 "use client";
 
-import { useContext, useEffect } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
@@ -13,6 +12,9 @@ import {
 } from "@/shadcn/ui/resizable";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAreaStats } from "../data";
+import { useInitialMapViewEffect } from "../hooks/useInitialMapView";
+import { useShowControls } from "../hooks/useMapControls";
+import { useMapId, useMapRef } from "../hooks/useMapCore";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
@@ -23,7 +25,9 @@ import PrivateMapNavbar from "./PrivateMapNavbar";
 import MapTable from "./table/MapTable";
 
 export default function PrivateMap() {
-  const { mapRef, showControls, mapId } = useContext(MapContext);
+  const mapRef = useMapRef();
+  const showControls = useShowControls();
+  const mapId = useMapId();
 
   const areaStatsQuery = useAreaStats();
   const { setLastLoadedSourceId } = useChoropleth();
@@ -33,6 +37,10 @@ export default function PrivateMap() {
   const { selectedDataSourceId } = useTable();
 
   const { data: map, isPending } = useMapQuery(mapId);
+
+  // Ensure a map view exists
+  useInitialMapViewEffect();
+
   // Resize map when UI changes
   useEffect(() => {
     if (mapRef?.current) {

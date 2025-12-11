@@ -180,6 +180,6 @@ main {
 }
 
 /* Move bottom right icons if Sentry widget visible */
-.with-feeback-widget .map-zoom-controls {
+.with-feedback-widget .map-zoom-controls {
   margin-right: 64px;
 }

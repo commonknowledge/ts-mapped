@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { SignJWT, jwtVerify } from "jose";
+import { JWTExpired } from "jose/errors";
 import { NoResultError } from "kysely";
 import { cookies } from "next/headers";
 import z from "zod";
@@ -68,6 +69,12 @@ export const authRouter = router({
         cookieStore.set("JWT", cookieToken);
         return user;
       } catch (error) {
+        if (error instanceof JWTExpired) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invitation expired",
+          });
+        }
         if (error instanceof NoResultError) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -100,9 +107,23 @@ export const authRouter = router({
   resetPassword: publicProcedure
     .input(z.object({ token: z.string(), password: z.string() }))
     .mutation(async ({ input }) => {
-      const { token, password } = input;
-      const user = await findUserByToken(token);
-      if (!user) return false;
-      return await updateUser(user.id, { newPassword: password });
+      try {
+        const { token, password } = input;
+        const user = await findUserByToken(token);
+        if (!user) return false;
+        return await updateUser(user.id, { newPassword: password });
+      } catch (error) {
+        if (error instanceof JWTExpired) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Token expired",
+          });
+        }
+        logger.error("Reset password failed", { error });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unknown error",
+        });
+      }
     }),
 });

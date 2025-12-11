@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
@@ -14,6 +13,7 @@ import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
+import { useMapRef } from "../../hooks/useMapCore";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import type { DataSourceView } from "@/server/models/MapView";
@@ -26,7 +26,7 @@ interface DataRecord {
 }
 
 export default function MapTable() {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { focusedRecord, setFocusedRecord } = useInspector();

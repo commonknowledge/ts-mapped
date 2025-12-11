@@ -2,22 +2,22 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useIsMutating } from "@tanstack/react-query";
-import { use, useCallback } from "react";
+import { useCallback } from "react";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
 import { getNewLastPosition } from "../utils";
+import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { Folder } from "@/server/models/Folder";
 
 export function useFoldersQuery() {
-  const { mapId } = use(MapContext);
+  const mapId = useMapId();
   const { data: mapData, isFetching } = useMapQuery(mapId);
   return { data: mapData?.folders, isFetching };
 }
 
 export function useFolderMutations() {
-  const { mapId } = use(MapContext);
+  const mapId = useMapId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 

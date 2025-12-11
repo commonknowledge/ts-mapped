@@ -1,12 +1,12 @@
 import { point as turfPoint } from "@turf/helpers";
 import { booleanPointInPolygon } from "@turf/turf";
 import { useAtom } from "jotai";
-import { useContext, useEffect, useRef } from "react";
-
+import { useEffect, useRef } from "react";
 import { selectedAreasAtom } from "@/app/map/[id]/atoms/selectedAreasAtom";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { usePinDropMode } from "./useMapControls";
+import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
   Feature,
@@ -18,7 +18,7 @@ import type {
 } from "geojson";
 import type { MapMouseEvent } from "mapbox-gl";
 
-export function useMapClick({
+export function useMapClickEffect({
   draw,
   currentMode,
   markerLayers,
@@ -29,7 +29,8 @@ export function useMapClick({
   markerLayers: string[];
   ready: boolean;
 }) {
-  const { mapRef, pinDropMode } = useContext(MapContext);
+  const mapRef = useMapRef();
+  const pinDropMode = usePinDropMode();
   const { choroplethLayerConfig } = useChoropleth();
   const {
     resetInspector,

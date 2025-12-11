@@ -6,14 +6,12 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
@@ -22,16 +20,20 @@ import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
 import { useMapConfig } from "../hooks/useMapConfig";
+import { useMapId, useMapRef } from "../hooks/useMapCore";
+import { useDirtyViewIds } from "../hooks/useMapViews";
 import { useMapViews } from "../hooks/useMapViews";
 import MapViews from "./MapViews";
 import PrivateMapNavbarControls from "./PrivateMapNavbarControls";
 
 /**
- * TODO: Move complex logic into MapProvider
+ * TODO: Move complex logic into custom hooks
  */
 export default function PrivateMapNavbar() {
   const router = useRouter();
-  const { mapId, mapRef, dirtyViewIds } = useContext(MapContext);
+  const mapId = useMapId();
+  const mapRef = useMapRef();
+  const dirtyViewIds = useDirtyViewIds();
   const { data: map } = useMapQuery(mapId);
   const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();
@@ -53,12 +55,16 @@ export default function PrivateMapNavbar() {
 
   const { mutate: updateMap, isPending } = useMutation(
     trpc.map.update.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
         setIsEditingName(false);
         if (mapId) {
           queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
             if (!old) return old;
-            return { ...old, name: editedName };
+            return {
+              ...old,
+              name: variables.name || old.name,
+              imageUrl: variables.imageUrl || old.imageUrl,
+            };
           });
         }
       },

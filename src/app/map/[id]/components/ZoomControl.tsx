@@ -1,9 +1,8 @@
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { useContext } from "react";
-import { MapContext } from "@/app/map/[id]/context/MapContext";
+import { useMapRef } from "../hooks/useMapCore";
 
 export default function ZoomControl() {
-  const { mapRef } = useContext(MapContext);
+  const mapRef = useMapRef();
   const map = mapRef?.current;
 
   const zoomIn = () => map?.zoomIn({ duration: 500 });

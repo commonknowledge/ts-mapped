@@ -1,22 +1,25 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { use, useCallback, useContext, useMemo } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
-import {
-  MapContext,
-  createNewViewConfig,
-} from "@/app/map/[id]/context/MapContext";
+import { createNewViewConfig } from "@/app/map/[id]/context/MapContext";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { MapType, type MapViewConfig } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
+import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
 import { getNewLastPosition } from "../utils";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
+import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
 
 export function useMapViews() {
-  const { viewId, mapId, setViewId, setDirtyViewIds } = use(MapContext);
+  const viewId = useViewId();
+  const mapId = useMapId();
+  const setViewId = useSetViewId();
+  const setDirtyViewIds = useSetDirtyViewIds();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
@@ -273,4 +276,47 @@ export function useMapViews() {
     updateView,
     deleteView,
   };
+}
+
+/**
+ * Hook for managing map view state
+ * Includes currently selected viewId and dirty tracking for unsaved changes
+ */
+export function useMapViewState() {
+  const viewId = useAtomValue(viewIdAtom);
+  const setViewId = useSetAtom(viewIdAtom);
+  const dirtyViewIds = useAtomValue(dirtyViewIdsAtom);
+  const setDirtyViewIds = useSetAtom(dirtyViewIdsAtom);
+
+  return {
+    viewId,
+    setViewId,
+    dirtyViewIds,
+    setDirtyViewIds,
+  };
+}
+
+// Individual hooks for granular access
+export function useViewId() {
+  return useAtomValue(viewIdAtom);
+}
+
+export function useViewIdAtom() {
+  return useAtom(viewIdAtom);
+}
+
+export function useSetViewId() {
+  return useSetAtom(viewIdAtom);
+}
+
+export function useDirtyViewIds() {
+  return useAtomValue(dirtyViewIdsAtom);
+}
+
+export function useDirtyViewIdsAtom() {
+  return useAtom(dirtyViewIdsAtom);
+}
+
+export function useSetDirtyViewIds() {
+  return useSetAtom(dirtyViewIdsAtom);
 }

@@ -1,38 +1,20 @@
-"use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import {
-  MapContext,
-  createNewViewConfig,
-} from "@/app/map/[id]/context/MapContext";
-import { DEFAULT_ZOOM } from "@/constants";
+import { createNewViewConfig } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
-import { useMapQuery } from "../hooks/useMapQuery";
 import { getNewLastPosition } from "../utils";
-import "mapbox-gl/dist/mapbox-gl.css";
-import type { ReactNode } from "react";
-import type { MapRef } from "react-map-gl/mapbox";
+import { useMapId } from "./useMapCore";
+import { useMapQuery } from "./useMapQuery";
+import { useViewIdAtom } from "./useMapViews";
 
-export default function MapProvider({
-  children,
-  mapId,
-  viewId: initialViewId,
-}: {
-  children: ReactNode;
-  mapId: string;
-  viewId?: string;
-}) {
-  /* Map Ref */
-  const mapRef = useRef<MapRef>(null);
-
-  /* Map State */
-  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
-  const [pinDropMode, setPinDropMode] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [viewId, setViewId] = useState<string | null>(initialViewId || null);
-  const [dirtyViewIds, setDirtyViewIds] = useState<string[]>([]);
+/**
+ * Hook to initialize the map view.
+ * Creates a default view if none exist and ensures a view is selected.
+ */
+export function useInitialMapViewEffect() {
+  const mapId = useMapId();
+  const [viewId, setViewId] = useViewIdAtom();
 
   /* Server Data */
   const mapQuery = useMapQuery(mapId);
@@ -51,12 +33,13 @@ export default function MapProvider({
     // Only initialize views once when data first loads (otherwise the selected view can change)
     if (viewsInitialized.current) return;
     if (!mapData?.views) return;
+    if (!mapId) return;
 
     viewsInitialized.current = true;
 
     if (mapData?.views && mapData.views.length > 0) {
       const nextView =
-        mapData.views.find((v) => v.id === initialViewId) || mapData.views[0];
+        mapData.views.find((v) => v.id === viewId) || mapData.views[0];
       setViewId(nextView.id);
     } else {
       const newView = {
@@ -77,32 +60,12 @@ export default function MapProvider({
       createDefaultViewMutate({ mapId, views: [newView] });
     }
   }, [
-    initialViewId,
+    viewId,
     mapData?.views,
     mapId,
     queryClient,
     trpc.map.byId,
     createDefaultViewMutate,
+    setViewId,
   ]);
-
-  return (
-    <MapContext
-      value={{
-        mapId,
-        mapRef,
-        viewId,
-        setViewId,
-        dirtyViewIds,
-        setDirtyViewIds,
-        zoom,
-        setZoom,
-        pinDropMode,
-        setPinDropMode,
-        showControls,
-        setShowControls,
-      }}
-    >
-      {children}
-    </MapContext>
-  );
 }

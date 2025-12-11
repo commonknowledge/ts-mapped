@@ -1,11 +1,10 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import * as turf from "@turf/turf";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
 import {
-  MapContext,
   getDataSourceIds,
   getMapStyle,
 } from "@/app/map/[id]/context/MapContext";
@@ -17,8 +16,14 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
-import { getClickedPolygonFeature, useMapClick } from "../hooks/useMapClick";
-import { useMapHover } from "../hooks/useMapHover";
+import { useSetZoom } from "../hooks/useMapCamera";
+import {
+  getClickedPolygonFeature,
+  useMapClickEffect,
+} from "../hooks/useMapClick";
+import { usePinDropMode, useShowControls } from "../hooks/useMapControls";
+import { useMapRef } from "../hooks/useMapCore";
+import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations, useTurfState } from "../hooks/useTurfs";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
@@ -40,7 +45,10 @@ export default function Map({
   hideDrawControls?: boolean;
 }) {
   const isMobile = useIsMobile();
-  const { mapRef, setZoom, pinDropMode, showControls } = useContext(MapContext);
+  const mapRef = useMapRef();
+  const setZoom = useSetZoom();
+  const pinDropMode = usePinDropMode();
+  const showControls = useShowControls();
   const { setBoundingBox } = useMapBounds();
   const [ready, setReady] = useState(false);
   const { viewConfig } = useMapViews();
@@ -69,8 +77,8 @@ export default function Map({
     [mapConfig],
   );
 
-  useMapClick({ markerLayers, draw, currentMode, ready });
-  useMapHover({ markerLayers, draw, ready });
+  useMapClickEffect({ markerLayers, draw, currentMode, ready });
+  useMapHoverEffect({ markerLayers, draw, ready });
 
   // draw existing turfs
   useEffect(() => {
