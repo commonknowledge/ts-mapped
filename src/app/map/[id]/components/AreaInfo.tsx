@@ -1,4 +1,5 @@
 import { useAtom } from "jotai";
+import { XIcon } from "lucide-react";
 
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType } from "@/server/models/MapView";
@@ -52,7 +53,7 @@ const getDisplayValue = (
 
 export default function AreaInfo() {
   const [hoverArea] = useHoverArea();
-  const [selectedAreas] = useAtom(selectedAreasAtom);
+  const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
@@ -71,6 +72,7 @@ export default function AreaInfo() {
       code: selectedArea.code,
       name: selectedArea.name,
       areaSetCode: selectedArea.areaSetCode,
+      coordinates: selectedArea.coordinates,
       isSelected: true,
     });
   }
@@ -86,6 +88,7 @@ export default function AreaInfo() {
         code: hoverArea.code,
         name: hoverArea.name,
         areaSetCode: hoverArea.areaSetCode,
+        coordinates: hoverArea.coordinates,
         isSelected: false,
       });
     }
@@ -101,7 +104,19 @@ export default function AreaInfo() {
       : viewConfig.areaDataColumn;
 
   return (
-    <div className="bg-white rounded shadow-lg p-0  overflow-hidden">
+    <div className="bg-white rounded shadow-lg py-2 pr-8 relative pointer-events-auto">
+      {selectedAreas.length > 0 && (
+        <button
+          className="absolute top-3 right-3 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
+          aria-label="Clear selected areas"
+          onClick={() => setSelectedAreas([])}
+        >
+          <XIcon
+            size={16}
+            className="text-neutral-600 hover:text-neutral-900"
+          />
+        </button>
+      )}
       <Table
         className="border-none"
         style={{ tableLayout: "fixed", width: "100%" }}
@@ -142,12 +157,37 @@ export default function AreaInfo() {
             return (
               <TableRow
                 key={`${area.areaSetCode}-${area.code}`}
-                className="border-none font-medium hover:bg-neutral-50"
+                className="border-none font-medium hover:bg-neutral-50 cursor-pointer"
                 style={
                   area.isSelected
                     ? { borderLeft: "4px solid var(--brandGreen)" }
                     : undefined
                 }
+                onClick={() => {
+                  if (area.isSelected) {
+                    // Remove from selected areas
+                    setSelectedAreas(
+                      selectedAreas.filter(
+                        (a) =>
+                          !(
+                            a.code === area.code &&
+                            a.areaSetCode === area.areaSetCode
+                          ),
+                      ),
+                    );
+                  } else {
+                    // Add to selected areas
+                    setSelectedAreas([
+                      ...selectedAreas,
+                      {
+                        code: area.code,
+                        name: area.name,
+                        areaSetCode: area.areaSetCode,
+                        coordinates: area.coordinates,
+                      },
+                    ]);
+                  }
+                }}
               >
                 <TableCell className="py-2 px-3 w-3/12 truncate h-8">
                   {area.name}
