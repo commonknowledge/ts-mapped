@@ -104,10 +104,10 @@ export default function AreaInfo() {
       : viewConfig.areaDataColumn;
 
   return (
-    <div className="bg-white rounded shadow-lg py-2 pr-8 relative pointer-events-auto">
+    <div className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto">
       {selectedAreas.length > 0 && (
         <button
-          className="absolute top-3 right-3 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
+          className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
           aria-label="Clear selected areas"
           onClick={() => setSelectedAreas([])}
         >
@@ -121,17 +121,19 @@ export default function AreaInfo() {
         className="border-none"
         style={{ tableLayout: "fixed", width: "100%" }}
       >
-        <TableHeader className="">
-          <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-            <TableHead className="py-2 px-3  text-left w-3/12 h-8" />
-            <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
-              {statLabel}
-            </TableHead>
-            <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
-              {viewConfig.areaDataSecondaryColumn || "Secondary"}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+        {areasToDisplay.length > 1 && (
+          <TableHeader className="">
+            <TableRow className="border-none hover:bg-transparent uppercase font-mono">
+              <TableHead className="py-2 px-3  text-left w-3/12 h-8" />
+              <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
+                {statLabel}
+              </TableHead>
+              <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
+                {viewConfig.areaDataSecondaryColumn || "Secondary"}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+        )}
         <TableBody>
           {areasToDisplay.map((area) => {
             const areaStat =
@@ -153,6 +155,8 @@ export default function AreaInfo() {
                   areaStat.secondary,
                 )
               : "-";
+
+            const isSingleRow = areasToDisplay.length === 1;
 
             return (
               <TableRow
@@ -193,10 +197,28 @@ export default function AreaInfo() {
                   {area.name}
                 </TableCell>
                 <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
-                  {primaryValue}
+                  {isSingleRow ? (
+                    <div className="flex flex-row justify-center items-center">
+                      <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                        {statLabel}:
+                      </span>
+                      <span>{primaryValue}</span>
+                    </div>
+                  ) : (
+                    primaryValue
+                  )}
                 </TableCell>
                 <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
-                  {secondaryValue}
+                  {isSingleRow ? (
+                    <div className="flex flex-row justify-center items-center">
+                      <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                        {viewConfig.areaDataSecondaryColumn || "Secondary"}:
+                      </span>
+                      <span>{secondaryValue}</span>
+                    </div>
+                  ) : (
+                    secondaryValue
+                  )}
                 </TableCell>
               </TableRow>
             );
