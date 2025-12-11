@@ -4,14 +4,19 @@ import { mapIdAtom, mapRefAtom } from "../atoms/mapStateAtoms";
 /**
  * Hook for accessing core map instance references
  * Includes mapId and mapRef (the Mapbox GL instance)
+ * Note: Setters are provided for consistency but typically only used during initialization
  */
 export function useMapCore() {
   const mapId = useAtomValue(mapIdAtom);
+  const setMapId = useSetAtom(mapIdAtom);
   const mapRef = useAtomValue(mapRefAtom);
+  const setMapRef = useSetAtom(mapRefAtom);
 
   return {
     mapId,
+    setMapId,
     mapRef,
+    setMapRef,
   };
 }
 

@@ -3,7 +3,7 @@ import { zoomAtom } from "../atoms/mapStateAtoms";
 
 /**
  * Hook for managing map camera states
- * Currently includes zoom level, can be extended with bounds in the future
+ * Currently includes zoom level
  */
 export function useMapCamera() {
   const zoom = useAtomValue(zoomAtom);
