@@ -13,7 +13,7 @@ export default function MapMarkerAndAreaControls() {
 
   return (
     <div className="flex gap-1 p-1 rounded-xl shadow-sm bg-white ">
-      <Tooltip>
+      <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
             className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted text-primary cursor-pointer"
@@ -24,7 +24,7 @@ export default function MapMarkerAndAreaControls() {
         </TooltipTrigger>
         <TooltipContent>Add marker</TooltipContent>
       </Tooltip>
-      <Tooltip>
+      <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
             className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted text-primary cursor-pointer"
@@ -36,7 +36,7 @@ export default function MapMarkerAndAreaControls() {
         <TooltipContent>Add area</TooltipContent>
       </Tooltip>
       <div className="w-px bg-neutral-200" />
-      <Tooltip>
+      <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
             className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${

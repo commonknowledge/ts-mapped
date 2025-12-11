@@ -84,16 +84,14 @@ export function useMapHoverEffect({
       if (handleHoverArea(e)) {
         return;
       }
+
+      // Clear area hover if mouse is not over any feature
+      clearAreaHover();
     };
 
     const onMouseLeave = () => {
-      if (hoveredFeatureId !== undefined) {
-        map.setFeatureState(
-          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-          { hover: false },
-        );
-        hoveredFeatureId = undefined;
-      }
+      clearAreaHover();
+      setHoverMarker(null);
       map.getCanvas().style.cursor = prevPointer.cursor;
     };
 
@@ -206,7 +204,7 @@ export function useMapHoverEffect({
     };
 
     map.on("mousemove", onMouseMove);
-    map.on("mouseleave", onMouseLeave);
+    map.on("mouseout", onMouseLeave);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
@@ -224,7 +222,7 @@ export function useMapHoverEffect({
       }
 
       map.off("mousemove", onMouseMove);
-      map.off("mouseleave", onMouseLeave);
+      map.off("mouseout", onMouseLeave);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
@@ -239,6 +237,8 @@ export function useMapHoverEffect({
     setHoverArea,
     featureNameProperty,
     areaSetCode,
+    compareAreasMode,
+    setCompareAreasMode,
   ]);
 }
 
