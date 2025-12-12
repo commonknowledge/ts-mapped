@@ -247,13 +247,13 @@ export default function AreaInfo() {
             style={{ tableLayout: "fixed", width: "100%" }}
           >
             {multipleAreas && (
-              <TableHeader className="">
+              <TableHeader>
                 <TableRow className="border-none hover:bg-transparent uppercase font-mono">
                   <TableHead className="py-2 px-3 text-left w-3/12 h-8" />
-                  <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
+                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-[37.5%] h-8">
                     {statLabel}
                   </TableHead>
-                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
+                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-[37.5%] h-8">
                     {viewConfig.areaDataSecondaryColumn || "Secondary"}
                   </TableHead>
                 </TableRow>
@@ -281,6 +281,32 @@ export default function AreaInfo() {
                     )
                   : "-";
 
+                const handleToggleSelection = () => {
+                  if (area.isSelected) {
+                    // Remove from selected areas
+                    setSelectedAreas(
+                      selectedAreas.filter(
+                        (a) =>
+                          !(
+                            a.code === area.code &&
+                            a.areaSetCode === area.areaSetCode
+                          ),
+                      ),
+                    );
+                  } else {
+                    // Add to selected areas
+                    setSelectedAreas([
+                      ...selectedAreas,
+                      {
+                        code: area.code,
+                        name: area.name,
+                        areaSetCode: area.areaSetCode,
+                        coordinates: area.coordinates,
+                      },
+                    ]);
+                  }
+                };
+
                 return (
                   <TableRow
                     key={`${area.areaSetCode}-${area.code}`}
@@ -294,6 +320,13 @@ export default function AreaInfo() {
                         ? { borderLeft: "4px solid var(--brandGreen)" }
                         : undefined
                     }
+                    tabIndex={area.isSelected ? 0 : -1}
+                    role={area.isSelected ? "button" : undefined}
+                    aria-label={
+                      area.isSelected
+                        ? `Remove ${area.name} from selection`
+                        : undefined
+                    }
                     onMouseEnter={() => {
                       if (!area.isSelected) {
                         setHoveredRowArea(area);
@@ -302,29 +335,14 @@ export default function AreaInfo() {
                     onMouseLeave={() => {
                       setHoveredRowArea(null);
                     }}
-                    onClick={() => {
-                      if (area.isSelected) {
-                        // Remove from selected areas
-                        setSelectedAreas(
-                          selectedAreas.filter(
-                            (a) =>
-                              !(
-                                a.code === area.code &&
-                                a.areaSetCode === area.areaSetCode
-                              ),
-                          ),
-                        );
-                      } else {
-                        // Add to selected areas
-                        setSelectedAreas([
-                          ...selectedAreas,
-                          {
-                            code: area.code,
-                            name: area.name,
-                            areaSetCode: area.areaSetCode,
-                            coordinates: area.coordinates,
-                          },
-                        ]);
+                    onClick={area.isSelected ? handleToggleSelection : undefined}
+                    onKeyDown={(e) => {
+                      if (
+                        area.isSelected &&
+                        (e.key === "Enter" || e.key === " ")
+                      ) {
+                        e.preventDefault();
+                        handleToggleSelection();
                       }
                     }}
                   >
@@ -337,7 +355,7 @@ export default function AreaInfo() {
                         <span className="truncate">{area.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
+                    <TableCell className="py-2 px-3 w-[37.5%] whitespace-normal h-8">
                       {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
@@ -349,7 +367,7 @@ export default function AreaInfo() {
                         primaryValue
                       )}
                     </TableCell>
-                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
+                    <TableCell className="py-2 px-3 w-[37.5%] whitespace-normal h-8">
                       {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">

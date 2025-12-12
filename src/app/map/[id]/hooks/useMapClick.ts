@@ -50,6 +50,7 @@ export function useMapClickEffect({
 
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
+  const prevSelectedAreasRef = useRef<typeof selectedAreas>([]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -63,8 +64,33 @@ export function useMapClickEffect({
     }
 
     const map = mapRef.current;
+    const prevSelectedAreas = prevSelectedAreasRef.current;
 
-    // Set selected state for all selected areas
+    // Find areas that were removed from selection
+    const removedAreas = prevSelectedAreas.filter(
+      (prevArea) =>
+        !selectedAreas.some(
+          (area) =>
+            area.code === prevArea.code &&
+            area.areaSetCode === prevArea.areaSetCode,
+        ),
+    );
+
+    // Remove selected state from removed areas
+    removedAreas.forEach((area) => {
+      if (area.areaSetCode === areaSetCode) {
+        try {
+          map.setFeatureState(
+            { source: sourceId, sourceLayer: layerId, id: area.code },
+            { selected: false },
+          );
+        } catch {
+          // Ignore errors
+        }
+      }
+    });
+
+    // Set selected state for all currently selected areas
     selectedAreas.forEach((area) => {
       if (area.areaSetCode === areaSetCode) {
         try {
@@ -78,20 +104,13 @@ export function useMapClickEffect({
       }
     });
 
-    // Clean up: remove selected state from areas no longer selected
+    // Update previous selected areas for next comparison
+    prevSelectedAreasRef.current = selectedAreas;
+
+    // Clean up: only remove selected state on unmount
     return () => {
-      selectedAreas.forEach((area) => {
-        if (area.areaSetCode === areaSetCode) {
-          try {
-            map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: area.code },
-              { selected: false },
-            );
-          } catch {
-            // Ignore errors
-          }
-        }
-      });
+      // Only clear if this is actually unmounting (selectedAreas ref will be stale)
+      // On re-renders, the effect will handle adding/removing as needed above
     };
   }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
 
