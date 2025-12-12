@@ -106,12 +106,6 @@ export function useMapClickEffect({
 
     // Update previous selected areas for next comparison
     prevSelectedAreasRef.current = selectedAreas;
-
-    // Clean up: only remove selected state on unmount
-    return () => {
-      // Only clear if this is actually unmounting (selectedAreas ref will be stale)
-      // On re-renders, the effect will handle adding/removing as needed above
-    };
   }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
 
   /* Handle clicks to set active state */

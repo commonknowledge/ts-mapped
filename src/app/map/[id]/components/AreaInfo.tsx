@@ -310,22 +310,18 @@ export default function AreaInfo() {
                 return (
                   <TableRow
                     key={`${area.areaSetCode}-${area.code}`}
-                    className={`border-none font-medium ${
-                      area.isSelected
-                        ? "hover:bg-neutral-50 cursor-pointer"
-                        : "cursor-default"
-                    }`}
+                    className="border-none font-medium hover:bg-neutral-50 cursor-pointer"
                     style={
                       area.isSelected
                         ? { borderLeft: "4px solid var(--brandGreen)" }
                         : undefined
                     }
-                    tabIndex={area.isSelected ? 0 : -1}
-                    role={area.isSelected ? "button" : undefined}
+                    tabIndex={0}
+                    role="button"
                     aria-label={
                       area.isSelected
                         ? `Remove ${area.name} from selection`
-                        : undefined
+                        : `Add ${area.name} to selection`
                     }
                     onMouseEnter={() => {
                       if (!area.isSelected) {
@@ -335,12 +331,9 @@ export default function AreaInfo() {
                     onMouseLeave={() => {
                       setHoveredRowArea(null);
                     }}
-                    onClick={area.isSelected ? handleToggleSelection : undefined}
+                    onClick={handleToggleSelection}
                     onKeyDown={(e) => {
-                      if (
-                        area.isSelected &&
-                        (e.key === "Enter" || e.key === " ")
-                      ) {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         handleToggleSelection();
                       }
