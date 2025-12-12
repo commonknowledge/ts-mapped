@@ -50,6 +50,7 @@ export function useMapClickEffect({
 
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
+  const prevSelectedAreasRef = useRef([]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -63,8 +64,36 @@ export function useMapClickEffect({
     }
 
     const map = mapRef.current;
+    const prevSelectedAreas = prevSelectedAreasRef.current;
 
-    // Set selected state for all selected areas
+    // Update previous selected areas before processing to ensure it's always set
+    prevSelectedAreasRef.current = selectedAreas;
+
+    // Find areas that were removed from selection
+    const removedAreas = prevSelectedAreas.filter(
+      (prevArea) =>
+        !selectedAreas.some(
+          (area) =>
+            area.code === prevArea.code &&
+            area.areaSetCode === prevArea.areaSetCode,
+        ),
+    );
+
+    // Remove selected state from removed areas
+    removedAreas.forEach((area) => {
+      if (area.areaSetCode === areaSetCode) {
+        try {
+          map.setFeatureState(
+            { source: sourceId, sourceLayer: layerId, id: area.code },
+            { selected: false },
+          );
+        } catch {
+          // Ignore errors
+        }
+      }
+    });
+
+    // Set selected state for all currently selected areas
     selectedAreas.forEach((area) => {
       if (area.areaSetCode === areaSetCode) {
         try {
@@ -77,22 +106,6 @@ export function useMapClickEffect({
         }
       }
     });
-
-    // Clean up: remove selected state from areas no longer selected
-    return () => {
-      selectedAreas.forEach((area) => {
-        if (area.areaSetCode === areaSetCode) {
-          try {
-            map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: area.code },
-              { selected: false },
-            );
-          } catch {
-            // Ignore errors
-          }
-        }
-      });
-    };
   }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
 
   /* Handle clicks to set active state */
