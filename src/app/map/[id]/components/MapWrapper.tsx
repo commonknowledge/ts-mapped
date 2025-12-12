@@ -41,10 +41,8 @@ export default function MapWrapper({
       setIndicatorColor(mapColors.markers.color);
       setMessage("Click on the map to drop a pin.");
     } else if (compareAreasMode) {
-      setIndicatorColor("#10b981"); // green-500
-      setMessage(
-        "Compare mode active. Click areas to select/deselect. Release 'C' to exit.",
-      );
+      setIndicatorColor(mapColors.geography.color); // green-500
+      setMessage("Compare mode active. Click geographies to select/deselect.");
     } else {
       setIndicatorColor("");
       setMessage("");
@@ -105,21 +103,24 @@ export default function MapWrapper({
               <MapMarkerAndAreaControls />
             </div>
           )}
-          {indicatorColor && (
-            <div
-              className="absolute top-0 left-0 w-full h-1"
-              style={{ background: indicatorColor }}
-            />
-          )}
 
           {message && (
             <div
-              className="absolute top-4 left-1/2 z-10 transition-transform duration-300"
-              style={absolutelyCenter}
+              className="absolute left-1/2 z-10 transition-transform duration-300"
+              style={{
+                ...absolutelyCenter,
+                bottom: viewConfig.mapType !== MapType.Hex ? "90px" : "32px",
+              }}
             >
-              <p className="px-3 py-2 rounded shadow-md bg-white text-xs">
-                {message}
-              </p>
+              <div className="flex items-center gap-2 px-3 py-3 rounded shadow-md bg-white">
+                {indicatorColor && (
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ background: indicatorColor }}
+                  />
+                )}
+                <p className="text-xs">{message}</p>
+              </div>
             </div>
           )}
         </>

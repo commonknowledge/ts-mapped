@@ -3,6 +3,7 @@ import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MapType } from "@/server/models/MapView";
+import { mapColors } from "../../styles";
 import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
 
 export default function Choropleth() {
@@ -115,7 +116,7 @@ export default function Choropleth() {
                   ["==", ["feature-state", "selected"], true],
                   ["!=", ["feature-state", "active"], true],
                 ],
-                "#30a46c",
+                mapColors.geography.color,
                 "rgba(0, 0, 0, 0)",
               ],
               "line-width": [
@@ -250,7 +251,7 @@ export default function Choropleth() {
                   ["==", ["feature-state", "active"], true],
                   ["==", ["feature-state", "selected"], true],
                 ],
-                "#30a46c",
+                mapColors.geography.color,
                 "rgba(0, 0, 0, 0)",
               ],
               "line-width": [

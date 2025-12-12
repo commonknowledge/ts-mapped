@@ -16,7 +16,6 @@ import {
 } from "@/shadcn/ui/table";
 import { formatNumber } from "@/utils/text";
 
-import { compareAreasAtom } from "../atoms/mapStateAtoms";
 import { selectedAreasAtom } from "../atoms/selectedAreasAtom";
 import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
@@ -80,7 +79,6 @@ export default function AreaInfo() {
     coordinates: [number, number];
   } | null>(null);
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
-  const compareAreasMode = useAtom(compareAreasAtom)[0];
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
@@ -156,25 +154,6 @@ export default function AreaInfo() {
     }
   }
 
-  // Show empty state if compare mode is on but no areas to display
-  if (compareAreasMode && areasToDisplay.length === 0) {
-    return (
-      <AnimatePresence mode="wait">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15, type: "tween" }}
-          className="bg-white rounded shadow-lg p-4 relative pointer-events-auto"
-        >
-          <p className="text-sm text-muted-foreground">
-            Click on areas to compare their data
-          </p>
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
   const statLabel =
     areaStats.calculationType === CalculationType.Count
       ? `${choroplethDataSource?.name || "Unknown"} count`
@@ -247,13 +226,13 @@ export default function AreaInfo() {
             style={{ tableLayout: "fixed", width: "100%" }}
           >
             {multipleAreas && (
-              <TableHeader>
+              <TableHeader className="">
                 <TableRow className="border-none hover:bg-transparent uppercase font-mono">
                   <TableHead className="py-2 px-3 text-left w-3/12 h-8" />
-                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-[37.5%] h-8">
+                  <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
                     {statLabel}
                   </TableHead>
-                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-[37.5%] h-8">
+                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
                     {viewConfig.areaDataSecondaryColumn || "Secondary"}
                   </TableHead>
                 </TableRow>
@@ -281,47 +260,18 @@ export default function AreaInfo() {
                     )
                   : "-";
 
-                const handleToggleSelection = () => {
-                  if (area.isSelected) {
-                    // Remove from selected areas
-                    setSelectedAreas(
-                      selectedAreas.filter(
-                        (a) =>
-                          !(
-                            a.code === area.code &&
-                            a.areaSetCode === area.areaSetCode
-                          ),
-                      ),
-                    );
-                  } else {
-                    // Add to selected areas
-                    setSelectedAreas([
-                      ...selectedAreas,
-                      {
-                        code: area.code,
-                        name: area.name,
-                        areaSetCode: area.areaSetCode,
-                        coordinates: area.coordinates,
-                      },
-                    ]);
-                  }
-                };
-
                 return (
                   <TableRow
                     key={`${area.areaSetCode}-${area.code}`}
-                    className="border-none font-medium hover:bg-neutral-50 cursor-pointer"
+                    className={`border-none font-medium my-1 ${
+                      area.isSelected
+                        ? "hover:bg-neutral-50 cursor-pointer"
+                        : "cursor-default"
+                    }`}
                     style={
                       area.isSelected
                         ? { borderLeft: "4px solid var(--brandGreen)" }
                         : undefined
-                    }
-                    tabIndex={0}
-                    role="button"
-                    aria-label={
-                      area.isSelected
-                        ? `Remove ${area.name} from selection`
-                        : `Add ${area.name} to selection`
                     }
                     onMouseEnter={() => {
                       if (!area.isSelected) {
@@ -331,11 +281,29 @@ export default function AreaInfo() {
                     onMouseLeave={() => {
                       setHoveredRowArea(null);
                     }}
-                    onClick={handleToggleSelection}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.code === "Space") {
-                        e.preventDefault();
-                        handleToggleSelection();
+                    onClick={() => {
+                      if (area.isSelected) {
+                        // Remove from selected areas
+                        setSelectedAreas(
+                          selectedAreas.filter(
+                            (a) =>
+                              !(
+                                a.code === area.code &&
+                                a.areaSetCode === area.areaSetCode
+                              ),
+                          ),
+                        );
+                      } else {
+                        // Add to selected areas
+                        setSelectedAreas([
+                          ...selectedAreas,
+                          {
+                            code: area.code,
+                            name: area.name,
+                            areaSetCode: area.areaSetCode,
+                            coordinates: area.coordinates,
+                          },
+                        ]);
                       }
                     }}
                   >
@@ -348,7 +316,7 @@ export default function AreaInfo() {
                         <span className="truncate">{area.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-2 px-3 w-[37.5%] whitespace-normal h-8">
+                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
                       {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
@@ -360,7 +328,7 @@ export default function AreaInfo() {
                         primaryValue
                       )}
                     </TableCell>
-                    <TableCell className="py-2 px-3 w-[37.5%] whitespace-normal h-8">
+                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
                       {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">

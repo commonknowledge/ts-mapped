@@ -3,7 +3,10 @@ import { booleanPointInPolygon } from "@turf/turf";
 import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
 import { compareAreasAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
-import { selectedAreasAtom } from "@/app/map/[id]/atoms/selectedAreasAtom";
+import {
+  type SelectedArea,
+  selectedAreasAtom,
+} from "@/app/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { usePinDropMode } from "./useMapControls";
@@ -50,7 +53,7 @@ export function useMapClickEffect({
 
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
-  const prevSelectedAreasRef = useRef([]);
+  const prevSelectedAreasRef = useRef<SelectedArea[]>([]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
