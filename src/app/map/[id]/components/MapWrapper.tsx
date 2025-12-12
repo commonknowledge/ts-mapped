@@ -1,5 +1,7 @@
+import { useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
+import { compareAreasAtom } from "../atoms/mapStateAtoms";
 import { useInspector } from "../hooks/useInspector";
 import { useShowControls } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
@@ -24,6 +26,7 @@ export default function MapWrapper({
   const { viewConfig } = useMapViews();
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);
+  const compareAreasMode = useAtomValue(compareAreasAtom);
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
@@ -37,11 +40,16 @@ export default function MapWrapper({
     } else if (currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
       setMessage("Click on the map to drop a pin.");
+    } else if (compareAreasMode) {
+      setIndicatorColor("#10b981"); // green-500
+      setMessage(
+        "Compare mode active. Click areas to select/deselect. Release 'C' to exit.",
+      );
     } else {
       setIndicatorColor("");
       setMessage("");
     }
-  }, [currentMode]);
+  }, [currentMode, compareAreasMode]);
 
   const absolutelyCenter = {
     transform: showControls
