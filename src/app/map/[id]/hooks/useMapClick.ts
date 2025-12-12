@@ -50,7 +50,7 @@ export function useMapClickEffect({
 
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
-  const prevSelectedAreasRef = useRef<typeof selectedAreas>([]);
+  const prevSelectedAreasRef = useRef([]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -65,6 +65,9 @@ export function useMapClickEffect({
 
     const map = mapRef.current;
     const prevSelectedAreas = prevSelectedAreasRef.current;
+
+    // Update previous selected areas before processing to ensure it's always set
+    prevSelectedAreasRef.current = selectedAreas;
 
     // Find areas that were removed from selection
     const removedAreas = prevSelectedAreas.filter(
@@ -103,9 +106,6 @@ export function useMapClickEffect({
         }
       }
     });
-
-    // Update previous selected areas for next comparison
-    prevSelectedAreasRef.current = selectedAreas;
   }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
 
   /* Handle clicks to set active state */

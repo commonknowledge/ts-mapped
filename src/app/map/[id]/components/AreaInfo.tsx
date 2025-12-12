@@ -333,7 +333,7 @@ export default function AreaInfo() {
                     }}
                     onClick={handleToggleSelection}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                      if (e.key === "Enter" || e.code === "Space") {
                         e.preventDefault();
                         handleToggleSelection();
                       }
