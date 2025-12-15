@@ -1,9 +1,9 @@
 import { useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
-import { compareAreasAtom } from "../atoms/mapStateAtoms";
+import { compareGeographiesAtom } from "../atoms/mapStateAtoms";
 import { useInspector } from "../hooks/useInspector";
-import { useShowControls } from "../hooks/useMapControls";
+import { useMapControls, useShowControls } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import AreaInfo from "./AreaInfo";
@@ -26,28 +26,29 @@ export default function MapWrapper({
   const { viewConfig } = useMapViews();
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);
-  const compareAreasMode = useAtomValue(compareAreasAtom);
+  const compareGeographiesMode = useAtomValue(compareGeographiesAtom);
+  const { pinDropMode, editAreaMode } = useMapControls();
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
 
   useEffect(() => {
-    if (currentMode === "draw_polygon") {
+    if (editAreaMode || currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
         "You are in draw mode. Click to add points. Double click to finish drawing.",
       );
-    } else if (currentMode === "pin_drop") {
+    } else if (pinDropMode || currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
       setMessage("Click on the map to drop a pin.");
-    } else if (compareAreasMode) {
+    } else if (compareGeographiesMode) {
       setIndicatorColor(mapColors.geography.color); // green-500
       setMessage("Compare mode active. Click geographies to select/deselect.");
     } else {
       setIndicatorColor("");
       setMessage("");
     }
-  }, [currentMode, compareAreasMode]);
+  }, [currentMode, compareGeographiesMode, pinDropMode, editAreaMode]);
 
   const absolutelyCenter = {
     transform: showControls

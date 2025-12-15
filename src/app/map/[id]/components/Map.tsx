@@ -1,6 +1,7 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import * as turf from "@turf/turf";
+import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
@@ -16,6 +17,7 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
+import { drawAtom } from "../atoms/mapStateAtoms";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
@@ -24,7 +26,8 @@ import {
 import { usePinDropMode, useShowControls } from "../hooks/useMapControls";
 import { useMapRef } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
-import { useTurfMutations, useTurfState } from "../hooks/useTurfs";
+import { useTurfMutations } from "../hooks/useTurfMutations";
+import { useTurfState } from "../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
@@ -59,6 +62,7 @@ export default function Map({
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
+  const setDrawAtom = useSetAtom(drawAtom);
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
@@ -362,6 +366,7 @@ export default function Map({
               ],
             });
             setDraw(newDraw);
+            setDrawAtom(newDraw);
 
             const mapInstance = map.getMap();
             mapInstance.addControl(newDraw, "bottom-right");
@@ -468,6 +473,7 @@ export default function Map({
             mapRef.current.getMap().removeControl(draw);
           }
           setDraw(null);
+          setDrawAtom(null);
           setReady(false);
           setStyleLoaded(false);
         }}

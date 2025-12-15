@@ -2,7 +2,7 @@ import { point as turfPoint } from "@turf/helpers";
 import { booleanPointInPolygon } from "@turf/turf";
 import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
-import { compareAreasAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
+import { compareGeographiesAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
 import {
   type SelectedArea,
   selectedAreasAtom,
@@ -44,7 +44,7 @@ export function useMapClickEffect({
     setSelectedTurf,
   } = useInspector();
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
-  const compareAreasMode = useAtomValue(compareAreasAtom);
+  const compareGeographiesMode = useAtomValue(compareGeographiesAtom);
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
@@ -324,7 +324,7 @@ export function useMapClickEffect({
       }
 
       // Check if compare areas mode is active
-      if (compareAreasMode) {
+      if (compareGeographiesMode) {
         if (handleCtrlAreaClick(e)) {
           return;
         }
@@ -383,7 +383,7 @@ export function useMapClickEffect({
     ready,
     setSelectedRecords,
     setSelectedAreas,
-    compareAreasMode,
+    compareGeographiesMode,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)

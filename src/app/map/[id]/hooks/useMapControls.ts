@@ -1,19 +1,27 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { pinDropModeAtom, showControlsAtom } from "../atoms/mapStateAtoms";
+import {
+  editAreaModeAtom,
+  pinDropModeAtom,
+  showControlsAtom,
+} from "../atoms/mapStateAtoms";
 
 /**
  * Hook for managing map UI control states
- * Includes showControls (sidebar visibility) and pinDropMode (pin dropping interaction)
+ * Includes showControls (sidebar visibility), pinDropMode (pin dropping interaction),
+ * and editAreaMode (area editing interaction)
  */
 export function useMapControls() {
   const [showControls, setShowControls] = useAtom(showControlsAtom);
   const [pinDropMode, setPinDropMode] = useAtom(pinDropModeAtom);
+  const [editAreaMode, setEditAreaMode] = useAtom(editAreaModeAtom);
 
   return {
     showControls,
     setShowControls,
     pinDropMode,
     setPinDropMode,
+    editAreaMode,
+    setEditAreaMode,
   };
 }
 
@@ -40,4 +48,16 @@ export function usePinDropModeAtom() {
 
 export function useSetPinDropMode() {
   return useSetAtom(pinDropModeAtom);
+}
+
+export function useEditAreaMode() {
+  return useAtomValue(editAreaModeAtom);
+}
+
+export function useEditAreaModeAtom() {
+  return useAtom(editAreaModeAtom);
+}
+
+export function useSetEditAreaMode() {
+  return useSetAtom(editAreaModeAtom);
 }
