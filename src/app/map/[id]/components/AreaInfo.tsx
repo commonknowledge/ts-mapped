@@ -320,7 +320,9 @@ export default function AreaInfo() {
                       </div>
                     </TableCell>
                     {!multipleAreas && (
-                      <div className="w-px bg-neutral-200 h-9 mx-2" />
+                      <TableCell className="px-2 py-2 h-8">
+                        <div className="w-px bg-neutral-200 h-full" />
+                      </TableCell>
                     )}
                     <TableCell className="py-2 px-3 whitespace-normal h-8">
                       {!multipleAreas ? (
