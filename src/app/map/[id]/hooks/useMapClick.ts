@@ -66,7 +66,7 @@ export function useMapClickEffect({
     }
 
     const map = mapRef.current;
-    
+
     const applyFeatureStates = () => {
       // Check if the source and layer exist before trying to set feature states
       const source = map.getSource(sourceId);

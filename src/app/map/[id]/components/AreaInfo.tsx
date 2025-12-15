@@ -319,6 +319,9 @@ export default function AreaInfo() {
                         <span className="truncate">{area.name}</span>
                       </div>
                     </TableCell>
+                    {!multipleAreas && (
+                      <div className="w-px bg-neutral-200 h-9 mx-2" />
+                    )}
                     <TableCell className="py-2 px-3 whitespace-normal h-8">
                       {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
