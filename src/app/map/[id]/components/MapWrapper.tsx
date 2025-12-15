@@ -30,7 +30,13 @@ export default function MapWrapper({
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);
   const compareGeographiesMode = useCompareGeographiesMode();
-  const { pinDropMode, editAreaMode, setPinDropMode, setEditAreaMode, setCompareGeographiesMode } = useMapControls();
+  const {
+    pinDropMode,
+    editAreaMode,
+    setPinDropMode,
+    setEditAreaMode,
+    setCompareGeographiesMode,
+  } = useMapControls();
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
