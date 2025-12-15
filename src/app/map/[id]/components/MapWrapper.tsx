@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
 import { useInspector } from "../hooks/useInspector";
-import { useShowControls } from "../hooks/useMapControls";
+import {
+  useCompareGeographiesMode,
+  useMapControls,
+  useShowControls,
+} from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import AreaInfo from "./AreaInfo";
@@ -24,24 +28,29 @@ export default function MapWrapper({
   const { viewConfig } = useMapViews();
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);
+  const compareGeographiesMode = useCompareGeographiesMode();
+  const { pinDropMode, editAreaMode } = useMapControls();
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
 
   useEffect(() => {
-    if (currentMode === "draw_polygon") {
+    if (editAreaMode || currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
         "You are in draw mode. Click to add points. Double click to finish drawing.",
       );
-    } else if (currentMode === "pin_drop") {
+    } else if (pinDropMode || currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
       setMessage("Click on the map to drop a pin.");
+    } else if (compareGeographiesMode) {
+      setIndicatorColor(mapColors.geography.color); // green-500
+      setMessage("Compare mode active. Click geographies to select/deselect.");
     } else {
       setIndicatorColor("");
       setMessage("");
     }
-  }, [currentMode]);
+  }, [currentMode, compareGeographiesMode, pinDropMode, editAreaMode]);
 
   const absolutelyCenter = {
     transform: showControls
@@ -63,12 +72,11 @@ export default function MapWrapper({
         className="absolute top-5 z-10 transition-transform duration-300 hidden md:block"
         style={{
           left: "32px",
-          right: inspectorVisible ? "280px" : "32px",
           ...positionLeft,
-          width: showControls
-            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "248px" : "0px"})`
-            : `calc(100% - 64px - ${inspectorVisible ? "248px" : "0px"})`,
-          transition: "right 0.3s, width 0.3s",
+          maxWidth: showControls
+            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"})`
+            : `calc(100% - 64px - ${inspectorVisible ? "280px" : "32px"})`,
+          transition: "max-width 0.3s",
         }}
       >
         <AreaInfo />
@@ -97,21 +105,24 @@ export default function MapWrapper({
               <MapMarkerAndAreaControls />
             </div>
           )}
-          {indicatorColor && (
-            <div
-              className="absolute top-0 left-0 w-full h-1"
-              style={{ background: indicatorColor }}
-            />
-          )}
 
           {message && (
             <div
-              className="absolute top-4 left-1/2 z-10 transition-transform duration-300"
-              style={absolutelyCenter}
+              className="absolute left-1/2 z-10 transition-transform duration-300"
+              style={{
+                ...absolutelyCenter,
+                bottom: viewConfig.mapType !== MapType.Hex ? "90px" : "32px",
+              }}
             >
-              <p className="px-3 py-2 rounded shadow-md bg-white text-xs">
-                {message}
-              </p>
+              <div className="flex items-center gap-2 px-3 py-3 rounded shadow-md bg-white">
+                {indicatorColor && (
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ background: indicatorColor }}
+                  />
+                )}
+                <p className="text-xs">{message}</p>
+              </div>
             </div>
           )}
         </>

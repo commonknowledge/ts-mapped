@@ -1,12 +1,14 @@
 import { point as turfPoint } from "@turf/helpers";
 import { booleanPointInPolygon } from "@turf/turf";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
-import { compareAreasAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
-import { selectedAreasAtom } from "@/app/map/[id]/atoms/selectedAreasAtom";
+import {
+  type SelectedArea,
+  selectedAreasAtom,
+} from "@/app/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { usePinDropMode } from "./useMapControls";
+import { useCompareGeographiesMode, usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
@@ -41,7 +43,7 @@ export function useMapClickEffect({
     setSelectedTurf,
   } = useInspector();
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
-  const compareAreasMode = useAtomValue(compareAreasAtom);
+  const compareGeographiesMode = useCompareGeographiesMode();
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
@@ -50,6 +52,7 @@ export function useMapClickEffect({
 
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
+  const prevSelectedAreasRef = useRef<SelectedArea[]>([]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -63,8 +66,36 @@ export function useMapClickEffect({
     }
 
     const map = mapRef.current;
+    const prevSelectedAreas = prevSelectedAreasRef.current;
 
-    // Set selected state for all selected areas
+    // Update previous selected areas before processing to ensure it's always set
+    prevSelectedAreasRef.current = selectedAreas;
+
+    // Find areas that were removed from selection
+    const removedAreas = prevSelectedAreas.filter(
+      (prevArea) =>
+        !selectedAreas.some(
+          (area) =>
+            area.code === prevArea.code &&
+            area.areaSetCode === prevArea.areaSetCode,
+        ),
+    );
+
+    // Remove selected state from removed areas
+    removedAreas.forEach((area) => {
+      if (area.areaSetCode === areaSetCode) {
+        try {
+          map.setFeatureState(
+            { source: sourceId, sourceLayer: layerId, id: area.code },
+            { selected: false },
+          );
+        } catch {
+          // Ignore errors
+        }
+      }
+    });
+
+    // Set selected state for all currently selected areas
     selectedAreas.forEach((area) => {
       if (area.areaSetCode === areaSetCode) {
         try {
@@ -77,22 +108,6 @@ export function useMapClickEffect({
         }
       }
     });
-
-    // Clean up: remove selected state from areas no longer selected
-    return () => {
-      selectedAreas.forEach((area) => {
-        if (area.areaSetCode === areaSetCode) {
-          try {
-            map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: area.code },
-              { selected: false },
-            );
-          } catch {
-            // Ignore errors
-          }
-        }
-      });
-    };
   }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
 
   /* Handle clicks to set active state */
@@ -308,7 +323,7 @@ export function useMapClickEffect({
       }
 
       // Check if compare areas mode is active
-      if (compareAreasMode) {
+      if (compareGeographiesMode) {
         if (handleCtrlAreaClick(e)) {
           return;
         }
@@ -332,22 +347,8 @@ export function useMapClickEffect({
     map.on("click", onClick);
 
     return () => {
-      // Clean up active state on unmount
-      if (activeFeatureId.current !== undefined) {
-        try {
-          map?.setFeatureState(
-            {
-              source: sourceId,
-              sourceLayer: layerId,
-              id: activeFeatureId.current,
-            },
-            { active: false },
-          );
-        } catch {
-          // Ignore error clearing feature state
-        }
-      }
-
+      // Only clean up the event listener, not the active state
+      // The active state should persist across mode changes
       map.off("click", onClick);
     };
   }, [
@@ -367,7 +368,7 @@ export function useMapClickEffect({
     ready,
     setSelectedRecords,
     setSelectedAreas,
-    compareAreasMode,
+    compareGeographiesMode,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
