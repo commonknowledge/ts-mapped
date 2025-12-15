@@ -270,11 +270,10 @@ export const useHandleDropPin = () => {
         folderId: null,
       });
 
-      // Reset cursor
-      map.getCanvas().style.cursor = "";
       map.off("click", clickHandler);
       clickHandlerRef.current = null;
 
+      // Set pinDropMode to false; hover effect will reset cursor
       setPinDropMode(false);
 
       // Fly to the new marker

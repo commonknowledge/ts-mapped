@@ -3,7 +3,11 @@ import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
-import { useCompareGeographiesModeAtom } from "./useMapControls";
+import {
+  useCompareGeographiesModeAtom,
+  useEditAreaMode,
+  usePinDropMode,
+} from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
@@ -27,6 +31,8 @@ export function useMapHoverEffect({
   const [, setHoverMarker] = useHoverMarker();
   const [compareGeographiesMode, setCompareGeographiesMode] =
     useCompareGeographiesModeAtom();
+  const pinDropMode = usePinDropMode();
+  const editAreaMode = useEditAreaMode();
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
@@ -72,6 +78,14 @@ export function useMapHoverEffect({
     };
 
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      if (pinDropMode || editAreaMode) {
+        // In draw/pin modes, ignore hover effects and keep crosshair
+        map.getCanvas().style.cursor = "crosshair";
+        clearAreaHover();
+        setHoverMarker(null);
+        return;
+      }
+
       if (handleHoverMarker(e)) {
         clearAreaHover();
         return;
@@ -93,8 +107,17 @@ export function useMapHoverEffect({
     const onMouseLeave = () => {
       clearAreaHover();
       setHoverMarker(null);
-      map.getCanvas().style.cursor = prevPointer.cursor;
+      if (pinDropMode || editAreaMode) {
+        map.getCanvas().style.cursor = "crosshair";
+      } else {
+        map.getCanvas().style.cursor = prevPointer.cursor;
+      }
     };
+
+    // Reset cursor when exiting pin/edit modes
+    if (!(pinDropMode || editAreaMode)) {
+      map.getCanvas().style.cursor = prevPointer.cursor;
+    }
 
     const handleHoverMarker = (e: mapboxgl.MapMouseEvent): boolean => {
       const map = mapRef?.current;
@@ -242,6 +265,8 @@ export function useMapHoverEffect({
     areaSetCode,
     compareGeographiesMode,
     setCompareGeographiesMode,
+    pinDropMode,
+    editAreaMode,
   ]);
 }
 

@@ -8,10 +8,7 @@ import {
 } from "@/app/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import {
-  useCompareGeographiesMode,
-  usePinDropMode,
-} from "./useMapControls";
+import { useCompareGeographiesMode, usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
@@ -350,22 +347,8 @@ export function useMapClickEffect({
     map.on("click", onClick);
 
     return () => {
-      // Clean up active state on unmount
-      if (activeFeatureId.current !== undefined) {
-        try {
-          map?.setFeatureState(
-            {
-              source: sourceId,
-              sourceLayer: layerId,
-              id: activeFeatureId.current,
-            },
-            { active: false },
-          );
-        } catch {
-          // Ignore error clearing feature state
-        }
-      }
-
+      // Only clean up the event listener, not the active state
+      // The active state should persist across mode changes
       map.off("click", onClick);
     };
   }, [

@@ -17,11 +17,13 @@ export default function MapMarkerAndAreaControls() {
     toggleCompareGeographies,
   } = useMapControls();
 
-  const handlePinDropClick = () => {
+  const handlePinDropClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     togglePinDrop({ cancelDrawMode, handleDropPin });
   };
 
-  const handleAddAreaClick = () => {
+  const handleAddAreaClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     toggleAddArea({ cancelDrawMode, handleAddArea });
   };
 
@@ -66,7 +68,8 @@ export default function MapMarkerAndAreaControls() {
                 ? "bg-muted-foreground/30 text-primary"
                 : "text-primary hover:bg-muted"
             }`}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               toggleCompareGeographies({ cancelDrawMode });
             }}
           >
