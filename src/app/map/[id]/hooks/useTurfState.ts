@@ -44,10 +44,12 @@ export function useTurfState() {
     }
 
     if (draw) {
-      (draw.changeMode as (mode: string, opts?: object) => void)(
-        "simple_select",
-        { featureIds: [] },
-      );
+      try {
+        const changeMode = draw.changeMode as (mode: string) => void;
+        changeMode("simple_select");
+      } catch {
+        // Ignore errors when draw is not fully initialized
+      }
     }
 
     const drawButton = document.querySelector(
@@ -102,7 +104,12 @@ export function useTurfState() {
     if (draw) {
       // Use MapboxDraw's changeMode to exit draw_polygon mode
       // This should fire draw.modechange, but also set the state directly as a fallback
-      (draw.changeMode as (mode: string) => void)("simple_select");
+      try {
+        const changeMode = draw.changeMode as (mode: string) => void;
+        changeMode("simple_select");
+      } catch {
+        // Ignore errors when draw is not fully initialized
+      }
     }
 
     // Explicitly reset the edit mode flag in case the modechange event does not fire

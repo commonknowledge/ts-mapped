@@ -66,48 +66,74 @@ export function useMapClickEffect({
     }
 
     const map = mapRef.current;
-    const prevSelectedAreas = prevSelectedAreasRef.current;
-
-    // Update previous selected areas before processing to ensure it's always set
-    prevSelectedAreasRef.current = selectedAreas;
-
-    // Find areas that were removed from selection
-    const removedAreas = prevSelectedAreas.filter(
-      (prevArea) =>
-        !selectedAreas.some(
-          (area) =>
-            area.code === prevArea.code &&
-            area.areaSetCode === prevArea.areaSetCode,
-        ),
-    );
-
-    // Remove selected state from removed areas
-    removedAreas.forEach((area) => {
-      if (area.areaSetCode === areaSetCode) {
-        try {
-          map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: area.code },
-            { selected: false },
-          );
-        } catch {
-          // Ignore errors
-        }
+    
+    const applyFeatureStates = () => {
+      // Check if the source and layer exist before trying to set feature states
+      const source = map.getSource(sourceId);
+      if (!source || !map.getLayer(`${sourceId}-fill`)) {
+        // Layers not loaded yet, skip this update
+        return;
       }
-    });
 
-    // Set selected state for all currently selected areas
-    selectedAreas.forEach((area) => {
-      if (area.areaSetCode === areaSetCode) {
-        try {
-          map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: area.code },
-            { selected: true },
-          );
-        } catch {
-          // Ignore errors
+      const prevSelectedAreas = prevSelectedAreasRef.current;
+
+      // Update previous selected areas before processing to ensure it's always set
+      prevSelectedAreasRef.current = selectedAreas;
+
+      // Find areas that were removed from selection
+      const removedAreas = prevSelectedAreas.filter(
+        (prevArea) =>
+          !selectedAreas.some(
+            (area) =>
+              area.code === prevArea.code &&
+              area.areaSetCode === prevArea.areaSetCode,
+          ),
+      );
+
+      // Remove selected state from removed areas
+      removedAreas.forEach((area) => {
+        if (area.areaSetCode === areaSetCode) {
+          try {
+            map.setFeatureState(
+              { source: sourceId, sourceLayer: layerId, id: area.code },
+              { selected: false },
+            );
+          } catch {
+            // Ignore errors
+          }
         }
+      });
+
+      // Set selected state for all currently selected areas
+      selectedAreas.forEach((area) => {
+        if (area.areaSetCode === areaSetCode) {
+          try {
+            map.setFeatureState(
+              { source: sourceId, sourceLayer: layerId, id: area.code },
+              { selected: true },
+            );
+          } catch {
+            // Ignore errors
+          }
+        }
+      });
+    };
+
+    // Apply immediately if layers are ready
+    applyFeatureStates();
+
+    // Also listen for source data events to re-apply when layers are reloaded
+    const onSourceData = (e: mapboxgl.MapSourceDataEvent) => {
+      if (e.sourceId === sourceId && e.isSourceLoaded) {
+        applyFeatureStates();
       }
-    });
+    };
+
+    map.on("sourcedata", onSourceData);
+
+    return () => {
+      map.off("sourcedata", onSourceData);
+    };
   }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
 
   /* Handle clicks to set active state */
