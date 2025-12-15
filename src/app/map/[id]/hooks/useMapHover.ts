@@ -230,7 +230,7 @@ export function useMapHoverEffect({
     };
 
     map.on("mousemove", onMouseMove);
-    map.on("mouseout", onMouseLeave);
+    map.on("mouseleave", onMouseLeave);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
