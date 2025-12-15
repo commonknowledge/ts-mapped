@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import {
   compareGeographiesAtom,
   editAreaModeAtom,
@@ -76,6 +76,36 @@ export function useMapControls() {
     },
     [compareGeographiesMode, setCompareGeographiesMode, setPinDropMode],
   );
+
+  // Listen for escape key and cancel active modes
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        // Cancel any active mode
+        if (pinDropMode) {
+          setPinDropMode(false);
+        }
+        if (editAreaMode) {
+          setEditAreaMode(false);
+        }
+        if (compareGeographiesMode) {
+          setCompareGeographiesMode(false);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    pinDropMode,
+    editAreaMode,
+    compareGeographiesMode,
+    setPinDropMode,
+    setEditAreaMode,
+    setCompareGeographiesMode,
+  ]);
 
   return {
     showControls,
