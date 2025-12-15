@@ -1,3 +1,4 @@
+import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
 import { useInspector } from "../hooks/useInspector";
@@ -29,10 +30,22 @@ export default function MapWrapper({
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);
   const compareGeographiesMode = useCompareGeographiesMode();
-  const { pinDropMode, editAreaMode } = useMapControls();
+  const { pinDropMode, editAreaMode, setPinDropMode, setEditAreaMode, setCompareGeographiesMode } = useMapControls();
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
+
+  const handleCancelMode = () => {
+    if (pinDropMode) {
+      setPinDropMode(false);
+    }
+    if (editAreaMode) {
+      setEditAreaMode(false);
+    }
+    if (compareGeographiesMode) {
+      setCompareGeographiesMode(false);
+    }
+  };
 
   useEffect(() => {
     if (editAreaMode || currentMode === "draw_polygon") {
@@ -122,6 +135,13 @@ export default function MapWrapper({
                   />
                 )}
                 <p className="text-xs">{message}</p>
+                <button
+                  className="p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors flex-shrink-0"
+                  aria-label="Cancel mode"
+                  onClick={handleCancelMode}
+                >
+                  <XIcon size={14} className="text-neutral-600" />
+                </button>
               </div>
             </div>
           )}
