@@ -72,12 +72,11 @@ export default function MapWrapper({
         className="absolute top-5 z-10 transition-transform duration-300 hidden md:block"
         style={{
           left: "32px",
-          right: inspectorVisible ? "280px" : "32px",
           ...positionLeft,
-          width: showControls
-            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "248px" : "0px"})`
-            : `calc(100% - 64px - ${inspectorVisible ? "248px" : "0px"})`,
-          transition: "right 0.3s, width 0.3s",
+          maxWidth: showControls
+            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"})`
+            : `calc(100% - 64px - ${inspectorVisible ? "280px" : "32px"})`,
+          transition: "max-width 0.3s",
         }}
       >
         <AreaInfo />

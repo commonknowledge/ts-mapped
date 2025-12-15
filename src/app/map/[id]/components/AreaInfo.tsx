@@ -106,6 +106,7 @@ export default function AreaInfo() {
   // Combine selected areas and hover area, avoiding duplicates
   const areasToDisplay = [];
   const multipleAreas = selectedAreas.length > 1;
+  const hasSecondaryData = Boolean(viewConfig.areaDataSecondaryColumn);
 
   // Add all selected areas
   for (const selectedArea of selectedAreas) {
@@ -223,18 +224,20 @@ export default function AreaInfo() {
           )}
           <Table
             className="border-none"
-            style={{ tableLayout: "fixed", width: "100%" }}
+            style={{ tableLayout: "auto", width: "auto" }}
           >
             {multipleAreas && (
               <TableHeader className="">
                 <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-                  <TableHead className="py-2 px-3 text-left w-3/12 h-8" />
-                  <TableHead className="py-2 px-3 text-muted-foreground text-xs  text-left w-4.5/12 h-8">
+                  <TableHead className="py-2 px-3 text-left h-8" />
+                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8">
                     {statLabel}
                   </TableHead>
-                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left w-4.5/12 h-8">
-                    {viewConfig.areaDataSecondaryColumn || "Secondary"}
-                  </TableHead>
+                  {hasSecondaryData && (
+                    <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8">
+                      {viewConfig.areaDataSecondaryColumn}
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
             )}
@@ -307,7 +310,7 @@ export default function AreaInfo() {
                       }
                     }}
                   >
-                    <TableCell className="py-2 px-3 w-3/12 truncate h-8">
+                    <TableCell className="py-2 px-3 truncate h-8">
                       <div className="flex items-center gap-2">
                         <div
                           className="w-4 h-4 rounded flex-shrink-0"
@@ -316,7 +319,7 @@ export default function AreaInfo() {
                         <span className="truncate">{area.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
+                    <TableCell className="py-2 px-3 whitespace-normal h-8">
                       {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
@@ -328,18 +331,20 @@ export default function AreaInfo() {
                         primaryValue
                       )}
                     </TableCell>
-                    <TableCell className="py-2 px-3 w-4.5/12 whitespace-normal h-8">
-                      {!multipleAreas ? (
-                        <div className="flex flex-row justify-center items-center text-right">
-                          <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                            {viewConfig.areaDataSecondaryColumn || "Secondary"}:
-                          </span>
-                          <span>{secondaryValue}</span>
-                        </div>
-                      ) : (
-                        secondaryValue
-                      )}
-                    </TableCell>
+                    {hasSecondaryData && (
+                      <TableCell className="py-2 px-3 whitespace-normal h-8">
+                        {!multipleAreas ? (
+                          <div className="flex flex-row justify-center items-center text-right">
+                            <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                              {viewConfig.areaDataSecondaryColumn}:
+                            </span>
+                            <span>{secondaryValue}</span>
+                          </div>
+                        ) : (
+                          secondaryValue
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
