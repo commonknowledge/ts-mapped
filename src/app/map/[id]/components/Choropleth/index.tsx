@@ -293,7 +293,7 @@ export default function Choropleth() {
 
           {/* Active + Selected outer outline (blue offset outside with dashes) */}
           <Layer
-            id={`${sourceId}-active-selected-outline-blue`}
+            id={`${sourceId}-active-selected-outline-blue-outer`}
             beforeId={`${choroplethTopLayerId}-line`}
             source={sourceId}
             source-layer={layerId}
