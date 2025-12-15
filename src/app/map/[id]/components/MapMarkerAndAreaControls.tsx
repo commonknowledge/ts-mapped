@@ -10,36 +10,19 @@ export default function MapMarkerAndAreaControls() {
   const { handleAddArea, cancelDrawMode } = useTurfState();
   const {
     pinDropMode,
-    setPinDropMode,
     editAreaMode,
     compareGeographiesMode,
-    setCompareGeographiesMode,
+    togglePinDrop,
+    toggleAddArea,
+    toggleCompareGeographies,
   } = useMapControls();
 
   const handlePinDropClick = () => {
-    if (pinDropMode) {
-      // If already in pin drop mode, cancel it
-      setPinDropMode(false);
-    } else {
-      // Disable other modes first
-      cancelDrawMode();
-      setCompareGeographiesMode(false);
-      // Then activate pin drop
-      handleDropPin();
-    }
+    togglePinDrop({ cancelDrawMode, handleDropPin });
   };
 
   const handleAddAreaClick = () => {
-    if (editAreaMode) {
-      // If already in edit area mode, cancel it
-      cancelDrawMode();
-    } else {
-      // Disable other modes first
-      setPinDropMode(false);
-      setCompareGeographiesMode(false);
-      // Then activate area drawing
-      handleAddArea();
-    }
+    toggleAddArea({ cancelDrawMode, handleAddArea });
   };
 
   return (
@@ -84,12 +67,7 @@ export default function MapMarkerAndAreaControls() {
                 : "text-primary hover:bg-muted"
             }`}
             onClick={() => {
-              if (!compareGeographiesMode) {
-                // Disable other modes first
-                setPinDropMode(false);
-                cancelDrawMode();
-              }
-              setCompareGeographiesMode(!compareGeographiesMode);
+              toggleCompareGeographies({ cancelDrawMode });
             }}
           >
             <ChartBar size={20} />

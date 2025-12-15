@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useCallback } from "react";
 import {
   compareGeographiesAtom,
   editAreaModeAtom,
@@ -19,6 +20,59 @@ export function useMapControls() {
     compareGeographiesAtom,
   );
 
+  const togglePinDrop = useCallback(
+    ({
+      cancelDrawMode,
+      handleDropPin,
+    }: {
+      cancelDrawMode: () => void;
+      handleDropPin: () => void;
+    }) => {
+      if (pinDropMode) {
+        setPinDropMode(false);
+        return;
+      }
+
+      // Turn off other modes first, then activate pin drop
+      cancelDrawMode();
+      setCompareGeographiesMode(false);
+      handleDropPin();
+    },
+    [pinDropMode, setPinDropMode, setCompareGeographiesMode],
+  );
+
+  const toggleAddArea = useCallback(
+    ({
+      cancelDrawMode,
+      handleAddArea,
+    }: {
+      cancelDrawMode: () => void;
+      handleAddArea: () => void;
+    }) => {
+      if (editAreaMode) {
+        cancelDrawMode();
+        return;
+      }
+
+      setPinDropMode(false);
+      setCompareGeographiesMode(false);
+      handleAddArea();
+    },
+    [editAreaMode, setPinDropMode, setCompareGeographiesMode],
+  );
+
+  const toggleCompareGeographies = useCallback(
+    ({ cancelDrawMode }: { cancelDrawMode: () => void }) => {
+      if (!compareGeographiesMode) {
+        setPinDropMode(false);
+        cancelDrawMode();
+      }
+
+      setCompareGeographiesMode(!compareGeographiesMode);
+    },
+    [compareGeographiesMode, setCompareGeographiesMode, setPinDropMode],
+  );
+
   return {
     showControls,
     setShowControls,
@@ -28,6 +82,9 @@ export function useMapControls() {
     setEditAreaMode,
     compareGeographiesMode,
     setCompareGeographiesMode,
+    togglePinDrop,
+    toggleAddArea,
+    toggleCompareGeographies,
   };
 }
 
