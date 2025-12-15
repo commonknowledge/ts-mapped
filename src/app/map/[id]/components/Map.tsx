@@ -23,7 +23,11 @@ import {
   getClickedPolygonFeature,
   useMapClickEffect,
 } from "../hooks/useMapClick";
-import { usePinDropMode, useShowControls } from "../hooks/useMapControls";
+import {
+  useEditAreaMode,
+  usePinDropMode,
+  useShowControls,
+} from "../hooks/useMapControls";
 import { useMapRef } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfMutations";
@@ -51,6 +55,7 @@ export default function Map({
   const mapRef = useMapRef();
   const setZoom = useSetZoom();
   const pinDropMode = usePinDropMode();
+  const editAreaMode = useEditAreaMode();
   const showControls = useShowControls();
   const { setBoundingBox } = useMapBounds();
   const [ready, setReady] = useState(false);
@@ -120,6 +125,15 @@ export default function Map({
       }
     };
   }, [mapRef, ready]);
+
+  // Fallback: if UI says edit mode is off but draw thinks it's still on, force exit
+  useEffect(() => {
+    if (!draw) return;
+    if (!editAreaMode && currentMode === "draw_polygon") {
+      (draw.changeMode as (mode: string) => void)("simple_select");
+      setCurrentMode("simple_select");
+    }
+  }, [draw, editAreaMode, currentMode]);
 
   // Show/Hide labels
   const toggleLabelVisibility = useCallback(

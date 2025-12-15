@@ -50,15 +50,19 @@ export function useMapControls() {
       handleAddArea: () => void;
     }) => {
       if (editAreaMode) {
+        // Turning off edit mode: force cancel and clear flag
         cancelDrawMode();
+        setEditAreaMode(false);
         return;
       }
 
+      // Turning on: disable other modes, start draw, set flag as fallback
       setPinDropMode(false);
       setCompareGeographiesMode(false);
       handleAddArea();
+      setEditAreaMode(true);
     },
-    [editAreaMode, setPinDropMode, setCompareGeographiesMode],
+    [editAreaMode, setPinDropMode, setCompareGeographiesMode, setEditAreaMode],
   );
 
   const toggleCompareGeographies = useCallback(
