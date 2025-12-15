@@ -1,15 +1,17 @@
 import { point as turfPoint } from "@turf/helpers";
 import { booleanPointInPolygon } from "@turf/turf";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
-import { compareGeographiesAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
 import {
   type SelectedArea,
   selectedAreasAtom,
 } from "@/app/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { usePinDropMode } from "./useMapControls";
+import {
+  useCompareGeographiesMode,
+  usePinDropMode,
+} from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
@@ -44,7 +46,7 @@ export function useMapClickEffect({
     setSelectedTurf,
   } = useInspector();
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
-  const compareGeographiesMode = useAtomValue(compareGeographiesAtom);
+  const compareGeographiesMode = useCompareGeographiesMode();
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },

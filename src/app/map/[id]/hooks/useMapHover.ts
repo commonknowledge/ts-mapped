@@ -2,8 +2,8 @@ import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
-import { compareGeographiesAtom } from "../atoms/mapStateAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
+import { useCompareGeographiesModeAtom } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
@@ -25,9 +25,8 @@ export function useMapHoverEffect({
 
   const [, setHoverArea] = useHoverArea();
   const [, setHoverMarker] = useHoverMarker();
-  const [compareGeographiesMode, setCompareGeographiesMode] = useAtom(
-    compareGeographiesAtom,
-  );
+  const [compareGeographiesMode, setCompareGeographiesMode] =
+    useCompareGeographiesModeAtom();
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {

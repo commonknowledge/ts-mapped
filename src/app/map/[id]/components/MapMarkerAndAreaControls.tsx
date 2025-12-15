@@ -1,8 +1,6 @@
-import { useAtom } from "jotai";
 import { ChartBar, MapPin } from "lucide-react";
 import VectorSquare from "@/components/icons/VectorSquare";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
-import { compareGeographiesAtom } from "../atoms/mapStateAtoms";
 import { useMapControls } from "../hooks/useMapControls";
 import { useHandleDropPin } from "../hooks/usePlacedMarkers";
 import { useTurfState } from "../hooks/useTurfState";
@@ -10,10 +8,13 @@ import { useTurfState } from "../hooks/useTurfState";
 export default function MapMarkerAndAreaControls() {
   const { handleDropPin } = useHandleDropPin();
   const { handleAddArea, cancelDrawMode } = useTurfState();
-  const { pinDropMode, setPinDropMode, editAreaMode } = useMapControls();
-  const [compareGeographiesMode, setCompareGeographiesMode] = useAtom(
-    compareGeographiesAtom,
-  );
+  const {
+    pinDropMode,
+    setPinDropMode,
+    editAreaMode,
+    compareGeographiesMode,
+    setCompareGeographiesMode,
+  } = useMapControls();
 
   const handlePinDropClick = () => {
     if (pinDropMode) {

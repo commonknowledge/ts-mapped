@@ -1,9 +1,11 @@
-import { useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
-import { compareGeographiesAtom } from "../atoms/mapStateAtoms";
 import { useInspector } from "../hooks/useInspector";
-import { useMapControls, useShowControls } from "../hooks/useMapControls";
+import {
+  useCompareGeographiesMode,
+  useMapControls,
+  useShowControls,
+} from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import AreaInfo from "./AreaInfo";
@@ -26,7 +28,7 @@ export default function MapWrapper({
   const { viewConfig } = useMapViews();
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);
-  const compareGeographiesMode = useAtomValue(compareGeographiesAtom);
+  const compareGeographiesMode = useCompareGeographiesMode();
   const { pinDropMode, editAreaMode } = useMapControls();
 
   const [message, setMessage] = useState<string>("");
