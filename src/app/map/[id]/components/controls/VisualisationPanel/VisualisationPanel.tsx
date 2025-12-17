@@ -18,6 +18,7 @@ import { AreaSetGroupCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
+import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -234,34 +235,29 @@ export default function VisualisationPanel({
                 >
                   Column 1
                 </Label>
-                <Select
+                <Combobox
+                  options={[
+                    { value: NULL_UUID, label: "None" },
+                    {
+                      value: MAX_COLUMN_KEY,
+                      label: "Highest-value column (String)",
+                    },
+                    ...(dataSources
+                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+                      ?.columnDefs.map((col) => ({
+                        value: col.name,
+                        label: `${col.name} (${col.type})`,
+                      })) || []),
+                  ]}
                   value={viewConfig.areaDataColumn || NULL_UUID}
                   onValueChange={(value) =>
                     updateViewConfig({
                       areaDataColumn: value === NULL_UUID ? "" : value,
                     })
                   }
-                >
-                  <SelectTrigger
-                    className="w-full min-w-0"
-                    id="choropleth-column-1-select"
-                  >
-                    <SelectValue placeholder="Choose a column..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NULL_UUID}>None</SelectItem>
-                    <SelectItem key={MAX_COLUMN_KEY} value={MAX_COLUMN_KEY}>
-                      Highest-value column (String)
-                    </SelectItem>
-                    {dataSources
-                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                      ?.columnDefs.map((col) => (
-                        <SelectItem key={col.name} value={col.name}>
-                          {col.name} ({col.type})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Choose a column..."
+                  searchPlaceholder="Search columns..."
+                />
               </>
             )}
 
@@ -276,34 +272,28 @@ export default function VisualisationPanel({
                 >
                   Column 2
                 </Label>
-                <Select
+                <Combobox
+                  options={[
+                    { value: NULL_UUID, label: "None" },
+                    ...(dataSources
+                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+                      ?.columnDefs.filter(
+                        (col) => col.type === ColumnType.Number,
+                      )
+                      .map((col) => ({
+                        value: col.name,
+                        label: `${col.name} (${col.type})`,
+                      })) || []),
+                  ]}
                   value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
                   onValueChange={(value) =>
                     updateViewConfig({
                       areaDataSecondaryColumn: value === NULL_UUID ? "" : value,
                     })
                   }
-                >
-                  <SelectTrigger
-                    className="w-full min-w-0"
-                    id="choropleth-column-2-select"
-                  >
-                    <SelectValue placeholder="Choose a column..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NULL_UUID}>None</SelectItem>
-                    {dataSources
-                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                      ?.columnDefs.filter(
-                        (col) => col.type === ColumnType.Number,
-                      )
-                      .map((col) => (
-                        <SelectItem key={col.name} value={col.name}>
-                          {col.name} ({col.type})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Choose a column..."
+                  searchPlaceholder="Search columns..."
+                />
               </>
             )}
 
