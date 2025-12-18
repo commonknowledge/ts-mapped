@@ -1,9 +1,9 @@
 "use client";
 
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
-import { drawAtom } from "../atoms/mapStateAtoms";
 import { turfVisibilityAtom } from "../atoms/turfAtoms";
+import { useDraw } from "./useDraw";
 import { useMapControls } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import { useTurfsQuery } from "./useTurfsQuery";
@@ -13,53 +13,9 @@ export function useTurfState() {
   const mapRef = useMapRef();
   const { data: turfs = [] } = useTurfsQuery();
   const { editAreaMode, setEditAreaMode } = useMapControls();
-  const draw = useAtomValue(drawAtom);
+  const [draw] = useDraw();
 
   const [turfVisibility, _setTurfVisibility] = useAtom(turfVisibilityAtom);
-
-  // Listen to draw mode changes and update editAreaMode accordingly
-  useEffect(() => {
-    const map = mapRef?.current;
-    if (!map) return;
-
-    const handleModeChange = (e: DrawModeChangeEvent) => {
-      // Set editAreaMode to true if in draw_polygon mode, false otherwise
-      setEditAreaMode(e.mode === "draw_polygon");
-    };
-
-    map.on("draw.modechange", handleModeChange);
-
-    return () => {
-      map.off("draw.modechange", handleModeChange);
-    };
-  }, [mapRef, setEditAreaMode]);
-
-  // When edit mode is turned off elsewhere, forcibly return draw to a neutral state
-  useEffect(() => {
-    if (editAreaMode) return;
-
-    const map = mapRef?.current;
-    if (map) {
-      map.getCanvas().style.cursor = "";
-    }
-
-    if (draw) {
-      try {
-        const changeMode = draw.changeMode as (mode: string) => void;
-        changeMode("simple_select");
-      } catch {
-        // Ignore errors when draw is not fully initialized
-      }
-    }
-
-    const drawButton = document.querySelector(
-      ".mapbox-gl-draw_polygon",
-    ) as HTMLButtonElement | null;
-    if (drawButton) {
-      drawButton.classList.remove("active");
-      drawButton.setAttribute("aria-pressed", "false");
-    }
-  }, [draw, editAreaMode, mapRef]);
 
   const setTurfVisibility = useCallback(
     (turfId: string, isVisible: boolean) => {
@@ -126,4 +82,54 @@ export function useTurfState() {
     setTurfVisibility,
     getTurfVisibility,
   };
+}
+
+export function useWatchDrawModeEffect() {
+  const mapRef = useMapRef();
+  const [draw] = useDraw();
+  const { editAreaMode, setEditAreaMode } = useMapControls();
+
+  // Listen to draw mode changes and update editAreaMode accordingly
+  useEffect(() => {
+    const map = mapRef?.current;
+    if (!map) return;
+
+    const handleModeChange = (e: DrawModeChangeEvent) => {
+      // Set editAreaMode to true if in draw_polygon mode, false otherwise
+      setEditAreaMode(e.mode === "draw_polygon");
+    };
+
+    map.on("draw.modechange", handleModeChange);
+
+    return () => {
+      map.off("draw.modechange", handleModeChange);
+    };
+  }, [mapRef, setEditAreaMode]);
+
+  // When edit mode is turned off elsewhere, forcibly return draw to a neutral state
+  useEffect(() => {
+    if (editAreaMode) return;
+
+    const map = mapRef?.current;
+    if (map) {
+      map.getCanvas().style.cursor = "";
+    }
+
+    if (draw) {
+      try {
+        const changeMode = draw.changeMode as (mode: string) => void;
+        changeMode("simple_select");
+      } catch {
+        // Ignore errors when draw is not fully initialized
+      }
+    }
+
+    const drawButton = document.querySelector(
+      ".mapbox-gl-draw_polygon",
+    ) as HTMLButtonElement | null;
+    if (drawButton) {
+      drawButton.classList.remove("active");
+      drawButton.setAttribute("aria-pressed", "false");
+    }
+  }, [draw, editAreaMode, mapRef]);
 }

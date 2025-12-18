@@ -1,7 +1,6 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import * as turf from "@turf/turf";
-import { useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
@@ -17,7 +16,7 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
-import { drawAtom } from "../atoms/mapStateAtoms";
+import { useDraw } from "../hooks/useDraw";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
@@ -31,7 +30,7 @@ import {
 import { useMapRef } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfMutations";
-import { useTurfState } from "../hooks/useTurfState";
+import { useTurfState, useWatchDrawModeEffect } from "../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
@@ -66,8 +65,7 @@ export default function Map({
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
 
-  const [draw, setDraw] = useState<MapboxDraw | null>(null);
-  const setDrawAtom = useSetAtom(drawAtom);
+  const [draw, setDraw] = useDraw();
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
@@ -88,6 +86,7 @@ export default function Map({
 
   useMapClickEffect({ markerLayers, draw, currentMode, ready });
   useMapHoverEffect({ markerLayers, draw, ready });
+  useWatchDrawModeEffect();
 
   // draw existing turfs
   useEffect(() => {
@@ -380,7 +379,6 @@ export default function Map({
               ],
             });
             setDraw(newDraw);
-            setDrawAtom(newDraw);
 
             const mapInstance = map.getMap();
             mapInstance.addControl(newDraw, "bottom-right");
@@ -487,7 +485,6 @@ export default function Map({
             mapRef.current.getMap().removeControl(draw);
           }
           setDraw(null);
-          setDrawAtom(null);
           setReady(false);
           setStyleLoaded(false);
         }}
