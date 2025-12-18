@@ -93,7 +93,8 @@ export default function AreaInfo() {
     return null;
   }
 
-  // Combine selected areas and hover area, avoiding duplicates - memoized for performance
+  // Combine selected areas and hover area, avoiding duplicates
+  // Memoized to prevent downstream recalculations (especially color expressions)
   const areasToDisplay = useMemo(() => {
     const areas = [];
 
