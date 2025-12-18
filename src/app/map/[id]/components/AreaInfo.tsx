@@ -93,57 +93,62 @@ export default function AreaInfo() {
     return null;
   }
 
-  // Combine selected areas and hover area, avoiding duplicates
-  const areasToDisplay = [];
+  // Combine selected areas and hover area, avoiding duplicates - memoized for performance
+  const areasToDisplay = useMemo(() => {
+    const areas = [];
+
+    // Add all selected areas
+    for (const selectedArea of selectedAreas) {
+      areas.push({
+        code: selectedArea.code,
+        name: selectedArea.name,
+        areaSetCode: selectedArea.areaSetCode,
+        coordinates: selectedArea.coordinates,
+        isSelected: true,
+      });
+    }
+
+    // Add hover area only if it's not already in selected areas
+    if (hoverArea) {
+      const isHoverAreaSelected = selectedAreas.some(
+        (a) =>
+          a.code === hoverArea.code &&
+          a.areaSetCode === hoverArea.areaSetCode,
+      );
+      if (!isHoverAreaSelected) {
+        areas.push({
+          code: hoverArea.code,
+          name: hoverArea.name,
+          areaSetCode: hoverArea.areaSetCode,
+          coordinates: hoverArea.coordinates,
+          isSelected: false,
+        });
+      }
+    }
+
+    // Add hovered row area even if it's no longer in hoverArea
+    if (hoveredRowArea) {
+      const isAreaAlreadyDisplayed = areas.some(
+        (a) =>
+          a.code === hoveredRowArea.code &&
+          a.areaSetCode === hoveredRowArea.areaSetCode,
+      );
+      if (!isAreaAlreadyDisplayed) {
+        areas.push({
+          code: hoveredRowArea.code,
+          name: hoveredRowArea.name,
+          areaSetCode: hoveredRowArea.areaSetCode,
+          coordinates: hoveredRowArea.coordinates,
+          isSelected: false,
+        });
+      }
+    }
+
+    return areas;
+  }, [selectedAreas, hoverArea, hoveredRowArea]);
+
   const multipleAreas = selectedAreas.length > 1;
   const hasSecondaryData = Boolean(viewConfig.areaDataSecondaryColumn);
-
-  // Add all selected areas
-  for (const selectedArea of selectedAreas) {
-    areasToDisplay.push({
-      code: selectedArea.code,
-      name: selectedArea.name,
-      areaSetCode: selectedArea.areaSetCode,
-      coordinates: selectedArea.coordinates,
-      isSelected: true,
-    });
-  }
-
-  // Add hover area only if it's not already in selected areas
-  if (hoverArea) {
-    const isHoverAreaSelected = selectedAreas.some(
-      (a) =>
-        a.code === hoverArea.code &&
-        a.areaSetCode === hoverArea.areaSetCode,
-    );
-    if (!isHoverAreaSelected) {
-      areasToDisplay.push({
-        code: hoverArea.code,
-        name: hoverArea.name,
-        areaSetCode: hoverArea.areaSetCode,
-        coordinates: hoverArea.coordinates,
-        isSelected: false,
-      });
-    }
-  }
-
-  // Add hovered row area even if it's no longer in hoverArea
-  if (hoveredRowArea) {
-    const isAreaAlreadyDisplayed = areasToDisplay.some(
-      (a) =>
-        a.code === hoveredRowArea.code &&
-        a.areaSetCode === hoveredRowArea.areaSetCode,
-    );
-    if (!isAreaAlreadyDisplayed) {
-      areasToDisplay.push({
-        code: hoveredRowArea.code,
-        name: hoveredRowArea.name,
-        areaSetCode: hoveredRowArea.areaSetCode,
-        coordinates: hoveredRowArea.coordinates,
-        isSelected: false,
-      });
-    }
-  }
 
   const statLabel =
     areaStats.calculationType === CalculationType.Count
