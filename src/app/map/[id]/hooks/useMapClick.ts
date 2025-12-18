@@ -53,6 +53,17 @@ export function useMapClickEffect({
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
   const prevSelectedAreasRef = useRef<SelectedArea[]>([]);
+  
+  // Use refs to avoid recreating click handler when modes change
+  const compareGeographiesModeRef = useRef(compareGeographiesMode);
+  const pinDropModeRef = useRef(pinDropMode);
+  const currentModeRef = useRef(currentMode);
+
+  useEffect(() => {
+    compareGeographiesModeRef.current = compareGeographiesMode;
+    pinDropModeRef.current = pinDropMode;
+    currentModeRef.current = currentMode;
+  }, [compareGeographiesMode, pinDropMode, currentMode]);
 
   // Keep ref in sync with latest selectedAreas
   useEffect(() => {
@@ -349,12 +360,12 @@ export function useMapClickEffect({
     };
 
     const onClick = (e: mapboxgl.MapMouseEvent) => {
-      if (currentMode === "draw_polygon" || pinDropMode) {
+      if (currentModeRef.current === "draw_polygon" || pinDropModeRef.current) {
         return;
       }
 
       // Check if compare areas mode is active
-      if (compareGeographiesMode) {
+      if (compareGeographiesModeRef.current) {
         if (handleCtrlAreaClick(e)) {
           return;
         }
@@ -393,13 +404,10 @@ export function useMapClickEffect({
     setSelectedBoundary,
     markerLayers,
     draw,
-    currentMode,
-    pinDropMode,
     setSelectedTurf,
     ready,
     setSelectedRecords,
     setSelectedAreas,
-    compareGeographiesMode,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
