@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
@@ -84,11 +84,11 @@ export default function AreaInfo() {
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
 
-  // Debounce hoverArea changes
+  // Debounce hoverArea changes - reduced from 100ms to 0ms for better responsiveness
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedHoverArea(hoverArea);
-    }, 100);
+    }, 0);
     return () => clearTimeout(timer);
   }, [hoverArea]);
 
@@ -173,31 +173,47 @@ export default function AreaInfo() {
     );
   }
 
-  // Helper to get color for an area based on fillColor expression
+  // Memoize color calculations for all areas to improve performance
+  const areaColors = useMemo(() => {
+    const colors = new Map<string, string>();
+    
+    if (result !== "success") {
+      return colors;
+    }
+
+    for (const area of areasToDisplay) {
+      const areaStat =
+        areaStats.areaSetCode === area.areaSetCode
+          ? areaStats.stats.find((s) => s.areaCode === area.code)
+          : null;
+
+      if (!areaStat) {
+        colors.set(`${area.areaSetCode}-${area.code}`, "rgba(200, 200, 200, 1)");
+        continue;
+      }
+
+      // For bivariate color schemes, evaluate with both primary and secondary values
+      const colorResult = fillColorExpression.evaluate(
+        { zoom: 0 },
+        { type: "Polygon", properties: {} },
+        {
+          value: areaStat.primary || 0,
+          secondaryValue: areaStat.secondary || 0,
+        },
+      );
+
+      colors.set(`${area.areaSetCode}-${area.code}`, toRGBA(colorResult));
+    }
+
+    return colors;
+  }, [areasToDisplay, areaStats, fillColorExpression, result]);
+
+  // Helper to get color for an area based on memoized calculations
   const getAreaColor = (area: {
     code: string;
     areaSetCode: string;
   }): string => {
-    const areaStat =
-      areaStats.areaSetCode === area.areaSetCode
-        ? areaStats.stats.find((s) => s.areaCode === area.code)
-        : null;
-
-    if (!areaStat || result !== "success") {
-      return "rgba(200, 200, 200, 1)";
-    }
-
-    // For bivariate color schemes, evaluate with both primary and secondary values
-    const colorResult = fillColorExpression.evaluate(
-      { zoom: 0 },
-      { type: "Polygon", properties: {} },
-      {
-        value: areaStat.primary || 0,
-        secondaryValue: areaStat.secondary || 0,
-      },
-    );
-
-    return toRGBA(colorResult);
+    return areaColors.get(`${area.areaSetCode}-${area.code}`) || "rgba(200, 200, 200, 1)";
   };
 
   return (
