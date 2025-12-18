@@ -33,6 +33,7 @@ function WrappedAreaPopup({
 }) {
   const { viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
+  const [, setHoverArea] = useHoverArea();
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
@@ -104,6 +105,7 @@ function WrappedAreaPopup({
       longitude={coordinates[0]}
       latitude={coordinates[1]}
       closeButton={false}
+      onClose={() => setHoverArea(null)}
     >
       <div className="font-sans text-sm flex flex-col gap-2">
         <p className="font-semibold">{name}</p>

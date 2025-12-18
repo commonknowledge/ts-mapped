@@ -15,7 +15,7 @@ import {
   searchMarkerAtom,
   selectedPlacedMarkerIdAtom,
 } from "../atoms/markerAtoms";
-import { getNewLastPosition } from "../utils";
+import { getNewLastPosition } from "../utils/position";
 import { useSetPinDropMode } from "./useMapControls";
 import { useMapId, useMapRef } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";

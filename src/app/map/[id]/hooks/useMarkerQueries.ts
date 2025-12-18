@@ -2,9 +2,9 @@
 
 import { useQueries } from "@tanstack/react-query";
 import { useContext, useMemo } from "react";
-import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { getDataSourceIds } from "../utils/map";
 import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 

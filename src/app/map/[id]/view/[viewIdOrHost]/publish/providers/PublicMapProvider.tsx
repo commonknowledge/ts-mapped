@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { getDataSourceIds } from "@/app/map/[id]/utils/map";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
 import { PublicMapContext } from "../context/PublicMapContext";
 import type {
