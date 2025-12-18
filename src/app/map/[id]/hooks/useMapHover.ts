@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
@@ -33,6 +33,17 @@ export function useMapHoverEffect({
     useCompareGeographiesModeAtom();
   const pinDropMode = usePinDropMode();
   const editAreaMode = useEditAreaMode();
+
+  // Use refs to avoid recreating event listeners when modes change
+  const compareGeographiesModeRef = useRef(compareGeographiesMode);
+  const pinDropModeRef = useRef(pinDropMode);
+  const editAreaModeRef = useRef(editAreaMode);
+
+  useEffect(() => {
+    compareGeographiesModeRef.current = compareGeographiesMode;
+    pinDropModeRef.current = pinDropMode;
+    editAreaModeRef.current = editAreaMode;
+  }, [compareGeographiesMode, pinDropMode, editAreaMode]);
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
@@ -78,7 +89,7 @@ export function useMapHoverEffect({
     };
 
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
-      if (pinDropMode || editAreaMode) {
+      if (pinDropModeRef.current || editAreaModeRef.current) {
         // In draw/pin modes, ignore hover effects and keep crosshair
         map.getCanvas().style.cursor = "crosshair";
         clearAreaHover();
@@ -107,7 +118,7 @@ export function useMapHoverEffect({
     const onMouseLeave = () => {
       clearAreaHover();
       setHoverMarker(null);
-      if (pinDropMode || editAreaMode) {
+      if (pinDropModeRef.current || editAreaModeRef.current) {
         map.getCanvas().style.cursor = "crosshair";
       } else {
         map.getCanvas().style.cursor = prevPointer.cursor;
@@ -115,7 +126,7 @@ export function useMapHoverEffect({
     };
 
     // Reset cursor when exiting pin/edit modes
-    if (!(pinDropMode || editAreaMode)) {
+    if (!(pinDropModeRef.current || editAreaModeRef.current)) {
       map.getCanvas().style.cursor = prevPointer.cursor;
     }
 
@@ -204,7 +215,7 @@ export function useMapHoverEffect({
         ) {
           prevPointer.cursor = map.getCanvas().style.cursor || "";
         }
-        map.getCanvas().style.cursor = compareGeographiesMode
+        map.getCanvas().style.cursor = compareGeographiesModeRef.current
           ? "copy"
           : "pointer";
         return true;
@@ -263,10 +274,7 @@ export function useMapHoverEffect({
     setHoverArea,
     featureNameProperty,
     areaSetCode,
-    compareGeographiesMode,
     setCompareGeographiesMode,
-    pinDropMode,
-    editAreaMode,
   ]);
 }
 

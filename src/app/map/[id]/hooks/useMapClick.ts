@@ -123,8 +123,13 @@ export function useMapClickEffect({
     applyFeatureStates();
 
     // Also listen for source data events to re-apply when layers are reloaded
+    // Only respond to 'metadata' events (when style changes) to avoid firing on every tile load
     const onSourceData = (e: mapboxgl.MapSourceDataEvent) => {
-      if (e.sourceId === sourceId && e.isSourceLoaded) {
+      if (
+        e.sourceId === sourceId &&
+        e.isSourceLoaded &&
+        e.sourceDataType === "metadata"
+      ) {
         applyFeatureStates();
       }
     };

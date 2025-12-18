@@ -88,7 +88,7 @@ export default function AreaInfo() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedHoverArea(hoverArea);
-    }, 5);
+    }, 100);
     return () => clearTimeout(timer);
   }, [hoverArea]);
 
