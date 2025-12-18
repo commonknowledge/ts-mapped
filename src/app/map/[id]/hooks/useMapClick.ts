@@ -53,7 +53,7 @@ export function useMapClickEffect({
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
   const prevSelectedAreasRef = useRef<SelectedArea[]>([]);
-  
+
   // Use refs to avoid recreating click handler when modes change
   const compareGeographiesModeRef = useRef(compareGeographiesMode);
   const pinDropModeRef = useRef(pinDropMode);

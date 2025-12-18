@@ -190,7 +190,11 @@ export function useMapHoverEffect({
             // Remove hover state from previous feature
             if (hoveredFeatureId !== undefined) {
               map.setFeatureState(
-                { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+                {
+                  source: sourceId,
+                  sourceLayer: layerId,
+                  id: hoveredFeatureId,
+                },
                 { hover: false },
               );
             }

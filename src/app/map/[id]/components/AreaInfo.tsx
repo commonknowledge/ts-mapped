@@ -89,10 +89,6 @@ export default function AreaInfo() {
     selectedBivariateBucket: null,
   });
 
-  if (!areaStats) {
-    return null;
-  }
-
   // Combine selected areas and hover area, avoiding duplicates
   // Memoized to prevent downstream recalculations (especially color expressions)
   const areasToDisplay = useMemo(() => {
@@ -113,8 +109,7 @@ export default function AreaInfo() {
     if (hoverArea) {
       const isHoverAreaSelected = selectedAreas.some(
         (a) =>
-          a.code === hoverArea.code &&
-          a.areaSetCode === hoverArea.areaSetCode,
+          a.code === hoverArea.code && a.areaSetCode === hoverArea.areaSetCode,
       );
       if (!isHoverAreaSelected) {
         areas.push({
@@ -151,10 +146,11 @@ export default function AreaInfo() {
   const multipleAreas = selectedAreas.length > 1;
   const hasSecondaryData = Boolean(viewConfig.areaDataSecondaryColumn);
 
-  const statLabel =
-    areaStats.calculationType === CalculationType.Count
+  const statLabel = areaStats
+    ? areaStats.calculationType === CalculationType.Count
       ? `${choroplethDataSource?.name || "Unknown"} count`
-      : viewConfig.areaDataColumn;
+      : viewConfig.areaDataColumn
+    : "";
 
   const { result, value: fillColorExpression } = expression.createExpression([
     "to-rgba",
@@ -172,8 +168,8 @@ export default function AreaInfo() {
   // Memoize color calculations for all areas to improve performance
   const areaColors = useMemo(() => {
     const colors = new Map<string, string>();
-    
-    if (result !== "success") {
+
+    if (result !== "success" || !areaStats) {
       return colors;
     }
 
@@ -184,7 +180,10 @@ export default function AreaInfo() {
           : null;
 
       if (!areaStat) {
-        colors.set(`${area.areaSetCode}-${area.code}`, "rgba(200, 200, 200, 1)");
+        colors.set(
+          `${area.areaSetCode}-${area.code}`,
+          "rgba(200, 200, 200, 1)",
+        );
         continue;
       }
 
@@ -209,8 +208,16 @@ export default function AreaInfo() {
     code: string;
     areaSetCode: string;
   }): string => {
-    return areaColors.get(`${area.areaSetCode}-${area.code}`) || "rgba(200, 200, 200, 1)";
+    return (
+      areaColors.get(`${area.areaSetCode}-${area.code}`) ||
+      "rgba(200, 200, 200, 1)"
+    );
   };
+
+  // Early return after all hooks have been called
+  if (!areaStats) {
+    return null;
+  }
 
   return (
     <AnimatePresence mode="wait">
