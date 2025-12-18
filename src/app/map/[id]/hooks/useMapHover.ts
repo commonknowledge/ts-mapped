@@ -184,29 +184,36 @@ export function useMapHoverEffect({
       if (features?.length) {
         const feature = features[0];
 
-        // Remove hover state from previous feature
-        if (hoveredFeatureId !== undefined) {
-          map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-            { hover: false },
-          );
-        }
-
         if (feature.id !== undefined) {
-          // Set hover state on current feature
-          hoveredFeatureId = feature.id;
-          map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-            { hover: true },
-          );
-          setHoverArea({
-            coordinates: [e.lngLat.lng, e.lngLat.lat],
-            areaSetCode,
-            code: String(feature.id),
-            name: String(
-              feature.properties?.[featureNameProperty] || feature.id,
-            ),
-          });
+          // Only update if the feature has changed to reduce unnecessary state updates
+          if (hoveredFeatureId !== feature.id) {
+            // Remove hover state from previous feature
+            if (hoveredFeatureId !== undefined) {
+              map.setFeatureState(
+                {
+                  source: sourceId,
+                  sourceLayer: layerId,
+                  id: hoveredFeatureId,
+                },
+                { hover: false },
+              );
+            }
+
+            // Set hover state on new feature
+            hoveredFeatureId = feature.id;
+            map.setFeatureState(
+              { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+              { hover: true },
+            );
+            setHoverArea({
+              coordinates: [e.lngLat.lng, e.lngLat.lat],
+              areaSetCode,
+              code: String(feature.id),
+              name: String(
+                feature.properties?.[featureNameProperty] || feature.id,
+              ),
+            });
+          }
         }
 
         if (

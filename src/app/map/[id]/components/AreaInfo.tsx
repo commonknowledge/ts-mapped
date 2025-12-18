@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
@@ -70,8 +70,6 @@ const toRGBA = (expressionResult: unknown) => {
 
 export default function AreaInfo() {
   const [hoverArea] = useHoverArea();
-  const [debouncedHoverArea, setDebouncedHoverArea] =
-    useState<typeof hoverArea>(null);
   const [hoveredRowArea, setHoveredRowArea] = useState<{
     code: string;
     areaSetCode: string;
@@ -84,14 +82,6 @@ export default function AreaInfo() {
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
 
-  // Debounce hoverArea changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedHoverArea(hoverArea);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [hoverArea]);
-
   const fillColor = useFillColor({
     areaStats,
     scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
@@ -99,66 +89,68 @@ export default function AreaInfo() {
     selectedBivariateBucket: null,
   });
 
-  if (!areaStats) {
-    return null;
-  }
-
   // Combine selected areas and hover area, avoiding duplicates
-  const areasToDisplay = [];
+  // Memoized to prevent downstream recalculations (especially color expressions)
+  const areasToDisplay = useMemo(() => {
+    const areas = [];
+
+    // Add all selected areas
+    for (const selectedArea of selectedAreas) {
+      areas.push({
+        code: selectedArea.code,
+        name: selectedArea.name,
+        areaSetCode: selectedArea.areaSetCode,
+        coordinates: selectedArea.coordinates,
+        isSelected: true,
+      });
+    }
+
+    // Add hover area only if it's not already in selected areas
+    if (hoverArea) {
+      const isHoverAreaSelected = selectedAreas.some(
+        (a) =>
+          a.code === hoverArea.code && a.areaSetCode === hoverArea.areaSetCode,
+      );
+      if (!isHoverAreaSelected) {
+        areas.push({
+          code: hoverArea.code,
+          name: hoverArea.name,
+          areaSetCode: hoverArea.areaSetCode,
+          coordinates: hoverArea.coordinates,
+          isSelected: false,
+        });
+      }
+    }
+
+    // Add hovered row area even if it's no longer in hoverArea
+    if (hoveredRowArea) {
+      const isAreaAlreadyDisplayed = areas.some(
+        (a) =>
+          a.code === hoveredRowArea.code &&
+          a.areaSetCode === hoveredRowArea.areaSetCode,
+      );
+      if (!isAreaAlreadyDisplayed) {
+        areas.push({
+          code: hoveredRowArea.code,
+          name: hoveredRowArea.name,
+          areaSetCode: hoveredRowArea.areaSetCode,
+          coordinates: hoveredRowArea.coordinates,
+          isSelected: false,
+        });
+      }
+    }
+
+    return areas;
+  }, [selectedAreas, hoverArea, hoveredRowArea]);
+
   const multipleAreas = selectedAreas.length > 1;
   const hasSecondaryData = Boolean(viewConfig.areaDataSecondaryColumn);
 
-  // Add all selected areas
-  for (const selectedArea of selectedAreas) {
-    areasToDisplay.push({
-      code: selectedArea.code,
-      name: selectedArea.name,
-      areaSetCode: selectedArea.areaSetCode,
-      coordinates: selectedArea.coordinates,
-      isSelected: true,
-    });
-  }
-
-  // Add hover area only if it's not already in selected areas
-  if (debouncedHoverArea) {
-    const isHoverAreaSelected = selectedAreas.some(
-      (a) =>
-        a.code === debouncedHoverArea.code &&
-        a.areaSetCode === debouncedHoverArea.areaSetCode,
-    );
-    if (!isHoverAreaSelected) {
-      areasToDisplay.push({
-        code: debouncedHoverArea.code,
-        name: debouncedHoverArea.name,
-        areaSetCode: debouncedHoverArea.areaSetCode,
-        coordinates: debouncedHoverArea.coordinates,
-        isSelected: false,
-      });
-    }
-  }
-
-  // Add hovered row area even if it's no longer in hoverArea
-  if (hoveredRowArea) {
-    const isAreaAlreadyDisplayed = areasToDisplay.some(
-      (a) =>
-        a.code === hoveredRowArea.code &&
-        a.areaSetCode === hoveredRowArea.areaSetCode,
-    );
-    if (!isAreaAlreadyDisplayed) {
-      areasToDisplay.push({
-        code: hoveredRowArea.code,
-        name: hoveredRowArea.name,
-        areaSetCode: hoveredRowArea.areaSetCode,
-        coordinates: hoveredRowArea.coordinates,
-        isSelected: false,
-      });
-    }
-  }
-
-  const statLabel =
-    areaStats.calculationType === CalculationType.Count
+  const statLabel = areaStats
+    ? areaStats.calculationType === CalculationType.Count
       ? `${choroplethDataSource?.name || "Unknown"} count`
-      : viewConfig.areaDataColumn;
+      : viewConfig.areaDataColumn
+    : "";
 
   const { result, value: fillColorExpression } = expression.createExpression([
     "to-rgba",
@@ -173,32 +165,59 @@ export default function AreaInfo() {
     );
   }
 
-  // Helper to get color for an area based on fillColor expression
+  // Memoize color calculations for all areas to improve performance
+  const areaColors = useMemo(() => {
+    const colors = new Map<string, string>();
+
+    if (result !== "success" || !areaStats) {
+      return colors;
+    }
+
+    for (const area of areasToDisplay) {
+      const areaStat =
+        areaStats.areaSetCode === area.areaSetCode
+          ? areaStats.stats.find((s) => s.areaCode === area.code)
+          : null;
+
+      if (!areaStat) {
+        colors.set(
+          `${area.areaSetCode}-${area.code}`,
+          "rgba(200, 200, 200, 1)",
+        );
+        continue;
+      }
+
+      // For bivariate color schemes, evaluate with both primary and secondary values
+      const colorResult = fillColorExpression.evaluate(
+        { zoom: 0 },
+        { type: "Polygon", properties: {} },
+        {
+          value: areaStat.primary || 0,
+          secondaryValue: areaStat.secondary || 0,
+        },
+      );
+
+      colors.set(`${area.areaSetCode}-${area.code}`, toRGBA(colorResult));
+    }
+
+    return colors;
+  }, [areasToDisplay, areaStats, fillColorExpression, result]);
+
+  // Helper to get color for an area based on memoized calculations
   const getAreaColor = (area: {
     code: string;
     areaSetCode: string;
   }): string => {
-    const areaStat =
-      areaStats.areaSetCode === area.areaSetCode
-        ? areaStats.stats.find((s) => s.areaCode === area.code)
-        : null;
-
-    if (!areaStat || result !== "success") {
-      return "rgba(200, 200, 200, 1)";
-    }
-
-    // For bivariate color schemes, evaluate with both primary and secondary values
-    const colorResult = fillColorExpression.evaluate(
-      { zoom: 0 },
-      { type: "Polygon", properties: {} },
-      {
-        value: areaStat.primary || 0,
-        secondaryValue: areaStat.secondary || 0,
-      },
+    return (
+      areaColors.get(`${area.areaSetCode}-${area.code}`) ||
+      "rgba(200, 200, 200, 1)"
     );
-
-    return toRGBA(colorResult);
   };
+
+  // Early return after all hooks have been called
+  if (!areaStats) {
+    return null;
+  }
 
   return (
     <AnimatePresence mode="wait">
