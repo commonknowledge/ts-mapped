@@ -1,36 +1,82 @@
-import { MapPin } from "lucide-react";
+import { ChartBar, MapPin } from "lucide-react";
 import VectorSquare from "@/components/icons/VectorSquare";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { useMapControls } from "../hooks/useMapControls";
 import { useHandleDropPin } from "../hooks/usePlacedMarkers";
-import { useTurfState } from "../hooks/useTurfs";
+import { useTurfState } from "../hooks/useTurfState";
 
 export default function MapMarkerAndAreaControls() {
   const { handleDropPin } = useHandleDropPin();
-  const { handleAddArea } = useTurfState();
+  const { handleAddArea, cancelDrawMode } = useTurfState();
+  const {
+    pinDropMode,
+    editAreaMode,
+    compareGeographiesMode,
+    togglePinDrop,
+    toggleAddArea,
+    toggleCompareGeographies,
+  } = useMapControls();
+
+  const handlePinDropClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    togglePinDrop({ cancelDrawMode, handleDropPin });
+  };
+
+  const handleAddAreaClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleAddArea({ cancelDrawMode, handleAddArea });
+  };
 
   return (
     <div className="flex gap-1 p-1 rounded-xl shadow-sm bg-white ">
-      <Tooltip>
+      <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted text-primary cursor-pointer"
-            onClick={handleDropPin}
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
+              pinDropMode
+                ? "bg-muted-foreground/30 text-primary"
+                : "text-primary hover:bg-muted"
+            }`}
+            onClick={handlePinDropClick}
           >
             <MapPin size={20} />
           </button>
         </TooltipTrigger>
         <TooltipContent>Add marker</TooltipContent>
       </Tooltip>
-      <Tooltip>
+      <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-muted text-primary cursor-pointer"
-            onClick={handleAddArea}
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
+              editAreaMode
+                ? "bg-muted-foreground/30 text-primary"
+                : "text-primary hover:bg-muted"
+            }`}
+            onClick={handleAddAreaClick}
           >
             <VectorSquare size={20} />
           </button>
         </TooltipTrigger>
         <TooltipContent>Add area</TooltipContent>
+      </Tooltip>
+      <div className="w-px bg-neutral-200" />
+      <Tooltip disableHoverableContent>
+        <TooltipTrigger asChild>
+          <button
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
+              compareGeographiesMode
+                ? "bg-muted-foreground/30 text-primary"
+                : "text-primary hover:bg-muted"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleCompareGeographies({ cancelDrawMode });
+            }}
+          >
+            <ChartBar size={20} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>Compare geographies</TooltipContent>
       </Tooltip>
     </div>
   );

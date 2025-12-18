@@ -1,8 +1,15 @@
+import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
-import { useShowControls } from "../hooks/useMapControls";
+import { useInspector } from "../hooks/useInspector";
+import {
+  useCompareGeographiesMode,
+  useMapControls,
+  useShowControls,
+} from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import AreaInfo from "./AreaInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
@@ -20,24 +27,49 @@ export default function MapWrapper({
 }) {
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
+  const { inspectorContent } = useInspector();
+  const inspectorVisible = Boolean(inspectorContent);
+  const compareGeographiesMode = useCompareGeographiesMode();
+  const {
+    pinDropMode,
+    editAreaMode,
+    setPinDropMode,
+    setEditAreaMode,
+    setCompareGeographiesMode,
+  } = useMapControls();
 
   const [message, setMessage] = useState<string>("");
   const [indicatorColor, setIndicatorColor] = useState<string>("");
 
+  const handleCancelMode = () => {
+    if (pinDropMode) {
+      setPinDropMode(false);
+    }
+    if (editAreaMode) {
+      setEditAreaMode(false);
+    }
+    if (compareGeographiesMode) {
+      setCompareGeographiesMode(false);
+    }
+  };
+
   useEffect(() => {
-    if (currentMode === "draw_polygon") {
+    if (editAreaMode || currentMode === "draw_polygon") {
       setIndicatorColor(mapColors.areas.color);
       setMessage(
         "You are in draw mode. Click to add points. Double click to finish drawing.",
       );
-    } else if (currentMode === "pin_drop") {
+    } else if (pinDropMode || currentMode === "pin_drop") {
       setIndicatorColor(mapColors.markers.color);
       setMessage("Click on the map to drop a pin.");
+    } else if (compareGeographiesMode) {
+      setIndicatorColor(mapColors.geography.color); // green-500
+      setMessage("Compare mode active. Click geographies to select/deselect.");
     } else {
       setIndicatorColor("");
       setMessage("");
     }
-  }, [currentMode]);
+  }, [currentMode, compareGeographiesMode, pinDropMode, editAreaMode]);
 
   const absolutelyCenter = {
     transform: showControls
@@ -54,6 +86,20 @@ export default function MapWrapper({
   return (
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
+
+      <div
+        className="absolute top-5 z-10 transition-transform duration-300 hidden md:block"
+        style={{
+          left: "32px",
+          ...positionLeft,
+          maxWidth: showControls
+            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"})`
+            : `calc(100% - 64px - ${inspectorVisible ? "280px" : "32px"})`,
+          transition: "max-width 0.3s",
+        }}
+      >
+        <AreaInfo />
+      </div>
 
       <div
         className="absolute bottom-8 left-8 z-10 transition-transform duration-300 hidden md:block"
@@ -78,21 +124,31 @@ export default function MapWrapper({
               <MapMarkerAndAreaControls />
             </div>
           )}
-          {indicatorColor && (
-            <div
-              className="absolute top-0 left-0 w-full h-1"
-              style={{ background: indicatorColor }}
-            />
-          )}
 
           {message && (
             <div
-              className="absolute top-4 left-1/2 z-10 transition-transform duration-300"
-              style={absolutelyCenter}
+              className="absolute left-1/2 z-10 transition-transform duration-300"
+              style={{
+                ...absolutelyCenter,
+                bottom: viewConfig.mapType !== MapType.Hex ? "90px" : "32px",
+              }}
             >
-              <p className="px-3 py-2 rounded shadow-md bg-white text-xs">
-                {message}
-              </p>
+              <div className="flex items-center gap-2 px-3 py-3 rounded shadow-md bg-white">
+                {indicatorColor && (
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ background: indicatorColor }}
+                  />
+                )}
+                <p className="text-xs">{message}</p>
+                <button
+                  className="p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors flex-shrink-0"
+                  aria-label="Cancel mode"
+                  onClick={handleCancelMode}
+                >
+                  <XIcon size={14} className="text-neutral-600" />
+                </button>
+              </div>
             </div>
           )}
         </>

@@ -3,6 +3,11 @@ import { useEffect } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
+import {
+  useCompareGeographiesModeAtom,
+  useEditAreaMode,
+  usePinDropMode,
+} from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
@@ -24,6 +29,10 @@ export function useMapHoverEffect({
 
   const [, setHoverArea] = useHoverArea();
   const [, setHoverMarker] = useHoverMarker();
+  const [compareGeographiesMode, setCompareGeographiesMode] =
+    useCompareGeographiesModeAtom();
+  const pinDropMode = usePinDropMode();
+  const editAreaMode = useEditAreaMode();
 
   /* Set cursor to pointer and darken fill on hover over choropleth areas */
   useEffect(() => {
@@ -48,7 +57,35 @@ export function useMapHoverEffect({
       }
     };
 
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "c" || e.key === "C") && !e.repeat) {
+        setCompareGeographiesMode(true);
+        const canvas = map.getCanvas();
+        if (canvas.style.cursor === "pointer") {
+          canvas.style.cursor = "copy";
+        }
+      }
+    };
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "c" || e.key === "C") {
+        setCompareGeographiesMode(false);
+        const canvas = map.getCanvas();
+        if (canvas.style.cursor === "copy") {
+          canvas.style.cursor = "pointer";
+        }
+      }
+    };
+
     const onMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      if (pinDropMode || editAreaMode) {
+        // In draw/pin modes, ignore hover effects and keep crosshair
+        map.getCanvas().style.cursor = "crosshair";
+        clearAreaHover();
+        setHoverMarker(null);
+        return;
+      }
+
       if (handleHoverMarker(e)) {
         clearAreaHover();
         return;
@@ -62,18 +99,25 @@ export function useMapHoverEffect({
       if (handleHoverArea(e)) {
         return;
       }
+
+      // Clear area hover if mouse is not over any feature
+      clearAreaHover();
     };
 
     const onMouseLeave = () => {
-      if (hoveredFeatureId !== undefined) {
-        map.setFeatureState(
-          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
-          { hover: false },
-        );
-        hoveredFeatureId = undefined;
+      clearAreaHover();
+      setHoverMarker(null);
+      if (pinDropMode || editAreaMode) {
+        map.getCanvas().style.cursor = "crosshair";
+      } else {
+        map.getCanvas().style.cursor = prevPointer.cursor;
       }
-      map.getCanvas().style.cursor = prevPointer.cursor;
     };
+
+    // Reset cursor when exiting pin/edit modes
+    if (!(pinDropMode || editAreaMode)) {
+      map.getCanvas().style.cursor = prevPointer.cursor;
+    }
 
     const handleHoverMarker = (e: mapboxgl.MapMouseEvent): boolean => {
       const map = mapRef?.current;
@@ -154,10 +198,15 @@ export function useMapHoverEffect({
           });
         }
 
-        if (map.getCanvas().style.cursor !== "pointer") {
+        if (
+          map.getCanvas().style.cursor !== "pointer" &&
+          map.getCanvas().style.cursor !== "copy"
+        ) {
           prevPointer.cursor = map.getCanvas().style.cursor || "";
         }
-        map.getCanvas().style.cursor = "pointer";
+        map.getCanvas().style.cursor = compareGeographiesMode
+          ? "copy"
+          : "pointer";
         return true;
       }
 
@@ -170,7 +219,10 @@ export function useMapHoverEffect({
         setHoverArea(null);
       }
 
-      if (map.getCanvas().style.cursor === "pointer") {
+      if (
+        map.getCanvas().style.cursor === "pointer" ||
+        map.getCanvas().style.cursor === "copy"
+      ) {
         map.getCanvas().style.cursor = prevPointer.cursor;
       }
 
@@ -179,6 +231,8 @@ export function useMapHoverEffect({
 
     map.on("mousemove", onMouseMove);
     map.on("mouseleave", onMouseLeave);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
 
     return () => {
       // Clean up hover state on unmount
@@ -194,7 +248,9 @@ export function useMapHoverEffect({
       }
 
       map.off("mousemove", onMouseMove);
-      map.off("mouseleave", onMouseLeave);
+      map.off("mouseout", onMouseLeave);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
   }, [
     mapRef,
@@ -207,6 +263,10 @@ export function useMapHoverEffect({
     setHoverArea,
     featureNameProperty,
     areaSetCode,
+    compareGeographiesMode,
+    setCompareGeographiesMode,
+    pinDropMode,
+    editAreaMode,
   ]);
 }
 

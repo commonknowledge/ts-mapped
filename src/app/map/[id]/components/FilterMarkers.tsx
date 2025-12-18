@@ -6,7 +6,7 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
-import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
+import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfsQuery";
 import { useMapRef } from "../hooks/useMapCore";
 import { mapColors } from "../styles";
 import type { RecordFilterInput } from "@/server/models/MapView";

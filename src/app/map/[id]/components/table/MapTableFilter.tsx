@@ -5,7 +5,7 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
-import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfs";
+import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfsQuery";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
 import { FilterOperator, FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
