@@ -2,7 +2,12 @@ import { ArrowRight, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
-import { useTurfState, useTurfsQuery } from "../../../hooks/useTurfs";
+import {
+  useEditAreaMode,
+  useSetEditAreaMode,
+} from "../../../hooks/useMapControls";
+import { useTurfsQuery } from "../../../hooks/useTurfsQuery";
+import { useTurfState } from "../../../hooks/useTurfState";
 import LayerControlWrapper from "../LayerControlWrapper";
 import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
@@ -10,17 +15,18 @@ import TurfItem from "./TurfItem";
 
 export default function AreasControl() {
   const { handleAddArea } = useTurfState();
-  const [isAddingArea, setAddingArea] = useState(false);
+  const editAreaMode = useEditAreaMode();
+  const setEditAreaMode = useSetEditAreaMode();
   const [expanded, setExpanded] = useState(true);
   const { data: turfs = [] } = useTurfsQuery();
 
   const onAddArea = () => {
-    handleAddArea();
-    setAddingArea(true);
-
-    setTimeout(() => {
-      setAddingArea(false);
-    }, 5000);
+    if (editAreaMode) {
+      setEditAreaMode(false);
+    } else {
+      setEditAreaMode(true);
+      handleAddArea();
+    }
   };
 
   return (
@@ -32,7 +38,7 @@ export default function AreasControl() {
         setExpanded={setExpanded}
         enableVisibilityToggle={Boolean(turfs?.length)}
       >
-        {!isAddingArea ? (
+        {!editAreaMode ? (
           <IconButtonWithTooltip tooltip="Add Area" onClick={() => onAddArea()}>
             <PlusIcon className="w-4 h-4" />
           </IconButtonWithTooltip>

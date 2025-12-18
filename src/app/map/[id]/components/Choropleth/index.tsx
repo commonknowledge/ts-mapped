@@ -1,8 +1,11 @@
+import { useAtomValue } from "jotai";
 import { Layer, Source } from "react-map-gl/mapbox";
 import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MapType } from "@/server/models/MapView";
+import { selectedAreasAtom } from "../../atoms/selectedAreasAtom";
+import { mapColors } from "../../styles";
 import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
 
 export default function Choropleth() {
@@ -12,6 +15,8 @@ export default function Choropleth() {
       mapbox: { featureCodeProperty, featureNameProperty, sourceId, layerId },
     },
   } = useChoropleth();
+  const selectedAreas = useAtomValue(selectedAreasAtom);
+  const hasSelectedAreas = selectedAreas.length > 0;
   const choroplethTopLayerId = "choropleth-top";
 
   // Custom hooks for effects
@@ -81,26 +86,71 @@ export default function Choropleth() {
           />
 
           {/* Line Layer - show for both boundary-only and choropleth */}
-          {
+          <Layer
+            id={`${sourceId}-line`}
+            beforeId={`${choroplethTopLayerId}-line`}
+            source={sourceId}
+            source-layer={layerId}
+            type="line"
+            paint={{
+              "line-color": "#999",
+              "line-width": 1,
+              "line-opacity": 1,
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
+            }}
+          />
+
+          {/* Selected areas outline (green) - only when not active */}
+          {hasSelectedAreas && (
             <Layer
-              id={`${sourceId}-line`}
+              id={`${sourceId}-selected-outline`}
               beforeId={`${choroplethTopLayerId}-line`}
               source={sourceId}
               source-layer={layerId}
               type="line"
               paint={{
-                "line-color": "#999",
-                "line-width": 1,
-                "line-opacity": 1,
+                "line-color": [
+                  "case",
+                  [
+                    "all",
+                    ["==", ["feature-state", "selected"], true],
+                    ["!=", ["feature-state", "active"], true],
+                  ],
+                  mapColors.geography.color,
+                  "rgba(0, 0, 0, 0)",
+                ],
+                "line-width": [
+                  "case",
+                  [
+                    "all",
+                    ["==", ["feature-state", "selected"], true],
+                    ["!=", ["feature-state", "active"], true],
+                  ],
+                  2,
+                  0,
+                ],
+                "line-opacity": [
+                  "case",
+                  [
+                    "all",
+                    ["==", ["feature-state", "selected"], true],
+                    ["!=", ["feature-state", "active"], true],
+                  ],
+                  1,
+                  0,
+                ],
               }}
               layout={{
                 "line-cap": "round",
                 "line-join": "round",
               }}
             />
-          }
+          )}
 
-          {/* Active outline drawn above other lines */}
+          {/* Active outline - only when not selected */}
           <Layer
             id={`${sourceId}-active-outline`}
             beforeId={`${choroplethTopLayerId}-line`}
@@ -110,19 +160,31 @@ export default function Choropleth() {
             paint={{
               "line-color": [
                 "case",
-                ["==", ["feature-state", "active"], true],
-                "rgb(37, 99, 235)",
+                [
+                  "all",
+                  ["==", ["feature-state", "active"], true],
+                  ["!=", ["feature-state", "selected"], true],
+                ],
+                "#3b82f6",
                 "rgba(37, 99, 235, 0)",
               ],
               "line-width": [
                 "case",
-                ["==", ["feature-state", "active"], true],
+                [
+                  "all",
+                  ["==", ["feature-state", "active"], true],
+                  ["!=", ["feature-state", "selected"], true],
+                ],
                 2,
                 0,
               ],
               "line-opacity": [
                 "case",
-                ["==", ["feature-state", "active"], true],
+                [
+                  "all",
+                  ["==", ["feature-state", "active"], true],
+                  ["!=", ["feature-state", "selected"], true],
+                ],
                 1,
                 0,
               ],
@@ -132,6 +194,154 @@ export default function Choropleth() {
               "line-join": "round",
             }}
           />
+
+          {/* Active + Selected combined outline layers */}
+          {hasSelectedAreas && (
+            <>
+              <Layer
+                id={`${sourceId}-active-selected-outline-blue`}
+                beforeId={`${choroplethTopLayerId}-line`}
+                source={sourceId}
+                source-layer={layerId}
+                type="line"
+                paint={{
+                  "line-color": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    "#3b82f6",
+                    "rgba(0, 0, 0, 0)",
+                  ],
+                  "line-width": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    2,
+                    0,
+                  ],
+                  "line-opacity": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    1,
+                    0,
+                  ],
+                }}
+                layout={{
+                  "line-cap": "round",
+                  "line-join": "round",
+                }}
+              />
+              <Layer
+                id={`${sourceId}-active-selected-outline-green`}
+                beforeId={`${choroplethTopLayerId}-line`}
+                source={sourceId}
+                source-layer={layerId}
+                type="line"
+                paint={{
+                  "line-color": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    mapColors.geography.color,
+                    "rgba(0, 0, 0, 0)",
+                  ],
+                  "line-width": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    2,
+                    0,
+                  ],
+                  "line-opacity": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    1,
+                    0,
+                  ],
+                  "line-offset": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    -3,
+                    0,
+                  ],
+                }}
+                layout={{
+                  "line-cap": "round",
+                  "line-join": "round",
+                }}
+              />
+              <Layer
+                id={`${sourceId}-active-selected-outline-blue-outer`}
+                beforeId={`${choroplethTopLayerId}-line`}
+                source={sourceId}
+                source-layer={layerId}
+                type="line"
+                paint={{
+                  "line-color": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    "#3b82f6",
+                    "rgba(0, 0, 0, 0)",
+                  ],
+                  "line-width": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    2,
+                    0,
+                  ],
+                  "line-opacity": [
+                    "case",
+                    [
+                      "all",
+                      ["==", ["feature-state", "active"], true],
+                      ["==", ["feature-state", "selected"], true],
+                    ],
+                    1,
+                    0,
+                  ],
+                  "line-dasharray": ["literal", [4, 4]],
+                  "line-gap-width": 0,
+                  "line-offset": 6,
+                }}
+                layout={{
+                  "line-cap": "butt",
+                  "line-join": "round",
+                }}
+              />
+            </>
+          )}
 
           {/* Symbol Layer (Labels) */}
           {viewConfig.mapType !== MapType.Hex && viewConfig.showLabels && (

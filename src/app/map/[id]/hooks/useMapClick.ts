@@ -1,10 +1,14 @@
 import { point as turfPoint } from "@turf/helpers";
 import { booleanPointInPolygon } from "@turf/turf";
+import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
-
+import {
+  type SelectedArea,
+  selectedAreasAtom,
+} from "@/app/map/[id]/atoms/selectedAreasAtom";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { usePinDropMode } from "./useMapControls";
+import { useCompareGeographiesMode, usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
@@ -38,6 +42,8 @@ export function useMapClickEffect({
     setSelectedRecords,
     setSelectedTurf,
   } = useInspector();
+  const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
+  const compareGeographiesMode = useCompareGeographiesMode();
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
@@ -45,6 +51,106 @@ export function useMapClickEffect({
   } = choroplethLayerConfig;
 
   const activeFeatureId = useRef<string | undefined>(undefined);
+  const selectedAreasRef = useRef(selectedAreas);
+  const prevSelectedAreasRef = useRef<SelectedArea[]>([]);
+
+  // Use refs to avoid recreating click handler when modes change
+  const compareGeographiesModeRef = useRef(compareGeographiesMode);
+  const pinDropModeRef = useRef(pinDropMode);
+  const currentModeRef = useRef(currentMode);
+
+  useEffect(() => {
+    compareGeographiesModeRef.current = compareGeographiesMode;
+    pinDropModeRef.current = pinDropMode;
+    currentModeRef.current = currentMode;
+  }, [compareGeographiesMode, pinDropMode, currentMode]);
+
+  // Keep ref in sync with latest selectedAreas
+  useEffect(() => {
+    selectedAreasRef.current = selectedAreas;
+  }, [selectedAreas]);
+
+  // Update feature states for selected areas
+  useEffect(() => {
+    if (!mapRef?.current || !ready) {
+      return;
+    }
+
+    const map = mapRef.current;
+
+    const applyFeatureStates = () => {
+      // Check if the source and layer exist before trying to set feature states
+      const source = map.getSource(sourceId);
+      if (!source || !map.getLayer(`${sourceId}-fill`)) {
+        // Layers not loaded yet, skip this update
+        return;
+      }
+
+      const prevSelectedAreas = prevSelectedAreasRef.current;
+
+      // Update previous selected areas before processing to ensure it's always set
+      prevSelectedAreasRef.current = selectedAreas;
+
+      // Find areas that were removed from selection
+      const removedAreas = prevSelectedAreas.filter(
+        (prevArea) =>
+          !selectedAreas.some(
+            (area) =>
+              area.code === prevArea.code &&
+              area.areaSetCode === prevArea.areaSetCode,
+          ),
+      );
+
+      // Remove selected state from removed areas
+      removedAreas.forEach((area) => {
+        if (area.areaSetCode === areaSetCode) {
+          try {
+            map.setFeatureState(
+              { source: sourceId, sourceLayer: layerId, id: area.code },
+              { selected: false },
+            );
+          } catch {
+            // Ignore errors
+          }
+        }
+      });
+
+      // Set selected state for all currently selected areas
+      selectedAreas.forEach((area) => {
+        if (area.areaSetCode === areaSetCode) {
+          try {
+            map.setFeatureState(
+              { source: sourceId, sourceLayer: layerId, id: area.code },
+              { selected: true },
+            );
+          } catch {
+            // Ignore errors
+          }
+        }
+      });
+    };
+
+    // Apply immediately if layers are ready
+    applyFeatureStates();
+
+    // Also listen for source data events to re-apply when layers are reloaded
+    // Only respond to 'metadata' events (when style changes) to avoid firing on every tile load
+    const onSourceData = (e: mapboxgl.MapSourceDataEvent) => {
+      if (
+        e.sourceId === sourceId &&
+        e.isSourceLoaded &&
+        e.sourceDataType === "metadata"
+      ) {
+        applyFeatureStates();
+      }
+    };
+
+    map.on("sourcedata", onSourceData);
+
+    return () => {
+      map.off("sourcedata", onSourceData);
+    };
+  }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
 
   /* Handle clicks to set active state */
   useEffect(() => {
@@ -55,26 +161,6 @@ export function useMapClickEffect({
     const map = mapRef.current;
     const fillLayerId = `${sourceId}-fill`;
     const lineLayerId = `${sourceId}-line`;
-
-    const onClick = (e: mapboxgl.MapMouseEvent) => {
-      if (currentMode === "draw_polygon" || pinDropMode) {
-        return;
-      }
-
-      if (handleMarkerClick(e)) {
-        return;
-      }
-
-      if (handleTurfClick(e)) {
-        return;
-      }
-
-      if (handleAreaClick(e)) {
-        return;
-      }
-
-      resetInspector();
-    };
 
     const handleMarkerClick = (e: mapboxgl.MapMouseEvent): boolean => {
       const validMarkerLayers = markerLayers.filter((l) => map.getLayer(l));
@@ -174,6 +260,22 @@ export function useMapClickEffect({
         const areaName = feature.properties?.[featureNameProperty] as string;
 
         if (areaCode && areaName && feature.id !== undefined) {
+          // Check if clicking the same active area
+          if (activeFeatureId.current === areaCode) {
+            // Deactivate the current area
+            map.setFeatureState(
+              {
+                source: sourceId,
+                sourceLayer: layerId,
+                id: activeFeatureId.current,
+              },
+              { active: false },
+            );
+            activeFeatureId.current = undefined;
+            resetInspector();
+            return true;
+          }
+
           // Remove active state from previous feature
           if (activeFeatureId.current !== undefined) {
             map.setFeatureState(
@@ -210,25 +312,85 @@ export function useMapClickEffect({
       return false;
     };
 
-    map.on("click", onClick);
+    const handleCtrlAreaClick = (e: mapboxgl.MapMouseEvent): boolean => {
+      if (!map.getLayer(fillLayerId) && !map.getLayer(lineLayerId)) {
+        return false;
+      }
 
-    return () => {
-      // Clean up active state on unmount
-      if (activeFeatureId.current !== undefined) {
-        try {
-          map?.setFeatureState(
-            {
-              source: sourceId,
-              sourceLayer: layerId,
-              id: activeFeatureId.current,
-            },
-            { active: false },
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [fillLayerId, lineLayerId].filter((l) => map.getLayer(l)),
+      });
+
+      if (features.length > 0) {
+        const feature = features[0];
+        const areaCode = feature.properties?.[featureCodeProperty] as string;
+        const areaName = feature.properties?.[featureNameProperty] as string;
+
+        if (areaCode && areaName) {
+          // Use ref to get the latest selectedAreas value
+          const currentSelectedAreas = selectedAreasRef.current;
+
+          // Check if area already exists in selection
+          const existingIndex = currentSelectedAreas.findIndex(
+            (a) => a.code === areaCode && a.areaSetCode === areaSetCode,
           );
-        } catch {
-          // Ignore error clearing feature state
+
+          if (existingIndex !== -1) {
+            // Remove area from selection
+            const newSelectedAreas = currentSelectedAreas.filter(
+              (_, index) => index !== existingIndex,
+            );
+            setSelectedAreas(newSelectedAreas);
+            return true;
+          } else {
+            // Add area to selected areas
+            const newArea = {
+              areaSetCode,
+              code: areaCode,
+              name: areaName,
+              coordinates: [e.lngLat.lng, e.lngLat.lat] as [number, number],
+            };
+            setSelectedAreas([...currentSelectedAreas, newArea]);
+            return true;
+          }
         }
       }
 
+      return false;
+    };
+
+    const onClick = (e: mapboxgl.MapMouseEvent) => {
+      if (currentModeRef.current === "draw_polygon" || pinDropModeRef.current) {
+        return;
+      }
+
+      // Check if compare areas mode is active
+      if (compareGeographiesModeRef.current) {
+        if (handleCtrlAreaClick(e)) {
+          return;
+        }
+      }
+
+      if (handleMarkerClick(e)) {
+        return;
+      }
+
+      if (handleTurfClick(e)) {
+        return;
+      }
+
+      if (handleAreaClick(e)) {
+        return;
+      }
+
+      resetInspector();
+    };
+
+    map.on("click", onClick);
+
+    return () => {
+      // Only clean up the event listener, not the active state
+      // The active state should persist across mode changes
       map.off("click", onClick);
     };
   }, [
@@ -242,11 +404,10 @@ export function useMapClickEffect({
     setSelectedBoundary,
     markerLayers,
     draw,
-    currentMode,
-    pinDropMode,
     setSelectedTurf,
     ready,
     setSelectedRecords,
+    setSelectedAreas,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)

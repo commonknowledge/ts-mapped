@@ -20,6 +20,10 @@ export function useChoroplethAreaStats() {
 
   // Keep track of area codes that have feature state, to clean if necessary
   const areaCodesToClean = useRef<Record<string, boolean>>({});
+  // Track previous values to avoid re-setting feature state for unchanged areas
+  const prevAreaStatValues = useRef<
+    Map<string, { primary: number | null; secondary: number | null }>
+  >(new Map());
 
   // Get fill color
   const fillColor = useFillColor({
@@ -30,42 +34,64 @@ export function useChoroplethAreaStats() {
   });
 
   useEffect(() => {
-    if (!areaStats || !mapRef?.current) {
+    const map = mapRef?.current;
+    if (!areaStats || !map) {
       return;
     }
 
     // Check if the source exists before proceeding
-    const source = mapRef.current.getSource(sourceId);
+    const source = map.getSource(sourceId);
     if (!source) {
       return;
     }
 
-    // Overwrite previous feature states then remove any that weren't
-    // overwritten, to avoid flicker and a bug where gaps would appear
     const nextAreaCodesToClean: Record<string, boolean> = {};
+    const nextStatValues = new Map<
+      string,
+      { primary: number | null; secondary: number | null }
+    >();
+
+    // Only set feature state when the values actually change to avoid expensive re-renders
     areaStats.stats.forEach((stat) => {
-      mapRef.current?.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerId,
-          id: stat.areaCode,
-        },
-        { value: stat.primary, secondaryValue: stat.secondary },
-      );
+      const key = stat.areaCode;
+      const prev = prevAreaStatValues.current.get(key);
+      const next = {
+        primary: typeof stat.primary === "number" ? stat.primary : null,
+        secondary: typeof stat.secondary === "number" ? stat.secondary : null,
+      };
+      nextStatValues.set(key, next);
+
+      if (
+        !prev ||
+        prev.primary !== next.primary ||
+        prev.secondary !== next.secondary
+      ) {
+        map.setFeatureState(
+          {
+            source: sourceId,
+            sourceLayer: layerId,
+            id: stat.areaCode,
+          },
+          { value: stat.primary, secondaryValue: stat.secondary },
+        );
+      }
+
       nextAreaCodesToClean[stat.areaCode] = true;
     });
 
-    // Remove lingering feature states
+    // Remove lingering feature states for areas no longer present
     for (const areaCode of Object.keys(areaCodesToClean.current)) {
       if (!nextAreaCodesToClean[areaCode]) {
-        mapRef?.current?.removeFeatureState({
+        map.removeFeatureState({
           source: sourceId,
           sourceLayer: layerId,
           id: areaCode,
         });
       }
     }
+
     areaCodesToClean.current = nextAreaCodesToClean;
+    prevAreaStatValues.current = nextStatValues;
   }, [areaStats, lastLoadedSourceId, layerId, mapRef, sourceId]);
 
   return fillColor;

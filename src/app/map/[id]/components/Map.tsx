@@ -16,17 +16,23 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
+import { useDraw } from "../hooks/useDraw";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
   useMapClickEffect,
 } from "../hooks/useMapClick";
-import { usePinDropMode, useShowControls } from "../hooks/useMapControls";
+import {
+  useEditAreaMode,
+  useMapControlsEscapeKeyEffect,
+  usePinDropMode,
+  useShowControls,
+} from "../hooks/useMapControls";
 import { useMapRef } from "../hooks/useMapCore";
 import { useMapHoverEffect } from "../hooks/useMapHover";
-import { useTurfMutations, useTurfState } from "../hooks/useTurfs";
+import { useTurfMutations } from "../hooks/useTurfMutations";
+import { useTurfState, useWatchDrawModeEffect } from "../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
-import AreaPopup from "./AreaPopup";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
@@ -49,6 +55,7 @@ export default function Map({
   const mapRef = useMapRef();
   const setZoom = useSetZoom();
   const pinDropMode = usePinDropMode();
+  const editAreaMode = useEditAreaMode();
   const showControls = useShowControls();
   const { setBoundingBox } = useMapBounds();
   const [ready, setReady] = useState(false);
@@ -59,7 +66,7 @@ export default function Map({
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
 
-  const [draw, setDraw] = useState<MapboxDraw | null>(null);
+  const [draw, setDraw] = useDraw();
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
@@ -80,6 +87,8 @@ export default function Map({
 
   useMapClickEffect({ markerLayers, draw, currentMode, ready });
   useMapHoverEffect({ markerLayers, draw, ready });
+  useWatchDrawModeEffect();
+  useMapControlsEscapeKeyEffect();
 
   // draw existing turfs
   useEffect(() => {
@@ -117,6 +126,15 @@ export default function Map({
       }
     };
   }, [mapRef, ready]);
+
+  // Fallback: if UI says edit mode is off but draw thinks it's still on, force exit
+  useEffect(() => {
+    if (!draw) return;
+    if (!editAreaMode && currentMode === "draw_polygon") {
+      (draw.changeMode as (mode: string) => void)("simple_select");
+      setCurrentMode("simple_select");
+    }
+  }, [draw, editAreaMode, currentMode]);
 
   // Show/Hide labels
   const toggleLabelVisibility = useCallback(
@@ -481,7 +499,6 @@ export default function Map({
             <Markers />
             <SearchResultMarker />
             <MarkerPopup />
-            <AreaPopup />
           </>
         )}
       </MapGL>

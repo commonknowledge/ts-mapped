@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useTRPC } from "@/services/trpc/react";
@@ -16,7 +16,7 @@ import {
   selectedPlacedMarkerIdAtom,
 } from "../atoms/markerAtoms";
 import { getNewLastPosition } from "../utils";
-import { useSetPinDropMode } from "./useMapControls";
+import { usePinDropMode, useSetPinDropMode } from "./useMapControls";
 import { useMapId, useMapRef } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -229,11 +229,35 @@ export const useHandleDropPin = () => {
   const mapRef = useMapRef();
   const mapId = useMapId();
   const setPinDropMode = useSetPinDropMode();
+  const pinDropMode = usePinDropMode();
   const { insertPlacedMarker } = usePlacedMarkerMutations();
+  const clickHandlerRef = useRef<((e: mapboxgl.MapMouseEvent) => void) | null>(
+    null,
+  );
+
+  // Cleanup effect when pinDropMode is disabled
+  useEffect(() => {
+    const map = mapRef?.current;
+    if (!map) return;
+
+    if (!pinDropMode && clickHandlerRef.current) {
+      // Remove the click handler if it exists
+      map.off("click", clickHandlerRef.current);
+      clickHandlerRef.current = null;
+      // Reset cursor
+      map.getCanvas().style.cursor = "";
+    }
+  }, [pinDropMode, mapRef]);
 
   const handleDropPin = useCallback(() => {
     const map = mapRef?.current;
     if (!map || !mapId) return;
+
+    // Clear any existing handler first
+    if (clickHandlerRef.current) {
+      map.off("click", clickHandlerRef.current);
+    }
+
     setPinDropMode(true);
     map.getCanvas().style.cursor = "crosshair";
 
@@ -246,10 +270,10 @@ export const useHandleDropPin = () => {
         folderId: null,
       });
 
-      // Reset cursor
-      map.getCanvas().style.cursor = "";
       map.off("click", clickHandler);
+      clickHandlerRef.current = null;
 
+      // Set pinDropMode to false; hover effect will reset cursor
       setPinDropMode(false);
 
       // Fly to the new marker
@@ -259,6 +283,7 @@ export const useHandleDropPin = () => {
       });
     };
 
+    clickHandlerRef.current = clickHandler;
     map.once("click", clickHandler);
   }, [mapRef, mapId, setPinDropMode, insertPlacedMarker]);
 
