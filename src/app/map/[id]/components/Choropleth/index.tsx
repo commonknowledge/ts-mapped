@@ -86,24 +86,22 @@ export default function Choropleth() {
           />
 
           {/* Line Layer - show for both boundary-only and choropleth */}
-          {
-            <Layer
-              id={`${sourceId}-line`}
-              beforeId={`${choroplethTopLayerId}-line`}
-              source={sourceId}
-              source-layer={layerId}
-              type="line"
-              paint={{
-                "line-color": "#999",
-                "line-width": 1,
-                "line-opacity": 1,
-              }}
-              layout={{
-                "line-cap": "round",
-                "line-join": "round",
-              }}
-            />
-          }
+          <Layer
+            id={`${sourceId}-line`}
+            beforeId={`${choroplethTopLayerId}-line`}
+            source={sourceId}
+            source-layer={layerId}
+            type="line"
+            paint={{
+              "line-color": "#999",
+              "line-width": 1,
+              "line-opacity": 1,
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
+            }}
+          />
 
           {/* Selected areas outline (green) - only when not active */}
           {hasSelectedAreas && (
