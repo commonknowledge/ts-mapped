@@ -1,11 +1,20 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useAtom } from "jotai";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/services/trpc/react";
-import { useMapId } from "./useMapCore";
+import { editingTurfAtom, turfVisibilityAtom } from "../atoms/turfAtoms";
+import { useMapId, useMapRef } from "./useMapCore";
+import { useMapQuery } from "./useMapQuery";
 import type { Turf } from "@/server/models/Turf";
+
+export function useTurfsQuery() {
+  const mapId = useMapId();
+  const { data: mapData, isFetching } = useMapQuery(mapId);
+  return { data: mapData?.turfs, isFetching };
+}
 
 export function useTurfMutations() {
   const mapId = useMapId();
@@ -143,5 +152,56 @@ export function useTurfMutations() {
     insertTurf,
     updateTurf,
     loading: upsertLoading,
+  };
+}
+
+export function useTurfState() {
+  const mapRef = useMapRef();
+  const { data: turfs = [] } = useTurfsQuery();
+
+  const [editingTurf, setEditingTurf] = useAtom(editingTurfAtom);
+  const [turfVisibility, _setTurfVisibility] = useAtom(turfVisibilityAtom);
+
+  const setTurfVisibility = useCallback(
+    (turfId: string, isVisible: boolean) => {
+      _setTurfVisibility((prev) => ({ ...prev, [turfId]: isVisible }));
+    },
+    [_setTurfVisibility],
+  );
+
+  const getTurfVisibility = useCallback(
+    (turfId: string): boolean => {
+      return turfVisibility[turfId] ?? true;
+    },
+    [turfVisibility],
+  );
+
+  const visibleTurfs = useMemo(() => {
+    return turfs.filter((turf) => {
+      return getTurfVisibility(turf.id);
+    });
+  }, [turfs, getTurfVisibility]);
+
+  const handleAddArea = useCallback(() => {
+    const map = mapRef?.current;
+    if (map) {
+      // Find the polygon draw button and click it
+      const drawButton = document.querySelector(
+        ".mapbox-gl-draw_polygon",
+      ) as HTMLButtonElement;
+      if (drawButton) {
+        drawButton.click();
+      }
+    }
+  }, [mapRef]);
+
+  return {
+    editingTurf,
+    setEditingTurf,
+    visibleTurfs,
+    handleAddArea,
+    turfVisibility,
+    setTurfVisibility,
+    getTurfVisibility,
   };
 }

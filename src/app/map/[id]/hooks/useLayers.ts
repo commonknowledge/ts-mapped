@@ -6,8 +6,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
 import { hiddenLayersAtom } from "../atoms/layerAtoms";
 import { dataSourceVisibilityAtom } from "../atoms/markerAtoms";
-import { useTurfsQuery } from "./useTurfsQuery";
-import { useTurfState } from "./useTurfState";
+import { useTurfState, useTurfsQuery } from "./useTurfs";
 
 export function useLayers() {
   const { mapConfig } = useMapConfig();

@@ -64,7 +64,7 @@ export interface mapColor {
 }
 
 export const mapColors: Record<
-  "member" | "dataSource" | "markers" | "areas" | "geography",
+  "member" | "dataSource" | "markers" | "areas",
   mapColor
 > = {
   member: {
@@ -74,10 +74,6 @@ export const mapColors: Record<
   dataSource: {
     name: "Data Source",
     color: "#FF6B6B",
-  },
-  geography: {
-    name: "Geography",
-    color: "#30a46c",
   },
   markers: {
     name: "Markers",
