@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { sortByPositionAndId } from "@/app/map/[id]/utils";
+import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
 import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";

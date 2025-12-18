@@ -47,6 +47,7 @@ export const useAreaStats = () => {
     areaDataColumn: column,
     areaDataSecondaryColumn: secondaryColumn,
     areaDataSourceId: dataSourceId,
+    areaDataNullIsZero: nullIsZero,
     areaSetGroupCode,
   } = viewConfig;
 
@@ -106,6 +107,7 @@ export const useAreaStats = () => {
         dataSourceId,
         column: columnOrCount,
         secondaryColumn: secondaryColumn,
+        nullIsZero,
         excludeColumns,
         boundingBox: requiresBoundingBox ? boundingBox : null,
       },
@@ -121,6 +123,7 @@ export const useAreaStats = () => {
     dataSourceId,
     column,
     secondaryColumn,
+    nullIsZero,
     excludeColumns,
   ]);
 

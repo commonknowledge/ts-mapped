@@ -1,8 +1,8 @@
 import { Layer, Source } from "react-map-gl/mapbox";
-import { getMapStyle } from "@/app/map/[id]/context/MapContext";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MapType } from "@/server/models/MapView";
+import { getMapStyle } from "../../utils/map";
 import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
 
 export default function Choropleth() {

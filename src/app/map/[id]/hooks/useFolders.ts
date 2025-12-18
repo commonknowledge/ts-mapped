@@ -5,7 +5,7 @@ import { useIsMutating } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useTRPC } from "@/services/trpc/react";
-import { getNewLastPosition } from "../utils";
+import { getNewLastPosition } from "../utils/position";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { Folder } from "@/server/models/Folder";
