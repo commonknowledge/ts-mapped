@@ -17,7 +17,7 @@ export function useMapControls() {
   const [pinDropMode, setPinDropMode] = useAtom(pinDropModeAtom);
   const [editAreaMode, setEditAreaMode] = useAtom(editAreaModeAtom);
   const [compareGeographiesMode, setCompareGeographiesMode] = useAtom(
-    compareGeographiesAtom
+    compareGeographiesAtom,
   );
 
   const togglePinDrop = useCallback(
@@ -38,7 +38,7 @@ export function useMapControls() {
       setCompareGeographiesMode(false);
       handleDropPin();
     },
-    [pinDropMode, setPinDropMode, setCompareGeographiesMode]
+    [pinDropMode, setPinDropMode, setCompareGeographiesMode],
   );
 
   const toggleAddArea = useCallback(
@@ -62,7 +62,7 @@ export function useMapControls() {
       handleAddArea();
       setEditAreaMode(true);
     },
-    [editAreaMode, setPinDropMode, setCompareGeographiesMode, setEditAreaMode]
+    [editAreaMode, setPinDropMode, setCompareGeographiesMode, setEditAreaMode],
   );
 
   const toggleCompareGeographies = useCallback(
@@ -74,7 +74,7 @@ export function useMapControls() {
 
       setCompareGeographiesMode(!compareGeographiesMode);
     },
-    [compareGeographiesMode, setCompareGeographiesMode, setPinDropMode]
+    [compareGeographiesMode, setCompareGeographiesMode, setPinDropMode],
   );
 
   return {
@@ -96,7 +96,7 @@ export function useMapControlsEscapeKeyEffect() {
   const [pinDropMode, setPinDropMode] = useAtom(pinDropModeAtom);
   const [editAreaMode, setEditAreaMode] = useAtom(editAreaModeAtom);
   const [compareGeographiesMode, setCompareGeographiesMode] = useAtom(
-    compareGeographiesAtom
+    compareGeographiesAtom,
   );
   // Listen for escape key and cancel active modes
   useEffect(() => {
