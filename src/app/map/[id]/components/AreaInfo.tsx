@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
@@ -70,8 +70,6 @@ const toRGBA = (expressionResult: unknown) => {
 
 export default function AreaInfo() {
   const [hoverArea] = useHoverArea();
-  const [debouncedHoverArea, setDebouncedHoverArea] =
-    useState<typeof hoverArea>(null);
   const [hoveredRowArea, setHoveredRowArea] = useState<{
     code: string;
     areaSetCode: string;
@@ -83,14 +81,6 @@ export default function AreaInfo() {
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
-
-  // Debounce hoverArea changes - reduced from 100ms to 0ms for better responsiveness
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedHoverArea(hoverArea);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [hoverArea]);
 
   const fillColor = useFillColor({
     areaStats,
@@ -120,18 +110,18 @@ export default function AreaInfo() {
   }
 
   // Add hover area only if it's not already in selected areas
-  if (debouncedHoverArea) {
+  if (hoverArea) {
     const isHoverAreaSelected = selectedAreas.some(
       (a) =>
-        a.code === debouncedHoverArea.code &&
-        a.areaSetCode === debouncedHoverArea.areaSetCode,
+        a.code === hoverArea.code &&
+        a.areaSetCode === hoverArea.areaSetCode,
     );
     if (!isHoverAreaSelected) {
       areasToDisplay.push({
-        code: debouncedHoverArea.code,
-        name: debouncedHoverArea.name,
-        areaSetCode: debouncedHoverArea.areaSetCode,
-        coordinates: debouncedHoverArea.coordinates,
+        code: hoverArea.code,
+        name: hoverArea.name,
+        areaSetCode: hoverArea.areaSetCode,
+        coordinates: hoverArea.coordinates,
         isSelected: false,
       });
     }
