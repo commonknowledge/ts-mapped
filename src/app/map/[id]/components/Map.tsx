@@ -24,6 +24,7 @@ import {
 } from "../hooks/useMapClick";
 import {
   useEditAreaMode,
+  useMapControlsEscapeKeyEffect,
   usePinDropMode,
   useShowControls,
 } from "../hooks/useMapControls";
@@ -87,6 +88,7 @@ export default function Map({
   useMapClickEffect({ markerLayers, draw, currentMode, ready });
   useMapHoverEffect({ markerLayers, draw, ready });
   useWatchDrawModeEffect();
+  useMapControlsEscapeKeyEffect();
 
   // draw existing turfs
   useEffect(() => {
