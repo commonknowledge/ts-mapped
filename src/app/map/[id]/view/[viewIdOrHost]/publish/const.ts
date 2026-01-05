@@ -4,12 +4,12 @@ export const ALLOWED_FILTERS = [
     label: "Referral to a GIC",
   },
   {
-    name: "Bridging Prescription with Recommendation",
-    label: "Bridging prescription with recommendation",
+    name: "HRT with Recommendation",
+    label: "HRT with recommendation",
   },
   {
-    name: "Bridging Prescription without recommendation",
-    label: "Bridging prescription without recommendation",
+    name: "HRT without recommendation",
+    label: "HRT without recommendation",
   },
   {
     name: "Injections",

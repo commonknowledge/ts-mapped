@@ -219,28 +219,29 @@ export const dataSourceRouter = router({
         public: input.public,
       } as DataSourceUpdate;
 
+      logger.info(
+        `Updating ${ctx.dataSource.config.type} data source config: ${ctx.dataSource.id}`,
+      );
+
       // Keep track of whether webhooks need to be enabled/disabled
-      const nextAutoStatus = {
-        autoEnrich: input.autoEnrich,
-        autoImport: input.autoImport,
-        changed: false,
-      };
+      let autoChanged = false;
 
       if (typeof input.autoEnrich === "boolean") {
         update.autoEnrich = input.autoEnrich;
-        nextAutoStatus.changed = input.autoEnrich !== input.autoEnrich;
-        nextAutoStatus.autoEnrich = input.autoEnrich;
+        autoChanged = input.autoEnrich !== ctx.dataSource.autoEnrich;
       }
 
       if (typeof input.autoImport === "boolean") {
         update.autoImport = input.autoImport;
-        nextAutoStatus.changed = input.autoImport !== input.autoImport;
-        nextAutoStatus.autoImport = input.autoImport;
+        autoChanged =
+          autoChanged || input.autoImport !== ctx.dataSource.autoImport;
       }
 
-      if (nextAutoStatus.changed) {
-        const enable =
-          nextAutoStatus.autoEnrich || nextAutoStatus.autoImport || false;
+      if (autoChanged) {
+        const enable = update.autoEnrich || update.autoImport || false;
+        logger.info(
+          `Updating ${ctx.dataSource.config.type} webhook: ${ctx.dataSource.id}, enabled: ${enable}`,
+        );
         await adaptor?.toggleWebhook(enable);
       }
       await updateDataSource(ctx.dataSource.id, update);

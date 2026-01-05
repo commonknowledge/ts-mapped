@@ -422,6 +422,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       webhooks[0].isHookEnabled &&
       webhooks[0].expirationTime > twoDaysFromNow
     ) {
+      logger.info(
+        `Airtable webhook exists for data source ${this.dataSourceId}`,
+      );
       return;
     }
 
