@@ -7,7 +7,7 @@ export function buildName(
 ) {
   const nameColumns = dataSource?.columnRoles.nameColumns || [];
   const name = nameColumns
-    .map((c) => String(dataRecord.json[c]).trim())
+    .map((c) => String(dataRecord.json[c] || "").trim())
     .filter(Boolean)
     .join(" ");
   return name || `ID: ${dataRecord.externalId}`;

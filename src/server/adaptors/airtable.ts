@@ -251,10 +251,12 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     do {
       const pageData = await this.fetchPage({ offset });
       for (const record of pageData?.records || []) {
-        yield {
-          externalId: record.id,
-          json: record.fields,
-        };
+        if (!isEmptyRecord(record.fields)) {
+          yield {
+            externalId: record.id,
+            json: record.fields,
+          };
+        }
       }
 
       offset = pageData.offset;
@@ -266,7 +268,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       const pageData = await this.fetchPage({});
       for (const record of pageData.records) {
         // Return the first non-empty row
-        if (Object.keys(record.fields).length > 0) {
+        if (!isEmptyRecord(record.fields)) {
           return {
             externalId: record.id,
             json: record.fields,
@@ -594,3 +596,14 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     }
   }
 }
+
+// Empty records in AirTable look like `{ "Field A": "", "Field B": "" }`.
+// (At least for the data source I wrote this for. This may need updating.)
+const isEmptyRecord = (o: Record<string, unknown>) => {
+  for (const k of Object.keys(o)) {
+    if (o[k] !== null && o[k] !== undefined && o[k] !== "") {
+      return false;
+    }
+  }
+  return true;
+};

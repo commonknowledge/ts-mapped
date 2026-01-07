@@ -2,7 +2,10 @@ import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { geocodeRecord } from "@/server/mapping/geocode";
 import { ColumnType } from "@/server/models/DataSource";
-import { upsertDataRecord } from "@/server/repositories/DataRecord";
+import {
+  deleteByDataSourceId,
+  upsertDataRecord,
+} from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
   updateDataSource,
@@ -27,6 +30,8 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
     logger.info(`Data source ${dataSourceId} not found.`);
     return false;
   }
+
+  await deleteByDataSourceId(dataSource.id);
 
   const adaptor = getDataSourceAdaptor(dataSource);
   if (!adaptor) {

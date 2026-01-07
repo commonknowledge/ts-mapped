@@ -326,3 +326,9 @@ export const markDataRecordsAsDirty = async (
     )
     .execute();
 };
+
+export const deleteByDataSourceId = async (dataSourceId: string) =>
+  db
+    .deleteFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .execute();
