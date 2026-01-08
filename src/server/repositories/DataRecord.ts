@@ -307,10 +307,11 @@ export const markDataRecordsAsDirty = async (
   batch: string[],
   dataSourceId: string,
 ) => {
+  const deduplicated = Array.from(new Set(batch));
   await db
     .insertInto("dataRecord")
     .values(
-      batch.map((id) => ({
+      deduplicated.map((id) => ({
         externalId: id,
         dataSourceId,
         json: {},
