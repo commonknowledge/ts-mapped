@@ -143,6 +143,10 @@ function SingleDataSourceContent({
         );
 
   const getListingsLabel = () => {
+    if (dataRecordsQuery.isPending) {
+      return "";
+    }
+
     if (!filteredRecords?.length) {
       return "No matching listings";
     }
