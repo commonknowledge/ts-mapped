@@ -4,11 +4,13 @@ import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { AreaSetCode } from "@/server/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useMapRef } from "../../hooks/useMapCore";
+import { useMapViews } from "../../hooks/useMapViews";
 import LayerTypeIcon from "../LayerTypeIcon";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
@@ -25,6 +27,7 @@ export default function InspectorPanel() {
   } = useInspector();
   const mapRef = useMapRef();
   const { setSelectedDataSourceId, selectedDataSourceId } = useTable();
+  const { viewConfig } = useMapViews();
 
   const trpc = useTRPC();
   const { data: recordData, isFetching: recordLoading } = useQuery(
@@ -35,6 +38,19 @@ export default function InspectorPanel() {
       },
       {
         enabled: Boolean(focusedRecord?.dataSourceId),
+      },
+    ),
+  );
+
+  const { data: boundaryData, isFetching: boundaryLoading } = useQuery(
+    trpc.dataRecord.byAreaCode.queryOptions(
+      {
+        areaCode: selectedBoundary?.areaCode || "",
+        areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
+        dataSourceId: viewConfig.areaDataSourceId,
+      },
+      {
+        enabled: Boolean(selectedBoundary),
       },
     ),
   );
@@ -122,11 +138,15 @@ export default function InspectorPanel() {
             </div>
           )}
 
-          {recordLoading ? (
+          {recordLoading || boundaryLoading ? (
             <span>Loading...</span>
           ) : (
             <PropertiesList
-              properties={{ ...properties, ...recordData?.json }}
+              properties={{
+                ...properties,
+                ...recordData?.json,
+                ...boundaryData?.json,
+              }}
             />
           )}
 
