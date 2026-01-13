@@ -7,15 +7,15 @@ import { getClient as getRedisClient } from "@/server/services/redis";
 import { startPublicTunnel, stopPublicTunnel } from "@/server/services/urls";
 
 export async function setup() {
-  // Load samplePostcodes.psql into the test database
-  const samplePostcodesSql = fs.readFileSync(
-    "tests/resources/samplePostcodes.psql",
+  // Load sampleAreas.psql into the test database
+  const sampleAreasSql = fs.readFileSync(
+    "tests/resources/sampleAreas.psql",
     "utf8",
   );
   // Use the underlying pg pool to run the SQL
   const client = await pool.connect();
   try {
-    await client.query(samplePostcodesSql, []);
+    await client.query(sampleAreasSql, []);
   } finally {
     client.release();
   }

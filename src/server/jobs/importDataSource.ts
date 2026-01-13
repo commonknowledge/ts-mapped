@@ -207,10 +207,10 @@ const parseNumber = (value: unknown): number => {
 };
 
 /**
- * Replace terminating % and commas
+ * Replace terminating % and all commas and spaces
  */
 const cleanNumber = (value: string): string => {
-  return value.trim().replace(/%$/, "").replace(/,/g, "");
+  return value.trim().replace(/%$/, "").replace(/,/g, "").replace(/ /g, "");
 };
 
 const addColumnDefs = (
