@@ -53,7 +53,7 @@ export const dataSourceRouter = router({
         return eb.or(filter);
       })
       .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
+      .select(db.fn.count("dataRecord.id").distinct().as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
 
