@@ -26,6 +26,7 @@ import {
   useEditAreaMode,
   useMapControlsEscapeKeyEffect,
   usePinDropMode,
+  useSetEditAreaMode,
   useShowControls,
 } from "../hooks/useMapControls";
 import { useMapRef } from "../hooks/useMapCore";
@@ -56,6 +57,7 @@ export default function Map({
   const setZoom = useSetZoom();
   const pinDropMode = usePinDropMode();
   const editAreaMode = useEditAreaMode();
+  const setEditAreaMode = useSetEditAreaMode();
   const showControls = useShowControls();
   const { setBoundingBox } = useMapBounds();
   const [ready, setReady] = useState(false);
@@ -399,6 +401,7 @@ export default function Map({
                   area: roundedArea,
                   polygon: feature.geometry as Polygon,
                 });
+                setEditAreaMode(false);
               }
             });
 
