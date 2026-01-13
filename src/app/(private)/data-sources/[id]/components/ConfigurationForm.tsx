@@ -155,7 +155,7 @@ export default function ConfigurationForm({
         variant="secondary"
         type="submit"
       >
-        Save and import
+        {loading ? "Saving (this can take a minute...)" : "Save and import"}
       </Button>
 
       {error && <p className="text-xs text-red-500">{error}</p>}
