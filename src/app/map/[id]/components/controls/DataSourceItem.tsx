@@ -23,12 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shadcn/ui/alert-dialog";
+import { DataSourceTypeLabels } from "@/labels";
 import { LayerType } from "@/types";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
 import type { DataSourceType } from "@/server/models/DataSource";
+import LayerIcon from "./LayerIcon";
 
 export default function DataSourceItem({
   dataSource,
@@ -54,13 +56,13 @@ export default function DataSourceItem({
   const [isRenaming, setIsRenaming] = useState(false);
   const [editName, setEditName] = useState(dataSource.name);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isFocusing = useRef(false);
-
-  const layerColor =
+  const [layerColor, setLayerColor] = useState(
     layerType === LayerType.Member
       ? mapColors.member.color
-      : mapColors.markers.color;
+      : mapColors.markers.color
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isFocusing = useRef(false);
 
   const isVisible = getDataSourceVisibility(dataSource?.id);
 
@@ -141,56 +143,55 @@ export default function DataSourceItem({
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <button
-              className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
-              style={{ borderColor: isSelected ? layerColor : "transparent" }}
-              onClick={() =>
-                !isRenaming && handleDataSourceSelect(dataSource.id)
-              }
-            >
-              <div className="flex gap-[6px] text-left">
-                <div className="shrink-0 mt-[0.333em]">
-                  <DataSourceIcon type={dataSource.config.type} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  {isRenaming ? (
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="text-sm font-medium border-none outline-none bg-transparent w-full"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSaveRename();
-                        if (e.key === "Escape") {
-                          setEditName(dataSource.name);
-                          setIsRenaming(false);
-                        }
-                      }}
-                      onBlur={() => !isFocusing.current && handleSaveRename()}
-                      ref={inputRef}
-                    />
-                  ) : (
-                    <span className="text-sm font-medium">
-                      {dataSource.name}
-                    </span>
-                  )}
-                  <div className="text-xs text-muted-foreground">
-                    {Boolean(dataSource?.recordCount) ? (
-                      <p>{dataSource.recordCount} records</p>
+            <div className="flex items-center justify-between">
+              <LayerIcon
+                layerType={layerType}
+                isDataSource={true}
+                layerColor={layerColor}
+                onColorChange={setLayerColor}
+              />
+              <button
+                className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
+                style={{ borderColor: isSelected ? layerColor : "transparent" }}
+                onClick={() =>
+                  !isRenaming && handleDataSourceSelect(dataSource.id)
+                }
+              >
+                <div className="flex gap-[6px] text-left w-full">
+                  <div className="flex-1 min-w-0">
+                    {isRenaming ? (
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="text-sm font-medium border-none outline-none bg-transparent w-full"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSaveRename();
+                          if (e.key === "Escape") {
+                            setEditName(dataSource.name);
+                            setIsRenaming(false);
+                          }
+                        }}
+                        onBlur={() => !isFocusing.current && handleSaveRename()}
+                        ref={inputRef}
+                      />
                     ) : (
-                      <p>No records</p>
-                    )}
-                    {dataSource.createdAt && (
-                      <p>
-                        Created{" "}
-                        {new Date(dataSource?.createdAt).toLocaleDateString()}
-                      </p>
+                      <>
+                        <div className="text-sm font-medium truncate">
+                          {dataSource.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {DataSourceTypeLabels[dataSource.config.type]}
+                          {Boolean(dataSource?.recordCount) && (
+                            <> · {dataSource.recordCount} records</>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </ContextMenuTrigger>
           <ContextMenuContentWithFocus
             shouldFocusTarget={isRenaming}

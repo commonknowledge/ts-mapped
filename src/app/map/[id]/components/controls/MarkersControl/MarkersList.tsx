@@ -41,6 +41,7 @@ import {
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
 import { useMapId } from "../../../hooks/useMapCore";
+import { mapColors } from "../../../styles";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
@@ -67,6 +68,9 @@ export default function MarkersList() {
   const membersDataSource = useMembersDataSource();
 
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Track folder colors - map of folderId -> color
+  const [folderColors, setFolderColors] = useState<Record<string, string>>({});
 
   // Brief pulsing folder animation on some drag actions
   const [pulsingFolderId, _setPulsingFolderId] = useState<string | null>(null);
@@ -98,12 +102,12 @@ export default function MarkersList() {
           ...old,
           placedMarkers:
             old.placedMarkers?.map((m) =>
-              m.id === placedMarker.id ? fullMarker : m,
+              m.id === placedMarker.id ? fullMarker : m
             ) || [],
         };
       });
     },
-    [mapId, queryClient, trpc.map.byId],
+    [mapId, queryClient, trpc.map.byId]
   );
 
   // DnD sensors
@@ -119,7 +123,7 @@ export default function MarkersList() {
       keyboardCodes: keyboardCapture
         ? { start: [], cancel: [], end: [] }
         : undefined,
-    }),
+    })
   );
 
   // Drag and drop handlers
@@ -143,7 +147,7 @@ export default function MarkersList() {
 
       // Get current cache data (reflects any previous drag over updates)
       const currentCacheData = queryClient.getQueryData(
-        trpc.map.byId.queryKey({ mapId }),
+        trpc.map.byId.queryKey({ mapId })
       );
       const currentMarkers = currentCacheData?.placedMarkers || [];
 
@@ -166,7 +170,7 @@ export default function MarkersList() {
           // Get other markers in the target container
           const otherMarkers = currentMarkers.filter(
             (m) =>
-              m.id !== activeMarker.id && m.folderId === overMarker.folderId,
+              m.id !== activeMarker.id && m.folderId === overMarker.folderId
           );
 
           const newPosition = activeWasBeforeOver
@@ -198,7 +202,7 @@ export default function MarkersList() {
         }
 
         const folderMarkers = currentMarkers.filter(
-          (m) => m.folderId === folderId,
+          (m) => m.folderId === folderId
         );
 
         const newPosition = append
@@ -215,7 +219,7 @@ export default function MarkersList() {
         // Only update cache if the marker is not already unassigned
         if (activeMarker.folderId !== null) {
           const unassignedMarkers = currentMarkers.filter(
-            (m) => m.folderId === null,
+            (m) => m.folderId === null
           );
           const newPosition = getNewFirstPosition(unassignedMarkers);
 
@@ -228,7 +232,7 @@ export default function MarkersList() {
         }
       }
     },
-    [mapId, queryClient, trpc.map.byId, updateMarkerInCache],
+    [mapId, queryClient, trpc.map.byId, updateMarkerInCache]
   );
 
   const handleDragEndMarker = useCallback(
@@ -259,12 +263,15 @@ export default function MarkersList() {
         }
 
         const folderMarkers = placedMarkers.filter(
-          (m) => m.folderId === folderId,
+          (m) => m.folderId === folderId
         );
 
         const newPosition = append
           ? getNewLastPosition(folderMarkers)
           : getNewFirstPosition(folderMarkers);
+
+        // Get the folder's color
+        const folderColor = folderColors[folderId] || mapColors.markers.color;
 
         updatePlacedMarker({
           ...activeMarker,
@@ -272,11 +279,14 @@ export default function MarkersList() {
           position: newPosition,
         });
 
+        // Update the marker's color in the UI by triggering a re-render
+        // The color will be applied via the folderColor prop passed to SortableMarkerItem
+
         // Animate movement - pulse the folder that received the marker
         setPulsingFolderId(folderId);
       } else if (over && over.id === "unassigned") {
         const unassignedMarkers = placedMarkers.filter(
-          (m) => m.folderId === null,
+          (m) => m.folderId === null
         );
         const newPosition = getNewFirstPosition(unassignedMarkers);
         updatePlacedMarker({
@@ -298,20 +308,20 @@ export default function MarkersList() {
           // Get other markers in the SAME container as the over marker
           const otherMarkers = placedMarkers.filter(
             (m) =>
-              m.id !== activeMarker.id && m.folderId === overMarker.folderId,
+              m.id !== activeMarker.id && m.folderId === overMarker.folderId
           );
 
           if (activeWasBeforeOver) {
             // If active marker was before, make it after
             newPosition = getNewPositionAfter(
               overMarker.position,
-              otherMarkers,
+              otherMarkers
             );
           } else {
             // If active marker was after, make it before
             newPosition = getNewPositionBefore(
               overMarker.position,
-              otherMarkers,
+              otherMarkers
             );
           }
 
@@ -320,10 +330,12 @@ export default function MarkersList() {
             folderId: overMarker.folderId, // Move to the same folder as the marker we're dropping on
             position: newPosition,
           });
+
+          // The marker's color will be updated via the folderColor prop passed to SortableMarkerItem
         }
       }
     },
-    [placedMarkers, updatePlacedMarker, setPulsingFolderId],
+    [placedMarkers, updatePlacedMarker, setPulsingFolderId]
   );
 
   const handleDragEndFolder = useCallback(
@@ -354,13 +366,13 @@ export default function MarkersList() {
             // If active folder was before, make it after
             newPosition = getNewPositionAfter(
               overFolder.position,
-              otherFolders,
+              otherFolders
             );
           } else {
             // If active folder was after, make it before
             newPosition = getNewPositionBefore(
               overFolder.position,
-              otherFolders,
+              otherFolders
             );
           }
 
@@ -368,7 +380,7 @@ export default function MarkersList() {
         }
       }
     },
-    [folders, updateFolder],
+    [folders, updateFolder]
   );
 
   const handleDragEnd = useCallback(
@@ -385,7 +397,7 @@ export default function MarkersList() {
       // Update UI AFTER handling the drag
       setActiveId(null);
     },
-    [handleDragEndFolder, handleDragEndMarker],
+    [handleDragEndFolder, handleDragEndMarker]
   );
 
   const sortedFolders = useMemo(() => {
@@ -400,7 +412,7 @@ export default function MarkersList() {
   };
 
   return (
-    <div className="relative pt-2">
+    <div className="relative">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -459,11 +471,15 @@ export default function MarkersList() {
                   key={folder.id}
                   folder={folder}
                   markers={placedMarkers.filter(
-                    (p) => p.folderId === folder.id,
+                    (p) => p.folderId === folder.id
                   )}
                   activeId={activeId}
                   setKeyboardCapture={setKeyboardCapture}
                   isPulsing={pulsingFolderId === folder.id}
+                  folderColor={folderColors[folder.id]}
+                  onFolderColorChange={(color) =>
+                    setFolderColors((prev) => ({ ...prev, [folder.id]: color }))
+                  }
                 />
               ))}
             </SortableContext>
@@ -485,7 +501,7 @@ export default function MarkersList() {
               <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
             )}
           </DragOverlay>,
-          document.body,
+          document.body
         )}
       </DndContext>
     </div>

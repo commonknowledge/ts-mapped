@@ -20,7 +20,7 @@ import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
-import { CollectionIcon } from "../../Icons";
+import { MarkerCollectionIcon } from "../../Icons";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
@@ -47,7 +47,7 @@ export default function MarkersControl() {
   const handleManualSearch = () => {
     setTimeout(() => {
       const geocoderInput = document.querySelector(
-        'mapbox-search-box [class$="--Input"]',
+        'mapbox-search-box [class$="--Input"]'
       ) as HTMLInputElement;
       if (geocoderInput) {
         geocoderInput.focus();
@@ -57,7 +57,7 @@ export default function MarkersControl() {
             e.preventDefault();
             geocoderInput.focus();
           },
-          { once: true },
+          { once: true }
         );
       }
     }, 200);
@@ -102,7 +102,7 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id,
+                  (id) => id !== dataSource.id
                 )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
@@ -137,7 +137,7 @@ export default function MarkersControl() {
     {
       type: "submenu" as const,
       label: "Add Member Collection",
-      icon: <CollectionIcon color={mapColors.member.color} />,
+      icon: <MarkerCollectionIcon color={mapColors.member.color} />,
       items: [
         ...getMemberDataSourceDropdownItems(),
         ...(getMemberDataSourceDropdownItems().length > 0
@@ -153,7 +153,7 @@ export default function MarkersControl() {
     {
       type: "submenu" as const,
       label: "Add Marker Collection",
-      icon: <CollectionIcon color={mapColors.markers.color} />,
+      icon: <MarkerCollectionIcon color={mapColors.markers.color} />,
       items: [
         ...getMarkerDataSourceDropdownItems(),
         ...(getMarkerDataSourceDropdownItems().length > 0

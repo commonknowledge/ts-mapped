@@ -28,18 +28,22 @@ import {
   usePlacedMarkerMutations,
   usePlacedMarkerState,
 } from "../../../hooks/usePlacedMarkers";
+import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import LayerIcon from "../LayerIcon";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function SortableMarkerItem({
   marker,
   activeId,
   setKeyboardCapture,
+  folderColor,
 }: {
   marker: PlacedMarker;
   activeId: string | null;
   setKeyboardCapture: (captured: boolean) => void;
+  folderColor?: string;
 }) {
   const {
     attributes,
@@ -60,6 +64,20 @@ export default function SortableMarkerItem({
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [layerColor, setLayerColor] = useState(
+    folderColor || mapColors.markers.color
+  );
+
+  // Update color when folderColor prop changes (e.g., when moved into a folder)
+  useEffect(() => {
+    if (folderColor) {
+      setLayerColor(folderColor);
+    } else if (marker.folderId) {
+      // If marker is in a folder but no folderColor prop, reset to default
+      // This handles the case when marker is moved out of a folder
+      setLayerColor(mapColors.markers.color);
+    }
+  }, [folderColor, marker.folderId]);
 
   // Check if this marker is the one being dragged (even outside its container)
   const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
@@ -140,18 +158,29 @@ export default function SortableMarkerItem({
           ) : (
             <ContextMenu>
               <ContextMenuTrigger asChild>
-                <button
-                  className="flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
-                  onClick={() => flyToMarker()}
-                  onContextMenu={(e) => {
-                    // Prevent context menu during drag
-                    if (isCurrentlyDragging) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  {marker.label}
-                </button>
+                <div className="flex items-center justify-between">
+                  <LayerIcon
+                    layerType={LayerType.Marker}
+                    isDataSource={false}
+                    layerColor={layerColor}
+                    onColorChange={setLayerColor}
+                  />
+                  <button
+                    className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                    onClick={() => flyToMarker()}
+                    onContextMenu={(e) => {
+                      // Prevent context menu during drag
+                      if (isCurrentlyDragging) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    <div className="text-sm font-medium truncate">{marker.label}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      Individual marker
+                    </div>
+                  </button>
+                </div>
               </ContextMenuTrigger>
               <ContextMenuContent>
                 <ContextMenuItem onClick={onEdit}>

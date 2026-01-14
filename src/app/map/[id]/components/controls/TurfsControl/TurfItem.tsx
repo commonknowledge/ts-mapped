@@ -26,9 +26,10 @@ import { useShowControls } from "../../../hooks/useMapControls";
 import { useMapRef } from "../../../hooks/useMapCore";
 import { useTurfMutations } from "../../../hooks/useTurfMutations";
 import { useTurfState } from "../../../hooks/useTurfState";
-import { CONTROL_PANEL_WIDTH } from "../../../styles";
+import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import LayerIcon from "../LayerIcon";
 import type { Turf } from "@/server/models/Turf";
 
 export default function TurfItem({ turf }: { turf: Turf }) {
@@ -40,6 +41,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [layerColor, setLayerColor] = useState(mapColors.areas.color);
 
   const handleFlyTo = (turf: Turf) => {
     const map = mapRef?.current;
@@ -109,12 +111,23 @@ export default function TurfItem({ turf }: { turf: Turf }) {
         ) : (
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <button
-                className="flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
-                onClick={() => handleFlyTo(turf)}
-              >
-                {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
-              </button>
+              <div className="flex items-center justify-between">
+                <LayerIcon
+                  layerType={LayerType.Turf}
+                  isDataSource={false}
+                  layerColor={layerColor}
+                  onColorChange={setLayerColor}
+                />
+                <button
+                  className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                  onClick={() => handleFlyTo(turf)}
+                >
+                  <div className="text-sm font-medium truncate">
+                    {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">Area</div>
+                </button>
+              </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
               <ContextMenuItem onClick={onEdit}>
