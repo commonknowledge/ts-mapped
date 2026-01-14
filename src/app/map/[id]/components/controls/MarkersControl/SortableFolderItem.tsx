@@ -18,8 +18,8 @@ import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
 import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
 import ControlEditForm from "../ControlEditForm";
-import ControlWrapper from "../ControlWrapper";
 import ControlHoverMenu from "../ControlHoverMenu";
+import ControlWrapper from "../ControlWrapper";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -138,10 +138,7 @@ export default function SortableFolderItem({
             onSubmit={onSubmit}
           />
         ) : (
-          <ControlHoverMenu
-            onDelete={() => onDelete()}
-            onEdit={() => onEdit()}
-          >
+          <ControlHoverMenu onDelete={() => onDelete()} onEdit={() => onEdit()}>
             <button
               ref={isDraggingMarker ? setHeaderNodeRef : null}
               onClick={() => onClickFolder()}

@@ -1,11 +1,11 @@
-import { useState, useRef } from "react";
+import { PencilIcon, TrashIcon } from "lucide-react";
+import { useRef, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { PencilIcon, TrashIcon } from "lucide-react";
 
 export default function ControlHoverMenu({
   children,
@@ -28,10 +28,9 @@ export default function ControlHoverMenu({
   };
 
   const handleMouseLeave = () => {
-    // Add a small delay before closing to allow moving to menu
     timeoutRef.current = setTimeout(() => {
       setOpen(false);
-    }, 150);
+    }, 200);
   };
 
   return (
@@ -40,14 +39,15 @@ export default function ControlHoverMenu({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenu open={open} modal={false}>
         <DropdownMenuTrigger asChild>
           <div className="w-full">{children}</div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent 
-          align="end" 
-          side="right" 
-          sideOffset={8}
+        <DropdownMenuContent
+          align="start"
+          side="right"
+          sideOffset={38}
+          alignOffset={-4}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >

@@ -8,8 +8,8 @@ import {
   usePlacedMarkerState,
 } from "../../../hooks/usePlacedMarkers";
 import ControlEditForm from "../ControlEditForm";
-import ControlWrapper from "../ControlWrapper";
 import ControlHoverMenu from "../ControlHoverMenu";
+import ControlWrapper from "../ControlWrapper";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function SortableMarkerItem({

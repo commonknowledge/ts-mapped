@@ -5,5 +5,9 @@ export default function LayerControlWrapper({
 }: {
   children: ReactNode;
 }) {
-  return <div className="border-b border-neutral-200 last:border-b-0">{children}</div>;
+  return (
+    <div className="border-b border-neutral-200 last:border-b-0">
+      {children}
+    </div>
+  );
 }
