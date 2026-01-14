@@ -182,7 +182,7 @@ const getType = (value: unknown): ColumnType => {
   }
 
   if (typeof value === "string") {
-    const trimmedValue = value.trim().replace(/%$/, "");
+    const trimmedValue = cleanNumber(value);
     if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(trimmedValue)) {
       return ColumnType.Number;
     }
@@ -203,7 +203,14 @@ const parseNumber = (value: unknown): number => {
   if (typeof value !== "string") {
     return Number(value);
   }
-  return Number(value.replace(/%$/, ""));
+  return Number(cleanNumber(value));
+};
+
+/**
+ * Replace terminating % and all commas and spaces
+ */
+const cleanNumber = (value: string): string => {
+  return value.trim().replace(/%$/, "").replace(/,/g, "").replace(/ /g, "");
 };
 
 const addColumnDefs = (

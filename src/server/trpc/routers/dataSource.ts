@@ -53,7 +53,7 @@ export const dataSourceRouter = router({
         return eb.or(filter);
       })
       .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
+      .select(db.fn.count("dataRecord.id").distinct().as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
 
@@ -65,31 +65,20 @@ export const dataSourceRouter = router({
       .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
       .where("organisationId", "=", ctx.organisation.id)
       .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
+      .select(db.fn.count("dataRecord.id").distinct().as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
 
     return addImportInfo(dataSources);
   }),
   byId: dataSourceOwnerProcedure.query(async ({ ctx }) => {
-    const dataSource = await db
-      .selectFrom("dataSource")
-      .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
-      .where("organisationId", "=", ctx.organisation.id)
-      .where("dataSource.id", "=", ctx.dataSource.id)
-      .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
-      .groupBy("dataSource.id")
+    const recordCount = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", ctx.dataSource.id)
+      .select(db.fn.countAll().as("count"))
       .executeTakeFirst();
 
-    if (!dataSource) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Data source not found",
-      });
-    }
-
-    const dataSourceIds = dataSource.enrichments
+    const dataSourceIds = ctx.dataSource.enrichments
       .filter((e) => e.sourceType === EnrichmentSourceType.DataSource)
       .map((e) => e.dataSourceId)
       .filter((id) => typeof id === "string");
@@ -103,15 +92,15 @@ export const dataSourceRouter = router({
         ),
       ]);
     return {
-      ...dataSource,
+      ...ctx.dataSource,
       config: {
-        ...dataSource.config,
+        ...ctx.dataSource.config,
         __SERIALIZE_CREDENTIALS: true,
       },
       enrichmentInfo,
       importInfo,
       enrichmentDataSources,
-      recordCount: Number(dataSource.recordCount) || 0,
+      recordCount: Number(recordCount?.count) || 0,
     };
   }),
 

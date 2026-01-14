@@ -14,19 +14,19 @@ import type { FeatureCollection } from "geojson";
 
 const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";
 
-function hexToRgb(hex: string) {
-  const normalized = hex.replace("#", "");
-  const bigint = parseInt(normalized, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return { r, g, b };
-}
+// function hexToRgb(hex: string) {
+//   const normalized = hex.replace("#", "");
+//   const bigint = parseInt(normalized, 16);
+//   const r = (bigint >> 16) & 255;
+//   const g = (bigint >> 8) & 255;
+//   const b = bigint & 255;
+//   return { r, g, b };
+// }
 
-function rgbaString(hex: string, alpha: number) {
-  const { r, g, b } = hexToRgb(hex);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+// function rgbaString(hex: string, alpha: number) {
+//   const { r, g, b } = hexToRgb(hex);
+//   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+// }
 
 export default function Markers() {
   const { viewConfig } = useMapViews();
@@ -154,57 +154,53 @@ function DataSourceMarkers({
         ],
       }}
     >
-      {publicMap ? (
-        [
-          <Layer
-            id={`${sourceId}-circles`}
-            key={`${sourceId}-circles`}
-            type="circle"
-            source={sourceId}
-            filter={["has", "point_count"]}
-            paint={{
-              // Circle radius based on point_count
-              "circle-radius": [
-                "interpolate",
-                ["linear"],
-                ["get", "point_count"],
-                1,
-                15,
-                10,
-                25,
-                100,
-                35,
-                1000,
-                50,
-                10000,
-                70,
-              ],
-              // Circle color
-              "circle-color": color,
-              // Opacity based on matched_count
-              "circle-opacity": [
-                "case",
-                ["==", ["get", "matched_count"], 0],
-                0.5,
-                0.8,
-              ],
-            }}
-          />,
-
-          <Layer
-            id={`${sourceId}-counts`}
-            key={`${sourceId}-counts`}
-            type="symbol"
-            source={sourceId}
-            filter={["has", "point_count"]}
-            layout={{
-              "text-field": ["get", "point_count"],
-              "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
-              "text-size": 12,
-            }}
-          />,
-        ]
-      ) : (
+      <Layer
+        id={`${sourceId}-circles`}
+        key={`${sourceId}-circles`}
+        type="circle"
+        source={sourceId}
+        filter={["has", "point_count"]}
+        paint={{
+          // Circle radius based on point_count
+          "circle-radius": [
+            "interpolate",
+            ["linear"],
+            ["get", "point_count"],
+            1,
+            15,
+            10,
+            25,
+            100,
+            35,
+            1000,
+            50,
+            10000,
+            70,
+          ],
+          // Circle color
+          "circle-color": color,
+          // Opacity based on matched_count
+          "circle-opacity": [
+            "case",
+            ["==", ["get", "matched_count"], 0],
+            0.5,
+            0.8,
+          ],
+        }}
+      />
+      <Layer
+        id={`${sourceId}-counts`}
+        key={`${sourceId}-counts`}
+        type="symbol"
+        source={sourceId}
+        filter={["has", "point_count"]}
+        layout={{
+          "text-field": ["get", "point_count"],
+          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+          "text-size": 12,
+        }}
+      />
+      {/* TODO: Restore this with a switch
         <Layer
           id={`${sourceId}-heatmap`}
           type="heatmap"
@@ -273,8 +269,7 @@ function DataSourceMarkers({
             ],
             "heatmap-opacity": 0.7,
           }}
-        />
-      )}
+        /> */}
       <Layer
         id={`${sourceId}-pins`}
         type="circle"

@@ -246,11 +246,7 @@ export const useFillColor = ({
       .fill(null)
       .flatMap((_, i) => {
         const step = stepScale(i);
-        const color = isReversed
-          ? colorScheme.colorScale(
-              colorScheme.maxValue - (step - colorScheme.minValue),
-            )
-          : colorScheme.colorScale(step);
+        const color = colorScheme.colorScale(step);
         return [step, color];
       });
     return [

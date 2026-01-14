@@ -144,15 +144,17 @@ export function useMapHoverEffect({
 
       if (features?.length) {
         const feature = features[0];
-        setHoverMarker({
-          coordinates: [e.lngLat.lng, e.lngLat.lat],
-          properties: feature.properties || {},
-        });
-        if (map.getCanvas().style.cursor !== "pointer") {
-          prevPointer.cursor = map.getCanvas().style.cursor || "";
+        if (!feature?.properties?.cluster) {
+          setHoverMarker({
+            coordinates: [e.lngLat.lng, e.lngLat.lat],
+            properties: feature.properties || {},
+          });
+          if (map.getCanvas().style.cursor !== "pointer") {
+            prevPointer.cursor = map.getCanvas().style.cursor || "";
+          }
+          map.getCanvas().style.cursor = "pointer";
+          return true;
         }
-        map.getCanvas().style.cursor = "pointer";
-        return true;
       }
 
       setHoverMarker(null);

@@ -32,7 +32,7 @@ export default function BoundariesControl() {
       </LayerHeader>
 
       {expanded && (
-        <div className="space-y-2 py-2">
+        <div className="px-4 pt-2 pb-3 space-y-2">
           {/* Controls removed from here 2025-12-08. */}
           {/* Potentially could be restored. Remove if still not restored by 2025-03-01 */}
           {/* <ShapeSelector />
