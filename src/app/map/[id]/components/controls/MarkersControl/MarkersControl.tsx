@@ -3,7 +3,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useDataSources,
+  useMembersDataSource,
+} from "@/app/map/[id]/hooks/useDataSources";
 import {
   useFolderMutations,
   useFoldersQuery,
@@ -60,7 +63,30 @@ export default function MarkersControl() {
     }, 200);
   };
 
-  const getDataSourceDropdownItems = () => {
+  const membersDataSource = useMembersDataSource();
+
+  const getMemberDataSourceDropdownItems = () => {
+    const memberDataSources =
+      dataSources?.filter((dataSource) => {
+        return dataSource.recordType === DataSourceRecordType.Members;
+      }) || [];
+
+    return memberDataSources.map((dataSource) => {
+      const selected = dataSource.id === mapConfig.membersDataSourceId;
+      return {
+        type: "item" as const,
+        icon: selected ? <Check /> : null,
+        label: dataSource.name,
+        onClick: () => {
+          updateMapConfig({
+            membersDataSourceId: selected ? null : dataSource.id,
+          });
+        },
+      };
+    });
+  };
+
+  const getMarkerDataSourceDropdownItems = () => {
     const markerDataSources =
       dataSources?.filter((dataSource) => {
         return dataSource.recordType !== DataSourceRecordType.Members;
@@ -110,13 +136,29 @@ export default function MarkersControl() {
     },
     {
       type: "submenu" as const,
+      label: "Add Member Collection",
+      icon: <CollectionIcon color={mapColors.member.color} />,
+      items: [
+        ...getMemberDataSourceDropdownItems(),
+        ...(getMemberDataSourceDropdownItems().length > 0
+          ? [{ type: "separator" as const }]
+          : []),
+        {
+          type: "item" as const,
+          label: "Add new data source",
+          onClick: () => router.push("/data-sources/new"),
+        },
+      ],
+    },
+    {
+      type: "submenu" as const,
       label: "Add Marker Collection",
       icon: <CollectionIcon color={mapColors.markers.color} />,
       items: [
-        ...getDataSourceDropdownItems(),
-        {
-          type: "separator" as const,
-        },
+        ...getMarkerDataSourceDropdownItems(),
+        ...(getMarkerDataSourceDropdownItems().length > 0
+          ? [{ type: "separator" as const }]
+          : []),
         {
           type: "item" as const,
           label: "Add new data source",

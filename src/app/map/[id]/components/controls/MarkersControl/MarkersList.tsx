@@ -16,7 +16,10 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useMarkerDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useMarkerDataSources,
+  useMembersDataSource,
+} from "@/app/map/[id]/hooks/useDataSources";
 import {
   useFolderMutations,
   useFoldersQuery,
@@ -61,6 +64,7 @@ export default function MarkersList() {
   const { updatePlacedMarker } = usePlacedMarkerMutations();
   const { selectedDataSourceId, handleDataSourceSelect } = useTable();
   const markerDataSources = useMarkerDataSources();
+  const membersDataSource = useMembersDataSource();
 
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -410,13 +414,27 @@ export default function MarkersList() {
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           <div className="flex flex-col gap-1">
-            {markerDataSources &&
+            {!membersDataSource &&
+              markerDataSources &&
               markerDataSources.length === 0 &&
               placedMarkers.length === 0 && (
                 <EmptyLayer message="Add a Marker Layer" />
               )}
 
-            {/* Data sources */}
+            {/* Member data source */}
+            {membersDataSource && (
+              <div className="flex flex-col gap-1">
+                <DataSourceControl
+                  key={membersDataSource.id}
+                  dataSource={membersDataSource}
+                  isSelected={membersDataSource.id === selectedDataSourceId}
+                  handleDataSourceSelect={handleDataSourceSelect}
+                  layerType={LayerType.Member}
+                />
+              </div>
+            )}
+
+            {/* Marker data sources */}
             {markerDataSources && markerDataSources.length > 0 && (
               <div className="flex flex-col gap-1">
                 {markerDataSources.map((dataSource) => (
