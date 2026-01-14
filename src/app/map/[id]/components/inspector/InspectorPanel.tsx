@@ -1,18 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  MapPinIcon,
+  SettingsIcon,
+  TableIcon,
+  XIcon,
+} from "lucide-react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useMapRef } from "../../hooks/useMapCore";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
+import {
+  UnderlineTabs,
+  UnderlineTabsContent,
+  UnderlineTabsList,
+  UnderlineTabsTrigger,
+} from "./UnderlineTabs";
 
 export default function InspectorPanel() {
   const {
@@ -22,6 +33,7 @@ export default function InspectorPanel() {
     selectedTurf,
     focusedRecord,
     setFocusedRecord,
+    selectedRecords,
   } = useInspector();
   const mapRef = useMapRef();
   const { setSelectedDataSourceId, selectedDataSourceId } = useTable();
@@ -48,6 +60,8 @@ export default function InspectorPanel() {
   const isDetailsView =
     (selectedTurf && type !== LayerType.Turf) ||
     (selectedBoundary && type !== LayerType.Boundary);
+
+  const markerCount = selectedRecords?.length || 0;
 
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
@@ -105,16 +119,27 @@ export default function InspectorPanel() {
           </div>
         )}
 
-        <Tabs defaultValue="stats" className="flex flex-col overflow-hidden">
+        <UnderlineTabs
+          defaultValue="data"
+          className="flex flex-col overflow-hidden"
+        >
           <div className="px-4 border-t">
-            <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="stats">Stats</TabsTrigger>
-              <TabsTrigger value="markers">Markers</TabsTrigger>
-              <TabsTrigger value="notes">Notes 0</TabsTrigger>
-            </TabsList>
+            <UnderlineTabsList className="w-full grid grid-cols-4">
+              <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
+              <UnderlineTabsTrigger value="markers">
+                Markers {markerCount > 0 ? markerCount : ""}
+              </UnderlineTabsTrigger>
+              <UnderlineTabsTrigger value="notes">Notes 0</UnderlineTabsTrigger>
+              <UnderlineTabsTrigger value="config" className="px-2">
+                <SettingsIcon size={16} />
+              </UnderlineTabsTrigger>
+            </UnderlineTabsList>
           </div>
 
-          <TabsContent value="stats" className="grow overflow-auto px-4 pb-4">
+          <UnderlineTabsContent
+            value="data"
+            className="grow overflow-auto px-4 pb-4"
+          >
             <div className="flex flex-col gap-4">
               {dataSource && (
                 <div className="bg-muted py-1 px-2 rounded">
@@ -123,7 +148,9 @@ export default function InspectorPanel() {
                   </h3>
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">
-                      <DataSourceIcon type={dataSource.config?.type as string} />
+                      <DataSourceIcon
+                        type={dataSource.config?.type as string}
+                      />
                     </div>
 
                     <p className="truncate">{dataSource.name}</p>
@@ -159,21 +186,36 @@ export default function InspectorPanel() {
                 </div>
               )}
             </div>
-          </TabsContent>
+          </UnderlineTabsContent>
 
-          <TabsContent value="markers" className="grow overflow-auto px-4 pb-4">
+          <UnderlineTabsContent
+            value="markers"
+            className="grow overflow-auto px-4 pb-4"
+          >
             <div className="flex flex-col gap-4">
               {type === LayerType.Turf && <TurfMarkersList />}
               {type === LayerType.Boundary && <BoundaryMarkersList />}
             </div>
-          </TabsContent>
+          </UnderlineTabsContent>
 
-          <TabsContent value="notes" className="grow overflow-auto px-4 pb-4">
+          <UnderlineTabsContent
+            value="notes"
+            className="grow overflow-auto px-4 pb-4"
+          >
             <div className="flex flex-col gap-4">
               <p className="text-muted-foreground">No notes yet</p>
             </div>
-          </TabsContent>
-        </Tabs>
+          </UnderlineTabsContent>
+
+          <UnderlineTabsContent
+            value="config"
+            className="grow overflow-auto px-4 pb-4"
+          >
+            <div className="flex flex-col gap-4">
+              <p className="text-muted-foreground">Configuration options</p>
+            </div>
+          </UnderlineTabsContent>
+        </UnderlineTabs>
       </div>
     </div>
   );
