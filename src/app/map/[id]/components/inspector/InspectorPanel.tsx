@@ -109,14 +109,7 @@ export default function InspectorPanel() {
           <div className="px-4 border-t">
             <TabsList className="w-full grid grid-cols-3">
               <TabsTrigger value="stats">Stats</TabsTrigger>
-              <TabsTrigger value="markers">
-                Markers{" "}
-                {(type === LayerType.Boundary || type === LayerType.Turf) && (
-                  <span className="ml-1">
-                    {/* Count will be shown dynamically */}
-                  </span>
-                )}
-              </TabsTrigger>
+              <TabsTrigger value="markers">Markers</TabsTrigger>
               <TabsTrigger value="notes">Notes 0</TabsTrigger>
             </TabsList>
           </div>
