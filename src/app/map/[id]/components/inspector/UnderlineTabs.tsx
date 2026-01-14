@@ -36,13 +36,13 @@ function UnderlineTabsTrigger({
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "relative inline-flex flex-1 items-center justify-center px-3 py-2 text-sm font-normal text-muted-foreground whitespace-nowrap transition-colors",
+        "relative inline-flex w-fit items-center justify-center h-9 text-sm font-medium text-muted-foreground whitespace-nowrap transition-colors cursor-pointer",
         "hover:text-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        "disabled:pointer-events-none disabled:opacity-50",
-        "data-[state=active]:text-foreground data-[state=active]:font-medium",
-        "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-transparent",
-        "data-[state=active]:after:bg-foreground",
+        "disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed",
+        "data-[state=active]:text-foreground",
+        "after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:bg-transparent",
+        "data-[state=active]:after:w-full data-[state=active]:after:left-0 data-[state=active]:after:translate-x-0 data-[state=active]:after:bg-foreground",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
