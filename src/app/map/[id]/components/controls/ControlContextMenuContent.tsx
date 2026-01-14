@@ -12,7 +12,7 @@ export default function ControlContextMenuContent({
     <ContextMenuContent>
       <ContextMenuItem onClick={onEdit}>
         <PencilIcon size={12} />
-        Edit
+        Rename
       </ContextMenuItem>
       <ContextMenuItem onClick={onDelete}>
         <TrashIcon size={12} />

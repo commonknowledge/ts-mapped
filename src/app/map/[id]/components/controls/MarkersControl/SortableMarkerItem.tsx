@@ -1,16 +1,15 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
-import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { useMapRef } from "../../../hooks/useMapCore";
 import {
   usePlacedMarkerMutations,
   usePlacedMarkerState,
 } from "../../../hooks/usePlacedMarkers";
-import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import ControlHoverMenu from "../ControlHoverMenu";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function SortableMarkerItem({
@@ -103,20 +102,17 @@ export default function SortableMarkerItem({
             onSubmit={onSubmit}
           />
         ) : (
-          <ContextMenu>
-            <ContextMenuTrigger asChild>
-              <button
-                className="flex items-center gap-2 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer"
-                onClick={() => flyToMarker()}
-              >
-                {marker.label}
-              </button>
-            </ContextMenuTrigger>
-            <ControlContextMenuContent
-              onEdit={() => onEdit()}
-              onDelete={() => deletePlacedMarker(marker.id)}
-            />
-          </ContextMenu>
+          <ControlHoverMenu
+            onEdit={() => onEdit()}
+            onDelete={() => deletePlacedMarker(marker.id)}
+          >
+            <button
+              className="flex items-center gap-2 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer"
+              onClick={() => flyToMarker()}
+            >
+              {marker.label}
+            </button>
+          </ControlHoverMenu>
         )}
       </ControlWrapper>
     </div>

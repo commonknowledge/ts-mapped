@@ -5,7 +5,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ContextMenuTrigger } from "@radix-ui/react-context-menu";
 import {
   CornerDownRightIcon,
   Folder as FolderClosed,
@@ -14,14 +13,13 @@ import {
 import { useMemo, useState } from "react";
 
 import { sortByPositionAndId } from "@/app/map/[id]/utils";
-import { ContextMenu } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
 import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
-import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import ControlHoverMenu from "../ControlHoverMenu";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -140,32 +138,29 @@ export default function SortableFolderItem({
             onSubmit={onSubmit}
           />
         ) : (
-          <ContextMenu>
-            <ContextMenuTrigger asChild>
-              <button
-                ref={isDraggingMarker ? setHeaderNodeRef : null}
-                onClick={() => onClickFolder()}
-                className={cn(
-                  "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
-                  isHeaderOver ? "bg-blue-50" : "",
-                )}
-              >
-                {isExpanded ? (
-                  <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
-                ) : (
-                  <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
-                )}
-                <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
-                  {sortedMarkers.length}
-                </span>
-                {folder.name}
-              </button>
-            </ContextMenuTrigger>
-            <ControlContextMenuContent
-              onDelete={() => onDelete()}
-              onEdit={() => onEdit()}
-            />
-          </ContextMenu>
+          <ControlHoverMenu
+            onDelete={() => onDelete()}
+            onEdit={() => onEdit()}
+          >
+            <button
+              ref={isDraggingMarker ? setHeaderNodeRef : null}
+              onClick={() => onClickFolder()}
+              className={cn(
+                "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
+                isHeaderOver ? "bg-blue-50" : "",
+              )}
+            >
+              {isExpanded ? (
+                <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
+              ) : (
+                <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
+              )}
+              <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
+                {sortedMarkers.length}
+              </span>
+              {folder.name}
+            </button>
+          </ControlHoverMenu>
         )}
       </ControlWrapper>
 
