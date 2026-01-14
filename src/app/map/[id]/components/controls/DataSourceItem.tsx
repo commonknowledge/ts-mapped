@@ -25,12 +25,50 @@ import {
 } from "@/shadcn/ui/alert-dialog";
 import { DataSourceTypeLabels } from "@/labels";
 import { LayerType } from "@/types";
+import { CircleIcon, SquareIcon, UsersIcon } from "lucide-react";
+import DataSourceRecordTypeIcon, {
+  dataSourceRecordTypeLabels,
+} from "@/components/DataSourceRecordTypeIcon";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
-import type { DataSourceType } from "@/server/models/DataSource";
+import type {
+  DataSourceRecordType,
+  DataSourceType,
+} from "@/server/models/DataSource";
 import LayerIcon from "./LayerIcon";
+
+function getLayerTypeLabel(type: LayerType) {
+  switch (type) {
+    case LayerType.Member:
+      return "Members";
+    case LayerType.Marker:
+      return "Markers";
+    case LayerType.Turf:
+      return "Areas";
+    case LayerType.Boundary:
+      return "Boundaries";
+    default:
+      return "Layer";
+  }
+}
+
+function LayerTypeSubheadingIcon({ type }: { type: LayerType }) {
+  const common = "w-3 h-3";
+  switch (type) {
+    case LayerType.Member:
+      return <UsersIcon className={common} />;
+    case LayerType.Marker:
+      return <CircleIcon className={common} />;
+    case LayerType.Turf:
+      return <SquareIcon className={common} />;
+    case LayerType.Boundary:
+      return <SquareIcon className={common} />;
+    default:
+      return null;
+  }
+}
 
 export default function DataSourceItem({
   dataSource,
@@ -44,6 +82,7 @@ export default function DataSourceItem({
     config: { type: DataSourceType };
     recordCount?: number;
     createdAt?: Date;
+    recordType?: DataSourceRecordType;
   };
   isSelected: boolean;
   handleDataSourceSelect: (id: string) => void;
@@ -180,10 +219,27 @@ export default function DataSourceItem({
                         <div className="text-sm font-medium truncate">
                           {dataSource.name}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
                           {DataSourceTypeLabels[dataSource.config.type]}
                           {Boolean(dataSource?.recordCount) && (
-                            <> · {dataSource.recordCount} records</>
+                            <>
+                              <span>·</span>
+                              <span>{dataSource.recordCount}</span>
+                            </>
+                          )}
+                          {dataSource.recordType &&
+                          dataSourceRecordTypeLabels[dataSource.recordType] ? (
+                            <span className="inline-flex items-center gap-1">
+                              {
+                                dataSourceRecordTypeLabels[
+                                  dataSource.recordType
+                                ]
+                              }
+                            </span>
+                          ) : (
+                            Boolean(dataSource?.recordCount) && (
+                              <span>records</span>
+                            )
                           )}
                         </div>
                       </>

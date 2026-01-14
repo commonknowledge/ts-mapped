@@ -1,4 +1,10 @@
-import { Check, FolderPlusIcon, LoaderPinwheel, PlusIcon } from "lucide-react";
+import {
+  FolderPlusIcon,
+  LoaderPinwheel,
+  MapPin,
+  PlusIcon,
+  Search,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -16,14 +22,13 @@ import {
   useHandleDropPin,
   usePlacedMarkerMutations,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
-import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
-import { DataSourceRecordType } from "@/server/models/DataSource";
 import { LayerType } from "@/types";
-import { MarkerCollectionIcon } from "../../Icons";
+import { MarkerCollectionIcon, MarkerIndividualIcon } from "../../Icons";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
 import MarkersList from "./MarkersList";
+import DataSourceSelectionModal from "./DataSourceSelectionModal";
 
 export default function MarkersControl() {
   const router = useRouter();
@@ -34,6 +39,7 @@ export default function MarkersControl() {
   const { handleDropPin } = useHandleDropPin();
   const { data: dataSources } = useDataSources();
   const [expanded, setExpanded] = useState(true);
+  const [isDataSourceModalOpen, setIsDataSourceModalOpen] = useState(false);
 
   const createFolder = () => {
     const newFolder = {
@@ -65,49 +71,20 @@ export default function MarkersControl() {
 
   const membersDataSource = useMembersDataSource();
 
-  const getMemberDataSourceDropdownItems = () => {
-    const memberDataSources =
-      dataSources?.filter((dataSource) => {
-        return dataSource.recordType === DataSourceRecordType.Members;
-      }) || [];
-
-    return memberDataSources.map((dataSource) => {
-      const selected = dataSource.id === mapConfig.membersDataSourceId;
-      return {
-        type: "item" as const,
-        icon: selected ? <Check /> : null,
-        label: dataSource.name,
-        onClick: () => {
-          updateMapConfig({
-            membersDataSourceId: selected ? null : dataSource.id,
-          });
-        },
-      };
+  const handleSelectMemberDataSource = (dataSourceId: string | null) => {
+    updateMapConfig({
+      membersDataSourceId: dataSourceId,
     });
   };
 
-  const getMarkerDataSourceDropdownItems = () => {
-    const markerDataSources =
-      dataSources?.filter((dataSource) => {
-        return dataSource.recordType !== DataSourceRecordType.Members;
-      }) || [];
-
-    return markerDataSources.map((dataSource) => {
-      const selected = mapConfig.markerDataSourceIds.includes(dataSource.id);
-      return {
-        type: "item" as const,
-        icon: selected ? <Check /> : null,
-        label: dataSource.name,
-        onClick: () => {
-          updateMapConfig({
-            markerDataSourceIds: selected
-              ? mapConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id
-                )
-              : [...mapConfig.markerDataSourceIds, dataSource.id],
-          });
-        },
-      };
+  const handleSelectMarkerDataSource = (
+    dataSourceId: string,
+    isSelected: boolean
+  ) => {
+    updateMapConfig({
+      markerDataSourceIds: isSelected
+        ? mapConfig.markerDataSourceIds.filter((id) => id !== dataSourceId)
+        : [...mapConfig.markerDataSourceIds, dataSourceId],
     });
   };
 
@@ -115,61 +92,32 @@ export default function MarkersControl() {
     {
       type: "submenu" as const,
       label: "Add Single Marker",
-      icon: (
-        <div
-          className="w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: mapColors.markers.color }}
-        />
-      ),
+      icon: <MarkerIndividualIcon color="#6b7280" />,
       items: [
         {
           type: "item" as const,
           label: "Search for a location",
+          icon: <Search className="w-4 h-4 text-neutral-600" />,
           onClick: () => handleManualSearch(),
         },
         {
           type: "item" as const,
           label: "Drop a pin on the map",
+          icon: <MarkerIndividualIcon color="#6b7280" />,
           onClick: () => handleDropPin(),
         },
       ],
     },
     {
-      type: "submenu" as const,
-      label: "Add Member Collection",
-      icon: <MarkerCollectionIcon color={mapColors.member.color} />,
-      items: [
-        ...getMemberDataSourceDropdownItems(),
-        ...(getMemberDataSourceDropdownItems().length > 0
-          ? [{ type: "separator" as const }]
-          : []),
-        {
-          type: "item" as const,
-          label: "Add new data source",
-          onClick: () => router.push("/data-sources/new"),
-        },
-      ],
-    },
-    {
-      type: "submenu" as const,
-      label: "Add Marker Collection",
-      icon: <MarkerCollectionIcon color={mapColors.markers.color} />,
-      items: [
-        ...getMarkerDataSourceDropdownItems(),
-        ...(getMarkerDataSourceDropdownItems().length > 0
-          ? [{ type: "separator" as const }]
-          : []),
-        {
-          type: "item" as const,
-          label: "Add new data source",
-          onClick: () => router.push("/data-sources/new"),
-        },
-      ],
+      type: "item" as const,
+      label: "Markers from data sources",
+      icon: <MarkerCollectionIcon color="#6b7280" />,
+      onClick: () => setIsDataSourceModalOpen(true),
     },
     { type: "separator" as const },
     {
       type: "item" as const,
-      icon: <FolderPlusIcon className="w-4 h-4 text-muted-foreground" />,
+      icon: <FolderPlusIcon className="w-4 h-4 text-neutral-600" />,
       label: "Add Folder",
       onClick: () => createFolder(),
     },
@@ -201,6 +149,16 @@ export default function MarkersControl() {
           <MarkersList />
         </div>
       )}
+
+      <DataSourceSelectionModal
+        open={isDataSourceModalOpen}
+        onOpenChange={setIsDataSourceModalOpen}
+        dataSources={dataSources || []}
+        selectedMemberDataSourceId={mapConfig.membersDataSourceId || null}
+        selectedMarkerDataSourceIds={mapConfig.markerDataSourceIds}
+        onSelectMemberDataSource={handleSelectMemberDataSource}
+        onSelectMarkerDataSource={handleSelectMarkerDataSource}
+      />
     </LayerControlWrapper>
   );
 }

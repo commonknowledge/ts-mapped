@@ -2,7 +2,7 @@
 
 import { Boxes, Database, PlusIcon, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import { CollectionIcon } from "@/app/map/[id]/components/Icons";
+import { MarkerCollectionIcon } from "@/app/map/[id]/components/Icons";
 import { mapColors } from "@/app/map/[id]/styles";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import DataSourceRecordTypeIcon, {
@@ -31,17 +31,17 @@ export default function UserDataSourcesList({
   const memberDataSources = useMemo(
     () =>
       dataSources?.filter(
-        (dataSource) => dataSource.recordType === DataSourceRecordType.Members,
+        (dataSource) => dataSource.recordType === DataSourceRecordType.Members
       ),
-    [dataSources],
+    [dataSources]
   );
 
   const otherDataSources = useMemo(
     () =>
       dataSources?.filter(
-        (dataSource) => dataSource.recordType !== DataSourceRecordType.Members,
+        (dataSource) => dataSource.recordType !== DataSourceRecordType.Members
       ),
-    [dataSources],
+    [dataSources]
   );
 
   const filterOptions = useMemo(() => {
@@ -97,7 +97,7 @@ export default function UserDataSourcesList({
         {/* Member Collections Section */}
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <CollectionIcon color={mapColors.member.color} />
+            <MarkerCollectionIcon color={mapColors.member.color} />
             Member data sources
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 ">
@@ -123,7 +123,7 @@ export default function UserDataSourcesList({
         <div>
           <div className="flex items-center mb-6 gap-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <CollectionIcon color={mapColors.dataSource.color} />
+              <MarkerCollectionIcon color={mapColors.dataSource.color} />
               Other data sources
             </h2>
             <div className="flex gap-2 flex-wrap">
@@ -143,7 +143,7 @@ export default function UserDataSourcesList({
                       isDisabled && "pointer-events-none opacity-60",
                       isSelected
                         ? "bg-blue-100 border-blue-200"
-                        : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100",
+                        : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
                     )}
                   >
                     {option.value === "all" ? null : (
