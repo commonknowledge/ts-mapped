@@ -37,7 +37,7 @@ export default function LayerHeader({
   };
 
   return (
-    <div className="flex items-center justify-between relative">
+    <div className="flex items-center justify-between relative px-4 py-3">
       <div className="group flex items-center gap-1">
         <button
           onClick={() => setExpanded(!expanded)}

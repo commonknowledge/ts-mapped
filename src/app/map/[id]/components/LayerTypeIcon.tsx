@@ -1,33 +1,16 @@
-import { Grid3x3Icon } from "lucide-react";
-import { mapColors } from "@/app/map/[id]/styles";
+import {
+  LayoutDashboardIcon,
+  MapPinIcon,
+  SquareIcon,
+  UsersIcon,
+} from "lucide-react";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-
-function DotIcon({ color, size }: { color: string; size: number }) {
-  return (
-    <div
-      className={` w-${size} h-${size} rounded-full`}
-      style={{ backgroundColor: color }}
-    ></div>
-  );
-}
-
-function TurfIcon({ size }: { size: number }) {
-  return (
-    <div
-      className={` w-${size} h-${size} rounded-xs border-2`}
-      style={{
-        backgroundColor: mapColors.areas.color + "50",
-        borderColor: mapColors.areas.color,
-      }}
-    ></div>
-  );
-}
 
 export default function LayerTypeIcon({
   type,
   className = "",
-  size = 3,
+  size = 16,
 }: {
   type: LayerType | undefined;
   className?: string;
@@ -36,13 +19,13 @@ export default function LayerTypeIcon({
   const getIcon = () => {
     switch (type) {
       case LayerType.Member:
-        return <DotIcon color={mapColors.member.color} size={size} />;
+        return <UsersIcon size={size} />;
       case LayerType.Marker:
-        return <DotIcon color={mapColors.markers.color} size={size} />;
+        return <MapPinIcon size={size} />;
       case LayerType.Turf:
-        return <TurfIcon size={size} />;
+        return <SquareIcon size={size} />;
       case LayerType.Boundary:
-        return <Grid3x3Icon size={size * 4} />;
+        return <LayoutDashboardIcon size={size} />;
       default:
         return <></>;
     }

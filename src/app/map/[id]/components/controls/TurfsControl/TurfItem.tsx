@@ -1,14 +1,13 @@
 import * as turfLib from "@turf/turf";
 import { useState } from "react";
-import { ContextMenu, ContextMenuTrigger } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { useShowControls } from "../../../hooks/useMapControls";
 import { useMapRef } from "../../../hooks/useMapCore";
 import { useTurfMutations } from "../../../hooks/useTurfMutations";
 import { useTurfState } from "../../../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH } from "../../../styles";
-import ControlContextMenuContent from "../ControlContextMenuContent";
 import ControlEditForm from "../ControlEditForm";
+import ControlHoverMenu from "../ControlHoverMenu";
 import ControlWrapper from "../ControlWrapper";
 import type { Turf } from "@/server/models/Turf";
 
@@ -71,20 +70,17 @@ export default function TurfItem({ turf }: { turf: Turf }) {
           onSubmit={onSubmit}
         />
       ) : (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <button
-              className="flex items-center gap-2 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer"
-              onClick={() => handleFlyTo(turf)}
-            >
-              {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
-            </button>
-          </ContextMenuTrigger>
-          <ControlContextMenuContent
-            onDelete={() => deleteTurf(turf.id)}
-            onEdit={() => onEdit()}
-          />
-        </ContextMenu>
+        <ControlHoverMenu
+          onDelete={() => deleteTurf(turf.id)}
+          onEdit={() => onEdit()}
+        >
+          <button
+            className="flex items-center gap-2 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer"
+            onClick={() => handleFlyTo(turf)}
+          >
+            {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+          </button>
+        </ControlHoverMenu>
       )}
     </ControlWrapper>
   );

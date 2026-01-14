@@ -33,24 +33,24 @@ export default function ControlWrapper({
   return (
     <div
       className={cn(
-        "relative flex gap-1 text-sm",
+        "group relative flex gap-1 text-sm",
         isVisible ? "opacity-100" : "opacity-70",
       )}
     >
+      <div
+        className="absolute top-0 left-0 h-full w-1 shrink-0 rounded-xs"
+        style={{ background: getLayerColor() }}
+      ></div>
+
+      <div className="grow pl-3">{children}</div>
+
       <button
-        className="shrink-0 bg-neutral-100 hover:bg-neutral-200 text-neutral-500 rounded px-0.5 py-2 flex items-center justify-center self-stretch w-8 mr-2 cursor-pointer"
+        className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-100 hover:bg-neutral-200 text-neutral-500 rounded p-1.5 flex items-center justify-center cursor-pointer"
         aria-label={`Toggle ${name} visibility`}
         onClick={onVisibilityToggle}
       >
         {isVisible ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />}
       </button>
-
-      <div
-        className="absolute top-0 left-9 h-full w-1 shrink-0 rounded-xs"
-        style={{ background: getLayerColor() }}
-      ></div>
-
-      <div className="grow">{children}</div>
     </div>
   );
 }
