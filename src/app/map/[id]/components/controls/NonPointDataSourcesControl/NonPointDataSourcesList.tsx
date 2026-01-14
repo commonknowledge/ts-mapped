@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -23,17 +23,6 @@ export default function NonPointDataSourcesList() {
   const [expandedDataSources, setExpandedDataSources] = useState<Set<string>>(
     new Set()
   );
-
-  // Auto-expand datasource that contains the visualized column
-  useEffect(() => {
-    if (viewConfig.areaDataSourceId && viewConfig.areaDataColumn) {
-      setExpandedDataSources((prev) => {
-        const next = new Set(prev);
-        next.add(viewConfig.areaDataSourceId);
-        return next;
-      });
-    }
-  }, [viewConfig.areaDataSourceId, viewConfig.areaDataColumn]);
 
   const nonPointDataSources = useMemo(() => {
     const selectedIds = mapConfig.nonPointDataSourceIds || [];
@@ -77,32 +66,15 @@ export default function NonPointDataSourcesList() {
           <li key={dataSource.id}>
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleDataSource(dataSource.id);
-                  }}
-                  className={cn(
-                    "flex items-center justify-center w-6 h-6 rounded hover:bg-neutral-100 transition-colors shrink-0",
-                    !hasColumns && "invisible"
-                  )}
-                  disabled={!hasColumns}
-                  aria-label={isExpanded ? "Collapse columns" : "Expand columns"}
-                >
-                  <ChevronDown
-                    size={14}
-                    className={cn(
-                      "text-neutral-400 transition-transform",
-                      isExpanded && "rotate-180"
-                    )}
-                  />
-                </button>
                 <div className="flex-1 min-w-0">
                   <DataSourceItem
                     dataSource={dataSource}
                     isSelected={selectedDataSourceId === dataSource.id}
                     handleDataSourceSelect={handleDataSourceSelect}
                     layerType={LayerType.DataLayer}
+                    showChevron={hasColumns}
+                    isExpanded={isExpanded}
+                    onToggleExpand={() => toggleDataSource(dataSource.id)}
                   />
                 </div>
               </div>

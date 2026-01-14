@@ -14,10 +14,18 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import { CalculationType } from "@/server/models/MapView";
+import { ColumnType } from "@/server/models/DataSource";
 import { useMapRef } from "../../hooks/useMapCore";
+import { useAreaStats } from "../../data";
+import { useMapViews } from "../../hooks/useMapViews";
+import { useChoroplethDataSource, useNonPointDataSources } from "../../hooks/useDataSources";
+import { useChoropleth } from "../../hooks/useChoropleth";
+import { formatNumber } from "@/utils/text";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
+import VisualizedColumnsList from "./VisualizedColumnsList";
 import {
   UnderlineTabs,
   UnderlineTabsContent,
@@ -37,6 +45,12 @@ export default function InspectorPanel() {
   } = useInspector();
   const mapRef = useMapRef();
   const { setSelectedDataSourceId, selectedDataSourceId } = useTable();
+  const { viewConfig, updateViewConfig } = useMapViews();
+  const areaStatsQuery = useAreaStats();
+  const areaStats = areaStatsQuery?.data;
+  const choroplethDataSource = useChoroplethDataSource();
+  const nonPointDataSources = useNonPointDataSources();
+  const { setBoundariesPanelOpen } = useChoropleth();
 
   const trpc = useTRPC();
   const { data: recordData, isFetching: recordLoading } = useQuery(
@@ -73,6 +87,17 @@ export default function InspectorPanel() {
     if (map && focusedRecord?.geocodePoint) {
       map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
     }
+  };
+
+  const handleVisualiseColumn = (columnName: string) => {
+    if (!choroplethDataSource?.id) return;
+    
+    updateViewConfig({
+      areaDataSourceId: choroplethDataSource.id,
+      areaDataColumn: columnName,
+      calculationType: CalculationType.Sum,
+    });
+    setBoundariesPanelOpen(true);
   };
 
   return (
@@ -136,6 +161,38 @@ export default function InspectorPanel() {
 
           <UnderlineTabsContent value="data" className="grow overflow-auto p-3">
             <div className="flex flex-col gap-4">
+              {/* Show all columns from non-point data sources for boundaries */}
+              {selectedBoundary &&
+                nonPointDataSources.length > 0 &&
+                nonPointDataSources.map((dataSource) => {
+                  if (!dataSource.columnDefs || dataSource.columnDefs.length === 0) {
+                    return null;
+                  }
+                  const isVisualized = choroplethDataSource?.id === dataSource.id;
+                  return (
+                    <VisualizedColumnsList
+                      key={dataSource.id}
+                      columns={dataSource.columnDefs}
+                      dataSourceId={dataSource.id}
+                      dataSourceName={dataSource.name}
+                      areaStats={isVisualized ? areaStats : null}
+                      selectedBoundaryAreaCode={selectedBoundary.areaCode}
+                      selectedBoundaryAreaSetCode={selectedBoundary.areaSetCode}
+                      visualizedColumnName={
+                        isVisualized ? (viewConfig.areaDataColumn || null) : null
+                      }
+                      onVisualise={(columnName: string) => {
+                        updateViewConfig({
+                          areaDataSourceId: dataSource.id,
+                          areaDataColumn: columnName,
+                          calculationType: CalculationType.Sum,
+                        });
+                        setBoundariesPanelOpen(true);
+                      }}
+                    />
+                  );
+                })}
+
               {dataSource && (
                 <div className="bg-muted py-1 px-2 rounded">
                   <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">

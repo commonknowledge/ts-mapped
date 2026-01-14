@@ -2,10 +2,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  ChevronDown,
   EyeIcon,
   EyeOffIcon,
   Palette,
   PencilIcon,
+  TableIcon,
   TrashIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -35,6 +37,7 @@ import { CircleIcon, SquareIcon, UsersIcon } from "lucide-react";
 import DataSourceRecordTypeIcon, {
   dataSourceRecordTypeLabels,
 } from "@/components/DataSourceRecordTypeIcon";
+import { cn } from "@/shadcn/utils";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { mapColors } from "../../styles";
@@ -86,6 +89,9 @@ export default function DataSourceItem({
   isSelected,
   handleDataSourceSelect,
   layerType,
+  showChevron,
+  isExpanded,
+  onToggleExpand,
 }: {
   dataSource: {
     id: string;
@@ -98,6 +104,9 @@ export default function DataSourceItem({
   isSelected: boolean;
   handleDataSourceSelect: (id: string) => void;
   layerType: LayerType;
+  showChevron?: boolean;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }) {
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
@@ -215,9 +224,18 @@ export default function DataSourceItem({
               <button
                 className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
                 style={{ borderColor: isSelected ? layerColor : "transparent" }}
-                onClick={() =>
-                  !isRenaming && handleDataSourceSelect(dataSource.id)
-                }
+                onClick={() => {
+                  // For DataLayer, clicking toggles accordion instead of selecting datasource
+                  if (layerType === LayerType.DataLayer) {
+                    if (!isRenaming && onToggleExpand) {
+                      onToggleExpand();
+                    }
+                    return;
+                  }
+                  if (!isRenaming) {
+                    handleDataSourceSelect(dataSource.id);
+                  }
+                }}
               >
                 <div className="flex gap-[6px] text-left w-full">
                   <div className="flex-1 min-w-0">
@@ -239,8 +257,17 @@ export default function DataSourceItem({
                       />
                     ) : (
                       <>
-                        <div className="text-sm font-medium truncate">
+                        <div className="text-sm font-medium truncate flex items-center gap-1">
                           {dataSource.name}
+                          {showChevron && (
+                            <ChevronDown
+                              size={14}
+                              className={cn(
+                                "text-neutral-400 flex-shrink-0 transition-transform",
+                                isExpanded && "rotate-180"
+                              )}
+                            />
+                          )}
                         </div>
                         <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
                           {DataSourceTypeLabels[dataSource.config.type]}
@@ -312,6 +339,19 @@ export default function DataSourceItem({
                 >
                   <Palette size={12} />
                   Visualise on map
+                </ContextMenuItem>
+              </>
+            )}
+            {layerType === LayerType.DataLayer && (
+              <>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  onClick={() => {
+                    handleDataSourceSelect(dataSource.id);
+                  }}
+                >
+                  <TableIcon size={12} />
+                  View table
                 </ContextMenuItem>
               </>
             )}

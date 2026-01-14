@@ -1,8 +1,4 @@
-import {
-  Database,
-  LoaderPinwheel,
-  PlusIcon,
-} from "lucide-react";
+import { Database, LoaderPinwheel, PlusIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
@@ -44,7 +40,7 @@ export default function NonPointDataSourcesControl() {
   return (
     <LayerControlWrapper>
       <LayerHeader
-        label="Data Sources"
+        label="Geo Data"
         type={LayerType.DataLayer}
         expanded={expanded}
         setExpanded={setExpanded}

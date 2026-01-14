@@ -54,3 +54,13 @@ export function useMembersDataSource() {
     return getDataSourceById(mapConfig.membersDataSourceId);
   }, [getDataSourceById, mapConfig.membersDataSourceId]);
 }
+
+export function useNonPointDataSources() {
+  const { data: dataSources } = useDataSources();
+  const { mapConfig } = useMapConfig();
+
+  return useMemo(() => {
+    const selectedIds = mapConfig.nonPointDataSourceIds || [];
+    return dataSources?.filter((ds) => selectedIds.includes(ds.id)) || [];
+  }, [dataSources, mapConfig.nonPointDataSourceIds]);
+}
