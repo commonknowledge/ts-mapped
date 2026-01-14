@@ -98,7 +98,7 @@ export default function InspectorPanel() {
         "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5 h-fit max-h-full",
         tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
       )}
-      style={{ minWidth: "250px" }}
+      style={{ width: "250px" }}
     >
       <div className="relative z-100 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
         <div className="flex justify-between items-center gap-4 p-3">
