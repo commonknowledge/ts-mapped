@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,18 +17,40 @@ export default function ControlHoverMenu({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Add a small delay before closing to allow moving to menu
+    timeoutRef.current = setTimeout(() => {
+      setOpen(false);
+    }, 150);
+  };
 
   return (
     <div
       className="relative w-full"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <div className="w-full">{children}</div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" side="right" sideOffset={8}>
+        <DropdownMenuContent 
+          align="end" 
+          side="right" 
+          sideOffset={8}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <DropdownMenuItem onClick={onEdit}>
             <PencilIcon size={12} />
             Rename
