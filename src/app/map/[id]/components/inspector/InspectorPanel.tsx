@@ -25,6 +25,7 @@ import {
 } from "../../hooks/useDataSources";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { formatNumber } from "@/utils/text";
+import type { MapConfig } from "@/server/models/Map";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
@@ -99,6 +100,18 @@ export default function InspectorPanel() {
       areaDataSourceId: choroplethDataSource.id,
       areaDataColumn: columnName,
       calculationType: CalculationType.Sum,
+    });
+    setBoundariesPanelOpen(true);
+  };
+
+  const handleVisualiseSaved = (visualization: NonNullable<MapConfig["savedVisualizations"]>[0]) => {
+    updateViewConfig({
+      areaDataSourceId: visualization.areaDataSourceId,
+      areaDataColumn: visualization.areaDataColumn,
+      areaDataSecondaryColumn: visualization.areaDataSecondaryColumn || "",
+      calculationType: visualization.calculationType as CalculationType | undefined,
+      colorScheme: visualization.colorScheme as any,
+      reverseColorScheme: visualization.reverseColorScheme,
     });
     setBoundariesPanelOpen(true);
   };
@@ -198,6 +211,7 @@ export default function InspectorPanel() {
                         });
                         setBoundariesPanelOpen(true);
                       }}
+                      onVisualiseSaved={handleVisualiseSaved}
                     />
                   );
                 })}

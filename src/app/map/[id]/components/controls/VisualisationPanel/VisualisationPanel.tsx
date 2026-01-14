@@ -4,6 +4,7 @@ import {
   Palette,
   PieChart,
   PlusIcon,
+  Save,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -13,6 +14,7 @@ import {
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
@@ -22,6 +24,8 @@ import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
@@ -54,6 +58,7 @@ export default function VisualisationPanel({
   const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
   const { data: dataSources, getDataSourceById } = useDataSources();
   const dataSource = useChoroplethDataSource();
+  const { mapConfig, updateMapConfig } = useMapConfig();
 
   const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,6 +66,8 @@ export default function VisualisationPanel({
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
     null
   );
+  const [saveVisualizationDialogOpen, setSaveVisualizationDialogOpen] = useState(false);
+  const [savedVisualizationName, setSavedVisualizationName] = useState("");
 
   // Update the filtering logic to include search
   const filteredAndSearchedDataSources = useMemo(() => {
@@ -92,6 +99,35 @@ export default function VisualisationPanel({
   const columnOneIsNumber =
     dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
       ?.type === ColumnType.Number;
+
+  const canSaveVisualization = Boolean(
+    viewConfig.areaDataSourceId &&
+    viewConfig.areaDataColumn &&
+    (viewConfig.areaDataSecondaryColumn || viewConfig.calculationType)
+  );
+
+  const handleSaveVisualization = () => {
+    if (!canSaveVisualization || !savedVisualizationName.trim()) return;
+
+    const newVisualization = {
+      id: `viz-${Date.now()}`,
+      name: savedVisualizationName.trim(),
+      areaDataSourceId: viewConfig.areaDataSourceId,
+      areaDataColumn: viewConfig.areaDataColumn,
+      areaDataSecondaryColumn: viewConfig.areaDataSecondaryColumn || undefined,
+      calculationType: viewConfig.calculationType || undefined,
+      colorScheme: viewConfig.colorScheme || undefined,
+      reverseColorScheme: viewConfig.reverseColorScheme || undefined,
+    };
+
+    const currentSaved = mapConfig.savedVisualizations || [];
+    updateMapConfig({
+      savedVisualizations: [...currentSaved, newVisualization],
+    });
+
+    setSaveVisualizationDialogOpen(false);
+    setSavedVisualizationName("");
+  };
 
   return (
     <div
@@ -586,6 +622,78 @@ export default function VisualisationPanel({
               ))}
             </SelectContent>
           </Select>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Visualization Button */}
+      {canSaveVisualization && (
+        <div className="mt-4 pt-4 border-t">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setSaveVisualizationDialogOpen(true)}
+          >
+            <Save size={16} className="mr-2" />
+            Save visualization
+          </Button>
+        </div>
+      )}
+
+      {/* Save Visualization Dialog */}
+      <Dialog open={saveVisualizationDialogOpen} onOpenChange={setSaveVisualizationDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Visualization</DialogTitle>
+            <DialogDescription>
+              Save this visualization configuration to quickly restore it later
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="visualization-name">Name</Label>
+              <Input
+                id="visualization-name"
+                value={savedVisualizationName}
+                onChange={(e) => setSavedVisualizationName(e.target.value)}
+                placeholder={
+                  viewConfig.areaDataSecondaryColumn
+                    ? `${viewConfig.areaDataColumn} × ${viewConfig.areaDataSecondaryColumn}`
+                    : viewConfig.areaDataColumn
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && savedVisualizationName.trim()) {
+                    handleSaveVisualization();
+                  }
+                }}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium mb-1">Configuration:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li>Primary: {viewConfig.areaDataColumn}</li>
+                {viewConfig.areaDataSecondaryColumn && (
+                  <li>Secondary: {viewConfig.areaDataSecondaryColumn}</li>
+                )}
+                {viewConfig.calculationType && (
+                  <li>Aggregation: {viewConfig.calculationType}</li>
+                )}
+                {viewConfig.colorScheme && (
+                  <li>Color scheme: {viewConfig.colorScheme}</li>
+                )}
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveVisualizationDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveVisualization}
+              disabled={!savedVisualizationName.trim()}
+            >
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

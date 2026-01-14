@@ -17,8 +17,10 @@ import { formatNumber } from "@/utils/text";
 import { useTRPC } from "@/services/trpc/react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import InspectorColumnGroup from "./InspectorColumnGroup";
+import SavedVisualizationItem from "../controls/NonPointDataSourcesControl/SavedVisualizationItem";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { CombinedAreaStats } from "@/app/map/[id]/data";
+import type { MapConfig } from "@/server/models/Map";
 
 interface VisualizedColumnsListProps {
   columns: ColumnDef[];
@@ -29,6 +31,7 @@ interface VisualizedColumnsListProps {
   selectedBoundaryAreaSetCode: string | null;
   visualizedColumnName: string | null;
   onVisualise: (columnName: string) => void;
+  onVisualiseSaved?: (visualization: NonNullable<MapConfig["savedVisualizations"]>[0]) => void;
 }
 
 export default function VisualizedColumnsList({
@@ -40,6 +43,7 @@ export default function VisualizedColumnsList({
   selectedBoundaryAreaSetCode,
   visualizedColumnName,
   onVisualise,
+  onVisualiseSaved,
 }: VisualizedColumnsListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const trpc = useTRPC();
@@ -163,16 +167,55 @@ export default function VisualizedColumnsList({
       </button>
       {isExpanded && (
         <dl className="flex flex-col gap-2 ml-2">
-          {organizedColumns.groups.map((group) => (
-            <InspectorColumnGroup
-              key={group.id}
-              groupName={group.name}
-              columns={group.columns}
-              dataRecord={dataRecord}
-              visualizedColumnName={visualizedColumnName}
-              onVisualise={onVisualise}
-            />
-          ))}
+          {(() => {
+            const savedVisualizations = (mapConfig.savedVisualizations || []).filter(
+              v => v.areaDataSourceId === dataSourceId
+            );
+            const isVisualizationActive = (visualization: NonNullable<MapConfig["savedVisualizations"]>[0]) => {
+              // Check if this saved visualization matches current viewConfig
+              // This is a simplified check - in a real scenario you'd compare all fields
+              return visualizedColumnName === visualization.areaDataColumn;
+            };
+            const handleVisualiseSaved = (visualization: NonNullable<MapConfig["savedVisualizations"]>[0]) => {
+              if (onVisualiseSaved) {
+                onVisualiseSaved(visualization);
+              } else {
+                // Fallback to simple column visualization
+                onVisualise(visualization.areaDataColumn);
+              }
+            };
+            const handleDeleteSaved = () => {
+              // Delete functionality can be added if needed in inspector
+            };
+
+            return (
+              <>
+                {savedVisualizations.length > 0 && (
+                  <div className="space-y-2 mb-2 pb-2 border-b border-neutral-200">
+                    {savedVisualizations.map((visualization) => (
+                      <SavedVisualizationItem
+                        key={visualization.id}
+                        visualization={visualization}
+                        isActive={isVisualizationActive(visualization)}
+                        onVisualise={handleVisualiseSaved}
+                        onDelete={handleDeleteSaved}
+                      />
+                    ))}
+                  </div>
+                )}
+                {organizedColumns.groups.map((group) => (
+                  <InspectorColumnGroup
+                    key={group.id}
+                    groupName={group.name}
+                    columns={group.columns}
+                    dataRecord={dataRecord}
+                    visualizedColumnName={visualizedColumnName}
+                    onVisualise={onVisualise}
+                  />
+                ))}
+              </>
+            );
+          })()}
           
           {organizedColumns.ungroupedColumns.length > 0 && (
             <div className="space-y-2">

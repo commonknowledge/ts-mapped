@@ -12,11 +12,23 @@ export const columnGroupsConfigSchema = z.object({
   ungroupedColumns: z.array(z.string()).optional(),
 });
 
+export const savedVisualizationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  areaDataSourceId: z.string(),
+  areaDataColumn: z.string(),
+  areaDataSecondaryColumn: z.string().optional(),
+  calculationType: z.string().optional(),
+  colorScheme: z.string().optional(),
+  reverseColorScheme: z.boolean().optional(),
+});
+
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
   nonPointDataSourceIds: z.array(z.string()).optional(),
   columnGroups: z.record(z.string(), columnGroupsConfigSchema).optional(),
+  savedVisualizations: z.array(savedVisualizationSchema).optional(),
 });
 
 export type MapConfig = z.infer<typeof mapConfigSchema>;

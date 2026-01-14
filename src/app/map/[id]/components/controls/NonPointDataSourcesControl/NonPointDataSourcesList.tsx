@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import type { MapConfig } from "@/server/models/Map";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { LayerType } from "@/types";
 import { cn } from "@/shadcn/utils";
@@ -13,6 +14,7 @@ import DataSourceItem from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
 import DataSourceColumnItem from "./DataSourceColumnItem";
 import ColumnGroup from "./ColumnGroup";
+import SavedVisualizationItem from "./SavedVisualizationItem";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import {
   ContextMenu,
@@ -72,6 +74,42 @@ export default function NonPointDataSourcesList() {
     });
     // Open the boundaries panel to show the visualization
     setBoundariesPanelOpen(true);
+  };
+
+  const handleVisualiseSaved = (visualization: NonNullable<MapConfig["savedVisualizations"]>[0]) => {
+    updateViewConfig({
+      areaDataSourceId: visualization.areaDataSourceId,
+      areaDataColumn: visualization.areaDataColumn,
+      areaDataSecondaryColumn: visualization.areaDataSecondaryColumn || "",
+      calculationType: visualization.calculationType as CalculationType | undefined,
+      colorScheme: visualization.colorScheme as any,
+      reverseColorScheme: visualization.reverseColorScheme,
+    });
+    setBoundariesPanelOpen(true);
+  };
+
+  const handleDeleteSavedVisualization = (visualizationId: string) => {
+    const currentSaved = mapConfig.savedVisualizations || [];
+    updateMapConfig({
+      savedVisualizations: currentSaved.filter(v => v.id !== visualizationId),
+    });
+  };
+
+  // Get saved visualizations for a data source
+  const getSavedVisualizations = (dataSourceId: string) => {
+    return (mapConfig.savedVisualizations || []).filter(
+      v => v.areaDataSourceId === dataSourceId
+    );
+  };
+
+  // Check if current visualization matches a saved one
+  const isVisualizationActive = (visualization: NonNullable<MapConfig["savedVisualizations"]>[0]) => {
+    return (
+      viewConfig.areaDataSourceId === visualization.areaDataSourceId &&
+      viewConfig.areaDataColumn === visualization.areaDataColumn &&
+      viewConfig.areaDataSecondaryColumn === (visualization.areaDataSecondaryColumn || "") &&
+      viewConfig.calculationType === (visualization.calculationType as CalculationType | undefined)
+    );
   };
 
   // Get column groups for a data source
@@ -250,8 +288,22 @@ export default function NonPointDataSourcesList() {
                   
                   {(() => {
                     const { groups, ungroupedColumns } = organizeColumns(dataSource.id, dataSource.columnDefs);
+                    const savedVisualizations = getSavedVisualizations(dataSource.id);
                     return (
                       <>
+                        {savedVisualizations.length > 0 && (
+                          <div className="space-y-0.5 mb-2 pb-2 border-b border-neutral-200">
+                            {savedVisualizations.map((visualization) => (
+                              <SavedVisualizationItem
+                                key={visualization.id}
+                                visualization={visualization}
+                                isActive={isVisualizationActive(visualization)}
+                                onVisualise={handleVisualiseSaved}
+                                onDelete={handleDeleteSavedVisualization}
+                              />
+                            ))}
+                          </div>
+                        )}
                         {groups.map((group) => (
                           <ColumnGroup
                             key={group.id}

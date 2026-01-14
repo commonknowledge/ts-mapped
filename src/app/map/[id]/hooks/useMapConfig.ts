@@ -35,6 +35,7 @@ export function useMapConfig() {
         membersDataSourceId: null,
         nonPointDataSourceIds: [],
         columnGroups: {},
+        savedVisualizations: [],
       },
     [mapData?.config],
   );
