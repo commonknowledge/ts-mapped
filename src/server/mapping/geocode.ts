@@ -60,7 +60,10 @@ const geocodeRecordByPostcode = async (
   try {
     return await geocodeRecordByArea(dataRecord, geocodingConfig);
   } catch (error) {
-    logger.warn("Missing postcode in database", { error });
+    logger.warn(
+      "Postcode lookup in database failed, attempting fallback to postcodes.io API",
+      { error },
+    );
   }
   const dataRecordJson = dataRecord.json;
   const { column: areaColumn } = geocodingConfig;
