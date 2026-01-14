@@ -1,10 +1,22 @@
 import z from "zod";
 import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
+export const columnGroupSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  columnNames: z.array(z.string()),
+});
+
+export const columnGroupsConfigSchema = z.object({
+  groups: z.array(columnGroupSchema),
+  ungroupedColumns: z.array(z.string()).optional(),
+});
+
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
   nonPointDataSourceIds: z.array(z.string()).optional(),
+  columnGroups: z.record(z.string(), columnGroupsConfigSchema).optional(),
 });
 
 export type MapConfig = z.infer<typeof mapConfigSchema>;

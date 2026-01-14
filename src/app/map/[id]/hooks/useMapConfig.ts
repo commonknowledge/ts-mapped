@@ -34,6 +34,7 @@ export function useMapConfig() {
         markerDataSourceIds: [],
         membersDataSourceId: null,
         nonPointDataSourceIds: [],
+        columnGroups: {},
       },
     [mapData?.config],
   );

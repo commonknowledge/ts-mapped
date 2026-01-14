@@ -19,7 +19,10 @@ import { ColumnType } from "@/server/models/DataSource";
 import { useMapRef } from "../../hooks/useMapCore";
 import { useAreaStats } from "../../data";
 import { useMapViews } from "../../hooks/useMapViews";
-import { useChoroplethDataSource, useNonPointDataSources } from "../../hooks/useDataSources";
+import {
+  useChoroplethDataSource,
+  useNonPointDataSources,
+} from "../../hooks/useDataSources";
 import { useChoropleth } from "../../hooks/useChoropleth";
 import { formatNumber } from "@/utils/text";
 import BoundaryMarkersList from "./BoundaryMarkersList";
@@ -61,8 +64,8 @@ export default function InspectorPanel() {
       },
       {
         enabled: Boolean(focusedRecord?.dataSourceId),
-      },
-    ),
+      }
+    )
   );
 
   if (!Boolean(inspectorContent)) {
@@ -91,7 +94,7 @@ export default function InspectorPanel() {
 
   const handleVisualiseColumn = (columnName: string) => {
     if (!choroplethDataSource?.id) return;
-    
+
     updateViewConfig({
       areaDataSourceId: choroplethDataSource.id,
       areaDataColumn: columnName,
@@ -105,7 +108,7 @@ export default function InspectorPanel() {
       id="inspector-panel"
       className={cn(
         "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5 h-fit max-h-full",
-        tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
+        tableOpen ? "bottom-0" : "bottom-24" // to avoid clash with bug report button
       )}
       style={{ minWidth: "250px" }}
     >
@@ -153,7 +156,9 @@ export default function InspectorPanel() {
             <UnderlineTabsTrigger value="markers">
               Markers {markerCount > 0 ? markerCount : ""}
             </UnderlineTabsTrigger>
-            <UnderlineTabsTrigger value="notes" className="hidden">Notes 0</UnderlineTabsTrigger>
+            <UnderlineTabsTrigger value="notes" className="hidden">
+              Notes 0
+            </UnderlineTabsTrigger>
             <UnderlineTabsTrigger value="config" className="px-2 hidden">
               <SettingsIcon size={16} />
             </UnderlineTabsTrigger>
@@ -165,10 +170,14 @@ export default function InspectorPanel() {
               {selectedBoundary &&
                 nonPointDataSources.length > 0 &&
                 nonPointDataSources.map((dataSource) => {
-                  if (!dataSource.columnDefs || dataSource.columnDefs.length === 0) {
+                  if (
+                    !dataSource.columnDefs ||
+                    dataSource.columnDefs.length === 0
+                  ) {
                     return null;
                   }
-                  const isVisualized = choroplethDataSource?.id === dataSource.id;
+                  const isVisualized =
+                    choroplethDataSource?.id === dataSource.id;
                   return (
                     <VisualizedColumnsList
                       key={dataSource.id}
@@ -179,7 +188,7 @@ export default function InspectorPanel() {
                       selectedBoundaryAreaCode={selectedBoundary.areaCode}
                       selectedBoundaryAreaSetCode={selectedBoundary.areaSetCode}
                       visualizedColumnName={
-                        isVisualized ? (viewConfig.areaDataColumn || null) : null
+                        isVisualized ? viewConfig.areaDataColumn || null : null
                       }
                       onVisualise={(columnName: string) => {
                         updateViewConfig({

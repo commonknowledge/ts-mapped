@@ -2,7 +2,7 @@
 
 import { ChevronDown, Palette } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -15,6 +15,8 @@ import { AreaSetCode } from "@/server/models/AreaSet";
 import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
 import { useTRPC } from "@/services/trpc/react";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import InspectorColumnGroup from "./InspectorColumnGroup";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { CombinedAreaStats } from "@/app/map/[id]/data";
 
@@ -41,6 +43,7 @@ export default function VisualizedColumnsList({
 }: VisualizedColumnsListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const trpc = useTRPC();
+  const { mapConfig } = useMapConfig();
 
   // Fetch the data record for the selected boundary area
   const { data: dataRecord } = useQuery(
@@ -107,6 +110,36 @@ export default function VisualizedColumnsList({
     return value >= 0 && value <= 1;
   };
 
+  // Get column groups for this data source
+  const getColumnGroups = (dataSourceId: string) => {
+    const groupsConfig = mapConfig.columnGroups?.[dataSourceId];
+    if (!groupsConfig) return { groups: [], ungroupedColumns: [] };
+    return groupsConfig;
+  };
+
+  // Organize columns by groups
+  const organizedColumns = useMemo(() => {
+    const { groups, ungroupedColumns = [] } = getColumnGroups(dataSourceId);
+    const allGroupedColumns = new Set(groups.flatMap(g => g.columnNames));
+    
+    // Find ungrouped columns (columns not in any group)
+    const ungrouped = columns.filter(col => 
+      !allGroupedColumns.has(col.name) && 
+      (!ungroupedColumns.length || ungroupedColumns.includes(col.name))
+    ).map(col => col.name);
+
+    // Map groups to their actual column definitions
+    const groupsWithColumns = groups.map(group => ({
+      ...group,
+      columns: columns.filter(col => group.columnNames.includes(col.name)),
+    }));
+
+    return {
+      groups: groupsWithColumns,
+      ungroupedColumns: columns.filter(col => ungrouped.includes(col.name)),
+    };
+  }, [dataSourceId, columns, mapConfig.columnGroups]);
+
   if (columns.length === 0) {
     return null;
   }
@@ -130,98 +163,113 @@ export default function VisualizedColumnsList({
       </button>
       {isExpanded && (
         <dl className="flex flex-col gap-2 ml-2">
-          {columns.map((column) => {
-            const isVisualized = column.name === visualizedColumnName;
-            const rawValue = getColumnValue(column);
-            const isPercentage = rawValue !== null && typeof rawValue === "number" && shouldShowAsPercentage(column, rawValue);
-            const percentageValue = isPercentage ? rawValue * 100 : null;
-            const displayValue = isPercentage 
-              ? `${Math.round(percentageValue * 10) / 10}%`
-              : rawValue !== null
-              ? column.type === ColumnType.Number
-                ? formatNumber(rawValue as number)
-                : column.type === ColumnType.Boolean
-                ? String(rawValue)
-                : String(rawValue)
-              : null;
+          {organizedColumns.groups.map((group) => (
+            <InspectorColumnGroup
+              key={group.id}
+              groupName={group.name}
+              columns={group.columns}
+              dataRecord={dataRecord}
+              visualizedColumnName={visualizedColumnName}
+              onVisualise={onVisualise}
+            />
+          ))}
+          
+          {organizedColumns.ungroupedColumns.length > 0 && (
+            <div className="space-y-2">
+              {organizedColumns.ungroupedColumns.map((column) => {
+                const isVisualized = column.name === visualizedColumnName;
+                const rawValue = getColumnValue(column);
+                const isPercentage = rawValue !== null && typeof rawValue === "number" && shouldShowAsPercentage(column, rawValue);
+                const percentageValue = isPercentage ? rawValue * 100 : null;
+                const displayValue = isPercentage 
+                  ? `${Math.round(percentageValue * 10) / 10}%`
+                  : rawValue !== null
+                  ? column.type === ColumnType.Number
+                    ? formatNumber(rawValue as number)
+                    : column.type === ColumnType.Boolean
+                    ? String(rawValue)
+                    : String(rawValue)
+                  : null;
 
-            return (
-              <ContextMenu key={column.name}>
-                <ContextMenuTrigger asChild>
-                  <div
-                    className={cn(
-                      "flex flex-col gap-1 p-2 rounded cursor-pointer transition-colors",
-                      isVisualized
-                        ? "bg-blue-50 border border-blue-200"
-                        : "hover:bg-neutral-50"
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <dt
+                return (
+                  <ContextMenu key={column.name}>
+                    <ContextMenuTrigger asChild>
+                      <div
                         className={cn(
-                          "text-xs uppercase font-mono flex items-center gap-1",
+                          "flex flex-col gap-1 p-2 rounded cursor-pointer transition-colors",
                           isVisualized
-                            ? "text-blue-700"
-                            : "text-muted-foreground"
+                            ? "bg-blue-50 border border-blue-200"
+                            : "hover:bg-neutral-50"
                         )}
                       >
-                        {column.name}
-                        {isVisualized && (
-                          <span className="text-[10px] bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded">
-                            Visualised
+                        <div className="flex items-center justify-between gap-2">
+                          <dt
+                            className={cn(
+                              "text-xs uppercase font-mono flex items-center gap-1",
+                              isVisualized
+                                ? "text-blue-700"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {column.name}
+                            {isVisualized && (
+                              <span className="text-[10px] bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded">
+                                Visualised
+                              </span>
+                            )}
+                          </dt>
+                          <span
+                            className={cn(
+                              "text-[10px]",
+                              isVisualized
+                                ? "text-blue-600"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {getColumnTypeLabel(column.type)}
                           </span>
-                        )}
-                      </dt>
-                      <span
-                        className={cn(
-                          "text-[10px]",
-                          isVisualized
-                            ? "text-blue-600"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {getColumnTypeLabel(column.type)}
-                      </span>
-                    </div>
-                    {displayValue !== null && (
-                      <dd className="flex flex-col gap-1">
-                        <span
-                          className={cn(
-                            "font-medium text-sm",
-                            isVisualized ? "text-blue-900" : "text-neutral-900"
-                          )}
-                        >
-                          {displayValue}
-                        </span>
-                        {isPercentage && (
-                          <div className="w-full h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-                            <div
+                        </div>
+                        {displayValue !== null && (
+                          <dd className="flex flex-col gap-1">
+                            <span
                               className={cn(
-                                "h-full transition-all",
-                                isVisualized ? "bg-blue-600" : "bg-neutral-400"
+                                "font-medium text-sm",
+                                isVisualized ? "text-blue-900" : "text-neutral-900"
                               )}
-                              style={{ width: `${percentageValue}%` }}
-                            />
-                          </div>
+                            >
+                              {displayValue}
+                            </span>
+                            {isPercentage && (
+                              <div className="w-full h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                                <div
+                                  className={cn(
+                                    "h-full transition-all",
+                                    isVisualized ? "bg-blue-600" : "bg-neutral-400"
+                                  )}
+                                  style={{ width: `${percentageValue}%` }}
+                                />
+                              </div>
+                            )}
+                          </dd>
                         )}
-                      </dd>
-                    )}
-                    {displayValue === null && (
-                      <dd className="text-xs text-muted-foreground italic">
-                        No data available
-                      </dd>
-                    )}
-                  </div>
-                </ContextMenuTrigger>
-                <ContextMenuContentWithFocus>
-                  <ContextMenuItem onClick={() => onVisualise(column.name)}>
-                    <Palette size={12} />
-                    Visualise on map
-                  </ContextMenuItem>
-                </ContextMenuContentWithFocus>
-              </ContextMenu>
-            );
-          })}
+                        {displayValue === null && (
+                          <dd className="text-xs text-muted-foreground italic">
+                            No data available
+                          </dd>
+                        )}
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContentWithFocus>
+                      <ContextMenuItem onClick={() => onVisualise(column.name)}>
+                        <Palette size={12} />
+                        Visualise on map
+                      </ContextMenuItem>
+                    </ContextMenuContentWithFocus>
+                  </ContextMenu>
+                );
+              })}
+            </div>
+          )}
         </dl>
       )}
     </div>
