@@ -1,4 +1,4 @@
-import { UsersIcon, MapPinIcon, RectangleHorizontalIcon, LayoutDashboardIcon } from "lucide-react";
+import { UsersIcon, MapPinIcon, SquareIcon, LayoutDashboardIcon } from "lucide-react";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 
@@ -18,7 +18,7 @@ export default function LayerTypeIcon({
       case LayerType.Marker:
         return <MapPinIcon size={size} />;
       case LayerType.Turf:
-        return <RectangleHorizontalIcon size={size} />;
+        return <SquareIcon size={size} />;
       case LayerType.Boundary:
         return <LayoutDashboardIcon size={size} />;
       default:
