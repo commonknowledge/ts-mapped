@@ -18,7 +18,7 @@ import { useMapId, useMapRef } from "../hooks/useMapCore";
 import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
-import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
+import FloatingVisualisationPanel from "./FloatingVisualisationPanel";
 import Loading from "./Loading";
 import Map from "./Map";
 import PrivateMapNavbar from "./PrivateMapNavbar";
@@ -72,15 +72,13 @@ export default function PrivateMap() {
       <PrivateMapNavbar />
       <div className="flex w-full grow min-h-0 relative">
         <PrivateMapControls />
-        <VisualisationPanel
-          positionLeft={showControls ? CONTROL_PANEL_WIDTH : 0}
-        />
         <div className="flex flex-col gap-4 grow relative min-w-0">
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel className="relative" id="map" order={0}>
               <Map
                 onSourceLoad={(sourceId) => setLastLoadedSourceId(sourceId)}
               />
+              <FloatingVisualisationPanel />
             </ResizablePanel>
             {selectedDataSourceId && (
               <>

@@ -6,6 +6,7 @@ const createBlankConfig = (): MapConfig => {
   return {
     markerDataSourceIds: [],
     membersDataSourceId: "",
+    nonPointDataSourceIds: [],
   };
 };
 

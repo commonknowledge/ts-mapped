@@ -4,6 +4,7 @@ import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
+  nonPointDataSourceIds: z.array(z.string()).optional(),
 });
 
 export type MapConfig = z.infer<typeof mapConfigSchema>;

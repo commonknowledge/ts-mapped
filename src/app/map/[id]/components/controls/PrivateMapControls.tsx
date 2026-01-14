@@ -7,20 +7,16 @@ import { useShowControlsAtom } from "../../hooks/useMapControls";
 import { useMapViews } from "../../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 
-import BoundariesControl from "./BoundariesControl/BoundariesControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
+import NonPointDataSourcesControl from "./NonPointDataSourcesControl/NonPointDataSourcesControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
 
 export default function PrivateMapControls() {
   const [showControls, setShowControls] = useShowControlsAtom();
-  const { setBoundariesPanelOpen } = useChoropleth();
   const { viewConfig } = useMapViews();
 
   const onToggleControls = () => {
     setShowControls(!showControls);
-    if (showControls === true) {
-      setBoundariesPanelOpen(false);
-    }
   };
 
   return (
@@ -70,7 +66,7 @@ export default function PrivateMapControls() {
                 <TurfsControl />
               </>
             )}
-            <BoundariesControl />
+            <NonPointDataSourcesControl />
           </div>
         </div>
       </div>

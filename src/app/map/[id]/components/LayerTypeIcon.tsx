@@ -1,4 +1,5 @@
 import {
+  Database,
   LayoutDashboardIcon,
   CircleIcon,
   SquareIcon,
@@ -27,6 +28,8 @@ export default function LayerTypeIcon({
         return <VectorSquareIcon size={size} />;
       case LayerType.Boundary:
         return <LayoutDashboardIcon size={size} />;
+      case LayerType.DataLayer:
+        return <Database size={size} />;
       default:
         return <></>;
     }

@@ -30,7 +30,11 @@ export function useMapConfig() {
 
   const mapConfig = useMemo(
     () =>
-      mapData?.config || { markerDataSourceIds: [], membersDataSourceId: null },
+      mapData?.config || {
+        markerDataSourceIds: [],
+        membersDataSourceId: null,
+        nonPointDataSourceIds: [],
+      },
     [mapData?.config],
   );
 

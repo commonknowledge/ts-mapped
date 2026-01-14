@@ -59,7 +59,7 @@ export default function VisualisationPanel({
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
-    null,
+    null
   );
 
   // Update the filtering logic to include search
@@ -71,8 +71,8 @@ export default function VisualisationPanel({
         (ds) =>
           ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ds.columnDefs.some((col) =>
-            col.name.toLowerCase().includes(searchQuery.toLowerCase()),
-          ),
+            col.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     }
 
@@ -96,15 +96,20 @@ export default function VisualisationPanel({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-100",
+        "flex flex-col gap-4 p-3 bg-neutral-50 w-full overflow-y-auto",
+        positionLeft > 0 &&
+          "border-r border-neutral-200 absolute top-0 h-full z-100"
       )}
-      style={{
-        left: positionLeft,
-      }}
+      style={
+        positionLeft > 0
+          ? {
+              left: positionLeft,
+            }
+          : undefined
+      }
     >
       <div className="flex justify-between items-start gap-6 / text-sm">
-        <h3 className="mt-2 font-medium">Create visualisation</h3>
+        <h3 className="mt-2 font-medium">Visualiser settings</h3>
         <button
           aria-label="Close visualisation panel"
           className="text-muted-foreground hover:text-primary cursor-pointer"
@@ -187,7 +192,7 @@ export default function VisualisationPanel({
                   <SelectItem key={code} value={code}>
                     {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
                   </SelectItem>
-                ),
+                )
               )}
             </SelectContent>
           </Select>
@@ -278,7 +283,7 @@ export default function VisualisationPanel({
                     ...(dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
                       ?.columnDefs.filter(
-                        (col) => col.type === ColumnType.Number,
+                        (col) => col.type === ColumnType.Number
                       )
                       .map((col) => ({
                         value: col.name,
@@ -301,7 +306,7 @@ export default function VisualisationPanel({
             columnOneIsNumber &&
             dataRecordsWillAggregate(
               dataSource?.geocodingConfig,
-              viewConfig.areaSetGroupCode,
+              viewConfig.areaSetGroupCode
             ) && (
               <>
                 <Label
@@ -507,7 +512,7 @@ export default function VisualisationPanel({
                       }
                       const dataSource = getDataSourceById(ds.id);
                       const validAreaSetGroups = getValidAreaSetGroupCodes(
-                        dataSource?.geocodingConfig,
+                        dataSource?.geocodingConfig
                       );
                       if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
                         updateViewConfig({ areaDataSourceId: ds.id });
@@ -573,7 +578,7 @@ export default function VisualisationPanel({
             </SelectTrigger>
             <SelectContent>
               {getValidAreaSetGroupCodes(
-                getDataSourceById(invalidDataSourceId)?.geocodingConfig,
+                getDataSourceById(invalidDataSourceId)?.geocodingConfig
               ).map((code) => (
                 <SelectItem key={code} value={code}>
                   {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}

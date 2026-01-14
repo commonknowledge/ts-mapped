@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
+import {
+  EyeIcon,
+  EyeOffIcon,
+  Palette,
+  PencilIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -38,6 +44,9 @@ import type {
   DataSourceType,
 } from "@/server/models/DataSource";
 import LayerIcon from "./LayerIcon";
+import { useMapViews } from "../../hooks/useMapViews";
+import { useChoropleth } from "../../hooks/useChoropleth";
+import { CalculationType } from "@/server/models/MapView";
 
 function getLayerTypeLabel(type: LayerType) {
   switch (type) {
@@ -49,6 +58,8 @@ function getLayerTypeLabel(type: LayerType) {
       return "Areas";
     case LayerType.Boundary:
       return "Boundaries";
+    case LayerType.DataLayer:
+      return "Data Sources";
     default:
       return "Layer";
   }
@@ -90,6 +101,8 @@ export default function DataSourceItem({
 }) {
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const { updateViewConfig } = useMapViews();
+  const { setBoundariesPanelOpen } = useChoropleth();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [isRenaming, setIsRenaming] = useState(false);
@@ -98,7 +111,9 @@ export default function DataSourceItem({
   const [layerColor, setLayerColor] = useState(
     layerType === LayerType.Member
       ? mapColors.member.color
-      : mapColors.markers.color
+      : layerType === LayerType.DataLayer
+        ? "#6b7280"
+        : mapColors.markers.color
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const isFocusing = useRef(false);
@@ -162,6 +177,14 @@ export default function DataSourceItem({
       // Remove from marker data sources array
       updateMapConfig({
         markerDataSourceIds: mapConfig.markerDataSourceIds.filter(
+          (id) => id !== dataSource.id
+        ),
+      });
+      toast.success("Data source removed from map");
+    } else if (layerType === LayerType.DataLayer) {
+      // Remove from non-point data sources array
+      updateMapConfig({
+        nonPointDataSourceIds: (mapConfig.nonPointDataSourceIds || []).filter(
           (id) => id !== dataSource.id
         ),
       });
@@ -272,6 +295,26 @@ export default function DataSourceItem({
                 </>
               )}
             </ContextMenuItem>
+            {(layerType === LayerType.Marker ||
+              layerType === LayerType.Member) && (
+              <>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  onClick={() => {
+                    // For marker and member layers, visualize with count
+                    updateViewConfig({
+                      areaDataSourceId: dataSource.id,
+                      areaDataColumn: "",
+                      calculationType: CalculationType.Count,
+                    });
+                    setBoundariesPanelOpen(true);
+                  }}
+                >
+                  <Palette size={12} />
+                  Visualise on map
+                </ContextMenuItem>
+              </>
+            )}
             <ContextMenuSeparator />
             <ContextMenuItem
               variant="destructive"

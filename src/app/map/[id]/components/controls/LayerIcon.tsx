@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, FolderOpen, Square } from "lucide-react";
+import { Database, Folder, FolderOpen, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { MarkerCollectionIcon, MarkerIndividualIcon } from "../Icons";
@@ -33,7 +33,8 @@ type IconType =
   | "folder-open"
   | "marker-collection"
   | "marker-individual"
-  | "turf";
+  | "turf"
+  | "database";
 
 // Icon component props
 interface IconProps {
@@ -83,6 +84,13 @@ const getIconRenderer = (iconType: IconType, color: string): IconRenderer => {
           style={{ fill: color, color: color, fillOpacity: 0.3, ...style }}
         />
       );
+    case "database":
+      return ({ className, style }) => (
+        <Database
+          className={className}
+          style={{ color: "#6b7280", ...style }}
+        />
+      );
     default:
       return ({ className, style }) => <MarkerIndividualIcon color={color} />;
   }
@@ -100,6 +108,9 @@ const getIconType = (
   }
   if (layerType === LayerType.Turf) {
     return "turf";
+  }
+  if (layerType === LayerType.DataLayer) {
+    return "database";
   }
   return isDataSource ? "marker-collection" : "marker-individual";
 };
@@ -141,6 +152,20 @@ export default function LayerIcon({
     isFolderExpanded
   );
   const renderIcon = getIconRenderer(iconType, currentColor);
+
+  // For DataLayer, don't show color picker
+  const showColorPicker = layerType !== LayerType.DataLayer && onColorChange;
+
+  if (!showColorPicker) {
+    return (
+      <div className="w-8 h-8 border border-neutral-200 rounded-sm flex items-center justify-center shrink-0 mr-1 relative">
+        {renderIcon({
+          color: currentColor,
+          className: "w-5 h-5 absolute",
+        })}
+      </div>
+    );
+  }
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
