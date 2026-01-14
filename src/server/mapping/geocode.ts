@@ -4,6 +4,7 @@ import {
   findAreasByPoint,
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
+import { AreaSetCode } from "../models/AreaSet";
 import type {
   AddressGeocodingConfig,
   AreaGeocodingConfig,
@@ -37,7 +38,11 @@ const _geocodeRecord = async (
   geocodingConfig: GeocodingConfig,
 ): Promise<GeocodeResult> => {
   if (geocodingConfig.type === "Code" || geocodingConfig.type === "Name") {
-    return geocodeRecordByArea(dataRecord, geocodingConfig);
+    if (geocodingConfig.areaSetCode === AreaSetCode.PC) {
+      return geocodeRecordByPostcode(dataRecord, geocodingConfig);
+    } else {
+      return geocodeRecordByArea(dataRecord, geocodingConfig);
+    }
   }
   if (geocodingConfig.type === "Address") {
     return geocodeRecordByAddress(dataRecord, geocodingConfig);
@@ -46,6 +51,77 @@ const _geocodeRecord = async (
     return geocodeRecordByCoordinates(dataRecord, geocodingConfig);
   }
   throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
+};
+
+const geocodeRecordByPostcode = async (
+  dataRecord: MappingDataRecord,
+  geocodingConfig: AreaGeocodingConfig,
+) => {
+  try {
+    return await geocodeRecordByArea(dataRecord, geocodingConfig);
+  } catch (error) {
+    logger.warn("Missing postcode in database", { error });
+  }
+  const dataRecordJson = dataRecord.json;
+  const { column: areaColumn } = geocodingConfig;
+  if (!(areaColumn in dataRecordJson)) {
+    throw new Error(`Missing area column "${areaColumn}" in row`);
+  }
+  const postcode = String(dataRecordJson[areaColumn])
+    .replace(/\s+/g, "")
+    .toUpperCase();
+  const postcodesResponse = await fetch(
+    `https://api.postcodes.io/postcodes/${postcode}`,
+  );
+  if (!postcodesResponse.ok) {
+    const text = (await postcodesResponse.text()) || "Unknown error";
+    throw new Error(
+      `Failed postcodes.io request: ${postcodesResponse.status}, ${text}`,
+    );
+  }
+  const postcodesData = await postcodesResponse.json();
+  if (
+    !postcodesData ||
+    !(typeof postcodesData === "object") ||
+    !("result" in postcodesData) ||
+    !postcodesData.result ||
+    !(typeof postcodesData.result === "object") ||
+    !("postcode" in postcodesData.result) ||
+    !("latitude" in postcodesData.result) ||
+    !("longitude" in postcodesData.result)
+  ) {
+    throw new Error(
+      `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`,
+    );
+  }
+
+  const samplePoint = {
+    lat: Number(postcodesData.result.latitude),
+    lng: Number(postcodesData.result.longitude),
+  };
+
+  const geocodeResult: GeocodeResult = {
+    areas: {
+      [AreaSetCode.PC]: String(postcodesData.result.postcode)
+        .replace(/\s+/g, "")
+        .toUpperCase(),
+    },
+    centralPoint: samplePoint,
+    samplePoint,
+  };
+
+  const mappedAreas = await findAreasByPoint(
+    JSON.stringify({
+      type: "Point",
+      coordinates: [samplePoint.lng, samplePoint.lat],
+    }),
+    geocodingConfig.areaSetCode,
+  );
+  for (const area of mappedAreas) {
+    geocodeResult.areas[area.areaSetCode] = area.code;
+  }
+
+  return geocodeResult;
 };
 
 const geocodeRecordByArea = async (

@@ -120,15 +120,52 @@ describe("importDataSource tests", () => {
       },
       {
         externalId: "4",
-        geocodePoint: { lat: 51.651882912, lng: -0.090255219 },
+        geocodePoint: {
+          lat: 51.816849,
+          lng: -0.81456,
+        },
         geocodeResult: {
-          areas: { PC: "EN26PJ" },
-          centralPoint: { lat: 51.651882912, lng: -0.090255219 },
-          samplePoint: { lat: 51.65194185, lng: -0.090364789 },
+          areas: {
+            PC: "HP202QB",
+            WMC24: "E14001071",
+          },
+          centralPoint: {
+            lat: 51.816849,
+            lng: -0.81456,
+          },
+          samplePoint: {
+            lat: 51.816849,
+            lng: -0.81456,
+          },
         },
         json: {
           Name: "Ringo",
-          Postcode: "EN2 6PJ",
+          Postcode: "HP20 2QB",
+        },
+      },
+      {
+        externalId: "5",
+        geocodePoint: {
+          lat: 54.61832,
+          lng: -5.927845,
+        },
+        geocodeResult: {
+          areas: {
+            PC: "BT153ES",
+            WMC24: "N05000002",
+          },
+          centralPoint: {
+            lat: 54.61832,
+            lng: -5.927845,
+          },
+          samplePoint: {
+            lat: 54.61832,
+            lng: -5.927845,
+          },
+        },
+        json: {
+          Name: "Jane",
+          Postcode: "BT15 3ES",
         },
       },
     ]);
