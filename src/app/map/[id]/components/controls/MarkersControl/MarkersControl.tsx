@@ -154,7 +154,7 @@ export default function MarkersControl() {
           <PlusIcon size={16} />
         </IconButtonWithTooltip>
       </LayerHeader>
-      {expanded && <MarkersList />}
+      {expanded && <div className="px-4 pb-3"><MarkersList /></div>}
     </LayerControlWrapper>
   );
 }
