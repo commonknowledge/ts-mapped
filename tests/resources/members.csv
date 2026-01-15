@@ -1,6 +1,7 @@
-Name,Postcode
-John,TN4 0PP
-Paul,N76AS
-George,G115RD
-Ringo,HP20 2QB
-Jane,BT15 3ES
+Name,Postcode,Notes
+John,TN4 0PP,
+Paul,N76AS,
+George,G115RD,
+Ringo,HP20 2QB,
+Jane,BT15 3ES,Test Belfast
+Mysterion,JE3 2DF, Test Jersey (currently does not geocode as is missing in the database and postcodes.io)

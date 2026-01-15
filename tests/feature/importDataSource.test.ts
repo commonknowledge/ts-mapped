@@ -168,6 +168,15 @@ describe("importDataSource tests", () => {
           Postcode: "BT15 3ES",
         },
       },
+      {
+        externalId: "6",
+        geocodePoint: null,
+        geocodeResult: null,
+        json: {
+          Name: "Mysterion",
+          Postcode: "JE3 2DF",
+        },
+      },
     ]);
   });
 

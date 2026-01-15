@@ -91,7 +91,10 @@ const geocodeRecordByPostcode = async (
     !(typeof postcodesData.result === "object") ||
     !("postcode" in postcodesData.result) ||
     !("latitude" in postcodesData.result) ||
-    !("longitude" in postcodesData.result)
+    !("longitude" in postcodesData.result) ||
+    !postcodesData.result.postcode ||
+    !postcodesData.result.latitude ||
+    !postcodesData.result.longitude
   ) {
     throw new Error(
       `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`,
