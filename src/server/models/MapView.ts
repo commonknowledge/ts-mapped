@@ -177,7 +177,7 @@ export const mapViewSchema = z.object({
   name: z.string(),
   config: mapViewConfigSchema,
   dataSourceViews: z.array(dataSourceViewSchema),
-  inspectorConfig: inspectorConfigSchema.optional(),
+  inspectorConfig: inspectorConfigSchema.nullish(),
   position: z.number(),
   mapId: z.string(),
   createdAt: z.date(),
