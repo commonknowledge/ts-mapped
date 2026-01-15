@@ -5,6 +5,7 @@ import {
   PieChart,
   PlusIcon,
   X,
+  RotateCwIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
@@ -43,6 +44,7 @@ import {
   getValidAreaSetGroupCodes,
 } from "../../Choropleth/areas";
 import { DataSourceItem } from "./DataSourceItem";
+import CategoryColorEditor from "./CategoryColorEditor";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 
 export default function VisualisationPanel({
@@ -59,7 +61,7 @@ export default function VisualisationPanel({
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
-    null,
+    null
   );
 
   // Update the filtering logic to include search
@@ -71,8 +73,8 @@ export default function VisualisationPanel({
         (ds) =>
           ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ds.columnDefs.some((col) =>
-            col.name.toLowerCase().includes(searchQuery.toLowerCase()),
-          ),
+            col.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
       );
     }
 
@@ -97,7 +99,7 @@ export default function VisualisationPanel({
     <div
       className={cn(
         "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-100",
+        "absolute top-0 h-full z-100"
       )}
       style={{
         left: positionLeft,
@@ -117,26 +119,37 @@ export default function VisualisationPanel({
       <Separator />
 
       {/* Data Source Selection */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mb-4 group">
         <Label className="text-sm">
           <Database className="w-4 h-4 text-muted-foreground" /> Data source
         </Label>
 
         {viewConfig.areaDataSourceId && dataSource ? (
           // Show selected data source as a card
-          <button
-            type="button"
-            onClick={() => {
-              setIsModalOpen(true);
-            }}
-          >
-            <DataSourceItem
-              className="shadow-xs"
-              dataSource={{
-                ...dataSource,
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsModalOpen(true);
               }}
-            />
-          </button>
+              className="group-hover:bg-neutral-100 transition-colors cursor-pointer rounded-lg"
+            >
+              <DataSourceItem
+                className="shadow-xs"
+                dataSource={{
+                  ...dataSource,
+                }}
+              />
+            </button>
+            <Button
+              variant="ghost"
+              className=" text-xs font-normal text-muted-foreground hover:text-primary mt-1"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <span>Change data source</span>
+              <RotateCwIcon className="w-2 h-2 " />
+            </Button>
+          </div>
         ) : (
           // Show button to open modal when no data source selected
 
@@ -187,7 +200,7 @@ export default function VisualisationPanel({
                   <SelectItem key={code} value={code}>
                     {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
                   </SelectItem>
-                ),
+                )
               )}
             </SelectContent>
           </Select>
@@ -278,7 +291,7 @@ export default function VisualisationPanel({
                     ...(dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
                       ?.columnDefs.filter(
-                        (col) => col.type === ColumnType.Number,
+                        (col) => col.type === ColumnType.Number
                       )
                       .map((col) => ({
                         value: col.name,
@@ -301,7 +314,7 @@ export default function VisualisationPanel({
             columnOneIsNumber &&
             dataRecordsWillAggregate(
               dataSource?.geocodingConfig,
-              viewConfig.areaSetGroupCode,
+              viewConfig.areaSetGroupCode
             ) && (
               <>
                 <Label
@@ -433,6 +446,16 @@ export default function VisualisationPanel({
               />
             </>
           )}
+          {!viewConfig.areaDataSecondaryColumn && !columnOneIsNumber && (
+            <>
+              <Label className="text-sm text-muted-foreground font-normal">
+                Category colors
+              </Label>
+              <div>
+                <CategoryColorEditor />
+              </div>
+            </>
+          )}
           <Label
             htmlFor="choropleth-opacity"
             className="text-sm text-muted-foreground font-normal"
@@ -507,7 +530,7 @@ export default function VisualisationPanel({
                       }
                       const dataSource = getDataSourceById(ds.id);
                       const validAreaSetGroups = getValidAreaSetGroupCodes(
-                        dataSource?.geocodingConfig,
+                        dataSource?.geocodingConfig
                       );
                       if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
                         updateViewConfig({ areaDataSourceId: ds.id });
@@ -573,7 +596,7 @@ export default function VisualisationPanel({
             </SelectTrigger>
             <SelectContent>
               {getValidAreaSetGroupCodes(
-                getDataSourceById(invalidDataSourceId)?.geocodingConfig,
+                getDataSourceById(invalidDataSourceId)?.geocodingConfig
               ).map((code) => (
                 <SelectItem key={code} value={code}>
                   {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}

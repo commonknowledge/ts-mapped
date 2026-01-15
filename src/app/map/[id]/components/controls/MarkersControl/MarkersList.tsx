@@ -26,6 +26,7 @@ import {
 } from "@/app/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
+  useHandleDropPin,
   usePlacedMarkerMutations,
   usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
@@ -62,6 +63,7 @@ export default function MarkersList() {
   const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { updatePlacedMarker } = usePlacedMarkerMutations();
+  const { handleDropPin } = useHandleDropPin();
   const { selectedDataSourceId, handleDataSourceSelect } = useTable();
   const markerDataSources = useMarkerDataSources();
   const membersDataSource = useMembersDataSource();
@@ -418,7 +420,7 @@ export default function MarkersList() {
               markerDataSources &&
               markerDataSources.length === 0 &&
               placedMarkers.length === 0 && (
-                <EmptyLayer message="Add a Marker Layer" />
+                <EmptyLayer message="Add a Marker Layer" onClick={handleDropPin} />
               )}
 
             {/* Member data source */}

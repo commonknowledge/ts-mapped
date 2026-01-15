@@ -117,6 +117,7 @@ export const mapViewConfigSchema = z.object({
   calculationType: z.nativeEnum(CalculationType).nullish(),
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
+  categoryColors: z.record(z.string(), z.string()).optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

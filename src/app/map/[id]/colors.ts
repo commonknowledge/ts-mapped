@@ -97,25 +97,29 @@ export const useColorScheme = ({
   areaStats,
   scheme,
   isReversed,
+  categoryColors,
 }: {
   areaStats: CombinedAreaStats | null;
   scheme: ColorScheme;
   isReversed: boolean;
+  categoryColors?: Record<string, string>;
 }): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
-    return getColorScheme({ areaStats, scheme, isReversed });
-  }, [areaStats, scheme, isReversed]);
+    return getColorScheme({ areaStats, scheme, isReversed, categoryColors });
+  }, [areaStats, scheme, isReversed, categoryColors]);
 };
 
 const getColorScheme = ({
   areaStats,
   scheme,
   isReversed,
+  categoryColors,
 }: {
   areaStats: CombinedAreaStats | null;
   scheme: ColorScheme;
   isReversed: boolean;
+  categoryColors?: Record<string, string>;
 }): CategoricColorScheme | NumericColorScheme | null => {
   if (!areaStats || !areaStats.stats.length) {
     return null;
@@ -129,7 +133,9 @@ const getColorScheme = ({
     const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
     distinctValues.forEach((v) => {
-      colorMap[v] = getCategoricalColor(v, colorScale);
+      // Use custom color if provided, otherwise use default
+      colorMap[v] =
+        categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
     });
     return {
       columnType: ColumnType.String,
@@ -190,11 +196,13 @@ export const useFillColor = ({
   scheme,
   isReversed,
   selectedBivariateBucket,
+  categoryColors,
 }: {
   areaStats: CombinedAreaStats | null;
   scheme: ColorScheme;
   isReversed: boolean;
   selectedBivariateBucket: string | null;
+  categoryColors?: Record<string, string>;
 }): DataDrivenPropertyValueSpecification<string> => {
   // useMemo to cache calculated fillColor
   return useMemo(() => {
@@ -203,7 +211,12 @@ export const useFillColor = ({
     }
 
     const isCount = areaStats?.calculationType === CalculationType.Count;
-    const colorScheme = getColorScheme({ areaStats, scheme, isReversed });
+    const colorScheme = getColorScheme({
+      areaStats,
+      scheme,
+      isReversed,
+      categoryColors,
+    });
     if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
     }

@@ -62,7 +62,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
           bottom: padding,
         },
         duration: 1000,
-      },
+      }
     );
   };
 
@@ -162,7 +162,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive  hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>

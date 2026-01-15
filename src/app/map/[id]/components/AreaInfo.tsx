@@ -87,6 +87,7 @@ export default function AreaInfo() {
     scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
     isReversed: Boolean(viewConfig.reverseColorScheme),
     selectedBivariateBucket: null,
+    categoryColors: viewConfig.categoryColors,
   });
 
   // Combine selected areas and hover area, avoiding duplicates

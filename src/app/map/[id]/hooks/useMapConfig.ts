@@ -25,13 +25,13 @@ export function useMapConfig() {
           return { ...old, config: updatedConfig };
         });
       },
-    }),
+    })
   );
 
   const mapConfig = useMemo(
     () =>
       mapData?.config || { markerDataSourceIds: [], membersDataSourceId: null },
-    [mapData?.config],
+    [mapData?.config]
   );
 
   const updateMapConfig = useCallback(
@@ -41,7 +41,7 @@ export function useMapConfig() {
       }
       return mutate({ mapId, config: { ...mapConfig, ...newMapConfig } });
     },
-    [mapConfig, mapId, mutate],
+    [mapConfig, mapId, mutate]
   );
 
   return {

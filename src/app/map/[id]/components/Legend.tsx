@@ -1,27 +1,19 @@
 import { Database } from "lucide-react";
+import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shadcn/ui/dropdown-menu";
-import { Switch } from "@/shadcn/ui/switch";
-import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
-import { CHOROPLETH_COLOR_SCHEMES, useColorScheme } from "../colors";
+import { useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
 
 export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
+  const { setBoundariesPanelOpen } = useChoropleth();
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -30,6 +22,7 @@ export default function Legend() {
     areaStats,
     scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
     isReversed: Boolean(viewConfig.reverseColorScheme),
+    categoryColors: viewConfig.categoryColors,
   });
   if (!colorScheme) {
     return null;
@@ -117,82 +110,32 @@ export default function Legend() {
 
   return (
     <div className="flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
-      <p className=" flex  gap-2 items-center text-xs font-mono p-2">
-        <Database className="w-4 h-4 text-muted-foreground" />
-        Locality Data Legend
-      </p>
       {areaStats?.calculationType !== CalculationType.Count &&
       viewConfig.areaDataColumn &&
       viewConfig.areaDataSecondaryColumn ? (
-        <div className="p-2 pt-0">
+        <button
+          onClick={() => setBoundariesPanelOpen(true)}
+          className="p-2 pt-0 hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"
+        >
           <BivariateLegend />
-        </div>
+        </button>
       ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div
-              className={cn(
-                "flex flex-col",
-                areaStats?.primary?.columnType === ColumnType.Number
-                  ? "cursor-pointer"
-                  : "",
-              )}
-            >
-              <p className="flex items-center font-medium px-2 ">
-                {dataSource?.name}
-              </p>
-              <p className="text-sm flex items-center gap-0.5 font-medium px-2 ">
-                {viewConfig.areaDataColumn === MAX_COLUMN_KEY
-                  ? "Highest-value column"
-                  : viewConfig.calculationType === CalculationType.Count
-                    ? "Count"
-                    : viewConfig.areaDataColumn}
-              </p>
-              <div className="flex px-2 ">{makeBars()}</div>
-            </div>
-          </DropdownMenuTrigger>
-          {areaStats?.primary?.columnType === ColumnType.Number && (
-            <DropdownMenuContent>
-              <DropdownMenuLabel>Choose colour scheme</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
-                <DropdownMenuItem
-                  key={index}
-                  onClick={() =>
-                    updateViewConfig({ colorScheme: option.value })
-                  }
-                  className="flex items-center gap-2"
-                >
-                  <div className={`w-4 h-4 rounded ${option.color}`} />
-                  <span className="truncate">{option.label}</span>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <div className="flex items-center gap-2 px-2 py-1.5">
-                <Switch
-                  id="reverse-color-scheme-switch"
-                  checked={Boolean(viewConfig?.reverseColorScheme)}
-                  onClick={() =>
-                    updateViewConfig({
-                      reverseColorScheme: !viewConfig?.reverseColorScheme,
-                    })
-                  }
-                  onCheckedChange={() =>
-                    updateViewConfig({
-                      reverseColorScheme: !viewConfig?.reverseColorScheme,
-                    })
-                  }
-                />
-                <label
-                  htmlFor="reverse-color-scheme-switch"
-                  className="text-sm cursor-pointer"
-                >
-                  Reverse colours
-                </label>
-              </div>
-            </DropdownMenuContent>
-          )}
-        </DropdownMenu>
+        <button
+          onClick={() => setBoundariesPanelOpen(true)}
+          className="flex flex-col hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"
+        >
+          <p className="flex items-center font-medium px-2 ">
+            {dataSource?.name}
+          </p>
+          <p className="text-sm flex items-center gap-0.5 font-medium px-2 ">
+            {viewConfig.areaDataColumn === MAX_COLUMN_KEY
+              ? "Highest-value column"
+              : viewConfig.calculationType === CalculationType.Count
+                ? "Count"
+                : viewConfig.areaDataColumn}
+          </p>
+          <div className="flex px-2 ">{makeBars()}</div>
+        </button>
       )}
     </div>
   );

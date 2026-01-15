@@ -1,0 +1,133 @@
+import { useMemo, useState } from "react";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { useAreaStats } from "@/app/map/[id]/data";
+import { useColorScheme } from "@/app/map/[id]/colors";
+import { ColorScheme } from "@/server/models/MapView";
+import { ColumnType } from "@/server/models/DataSource";
+import { Button } from "@/shadcn/ui/button";
+import { Label } from "@/shadcn/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shadcn/ui/dialog";
+import { X } from "lucide-react";
+
+export default function CategoryColorEditor() {
+  const { viewConfig, updateViewConfig } = useMapViews();
+  const areaStatsQuery = useAreaStats();
+  const areaStats = areaStatsQuery?.data;
+  const [isOpen, setIsOpen] = useState(false);
+
+  const colorScheme = useColorScheme({
+    areaStats,
+    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
+    isReversed: Boolean(viewConfig.reverseColorScheme),
+    categoryColors: viewConfig.categoryColors,
+  });
+
+  // Get unique categories from areaStats
+  const categories = useMemo(() => {
+    if (!areaStats || !colorScheme || colorScheme.columnType === ColumnType.Number) {
+      return [];
+    }
+    return Object.keys(colorScheme.colorMap).sort();
+  }, [areaStats, colorScheme]);
+
+  const handleColorChange = (category: string, color: string) => {
+    const currentColors = viewConfig.categoryColors || {};
+    updateViewConfig({
+      categoryColors: {
+        ...currentColors,
+        [category]: color,
+      },
+    });
+  };
+
+  const handleResetColor = (category: string) => {
+    const currentColors = viewConfig.categoryColors || {};
+    const newColors = { ...currentColors };
+    delete newColors[category];
+    updateViewConfig({
+      categoryColors: Object.keys(newColors).length > 0 ? newColors : undefined,
+    });
+  };
+
+  if (!colorScheme || colorScheme.columnType === ColumnType.Number || categories.length === 0) {
+    return null;
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="w-full justify-start">
+          Set category colors
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Set category colors</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 mt-4">
+          {categories.map((category) => {
+            const currentColor =
+              viewConfig.categoryColors?.[category] ||
+              colorScheme.colorMap[category];
+            return (
+              <div
+                key={category}
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-neutral-50"
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+                    <div
+                      className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0 relative"
+                      style={{ backgroundColor: currentColor }}
+                    >
+                      <input
+                        type="color"
+                        value={currentColor}
+                        onChange={(e) => handleColorChange(category, e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        title={`Change color for ${category}`}
+                      />
+                    </div>
+                    <span className="text-sm font-normal truncate flex-1">
+                      {category}
+                    </span>
+                  </label>
+                </div>
+                {viewConfig.categoryColors?.[category] && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 flex-shrink-0"
+                    onClick={() => handleResetColor(category)}
+                    title="Reset to default color"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+          {Object.keys(viewConfig.categoryColors || {}).length > 0 && (
+            <div className="pt-2 border-t">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  updateViewConfig({ categoryColors: undefined })
+                }
+              >
+                Reset all colors
+              </Button>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
