@@ -168,7 +168,7 @@ export default function Legend() {
         role="button"
         tabIndex={0}
         className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
-        aria-label="Toggle layer visibility"
+        aria-label={isLayerVisible ? "Hide layer" : "Show layer"}
         onClick={(e) => {
           e.stopPropagation();
           toggleLayerVisibility();
