@@ -4,15 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import DataSourceIcon from "@/components/DataSourceIcon";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import DataSourceIcon from "@/components/DataSourceIcon";
 import { useTRPC } from "@/services/trpc/react";
-import {
-  ContextMenu,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/shadcn/ui/context-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +17,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shadcn/ui/alert-dialog";
+import {
+  ContextMenu,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
@@ -97,7 +97,7 @@ export default function DataSourceItem({
         toast.error("Failed to rename data source");
         setEditName(dataSource.name); // Reset on error
       },
-    })
+    }),
   );
 
   const handleSaveRename = () => {
@@ -121,7 +121,7 @@ export default function DataSourceItem({
       // Remove from marker data sources array
       updateMapConfig({
         markerDataSourceIds: mapConfig.markerDataSourceIds.filter(
-          (id) => id !== dataSource.id
+          (id) => id !== dataSource.id,
         ),
       });
       toast.success("Data source removed from map");
@@ -232,7 +232,7 @@ export default function DataSourceItem({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove data source from map?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove "{dataSource.name}" from this map. The data
+              This will remove &quot;{dataSource.name}&quot; from this map. The data
               source will not be deleted and can be added back later.
             </AlertDialogDescription>
           </AlertDialogHeader>

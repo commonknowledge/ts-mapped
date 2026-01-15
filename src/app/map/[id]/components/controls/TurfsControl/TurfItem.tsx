@@ -4,6 +4,7 @@ import * as turfLib from "@turf/turf";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -11,7 +12,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { LayerType } from "@/types";
 import { useShowControls } from "../../../hooks/useMapControls";
 import { useMapRef } from "../../../hooks/useMapCore";
@@ -53,7 +53,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
           bottom: padding,
         },
         duration: 1000,
-      }
+      },
     );
   };
 

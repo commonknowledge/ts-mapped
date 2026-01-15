@@ -10,11 +10,11 @@ import { toast } from "sonner";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import DefinitionList from "@/components/DefinitionList";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
 import { JobStatus } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
-import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -257,9 +257,9 @@ function DeleteDataSourceButton({
   return (
     <>
       <Button variant="destructive" onClick={() => setOpen(true)}>
-          <Trash2Icon />
-          Delete data source
-        </Button>
+        <Trash2Icon />
+        Delete data source
+      </Button>
       <DeleteConfirmationDialog
         open={open}
         onOpenChange={setOpen}

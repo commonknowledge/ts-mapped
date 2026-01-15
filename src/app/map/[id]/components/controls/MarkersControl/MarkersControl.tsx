@@ -105,8 +105,8 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                (id) => id !== dataSource.id,
-              )
+                  (id) => id !== dataSource.id,
+                )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
         },
@@ -189,8 +189,8 @@ export default function MarkersControl() {
         setExpanded={setExpanded}
         enableVisibilityToggle={Boolean(
           placedMarkers.length > 0 ||
-          markerDataSources.length > 0 ||
-          membersDataSource
+            markerDataSources.length > 0 ||
+            membersDataSource,
         )}
       >
         {loading && <LoaderPinwheel className="animate-spin" size={16} />}

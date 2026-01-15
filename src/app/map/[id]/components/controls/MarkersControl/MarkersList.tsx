@@ -26,7 +26,6 @@ import {
 } from "@/app/map/[id]/hooks/useFolders";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import {
-  useHandleDropPin,
   usePlacedMarkerMutations,
   usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
@@ -47,13 +46,13 @@ import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
 import SortableFolderItem from "./SortableFolderItem";
 import UnassignedFolder from "./UnassignedFolder";
+import type { DropdownMenuItemType } from "@/components/MultiDropdownMenu";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type {
   DragEndEvent,
   DragOverEvent,
   DragStartEvent,
 } from "@dnd-kit/core";
-import type { DropdownMenuItemType } from "@/components/MultiDropdownMenu";
 
 export default function MarkersList({
   dropdownItems,
@@ -68,7 +67,6 @@ export default function MarkersList({
   const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { updatePlacedMarker } = usePlacedMarkerMutations();
-  const { handleDropPin } = useHandleDropPin();
   const { selectedDataSourceId, handleDataSourceSelect } = useTable();
   const markerDataSources = useMarkerDataSources();
   const membersDataSource = useMembersDataSource();

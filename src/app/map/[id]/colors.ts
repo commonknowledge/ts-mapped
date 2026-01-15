@@ -134,8 +134,7 @@ const getColorScheme = ({
     const colorMap: Record<string, string> = {};
     distinctValues.forEach((v) => {
       // Use custom color if provided, otherwise use default
-      colorMap[v] =
-        categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
+      colorMap[v] = categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
     });
     return {
       columnType: ColumnType.String,

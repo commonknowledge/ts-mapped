@@ -4,10 +4,10 @@ import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
 import LayerControlWrapper from "../LayerControlWrapper";
+import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
 import LegendControl from "./LegendControl";
 import { useBoundariesControl } from "./useBoundariesControl";
-import EmptyLayer from "../LayerEmptyMessage";
 
 export default function BoundariesControl() {
   const [expanded, setExpanded] = useState(true);

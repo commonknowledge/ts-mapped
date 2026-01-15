@@ -156,12 +156,12 @@ export const getMaxColumnByArea = async (
     .filter(({ name, type }) => {
       // Must be a number column
       if (type !== ColumnType.Number) return false;
-      
+
       // If includeColumns is specified, only include those columns
       if (includeColumns && includeColumns.length > 0) {
         return includeColumns.includes(name);
       }
-      
+
       // Otherwise, exclude columns in excludeColumns list
       return !excludeColumns.includes(name);
     })
@@ -216,9 +216,9 @@ export const getMaxColumnByArea = async (
   // at least one column has a non-NULL numeric value.
   const hasNonNullValueCondition = sql`(${sql.join(
     columnNames.map((c) => sql`(json->>${c})::float IS NOT NULL`),
-    sql` OR `
+    sql` OR `,
   )})`;
-  
+
   const q = sql`
     WITH data_record_with_max_column AS (
       SELECT 

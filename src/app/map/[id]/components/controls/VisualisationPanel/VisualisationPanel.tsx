@@ -4,8 +4,8 @@ import {
   Palette,
   PieChart,
   PlusIcon,
-  X,
   RotateCwIcon,
+  X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
@@ -19,6 +19,7 @@ import { AreaSetGroupCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
+import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Combobox } from "@/shadcn/ui/combobox";
 import {
   Dialog,
@@ -26,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { DialogTrigger } from "@/shadcn/ui/dialog";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -43,12 +45,10 @@ import {
   dataRecordsWillAggregate,
   getValidAreaSetGroupCodes,
 } from "../../Choropleth/areas";
-import { DataSourceItem } from "./DataSourceItem";
 import CategoryColorEditor from "./CategoryColorEditor";
+import { DataSourceItem } from "./DataSourceItem";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
-import { Checkbox } from "@/shadcn/ui/checkbox";
-import { DialogTrigger } from "@/shadcn/ui/dialog";
 
 function IncludeColumnsModal({
   dataSource,
@@ -61,7 +61,7 @@ function IncludeColumnsModal({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const numericColumns = dataSource.columnDefs.filter(
-    (c) => c.type === ColumnType.Number
+    (c) => c.type === ColumnType.Number,
   );
 
   const handleToggle = (columnName: string, checked: boolean) => {
@@ -81,8 +81,9 @@ function IncludeColumnsModal({
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full justify-start">
             {selectedColumns.length > 0
-              ? `${selectedColumns.length} column${selectedColumns.length !== 1 ? "s" : ""
-              } selected`
+              ? `${selectedColumns.length} column${
+                  selectedColumns.length !== 1 ? "s" : ""
+                } selected`
               : "Select columns to include"}
           </Button>
         </DialogTrigger>
@@ -93,8 +94,9 @@ function IncludeColumnsModal({
         </DialogHeader>
         <div className="space-y-2 py-4">
           <p className="text-sm text-gray-500 mb-4">
-            Only selected columns will be considered when determining the highest
-            value column for each area. Leave empty to use all numeric columns.
+            Only selected columns will be considered when determining the
+            highest value column for each area. Leave empty to use all numeric
+            columns.
           </p>
           <div className="space-y-2">
             {numericColumns.map((column) => (
@@ -143,7 +145,7 @@ export default function VisualisationPanel({
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
-    null
+    null,
   );
 
   // Update the filtering logic to include search
@@ -155,8 +157,8 @@ export default function VisualisationPanel({
         (ds) =>
           ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           ds.columnDefs.some((col) =>
-            col.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+            col.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
 
@@ -181,7 +183,7 @@ export default function VisualisationPanel({
     <div
       className={cn(
         "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-100"
+        "absolute top-0 h-full z-100",
       )}
       style={{
         left: positionLeft,
@@ -298,7 +300,7 @@ export default function VisualisationPanel({
                   <SelectItem key={code} value={code}>
                     {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
                   </SelectItem>
-                )
+                ),
               )}
             </SelectContent>
           </Select>
@@ -389,7 +391,7 @@ export default function VisualisationPanel({
                     ...(dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
                       ?.columnDefs.filter(
-                        (col) => col.type === ColumnType.Number
+                        (col) => col.type === ColumnType.Number,
                       )
                       .map((col) => ({
                         value: col.name,
@@ -412,7 +414,7 @@ export default function VisualisationPanel({
             columnOneIsNumber &&
             dataRecordsWillAggregate(
               dataSource?.geocodingConfig,
-              viewConfig.areaSetGroupCode
+              viewConfig.areaSetGroupCode,
             ) && (
               <>
                 <Label
@@ -471,9 +473,9 @@ export default function VisualisationPanel({
             selectedColumns={
               viewConfig.includeColumnsString
                 ? viewConfig.includeColumnsString
-                  .split(",")
-                  .map((v) => v.trim())
-                  .filter(Boolean)
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean)
                 : []
             }
             onColumnsChange={(columns) => {
@@ -631,7 +633,7 @@ export default function VisualisationPanel({
                       }
                       const dataSource = getDataSourceById(ds.id);
                       const validAreaSetGroups = getValidAreaSetGroupCodes(
-                        dataSource?.geocodingConfig
+                        dataSource?.geocodingConfig,
                       );
                       if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
                         updateViewConfig({ areaDataSourceId: ds.id });
@@ -697,7 +699,7 @@ export default function VisualisationPanel({
             </SelectTrigger>
             <SelectContent>
               {getValidAreaSetGroupCodes(
-                getDataSourceById(invalidDataSourceId)?.geocodingConfig
+                getDataSourceById(invalidDataSourceId)?.geocodingConfig,
               ).map((code) => (
                 <SelectItem key={code} value={code}>
                   {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}

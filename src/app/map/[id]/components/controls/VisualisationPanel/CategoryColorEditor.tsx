@@ -1,11 +1,11 @@
+import { X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useAreaStats } from "@/app/map/[id]/data";
 import { useColorScheme } from "@/app/map/[id]/colors";
-import { ColorScheme } from "@/server/models/MapView";
+import { useAreaStats } from "@/app/map/[id]/data";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { ColumnType } from "@/server/models/DataSource";
+import { ColorScheme } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
-import { Label } from "@/shadcn/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
-import { X } from "lucide-react";
 
 export default function CategoryColorEditor() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -30,7 +29,11 @@ export default function CategoryColorEditor() {
 
   // Get unique categories from areaStats
   const categories = useMemo(() => {
-    if (!areaStats || !colorScheme || colorScheme.columnType === ColumnType.Number) {
+    if (
+      !areaStats ||
+      !colorScheme ||
+      colorScheme.columnType === ColumnType.Number
+    ) {
       return [];
     }
     return Object.keys(colorScheme.colorMap).sort();
@@ -48,14 +51,19 @@ export default function CategoryColorEditor() {
 
   const handleResetColor = (category: string) => {
     const currentColors = viewConfig.categoryColors || {};
-    const newColors = { ...currentColors };
-    delete newColors[category];
+    const newColors = Object.fromEntries(
+      Object.entries(currentColors).filter(([key]) => key !== category),
+    );
     updateViewConfig({
       categoryColors: Object.keys(newColors).length > 0 ? newColors : undefined,
     });
   };
 
-  if (!colorScheme || colorScheme.columnType === ColumnType.Number || categories.length === 0) {
+  if (
+    !colorScheme ||
+    colorScheme.columnType === ColumnType.Number ||
+    categories.length === 0
+  ) {
     return null;
   }
 
@@ -89,7 +97,9 @@ export default function CategoryColorEditor() {
                       <input
                         type="color"
                         value={currentColor}
-                        onChange={(e) => handleColorChange(category, e.target.value)}
+                        onChange={(e) =>
+                          handleColorChange(category, e.target.value)
+                        }
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         title={`Change color for ${category}`}
                       />
@@ -118,9 +128,7 @@ export default function CategoryColorEditor() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() =>
-                  updateViewConfig({ categoryColors: undefined })
-                }
+                onClick={() => updateViewConfig({ categoryColors: undefined })}
               >
                 Reset all colors
               </Button>

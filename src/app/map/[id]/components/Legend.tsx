@@ -1,4 +1,4 @@
-import { ChevronRight, Database, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, Eye, EyeOff } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useLayers } from "@/app/map/[id]/hooks/useLayers";

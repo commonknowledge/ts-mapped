@@ -31,10 +31,11 @@ export default function MapMarkerAndAreaControls() {
       <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${pinDropMode
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
+              pinDropMode
                 ? "bg-muted-foreground/30 text-primary"
                 : "text-primary hover:bg-muted"
-              }`}
+            }`}
             onClick={handlePinDropClick}
           >
             <MapPin size={20} />
@@ -45,10 +46,11 @@ export default function MapMarkerAndAreaControls() {
       <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${editAreaMode
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
+              editAreaMode
                 ? "bg-muted-foreground/30 text-primary"
                 : "text-primary hover:bg-muted"
-              }`}
+            }`}
             onClick={handleAddAreaClick}
           >
             <VectorSquareIcon size={20} />
@@ -60,10 +62,11 @@ export default function MapMarkerAndAreaControls() {
       <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${compareGeographiesMode
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
+              compareGeographiesMode
                 ? "bg-muted-foreground/30 text-primary"
                 : "text-primary hover:bg-muted"
-              }`}
+            }`}
             onClick={(e) => {
               e.stopPropagation();
               toggleCompareGeographies({ cancelDrawMode });

@@ -1,7 +1,6 @@
 import {
-  LayoutDashboardIcon,
   CircleIcon,
-  SquareIcon,
+  LayoutDashboardIcon,
   UsersIcon,
   VectorSquareIcon,
 } from "lucide-react";

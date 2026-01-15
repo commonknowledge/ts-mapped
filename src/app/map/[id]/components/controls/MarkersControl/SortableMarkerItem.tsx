@@ -5,6 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,7 +13,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { LayerType } from "@/types";
 import { useMapRef } from "../../../hooks/useMapCore";
 import {
@@ -150,7 +150,9 @@ export default function SortableMarkerItem({
                   Rename
                 </ContextMenuItem>
                 <ContextMenuItem
-                  onClick={() => setPlacedMarkerVisibility(marker.id, !isVisible)}
+                  onClick={() =>
+                    setPlacedMarkerVisibility(marker.id, !isVisible)
+                  }
                 >
                   {isVisible ? (
                     <>

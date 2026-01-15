@@ -128,7 +128,9 @@ export default function InspectorPanel() {
             <UnderlineTabsTrigger value="markers">
               Markers {markerCount > 0 ? markerCount : ""}
             </UnderlineTabsTrigger>
-            <UnderlineTabsTrigger value="notes" className="hidden">Notes 0</UnderlineTabsTrigger>
+            <UnderlineTabsTrigger value="notes" className="hidden">
+              Notes 0
+            </UnderlineTabsTrigger>
             <UnderlineTabsTrigger value="config" className="px-2 hidden">
               <SettingsIcon size={16} />
             </UnderlineTabsTrigger>

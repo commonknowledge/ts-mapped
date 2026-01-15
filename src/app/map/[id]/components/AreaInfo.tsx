@@ -27,10 +27,10 @@ const getDisplayValue = (
   calculationType: CalculationType | null | undefined,
   areaStats:
     | {
-      columnType: ColumnType;
-      minValue: number;
-      maxValue: number;
-    }
+        columnType: ColumnType;
+        minValue: number;
+        maxValue: number;
+      }
     | undefined
     | null,
   areaStatValue: unknown,
@@ -270,26 +270,27 @@ export default function AreaInfo() {
 
                 const primaryValue = areaStat
                   ? getDisplayValue(
-                    areaStats.calculationType,
-                    areaStats.primary,
-                    areaStat.primary,
-                  )
+                      areaStats.calculationType,
+                      areaStats.primary,
+                      areaStat.primary,
+                    )
                   : "-";
                 const secondaryValue = areaStat
                   ? getDisplayValue(
-                    areaStats.calculationType,
-                    areaStats.secondary,
-                    areaStat.secondary,
-                  )
+                      areaStats.calculationType,
+                      areaStats.secondary,
+                      areaStat.secondary,
+                    )
                   : "-";
 
                 return (
                   <TableRow
                     key={`${area.areaSetCode}-${area.code}`}
-                    className={`border-none font-medium my-1 ${area.isSelected
-                      ? "hover:bg-neutral-50 cursor-pointer"
-                      : "cursor-default"
-                      }`}
+                    className={`border-none font-medium my-1 ${
+                      area.isSelected
+                        ? "hover:bg-neutral-50 cursor-pointer"
+                        : "cursor-default"
+                    }`}
                     style={
                       area.isSelected
                         ? { borderLeft: "4px solid var(--brandGreen)" }

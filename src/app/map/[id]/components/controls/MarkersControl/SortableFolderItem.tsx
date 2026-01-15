@@ -15,6 +15,8 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { sortByPositionAndId } from "@/app/map/[id]/utils";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -22,9 +24,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 
-import { sortByPositionAndId } from "@/app/map/[id]/utils";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
