@@ -257,9 +257,9 @@ function DeleteDataSourceButton({
   return (
     <>
       <Button variant="destructive" onClick={() => setOpen(true)}>
-        <Trash2Icon />
-        Delete data source
-      </Button>
+          <Trash2Icon />
+          Delete data source
+        </Button>
       <DeleteConfirmationDialog
         open={open}
         onOpenChange={setOpen}

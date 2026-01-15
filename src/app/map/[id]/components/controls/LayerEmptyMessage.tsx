@@ -76,7 +76,7 @@ export default function LayerEmptyMessage({
       className={cn(
         "text-sm text-neutral-400 p-2 text-right rounded bg-transparent flex items-center gap-2 justify-end",
         onClick &&
-        "cursor-pointer hover:text-neutral-600 hover:bg-neutral-50 transition-colors"
+          "cursor-pointer hover:text-neutral-600 hover:bg-neutral-50 transition-colors"
       )}
     >
       {message} <CornerRightUp className="w-4 h-4 shrink-0" />
