@@ -26,29 +26,31 @@ export default async function MapPage({
   const { id } = await params;
   const { viewId } = await searchParams;
 
-  // Log current view data
-  try {
-    const mapData = await db
-      .selectFrom("mapView")
-      .where("mapId", "=", id)
-      .selectAll()
-      .execute();
+  // Log current view data (development only)
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const mapData = await db
+        .selectFrom("mapView")
+        .where("mapId", "=", id)
+        .selectAll()
+        .execute();
 
-    if (mapData && mapData.length > 0) {
-      const currentView = viewId
-        ? mapData.find((v) => v.id === viewId) || mapData[0]
-        : mapData[0];
+      if (mapData && mapData.length > 0) {
+        const currentView = viewId
+          ? mapData.find((v) => v.id === viewId) || mapData[0]
+          : mapData[0];
 
-      console.log("=== Current Map View Data ===");
-      console.log("View ID:", currentView.id);
-      console.log("View Name:", currentView.name);
-      console.log("View Config:", currentView.config);
-      console.log("Inspector Config:", currentView.inspectorConfig);
-      console.log("Data Source Views:", currentView.dataSourceViews);
-      console.log("==============================");
+        console.log("=== Current Map View Data ===");
+        console.log("View ID:", currentView.id);
+        console.log("View Name:", currentView.name);
+        console.log("View Config:", currentView.config);
+        console.log("Inspector Config:", currentView.inspectorConfig);
+        console.log("Data Source Views:", currentView.dataSourceViews);
+        console.log("==============================");
+      }
+    } catch (error) {
+      console.error("Error fetching view data:", error);
     }
-  } catch (error) {
-    console.error("Error fetching view data:", error);
   }
 
   return (
