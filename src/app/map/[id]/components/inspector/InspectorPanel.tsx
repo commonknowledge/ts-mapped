@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeftIcon, MapPinIcon, TableIcon, XIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  MapPinIcon,
+  SettingsIcon,
+  TableIcon,
+  XIcon,
+} from "lucide-react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
@@ -9,10 +15,15 @@ import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useMapRef } from "../../hooks/useMapCore";
-import LayerTypeIcon from "../LayerTypeIcon";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
+import {
+  UnderlineTabs,
+  UnderlineTabsContent,
+  UnderlineTabsList,
+  UnderlineTabsTrigger,
+} from "./UnderlineTabs";
 
 export default function InspectorPanel() {
   const {
@@ -22,6 +33,7 @@ export default function InspectorPanel() {
     selectedTurf,
     focusedRecord,
     setFocusedRecord,
+    selectedRecords,
   } = useInspector();
   const mapRef = useMapRef();
   const { setSelectedDataSourceId, selectedDataSourceId } = useTable();
@@ -49,6 +61,8 @@ export default function InspectorPanel() {
     (selectedTurf && type !== LayerType.Turf) ||
     (selectedBoundary && type !== LayerType.Boundary);
 
+  const markerCount = selectedRecords?.length || 0;
+
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
   };
@@ -65,15 +79,14 @@ export default function InspectorPanel() {
     <div
       id="inspector-panel"
       className={cn(
-        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 w-60 py-5 h-fit max-h-full",
+        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5 h-fit max-h-full",
         tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
       )}
+      style={{ minWidth: "250px" }}
     >
       <div className="relative z-100 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
-        <div className="flex justify-between items-start gap-4 p-4">
+        <div className="flex justify-between items-center gap-4 p-3">
           <h1 className="grow flex gap-2 / text-sm font-semibold">
-            <LayerTypeIcon type={inspectorContent?.type} className="mt-1" />
-
             {inspectorContent?.name as string}
           </h1>
           <button
@@ -106,54 +119,98 @@ export default function InspectorPanel() {
           </div>
         )}
 
-        <div className="grow overflow-auto flex flex-col gap-4 [&:not(:empty)]:border-t [&:not(:empty)]:p-4">
-          {dataSource && (
-            <div className="bg-muted py-1 px-2 rounded">
-              <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
-                Data source
-              </h3>
-              <div className="flex items-center gap-2">
-                <div className="shrink-0">
-                  <DataSourceIcon type={dataSource.config?.type as string} />
-                </div>
+        <UnderlineTabs
+          defaultValue="data"
+          className="flex flex-col overflow-hidden"
+        >
+          <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
+            <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
+            <UnderlineTabsTrigger value="markers">
+              Markers {markerCount > 0 ? markerCount : ""}
+            </UnderlineTabsTrigger>
+            <UnderlineTabsTrigger value="notes" className="hidden">Notes 0</UnderlineTabsTrigger>
+            <UnderlineTabsTrigger value="config" className="px-2 hidden">
+              <SettingsIcon size={16} />
+            </UnderlineTabsTrigger>
+          </UnderlineTabsList>
 
-                <p className="truncate">{dataSource.name}</p>
-              </div>
-            </div>
-          )}
-
-          {recordLoading ? (
-            <span>Loading...</span>
-          ) : (
-            <PropertiesList
-              properties={{ ...properties, ...recordData?.json }}
-            />
-          )}
-
-          {type === LayerType.Turf && <TurfMarkersList />}
-
-          {type === LayerType.Boundary && <BoundaryMarkersList />}
-
-          {(isDetailsView || dataSource) && (
-            <div className="flex flex-col gap-3 border-t pt-4">
-              {isDetailsView && focusedRecord?.geocodePoint && (
-                <Button onClick={() => flyToMarker()}>
-                  <MapPinIcon />
-                  View on map
-                </Button>
-              )}
+          <UnderlineTabsContent value="data" className="grow overflow-auto p-3">
+            <div className="flex flex-col gap-4">
               {dataSource && (
-                <Button
-                  variant="secondary"
-                  onClick={() => setSelectedDataSourceId(dataSource.id)}
-                >
-                  <TableIcon />
-                  View in table
-                </Button>
+                <div className="bg-muted py-1 px-2 rounded">
+                  <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
+                    Data source
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <div className="shrink-0">
+                      <DataSourceIcon
+                        type={dataSource.config?.type as string}
+                      />
+                    </div>
+
+                    <p className="truncate">{dataSource.name}</p>
+                  </div>
+                </div>
+              )}
+
+              {recordLoading ? (
+                <span>Loading...</span>
+              ) : (
+                <PropertiesList
+                  properties={{ ...properties, ...recordData?.json }}
+                />
+              )}
+
+              {(isDetailsView || dataSource) && (
+                <div className="flex flex-col gap-3 border-t pt-4">
+                  {isDetailsView && focusedRecord?.geocodePoint && (
+                    <Button onClick={() => flyToMarker()}>
+                      <MapPinIcon />
+                      View on map
+                    </Button>
+                  )}
+                  {dataSource && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => setSelectedDataSourceId(dataSource.id)}
+                    >
+                      <TableIcon />
+                      View in table
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
+          </UnderlineTabsContent>
+
+          <UnderlineTabsContent
+            value="markers"
+            className="grow overflow-auto p-3"
+          >
+            <div className="flex flex-col gap-4">
+              {type === LayerType.Turf && <TurfMarkersList />}
+              {type === LayerType.Boundary && <BoundaryMarkersList />}
+            </div>
+          </UnderlineTabsContent>
+
+          <UnderlineTabsContent
+            value="notes"
+            className="grow overflow-auto p-3"
+          >
+            <div className="flex flex-col gap-4">
+              <p className="text-muted-foreground">No notes yet</p>
+            </div>
+          </UnderlineTabsContent>
+
+          <UnderlineTabsContent
+            value="config"
+            className="grow overflow-auto p-3"
+          >
+            <div className="flex flex-col gap-4">
+              <p className="text-muted-foreground">Configuration options</p>
+            </div>
+          </UnderlineTabsContent>
+        </UnderlineTabs>
       </div>
     </div>
   );

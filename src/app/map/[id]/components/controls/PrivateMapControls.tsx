@@ -46,7 +46,7 @@ export default function PrivateMapControls() {
           minWidth: `${CONTROL_PANEL_WIDTH}px`,
         }}
       >
-        <div className="flex flex-col h-full  bg-white/60 backdrop-blur-sm border-r border-neutral-200">
+        <div className="flex flex-col h-full  bg-white border-r border-neutral-200">
           {/* Header */}
           <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
             <p className="text-sm font-semibold">Layers</p>
@@ -62,7 +62,7 @@ export default function PrivateMapControls() {
 
           {/* Content */}
           <div
-            className="flex-1 overflow-y-auto / flex flex-col gap-3 p-2"
+            className="flex-1 overflow-y-auto / flex flex-col"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
             {viewConfig.mapType !== MapType.Hex && (
