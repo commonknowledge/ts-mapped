@@ -1,6 +1,7 @@
 import { Database } from "lucide-react";
 import { useMemo, useState } from "react";
-import { DataSourceItem } from "@/components/DataSourceItem";
+import DataSourceIcon from "@/components/DataSourceIcon";
+import { DataSourceItem, getDataSourceType } from "@/components/DataSourceItem";
 import {
   type InspectorBoundaryConfig,
   InspectorBoundaryConfigType,
@@ -34,6 +35,8 @@ export function BoundaryConfigItem({
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     boundaryConfig.columns || [],
   );
+
+  const dataSourceType = dataSource ? getDataSourceType(dataSource) : null;
 
   const columnOptions = useMemo(() => {
     if (!dataSource) return [];
@@ -78,7 +81,9 @@ export function BoundaryConfigItem({
     <div className="border rounded-lg p-3">
       <TogglePanel
         label={dataSource.name.toUpperCase()}
-        icon={Database}
+        icon={
+          dataSourceType ? <DataSourceIcon type={dataSourceType} /> : undefined
+        }
         defaultExpanded={true}
       >
         <div className="pt-4 pb-2 flex flex-col gap-4">

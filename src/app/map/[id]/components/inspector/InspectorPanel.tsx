@@ -127,6 +127,7 @@ export default function InspectorPanel() {
               properties={properties}
               isDetailsView={isDetailsView}
               focusedRecord={focusedRecord}
+              type={type}
             />
           </UnderlineTabsContent>
 

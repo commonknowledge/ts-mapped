@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 
 interface TogglePanelProps {
   label: string;
-  icon?: LucideIcon;
+  icon?: React.ReactNode;
   defaultExpanded?: boolean;
   children?: React.ReactNode;
   headerRight?: React.ReactNode;
@@ -39,7 +39,7 @@ export default function TogglePanel({
             )}
           />
 
-          {Icon && <Icon size={16} />}
+          {Icon}
 
           {label}
         </button>
