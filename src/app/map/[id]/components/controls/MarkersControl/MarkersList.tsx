@@ -34,7 +34,7 @@ import {
   getNewPositionAfter,
   getNewPositionBefore,
   sortByPositionAndId,
-} from "@/app/map/[id]/utils";
+} from "@/app/map/[id]/utils/position";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
 import { useMapId } from "../../../hooks/useMapCore";

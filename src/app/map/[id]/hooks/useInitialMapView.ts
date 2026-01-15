@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { createNewViewConfig } from "@/app/map/[id]/context/MapContext";
 import { useTRPC } from "@/services/trpc/react";
-import { getNewLastPosition } from "../utils";
+import { createNewViewConfig } from "../utils/mapView";
+import { getNewLastPosition } from "../utils/position";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import { useViewIdAtom } from "./useMapViews";
