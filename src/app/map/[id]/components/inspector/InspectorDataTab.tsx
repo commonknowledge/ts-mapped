@@ -37,8 +37,6 @@ export default function InspectorDataTab({
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
 
-  console.log(properties);
-
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
       {
@@ -94,8 +92,6 @@ export default function InspectorDataTab({
     }
   };
 
-  console.log(boundaryData);
-
   return (
     <div className="flex flex-col gap-4">
       {shouldUseInspectorConfig ? (
@@ -145,8 +141,7 @@ export default function InspectorDataTab({
             };
 
             const hasProperties =
-              mergedProperties &&
-              Object.keys(mergedProperties).length > 0;
+              mergedProperties && Object.keys(mergedProperties).length > 0;
 
             if (!hasProperties) {
               return (

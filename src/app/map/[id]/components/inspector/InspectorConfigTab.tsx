@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   type InspectorBoundaryConfig,
   InspectorBoundaryConfigType,
@@ -9,18 +9,25 @@ import TogglePanel from "../TogglePanel";
 import { BoundaryConfigItem } from "./BoundaryConfigItem";
 
 export default function InspectorConfigTab() {
-  const { view, viewConfig, updateView } = useMapViews();
-  const { getDataSourceById } = useDataSources();
+  const { view, viewConfig, updateView: updateViewOriginal } = useMapViews();
+  const { getDataSourceById: getDataSourceByIdOriginal } = useDataSources();
+
+  const updateView = useCallback(updateViewOriginal, [updateViewOriginal]);
+  const getDataSourceById = useCallback(getDataSourceByIdOriginal, [
+    getDataSourceByIdOriginal,
+  ]);
   const boundaryStatsConfig = view?.inspectorConfig?.boundaries || [];
+  const initializationAttemptedRef = useRef(false);
 
   // Initialize boundaries with areaDataSourceId if empty
   useEffect(() => {
-    if (!view) return;
+    if (!view || initializationAttemptedRef.current) return;
 
     const hasBoundaries = boundaryStatsConfig.length > 0;
     const hasAreaDataSource = viewConfig.areaDataSourceId;
 
     if (!hasBoundaries && hasAreaDataSource) {
+      initializationAttemptedRef.current = true;
       const dataSource = getDataSourceById(viewConfig.areaDataSourceId);
       const newBoundaryConfig: InspectorBoundaryConfig = {
         dataSourceId: viewConfig.areaDataSourceId,
@@ -41,8 +48,8 @@ export default function InspectorConfigTab() {
     view,
     viewConfig.areaDataSourceId,
     boundaryStatsConfig.length,
-    updateView,
     getDataSourceById,
+    updateView,
   ]);
 
   return (
