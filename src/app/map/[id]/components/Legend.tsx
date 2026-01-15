@@ -1,10 +1,12 @@
-import { Database } from "lucide-react";
+import { Database, Eye, EyeOff } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
+import { useLayers } from "@/app/map/[id]/hooks/useLayers";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import { LayerType } from "@/types";
 import { formatNumber } from "@/utils/text";
 import { useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
@@ -14,6 +16,7 @@ export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
   const { setBoundariesPanelOpen } = useChoropleth();
+  const { getLayerVisibility, hideLayer, showLayer } = useLayers();
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -24,8 +27,66 @@ export default function Legend() {
     isReversed: Boolean(viewConfig.reverseColorScheme),
     categoryColors: viewConfig.categoryColors,
   });
-  if (!colorScheme) {
+
+  const isLayerVisible = getLayerVisibility(LayerType.Boundary);
+
+  const toggleLayerVisibility = () => {
+    if (isLayerVisible) {
+      hideLayer(LayerType.Boundary);
+    } else {
+      showLayer(LayerType.Boundary);
+    }
+  };
+
+  // Show legend if data source is selected, even if no column is selected yet
+  const hasDataSource = Boolean(viewConfig.areaDataSourceId);
+  const hasColumn = Boolean(
+    viewConfig.areaDataColumn || viewConfig.calculationType === CalculationType.Count
+  );
+
+  if (!hasDataSource) {
     return null;
+  }
+
+  if (!hasColumn || !colorScheme) {
+    return (
+      <div className="group flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
+        <button
+          onClick={() => setBoundariesPanelOpen(true)}
+          className="flex items-center justify-between hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full p-2"
+        >
+          <div className="flex flex-col">
+            <p className="flex items-center font-medium">
+              {dataSource?.name}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              No column selected
+            </p>
+          </div>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
+            <div
+              role="button"
+              tabIndex={0}
+              className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
+              aria-label="Toggle layer visibility"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleLayerVisibility();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleLayerVisibility();
+                }
+              }}
+            >
+              {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+            </div>
+          </div>
+        </button>
+      </div>
+    );
   }
 
   const makeBars = () => {
@@ -124,32 +185,76 @@ export default function Legend() {
   };
 
   return (
-    <div className="flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
+    <div className="group flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
       {areaStats?.calculationType !== CalculationType.Count &&
         viewConfig.areaDataColumn &&
         viewConfig.areaDataSecondaryColumn ? (
         <button
           onClick={() => setBoundariesPanelOpen(true)}
-          className="p-2 pt-0 hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"
+          className="flex items-center justify-between p-2 pt-0 hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"
         >
           <BivariateLegend />
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
+            <div
+              role="button"
+              tabIndex={0}
+              className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
+              aria-label="Toggle layer visibility"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleLayerVisibility();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleLayerVisibility();
+                }
+              }}
+            >
+              {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+            </div>
+          </div>
         </button>
       ) : (
         <button
           onClick={() => setBoundariesPanelOpen(true)}
-          className="flex flex-col hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"
+          className="flex items-start justify-between hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"
         >
-          <p className="flex items-center font-medium px-2 ">
-            {dataSource?.name}
-          </p>
-          <p className="text-sm flex items-center gap-0.5 font-medium px-2 ">
-            {viewConfig.areaDataColumn === MAX_COLUMN_KEY
-              ? "Highest-value column"
-              : viewConfig.calculationType === CalculationType.Count
-                ? "Count"
-                : viewConfig.areaDataColumn}
-          </p>
-          <div className="flex px-2 ">{makeBars()}</div>
+          <div className="flex flex-col flex-1 py-1">
+            <p className="flex items-center font-medium px-2 ">
+              {dataSource?.name}
+            </p>
+            <p className="text-sm flex items-center gap-0.5 font-medium px-2 ">
+              {viewConfig.areaDataColumn === MAX_COLUMN_KEY
+                ? "Highest-value column"
+                : viewConfig.calculationType === CalculationType.Count
+                  ? "Count"
+                  : viewConfig.areaDataColumn}
+            </p>
+            <div className="flex px-2 ">{makeBars()}</div>
+          </div>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0 pt-2">
+            <div
+              role="button"
+              tabIndex={0}
+              className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
+              aria-label="Toggle layer visibility"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleLayerVisibility();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleLayerVisibility();
+                }
+              }}
+            >
+              {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+            </div>
+          </div>
         </button>
       )}
     </div>

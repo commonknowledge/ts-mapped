@@ -51,9 +51,9 @@ export default function AreasControl() {
       </LayerHeader>
 
       {expanded && (
-        <div className="relative px-4 pb-3 pt-2">
+        <div className="relative px-4 pb-6 pt-2">
           {turfs && turfs.length === 0 && (
-            <EmptyLayer message="Add an Area Layer" onClick={onAddArea} />
+            <EmptyLayer message="Add an Area Layer" onClick={onAddArea} showAsButton />
           )}
           <ul className="flex flex-col gap-1 ml-1">
             {turfs.map((turf) => (

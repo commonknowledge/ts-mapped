@@ -49,6 +49,7 @@ export default function Choropleth() {
         >
           {/* Fill Layer - only show for choropleth */}
           <Layer
+            key={`${sourceId}-fill-${viewConfig.areaDataColumn}-${viewConfig.calculationType}-${viewConfig.colorScheme}`}
             id={`${sourceId}-fill`}
             beforeId={choroplethTopLayerId}
             source={sourceId}

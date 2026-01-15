@@ -81,9 +81,8 @@ function IncludeColumnsModal({
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full justify-start">
             {selectedColumns.length > 0
-              ? `${selectedColumns.length} column${
-                  selectedColumns.length !== 1 ? "s" : ""
-                } selected`
+              ? `${selectedColumns.length} column${selectedColumns.length !== 1 ? "s" : ""
+              } selected`
               : "Select columns to include"}
           </Button>
         </DialogTrigger>
@@ -224,14 +223,30 @@ export default function VisualisationPanel({
                 }}
               />
             </button>
-            <Button
-              variant="ghost"
-              className=" text-xs font-normal text-muted-foreground hover:text-primary mt-1"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <span>Change data source</span>
-              <RotateCwIcon className="w-2 h-2 " />
-            </Button>
+            <div className="flex justify-between gap-2 mt-1">
+              <Button
+                variant="ghost"
+                className="text-xs font-normal text-muted-foreground hover:text-primary"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <span>Change data source</span>
+                <RotateCwIcon className="w-2 h-2" />
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-xs font-normal text-muted-foreground hover:text-destructive"
+                onClick={() => {
+                  updateViewConfig({
+                    areaDataSourceId: "",
+                    areaDataColumn: "",
+                    calculationType: undefined,
+                  });
+                }}
+              >
+                <span>Remove</span>
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
         ) : (
           // Show button to open modal when no data source selected
@@ -456,9 +471,9 @@ export default function VisualisationPanel({
             selectedColumns={
               viewConfig.includeColumnsString
                 ? viewConfig.includeColumnsString
-                    .split(",")
-                    .map((v) => v.trim())
-                    .filter(Boolean)
+                  .split(",")
+                  .map((v) => v.trim())
+                  .filter(Boolean)
                 : []
             }
             onColumnsChange={(columns) => {

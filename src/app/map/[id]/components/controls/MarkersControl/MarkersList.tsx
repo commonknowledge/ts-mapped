@@ -53,8 +53,13 @@ import type {
   DragOverEvent,
   DragStartEvent,
 } from "@dnd-kit/core";
+import type { DropdownMenuItemType } from "@/components/MultiDropdownMenu";
 
-export default function MarkersList() {
+export default function MarkersList({
+  dropdownItems,
+}: {
+  dropdownItems?: DropdownMenuItemType[];
+}) {
   const mapId = useMapId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -417,10 +422,12 @@ export default function MarkersList() {
         >
           <div className="flex flex-col gap-1">
             {!membersDataSource &&
-              markerDataSources &&
-              markerDataSources.length === 0 &&
+              (!markerDataSources || markerDataSources.length === 0) &&
               placedMarkers.length === 0 && (
-                <EmptyLayer message="Add a Marker Layer" onClick={handleDropPin} />
+                <EmptyLayer
+                  message="Add a Marker Layer"
+                  dropdownItems={dropdownItems}
+                />
               )}
 
             {/* Member data source */}

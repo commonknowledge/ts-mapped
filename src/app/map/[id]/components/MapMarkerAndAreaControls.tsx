@@ -1,5 +1,4 @@
-import { ChartBar, MapPin } from "lucide-react";
-import VectorSquare from "@/components/icons/VectorSquare";
+import { ChartBar, MapPin, VectorSquareIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { useMapControls } from "../hooks/useMapControls";
 import { useHandleDropPin } from "../hooks/usePlacedMarkers";
@@ -32,11 +31,10 @@ export default function MapMarkerAndAreaControls() {
       <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
-              pinDropMode
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${pinDropMode
                 ? "bg-muted-foreground/30 text-primary"
                 : "text-primary hover:bg-muted"
-            }`}
+              }`}
             onClick={handlePinDropClick}
           >
             <MapPin size={20} />
@@ -47,14 +45,13 @@ export default function MapMarkerAndAreaControls() {
       <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
-              editAreaMode
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${editAreaMode
                 ? "bg-muted-foreground/30 text-primary"
                 : "text-primary hover:bg-muted"
-            }`}
+              }`}
             onClick={handleAddAreaClick}
           >
-            <VectorSquare size={20} />
+            <VectorSquareIcon size={20} />
           </button>
         </TooltipTrigger>
         <TooltipContent>Add area</TooltipContent>
@@ -63,11 +60,10 @@ export default function MapMarkerAndAreaControls() {
       <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <button
-            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${
-              compareGeographiesMode
+            className={`w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer ${compareGeographiesMode
                 ? "bg-muted-foreground/30 text-primary"
                 : "text-primary hover:bg-muted"
-            }`}
+              }`}
             onClick={(e) => {
               e.stopPropagation();
               toggleCompareGeographies({ cancelDrawMode });

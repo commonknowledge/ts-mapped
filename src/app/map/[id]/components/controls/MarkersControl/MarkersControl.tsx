@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import {
   useDataSources,
+  useMarkerDataSources,
   useMembersDataSource,
 } from "@/app/map/[id]/hooks/useDataSources";
 import {
@@ -15,6 +16,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import {
   useHandleDropPin,
   usePlacedMarkerMutations,
+  usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -33,6 +35,9 @@ export default function MarkersControl() {
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
   const { handleDropPin } = useHandleDropPin();
   const { data: dataSources } = useDataSources();
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const markerDataSources = useMarkerDataSources() || [];
+  const membersDataSource = useMembersDataSource();
   const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
@@ -62,8 +67,6 @@ export default function MarkersControl() {
       }
     }, 200);
   };
-
-  const membersDataSource = useMembersDataSource();
 
   const getMemberDataSourceDropdownItems = () => {
     const memberDataSources =
@@ -102,8 +105,8 @@ export default function MarkersControl() {
           updateMapConfig({
             markerDataSourceIds: selected
               ? mapConfig.markerDataSourceIds.filter(
-                  (id) => id !== dataSource.id,
-                )
+                (id) => id !== dataSource.id,
+              )
               : [...mapConfig.markerDataSourceIds, dataSource.id],
           });
         },
@@ -184,6 +187,11 @@ export default function MarkersControl() {
         type={LayerType.Marker}
         expanded={expanded}
         setExpanded={setExpanded}
+        enableVisibilityToggle={Boolean(
+          placedMarkers.length > 0 ||
+          markerDataSources.length > 0 ||
+          membersDataSource
+        )}
       >
         {loading && <LoaderPinwheel className="animate-spin" size={16} />}
         <IconButtonWithTooltip
@@ -197,8 +205,8 @@ export default function MarkersControl() {
         </IconButtonWithTooltip>
       </LayerHeader>
       {expanded && (
-        <div className="px-4 pb-3">
-          <MarkersList />
+        <div className="px-4 pb-6">
+          <MarkersList dropdownItems={getDropdownItems()} />
         </div>
       )}
     </LayerControlWrapper>

@@ -270,7 +270,7 @@ export const useFillColor = ({
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [areaStats, isReversed, scheme, selectedBivariateBucket]);
+  }, [areaStats, isReversed, scheme, selectedBivariateBucket, categoryColors]);
 };
 
 const getBivariateFillColor = (
