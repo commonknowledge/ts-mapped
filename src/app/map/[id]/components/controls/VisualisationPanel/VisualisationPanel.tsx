@@ -827,7 +827,7 @@ export default function VisualisationPanel({
                     <span className="text-sm font-medium break-words">
                       Create bivariate visualization
                     </span>
-                    <span className="text-xs  break-words">
+                    <span className="text-xs break-words">
                       Using a second column
                     </span>
                   </div>
