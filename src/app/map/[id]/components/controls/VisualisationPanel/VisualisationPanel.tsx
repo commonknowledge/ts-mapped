@@ -773,8 +773,7 @@ export default function VisualisationPanel({
           viewConfig.areaDataSourceId &&
           viewConfig.areaDataColumn &&
           columnOneIsNumber &&
-          (!viewConfig.areaDataSecondaryColumn ||
-            viewConfig.areaDataSecondaryColumn === "") && (
+          !viewConfig.areaDataSecondaryColumn && (
             <div className="col-span-2 mt-6">
               <div
                 role="button"
@@ -825,7 +824,7 @@ export default function VisualisationPanel({
                     <span className="text-sm font-medium break-words">
                       Create bivariate visualization
                     </span>
-                    <span className="text-xs  break-words">
+                    <span className="text-xs break-words">
                       Using a second column
                     </span>
                   </div>
