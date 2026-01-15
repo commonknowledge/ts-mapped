@@ -32,6 +32,9 @@ export function useChoroplethAreaStats() {
     isReversed: Boolean(viewConfig.reverseColorScheme),
     selectedBivariateBucket,
     categoryColors: viewConfig.categoryColors,
+    colorScaleType: viewConfig.colorScaleType,
+    steppedColorSteps: viewConfig.steppedColorSteps,
+    customColor: viewConfig.customColor,
   });
 
   useEffect(() => {

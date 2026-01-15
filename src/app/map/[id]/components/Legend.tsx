@@ -1,46 +1,48 @@
-import { ChevronRight, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useLayers } from "@/app/map/[id]/hooks/useLayers";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
-import { LayerType } from "@/types";
+import {
+  CalculationType,
+  ColorScaleType,
+  ColorScheme,
+} from "@/server/models/MapView";
 import { formatNumber } from "@/utils/text";
 import { useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
 
 export default function Legend() {
-  const { viewConfig } = useMapViews();
+  const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
   const { setBoundariesPanelOpen } = useChoropleth();
-  const { getLayerVisibility, hideLayer, showLayer } = useLayers();
+  const {} = useLayers();
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
+  const isLoading = areaStatsQuery?.isFetching;
 
   const colorScheme = useColorScheme({
     areaStats,
     scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
     isReversed: Boolean(viewConfig.reverseColorScheme),
     categoryColors: viewConfig.categoryColors,
+    customColor: viewConfig.customColor,
   });
 
-  const isLayerVisible = getLayerVisibility(LayerType.Boundary);
+  const isLayerVisible = viewConfig.showChoropleth !== false;
 
   const toggleLayerVisibility = () => {
-    if (isLayerVisible) {
-      hideLayer(LayerType.Boundary);
-    } else {
-      showLayer(LayerType.Boundary);
-    }
+    updateViewConfig({ showChoropleth: !isLayerVisible });
   };
 
   const hasDataSource = Boolean(viewConfig.areaDataSourceId);
   const hasColumn = Boolean(
-    viewConfig.areaDataColumn || viewConfig.calculationType === CalculationType.Count
+    viewConfig.areaDataColumn ||
+      viewConfig.calculationType === CalculationType.Count,
   );
   const isBivariate =
     areaStats?.calculationType !== CalculationType.Count &&
@@ -71,6 +73,91 @@ export default function Legend() {
     if (!colorScheme) return null;
 
     if (colorScheme.columnType === ColumnType.Number) {
+      // Handle stepped colors
+      if (
+        viewConfig.colorScaleType === ColorScaleType.Stepped &&
+        viewConfig.steppedColorSteps &&
+        viewConfig.steppedColorSteps.length > 0
+      ) {
+        const sortedSteps = [...viewConfig.steppedColorSteps].sort(
+          (a, b) => a.start - b.start,
+        );
+        const range = colorScheme.maxValue - colorScheme.minValue;
+
+        // Collect all unique boundary positions
+        const boundaries = new Set<number>();
+        boundaries.add(colorScheme.minValue);
+        sortedSteps.forEach((step) => {
+          boundaries.add(step.start);
+          boundaries.add(step.end);
+        });
+        boundaries.add(colorScheme.maxValue);
+        const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b);
+
+        return (
+          <div className="w-full">
+            <div className="flex w-full h-4 border border-neutral-200 overflow-hidden rounded">
+              {sortedSteps.map((step, index) => {
+                const stepStart = Math.max(step.start, colorScheme.minValue);
+                const stepEnd =
+                  index < sortedSteps.length - 1
+                    ? sortedSteps[index + 1].start
+                    : Math.min(step.end, colorScheme.maxValue);
+                const width =
+                  range > 0
+                    ? ((stepEnd - stepStart) / range) * 100
+                    : 100 / sortedSteps.length;
+                return (
+                  <div
+                    key={index}
+                    className="h-full border-r border-neutral-400 last:border-r-0"
+                    style={{
+                      width: `${width}%`,
+                      backgroundColor: step.color,
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <div className="relative mt-1 h-6">
+              {sortedBoundaries.map((boundary, index) => {
+                const isFirst = index === 0;
+                const isLast = index === sortedBoundaries.length - 1;
+                const position =
+                  range > 0
+                    ? ((boundary - colorScheme.minValue) / range) * 100
+                    : (index / (sortedBoundaries.length - 1)) * 100;
+
+                return (
+                  <div
+                    key={index}
+                    className="absolute flex flex-col"
+                    style={{
+                      left: `${position}%`,
+                      transform: isFirst
+                        ? "translateX(0%)"
+                        : isLast
+                          ? "translateX(-100%)"
+                          : "translateX(-50%)",
+                      alignItems: isFirst
+                        ? "flex-start"
+                        : isLast
+                          ? "flex-end"
+                          : "center",
+                    }}
+                  >
+                    <div className="text-[10px] text-neutral-500 mt-0.5 font-mono whitespace-nowrap">
+                      {formatNumber(boundary)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      // Handle gradient colors (default)
       const numStops = 24;
       const stops = new Array(numStops + 1)
         .fill(null)
@@ -137,7 +224,7 @@ export default function Legend() {
       const categoriesInData = new Set(
         areaStats?.stats
           .map((stat) => String(stat.primary))
-          .filter((v) => v && v !== "null" && v !== "undefined")
+          .filter((v) => v && v !== "null" && v !== "undefined"),
       );
 
       return (
@@ -146,10 +233,7 @@ export default function Legend() {
             .filter((key) => categoriesInData.has(key))
             .toSorted()
             .map((key) => (
-              <div
-                className="flex items-center gap-2 text-xs"
-                key={key}
-              >
+              <div className="flex items-center gap-2 text-xs" key={key}>
                 <div
                   className="w-3 h-3 flex-shrink-0 border border-neutral-300"
                   style={{ backgroundColor: colorScheme.colorMap[key] }}
@@ -203,13 +287,19 @@ export default function Legend() {
         <div className="flex flex-col flex-1 py-1">
           <div className="flex items-center justify-between pr-2">
             <div className="flex gap-x-1 pb-2 px-2 items-center text-sm flex-wrap">
-              <p className="flex items-center font-medium">{dataSource?.name}</p>
+              <p className="flex items-center font-medium">
+                {dataSource?.name}
+              </p>
               <ChevronRight className="w-4 h-4" />
               <p className="flex items-center gap-0.5">{getColumnLabel()}</p>
             </div>
             <VisibilityToggle />
           </div>
-          {isBivariate ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center px-2 py-4">
+              <LoaderPinwheel className="w-5 h-5 animate-spin text-neutral-400" />
+            </div>
+          ) : isBivariate ? (
             <div className="px-2" onClick={(e) => e.stopPropagation()}>
               <BivariateLegend />
             </div>
@@ -221,4 +311,3 @@ export default function Legend() {
     </div>
   );
 }
-

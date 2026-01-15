@@ -9,9 +9,31 @@ import {
   interpolateViridis,
   schemeCategory10,
 } from "d3-scale-chromatic";
+
+// Simple RGB interpolation helper (white to target color)
+const interpolateWhiteToColor = (targetColor: string) => {
+  // Parse hex color to RGB
+  const hex = targetColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  return (t: number) => {
+    // Interpolate from white (255, 255, 255) to target color
+    const newR = Math.round(255 + t * (r - 255));
+    const newG = Math.round(255 + t * (g - 255));
+    const newB = Math.round(255 + t * (b - 255));
+    return `rgb(${newR}, ${newG}, ${newB})`;
+  };
+};
 import { useMemo } from "react";
 import { ColumnType } from "@/server/models/DataSource";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import {
+  CalculationType,
+  ColorScaleType,
+  ColorScheme,
+  type SteppedColorStep,
+} from "@/server/models/MapView";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
 import type { CombinedAreaStats } from "./data";
 import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
@@ -71,9 +93,17 @@ export const CHOROPLETH_COLOR_SCHEMES = [
     value: ColorScheme.Diverging,
     color: "bg-gradient-to-r from-brown-500 via-yellow-500 to-teal-500",
   },
+  {
+    label: "Custom",
+    value: ColorScheme.Custom,
+    color: "bg-gradient-to-r from-white to-blue-500",
+  },
 ];
 
-const getInterpolator = (scheme: ColorScheme | undefined) => {
+export const getInterpolator = (
+  scheme: ColorScheme | undefined,
+  customColor?: string,
+) => {
   switch (scheme) {
     case ColorScheme.RedBlue:
       return interpolateRdBu;
@@ -88,6 +118,10 @@ const getInterpolator = (scheme: ColorScheme | undefined) => {
       return interpolateBrBG;
     case ColorScheme.Sequential:
       return interpolateBlues;
+    case ColorScheme.Custom:
+      // Interpolate from white to custom color
+      const targetColor = customColor || "#3b82f6"; // Default to blue if not provided
+      return interpolateWhiteToColor(targetColor);
     default:
       return interpolateOrRd;
   }
@@ -98,16 +132,24 @@ export const useColorScheme = ({
   scheme,
   isReversed,
   categoryColors,
+  customColor,
 }: {
   areaStats: CombinedAreaStats | null;
   scheme: ColorScheme;
   isReversed: boolean;
   categoryColors?: Record<string, string>;
+  customColor?: string;
 }): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
-    return getColorScheme({ areaStats, scheme, isReversed, categoryColors });
-  }, [areaStats, scheme, isReversed, categoryColors]);
+    return getColorScheme({
+      areaStats,
+      scheme,
+      isReversed,
+      categoryColors,
+      customColor,
+    });
+  }, [areaStats, scheme, isReversed, categoryColors, customColor]);
 };
 
 const getColorScheme = ({
@@ -115,11 +157,13 @@ const getColorScheme = ({
   scheme,
   isReversed,
   categoryColors,
+  customColor,
 }: {
   areaStats: CombinedAreaStats | null;
   scheme: ColorScheme;
   isReversed: boolean;
   categoryColors?: Record<string, string>;
+  customColor?: string;
 }): CategoricColorScheme | NumericColorScheme | null => {
   if (!areaStats || !areaStats.stats.length) {
     return null;
@@ -151,7 +195,7 @@ const getColorScheme = ({
     const domain = isReversed ? [1, 0] : [0, 1];
     // For count records, create a simple color scheme
     // Use a small range to ensure valid interpolation
-    const interpolator = getInterpolator(scheme);
+    const interpolator = getInterpolator(scheme, customColor);
     const colorScale = scaleSequential()
       .domain(domain) // Use 0-1 range for single values
       .interpolator(interpolator);
@@ -170,7 +214,7 @@ const getColorScheme = ({
     number,
   ];
 
-  const interpolator = getInterpolator(scheme);
+  const interpolator = getInterpolator(scheme, customColor);
   const colorScale = scaleSequential()
     .domain(domain)
     .interpolator(interpolator);
@@ -196,12 +240,18 @@ export const useFillColor = ({
   isReversed,
   selectedBivariateBucket,
   categoryColors,
+  colorScaleType,
+  steppedColorSteps,
+  customColor,
 }: {
   areaStats: CombinedAreaStats | null;
   scheme: ColorScheme;
   isReversed: boolean;
   selectedBivariateBucket: string | null;
   categoryColors?: Record<string, string>;
+  colorScaleType?: ColorScaleType;
+  steppedColorSteps?: SteppedColorStep[];
+  customColor?: string;
 }): DataDrivenPropertyValueSpecification<string> => {
   // useMemo to cache calculated fillColor
   return useMemo(() => {
@@ -215,6 +265,7 @@ export const useFillColor = ({
       scheme,
       isReversed,
       categoryColors,
+      customColor,
     });
     if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
@@ -231,7 +282,16 @@ export const useFillColor = ({
       return ["match", ["feature-state", "value"], ...ordinalColorStops];
     }
 
-    // ColumnType.Number
+    // ColumnType.Number - Check if stepped colors are enabled
+    if (
+      colorScaleType === ColorScaleType.Stepped &&
+      steppedColorSteps &&
+      steppedColorSteps.length > 0
+    ) {
+      return getSteppedFillColor(steppedColorSteps, isCount);
+    }
+
+    // ColumnType.Number - Gradient (default)
     if (colorScheme.isSingleValue) {
       // When all values are the same, map the value to our 0-1 range
       // This ensures count data is visible even when all counts are equal
@@ -269,7 +329,54 @@ export const useFillColor = ({
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [areaStats, isReversed, scheme, selectedBivariateBucket, categoryColors]);
+  }, [
+    areaStats,
+    isReversed,
+    scheme,
+    selectedBivariateBucket,
+    categoryColors,
+    colorScaleType,
+    steppedColorSteps,
+    customColor,
+  ]);
+};
+
+const getSteppedFillColor = (
+  steps: SteppedColorStep[],
+  isCount: boolean,
+): DataDrivenPropertyValueSpecification<string> => {
+  // Sort steps by start value to ensure correct order
+  const sortedSteps = [...steps].sort((a, b) => a.start - b.start);
+
+  if (sortedSteps.length === 0) {
+    return DEFAULT_FILL_COLOR;
+  }
+
+  // Build a step expression: ["step", input, default, threshold1, color1, threshold2, color2, ...]
+  // Mapbox step expression: if value < threshold1, use default, else if value < threshold2, use color1, etc.
+  // For stepped colors, we want: if value < step1.start, use step1.color (or default)
+  //                              if step1.start <= value < step2.start, use step1.color
+  //                              if step2.start <= value < step3.start, use step2.color
+  //                              etc.
+
+  const stepExpression: DataDrivenPropertyValueSpecification<string> = [
+    "step",
+    isCount
+      ? ["coalesce", ["feature-state", "value"], 0]
+      : ["feature-state", "value"],
+    sortedSteps[0]?.color || DEFAULT_FILL_COLOR, // Default color for values < first threshold
+  ];
+
+  // Add thresholds and colors
+  // For each step after the first, use its start value as the threshold
+  // The color applies to values >= threshold
+  for (let i = 1; i < sortedSteps.length; i++) {
+    const step = sortedSteps[i];
+    stepExpression.push(step.start); // Threshold
+    stepExpression.push(step.color); // Color for values >= threshold
+  }
+
+  return stepExpression;
 };
 
 const getBivariateFillColor = (
