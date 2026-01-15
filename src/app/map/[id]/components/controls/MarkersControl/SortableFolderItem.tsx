@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { sortByPositionAndId } from "@/app/map/[id]/utils";
+import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";

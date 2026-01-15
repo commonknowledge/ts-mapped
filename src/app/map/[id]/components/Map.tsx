@@ -4,10 +4,6 @@ import * as turf from "@turf/turf";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import MapGL from "react-map-gl/mapbox";
 import { v4 as uuidv4 } from "uuid";
-import {
-  getDataSourceIds,
-  getMapStyle,
-} from "@/app/map/[id]/context/MapContext";
 import { useMapBounds } from "@/app/map/[id]/hooks/useMapBounds";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -34,6 +30,7 @@ import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfMutations";
 import { useTurfState, useWatchDrawModeEffect } from "../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import { getDataSourceIds, getMapStyle } from "../utils/map";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
