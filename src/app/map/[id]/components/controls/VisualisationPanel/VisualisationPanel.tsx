@@ -444,6 +444,26 @@ export default function VisualisationPanel({
                 </Select>
               </>
             )}
+
+          {viewConfig.calculationType !== CalculationType.Count &&
+            columnOneIsNumber && (
+              <>
+                <Label
+                  htmlFor="choropleth-empty-zero-switch"
+                  className="text-sm text-muted-foreground font-normal"
+                >
+                  Treat empty values as zero
+                </Label>
+
+                <Switch
+                  id="choropleth-empty-zero-switch"
+                  checked={Boolean(viewConfig.areaDataNullIsZero)}
+                  onCheckedChange={(v) =>
+                    updateViewConfig({ areaDataNullIsZero: v })
+                  }
+                />
+              </>
+            )}
         </div>
         {!viewConfig.areaDataSourceId && (
           <div className="flex items-center gap-2">

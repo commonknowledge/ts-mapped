@@ -232,8 +232,8 @@ export default function DataSourceItem({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove data source from map?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove &quot;{dataSource.name}&quot; from this map. The data
-              source will not be deleted and can be added back later.
+              This will remove &quot;{dataSource.name}&quot; from this map. The
+              data source will not be deleted and can be added back later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

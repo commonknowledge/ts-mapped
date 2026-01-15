@@ -40,7 +40,8 @@ export default function Legend() {
 
   const hasDataSource = Boolean(viewConfig.areaDataSourceId);
   const hasColumn = Boolean(
-    viewConfig.areaDataColumn || viewConfig.calculationType === CalculationType.Count
+    viewConfig.areaDataColumn ||
+      viewConfig.calculationType === CalculationType.Count,
   );
   const isBivariate =
     areaStats?.calculationType !== CalculationType.Count &&
@@ -137,7 +138,7 @@ export default function Legend() {
       const categoriesInData = new Set(
         areaStats?.stats
           .map((stat) => String(stat.primary))
-          .filter((v) => v && v !== "null" && v !== "undefined")
+          .filter((v) => v && v !== "null" && v !== "undefined"),
       );
 
       return (
@@ -146,10 +147,7 @@ export default function Legend() {
             .filter((key) => categoriesInData.has(key))
             .toSorted()
             .map((key) => (
-              <div
-                className="flex items-center gap-2 text-xs"
-                key={key}
-              >
+              <div className="flex items-center gap-2 text-xs" key={key}>
                 <div
                   className="w-3 h-3 flex-shrink-0 border border-neutral-300"
                   style={{ backgroundColor: colorScheme.colorMap[key] }}
@@ -203,7 +201,9 @@ export default function Legend() {
         <div className="flex flex-col flex-1 py-1">
           <div className="flex items-center justify-between pr-2">
             <div className="flex gap-x-1 pb-2 px-2 items-center text-sm flex-wrap">
-              <p className="flex items-center font-medium">{dataSource?.name}</p>
+              <p className="flex items-center font-medium">
+                {dataSource?.name}
+              </p>
               <ChevronRight className="w-4 h-4" />
               <p className="flex items-center gap-0.5">{getColumnLabel()}</p>
             </div>
@@ -221,4 +221,3 @@ export default function Legend() {
     </div>
   );
 }
-

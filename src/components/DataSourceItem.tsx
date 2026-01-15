@@ -1,12 +1,8 @@
 import { formatDistanceToNow } from "date-fns";
 import { Database, RefreshCw } from "lucide-react";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import {
-  type DataSourceRecordType,
-  DataSourceType,
-} from "@/server/models/DataSource";
+import { DataSourceType } from "@/server/models/DataSource";
 import { cn } from "@/shadcn/utils";
-import DataSourceRecordTypeIcon from "./DataSourceRecordTypeIcon";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceItemType = NonNullable<
@@ -14,7 +10,7 @@ type DataSourceItemType = NonNullable<
 >[0];
 
 // Helper function to get data source type from config
-const getDataSourceType = (
+export const getDataSourceType = (
   dataSource: DataSourceItemType,
 ): DataSourceType | "unknown" => {
   try {
@@ -24,7 +20,7 @@ const getDataSourceType = (
     return "unknown";
   }
 };
-
+/* 
 // Helper function to get appropriate color and label for data source type
 const getDataSourceStyle = (type: DataSourceType | "unknown") => {
   switch (type) {
@@ -65,7 +61,7 @@ const getDataSourceStyle = (type: DataSourceType | "unknown") => {
         description: "General data source",
       };
   }
-};
+}; */
 
 // Helper function to get geocoding status
 const getGeocodingStatus = (dataSource: DataSourceItemType) => {
@@ -90,8 +86,6 @@ export function DataSourceItem({
   className?: string;
 }) {
   const dataSourceType = getDataSourceType(dataSource);
-  const recordType = dataSource.recordType as DataSourceRecordType;
-  const style = getDataSourceStyle(dataSourceType);
   const geocodingStatus = getGeocodingStatus(dataSource);
   const lastImported = dataSource.importInfo?.lastCompleted;
 
@@ -102,18 +96,13 @@ export function DataSourceItem({
   return (
     <div
       className={cn(
-        "h-full flex flex-col justify-between p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
+        "h-full flex flex-col gap-2 justify-between p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
         className,
       )}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-2">
         {/* Icon */}
-        <DataSourceRecordTypeIcon
-          type={recordType}
-          withBackground={true}
-          size={24}
-          className="w-12"
-        />
+        <DataSourceIcon type={dataSourceType} />
 
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-4">
@@ -121,10 +110,6 @@ export function DataSourceItem({
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <h4 className="font-medium truncate">{dataSource.name}</h4>
-              <div className="flex items-center gap-1 text-xs text-neutral-600">
-                <DataSourceIcon type={dataSourceType} />
-                {style.label}
-              </div>
             </div>
 
             <div className="flex gap-2">
@@ -144,7 +129,7 @@ export function DataSourceItem({
         </div>
       </div>
       {/* Stats */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500 mt-3">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
         <span>{dataSource.columnDefs.length} columns</span>
         <span className="text-neutral-400">•</span>
         <span>{dataSource.recordCount || "Unknown"} records</span>

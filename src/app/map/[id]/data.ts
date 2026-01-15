@@ -47,6 +47,7 @@ export const useAreaStats = () => {
     areaDataColumn: column,
     areaDataSecondaryColumn: secondaryColumn,
     areaDataSourceId: dataSourceId,
+    areaDataNullIsZero: nullIsZero,
     areaSetGroupCode,
   } = viewConfig;
 
@@ -88,13 +89,6 @@ export const useAreaStats = () => {
     stats: Record<string, CombinedAreaStat>;
   } | null>();
 
-  const excludeColumns = useMemo(() => {
-    return viewConfig.excludeColumnsString
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean);
-  }, [viewConfig.excludeColumnsString]);
-
   const includeColumns = useMemo(() => {
     if (!viewConfig.includeColumnsString) return null;
     const columns = viewConfig.includeColumnsString
@@ -115,7 +109,7 @@ export const useAreaStats = () => {
         dataSourceId,
         column: columnOrCount,
         secondaryColumn: secondaryColumn,
-        excludeColumns,
+        nullIsZero,
         includeColumns,
         boundingBox: requiresBoundingBox ? boundingBox : null,
       },
@@ -131,7 +125,7 @@ export const useAreaStats = () => {
     dataSourceId,
     column,
     secondaryColumn,
-    excludeColumns,
+    nullIsZero,
     includeColumns,
   ]);
 

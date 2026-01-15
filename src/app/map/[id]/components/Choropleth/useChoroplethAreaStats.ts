@@ -22,7 +22,7 @@ export function useChoroplethAreaStats() {
   const areaCodesToClean = useRef<Record<string, boolean>>({});
   // Track previous values to avoid re-setting feature state for unchanged areas
   const prevAreaStatValues = useRef<
-    Map<string, { primary: number | null; secondary: number | null }>
+    Map<string, { primary: unknown; secondary: unknown }>
   >(new Map());
 
   // Get fill color
@@ -49,7 +49,7 @@ export function useChoroplethAreaStats() {
     const nextAreaCodesToClean: Record<string, boolean> = {};
     const nextStatValues = new Map<
       string,
-      { primary: number | null; secondary: number | null }
+      { primary: unknown; secondary: unknown }
     >();
 
     // Only set feature state when the values actually change to avoid expensive re-renders
@@ -57,8 +57,14 @@ export function useChoroplethAreaStats() {
       const key = stat.areaCode;
       const prev = prevAreaStatValues.current.get(key);
       const next = {
-        primary: typeof stat.primary === "number" ? stat.primary : null,
-        secondary: typeof stat.secondary === "number" ? stat.secondary : null,
+        primary:
+          stat.primary !== null && stat.primary !== undefined
+            ? stat.primary
+            : null,
+        secondary:
+          stat.secondary !== null && stat.secondary !== undefined
+            ? stat.secondary
+            : null,
       };
       nextStatValues.set(key, next);
 

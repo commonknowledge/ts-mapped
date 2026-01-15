@@ -103,9 +103,9 @@ export const mapViewConfigSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
   areaDataSecondaryColumn: z.string().optional(),
+  areaDataNullIsZero: z.boolean().optional(),
   areaSetGroupCode: areaSetGroupCode.nullish(),
   choroplethOpacityPct: z.number().optional(),
-  excludeColumnsString: z.string(),
   includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),
   mapType: z.nativeEnum(MapType).optional(),
@@ -123,11 +123,62 @@ export const mapViewConfigSchema = z.object({
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 
+// ============================================================================
+// INSPECTOR CONFIGURATION
+// ============================================================================
+// Configures which data sources and columns are displayed in the inspector panel
+// for different aspects (boundaries, markers, members, etc.)
+
+/**
+ * Types of inspector boundary configurations
+ * - simple: Basic display of selected columns from data sources
+ */
+export enum InspectorBoundaryConfigType {
+  Simple = "simple",
+}
+export const inspectorBoundaryTypes = Object.values(
+  InspectorBoundaryConfigType,
+);
+
+/**
+ * Configuration for a single boundary data source in the inspector
+ * - dataSourceId: Reference to the data source
+ * - name: User-friendly name for this inspector config
+ * - type: The type of inspector display (currently only "simple")
+ * - columns: Array of column names to display from this data source
+ */
+export const inspectorBoundaryConfigSchema = z.object({
+  dataSourceId: z.string(),
+  name: z.string(),
+  type: z.nativeEnum(InspectorBoundaryConfigType),
+  columns: z.array(z.string()),
+});
+
+export type InspectorBoundaryConfig = z.infer<
+  typeof inspectorBoundaryConfigSchema
+>;
+
+/**
+ * Complete inspector configuration for a map view
+ * Organized by aspect (boundaries, markers, members, etc.)
+ */
+export const inspectorConfigSchema = z.object({
+  boundaries: z.array(inspectorBoundaryConfigSchema).optional(),
+  // Future: markers, members, etc.
+});
+
+export type InspectorConfig = z.infer<typeof inspectorConfigSchema>;
+
+// ============================================================================
+// END INSPECTOR CONFIGURATION
+// ============================================================================
+
 export const mapViewSchema = z.object({
   id: z.string(),
   name: z.string(),
   config: mapViewConfigSchema,
   dataSourceViews: z.array(dataSourceViewSchema),
+  inspectorConfig: inspectorConfigSchema.optional(),
   position: z.number(),
   mapId: z.string(),
   createdAt: z.date(),
