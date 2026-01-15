@@ -42,7 +42,7 @@ export default function DeleteConfirmationDialog({
           <AlertDialogAction
             disabled={isPending}
             onClick={onConfirm}
-            className="bg-destructive  hover:bg-destructive/90"
+            className="bg-destructive hover:bg-destructive/90"
           >
             {isPending ? "Deleting..." : confirmButtonText}
           </AlertDialogAction>
