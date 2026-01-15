@@ -34,6 +34,7 @@ import { useMapHoverEffect } from "../hooks/useMapHover";
 import { useTurfMutations } from "../hooks/useTurfMutations";
 import { useTurfState, useWatchDrawModeEffect } from "../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
+import AreaInfo from "./AreaInfo";
 import Choropleth from "./Choropleth";
 import { MAPBOX_SOURCE_IDS } from "./Choropleth/configs";
 import FilterMarkers from "./FilterMarkers";
@@ -502,6 +503,7 @@ export default function Map({
             <Markers />
             <SearchResultMarker />
             <MarkerPopup />
+            <AreaInfo />
           </>
         )}
       </MapGL>

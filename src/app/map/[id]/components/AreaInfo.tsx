@@ -1,8 +1,8 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo, useState } from "react";
+import { Popup } from "react-map-gl/mapbox";
 
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
@@ -214,21 +214,38 @@ export default function AreaInfo() {
     );
   };
 
+  // Determine which coordinates to use for popup positioning
+  // Prefer first selected area, otherwise use hover area
+  // This must be called before any early returns to maintain hook order
+  const popupCoordinates = useMemo(() => {
+    if (selectedAreas.length > 0) {
+      return selectedAreas[0].coordinates;
+    }
+    if (hoverArea) {
+      return hoverArea.coordinates;
+    }
+    if (hoveredRowArea) {
+      return hoveredRowArea.coordinates;
+    }
+    return null;
+  }, [selectedAreas, hoverArea, hoveredRowArea]);
+
   // Early return after all hooks have been called
-  if (!areaStats) {
+  if (!areaStats || !popupCoordinates || areasToDisplay.length === 0) {
     return null;
   }
 
   return (
-    <AnimatePresence mode="wait">
-      {areasToDisplay.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15, type: "tween" }}
-          className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto"
-        >
+    <Popup
+      longitude={popupCoordinates[0]}
+      latitude={popupCoordinates[1]}
+      closeButton={false}
+      offset={8}
+      anchor="bottom"
+      maxWidth="none"
+      className="area-info-popup"
+    >
+      <div className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto" style={{ maxWidth: "400px", minWidth: "200px" }}>
           {selectedAreas.length > 0 && (
             <button
               className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
@@ -243,7 +260,7 @@ export default function AreaInfo() {
           )}
           <Table
             className="border-none"
-            style={{ tableLayout: "auto", width: "auto" }}
+            style={{ tableLayout: "auto", width: "100%", minWidth: "200px" }}
           >
             {multipleAreas && (
               <TableHeader className="">
@@ -329,13 +346,13 @@ export default function AreaInfo() {
                       }
                     }}
                   >
-                    <TableCell className="py-2 px-3 truncate h-8">
-                      <div className="flex items-center gap-2">
+                    <TableCell className="py-2 px-3 h-auto">
+                      <div className="flex items-center gap-2 min-w-0">
                         <div
                           className="w-4 h-4 rounded flex-shrink-0"
                           style={{ backgroundColor: getAreaColor(area) }}
                         />
-                        <span className="truncate">{area.name}</span>
+                        <span className="break-words whitespace-normal">{area.name}</span>
                       </div>
                     </TableCell>
                     {!multipleAreas && (
@@ -343,29 +360,29 @@ export default function AreaInfo() {
                         <div className="w-px bg-neutral-200 h-full" />
                       </TableCell>
                     )}
-                    <TableCell className="py-2 px-3 whitespace-normal h-8">
+                    <TableCell className="py-2 px-3 whitespace-normal h-auto">
                       {!multipleAreas ? (
                         <div className="flex flex-row justify-center items-center text-right">
                           <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
                             {statLabel}:
                           </span>
-                          <span>{primaryValue}</span>
+                          <span className="break-words">{primaryValue}</span>
                         </div>
                       ) : (
-                        primaryValue
+                        <span className="break-words">{primaryValue}</span>
                       )}
                     </TableCell>
                     {hasSecondaryData && (
-                      <TableCell className="py-2 px-3 whitespace-normal h-8">
+                      <TableCell className="py-2 px-3 whitespace-normal h-auto">
                         {!multipleAreas ? (
                           <div className="flex flex-row justify-center items-center text-right">
                             <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
                               {viewConfig.areaDataSecondaryColumn}:
                             </span>
-                            <span>{secondaryValue}</span>
+                            <span className="break-words">{secondaryValue}</span>
                           </div>
                         ) : (
-                          secondaryValue
+                          <span className="break-words">{secondaryValue}</span>
                         )}
                       </TableCell>
                     )}
@@ -374,8 +391,7 @@ export default function AreaInfo() {
               })}
             </TableBody>
           </Table>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      </div>
+    </Popup>
   );
 }

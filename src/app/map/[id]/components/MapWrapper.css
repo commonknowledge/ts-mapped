@@ -28,3 +28,15 @@
 .map-wrapper .mapboxgl-ctrl-geocoder--input:hover {
   border-color: var(--color-action-hover);
 }
+
+/* AreaInfo popup styling - remove default white background */
+.mapboxgl-popup.area-info-popup .mapboxgl-popup-content {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.mapboxgl-popup.area-info-popup .mapboxgl-popup-tip {
+  display: none !important;
+}
