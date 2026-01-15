@@ -86,9 +86,8 @@ function IncludeColumnsModal({
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full justify-start">
             {selectedColumns.length > 0
-              ? `${selectedColumns.length} column${
-                  selectedColumns.length !== 1 ? "s" : ""
-                } selected`
+              ? `${selectedColumns.length} column${selectedColumns.length !== 1 ? "s" : ""
+              } selected`
               : "Select columns to include"}
           </Button>
         </DialogTrigger>
@@ -351,7 +350,10 @@ export default function VisualisationPanel({
                   htmlFor="choropleth-column-1-select"
                   className="text-sm text-muted-foreground font-normal"
                 >
-                  Column 1
+                  {viewConfig.areaDataSecondaryColumn !== undefined &&
+                    viewConfig.areaDataSecondaryColumn !== ""
+                    ? "Column 1"
+                    : "Column"}
                 </Label>
                 <Combobox
                   options={[
@@ -383,7 +385,8 @@ export default function VisualisationPanel({
             viewConfig.areaDataSourceId &&
             viewConfig.areaDataColumn &&
             columnOneIsNumber &&
-            viewConfig.areaDataSecondaryColumn !== undefined && (
+            viewConfig.areaDataSecondaryColumn !== undefined &&
+            viewConfig.areaDataSecondaryColumn !== "" && (
               <>
                 <Label
                   htmlFor="choropleth-column-2-select"
@@ -508,9 +511,9 @@ export default function VisualisationPanel({
             selectedColumns={
               viewConfig.includeColumnsString
                 ? viewConfig.includeColumnsString
-                    .split(",")
-                    .map((v) => v.trim())
-                    .filter(Boolean)
+                  .split(",")
+                  .map((v) => v.trim())
+                  .filter(Boolean)
                 : []
             }
             onColumnsChange={(columns) => {
@@ -905,7 +908,10 @@ export default function VisualisationPanel({
                     onClick={() => {
                       const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
                       if (!selectedAreaSetGroup) {
-                        updateViewConfig({ areaDataSourceId: ds.id });
+                        updateViewConfig({
+                          areaDataSourceId: ds.id,
+                          areaDataSecondaryColumn: undefined,
+                        });
                         setIsModalOpen(false);
                         return;
                       }
@@ -914,7 +920,10 @@ export default function VisualisationPanel({
                         dataSource?.geocodingConfig,
                       );
                       if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
-                        updateViewConfig({ areaDataSourceId: ds.id });
+                        updateViewConfig({
+                          areaDataSourceId: ds.id,
+                          areaDataSecondaryColumn: undefined,
+                        });
                         setIsModalOpen(false);
                         return;
                       }

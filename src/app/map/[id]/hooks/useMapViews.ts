@@ -200,9 +200,8 @@ export function useMapViews() {
         if (!viewConfig.areaDataColumn) {
           viewConfig.areaDataColumn = "";
         }
-        if (!viewConfig.areaDataSecondaryColumn) {
-          viewConfig.areaDataSecondaryColumn = "";
-        }
+        // Don't automatically set areaDataSecondaryColumn - let it be explicitly managed
+        // Only clear it if explicitly set to undefined in the update
       }
 
       // Set boundaries if the view is a hex map and no boundaries are set
