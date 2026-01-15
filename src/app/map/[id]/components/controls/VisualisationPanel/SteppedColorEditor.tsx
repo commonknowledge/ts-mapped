@@ -442,7 +442,6 @@ export default function SteppedColorEditor() {
                           color={step.color}
                           isFirst={isFirst}
                           isLast={isLast}
-                          className=""
                         />
                       </div>
                     </div>
