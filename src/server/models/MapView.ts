@@ -150,7 +150,9 @@ export const inspectorDataSourceConfigSchema = z.object({
   columns: z.array(z.string()),
 });
 
-export type InspectorDataSourceConfig = z.infer<typeof inspectorDataSourceConfigSchema>;
+export type InspectorDataSourceConfig = z.infer<
+  typeof inspectorDataSourceConfigSchema
+>;
 
 /**
  * Complete inspector configuration for a map view
@@ -163,7 +165,6 @@ export type InspectorConfig = z.infer<typeof inspectorConfigSchema>;
 // ============================================================================
 // END INSPECTOR CONFIGURATION
 // ============================================================================
-
 
 export const mapViewSchema = z.object({
   id: z.string(),

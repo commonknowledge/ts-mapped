@@ -1,9 +1,9 @@
 /**
  * Database Schema Documentation
- * 
+ *
  * This file represents the complete database schema as defined by all migrations.
  * It includes all tables, columns, types, constraints, and relationships.
- * 
+ *
  * Last updated: 2026-01-15
  * Based on migrations up to: 1764611637230_data_record_created_at_timestamp.ts
  */
@@ -314,7 +314,7 @@ export interface Turf {
 
 /**
  * RELATIONSHIP DIAGRAM:
- * 
+ *
  * organisation
  *   ├─> organisationUser ─> user
  *   ├─> dataSource
@@ -325,10 +325,10 @@ export interface Turf {
  *   │     │     └─> placedMarker
  *   │     └─> turf
  *   └─> invitation ─> user
- * 
+ *
  * areaSet
  *   └─> area
- * 
+ *
  * airtableWebhook (standalone)
  */
 
