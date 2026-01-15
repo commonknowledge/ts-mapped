@@ -111,7 +111,7 @@ function RangeSlider({
   const maxPercent = maxVal !== undefined ? getPercentage(maxVal) : 100;
 
   return (
-    <div ref={sliderRef} className={`relative  ${className}`}>
+    <div ref={sliderRef} className={`relative ${className}`}>
       {/* Background track */}
       <div className="absolute w-full h-2 bg-neutral-200 rounded-lg" />
 
