@@ -47,6 +47,7 @@ export function useInitialMapViewEffect() {
         name: "Default View",
         config: createNewViewConfig(),
         dataSourceViews: [],
+        inspectorConfig: { boundaries: [] },
         mapId: mapId,
         position: getNewLastPosition(mapData.views),
         createdAt: new Date(),

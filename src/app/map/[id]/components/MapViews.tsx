@@ -88,6 +88,7 @@ export default function MapViews() {
       name: newViewName.trim(),
       config: createNewViewConfig(),
       dataSourceViews: [],
+      inspectorConfig: { boundaries: [] },
       mapId,
       createdAt: new Date(),
     };
