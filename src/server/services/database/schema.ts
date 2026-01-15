@@ -5,7 +5,7 @@
  * It includes all tables, columns, types, constraints, and relationships.
  *
  * Last updated: 2026-01-15
- * Based on migrations up to: 1764611637230_data_record_created_at_timestamp.ts
+ * Based on migrations up to: 1764611637231_map_view_inspector_config.ts
  */
 
 /**
