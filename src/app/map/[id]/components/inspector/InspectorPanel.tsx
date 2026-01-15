@@ -58,7 +58,7 @@ export default function InspectorPanel() {
     >
       <div
         className={cn(
-          "relative z-100 w-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+          "relative z-50 w-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
           activeTab === "config" ? "h-full" : "max-h-full",
         )}
       >
