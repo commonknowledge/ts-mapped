@@ -134,17 +134,30 @@ export default function InspectorDataTab({
             </div>
           )}
 
-          {recordLoading ? (
-            <span>Loading...</span>
-          ) : !properties && !recordData?.json ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm">No data available</p>
-            </div>
-          ) : (
-            <PropertiesList
-              properties={{ ...properties, ...recordData?.json }}
-            />
-          )}
+          {(() => {
+            if (recordLoading) {
+              return <span>Loading...</span>;
+            }
+
+            const mergedProperties = {
+              ...(properties ?? {}),
+              ...(recordData?.json ?? {}),
+            };
+
+            const hasProperties =
+              mergedProperties &&
+              Object.keys(mergedProperties).length > 0;
+
+            if (!hasProperties) {
+              return (
+                <div className="py-8 text-center text-muted-foreground">
+                  <p className="text-sm">No data available</p>
+                </div>
+              );
+            }
+
+            return <PropertiesList properties={mergedProperties} />;
+          })()}
         </>
       )}
 
