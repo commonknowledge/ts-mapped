@@ -47,12 +47,21 @@ export default function InspectorPanel() {
     <div
       id="inspector-panel"
       className={cn(
-        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5 h-fit max-h-full",
+        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5",
         "bottom-24", // to avoid clash with bug report button
+        activeTab === "config" ? "h-full" : "h-fit max-h-full",
       )}
-      style={{ minWidth: activeTab === "config" ? "400px" : "250px" }}
+      style={{
+        minWidth: activeTab === "config" ? "400px" : "250px",
+        maxWidth: "450px",
+      }}
     >
-      <div className="relative z-100 w-full max-h-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans">
+      <div
+        className={cn(
+          "relative z-100 w-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+          activeTab === "config" ? "h-full" : "max-h-full",
+        )}
+      >
         <div className="flex justify-between items-center gap-4 p-3">
           <h1 className="grow flex gap-2 / text-sm font-semibold">
             {inspectorContent?.name as string}
@@ -91,7 +100,7 @@ export default function InspectorPanel() {
           defaultValue="data"
           value={activeTab}
           onValueChange={setActiveTab}
-          className="flex flex-col overflow-hidden"
+          className="flex flex-col overflow-hidden h-full"
         >
           <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
             <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
@@ -137,7 +146,7 @@ export default function InspectorPanel() {
 
           <UnderlineTabsContent
             value="config"
-            className="grow overflow-auto p-3"
+            className="grow overflow-auto p-3 h-full"
           >
             <InspectorConfigTab />
           </UnderlineTabsContent>

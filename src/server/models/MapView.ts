@@ -125,40 +125,45 @@ export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 // INSPECTOR CONFIGURATION
 // ============================================================================
 // Configures which data sources and columns are displayed in the inspector panel
-// Users can select multiple data sources, each with a custom name and column subset
+// for different aspects (boundaries, markers, members, etc.)
 
 /**
- * Types of inspector configurations
+ * Types of inspector boundary configurations
  * - simple: Basic display of selected columns from data sources
  */
-export enum InspectorDataSourceConfigType {
+export enum InspectorBoundaryConfigType {
   Simple = "simple",
 }
-export const inspectorTypes = Object.values(InspectorDataSourceConfigType);
+export const inspectorBoundaryTypes = Object.values(
+  InspectorBoundaryConfigType,
+);
 
 /**
- * Configuration for a single data source in the inspector
+ * Configuration for a single boundary data source in the inspector
  * - dataSourceId: Reference to the data source
  * - name: User-friendly name for this inspector config
  * - type: The type of inspector display (currently only "simple")
  * - columns: Array of column names to display from this data source
  */
-export const inspectorDataSourceConfigSchema = z.object({
+export const inspectorBoundaryConfigSchema = z.object({
   dataSourceId: z.string(),
   name: z.string(),
-  type: z.nativeEnum(InspectorDataSourceConfigType),
+  type: z.nativeEnum(InspectorBoundaryConfigType),
   columns: z.array(z.string()),
 });
 
-export type InspectorDataSourceConfig = z.infer<
-  typeof inspectorDataSourceConfigSchema
+export type InspectorBoundaryConfig = z.infer<
+  typeof inspectorBoundaryConfigSchema
 >;
 
 /**
  * Complete inspector configuration for a map view
- * Array of data sources with their selected columns
+ * Organized by aspect (boundaries, markers, members, etc.)
  */
-export const inspectorConfigSchema = z.array(inspectorDataSourceConfigSchema);
+export const inspectorConfigSchema = z.object({
+  boundaries: z.array(inspectorBoundaryConfigSchema).optional(),
+  // Future: markers, members, etc.
+});
 
 export type InspectorConfig = z.infer<typeof inspectorConfigSchema>;
 
