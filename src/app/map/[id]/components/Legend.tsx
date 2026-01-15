@@ -93,17 +93,32 @@ export default function Legend() {
         </div>
       );
     } else {
-      bars = Object.keys(colorScheme.colorMap)
-        .toSorted()
-        .map((key) => (
-          <div
-            className="p-1 w-full items-center justify-center flex text-xs"
-            key={key}
-            style={{ backgroundColor: colorScheme.colorMap[key] }}
-          >
-            {key}
-          </div>
-        ));
+      // Filter to only show categories that actually appear in the data
+      const categoriesInData = new Set(
+        areaStats?.stats
+          .map((stat) => String(stat.primary))
+          .filter((v) => v && v !== "null" && v !== "undefined")
+      );
+
+      bars = (
+        <div className="flex flex-col gap-1.5 w-full py-1">
+          {Object.keys(colorScheme.colorMap)
+            .filter((key) => categoriesInData.has(key))
+            .toSorted()
+            .map((key) => (
+              <div
+                className="flex items-center gap-2 text-xs"
+                key={key}
+              >
+                <div
+                  className="w-3 h-3 flex-shrink-0 border border-neutral-300"
+                  style={{ backgroundColor: colorScheme.colorMap[key] }}
+                />
+                <span>{key}</span>
+              </div>
+            ))}
+        </div>
+      );
     }
     return bars;
   };
@@ -111,8 +126,8 @@ export default function Legend() {
   return (
     <div className="flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
       {areaStats?.calculationType !== CalculationType.Count &&
-      viewConfig.areaDataColumn &&
-      viewConfig.areaDataSecondaryColumn ? (
+        viewConfig.areaDataColumn &&
+        viewConfig.areaDataSecondaryColumn ? (
         <button
           onClick={() => setBoundariesPanelOpen(true)}
           className="p-2 pt-0 hover:bg-neutral-50 transition-colors cursor-pointer text-left w-full"

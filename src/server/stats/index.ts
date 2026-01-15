@@ -46,6 +46,7 @@ export const getAreaStats = async ({
   column,
   secondaryColumn,
   excludeColumns,
+  includeColumns,
   boundingBox = null,
 }: {
   areaSetCode: AreaSetCode;
@@ -54,6 +55,7 @@ export const getAreaStats = async ({
   column: string;
   secondaryColumn?: string;
   excludeColumns: string[];
+  includeColumns?: string[] | null;
   boundingBox?: BoundingBox | null;
 }): Promise<AreaStats> => {
   const areaStats: AreaStats = {
@@ -67,6 +69,7 @@ export const getAreaStats = async ({
       areaSetCode,
       dataSourceId,
       excludeColumns,
+      includeColumns,
       boundingBox,
     );
     const { maxValue, minValue } = getValueRange(stats);
@@ -143,16 +146,25 @@ export const getMaxColumnByArea = async (
   areaSetCode: string,
   dataSourceId: string,
   excludeColumns: string[],
+  includeColumns: string[] | null = null,
   boundingBox: BoundingBox | null = null,
 ) => {
   const dataSource = await findDataSourceById(dataSourceId);
   if (!dataSource) return [];
 
   const columnNames = dataSource.columnDefs
-    .filter(
-      ({ name, type }) =>
-        !excludeColumns.includes(name) && type === ColumnType.Number,
-    )
+    .filter(({ name, type }) => {
+      // Must be a number column
+      if (type !== ColumnType.Number) return false;
+      
+      // If includeColumns is specified, only include those columns
+      if (includeColumns && includeColumns.length > 0) {
+        return includeColumns.includes(name);
+      }
+      
+      // Otherwise, exclude columns in excludeColumns list
+      return !excludeColumns.includes(name);
+    })
     .map((c) => c.name);
 
   if (!columnNames.length) {
@@ -168,14 +180,15 @@ export const getMaxColumnByArea = async (
       | CaseWhenBuilder<Database, keyof Database, unknown, string>,
     column: string,
   ) => {
+    // Cast to float for numeric comparison, not text comparison
     return caseBuilder
       .when(
         db.fn(
           "GREATEST",
-          columnNames.map((c) => sql`json->>${c}`),
+          columnNames.map((c) => sql`(json->>${c})::float`),
         ),
         "=",
-        sql`json->>${column}`,
+        sql`(json->>${column})::float`,
       )
       .then(column);
   };
@@ -198,6 +211,14 @@ export const getMaxColumnByArea = async (
   //
   // Finally, SELECT DISTINCT ON ("area_code") to return only this first row
   // for each area.
+  //
+  // We filter out records where all columns are NULL by checking that
+  // at least one column has a non-NULL numeric value.
+  const hasNonNullValueCondition = sql`(${sql.join(
+    columnNames.map((c) => sql`(json->>${c})::float IS NOT NULL`),
+    sql` OR `
+  )})`;
+  
   const q = sql`
     WITH data_record_with_max_column AS (
       SELECT 
@@ -206,6 +227,8 @@ export const getMaxColumnByArea = async (
       FROM data_record
       WHERE data_source_id = ${dataSourceId}
         AND ${getBoundingBoxSQL(boundingBox)}
+        AND ${hasNonNullValueCondition}
+        AND ${caseWhen.end()} IS NOT NULL
     )
     SELECT DISTINCT ON (area_code) 
       area_code as "areaCode",
@@ -213,6 +236,7 @@ export const getMaxColumnByArea = async (
     FROM (
       SELECT area_code, max_column, COUNT(*) AS count
       FROM data_record_with_max_column
+      WHERE max_column IS NOT NULL
       GROUP BY area_code, max_column
       ORDER BY area_code, count DESC
     ) subquery;

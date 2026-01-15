@@ -95,6 +95,15 @@ export const useAreaStats = () => {
       .filter(Boolean);
   }, [viewConfig.excludeColumnsString]);
 
+  const includeColumns = useMemo(() => {
+    if (!viewConfig.includeColumnsString) return null;
+    const columns = viewConfig.includeColumnsString
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+    return columns.length > 0 ? columns : null;
+  }, [viewConfig.includeColumnsString]);
+
   // The results of this query aren't used directly, as data for different
   // bounding boxes needs to be added together. Instead, useEffect is used
   // to add incoming data to the dedupedAreaStats state.
@@ -107,6 +116,7 @@ export const useAreaStats = () => {
         column: columnOrCount,
         secondaryColumn: secondaryColumn,
         excludeColumns,
+        includeColumns,
         boundingBox: requiresBoundingBox ? boundingBox : null,
       },
       { enabled: !skipCondition },
@@ -122,6 +132,7 @@ export const useAreaStats = () => {
     column,
     secondaryColumn,
     excludeColumns,
+    includeColumns,
   ]);
 
   useEffect(() => {

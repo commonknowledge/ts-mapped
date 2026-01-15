@@ -46,6 +46,89 @@ import {
 import { DataSourceItem } from "./DataSourceItem";
 import CategoryColorEditor from "./CategoryColorEditor";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
+import type { DataSource } from "@/server/models/DataSource";
+import { Checkbox } from "@/shadcn/ui/checkbox";
+import { DialogTrigger } from "@/shadcn/ui/dialog";
+
+function IncludeColumnsModal({
+  dataSource,
+  selectedColumns,
+  onColumnsChange,
+}: {
+  dataSource: DataSource;
+  selectedColumns: string[];
+  onColumnsChange: (columns: string[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const numericColumns = dataSource.columnDefs.filter(
+    (c) => c.type === ColumnType.Number
+  );
+
+  const handleToggle = (columnName: string, checked: boolean) => {
+    if (checked) {
+      onColumnsChange([...selectedColumns, columnName]);
+    } else {
+      onColumnsChange(selectedColumns.filter((c) => c !== columnName));
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">
+          Include columns (leave empty to use all numeric columns)
+        </Label>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full justify-start">
+            {selectedColumns.length > 0
+              ? `${selectedColumns.length} column${
+                  selectedColumns.length !== 1 ? "s" : ""
+                } selected`
+              : "Select columns to include"}
+          </Button>
+        </DialogTrigger>
+      </div>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Select columns to include</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-4">
+          <p className="text-sm text-gray-500 mb-4">
+            Only selected columns will be considered when determining the highest
+            value column for each area. Leave empty to use all numeric columns.
+          </p>
+          <div className="space-y-2">
+            {numericColumns.map((column) => (
+              <div
+                key={column.name}
+                className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded"
+              >
+                <Checkbox
+                  id={`column-${column.name}`}
+                  checked={selectedColumns.includes(column.name)}
+                  onCheckedChange={(checked) =>
+                    handleToggle(column.name, checked === true)
+                  }
+                />
+                <label
+                  htmlFor={`column-${column.name}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
+                >
+                  {column.name}
+                </label>
+              </div>
+            ))}
+          </div>
+          {numericColumns.length === 0 && (
+            <p className="text-sm text-gray-500">
+              No numeric columns found in this data source.
+            </p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function VisualisationPanel({
   positionLeft,
@@ -366,22 +449,25 @@ export default function VisualisationPanel({
             </div>
           )}
 
-        {/* Exclude Columns Input - only show when MAX_COLUMN_KEY is selected */}
-        {viewConfig.areaDataColumn === MAX_COLUMN_KEY && (
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Exclude columns</Label>
-            <input
-              type="text"
-              onChange={(e) =>
-                updateViewConfig({
-                  excludeColumnsString: e.target.value,
-                })
-              }
-              placeholder="Comma-separated columns to exclude"
-              value={viewConfig.excludeColumnsString}
-              className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+        {/* Include Columns Modal - only show when MAX_COLUMN_KEY is selected */}
+        {viewConfig.areaDataColumn === MAX_COLUMN_KEY && dataSource && (
+          <IncludeColumnsModal
+            dataSource={dataSource}
+            selectedColumns={
+              viewConfig.includeColumnsString
+                ? viewConfig.includeColumnsString
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean)
+                : []
+            }
+            onColumnsChange={(columns) => {
+              updateViewConfig({
+                includeColumnsString:
+                  columns.length > 0 ? columns.join(",") : undefined,
+              });
+            }}
+          />
         )}
       </div>
 

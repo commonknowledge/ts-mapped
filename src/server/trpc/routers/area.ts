@@ -25,6 +25,7 @@ export const areaRouter = router({
         column: z.string(),
         secondaryColumn: z.string().optional(),
         excludeColumns: z.array(z.string()),
+        includeColumns: z.array(z.string()).optional().nullable(),
         boundingBox: boundingBoxSchema.nullish(),
       }),
     )

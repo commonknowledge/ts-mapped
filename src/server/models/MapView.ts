@@ -106,6 +106,7 @@ export const mapViewConfigSchema = z.object({
   areaSetGroupCode: areaSetGroupCode.nullish(),
   choroplethOpacityPct: z.number().optional(),
   excludeColumnsString: z.string(),
+  includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),
   mapType: z.nativeEnum(MapType).optional(),
   showBoundaryOutline: z.boolean(),
