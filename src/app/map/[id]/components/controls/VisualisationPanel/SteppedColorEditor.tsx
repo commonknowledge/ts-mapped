@@ -157,17 +157,12 @@ export default function SteppedColorEditor() {
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
   const [isOpen, setIsOpen] = useState(false);
+  const [localSteps, setLocalSteps] = useState<SteppedColorStep[]>([]);
 
   const minValue = areaStats?.primary?.minValue ?? 0;
   const maxValue = areaStats?.primary?.maxValue ?? 100;
   const colorScheme = viewConfig.colorScheme || ColorScheme.RedBlue;
   const isReversed = Boolean(viewConfig.reverseColorScheme);
-
-  // Track previous color scheme to detect changes
-  const prevColorSchemeRef = useRef<{
-    colorScheme: ColorScheme;
-    isReversed: boolean;
-  }>({ colorScheme, isReversed });
 
   // Get step ranges (without colors) from config or defaults
   const stepRanges = useMemo(() => {
@@ -223,41 +218,42 @@ export default function SteppedColorEditor() {
     });
   }, [stepRanges, colorScheme, isReversed, viewConfig.customColor]);
 
-  // Update colors when color scheme, reverse, or custom color changes
+  // Initialize local steps when dialog opens
   useEffect(() => {
-    const prev = prevColorSchemeRef.current;
-    const schemeChanged =
-      prev.colorScheme !== colorScheme || prev.isReversed !== isReversed;
+    if (isOpen) {
+      if (
+        viewConfig.steppedColorSteps &&
+        viewConfig.steppedColorSteps.length > 0
+      ) {
+        setLocalSteps(viewConfig.steppedColorSteps);
+      } else {
+        setLocalSteps(steps);
+      }
+    }
+  }, [isOpen, viewConfig.steppedColorSteps, steps]);
 
-    if (
-      (schemeChanged || colorScheme === ColorScheme.Custom) &&
-      stepRanges.length > 0 &&
-      viewConfig.steppedColorSteps &&
-      viewConfig.steppedColorSteps.length > 0
-    ) {
-      prevColorSchemeRef.current = { colorScheme, isReversed };
+  // Recalculate colors when color scheme changes (but don't auto-apply)
+  const localStepsRef = useRef(localSteps);
+  useEffect(() => {
+    localStepsRef.current = localSteps;
+  }, [localSteps]);
+
+  useEffect(() => {
+    if (isOpen && localStepsRef.current.length > 0) {
       const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-      const numSteps = stepRanges.length;
-      const updatedSteps = stepRanges.map((range, index) => {
+      const numSteps = localStepsRef.current.length;
+      const updatedSteps = localStepsRef.current.map((step, index) => {
         const gradientPosition = numSteps > 1 ? index / (numSteps - 1) : 0;
         const t = isReversed ? 1 - gradientPosition : gradientPosition;
         const clampedT = Math.max(0, Math.min(1, t));
         return {
-          start: range.start,
-          end: range.end,
+          ...step,
           color: interpolator(clampedT) || "#cccccc",
         };
       });
-      updateViewConfig({ steppedColorSteps: updatedSteps });
+      setLocalSteps(updatedSteps);
     }
-  }, [
-    colorScheme,
-    isReversed,
-    stepRanges,
-    viewConfig.steppedColorSteps,
-    viewConfig.customColor,
-    updateViewConfig,
-  ]);
+  }, [colorScheme, isReversed, viewConfig.customColor, isOpen]);
 
   if (
     !areaStats ||
@@ -272,7 +268,7 @@ export default function SteppedColorEditor() {
     newStart: number,
     newEnd?: number,
   ) => {
-    const newSteps = [...steps];
+    const newSteps = [...localSteps];
 
     // Update current step
     newSteps[index].start = newStart;
@@ -298,16 +294,16 @@ export default function SteppedColorEditor() {
       step.color = interpolator(clampedT) || "#cccccc";
     });
 
-    updateViewConfig({ steppedColorSteps: newSteps });
+    setLocalSteps(newSteps);
   };
 
   const handleAddStep = () => {
-    const lastStep = steps[steps.length - 1];
+    const lastStep = localSteps[localSteps.length - 1];
     const midpoint = lastStep
       ? (lastStep.start + lastStep.end) / 2
       : (minValue + maxValue) / 2;
 
-    const newSteps = [...steps];
+    const newSteps = [...localSteps];
     newSteps[newSteps.length - 1].end = midpoint;
 
     const newStep: SteppedColorStep = {
@@ -327,19 +323,19 @@ export default function SteppedColorEditor() {
       step.color = interpolator(clampedT) || "#cccccc";
     });
 
-    updateViewConfig({ steppedColorSteps: newSteps });
+    setLocalSteps(newSteps);
   };
 
   const handleRemoveStep = (index: number) => {
-    const newSteps = steps.filter((_, i) => i !== index);
+    const newSteps = localSteps.filter((_, i) => i !== index);
 
     if (index > 0 && newSteps.length > 0) {
-      newSteps[index - 1].end = steps[index].end;
+      newSteps[index - 1].end = localSteps[index].end;
     }
-    if (index < steps.length - 1 && newSteps.length > 0) {
+    if (index < localSteps.length - 1 && newSteps.length > 0) {
       const nextIndex = index < newSteps.length ? index : newSteps.length - 1;
       if (nextIndex < newSteps.length) {
-        newSteps[nextIndex].start = steps[index].start;
+        newSteps[nextIndex].start = localSteps[index].start;
       }
     }
 
@@ -353,16 +349,39 @@ export default function SteppedColorEditor() {
       step.color = interpolator(clampedT) || "#cccccc";
     });
 
-    updateViewConfig({
-      steppedColorSteps: newSteps.length > 0 ? newSteps : undefined,
-    });
+    setLocalSteps(newSteps);
   };
 
   const handleReset = () => {
-    updateViewConfig({ steppedColorSteps: undefined });
+    setLocalSteps(steps);
+  };
+
+  const handleApply = () => {
+    // Ensure boundaries are connected before applying
+    const stepsToApply = [...localSteps];
+
+    // Connect boundaries: end of step N = start of step N+1
+    for (let i = 0; i < stepsToApply.length - 1; i++) {
+      stepsToApply[i].end = stepsToApply[i + 1].start;
+    }
+
+    // Ensure first starts at minValue and last ends at maxValue
+    if (stepsToApply.length > 0) {
+      stepsToApply[0].start = minValue;
+      stepsToApply[stepsToApply.length - 1].end = maxValue;
+    }
+
+    updateViewConfig({
+      steppedColorSteps: stepsToApply.length > 0 ? stepsToApply : undefined,
+    });
+    setIsOpen(false);
   };
 
   const stepSize = (maxValue - minValue) / 1000;
+  const range = maxValue - minValue;
+  const showDecimals = range <= 10;
+  const formatValue = (value: number) =>
+    showDecimals ? value.toFixed(2) : Math.round(value).toString();
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -378,7 +397,7 @@ export default function SteppedColorEditor() {
         <div className="space-y-4 mt-4">
           <div className="text-sm text-muted-foreground space-y-1">
             <p>
-              Value range: {minValue.toFixed(2)} to {maxValue.toFixed(2)}
+              Value range: {formatValue(minValue)} to {formatValue(maxValue)}
             </p>
             <p className="text-xs">
               Colors are automatically calculated from the selected color scheme
@@ -386,7 +405,7 @@ export default function SteppedColorEditor() {
             </p>
           </div>
           <div className="space-y-4">
-            {steps.map((step, index) => {
+            {localSteps.map((step, index) => {
               const isFirst = index === 0;
               const isLast = index === steps.length - 1;
 
@@ -411,11 +430,13 @@ export default function SteppedColorEditor() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-muted-foreground">
                             {isFirst
-                              ? minValue.toFixed(2)
-                              : step.start.toFixed(2)}
+                              ? formatValue(minValue)
+                              : formatValue(step.start)}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {isLast ? maxValue.toFixed(2) : step.end.toFixed(2)}
+                            {isLast
+                              ? formatValue(maxValue)
+                              : formatValue(step.end)}
                           </span>
                         </div>
 
@@ -448,11 +469,12 @@ export default function SteppedColorEditor() {
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>
-                        Range: {step.start.toFixed(2)} - {step.end.toFixed(2)}
+                        Range: {formatValue(step.start)} -{" "}
+                        {formatValue(step.end)}
                       </span>
                     </div>
                   </div>
-                  {steps.length > 1 && (
+                  {localSteps.length > 1 && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -481,6 +503,11 @@ export default function SteppedColorEditor() {
                 Reset
               </Button>
             )}
+          </div>
+          <div className="flex gap-2 pt-2 border-t">
+            <Button variant="default" className="flex-1" onClick={handleApply}>
+              Apply
+            </Button>
           </div>
         </div>
       </DialogContent>

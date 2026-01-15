@@ -86,8 +86,9 @@ function IncludeColumnsModal({
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full justify-start">
             {selectedColumns.length > 0
-              ? `${selectedColumns.length} column${selectedColumns.length !== 1 ? "s" : ""
-              } selected`
+              ? `${selectedColumns.length} column${
+                  selectedColumns.length !== 1 ? "s" : ""
+                } selected`
               : "Select columns to include"}
           </Button>
         </DialogTrigger>
@@ -378,7 +379,6 @@ export default function VisualisationPanel({
               </>
             )}
 
-
           {viewConfig.calculationType !== CalculationType.Count &&
             viewConfig.areaDataSourceId &&
             viewConfig.areaDataColumn &&
@@ -508,9 +508,9 @@ export default function VisualisationPanel({
             selectedColumns={
               viewConfig.includeColumnsString
                 ? viewConfig.includeColumnsString
-                  .split(",")
-                  .map((v) => v.trim())
-                  .filter(Boolean)
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean)
                 : []
             }
             onColumnsChange={(columns) => {
@@ -807,9 +807,7 @@ export default function VisualisationPanel({
                     );
                     const firstNumericColumn = dataSource?.columnDefs
                       .filter((col) => col.type === ColumnType.Number)
-                      .find(
-                        (col) => col.name !== viewConfig.areaDataColumn,
-                      );
+                      .find((col) => col.name !== viewConfig.areaDataColumn);
                     if (firstNumericColumn) {
                       updateViewConfig({
                         areaDataSecondaryColumn: firstNumericColumn.name,
