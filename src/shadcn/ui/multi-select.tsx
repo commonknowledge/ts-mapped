@@ -62,7 +62,8 @@ export function MultiSelect({
               <Badge key={value} variant="secondary" className="rounded">
                 {option?.label}
                 <button
-                  className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  aria-label={`Remove ${option?.label}`}
+                  className="cursor-pointer ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleUnselect(value);
