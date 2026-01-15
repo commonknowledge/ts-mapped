@@ -1,23 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowLeftIcon,
-  MapPinIcon,
-  SettingsIcon,
-  TableIcon,
-  XIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { useTable } from "@/app/map/[id]/hooks/useTable";
-import DataSourceIcon from "@/components/DataSourceIcon";
-import { useTRPC } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import { useMapRef } from "../../hooks/useMapCore";
-import BoundaryMarkersList from "./BoundaryMarkersList";
-import PropertiesList from "./PropertiesList";
-import TurfMarkersList from "./TurfMarkersList";
+import InspectorConfigTab from "./InspectorConfigTab";
+import InspectorDataTab from "./InspectorDataTab";
+import InspectorMarkersTab from "./InspectorMarkersTab";
+import InspectorNotesTab from "./InspectorNotesTab";
 import {
   UnderlineTabs,
   UnderlineTabsContent,
@@ -35,31 +24,16 @@ export default function InspectorPanel() {
     setFocusedRecord,
     selectedRecords,
   } = useInspector();
-  const mapRef = useMapRef();
-  const { setSelectedDataSourceId, selectedDataSourceId } = useTable();
-
-  const trpc = useTRPC();
-  const { data: recordData, isFetching: recordLoading } = useQuery(
-    trpc.dataRecord.byId.queryOptions(
-      {
-        dataSourceId: focusedRecord?.dataSourceId || "",
-        id: focusedRecord?.id || "",
-      },
-      {
-        enabled: Boolean(focusedRecord?.dataSourceId),
-      },
-    ),
-  );
 
   if (!Boolean(inspectorContent)) {
     return <></>;
   }
 
   const { dataSource, properties, type } = inspectorContent ?? {};
-  const tableOpen = Boolean(selectedDataSourceId);
-  const isDetailsView =
+  const isDetailsView = Boolean(
     (selectedTurf && type !== LayerType.Turf) ||
-    (selectedBoundary && type !== LayerType.Boundary);
+      (selectedBoundary && type !== LayerType.Boundary),
+  );
 
   const markerCount = selectedRecords?.length || 0;
 
@@ -67,20 +41,12 @@ export default function InspectorPanel() {
     setFocusedRecord(null);
   };
 
-  const flyToMarker = () => {
-    const map = mapRef?.current;
-
-    if (map && focusedRecord?.geocodePoint) {
-      map.flyTo({ center: focusedRecord.geocodePoint, zoom: 12 });
-    }
-  };
-
   return (
     <div
       id="inspector-panel"
       className={cn(
         "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5 h-fit max-h-full",
-        tableOpen ? "bottom-0" : "bottom-24", // to avoid clash with bug report button
+        "bottom-24", // to avoid clash with bug report button
       )}
       style={{ minWidth: "250px" }}
     >
@@ -125,90 +91,51 @@ export default function InspectorPanel() {
         >
           <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
             <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
-            <UnderlineTabsTrigger value="markers">
+            <UnderlineTabsTrigger
+              value="markers"
+              className={cn(
+                (type === LayerType.Member || type === LayerType.Marker) &&
+                  "hidden",
+              )}
+            >
               Markers {markerCount > 0 ? markerCount : ""}
             </UnderlineTabsTrigger>
-            <UnderlineTabsTrigger value="notes" className="hidden">Notes 0</UnderlineTabsTrigger>
+            <UnderlineTabsTrigger value="notes" className="hidden">
+              Notes 0
+            </UnderlineTabsTrigger>
             <UnderlineTabsTrigger value="config" className="px-2 hidden">
               <SettingsIcon size={16} />
             </UnderlineTabsTrigger>
           </UnderlineTabsList>
 
           <UnderlineTabsContent value="data" className="grow overflow-auto p-3">
-            <div className="flex flex-col gap-4">
-              {dataSource && (
-                <div className="bg-muted py-1 px-2 rounded">
-                  <h3 className="mb-1 / text-muted-foreground text-xs uppercase font-mono">
-                    Data source
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <div className="shrink-0">
-                      <DataSourceIcon
-                        type={dataSource.config?.type as string}
-                      />
-                    </div>
-
-                    <p className="truncate">{dataSource.name}</p>
-                  </div>
-                </div>
-              )}
-
-              {recordLoading ? (
-                <span>Loading...</span>
-              ) : (
-                <PropertiesList
-                  properties={{ ...properties, ...recordData?.json }}
-                />
-              )}
-
-              {(isDetailsView || dataSource) && (
-                <div className="flex flex-col gap-3 border-t pt-4">
-                  {isDetailsView && focusedRecord?.geocodePoint && (
-                    <Button onClick={() => flyToMarker()}>
-                      <MapPinIcon />
-                      View on map
-                    </Button>
-                  )}
-                  {dataSource && (
-                    <Button
-                      variant="secondary"
-                      onClick={() => setSelectedDataSourceId(dataSource.id)}
-                    >
-                      <TableIcon />
-                      View in table
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
+            <InspectorDataTab
+              dataSource={dataSource}
+              properties={properties}
+              isDetailsView={isDetailsView}
+              focusedRecord={focusedRecord}
+            />
           </UnderlineTabsContent>
 
           <UnderlineTabsContent
             value="markers"
             className="grow overflow-auto p-3"
           >
-            <div className="flex flex-col gap-4">
-              {type === LayerType.Turf && <TurfMarkersList />}
-              {type === LayerType.Boundary && <BoundaryMarkersList />}
-            </div>
+            {type && <InspectorMarkersTab type={type} />}
           </UnderlineTabsContent>
 
           <UnderlineTabsContent
             value="notes"
             className="grow overflow-auto p-3"
           >
-            <div className="flex flex-col gap-4">
-              <p className="text-muted-foreground">No notes yet</p>
-            </div>
+            <InspectorNotesTab />
           </UnderlineTabsContent>
 
           <UnderlineTabsContent
             value="config"
             className="grow overflow-auto p-3"
           >
-            <div className="flex flex-col gap-4">
-              <p className="text-muted-foreground">Configuration options</p>
-            </div>
+            <InspectorConfigTab />
           </UnderlineTabsContent>
         </UnderlineTabs>
       </div>
