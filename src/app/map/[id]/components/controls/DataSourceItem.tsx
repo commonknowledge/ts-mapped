@@ -214,7 +214,7 @@ export default function DataSourceItem({
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between min-w-0 gap-1">
               <LayerIcon
                 layerType={layerType}
                 isDataSource={true}
@@ -222,7 +222,7 @@ export default function DataSourceItem({
                 onColorChange={setLayerColor}
               />
               <button
-                className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
+                className="flex w-full items-center justify-between gap-2 min-w-0 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
                 style={{ borderColor: isSelected ? layerColor : "transparent" }}
                 onClick={() => {
                   // For DataLayer, clicking toggles accordion instead of selecting datasource
@@ -237,7 +237,7 @@ export default function DataSourceItem({
                   }
                 }}
               >
-                <div className="flex gap-[6px] text-left w-full">
+                <div className="flex gap-[6px] text-left w-full min-w-0">
                   <div className="flex-1 min-w-0">
                     {isRenaming ? (
                       <input
@@ -278,11 +278,11 @@ export default function DataSourceItem({
                             </>
                           )}
                           {dataSource.recordType &&
-                          dataSourceRecordTypeLabels[dataSource.recordType] ? (
+                            dataSourceRecordTypeLabels[dataSource.recordType] ? (
                             <span className="inline-flex items-center gap-1">
                               {
                                 dataSourceRecordTypeLabels[
-                                  dataSource.recordType
+                                dataSource.recordType
                                 ]
                               }
                             </span>
@@ -324,24 +324,24 @@ export default function DataSourceItem({
             </ContextMenuItem>
             {(layerType === LayerType.Marker ||
               layerType === LayerType.Member) && (
-              <>
-                <ContextMenuSeparator />
-                <ContextMenuItem
-                  onClick={() => {
-                    // For marker and member layers, visualize with count
-                    updateViewConfig({
-                      areaDataSourceId: dataSource.id,
-                      areaDataColumn: "",
-                      calculationType: CalculationType.Count,
-                    });
-                    setBoundariesPanelOpen(true);
-                  }}
-                >
-                  <Palette size={12} />
-                  Visualise on map
-                </ContextMenuItem>
-              </>
-            )}
+                <>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem
+                    onClick={() => {
+                      // For marker and member layers, visualize with count
+                      updateViewConfig({
+                        areaDataSourceId: dataSource.id,
+                        areaDataColumn: "",
+                        calculationType: CalculationType.Count,
+                      });
+                      setBoundariesPanelOpen(true);
+                    }}
+                  >
+                    <Palette size={12} />
+                    Visualise on map
+                  </ContextMenuItem>
+                </>
+              )}
             {layerType === LayerType.DataLayer && (
               <>
                 <ContextMenuSeparator />

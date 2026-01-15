@@ -13,6 +13,7 @@ import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 import ZoomControl from "./ZoomControl";
+import AreaInfo from "./AreaInfo";
 import "./MapWrapper.css"; // overriding styles of mapbox elements
 
 export default function MapWrapper({
@@ -96,6 +97,8 @@ export default function MapWrapper({
       <div className="map-zoom-controls / absolute bottom-8 right-8 z-10 transition-transform duration-300 hidden md:block">
         <ZoomControl />
       </div>
+
+      <AreaInfo />
 
       {!hideDrawControls && (
         <>

@@ -158,7 +158,7 @@ export default function SortableMarkerItem({
           ) : (
             <ContextMenu>
               <ContextMenuTrigger asChild>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between min-w-0 gap-1">
                   <LayerIcon
                     layerType={LayerType.Marker}
                     isDataSource={false}
@@ -166,7 +166,7 @@ export default function SortableMarkerItem({
                     onColorChange={setLayerColor}
                   />
                   <button
-                    className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                    className="flex flex-col items-start w-full min-w-0 min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
                     onClick={() => flyToMarker()}
                     onContextMenu={(e) => {
                       // Prevent context menu during drag
@@ -175,8 +175,8 @@ export default function SortableMarkerItem({
                       }
                     }}
                   >
-                    <div className="text-sm font-medium truncate">{marker.label}</div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-sm font-medium truncate w-full">{marker.label}</div>
+                    <div className="text-xs text-muted-foreground truncate w-full">
                       Individual marker
                     </div>
                   </button>

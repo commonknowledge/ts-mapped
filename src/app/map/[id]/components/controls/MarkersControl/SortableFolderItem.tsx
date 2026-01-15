@@ -184,7 +184,7 @@ export default function SortableFolderItem({
         ) : (
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between min-w-0 gap-1">
                 <LayerIcon
                   layerType={LayerType.Marker}
                   isDataSource={false}
@@ -197,12 +197,12 @@ export default function SortableFolderItem({
                   ref={isDraggingMarker ? setHeaderNodeRef : null}
                   onClick={() => onClickFolder()}
                   className={cn(
-                    "flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer",
+                    "flex items-center gap-2 w-full min-w-0 min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer",
                     isHeaderOver ? "bg-blue-50" : ""
                   )}
                 >
                   <div className="flex flex-col items-start flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate flex items-center gap-1">
+                    <div className="text-sm font-medium truncate flex items-center gap-1 w-full">
                       {folder.name}
                       {isExpanded ? (
                         <ChevronDown
@@ -216,7 +216,7 @@ export default function SortableFolderItem({
                         />
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground truncate w-full">
                       Folder · {sortedMarkers.length} marker
                       {sortedMarkers.length !== 1 ? "s" : ""}
                     </div>

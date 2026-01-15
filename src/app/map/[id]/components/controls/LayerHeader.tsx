@@ -37,30 +37,30 @@ export default function LayerHeader({
   };
 
   return (
-    <div className="flex items-center justify-between relative px-4 py-3">
-      <div className="group flex items-center gap-1">
+    <div className="flex items-center justify-between relative px-4 py-3 gap-2 min-w-0">
+      <div className="group flex items-center gap-1 min-w-0 flex-1">
         <button
           onClick={() => setExpanded(!expanded)}
           className={cn(
-            "flex items-center gap-2 hover:bg-neutral-100 rounded px-1 py-2 -mx-1 / text-sm font-medium cursor-pointer",
+            "flex items-center gap-2 hover:bg-neutral-100 rounded px-1 py-2 -mx-1 text-sm font-medium cursor-pointer min-w-0 flex-1",
             isLayerVisible ? "opacity-100" : "opacity-70",
           )}
         >
           <ChevronDown
             size={16}
             className={cn(
-              "transition-transform",
+              "transition-transform shrink-0",
               expanded ? "rotate-0" : "-rotate-90",
             )}
           />
 
           <LayerTypeIcon type={type} />
 
-          {label}
+          <span className="truncate">{label}</span>
         </button>
 
         {enableVisibilityToggle && (
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 shrink-0">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -111,7 +111,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
         ) : (
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between min-w-0 gap-1">
                 <LayerIcon
                   layerType={LayerType.Turf}
                   isDataSource={false}
@@ -119,13 +119,13 @@ export default function TurfItem({ turf }: { turf: Turf }) {
                   onColorChange={setLayerColor}
                 />
                 <button
-                  className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                  className="flex flex-col items-start w-full min-w-0 min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
                   onClick={() => handleFlyTo(turf)}
                 >
-                  <div className="text-sm font-medium truncate">
+                  <div className="text-sm font-medium truncate w-full">
                     {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">Area</div>
+                  <div className="text-xs text-muted-foreground truncate w-full">Area</div>
                 </button>
               </div>
             </ContextMenuTrigger>
