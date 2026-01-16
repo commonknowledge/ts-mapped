@@ -1,6 +1,18 @@
+"use client";
+
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState } from "react";
+import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
 import { useMapRef } from "../../../hooks/useMapCore";
 import {
@@ -8,7 +20,6 @@ import {
   usePlacedMarkerState,
 } from "../../../hooks/usePlacedMarkers";
 import ControlEditForm from "../ControlEditForm";
-import ControlHoverMenu from "../ControlHoverMenu";
 import ControlWrapper from "../ControlWrapper";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
@@ -39,6 +50,7 @@ export default function SortableMarkerItem({
   const mapRef = useMapRef();
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Check if this marker is the one being dragged (even outside its container)
   const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
@@ -64,6 +76,11 @@ export default function SortableMarkerItem({
     });
   };
 
+  // Update editText when marker.label changes
+  useEffect(() => {
+    setEditText(marker.label);
+  }, [marker.label]);
+
   const onEdit = () => {
     setEditText(marker.label);
     setEditing(true);
@@ -71,50 +88,104 @@ export default function SortableMarkerItem({
   };
 
   const onSubmit = () => {
-    updatePlacedMarker({
-      ...marker,
-      label: editText,
-    });
+    if (editText.trim() && editText !== marker.label) {
+      updatePlacedMarker({
+        ...marker,
+        label: editText.trim(),
+      });
+      toast.success("Marker renamed successfully");
+    }
     setEditing(false);
     setKeyboardCapture(false);
   };
 
+  const handleDelete = () => {
+    deletePlacedMarker(marker.id);
+    setShowDeleteDialog(false);
+    toast.success("Marker deleted successfully");
+  };
+
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="cursor-grab active:cursor-grabbing w-full"
-    >
-      <ControlWrapper
-        name={marker?.label}
-        layerType={LayerType.Marker}
-        isVisible={isVisible}
-        onVisibilityToggle={() =>
-          setPlacedMarkerVisibility(marker.id, !isVisible)
-        }
+    <>
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing w-full"
       >
-        {isEditing ? (
-          <ControlEditForm
-            initialValue={editText}
-            onChange={setEditText}
-            onSubmit={onSubmit}
-          />
-        ) : (
-          <ControlHoverMenu
-            onEdit={() => onEdit()}
-            onDelete={() => deletePlacedMarker(marker.id)}
-          >
-            <button
-              className="flex items-center gap-2 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer"
-              onClick={() => flyToMarker()}
-            >
-              {marker.label}
-            </button>
-          </ControlHoverMenu>
-        )}
-      </ControlWrapper>
-    </div>
+        <ControlWrapper
+          name={marker?.label}
+          layerType={LayerType.Marker}
+          isVisible={isVisible}
+          onVisibilityToggle={() =>
+            setPlacedMarkerVisibility(marker.id, !isVisible)
+          }
+        >
+          {isEditing ? (
+            <ControlEditForm
+              initialValue={editText}
+              onChange={setEditText}
+              onSubmit={onSubmit}
+            />
+          ) : (
+            <ContextMenu>
+              <ContextMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                  onClick={() => flyToMarker()}
+                  onContextMenu={(e) => {
+                    // Prevent context menu during drag
+                    if (isCurrentlyDragging) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  {marker.label}
+                </button>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={onEdit}>
+                  <PencilIcon size={12} />
+                  Rename
+                </ContextMenuItem>
+                <ContextMenuItem
+                  onClick={() =>
+                    setPlacedMarkerVisibility(marker.id, !isVisible)
+                  }
+                >
+                  {isVisible ? (
+                    <>
+                      <EyeOffIcon size={12} />
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <EyeIcon size={12} />
+                      Show
+                    </>
+                  )}
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <TrashIcon size={12} />
+                  Delete
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          )}
+        </ControlWrapper>
+      </div>
+
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        description={`This action cannot be undone. This will permanently delete the marker "${marker.label}".`}
+        onConfirm={handleDelete}
+      />
+    </>
   );
 }

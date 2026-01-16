@@ -5,12 +5,14 @@ export const DATA_RECORDS_PAGE_SIZE = 100;
 
 export const DATA_SOURCE_JOB_BATCH_SIZE = 100;
 
-export const DEFAULT_ZOOM = 5;
-
 // This is smaller than the external data source
 // maximum page size (e.g. Airtable = 100) to simplify
 // importDataRecords / enrichDataRecords code (no pagination)
 export const DATA_RECORDS_JOB_BATCH_SIZE = 100;
+
+export const DEFAULT_ZOOM = 5;
+
+export const DEFAULT_CUSTOM_COLOR = "#3b82f6";
 
 export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";
 

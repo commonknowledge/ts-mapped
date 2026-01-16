@@ -9,7 +9,6 @@ import { CONTROL_PANEL_WIDTH } from "../../styles";
 
 import BoundariesControl from "./BoundariesControl/BoundariesControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
-import MembersControl from "./MembersControl/MembersControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
 
 export default function PrivateMapControls() {
@@ -67,7 +66,6 @@ export default function PrivateMapControls() {
           >
             {viewConfig.mapType !== MapType.Hex && (
               <>
-                <MembersControl />
                 <MarkersControl />
                 <TurfsControl />
               </>

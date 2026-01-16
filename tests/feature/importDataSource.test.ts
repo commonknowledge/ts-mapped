@@ -228,7 +228,6 @@ describe("importDataSource tests", () => {
       dataSourceId: dataSource.id,
       calculationType: CalculationType.Sum,
       column: "Electorate",
-      excludeColumns: [],
     });
 
     const stats = areaStats.primary?.stats;

@@ -88,13 +88,12 @@ export default function MapWrapper({
       {children}
 
       <div
-        className="absolute top-5 z-10 transition-transform duration-300 hidden md:block"
+        className="absolute top-5 left-1/2 z-10 transition-transform duration-300 hidden md:block"
         style={{
-          left: "32px",
-          ...positionLeft,
+          ...absolutelyCenter,
           maxWidth: showControls
-            ? `calc(100% - 64px - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"})`
-            : `calc(100% - 64px - ${inspectorVisible ? "280px" : "32px"})`,
+            ? `calc(100% - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"} - 64px)`
+            : `calc(100% - ${inspectorVisible ? "280px" : "32px"} - 64px)`,
           transition: "max-width 0.3s",
         }}
       >

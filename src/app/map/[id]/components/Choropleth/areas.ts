@@ -9,7 +9,7 @@ export const getValidAreaSetGroupCodes = (
   dataSourceGeocodingConfig: GeocodingConfig | null | undefined,
 ): AreaSetGroupCode[] => {
   if (!dataSourceGeocodingConfig) {
-    return [];
+    return Object.values(AreaSetGroupCode);
   }
 
   const areaSetCode =

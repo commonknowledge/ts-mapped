@@ -82,8 +82,15 @@ export enum ColorScheme {
   Plasma = "Plasma",
   Diverging = "Diverging",
   Sequential = "Sequential",
+  Custom = "Custom",
 }
 export const colorSchemes = Object.values(ColorScheme);
+
+export enum ColorScaleType {
+  Gradient = "Gradient",
+  Stepped = "Stepped",
+}
+export const colorScaleTypes = Object.values(ColorScaleType);
 
 export enum MapType {
   Geo = "Geo",
@@ -99,6 +106,14 @@ export enum MapStyleName {
 }
 export const mapStyleNames = Object.values(MapStyleName);
 
+export const steppedColorStepSchema = z.object({
+  start: z.number(),
+  end: z.number(),
+  color: z.string(),
+});
+
+export type SteppedColorStep = z.infer<typeof steppedColorStepSchema>;
+
 export const mapViewConfigSchema = z.object({
   areaDataSourceId: z.string(),
   areaDataColumn: z.string(),
@@ -106,7 +121,7 @@ export const mapViewConfigSchema = z.object({
   areaDataNullIsZero: z.boolean().optional(),
   areaSetGroupCode: areaSetGroupCode.nullish(),
   choroplethOpacityPct: z.number().optional(),
-  excludeColumnsString: z.string(),
+  includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),
   mapType: z.nativeEnum(MapType).optional(),
   showBoundaryOutline: z.boolean(),
@@ -118,6 +133,10 @@ export const mapViewConfigSchema = z.object({
   calculationType: z.nativeEnum(CalculationType).nullish(),
   colorScheme: z.nativeEnum(ColorScheme).nullish(),
   reverseColorScheme: z.boolean().nullish(),
+  categoryColors: z.record(z.string(), z.string()).optional(),
+  colorScaleType: z.nativeEnum(ColorScaleType).optional(),
+  steppedColorSteps: z.array(steppedColorStepSchema).optional(),
+  customColor: z.string().optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

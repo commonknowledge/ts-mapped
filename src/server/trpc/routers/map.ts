@@ -75,7 +75,6 @@ export const mapRouter = router({
             areaSetGroupCode: AreaSetGroupCode.WMC24,
             calculationType: CalculationType.Count,
             colorScheme: null,
-            excludeColumnsString: "",
             mapStyleName: MapStyleName.Light,
             reverseColorScheme: false,
             showBoundaryOutline: true,

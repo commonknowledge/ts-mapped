@@ -5,7 +5,11 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
-import { MapType, type MapViewConfig } from "@/server/models/MapView";
+import {
+  CalculationType,
+  MapType,
+  type MapViewConfig,
+} from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
 import { createNewViewConfig } from "../utils/mapView";
@@ -195,14 +199,18 @@ export function useMapViews() {
         viewConfig.showChoropleth = true;
       }
 
+      // Fallback to the default calculation type if a data column has been selected
+      if (viewConfig.areaDataColumn && !viewConfig.calculationType) {
+        viewConfig.calculationType = CalculationType.Avg;
+      }
+
       // Clear the selected columns when the user changes the data source
       if (viewConfig.areaDataSourceId) {
         if (!viewConfig.areaDataColumn) {
           viewConfig.areaDataColumn = "";
         }
-        if (!viewConfig.areaDataSecondaryColumn) {
-          viewConfig.areaDataSecondaryColumn = "";
-        }
+        // Don't automatically set areaDataSecondaryColumn - let it be explicitly managed
+        // Only clear it if explicitly set to undefined in the update
       }
 
       // Set boundaries if the view is a hex map and no boundaries are set

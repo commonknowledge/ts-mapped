@@ -10,21 +10,11 @@ import { toast } from "sonner";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import DefinitionList from "@/components/DefinitionList";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
 import { JobStatus } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/shadcn/ui/alert-dialog";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -251,6 +241,7 @@ function DeleteDataSourceButton({
 }) {
   const router = useRouter();
   const trpc = useTRPC();
+  const [open, setOpen] = useState(false);
   const { mutate, isPending } = useMutation(
     trpc.dataSource.delete.mutationOptions({
       onSuccess: () => {
@@ -264,31 +255,19 @@ function DeleteDataSourceButton({
   );
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="destructive">
-          <Trash2Icon />
-          Delete data source
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your data
-            source.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isPending}
-            onClick={() => mutate({ dataSourceId: dataSource.id })}
-          >
-            {isPending ? "Deleting..." : "Continue"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <Button variant="destructive" onClick={() => setOpen(true)}>
+        <Trash2Icon />
+        Delete data source
+      </Button>
+      <DeleteConfirmationDialog
+        open={open}
+        onOpenChange={setOpen}
+        description="This action cannot be undone. This will permanently delete your data source."
+        onConfirm={() => mutate({ dataSourceId: dataSource.id })}
+        isPending={isPending}
+        confirmButtonText="Continue"
+      />
+    </>
   );
 }

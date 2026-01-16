@@ -89,7 +89,6 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
       areaSetGroupCode: AreaSetGroupCode.WMC24,
       calculationType: null,
       colorScheme: ColorScheme.GreenYellowRed,
-      excludeColumnsString: "",
       mapStyleName: MapStyleName.Light,
       reverseColorScheme: false,
       showBoundaryOutline: true,
