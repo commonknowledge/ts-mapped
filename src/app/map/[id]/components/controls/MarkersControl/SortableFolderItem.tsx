@@ -24,7 +24,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";

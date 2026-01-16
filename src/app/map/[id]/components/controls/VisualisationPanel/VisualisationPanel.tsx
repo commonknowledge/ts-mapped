@@ -14,10 +14,14 @@ import {
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import {
+  CalculationType,
+  ColorScaleType,
+  ColorScheme,
+} from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Combobox } from "@/shadcn/ui/combobox";
@@ -47,6 +51,7 @@ import {
 } from "../../Choropleth/areas";
 import CategoryColorEditor from "./CategoryColorEditor";
 import { DataSourceItem } from "./DataSourceItem";
+import SteppedColorEditor from "./SteppedColorEditor";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
 
@@ -346,7 +351,10 @@ export default function VisualisationPanel({
                   htmlFor="choropleth-column-1-select"
                   className="text-sm text-muted-foreground font-normal"
                 >
-                  Column 1
+                  {viewConfig.areaDataSecondaryColumn !== undefined &&
+                  viewConfig.areaDataSecondaryColumn !== ""
+                    ? "Column 1"
+                    : "Column"}
                 </Label>
                 <Combobox
                   options={[
@@ -377,7 +385,8 @@ export default function VisualisationPanel({
           {viewConfig.calculationType !== CalculationType.Count &&
             viewConfig.areaDataSourceId &&
             viewConfig.areaDataColumn &&
-            columnOneIsNumber && (
+            columnOneIsNumber &&
+            viewConfig.areaDataSecondaryColumn && (
               <>
                 <Label
                   htmlFor="choropleth-column-2-select"
@@ -385,28 +394,57 @@ export default function VisualisationPanel({
                 >
                   Column 2
                 </Label>
-                <Combobox
-                  options={[
-                    { value: NULL_UUID, label: "None" },
-                    ...(dataSources
-                      ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                      ?.columnDefs.filter(
-                        (col) => col.type === ColumnType.Number,
-                      )
-                      .map((col) => ({
-                        value: col.name,
-                        label: `${col.name} (${col.type})`,
-                      })) || []),
-                  ]}
-                  value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
-                  onValueChange={(value) =>
-                    updateViewConfig({
-                      areaDataSecondaryColumn: value === NULL_UUID ? "" : value,
-                    })
-                  }
-                  placeholder="Choose a column..."
-                  searchPlaceholder="Search columns..."
-                />
+                <div className="flex items-center gap-2">
+                  <Combobox
+                    options={[
+                      { value: NULL_UUID, label: "None" },
+                      ...(dataSources
+                        ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+                        ?.columnDefs.filter(
+                          (col) => col.type === ColumnType.Number,
+                        )
+                        .map((col) => ({
+                          value: col.name,
+                          label: `${col.name} (${col.type})`,
+                        })) || []),
+                    ]}
+                    value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
+                    onValueChange={(value) =>
+                      updateViewConfig({
+                        areaDataSecondaryColumn:
+                          value === NULL_UUID ? undefined : value,
+                      })
+                    }
+                    placeholder="Choose a column..."
+                    searchPlaceholder="Search columns..."
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 flex-shrink-0"
+                    onClick={() => {
+                      updateViewConfig({ areaDataSecondaryColumn: undefined });
+                    }}
+                    title="Remove column 2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="col-span-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs w-full justify-start"
+                    onClick={() => {
+                      updateViewConfig({ areaDataSecondaryColumn: undefined });
+                    }}
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Remove bivariate visualization
+                  </Button>
+                </div>
               </>
             )}
 
@@ -519,6 +557,69 @@ export default function VisualisationPanel({
           {!viewConfig.areaDataSecondaryColumn && columnOneIsNumber && (
             <>
               <Label
+                htmlFor="color-scale-type-select"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                Color scale
+              </Label>
+
+              <Select
+                value={viewConfig.colorScaleType || ColorScaleType.Gradient}
+                onValueChange={(value) =>
+                  updateViewConfig({
+                    colorScaleType: value as ColorScaleType,
+                  })
+                }
+              >
+                <SelectTrigger className="w-full" id="color-scale-type-select">
+                  <SelectValue placeholder="Choose color scale...">
+                    {viewConfig.colorScaleType === ColorScaleType.Gradient
+                      ? "Gradient"
+                      : viewConfig.colorScaleType === ColorScaleType.Stepped
+                        ? "Stepped"
+                        : "Gradient"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ColorScaleType.Gradient}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-16 h-3 rounded border border-neutral-300"
+                        style={{
+                          background:
+                            "linear-gradient(to right, #3b82f6, #60a5fa, #93c5fd, #dbeafe)",
+                        }}
+                      />
+                      <span>Gradient</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value={ColorScaleType.Stepped}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-3 rounded border border-neutral-300 overflow-hidden flex">
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#3b82f6" }}
+                        />
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#60a5fa" }}
+                        />
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#93c5fd" }}
+                        />
+                        <div
+                          className="h-full flex-1"
+                          style={{ backgroundColor: "#dbeafe" }}
+                        />
+                      </div>
+                      <span>Stepped</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Label
                 htmlFor="choropleth-color-scheme-select"
                 className="text-sm text-muted-foreground font-normal"
               >
@@ -540,18 +641,73 @@ export default function VisualisationPanel({
                   <SelectValue placeholder="Choose colour scheme..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {CHOROPLETH_COLOR_SCHEMES.map((option, index) => (
-                    <SelectItem
-                      key={index}
-                      value={option.value}
-                      className="flex items-center gap-2"
-                    >
-                      <div className={`w-4 h-4 rounded ${option.color}`} />
-                      <span className="truncate">{option.label}</span>
-                    </SelectItem>
-                  ))}
+                  {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
+                    const isCustom = option.value === ColorScheme.Custom;
+                    const customColorValue = isCustom
+                      ? viewConfig.customColor || "#3b82f6"
+                      : undefined;
+                    return (
+                      <SelectItem
+                        key={index}
+                        value={option.value}
+                        className="flex items-center gap-2"
+                      >
+                        {isCustom && customColorValue ? (
+                          <div
+                            className="w-4 h-4 rounded"
+                            style={{
+                              background: `linear-gradient(to right, white, ${customColorValue})`,
+                            }}
+                          />
+                        ) : (
+                          <div className={`w-4 h-4 rounded ${option.color}`} />
+                        )}
+                        <span className="truncate">{option.label}</span>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+
+              {viewConfig.colorScheme === ColorScheme.Custom && (
+                <>
+                  <Label
+                    htmlFor="custom-color-picker"
+                    className="text-sm text-muted-foreground font-normal"
+                  >
+                    Max color
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
+                      style={{
+                        backgroundColor:
+                          viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
+                      }}
+                    >
+                      <input
+                        type="color"
+                        id="custom-color-picker"
+                        value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
+                        onChange={(e) =>
+                          updateViewConfig({ customColor: e.target.value })
+                        }
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        title="Choose color for max value"
+                      />
+                    </div>
+                    <Input
+                      type="text"
+                      value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
+                      onChange={(e) =>
+                        updateViewConfig({ customColor: e.target.value })
+                      }
+                      className="flex-1"
+                      placeholder={DEFAULT_CUSTOM_COLOR}
+                    />
+                  </div>
+                </>
+              )}
 
               <Label
                 htmlFor="choropleth-color-scheme-switch"
@@ -567,6 +723,17 @@ export default function VisualisationPanel({
                   updateViewConfig({ reverseColorScheme: v })
                 }
               />
+
+              {viewConfig.colorScaleType === ColorScaleType.Stepped && (
+                <>
+                  <Label className="text-sm text-muted-foreground font-normal">
+                    Color steps
+                  </Label>
+                  <div>
+                    <SteppedColorEditor />
+                  </div>
+                </>
+              )}
             </>
           )}
           {!viewConfig.areaDataSecondaryColumn && !columnOneIsNumber && (
@@ -586,21 +753,136 @@ export default function VisualisationPanel({
             Opacity (%)
           </Label>
 
-          <Input
-            id="choropleth-opacity"
-            type="number"
-            min="0"
-            max="100"
-            value={viewConfig.choroplethOpacityPct ?? 80}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              const choroplethOpacityPct = isNaN(v)
-                ? 80
-                : Math.max(0, Math.min(v, 100));
-              updateViewConfig({ choroplethOpacityPct });
-            }}
-          />
+          <div className="flex items-center gap-3">
+            <div className="flex-1 relative">
+              <input
+                type="range"
+                id="choropleth-opacity"
+                min="0"
+                max="100"
+                step="1"
+                value={viewConfig.choroplethOpacityPct ?? 80}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  const choroplethOpacityPct = isNaN(v)
+                    ? 80
+                    : Math.max(0, Math.min(v, 100));
+                  updateViewConfig({ choroplethOpacityPct });
+                }}
+                className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neutral-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-neutral-500 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-sm [&::-moz-range-thumb]:appearance-none"
+                style={{
+                  background: `linear-gradient(to right, #737373 0%, #737373 ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb ${viewConfig.choroplethOpacityPct ?? 80}%, #e5e7eb 100%)`,
+                }}
+              />
+            </div>
+            <Input
+              type="number"
+              min="0"
+              max="100"
+              value={viewConfig.choroplethOpacityPct ?? 80}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                const choroplethOpacityPct = isNaN(v)
+                  ? 80
+                  : Math.max(0, Math.min(v, 100));
+                updateViewConfig({ choroplethOpacityPct });
+              }}
+              className="w-16"
+            />
+          </div>
         </div>
+
+        {/* Bivariate visualization button at the bottom */}
+        {viewConfig.calculationType !== CalculationType.Count &&
+          viewConfig.areaDataSourceId &&
+          viewConfig.areaDataColumn &&
+          columnOneIsNumber &&
+          !viewConfig.areaDataSecondaryColumn && (
+            <div className="col-span-2 mt-6">
+              <div
+                role="button"
+                tabIndex={0}
+                className="w-full border border-neutral-200 rounded-md bg-white hover:bg-neutral-50 cursor-pointer transition-colors p-2"
+                onClick={() => {
+                  // Find the first available numeric column
+                  const dataSource = dataSources?.find(
+                    (ds) => ds.id === viewConfig.areaDataSourceId,
+                  );
+                  const firstNumericColumn = dataSource?.columnDefs
+                    .filter((col) => col.type === ColumnType.Number)
+                    .find((col) => col.name !== viewConfig.areaDataColumn);
+                  if (firstNumericColumn) {
+                    updateViewConfig({
+                      areaDataSecondaryColumn: firstNumericColumn.name,
+                    });
+                  } else {
+                    updateViewConfig({
+                      areaDataSecondaryColumn: undefined,
+                    });
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    // Find the first available numeric column
+                    const dataSource = dataSources?.find(
+                      (ds) => ds.id === viewConfig.areaDataSourceId,
+                    );
+                    const firstNumericColumn = dataSource?.columnDefs
+                      .filter((col) => col.type === ColumnType.Number)
+                      .find((col) => col.name !== viewConfig.areaDataColumn);
+                    if (firstNumericColumn) {
+                      updateViewConfig({
+                        areaDataSecondaryColumn: firstNumericColumn.name,
+                      });
+                    } else {
+                      updateViewConfig({
+                        areaDataSecondaryColumn: undefined,
+                      });
+                    }
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between gap-4 w-full">
+                  <div className="flex flex-col items-start gap-1 min-w-0">
+                    <span className="text-sm font-medium break-words">
+                      Create bivariate visualization
+                    </span>
+                    <span className="text-xs break-words">
+                      Using a second column
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="text-[10px] text-muted-foreground">
+                      Column 1
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="grid grid-cols-3 gap-0.5 border border-neutral-300 rounded p-1.5 bg-white shadow-sm">
+                        {[
+                          ["#e8e8e8", "#ace4e4", "#5ac8c8"],
+                          ["#dfb0d6", "#a5add3", "#5698b9"],
+                          ["#be64ac", "#8c62aa", "#3b4994"],
+                        ]
+                          .reverse()
+                          .map((row, i) =>
+                            row.map((color, j) => (
+                              <div
+                                key={`${i}-${j}`}
+                                className="w-4 h-4 rounded-sm border border-neutral-200"
+                                style={{ backgroundColor: color }}
+                              />
+                            )),
+                          )}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        Column 2 →
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
 
       {/* Modal for data source selection */}
@@ -647,7 +929,10 @@ export default function VisualisationPanel({
                     onClick={() => {
                       const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
                       if (!selectedAreaSetGroup) {
-                        updateViewConfig({ areaDataSourceId: ds.id });
+                        updateViewConfig({
+                          areaDataSourceId: ds.id,
+                          areaDataSecondaryColumn: undefined,
+                        });
                         setIsModalOpen(false);
                         return;
                       }
@@ -656,7 +941,10 @@ export default function VisualisationPanel({
                         dataSource?.geocodingConfig,
                       );
                       if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
-                        updateViewConfig({ areaDataSourceId: ds.id });
+                        updateViewConfig({
+                          areaDataSourceId: ds.id,
+                          areaDataSecondaryColumn: undefined,
+                        });
                         setIsModalOpen(false);
                         return;
                       }

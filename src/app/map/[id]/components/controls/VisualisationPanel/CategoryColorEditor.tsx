@@ -25,6 +25,7 @@ export default function CategoryColorEditor() {
     scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
     isReversed: Boolean(viewConfig.reverseColorScheme),
     categoryColors: viewConfig.categoryColors,
+    customColor: viewConfig.customColor,
   });
 
   // Get unique categories from areaStats
