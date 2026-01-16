@@ -404,6 +404,12 @@ export default function MarkersList({
     return placedMarkers.find((marker) => marker.id === markerId) || null;
   };
 
+  const hasMarkers =
+    membersDataSource ||
+    markerDataSources?.length ||
+    placedMarkers.length ||
+    folders.length;
+
   return (
     <div className="relative pt-2">
       <DndContext
@@ -419,14 +425,12 @@ export default function MarkersList({
           className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
         >
           <div className="flex flex-col gap-1">
-            {!membersDataSource &&
-              (!markerDataSources || markerDataSources.length === 0) &&
-              placedMarkers.length === 0 && (
-                <EmptyLayer
-                  message="Add a Marker Layer"
-                  dropdownItems={dropdownItems}
-                />
-              )}
+            {!hasMarkers && (
+              <EmptyLayer
+                message="Add a Marker Layer"
+                dropdownItems={dropdownItems}
+              />
+            )}
 
             {/* Member data source */}
             {membersDataSource && (

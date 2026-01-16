@@ -1,7 +1,6 @@
 import { ChevronRight, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
-import { useLayers } from "@/app/map/[id]/hooks/useLayers";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
@@ -19,7 +18,6 @@ export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
   const { setBoundariesPanelOpen } = useChoropleth();
-  const {} = useLayers();
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;

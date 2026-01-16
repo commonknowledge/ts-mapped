@@ -14,7 +14,7 @@ import {
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
+import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
 import {
@@ -86,8 +86,9 @@ function IncludeColumnsModal({
         <DialogTrigger asChild>
           <Button variant="outline" className="w-full justify-start">
             {selectedColumns.length > 0
-              ? `${selectedColumns.length} column${selectedColumns.length !== 1 ? "s" : ""
-              } selected`
+              ? `${selectedColumns.length} column${
+                  selectedColumns.length !== 1 ? "s" : ""
+                } selected`
               : "Select columns to include"}
           </Button>
         </DialogTrigger>
@@ -378,12 +379,11 @@ export default function VisualisationPanel({
               </>
             )}
 
-
           {viewConfig.calculationType !== CalculationType.Count &&
             viewConfig.areaDataSourceId &&
             viewConfig.areaDataColumn &&
             columnOneIsNumber &&
-            viewConfig.areaDataSecondaryColumn !== undefined && (
+            viewConfig.areaDataSecondaryColumn && (
               <>
                 <Label
                   htmlFor="choropleth-column-2-select"
@@ -528,9 +528,9 @@ export default function VisualisationPanel({
             selectedColumns={
               viewConfig.includeColumnsString
                 ? viewConfig.includeColumnsString
-                  .split(",")
-                  .map((v) => v.trim())
-                  .filter(Boolean)
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean)
                 : []
             }
             onColumnsChange={(columns) => {
@@ -678,13 +678,14 @@ export default function VisualisationPanel({
                     <div
                       className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
                       style={{
-                        backgroundColor: viewConfig.customColor || "#f73b8c",
+                        backgroundColor:
+                          viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
                       }}
                     >
                       <input
                         type="color"
                         id="custom-color-picker"
-                        value={viewConfig.customColor || "#f73b8c"}
+                        value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
                         onChange={(e) =>
                           updateViewConfig({ customColor: e.target.value })
                         }
@@ -694,12 +695,12 @@ export default function VisualisationPanel({
                     </div>
                     <Input
                       type="text"
-                      value={viewConfig.customColor || "#f73b8c"}
+                      value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
                       onChange={(e) =>
                         updateViewConfig({ customColor: e.target.value })
                       }
                       className="flex-1"
-                      placeholder="#3b82f6"
+                      placeholder={DEFAULT_CUSTOM_COLOR}
                     />
                   </div>
                 </>
@@ -813,7 +814,7 @@ export default function VisualisationPanel({
                     });
                   } else {
                     updateViewConfig({
-                      areaDataSecondaryColumn: NULL_UUID,
+                      areaDataSecondaryColumn: undefined,
                     });
                   }
                 }}
@@ -826,16 +827,14 @@ export default function VisualisationPanel({
                     );
                     const firstNumericColumn = dataSource?.columnDefs
                       .filter((col) => col.type === ColumnType.Number)
-                      .find(
-                        (col) => col.name !== viewConfig.areaDataColumn,
-                      );
+                      .find((col) => col.name !== viewConfig.areaDataColumn);
                     if (firstNumericColumn) {
                       updateViewConfig({
                         areaDataSecondaryColumn: firstNumericColumn.name,
                       });
                     } else {
                       updateViewConfig({
-                        areaDataSecondaryColumn: NULL_UUID,
+                        areaDataSecondaryColumn: undefined,
                       });
                     }
                   }

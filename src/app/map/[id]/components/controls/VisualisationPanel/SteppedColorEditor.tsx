@@ -158,19 +158,24 @@ export default function SteppedColorEditor() {
   const areaStats = areaStatsQuery?.data;
   const [isOpen, setIsOpen] = useState(false);
 
-  const minValue = areaStats?.primary?.minValue ?? 0;
-  const maxValue = areaStats?.primary?.maxValue ?? 100;
+  const minValue = areaStats?.primary?.minValue || 0;
+  const maxValue = areaStats?.primary?.maxValue || 0;
   const colorScheme = viewConfig.colorScheme || ColorScheme.RedBlue;
   const isReversed = Boolean(viewConfig.reverseColorScheme);
+  const customColor = viewConfig.customColor;
 
   // Track previous color scheme to detect changes
   const prevColorSchemeRef = useRef<{
     colorScheme: ColorScheme;
+    customColor: string | undefined;
     isReversed: boolean;
-  }>({ colorScheme, isReversed });
+  }>({ colorScheme, customColor, isReversed });
 
   // Get step ranges (without colors) from config or defaults
   const stepRanges = useMemo(() => {
+    if (minValue === 0 && maxValue === 0) {
+      return [];
+    }
     if (
       viewConfig.steppedColorSteps &&
       viewConfig.steppedColorSteps.length > 0
@@ -202,6 +207,8 @@ export default function SteppedColorEditor() {
     ];
   }, [viewConfig.steppedColorSteps, minValue, maxValue]);
 
+  console.log("step ranges", stepRanges);
+
   // Calculate steps with colors from gradient
   const steps = useMemo(() => {
     const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
@@ -223,19 +230,16 @@ export default function SteppedColorEditor() {
     });
   }, [stepRanges, colorScheme, isReversed, viewConfig.customColor]);
 
-  // Update colors when color scheme, reverse, or custom color changes
+  // Set initial steps, and update colors when color scheme, reverse, or custom color changes
   useEffect(() => {
     const prev = prevColorSchemeRef.current;
     const schemeChanged =
-      prev.colorScheme !== colorScheme || prev.isReversed !== isReversed;
+      prev.colorScheme !== colorScheme ||
+      prev.isReversed !== isReversed ||
+      prev.customColor !== customColor;
 
-    if (
-      (schemeChanged || colorScheme === ColorScheme.Custom) &&
-      stepRanges.length > 0 &&
-      viewConfig.steppedColorSteps &&
-      viewConfig.steppedColorSteps.length > 0
-    ) {
-      prevColorSchemeRef.current = { colorScheme, isReversed };
+    if (schemeChanged || !viewConfig.steppedColorSteps?.length) {
+      prevColorSchemeRef.current = { colorScheme, customColor, isReversed };
       const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
       const numSteps = stepRanges.length;
       const updatedSteps = stepRanges.map((range, index) => {
@@ -255,8 +259,9 @@ export default function SteppedColorEditor() {
     isReversed,
     stepRanges,
     viewConfig.steppedColorSteps,
-    viewConfig.customColor,
     updateViewConfig,
+    customColor,
+    viewConfig.customColor,
   ]);
 
   if (

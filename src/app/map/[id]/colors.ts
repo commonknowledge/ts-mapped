@@ -9,6 +9,19 @@ import {
   interpolateViridis,
   schemeCategory10,
 } from "d3-scale-chromatic";
+import { useMemo } from "react";
+import { DEFAULT_CUSTOM_COLOR } from "@/constants";
+import { ColumnType } from "@/server/models/DataSource";
+import {
+  CalculationType,
+  ColorScaleType,
+  ColorScheme,
+  type SteppedColorStep,
+} from "@/server/models/MapView";
+import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
+import type { CombinedAreaStats } from "./data";
+import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
+import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
 // Simple RGB interpolation helper (white to target color)
 const interpolateWhiteToColor = (targetColor: string) => {
@@ -26,18 +39,6 @@ const interpolateWhiteToColor = (targetColor: string) => {
     return `rgb(${newR}, ${newG}, ${newB})`;
   };
 };
-import { useMemo } from "react";
-import { ColumnType } from "@/server/models/DataSource";
-import {
-  CalculationType,
-  ColorScaleType,
-  ColorScheme,
-  type SteppedColorStep,
-} from "@/server/models/MapView";
-import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
-import type { CombinedAreaStats } from "./data";
-import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
-import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
 export interface CategoricColorScheme {
   columnType: ColumnType.String;
@@ -120,7 +121,7 @@ export const getInterpolator = (
       return interpolateBlues;
     case ColorScheme.Custom:
       // Interpolate from white to custom color
-      const targetColor = customColor || "#3b82f6"; // Default to blue if not provided
+      const targetColor = customColor || DEFAULT_CUSTOM_COLOR;
       return interpolateWhiteToColor(targetColor);
     default:
       return interpolateOrRd;
