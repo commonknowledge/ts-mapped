@@ -15,7 +15,7 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { sortByPositionAndId } from "@/app/map/[id]/utils";
+import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,

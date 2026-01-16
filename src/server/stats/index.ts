@@ -45,7 +45,7 @@ export const getAreaStats = async ({
   calculationType,
   column,
   secondaryColumn,
-  excludeColumns,
+  nullIsZero,
   includeColumns,
   boundingBox = null,
 }: {
@@ -54,7 +54,7 @@ export const getAreaStats = async ({
   calculationType: CalculationType;
   column: string;
   secondaryColumn?: string;
-  excludeColumns: string[];
+  nullIsZero?: boolean;
   includeColumns?: string[] | null;
   boundingBox?: BoundingBox | null;
 }): Promise<AreaStats> => {
@@ -68,7 +68,6 @@ export const getAreaStats = async ({
     const stats = await getMaxColumnByArea(
       areaSetCode,
       dataSourceId,
-      excludeColumns,
       includeColumns,
       boundingBox,
     );
@@ -106,13 +105,14 @@ export const getAreaStats = async ({
       throw new Error(`Data source not found: ${dataSourceId}`);
     }
 
-    const primaryStats = await getColumnValueByArea(
+    const primaryStats = await getColumnValueByArea({
       dataSource,
       areaSetCode,
       calculationType,
       column,
+      nullIsZero,
       boundingBox,
-    );
+    });
     const valueRange = getValueRange(primaryStats.stats);
     areaStats.primary = {
       ...primaryStats,
@@ -123,13 +123,14 @@ export const getAreaStats = async ({
       return areaStats;
     }
 
-    const secondaryStats = await getColumnValueByArea(
+    const secondaryStats = await getColumnValueByArea({
       dataSource,
       areaSetCode,
       calculationType,
-      secondaryColumn,
+      column: secondaryColumn,
+      nullIsZero,
       boundingBox,
-    );
+    });
     const secondaryValueRange = getValueRange(secondaryStats.stats);
     areaStats.secondary = {
       ...secondaryStats,
@@ -145,7 +146,6 @@ export const getAreaStats = async ({
 export const getMaxColumnByArea = async (
   areaSetCode: string,
   dataSourceId: string,
-  excludeColumns: string[],
   includeColumns: string[] | null = null,
   boundingBox: BoundingBox | null = null,
 ) => {
@@ -162,8 +162,7 @@ export const getMaxColumnByArea = async (
         return includeColumns.includes(name);
       }
 
-      // Otherwise, exclude columns in excludeColumns list
-      return !excludeColumns.includes(name);
+      return true;
     })
     .map((c) => c.name);
 
@@ -250,23 +249,36 @@ export const getMaxColumnByArea = async (
   return [];
 };
 
-const getColumnValueByArea = async (
-  dataSource: DataSource,
-  areaSetCode: AreaSetCode,
-  calculationType: CalculationType,
-  column: string,
-  boundingBox: BoundingBox | null,
-) => {
+const getColumnValueByArea = async ({
+  dataSource,
+  areaSetCode,
+  calculationType,
+  column,
+  nullIsZero,
+  boundingBox,
+}: {
+  dataSource: DataSource;
+  areaSetCode: AreaSetCode;
+  calculationType: CalculationType;
+  column: string;
+  nullIsZero: boolean | undefined;
+  boundingBox: BoundingBox | null;
+}) => {
   const columnDef = dataSource.columnDefs.find((c) => c.name === column);
   if (!columnDef) {
     throw new Error(`Data source column not found: ${column}`);
   }
 
+  // Coalesce empty values to 0 if set
+  const numberSelect = nullIsZero
+    ? sql`(COALESCE(NULLIF(json->>${column}, ''), '0'))::float`
+    : sql`(NULLIF(json->>${column}, ''))::float`;
+
   // Select is always MODE for ColumnType !== Number
   const valueSelect =
     columnDef.type !== ColumnType.Number
       ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-      : db.fn(calculationType, [sql`(json->>${column})::float`]).as("value");
+      : db.fn(calculationType, [numberSelect]).as("value");
 
   const query = db
     .selectFrom("dataRecord")

@@ -1,7 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { getDataSourceIds } from "@/app/map/[id]/context/MapContext";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useFoldersQuery } from "@/app/map/[id]/hooks/useFolders";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
@@ -11,6 +10,7 @@ import { DataSourceRecordType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { buildName } from "@/utils/dataRecord";
+import { getDataSourceIds } from "../../utils/map";
 import {
   getMarkersInsidePolygon,
   groupPlacedMarkersByFolder,

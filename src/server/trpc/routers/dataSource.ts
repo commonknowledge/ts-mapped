@@ -245,10 +245,7 @@ export const dataSourceRouter = router({
         input.columnRoles !== undefined ||
         input.enrichments !== undefined ||
         input.geocodingConfig !== undefined ||
-        input.dateFormat !== undefined ||
-        input.public !== undefined ||
-        typeof input.autoEnrich === "boolean" ||
-        typeof input.autoImport === "boolean";
+        input.dateFormat !== undefined;
 
       if (configFieldsChanged) {
         await enqueue("importDataSource", ctx.dataSource.id, {
