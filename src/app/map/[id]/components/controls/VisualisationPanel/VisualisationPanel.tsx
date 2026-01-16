@@ -351,7 +351,10 @@ export default function VisualisationPanel({
                   htmlFor="choropleth-column-1-select"
                   className="text-sm text-muted-foreground font-normal"
                 >
-                  Column 1
+                  {viewConfig.areaDataSecondaryColumn !== undefined &&
+                  viewConfig.areaDataSecondaryColumn !== ""
+                    ? "Column 1"
+                    : "Column"}
                 </Label>
                 <Combobox
                   options={[
@@ -926,7 +929,10 @@ export default function VisualisationPanel({
                     onClick={() => {
                       const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
                       if (!selectedAreaSetGroup) {
-                        updateViewConfig({ areaDataSourceId: ds.id });
+                        updateViewConfig({
+                          areaDataSourceId: ds.id,
+                          areaDataSecondaryColumn: undefined,
+                        });
                         setIsModalOpen(false);
                         return;
                       }
@@ -935,7 +941,10 @@ export default function VisualisationPanel({
                         dataSource?.geocodingConfig,
                       );
                       if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
-                        updateViewConfig({ areaDataSourceId: ds.id });
+                        updateViewConfig({
+                          areaDataSourceId: ds.id,
+                          areaDataSecondaryColumn: undefined,
+                        });
                         setIsModalOpen(false);
                         return;
                       }
