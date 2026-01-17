@@ -139,7 +139,7 @@
     "eslint-config-next": "15.2.2",
     "eslint-plugin-unused-imports": "^4.3.0",
     "jsdom": "^26.1.0",
-    "kysely-ctl": "^0.12.1",
+    "kysely-ctl": "^0.20.0",
     "madge": "^8.0.0",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.5.3",
