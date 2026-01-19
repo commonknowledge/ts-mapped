@@ -201,6 +201,7 @@ export const dataSourceRouter = router({
       const adaptor = getDataSourceAdaptor(ctx.dataSource);
 
       const update = {
+        name: input.name,
         columnRoles: input.columnRoles,
         enrichments: input.enrichments,
         geocodingConfig: input.geocodingConfig,
@@ -239,9 +240,18 @@ export const dataSourceRouter = router({
         `Updated ${ctx.dataSource.config.type} data source config: ${ctx.dataSource.id}`,
       );
 
-      await enqueue("importDataSource", ctx.dataSource.id, {
-        dataSourceId: ctx.dataSource.id,
-      });
+      // Only trigger import if config fields changed (not just name)
+      const configFieldsChanged =
+        input.columnRoles !== undefined ||
+        input.enrichments !== undefined ||
+        input.geocodingConfig !== undefined ||
+        input.dateFormat !== undefined;
+
+      if (configFieldsChanged) {
+        await enqueue("importDataSource", ctx.dataSource.id, {
+          dataSourceId: ctx.dataSource.id,
+        });
+      }
 
       return true;
     }),

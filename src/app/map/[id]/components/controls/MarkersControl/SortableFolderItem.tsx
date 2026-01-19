@@ -7,18 +7,28 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   CornerDownRightIcon,
+  EyeIcon,
+  EyeOffIcon,
   Folder as FolderClosed,
   FolderOpen,
+  PencilIcon,
+  TrashIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-
 import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
 import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
 import ControlEditForm from "../ControlEditForm";
-import ControlHoverMenu from "../ControlHoverMenu";
 import ControlWrapper from "../ControlWrapper";
 import SortableMarkerItem from "./SortableMarkerItem";
 import type { Folder } from "@/server/models/Folder";
@@ -72,6 +82,7 @@ export default function SortableFolderItem({
   const [isExpanded, setExpanded] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(folder.name);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const sortedMarkers = useMemo(() => {
     return sortByPositionAndId(markers);
@@ -85,15 +96,9 @@ export default function SortableFolderItem({
     setExpanded(!isExpanded);
   };
 
-  const onDelete = () => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this folder? This action cannot be undone, and any markers in the folder will be lost.",
-      )
-    ) {
-      return;
-    }
+  const handleDelete = () => {
     deleteFolder(folder.id);
+    setShowDeleteDialog(false);
   };
 
   const onEdit = () => {
@@ -138,26 +143,61 @@ export default function SortableFolderItem({
             onSubmit={onSubmit}
           />
         ) : (
-          <ControlHoverMenu onDelete={() => onDelete()} onEdit={() => onEdit()}>
-            <button
-              ref={isDraggingMarker ? setHeaderNodeRef : null}
-              onClick={() => onClickFolder()}
-              className={cn(
-                "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
-                isHeaderOver ? "bg-blue-50" : "",
-              )}
-            >
-              {isExpanded ? (
-                <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
-              ) : (
-                <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
-              )}
-              <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
-                {sortedMarkers.length}
-              </span>
-              {folder.name}
-            </button>
-          </ControlHoverMenu>
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <button
+                ref={isDraggingMarker ? setHeaderNodeRef : null}
+                onClick={() => onClickFolder()}
+                className={cn(
+                  "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
+                  isHeaderOver ? "bg-blue-50" : "",
+                )}
+                onContextMenu={(e) => {
+                  // Prevent context menu during drag
+                  if (isCurrentlyDragging) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                {isExpanded ? (
+                  <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
+                ) : (
+                  <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
+                )}
+                <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
+                  {sortedMarkers.length}
+                </span>
+                {folder.name}
+              </button>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={onEdit}>
+                <PencilIcon size={12} />
+                Rename
+              </ContextMenuItem>
+              <ContextMenuItem onClick={onVisibilityToggle}>
+                {isFolderVisible ? (
+                  <>
+                    <EyeOffIcon size={12} />
+                    Hide
+                  </>
+                ) : (
+                  <>
+                    <EyeIcon size={12} />
+                    Show
+                  </>
+                )}
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <TrashIcon size={12} />
+                Delete
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         )}
       </ControlWrapper>
 
@@ -199,6 +239,13 @@ export default function SortableFolderItem({
           />
         </>
       )}
+
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        description={`This action cannot be undone. This will permanently delete the folder "${folder.name}" and any markers in the folder will be lost.`}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

@@ -1,5 +1,4 @@
-import { ChartBar, MapPin } from "lucide-react";
-import VectorSquare from "@/components/icons/VectorSquare";
+import { ChartBar, MapPin, VectorSquareIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { useMapControls } from "../hooks/useMapControls";
 import { useHandleDropPin } from "../hooks/usePlacedMarkers";
@@ -54,7 +53,7 @@ export default function MapMarkerAndAreaControls() {
             }`}
             onClick={handleAddAreaClick}
           >
-            <VectorSquare size={20} />
+            <VectorSquareIcon size={20} />
           </button>
         </TooltipTrigger>
         <TooltipContent>Add area</TooltipContent>

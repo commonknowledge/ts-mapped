@@ -5,6 +5,7 @@ import { MapType } from "@/server/models/MapView";
 import { mapColors } from "../../styles";
 import { getMapStyle } from "../../utils/map";
 import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
+import { useChoroplethFeatureStatesEffect } from "./useChoroplethFeatureStatesEffect";
 
 export default function Choropleth() {
   const { viewConfig } = useMapViews();
@@ -18,6 +19,8 @@ export default function Choropleth() {
   // Custom hooks for effects
   const fillColor = useChoroplethAreaStats();
   const opacity = (viewConfig.choroplethOpacityPct ?? 80) / 100;
+
+  useChoroplethFeatureStatesEffect();
 
   return (
     <>

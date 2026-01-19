@@ -4,6 +4,7 @@ import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { LayerType } from "@/types";
 import LayerControlWrapper from "../LayerControlWrapper";
+import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
 import LegendControl from "./LegendControl";
 import { useBoundariesControl } from "./useBoundariesControl";
@@ -20,6 +21,7 @@ export default function BoundariesControl() {
         type={LayerType.Boundary}
         expanded={expanded}
         setExpanded={setExpanded}
+        enableVisibilityToggle={hasDataSource}
       >
         <IconButtonWithTooltip
           tooltip={
@@ -38,6 +40,13 @@ export default function BoundariesControl() {
           {/* <ShapeSelector />
           <Separator />
           <FillSelector /> */}
+          {!hasDataSource && (
+            <EmptyLayer
+              message="Add a data visualisation"
+              onClick={() => setBoundariesPanelOpen(true)}
+              showAsButton
+            />
+          )}
           {hasDataSource && <LegendControl />}
         </div>
       )}

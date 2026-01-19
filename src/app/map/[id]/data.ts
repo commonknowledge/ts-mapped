@@ -89,12 +89,14 @@ export const useAreaStats = () => {
     stats: Record<string, CombinedAreaStat>;
   } | null>();
 
-  const excludeColumns = useMemo(() => {
-    return viewConfig.excludeColumnsString
+  const includeColumns = useMemo(() => {
+    if (!viewConfig.includeColumnsString) return null;
+    const columns = viewConfig.includeColumnsString
       .split(",")
       .map((v) => v.trim())
       .filter(Boolean);
-  }, [viewConfig.excludeColumnsString]);
+    return columns.length > 0 ? columns : null;
+  }, [viewConfig.includeColumnsString]);
 
   // The results of this query aren't used directly, as data for different
   // bounding boxes needs to be added together. Instead, useEffect is used
@@ -108,7 +110,7 @@ export const useAreaStats = () => {
         column: columnOrCount,
         secondaryColumn: secondaryColumn,
         nullIsZero,
-        excludeColumns,
+        includeColumns,
         boundingBox: requiresBoundingBox ? boundingBox : null,
       },
       { enabled: !skipCondition },
@@ -124,7 +126,7 @@ export const useAreaStats = () => {
     column,
     secondaryColumn,
     nullIsZero,
-    excludeColumns,
+    includeColumns,
   ]);
 
   useEffect(() => {

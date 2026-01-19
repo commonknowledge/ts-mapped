@@ -11,7 +11,6 @@ export const createNewViewConfig = (): MapViewConfig => {
     areaDataColumn: "",
     areaDataNullIsZero: true,
     areaSetGroupCode: null,
-    excludeColumnsString: "",
     mapStyleName: MapStyleName.Light,
     showLabels: true,
     showBoundaryOutline: false,

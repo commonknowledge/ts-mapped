@@ -37,7 +37,10 @@ export default function LayerHeader({
   };
 
   return (
-    <div className="flex items-center justify-between relative px-4 py-3">
+    <div
+      className="flex items-center justify-between relative px-4 pt-3"
+      data-layer-type={type}
+    >
       <div className="group flex items-center gap-1">
         <button
           onClick={() => setExpanded(!expanded)}
@@ -65,7 +68,7 @@ export default function LayerHeader({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    className="p-2 rounded bg-neutral-100 hover:neutral-200 cursor-pointer"
+                    className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
                     aria-label="Toggle layer visibility"
                     onClick={() => toggleLayerVisiblity()}
                   >

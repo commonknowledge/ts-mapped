@@ -3,7 +3,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useDataSources,
+  useMarkerDataSources,
+  useMembersDataSource,
+} from "@/app/map/[id]/hooks/useDataSources";
 import {
   useFolderMutations,
   useFoldersQuery,
@@ -12,6 +16,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import {
   useHandleDropPin,
   usePlacedMarkerMutations,
+  usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { mapColors } from "@/app/map/[id]/styles";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
@@ -30,6 +35,9 @@ export default function MarkersControl() {
   const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
   const { handleDropPin } = useHandleDropPin();
   const { data: dataSources } = useDataSources();
+  const { data: placedMarkers = [] } = usePlacedMarkersQuery();
+  const markerDataSources = useMarkerDataSources() || [];
+  const membersDataSource = useMembersDataSource();
   const [expanded, setExpanded] = useState(true);
 
   const createFolder = () => {
@@ -60,7 +68,28 @@ export default function MarkersControl() {
     }, 200);
   };
 
-  const getDataSourceDropdownItems = () => {
+  const getMemberDataSourceDropdownItems = () => {
+    const memberDataSources =
+      dataSources?.filter((dataSource) => {
+        return dataSource.recordType === DataSourceRecordType.Members;
+      }) || [];
+
+    return memberDataSources.map((dataSource) => {
+      const selected = dataSource.id === mapConfig.membersDataSourceId;
+      return {
+        type: "item" as const,
+        icon: selected ? <Check /> : null,
+        label: dataSource.name,
+        onClick: () => {
+          updateMapConfig({
+            membersDataSourceId: selected ? null : dataSource.id,
+          });
+        },
+      };
+    });
+  };
+
+  const getMarkerDataSourceDropdownItems = () => {
     const markerDataSources =
       dataSources?.filter((dataSource) => {
         return dataSource.recordType !== DataSourceRecordType.Members;
@@ -110,13 +139,29 @@ export default function MarkersControl() {
     },
     {
       type: "submenu" as const,
+      label: "Add Member Collection",
+      icon: <CollectionIcon color={mapColors.member.color} />,
+      items: [
+        ...getMemberDataSourceDropdownItems(),
+        ...(getMemberDataSourceDropdownItems().length > 0
+          ? [{ type: "separator" as const }]
+          : []),
+        {
+          type: "item" as const,
+          label: "Add new data source",
+          onClick: () => router.push("/data-sources/new"),
+        },
+      ],
+    },
+    {
+      type: "submenu" as const,
       label: "Add Marker Collection",
       icon: <CollectionIcon color={mapColors.markers.color} />,
       items: [
-        ...getDataSourceDropdownItems(),
-        {
-          type: "separator" as const,
-        },
+        ...getMarkerDataSourceDropdownItems(),
+        ...(getMarkerDataSourceDropdownItems().length > 0
+          ? [{ type: "separator" as const }]
+          : []),
         {
           type: "item" as const,
           label: "Add new data source",
@@ -142,6 +187,11 @@ export default function MarkersControl() {
         type={LayerType.Marker}
         expanded={expanded}
         setExpanded={setExpanded}
+        enableVisibilityToggle={Boolean(
+          placedMarkers.length > 0 ||
+            markerDataSources.length > 0 ||
+            membersDataSource,
+        )}
       >
         {loading && <LoaderPinwheel className="animate-spin" size={16} />}
         <IconButtonWithTooltip
@@ -155,8 +205,8 @@ export default function MarkersControl() {
         </IconButtonWithTooltip>
       </LayerHeader>
       {expanded && (
-        <div className="px-4 pb-3">
-          <MarkersList />
+        <div className="px-4 pb-6">
+          <MarkersList dropdownItems={getDropdownItems()} />
         </div>
       )}
     </LayerControlWrapper>
