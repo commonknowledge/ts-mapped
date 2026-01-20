@@ -174,8 +174,7 @@ export default function SteppedColorEditor() {
     const currentDataSourceId = areaStats?.dataSourceId;
 
     const columnChanged =
-      prevColumnRef.current !== null &&
-      prevColumnRef.current !== currentColumn;
+      prevColumnRef.current !== null && prevColumnRef.current !== currentColumn;
     const dataSourceChanged =
       prevDataSourceIdRef.current !== null &&
       prevDataSourceIdRef.current !== currentDataSourceId;
@@ -242,7 +241,7 @@ export default function SteppedColorEditor() {
 
     // Check if we have steps that match the current data range
     const steps = viewConfig.steppedColorSteps;
-    
+
     if (steps && steps.length > 0) {
       // Strict validation: ALL steps must be completely within [minValue, maxValue]
       // No tolerance - if any step is outside, reject all steps
@@ -252,7 +251,7 @@ export default function SteppedColorEditor() {
           step.end <= maxValue &&
           step.start <= step.end,
       );
-      
+
       // Check boundaries match exactly (with tiny tolerance only for floating point precision)
       const tolerance = 0.00001;
       const firstStep = steps[0];
@@ -272,7 +271,7 @@ export default function SteppedColorEditor() {
       }
       // If validation fails, fall through to defaults below
     }
-    
+
     // Default: 3 steps evenly distributed (fall through if no steps or invalid)
 
     // Default: 3 steps evenly distributed
@@ -312,13 +311,13 @@ export default function SteppedColorEditor() {
     }
 
     const configSteps = viewConfig.steppedColorSteps;
-    
+
     // If we have steps in config, validate them strictly
     if (configSteps && configSteps.length > 0) {
       const tolerance = 0.00001;
       const firstStep = configSteps[0];
       const lastStep = configSteps[configSteps.length - 1];
-      
+
       // Strict check: ALL steps must be within [minValue, maxValue]
       const allStepsInRange = configSteps.every(
         (step) =>
@@ -326,7 +325,7 @@ export default function SteppedColorEditor() {
           step.end <= maxValue &&
           step.start <= step.end,
       );
-      
+
       const boundariesMatch =
         firstStep &&
         lastStep &&
@@ -338,15 +337,16 @@ export default function SteppedColorEditor() {
         updateViewConfig({ steppedColorSteps: steps });
         return;
       }
-      
+
       // If steps are valid, check if colors need updating (e.g., reverse or color scheme changed)
       // Compare colors to see if they've changed
-      const colorsChanged = configSteps.length === steps.length &&
+      const colorsChanged =
+        configSteps.length === steps.length &&
         configSteps.some((step, index) => {
           const computedStep = steps[index];
           return computedStep && step.color !== computedStep.color;
         });
-      
+
       if (colorsChanged) {
         // Update colors while keeping the same ranges
         updateViewConfig({ steppedColorSteps: steps });
@@ -355,7 +355,13 @@ export default function SteppedColorEditor() {
       // No steps in config, set initial defaults
       updateViewConfig({ steppedColorSteps: steps });
     }
-  }, [steps, updateViewConfig, viewConfig.steppedColorSteps, minValue, maxValue]);
+  }, [
+    steps,
+    updateViewConfig,
+    viewConfig.steppedColorSteps,
+    minValue,
+    maxValue,
+  ]);
 
   // Track previous min/max to detect range changes
   const prevMinMaxRef = useRef<{ min: number; max: number } | null>(null);
@@ -384,7 +390,7 @@ export default function SteppedColorEditor() {
     // Always update localSteps to match computed steps
     // Computed steps are already validated in stepRanges to be within [minValue, maxValue]
     setLocalSteps([...steps]);
-    
+
     // Update ref to track current range
     prevMinMaxRef.current = { min: minValue, max: maxValue };
   }, [isOpen, steps, minValue, maxValue]);

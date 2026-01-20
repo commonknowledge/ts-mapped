@@ -485,7 +485,7 @@ export default function VisualisationPanel({
 
           {viewConfig.calculationType !== CalculationType.Count &&
             columnOneIsNumber && (
-              <div className="col-span-2 flex items-center gap-2" >
+              <div className="col-span-2 flex items-center gap-2">
                 <Label
                   htmlFor="choropleth-empty-zero-switch"
                   className="text-sm text-muted-foreground font-normal"
@@ -571,7 +571,10 @@ export default function VisualisationPanel({
                   })
                 }
               >
-                <SelectTrigger className="w-full min-w-0" id="color-scale-type-select">
+                <SelectTrigger
+                  className="w-full min-w-0"
+                  id="color-scale-type-select"
+                >
                   <SelectValue placeholder="Choose color scale...">
                     {viewConfig.colorScaleType === ColorScaleType.Gradient
                       ? "Gradient"
