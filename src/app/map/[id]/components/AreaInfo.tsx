@@ -1,11 +1,19 @@
+import * as turf from "@turf/turf";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { XIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo, useState } from "react";
 
+import { AreaSetCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/shadcn/ui/context-menu";
 import {
   Table,
   TableBody,
@@ -14,14 +22,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
 
 import { selectedAreasAtom } from "../atoms/selectedAreasAtom";
 import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
+import { useChoropleth } from "../hooks/useChoropleth";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
+import { useMapRef } from "../hooks/useMapCore";
 import { useHoverArea } from "../hooks/useMapHover";
+import { useInspector } from "../hooks/useInspector";
 import { useMapViews } from "../hooks/useMapViews";
+import type { AreaSetCode } from "@/server/models/AreaSet";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 
 const getDisplayValue = (
   calculationType: CalculationType | null | undefined,
@@ -68,19 +82,23 @@ const toRGBA = (expressionResult: unknown) => {
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
 
-export default function AreaInfo() {
+export default function AreaInfo({
+  onStopAdding,
+  compareModeEnabled = true,
+}: {
+  onStopAdding?: () => void;
+  compareModeEnabled?: boolean;
+}) {
   const [hoverArea] = useHoverArea();
-  const [hoveredRowArea, setHoveredRowArea] = useState<{
-    code: string;
-    areaSetCode: string;
-    name: string;
-    coordinates: [number, number];
-  } | null>(null);
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
+  const [isExpanded, setIsExpanded] = useState(true);
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
+  const { setSelectedBoundary } = useInspector();
+  const mapRef = useMapRef();
+  const { choroplethLayerConfig } = useChoropleth();
 
   const fillColor = useFillColor({
     areaStats,
@@ -109,45 +127,9 @@ export default function AreaInfo() {
       });
     }
 
-    // Add hover area only if it's not already in selected areas
-    if (hoverArea) {
-      const isHoverAreaSelected = selectedAreas.some(
-        (a) =>
-          a.code === hoverArea.code && a.areaSetCode === hoverArea.areaSetCode,
-      );
-      if (!isHoverAreaSelected) {
-        areas.push({
-          code: hoverArea.code,
-          name: hoverArea.name,
-          areaSetCode: hoverArea.areaSetCode,
-          coordinates: hoverArea.coordinates,
-          isSelected: false,
-        });
-      }
-    }
-
-    // Add hovered row area even if it's no longer in hoverArea
-    if (hoveredRowArea) {
-      const isAreaAlreadyDisplayed = areas.some(
-        (a) =>
-          a.code === hoveredRowArea.code &&
-          a.areaSetCode === hoveredRowArea.areaSetCode,
-      );
-      if (!isAreaAlreadyDisplayed) {
-        areas.push({
-          code: hoveredRowArea.code,
-          name: hoveredRowArea.name,
-          areaSetCode: hoveredRowArea.areaSetCode,
-          coordinates: hoveredRowArea.coordinates,
-          isSelected: false,
-        });
-      }
-    }
-
     return areas;
-  }, [selectedAreas, hoverArea, hoveredRowArea]);
+  }, [selectedAreas]);
 
-  const multipleAreas = selectedAreas.length > 1;
   const hasSecondaryData = Boolean(viewConfig.areaDataSecondaryColumn);
 
   const statLabel = areaStats
@@ -223,161 +205,361 @@ export default function AreaInfo() {
     return null;
   }
 
+  // Get boundary type label from the first area's areaSetCode
+  // If no areas but compare mode is active, try to get label from hoverArea
+  const boundaryTypeLabel = areasToDisplay.length > 0
+    ? AreaSetCodeLabels[areasToDisplay[0].areaSetCode as AreaSetCode] || areasToDisplay[0].areaSetCode
+    : (compareModeEnabled && hoverArea)
+      ? AreaSetCodeLabels[hoverArea.areaSetCode as AreaSetCode] || hoverArea.areaSetCode
+      : "";
+
+  // Show the component when there are areas OR when compare mode is enabled
+  const shouldShow = areasToDisplay.length > 0 || compareModeEnabled;
+
   return (
     <AnimatePresence mode="wait">
-      {areasToDisplay.length > 0 && (
+      {shouldShow && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15, type: "tween" }}
-          className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto"
+          className="rounded py-1 relative pointer-events-auto"
         >
-          {selectedAreas.length > 0 && (
-            <button
-              className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
-              aria-label="Clear selected areas"
-              onClick={() => setSelectedAreas([])}
-            >
-              <XIcon
-                size={16}
-                className="text-neutral-600 hover:text-neutral-900"
-              />
-            </button>
-          )}
-          <Table
-            className="border-none"
-            style={{ tableLayout: "auto", width: "auto" }}
-          >
-            {multipleAreas && (
-              <TableHeader className="">
-                <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-                  <TableHead className="py-2 px-3 text-left h-8" />
-                  <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8">
-                    {statLabel}
-                  </TableHead>
-                  {hasSecondaryData && (
-                    <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8">
-                      {viewConfig.areaDataSecondaryColumn}
-                    </TableHead>
-                  )}
-                </TableRow>
-              </TableHeader>
+          {/* Header with better hierarchy */}
+          <div className="flex items-center justify-between gap-2 px-1 py-2 border-b bg-neutral-50">
+            <div className="flex items-center gap-2 flex-1">
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                aria-label={isExpanded ? "Collapse comparison areas" : "Expand comparison areas"}
+              >
+                {isExpanded ? (
+                  <ChevronUp size={16} className="text-neutral-600" />
+                ) : (
+                  <ChevronDown size={16} className="text-neutral-600" />
+                )}
+              </button>
+              <div className="flex flex-col">
+                <h2 className="text-sm font-semibold">
+                  Comparison Areas
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {selectedAreas.length} {selectedAreas.length === 1 ? "area" : "areas"} selected
+                </span>
+              </div>
+            </div>
+            {selectedAreas.length > 0 && (
+              <button
+                className="flex items-center gap-1.5 px-2 py-1 text-xs text-muted-foreground hover:text-destructive hover:bg-neutral-200 rounded transition-colors"
+                aria-label="Clear all comparison areas"
+                onClick={() => setSelectedAreas([])}
+                title="Clear all comparison areas"
+              >
+                <XIcon size={14} />
+                <span>Clear</span>
+              </button>
             )}
-            <TableBody>
-              {areasToDisplay.map((area) => {
-                const areaStat =
-                  areaStats.areaSetCode === area.areaSetCode
-                    ? areaStats.stats.find((s) => s.areaCode === area.code)
-                    : null;
+          </div>
 
-                const primaryValue = areaStat
-                  ? getDisplayValue(
-                      areaStats.calculationType,
-                      areaStats.primary,
-                      areaStat.primary,
-                    )
-                  : "-";
-                const secondaryValue = areaStat
-                  ? getDisplayValue(
-                      areaStats.calculationType,
-                      areaStats.secondary,
-                      areaStat.secondary,
-                    )
-                  : "-";
-
-                return (
-                  <TableRow
-                    key={`${area.areaSetCode}-${area.code}`}
-                    className={`border-none font-medium my-1 ${
-                      area.isSelected
-                        ? "hover:bg-neutral-50 cursor-pointer"
-                        : "cursor-default"
-                    }`}
-                    style={
-                      area.isSelected
-                        ? { borderLeft: "4px solid var(--brandGreen)" }
-                        : undefined
-                    }
-                    onMouseEnter={() => {
-                      if (!area.isSelected) {
-                        setHoveredRowArea(area);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredRowArea(null);
-                    }}
-                    onClick={() => {
-                      if (area.isSelected) {
-                        // Remove from selected areas
-                        setSelectedAreas(
-                          selectedAreas.filter(
-                            (a) =>
-                              !(
-                                a.code === area.code &&
-                                a.areaSetCode === area.areaSetCode
-                              ),
-                          ),
-                        );
-                      } else {
-                        // Add to selected areas
-                        setSelectedAreas([
-                          ...selectedAreas,
-                          {
-                            code: area.code,
-                            name: area.name,
-                            areaSetCode: area.areaSetCode,
-                            coordinates: area.coordinates,
-                          },
-                        ]);
-                      }
-                    }}
-                  >
-                    <TableCell className="py-2 px-3 truncate h-8">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-4 h-4 rounded flex-shrink-0"
-                          style={{ backgroundColor: getAreaColor(area) }}
-                        />
-                        <span className="truncate">{area.name}</span>
-                      </div>
-                    </TableCell>
-                    {!multipleAreas && (
-                      <TableCell className="px-2 py-2 h-8">
-                        <div className="w-px bg-neutral-200 h-full" />
-                      </TableCell>
-                    )}
-                    <TableCell className="py-2 px-3 whitespace-normal h-8">
-                      {!multipleAreas ? (
-                        <div className="flex flex-row justify-center items-center text-right">
-                          <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                            {statLabel}:
-                          </span>
-                          <span>{primaryValue}</span>
-                        </div>
-                      ) : (
-                        primaryValue
+          {/* Collapsible content */}
+          {isExpanded && (
+            <div className="pt-2">
+              <Table
+                className="border-none w-full"
+                style={{ tableLayout: "auto", width: "100%" }}
+              >
+                {compareModeEnabled && (
+                  <TableHeader className="">
+                    <TableRow className="border-none hover:bg-transparent uppercase font-mono">
+                      <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8 w-full">
+                        {boundaryTypeLabel}
+                      </TableHead>
+                      <TableHead className="py-2 px-3 text-muted-foreground text-xs text-right h-8 whitespace-nowrap w-auto">
+                        {statLabel}
+                      </TableHead>
+                      {hasSecondaryData && (
+                        <TableHead className="py-2 px-3 text-muted-foreground text-xs text-right h-8 whitespace-nowrap w-auto">
+                          {viewConfig.areaDataSecondaryColumn}
+                        </TableHead>
                       )}
-                    </TableCell>
-                    {hasSecondaryData && (
-                      <TableCell className="py-2 px-3 whitespace-normal h-8">
-                        {!multipleAreas ? (
-                          <div className="flex flex-row justify-center items-center text-right">
-                            <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                              {viewConfig.areaDataSecondaryColumn}:
+                    </TableRow>
+                  </TableHeader>
+                )}
+                <TableBody>
+                  {areasToDisplay.map((area) => {
+                    const areaStat =
+                      areaStats.areaSetCode === area.areaSetCode
+                        ? areaStats.stats.find((s) => s.areaCode === area.code)
+                        : null;
+
+                    const primaryValue = areaStat
+                      ? getDisplayValue(
+                          areaStats.calculationType,
+                          areaStats.primary,
+                          areaStat.primary,
+                        )
+                      : "-";
+                    const secondaryValue = areaStat
+                      ? getDisplayValue(
+                          areaStats.calculationType,
+                          areaStats.secondary,
+                          areaStat.secondary,
+                        )
+                      : "-";
+
+                    const handleMakeSelected = () => {
+                      setSelectedBoundary({
+                        id: area.code,
+                        areaCode: area.code,
+                        areaSetCode: area.areaSetCode as AreaSetCode,
+                        sourceLayerId: choroplethLayerConfig.mapbox.layerId,
+                        name: area.name,
+                        properties: null,
+                      });
+                    };
+
+                    const handleFlyTo = () => {
+                      const map = mapRef?.current;
+                      if (!map) return;
+
+                      const { sourceId, layerId, featureCodeProperty } = choroplethLayerConfig.mapbox;
+
+                      // Query all features in the source to find the one matching this area code
+                      const source = map.getSource(sourceId);
+                      if (source && source.type === "vector") {
+                        // For vector sources, query by property
+                        const features = map.querySourceFeatures(sourceId, {
+                          sourceLayer: layerId,
+                          filter: ["==", ["get", featureCodeProperty], area.code],
+                        });
+                        
+                        if (features.length > 0) {
+                          const feature = features[0];
+                          if (feature.geometry.type === "Polygon" || feature.geometry.type === "MultiPolygon") {
+                            const bbox = turf.bbox(feature as Feature<Polygon | MultiPolygon>);
+                            map.fitBounds(
+                              [
+                                [bbox[0], bbox[1]],
+                                [bbox[2], bbox[3]],
+                              ],
+                              {
+                                padding: 50,
+                                duration: 1000,
+                              },
+                            );
+                          } else if (feature.geometry.type === "Point") {
+                            const [lng, lat] = feature.geometry.coordinates;
+                            map.flyTo({
+                              center: [lng, lat],
+                              zoom: 12,
+                            });
+                          }
+                        } else {
+                          // Fallback: use coordinates if available
+                          if (area.coordinates) {
+                            map.flyTo({
+                              center: area.coordinates,
+                              zoom: 12,
+                            });
+                          }
+                        }
+                      } else {
+                        // Fallback: use coordinates if available
+                        if (area.coordinates) {
+                          map.flyTo({
+                            center: area.coordinates,
+                            zoom: 12,
+                          });
+                        }
+                      }
+                    };
+
+                    const handleRemove = () => {
+                      setSelectedAreas(
+                        selectedAreas.filter(
+                          (a) =>
+                            !(
+                              a.code === area.code &&
+                              a.areaSetCode === area.areaSetCode
+                            ),
+                        ),
+                      );
+                    };
+
+                    return (
+                      <ContextMenu key={`${area.areaSetCode}-${area.code}`}>
+                        <ContextMenuTrigger asChild>
+                          <TableRow
+                            className="border-none font-medium my-1 cursor-pointer hover:bg-neutral-50"
+                            style={
+                              area.isSelected
+                                ? { borderLeft: "4px solid var(--brandGreen)" }
+                                : undefined
+                            }
+                            onClick={handleMakeSelected}
+                          >
+                            <TableCell className="py-2 px-3 h-8 min-w-0 w-full">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div
+                                  className="w-4 h-4 rounded flex-shrink-0"
+                                  style={{ backgroundColor: getAreaColor(area) }}
+                                />
+                                <span className="truncate min-w-0">{area.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                              {primaryValue}
+                            </TableCell>
+                            {hasSecondaryData && (
+                              <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                                {secondaryValue}
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                          <ContextMenuItem onClick={handleMakeSelected}>
+                            Make selected area
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={handleFlyTo}>
+                            <MapPin size={14} className="mr-2" />
+                            Fly to this area
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={handleRemove} className="text-destructive">
+                            <XIcon size={14} className="mr-2" />
+                            Remove from list
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
+                    );
+                  })}
+                  
+                  {/* Placeholder row for hovered area preview - always at bottom */}
+                  {compareModeEnabled && (() => {
+                    const hasHoverArea = hoverArea && !selectedAreas.some(
+                      (a) =>
+                        a.code === hoverArea.code &&
+                        a.areaSetCode === hoverArea.areaSetCode,
+                    );
+
+                    if (hasHoverArea) {
+                      const hoveredAreaStat =
+                        areaStats.areaSetCode === hoverArea.areaSetCode
+                          ? areaStats.stats.find(
+                              (s) => s.areaCode === hoverArea.code,
+                            )
+                          : null;
+                      const hoveredPrimaryValue = hoveredAreaStat
+                        ? getDisplayValue(
+                            areaStats.calculationType,
+                            areaStats.primary,
+                            hoveredAreaStat.primary,
+                          )
+                        : "-";
+                      const hoveredSecondaryValue = hoveredAreaStat
+                        ? getDisplayValue(
+                            areaStats.calculationType,
+                            areaStats.secondary,
+                            hoveredAreaStat.secondary,
+                          )
+                        : "-";
+                      const hoveredAreaColor = hoveredAreaStat
+                        ? getAreaColor({
+                            code: hoverArea.code,
+                            areaSetCode: hoverArea.areaSetCode,
+                          })
+                        : "rgba(200, 200, 200, 1)";
+
+                      return (
+                        <TableRow className="border-t-2 border-dashed border-neutral-300 bg-neutral-50/50">
+                          <TableCell className="py-2 px-3 h-8 min-w-0 w-full">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div
+                                className="w-4 h-4 rounded flex-shrink-0 border-2 border-dashed border-neutral-400"
+                                style={{ backgroundColor: hoveredAreaColor }}
+                              />
+                              <span className="text-muted-foreground italic truncate min-w-0">
+                                {hoverArea.name}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                            <span className="text-muted-foreground italic">
+                              {hoveredPrimaryValue}
                             </span>
-                            <span>{secondaryValue}</span>
+                          </TableCell>
+                          {hasSecondaryData && (
+                            <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                              <span className="text-muted-foreground italic">
+                                {hoveredSecondaryValue}
+                              </span>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                    }
+
+                    // Show placeholder when no area is hovered
+                    return (
+                      <TableRow className="border-t-2 border-dashed border-neutral-300 bg-neutral-50/50">
+                        <TableCell className="py-2 px-3 h-8 min-w-0 w-full">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-4 h-4 rounded flex-shrink-0 border-2 border-dashed border-neutral-300 bg-neutral-100" />
+                            <span className="text-muted-foreground italic text-sm truncate min-w-0">
+                              Hover over area to preview
+                            </span>
                           </div>
-                        ) : (
-                          secondaryValue
+                        </TableCell>
+                        <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                          <span className="text-muted-foreground italic text-sm">-</span>
+                        </TableCell>
+                        {hasSecondaryData && (
+                          <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                            <span className="text-muted-foreground italic text-sm">-</span>
+                          </TableCell>
                         )}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      </TableRow>
+                    );
+                  })()}
+              </TableBody>
+            </Table>
+            
+            {/* Toggle button at bottom */}
+            {compareModeEnabled !== undefined && (  
+              <div className="px-3 py-2 ">
+                <button
+                  className={cn(
+                    "w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-sm font-medium transition-colors",
+                    compareModeEnabled
+                      ? "bg-red-50 text-red-600 hover:bg-red-100"
+                      : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300",
+                  )}
+                  onClick={() => {
+                    if (onStopAdding) {
+                      onStopAdding();
+                    }
+                  }}
+                  title={
+                    compareModeEnabled
+                      ? "Stop adding areas to list"
+                      : "Start adding areas to list"
+                  }
+                >
+                  {compareModeEnabled ? (
+                    <>
+                      <span>Stop adding to list</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Add to list</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

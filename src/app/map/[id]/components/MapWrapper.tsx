@@ -1,7 +1,6 @@
 import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
-import { useInspector } from "../hooks/useInspector";
 import {
   useCompareGeographiesMode,
   useMapControls,
@@ -9,7 +8,6 @@ import {
 } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
-import AreaInfo from "./AreaInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
@@ -27,8 +25,6 @@ export default function MapWrapper({
 }) {
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
-  const { inspectorContent } = useInspector();
-  const inspectorVisible = Boolean(inspectorContent);
   const compareGeographiesMode = useCompareGeographiesMode();
   const {
     pinDropMode,
@@ -87,7 +83,7 @@ export default function MapWrapper({
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
 
-      <div
+      {/* <div
         className="absolute top-5 left-1/2 z-10 transition-transform duration-300 hidden md:block"
         style={{
           ...absolutelyCenter,
@@ -98,7 +94,7 @@ export default function MapWrapper({
         }}
       >
         <AreaInfo />
-      </div>
+      </div> */}
 
       <div
         className="absolute bottom-8 left-8 z-10 transition-transform duration-300 hidden md:block"
