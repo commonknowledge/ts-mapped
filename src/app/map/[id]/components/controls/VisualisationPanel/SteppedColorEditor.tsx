@@ -244,11 +244,6 @@ export default function SteppedColorEditor() {
   const hasValidRange = maxValue > minValue;
 
   // Create a key that changes when data source, column, or range changes
-  const dataKey = useMemo(() => {
-    if (!hasValidRange) return null;
-    return `${areaStats?.dataSourceId}-${areaStats?.primary?.column}-${minValue}-${maxValue}`;
-  }, [areaStats?.dataSourceId, areaStats?.primary?.column, minValue, maxValue, hasValidRange]);
-
   // Compute valid steps from config or create defaults
   const validSteps = useMemo(() => {
     if (!hasValidRange) return [];
