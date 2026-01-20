@@ -4,7 +4,7 @@ import { decodeJWT } from "./auth/jwt";
 import { DEV_NEXT_PUBLIC_BASE_URL } from "./constants";
 import type { NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const headersList = await headers();
   const host = headersList.get("x-forwarded-host") || headersList.get("host");
 
