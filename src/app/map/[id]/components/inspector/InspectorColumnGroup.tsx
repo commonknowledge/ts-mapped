@@ -87,7 +87,7 @@ export default function InspectorColumnGroup({
     return String(rawValue);
   };
 
-  // Get all numeric values in the group to determine if they should be treated as percentages
+  // Get all numeric values in the group for scaling progress bars
   const getAllNumericValues = useMemo(() => {
     if (!dataRecord?.json) return [];
     const values: number[] = [];
@@ -105,14 +105,6 @@ export default function InspectorColumnGroup({
     return values;
   }, [columns, dataRecord]);
 
-  // Check if ALL values are between 0-1 (percentage range)
-  const allValuesArePercentages = useMemo(() => {
-    if (settings?.isPercentage) return true;
-    if (getAllNumericValues.length === 0) return false;
-    // Only treat as percentages if ALL values are between 0 and 1
-    return getAllNumericValues.every(v => v >= 0 && v <= 1);
-  }, [getAllNumericValues, settings?.isPercentage]);
-
   // Get min and max values for scaling progress bars
   const { minValue, maxValue } = useMemo(() => {
     if (getAllNumericValues.length === 0) {
@@ -125,6 +117,7 @@ export default function InspectorColumnGroup({
 
   const shouldShowAsPercentage = (column: ColumnDef, value: number | string | boolean | null) => {
     // Only show as percentage if explicitly enabled in settings
+    // Default behavior: show actual values (0.5, 0.8, etc.) not percentages
     if (!settings?.isPercentage) {
       return false;
     }
@@ -199,7 +192,7 @@ export default function InspectorColumnGroup({
     });
 
     return data.length > 0 ? data : null;
-  }, [columns, dataRecord, settings, allValuesArePercentages]);
+  }, [columns, dataRecord, settings]);
 
   // Color palette for bars
   const barColors = [
@@ -395,18 +388,19 @@ export default function InspectorColumnGroup({
               normalizedValue = getScaledValue(numericValue);
             }
             
-            // Step 2: Apply percentage conversion ONLY if explicitly enabled
+            // Step 2: Apply percentage conversion ONLY if explicitly enabled in settings
+            // Default: show actual values (0.5, 0.8, 1, 2, etc.) - NOT as percentages
             const isPercentage = settings?.isPercentage && shouldShowAsPercentage(column, numericValue);
             let displayValue: string;
             let barWidth: number = 0; // Width for progress bar (0-100 range)
             
             if (isPercentage) {
-              // Show as percentage - only if explicitly enabled
+              // Show as percentage - ONLY when explicitly enabled in group settings
               const percentageValue = numericValue * 100;
               displayValue = `${Math.round(percentageValue * 10) / 10}%`;
               barWidth = percentageValue; // Already 0-100 range
             } else {
-              // Regular number - show ACTUAL raw value
+              // Default: show ACTUAL raw value (0.5, 0.8, 1, 2, etc.)
               displayValue = formatNumber(numericValue);
               
               // Calculate bar width based on data range or settings

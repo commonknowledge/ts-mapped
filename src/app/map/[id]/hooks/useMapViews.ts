@@ -214,7 +214,13 @@ export function useMapViews() {
         viewConfig.areaSetGroupCode = AreaSetGroupCode.WMC24;
       }
 
-      return updateView({ ...view, config: { ...view.config, ...viewConfig } });
+      // Ensure excludeColumnsString has a default value if not provided
+      const mergedConfig = { ...view.config, ...viewConfig };
+      if (mergedConfig.excludeColumnsString === undefined) {
+        mergedConfig.excludeColumnsString = "";
+      }
+
+      return updateView({ ...view, config: mergedConfig });
     },
     [updateView, view],
   );
