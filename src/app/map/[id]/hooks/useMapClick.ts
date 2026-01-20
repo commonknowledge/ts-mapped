@@ -383,7 +383,8 @@ export function useMapClickEffect({
         return;
       }
 
-      resetInspector();
+      // Don't reset inspector when clicking on empty space - preserve current selection
+      // resetInspector();
     };
 
     map.on("click", onClick);

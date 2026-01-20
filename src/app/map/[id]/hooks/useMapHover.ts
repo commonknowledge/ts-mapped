@@ -71,18 +71,19 @@ export function useMapHoverEffect({
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "c" || e.key === "C") && !e.repeat) {
         setCompareGeographiesMode(true);
-        const canvas = map.getCanvas();
-        if (canvas.style.cursor === "pointer") {
-          canvas.style.cursor = "copy";
-        }
+        // Don't set cursor here - let the hover handler manage it
       }
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === "c" || e.key === "C") {
         setCompareGeographiesMode(false);
+        // Reset cursor when exiting compare mode if not hovering over an area
         const canvas = map.getCanvas();
-        if (canvas.style.cursor === "copy") {
+        if (canvas.style.cursor === "copy" && hoveredFeatureId === undefined) {
+          canvas.style.cursor = prevPointer.cursor || "";
+        } else if (canvas.style.cursor === "copy") {
+          // If hovering over an area, change to pointer
           canvas.style.cursor = "pointer";
         }
       }
@@ -113,6 +114,14 @@ export function useMapHoverEffect({
 
       // Clear area hover if mouse is not over any feature
       clearAreaHover();
+      
+      // Reset cursor when not hovering over an area (especially important in compare mode)
+      if (
+        map.getCanvas().style.cursor === "pointer" ||
+        map.getCanvas().style.cursor === "copy"
+      ) {
+        map.getCanvas().style.cursor = prevPointer.cursor || "";
+      }
     };
 
     const onMouseLeave = () => {
@@ -121,7 +130,13 @@ export function useMapHoverEffect({
       if (pinDropModeRef.current || editAreaModeRef.current) {
         map.getCanvas().style.cursor = "crosshair";
       } else {
-        map.getCanvas().style.cursor = prevPointer.cursor;
+        // Reset cursor when mouse leaves the map
+        if (
+          map.getCanvas().style.cursor === "pointer" ||
+          map.getCanvas().style.cursor === "copy"
+        ) {
+          map.getCanvas().style.cursor = prevPointer.cursor || "";
+        }
       }
     };
 

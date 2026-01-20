@@ -1,9 +1,9 @@
 import * as turf from "@turf/turf";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtom } from "jotai";
-import { ChevronDown, ChevronUp, MapPin, XIcon } from "lucide-react";
+import { MapPin, XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { AreaSetCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
@@ -30,9 +30,9 @@ import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
 import { useChoropleth } from "../hooks/useChoropleth";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
+import { useInspector } from "../hooks/useInspector";
 import { useMapRef } from "../hooks/useMapCore";
 import { useHoverArea } from "../hooks/useMapHover";
-import { useInspector } from "../hooks/useInspector";
 import { useMapViews } from "../hooks/useMapViews";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
@@ -85,18 +85,19 @@ const toRGBA = (expressionResult: unknown) => {
 export default function AreaInfo({
   onStopAdding,
   compareModeEnabled = true,
+  isSectionVisible = true,
 }: {
   onStopAdding?: () => void;
   compareModeEnabled?: boolean;
+  isSectionVisible?: boolean;
 }) {
   const [hoverArea] = useHoverArea();
   const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
-  const [isExpanded, setIsExpanded] = useState(true);
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
   const { viewConfig } = useMapViews();
-  const { setSelectedBoundary } = useInspector();
+  const { setSelectedBoundary, selectedBoundary } = useInspector();
   const mapRef = useMapRef();
   const { choroplethLayerConfig } = useChoropleth();
 
@@ -206,15 +207,15 @@ export default function AreaInfo({
   }
 
   // Get boundary type label from the first area's areaSetCode
-  // If no areas but compare mode is active, try to get label from hoverArea
+  // If no areas, try to get label from hoverArea or use a default
   const boundaryTypeLabel = areasToDisplay.length > 0
     ? AreaSetCodeLabels[areasToDisplay[0].areaSetCode as AreaSetCode] || areasToDisplay[0].areaSetCode
-    : (compareModeEnabled && hoverArea)
+    : hoverArea
       ? AreaSetCodeLabels[hoverArea.areaSetCode as AreaSetCode] || hoverArea.areaSetCode
-      : "";
+      : "Area";
 
-  // Show the component when there are areas OR when compare mode is enabled
-  const shouldShow = areasToDisplay.length > 0 || compareModeEnabled;
+  // Show the component when the section is visible (simplified logic)
+  const shouldShow = isSectionVisible;
 
   return (
     <AnimatePresence mode="wait">
@@ -229,17 +230,6 @@ export default function AreaInfo({
           {/* Header with better hierarchy */}
           <div className="flex items-center justify-between gap-2 px-1 py-2 border-b bg-neutral-50">
             <div className="flex items-center gap-2 flex-1">
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="p-1 hover:bg-neutral-200 rounded transition-colors"
-                aria-label={isExpanded ? "Collapse comparison areas" : "Expand comparison areas"}
-              >
-                {isExpanded ? (
-                  <ChevronUp size={16} className="text-neutral-600" />
-                ) : (
-                  <ChevronDown size={16} className="text-neutral-600" />
-                )}
-              </button>
               <div className="flex flex-col">
                 <h2 className="text-sm font-semibold">
                   Comparison Areas
@@ -262,30 +252,28 @@ export default function AreaInfo({
             )}
           </div>
 
-          {/* Collapsible content */}
-          {isExpanded && (
-            <div className="pt-2">
+          {/* Content */}
+          <div className="pt-2">
               <Table
                 className="border-none w-full"
                 style={{ tableLayout: "auto", width: "100%" }}
               >
-                {compareModeEnabled && (
-                  <TableHeader className="">
-                    <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-                      <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8 w-full">
-                        {boundaryTypeLabel}
-                      </TableHead>
+                {/* Always show headers when section is visible */}
+                <TableHeader className="">
+                  <TableRow className="border-none hover:bg-transparent uppercase font-mono">
+                    <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8 w-full">
+                      {boundaryTypeLabel}
+                    </TableHead>
+                    <TableHead className="py-2 px-3 text-muted-foreground text-xs text-right h-8 whitespace-nowrap w-auto">
+                      {statLabel}
+                    </TableHead>
+                    {hasSecondaryData && (
                       <TableHead className="py-2 px-3 text-muted-foreground text-xs text-right h-8 whitespace-nowrap w-auto">
-                        {statLabel}
+                        {viewConfig.areaDataSecondaryColumn}
                       </TableHead>
-                      {hasSecondaryData && (
-                        <TableHead className="py-2 px-3 text-muted-foreground text-xs text-right h-8 whitespace-nowrap w-auto">
-                          {viewConfig.areaDataSecondaryColumn}
-                        </TableHead>
-                      )}
-                    </TableRow>
-                  </TableHeader>
-                )}
+                    )}
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {areasToDisplay.map((area) => {
                     const areaStat =
@@ -387,15 +375,26 @@ export default function AreaInfo({
                       );
                     };
 
+                    // Check if this area is the currently selected boundary in the inspector
+                    const isSelectedInInspector = selectedBoundary?.areaCode === area.code &&
+                      selectedBoundary?.areaSetCode === area.areaSetCode;
+
                     return (
                       <ContextMenu key={`${area.areaSetCode}-${area.code}`}>
                         <ContextMenuTrigger asChild>
                           <TableRow
-                            className="border-none font-medium my-1 cursor-pointer hover:bg-neutral-50"
+                            className={cn(
+                              "border-none font-medium my-1 cursor-pointer",
+                              isSelectedInInspector 
+                                ? "bg-blue-50 hover:bg-blue-100" 
+                                : "hover:bg-neutral-50"
+                            )}
                             style={
                               area.isSelected
                                 ? { borderLeft: "4px solid var(--brandGreen)" }
-                                : undefined
+                                : isSelectedInInspector
+                                  ? { borderLeft: "4px solid #3b82f6" }
+                                  : undefined
                             }
                             onClick={handleMakeSelected}
                           >
@@ -435,9 +434,10 @@ export default function AreaInfo({
                     );
                   })}
                   
-                  {/* Placeholder row for hovered area preview - always at bottom */}
-                  {compareModeEnabled && (() => {
-                    const hasHoverArea = hoverArea && !selectedAreas.some(
+                  {/* Placeholder row for hovered area preview - always at bottom when section is visible */}
+                  {(() => {
+                    // Only show hover preview when compare mode is enabled
+                    const hasHoverArea = compareModeEnabled && hoverArea && !selectedAreas.some(
                       (a) =>
                         a.code === hoverArea.code &&
                         a.areaSetCode === hoverArea.areaSetCode,
@@ -533,7 +533,7 @@ export default function AreaInfo({
                     "w-full flex items-center justify-center gap-2 px-3 py-2 rounded text-sm font-medium transition-colors",
                     compareModeEnabled
                       ? "bg-red-50 text-red-600 hover:bg-red-100"
-                      : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300",
+                      : "border text-neutral-700 hover:bg-neutral-300",
                   )}
                   onClick={() => {
                     if (onStopAdding) {
@@ -558,8 +558,7 @@ export default function AreaInfo({
                 </button>
               </div>
             )}
-            </div>
-          )}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

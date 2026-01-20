@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
-import { ArrowLeftIcon, ChartBar, SettingsIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeftIcon, ChartBar, FileText, InfoIcon, SettingsIcon, XIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { compareGeographiesAtom } from "@/app/map/[id]/atoms/mapStateAtoms";
 import { selectedAreasAtom } from "@/app/map/[id]/atoms/selectedAreasAtom";
@@ -8,6 +8,7 @@ import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import AreaInfo from "../AreaInfo";
+import CollapsedPanelButton from "../CollapsedPanelButton";
 import InspectorConfigTab from "./InspectorConfigTab";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
@@ -21,14 +22,16 @@ import {
 
 export default function InspectorPanel() {
   const [activeTab, setActiveTab] = useState("data");
-  const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
+  const [selectedAreas] = useAtom(selectedAreasAtom);
   const [compareGeographiesMode, setCompareGeographiesMode] = useAtom(
     compareGeographiesAtom,
   );
   const [showComparisonAreas, setShowComparisonAreas] = useState(false);
+  const [isExplicitlyCollapsed, setIsExplicitlyCollapsed] = useState(false);
+  const [isInspectorPanelCollapsed, setIsInspectorPanelCollapsed] = useState(true);
+  const [userExplicitlyCollapsed, setUserExplicitlyCollapsed] = useState(false);
   const {
     inspectorContent,
-    resetInspector,
     selectedBoundary,
     selectedTurf,
     focusedRecord,
@@ -38,33 +41,65 @@ export default function InspectorPanel() {
 
   const hasSelectedAreas = selectedAreas.length > 0;
 
-  // Auto-show comparison section when areas are selected
+  // Create a unique key from inspector content to detect changes
+  const inspectorContentKey = useMemo(() => {
+    if (!inspectorContent) return null;
+    return `${inspectorContent.type}-${inspectorContent.name}-${selectedBoundary?.areaCode || selectedTurf?.id || focusedRecord?.id || ''}`;
+  }, [inspectorContent, selectedBoundary?.areaCode, selectedTurf?.id, focusedRecord?.id]);
+
+  const [previousContentKey, setPreviousContentKey] = useState<string | null>(null);
+
+  // Auto-show comparison section when areas are selected (unless explicitly collapsed)
   useEffect(() => {
-    if (hasSelectedAreas && !showComparisonAreas) {
+    if (hasSelectedAreas && !showComparisonAreas && !isExplicitlyCollapsed) {
       setShowComparisonAreas(true);
     }
-  }, [hasSelectedAreas, showComparisonAreas]);
+  }, [hasSelectedAreas, showComparisonAreas, isExplicitlyCollapsed]);
+
+  // Open inspector and show comparison section when compare mode is enabled
+  useEffect(() => {
+    if (compareGeographiesMode) {
+      // Open inspector if collapsed
+      if (isInspectorPanelCollapsed) {
+        setIsInspectorPanelCollapsed(false);
+        setUserExplicitlyCollapsed(false);
+      }
+      // Show comparison section
+      if (!showComparisonAreas) {
+        setShowComparisonAreas(true);
+        setIsExplicitlyCollapsed(false);
+      }
+    }
+  }, [compareGeographiesMode, isInspectorPanelCollapsed, showComparisonAreas]);
+
+  // Auto-expand panel when NEW inspector content appears (not when user has explicitly collapsed)
+  useEffect(() => {
+    const isNewContent = inspectorContentKey !== null && inspectorContentKey !== previousContentKey;
+    
+    if (isNewContent && isInspectorPanelCollapsed && !userExplicitlyCollapsed) {
+      setIsInspectorPanelCollapsed(false);
+      setUserExplicitlyCollapsed(false); // Reset flag when new content appears
+    }
+    
+    if (inspectorContentKey !== previousContentKey) {
+      setPreviousContentKey(inspectorContentKey);
+    }
+  }, [inspectorContentKey, isInspectorPanelCollapsed, userExplicitlyCollapsed, previousContentKey]);
 
   const handleToggleComparisonSection = () => {
     const newShowState = !showComparisonAreas;
     setShowComparisonAreas(newShowState);
+    setIsExplicitlyCollapsed(!newShowState); // Track explicit collapse/expand
     
     if (newShowState) {
       // Show section: enable comparison mode so users can click areas to add them
       setCompareGeographiesMode(true);
     } else {
-      // Hide section: disable comparison mode and clear all areas
+      // When collapsing, disable compare mode (stop adding to list) but preserve the list
       setCompareGeographiesMode(false);
-      if (selectedAreas.length > 0) {
-        setSelectedAreas([]);
-      }
     }
   };
   
-  // Show inspector if there's content or selected areas
-  if (!Boolean(inspectorContent) && !hasSelectedAreas) {
-    return <></>;
-  }
 
   const { dataSource, properties, type } = inspectorContent ?? {};
   const isDetailsView = Boolean(
@@ -90,66 +125,92 @@ export default function InspectorPanel() {
   };
 
   return (
-    <div
-      id="inspector-panel"
-      className={cn(
-        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5",
-        "bottom-24", // to avoid clash with bug report button
-        activeTab === "config" ? "h-full" : "h-fit max-h-full",
+    <>
+      {/* Collapsed icon button - always visible */}
+      {isInspectorPanelCollapsed && (
+        <CollapsedPanelButton
+          icon={InfoIcon}
+          onClick={() => {
+            setIsInspectorPanelCollapsed(false);
+            setUserExplicitlyCollapsed(false); // Reset flag when user manually expands
+          }}
+          ariaLabel="Open inspector panel"
+          title="Open inspector"
+          badge={hasSelectedAreas ? selectedAreas.length : undefined}
+          className="right-3"
+        />
       )}
-      style={{
-        width: getInspectorWidth(),
-        minWidth: getInspectorWidth(),
-        maxWidth: getInspectorWidth(),
-        transition: "width 0.3s ease-in-out, min-width 0.3s ease-in-out, max-width 0.3s ease-in-out",
-      }}
-    >
+
+      {/* Inspector Panel */}
       <div
+        id="inspector-panel"
         className={cn(
-          "relative z-50 w-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
-          activeTab === "config" ? "h-full" : "max-h-full",
+          "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5 transition-all duration-300 ease-in-out",
+          "bottom-24", // to avoid clash with bug report button
+          isInspectorPanelCollapsed
+            ? "translate-x-full opacity-0 pointer-events-none"
+            : "translate-x-0 opacity-100",
+          activeTab === "config" ? "h-full" : "h-fit max-h-full",
         )}
+        style={{
+          width: getInspectorWidth(),
+          minWidth: getInspectorWidth(),
+          maxWidth: getInspectorWidth(),
+          transition: "width 0.3s ease-in-out, min-width 0.3s ease-in-out, max-width 0.3s ease-in-out, transform 0.3s ease-in-out, opacity 0.3s ease-in-out",
+        }}
       >
-        {/* Inspector Header */}
-        <div className="flex justify-between items-center gap-4 p-3 border-b">
-          <h1 className="grow flex gap-2 / text-sm font-semibold">
-            Inspector
-          </h1>
-          <div className="flex items-center gap-2">
-            <button
-              className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors",
-                showComparisonAreas
-                  ? "bg-primary/10 text-primary hover:bg-primary/20"
-                  : "text-muted-foreground hover:bg-neutral-100",
-              )}
-              aria-label={
-                showComparisonAreas
-                  ? "Hide comparison areas"
-                  : "Show comparison areas"
-              }
-              onClick={handleToggleComparisonSection}
-              title={
-                showComparisonAreas
-                  ? "Hide comparison areas (click areas on map to add them)"
-                  : "Show comparison areas (click areas on map to add them)"
-              }
-            >
-              <ChartBar size={14} />
-              <span>Compare</span>
-            </button>
-            <button
-              className="cursor-pointer hover:bg-neutral-100 rounded p-1 transition-colors"
-              aria-label="Close inspector panel"
-              onClick={() => {
-                resetInspector();
-                // Note: We don't clear selectedAreas here as that's managed separately
-              }}
-            >
-              <XIcon size={16} />
-            </button>
+        <div
+          className={cn(
+            "relative z-50 w-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+            activeTab === "config" ? "h-full" : "max-h-full",
+          )}
+        >
+          {/* Inspector Header */}
+          <div className="flex justify-between items-center gap-4 p-3 border-b">
+            <h1 className="grow flex gap-2 / text-sm font-semibold">
+              Inspector
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                className={cn(
+                  "flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors relative",
+                  showComparisonAreas
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-muted-foreground hover:bg-neutral-100",
+                )}
+                aria-label={
+                  showComparisonAreas
+                    ? "Hide comparison areas"
+                    : "Show comparison areas"
+                }
+                onClick={handleToggleComparisonSection}
+                title={
+                  showComparisonAreas
+                    ? "Hide comparison areas (click areas on map to add them)"
+                    : "Show comparison areas (click areas on map to add them)"
+                }
+              >
+                <ChartBar size={14} />
+                <span>Compare</span>
+                {!showComparisonAreas && hasSelectedAreas && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#30a46c] text-[10px] font-semibold text-primary-foreground">
+                    {selectedAreas.length}
+                  </span>
+                )}
+              </button>
+              <button
+                className="cursor-pointer hover:bg-neutral-100 rounded p-1 transition-colors"
+                aria-label="Collapse inspector panel"
+                onClick={() => {
+                  setIsInspectorPanelCollapsed(true);
+                  setUserExplicitlyCollapsed(true); // Mark that user explicitly collapsed it
+                  setCompareGeographiesMode(false); // Disable add to list mode when collapsing
+                }}
+              >
+                <XIcon size={16} />
+              </button>
+            </div>
           </div>
-        </div>
 
         {/* Comparison Areas (AreaInfo) */}
         {showComparisonAreas && (
@@ -157,12 +218,13 @@ export default function InspectorPanel() {
             <AreaInfo 
               onStopAdding={() => setCompareGeographiesMode(!compareGeographiesMode)}
               compareModeEnabled={compareGeographiesMode}
+              isSectionVisible={showComparisonAreas}
             />
           </div>
         )}
 
         {/* Selected Area (Current Inspector Content) */}
-        {Boolean(inspectorContent) && (
+        {Boolean(inspectorContent) ? (
           <>
             {isDetailsView && (
               <div className="px-4 pb-2 border-b">
@@ -248,8 +310,16 @@ export default function InspectorPanel() {
               </UnderlineTabsContent>
             </UnderlineTabs>
           </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <FileText size={48} className="text-muted-foreground mb-4 opacity-50" />
+            <p className="text-sm text-muted-foreground">
+              Select an area to see its data in the Inspector
+            </p>
+          </div>
         )}
       </div>
     </div>
+    </>
   );
 }

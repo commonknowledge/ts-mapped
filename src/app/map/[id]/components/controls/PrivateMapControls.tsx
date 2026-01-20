@@ -6,6 +6,7 @@ import { Button } from "@/shadcn/ui/button";
 import { useShowControlsAtom } from "../../hooks/useMapControls";
 import { useMapViews } from "../../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
+import CollapsedPanelButton from "../CollapsedPanelButton";
 
 import BoundariesControl from "./BoundariesControl/BoundariesControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
@@ -26,12 +27,12 @@ export default function PrivateMapControls() {
   return (
     <>
       {/* Toggle button - always visible */}
-      <div className="flex absolute top-3 left-3 z-10 bg-white rounded-lg shadow-lg">
-        <Button variant="ghost" size="icon" onClick={() => onToggleControls()}>
-          <PanelLeft className="w-4 h-4" />
-          <span className="sr-only">Toggle controls</span>
-        </Button>
-      </div>
+      <CollapsedPanelButton
+        icon={PanelLeft}
+        onClick={() => onToggleControls()}
+        ariaLabel="Toggle controls"
+        className="left-3"
+      />
 
       {/* Control panel with transition */}
       <div
