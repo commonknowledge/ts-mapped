@@ -5,6 +5,13 @@ export const columnGroupSchema = z.object({
   id: z.string(),
   name: z.string(),
   columnNames: z.array(z.string()),
+  settings: z.object({
+    isPercentage: z.boolean().optional(),
+    isScale: z.boolean().optional(),
+    lowerBound: z.number().optional(),
+    upperBound: z.number().optional(),
+    showAsBarChart: z.boolean().optional(),
+  }).optional(),
 });
 
 export const columnGroupsConfigSchema = z.object({

@@ -49,12 +49,13 @@ export const dataRecordRouter = router({
         areaCode: z.string(),
       }),
     )
-    .query(({ input }) => {
-      return findDataRecordByDataSourceAndAreaCode(
+    .query(async ({ input }) => {
+      const record = await findDataRecordByDataSourceAndAreaCode(
         input.dataSourceId,
         input.areaSetCode,
         input.areaCode,
       );
+      return record ?? null;
     }),
   list: dataSourceReadProcedure
     .input(

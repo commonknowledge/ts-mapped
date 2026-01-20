@@ -110,7 +110,19 @@ export const getAreaStats = async ({
       column,
       boundingBox,
     );
+    
+    // Check if we have any stats
+    if (!primaryStats.stats || primaryStats.stats.length === 0) {
+      throw new Error(`No data found for column "${column}". Make sure the data is geocoded to areas and contains values.`);
+    }
+    
     const valueRange = getValueRange(primaryStats.stats);
+    
+    // Check if we have valid numeric values
+    if (valueRange.minValue === null || valueRange.maxValue === null) {
+      throw new Error(`No valid numeric values found for column "${column}". The column may contain non-numeric data.`);
+    }
+    
     areaStats.primary = {
       ...primaryStats,
       ...valueRange,
@@ -135,8 +147,9 @@ export const getAreaStats = async ({
     return areaStats;
   } catch (error) {
     logger.error(`Failed to get area stats`, { error });
+    // Re-throw the error so it's properly handled by tRPC
+    throw error;
   }
-  return areaStats;
 };
 
 export const getMaxColumnByArea = async (
@@ -239,10 +252,13 @@ const getColumnValueByArea = async (
   }
 
   // Select is always MODE for ColumnType !== Number
+  // For numeric columns, cast to float - treat empty strings as 0 for numeric columns
   const valueSelect =
     columnDef.type !== ColumnType.Number
       ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-      : db.fn(calculationType, [sql`(json->>${column})::float`]).as("value");
+      : db.fn(calculationType, [
+          sql`COALESCE(NULLIF(json->>${column}, '')::float, 0)`
+        ]).as("value");
 
   const query = db
     .selectFrom("dataRecord")
@@ -316,10 +332,15 @@ const filterResult = (result: unknown[], columnType: ColumnType) => {
       "areaCode" in r &&
       typeof r.areaCode === "string" &&
       "value" in r &&
-      r.value !== null
+      r.value !== null &&
+      r.value !== undefined
     ) {
       if (columnType === ColumnType.Number) {
-        filtered.push({ ...r, value: Number(r.value) } as AreaStat);
+        const numValue = Number(r.value);
+        // Only include valid numbers (not NaN, and allow 0 as a valid value)
+        if (!isNaN(numValue)) {
+          filtered.push({ ...r, value: numValue } as AreaStat);
+        }
       } else {
         filtered.push(r as AreaStat);
       }
@@ -332,7 +353,13 @@ const getValueRange = (stats: { areaCode: string; value?: unknown }[]) => {
   let minValue = null;
   let maxValue = null;
 
-  const values = stats.map((s) => s.value).filter((s) => typeof s === "number");
+  const values = stats.map((s) => s.value).filter((s) => typeof s === "number" && !isNaN(s));
+  
+  if (values.length === 0) {
+    // If no valid numeric values, return null to indicate no data
+    return { minValue: null, maxValue: null };
+  }
+  
   for (const v of values) {
     if (minValue === null || v < minValue) {
       minValue = v;
@@ -342,5 +369,9 @@ const getValueRange = (stats: { areaCode: string; value?: unknown }[]) => {
     }
   }
 
-  return { minValue: minValue || 0, maxValue: maxValue || 0 };
+  // Ensure we have valid numbers (not null)
+  return { 
+    minValue: minValue ?? 0, 
+    maxValue: maxValue ?? 0 
+  };
 };

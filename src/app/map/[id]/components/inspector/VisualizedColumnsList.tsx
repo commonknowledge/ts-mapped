@@ -206,10 +206,13 @@ export default function VisualizedColumnsList({
                 {organizedColumns.groups.map((group) => (
                   <InspectorColumnGroup
                     key={group.id}
+                    groupId={group.id}
                     groupName={group.name}
                     columns={group.columns}
                     dataRecord={dataRecord}
                     visualizedColumnName={visualizedColumnName}
+                    dataSourceId={dataSourceId}
+                    settings={group.settings}
                     onVisualise={onVisualise}
                   />
                 ))}

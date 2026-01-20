@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
@@ -6,26 +7,24 @@ import {
   TableIcon,
   XIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import { CalculationType } from "@/server/models/MapView";
-import { ColumnType } from "@/server/models/DataSource";
-import { useMapRef } from "../../hooks/useMapCore";
+import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import { useTRPC } from "@/services/trpc/react";
 import { useAreaStats } from "../../data";
+import { useMapRef } from "../../hooks/useMapCore";
 import { useMapViews } from "../../hooks/useMapViews";
 import {
   useChoroplethDataSource,
   useNonPointDataSources,
 } from "../../hooks/useDataSources";
 import { useChoropleth } from "../../hooks/useChoropleth";
-import { formatNumber } from "@/utils/text";
-import type { MapConfig } from "@/server/models/Map";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
@@ -36,6 +35,7 @@ import {
   UnderlineTabsList,
   UnderlineTabsTrigger,
 } from "./UnderlineTabs";
+import type { MapConfig } from "@/server/models/Map";
 
 export default function InspectorPanel() {
   const {
@@ -52,6 +52,16 @@ export default function InspectorPanel() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
+  
+  // Show error toast if area stats query fails
+  useEffect(() => {
+    if (areaStatsQuery?.error) {
+      const errorMessage = areaStatsQuery.error instanceof Error 
+        ? areaStatsQuery.error.message 
+        : "Failed to load visualization data";
+      toast.error(errorMessage);
+    }
+  }, [areaStatsQuery?.error]);
   const choroplethDataSource = useChoroplethDataSource();
   const nonPointDataSources = useNonPointDataSources();
   const { setBoundariesPanelOpen } = useChoropleth();
@@ -93,16 +103,6 @@ export default function InspectorPanel() {
     }
   };
 
-  const handleVisualiseColumn = (columnName: string) => {
-    if (!choroplethDataSource?.id) return;
-
-    updateViewConfig({
-      areaDataSourceId: choroplethDataSource.id,
-      areaDataColumn: columnName,
-      calculationType: CalculationType.Sum,
-    });
-    setBoundariesPanelOpen(true);
-  };
 
   const handleVisualiseSaved = (visualization: NonNullable<MapConfig["savedVisualizations"]>[0]) => {
     updateViewConfig({
@@ -110,7 +110,7 @@ export default function InspectorPanel() {
       areaDataColumn: visualization.areaDataColumn,
       areaDataSecondaryColumn: visualization.areaDataSecondaryColumn || "",
       calculationType: visualization.calculationType as CalculationType | undefined,
-      colorScheme: visualization.colorScheme as any,
+      colorScheme: (visualization.colorScheme as ColorScheme) || undefined,
       reverseColorScheme: visualization.reverseColorScheme,
     });
     setBoundariesPanelOpen(true);

@@ -89,7 +89,7 @@ export const useAreaStats = () => {
   } | null>();
 
   const excludeColumns = useMemo(() => {
-    return viewConfig.excludeColumnsString
+    return (viewConfig.excludeColumnsString || "")
       .split(",")
       .map((v) => v.trim())
       .filter(Boolean);
@@ -130,7 +130,21 @@ export const useAreaStats = () => {
 
   // Store area stats when queries complete, and aggregate data for different bounding boxes
   useEffect(() => {
+    // Handle errors - reset stats on error
+    if (areaStatsQuery.error) {
+      console.error("Failed to load area stats:", areaStatsQuery.error);
+      setDedupedAreaStats(null);
+      return;
+    }
+    
     if (!areaStatsQuery.data) {
+      return;
+    }
+    
+    // Check if we have valid primary stats
+    if (!areaStatsQuery.data.primary) {
+      console.warn("Area stats query returned no primary data");
+      setDedupedAreaStats(null);
       return;
     }
     setDedupedAreaStats((prev) => {
@@ -206,5 +220,9 @@ export const useAreaStats = () => {
       : null;
   }, [dedupedAreaStats]);
 
-  return { data: areaStats, isFetching: areaStatsQuery.isFetching };
+  return { 
+    data: areaStats, 
+    isFetching: areaStatsQuery.isFetching,
+    error: areaStatsQuery.error,
+  };
 };
