@@ -214,7 +214,7 @@ export default function InspectorPanel() {
 
         {/* Comparison Areas (AreaInfo) */}
         {showComparisonAreas && (
-          <div className="border-b px-2 bg-neutral-50">            
+          <div className="border-b px-2 bg-neutral-50 w-full overflow-hidden">            
             <AreaInfo 
               onStopAdding={() => setCompareGeographiesMode(!compareGeographiesMode)}
               compareModeEnabled={compareGeographiesMode}

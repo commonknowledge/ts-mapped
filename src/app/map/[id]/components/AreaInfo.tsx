@@ -253,23 +253,23 @@ export default function AreaInfo({
           </div>
 
           {/* Content */}
-          <div className="pt-2">
+          <div className="pt-2 w-full overflow-hidden">
               <Table
                 className="border-none w-full"
-                style={{ tableLayout: "auto", width: "100%" }}
+                style={{ tableLayout: "fixed", width: "100%", maxWidth: "100%" }}
               >
                 {/* Always show headers when section is visible */}
                 <TableHeader className="">
                   <TableRow className="border-none hover:bg-transparent uppercase font-mono">
-                    <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8 w-full">
+                    <TableHead className="py-2 px-2 text-muted-foreground text-xs text-left h-auto break-words" style={{ width: hasSecondaryData ? "40%" : "60%" }}>
                       {boundaryTypeLabel}
                     </TableHead>
-                    <TableHead className="py-2 px-3 text-muted-foreground text-xs text-right h-8 whitespace-nowrap w-auto">
-                      {statLabel}
+                    <TableHead className="py-2 px-2 text-muted-foreground text-xs text-right h-auto break-words whitespace-normal" style={{ width: hasSecondaryData ? "30%" : "40%", maxWidth: "80px", wordBreak: "break-word", overflowWrap: "break-word" }}>
+                      <div className="break-words whitespace-normal">{statLabel}</div>
                     </TableHead>
                     {hasSecondaryData && (
-                      <TableHead className="py-2 px-3 text-muted-foreground text-xs text-right h-8 whitespace-nowrap w-auto">
-                        {viewConfig.areaDataSecondaryColumn}
+                      <TableHead className="py-2 px-2 text-muted-foreground text-xs text-right h-auto break-words whitespace-normal" style={{ width: "30%", maxWidth: "80px", wordBreak: "break-word", overflowWrap: "break-word" }}>
+                        <div className="break-words whitespace-normal">{viewConfig.areaDataSecondaryColumn}</div>
                       </TableHead>
                     )}
                   </TableRow>
@@ -398,20 +398,20 @@ export default function AreaInfo({
                             }
                             onClick={handleMakeSelected}
                           >
-                            <TableCell className="py-2 px-3 h-8 min-w-0 w-full">
+                            <TableCell className="py-2 px-2 h-8 min-w-0 break-words" style={{ width: hasSecondaryData ? "40%" : "60%" }}>
                               <div className="flex items-center gap-2 min-w-0">
                                 <div
                                   className="w-4 h-4 rounded flex-shrink-0"
                                   style={{ backgroundColor: getAreaColor(area) }}
                                 />
-                                <span className="truncate min-w-0">{area.name}</span>
+                                <span className="break-words min-w-0">{area.name}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                            <TableCell className="py-2 px-2 h-8 break-words text-right" style={{ width: hasSecondaryData ? "30%" : "40%", maxWidth: "80px" }}>
                               {primaryValue}
                             </TableCell>
                             {hasSecondaryData && (
-                              <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                              <TableCell className="py-2 px-2 h-8 break-words text-right" style={{ width: "30%", maxWidth: "80px" }}>
                                 {secondaryValue}
                               </TableCell>
                             )}
@@ -473,24 +473,24 @@ export default function AreaInfo({
 
                       return (
                         <TableRow className="border-t-2 border-dashed border-neutral-300 bg-neutral-50/50">
-                          <TableCell className="py-2 px-3 h-8 min-w-0 w-full">
+                          <TableCell className="py-2 px-2 h-8 min-w-0 break-words" style={{ width: hasSecondaryData ? "40%" : "60%" }}>
                             <div className="flex items-center gap-2 min-w-0">
                               <div
                                 className="w-4 h-4 rounded flex-shrink-0 border-2 border-dashed border-neutral-400"
                                 style={{ backgroundColor: hoveredAreaColor }}
                               />
-                              <span className="text-muted-foreground italic truncate min-w-0">
+                              <span className="text-muted-foreground italic break-words min-w-0">
                                 {hoverArea.name}
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                          <TableCell className="py-2 px-2 h-8 break-words text-right" style={{ width: hasSecondaryData ? "30%" : "40%", maxWidth: "80px" }}>
                             <span className="text-muted-foreground italic">
                               {hoveredPrimaryValue}
                             </span>
                           </TableCell>
                           {hasSecondaryData && (
-                            <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                            <TableCell className="py-2 px-2 h-8 break-words text-right" style={{ width: "30%", maxWidth: "80px" }}>
                               <span className="text-muted-foreground italic">
                                 {hoveredSecondaryValue}
                               </span>
@@ -503,19 +503,19 @@ export default function AreaInfo({
                     // Show placeholder when no area is hovered
                     return (
                       <TableRow className="border-t-2 border-dashed border-neutral-300 bg-neutral-50/50">
-                        <TableCell className="py-2 px-3 h-8 min-w-0 w-full">
+                        <TableCell className="py-2 px-2 h-8 min-w-0 break-words" style={{ width: hasSecondaryData ? "40%" : "60%" }}>
                           <div className="flex items-center gap-2 min-w-0">
                             <div className="w-4 h-4 rounded flex-shrink-0 border-2 border-dashed border-neutral-300 bg-neutral-100" />
-                            <span className="text-muted-foreground italic text-sm truncate min-w-0">
+                            <span className="text-muted-foreground italic text-sm break-words min-w-0">
                               Hover over area to preview
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                        <TableCell className="py-2 px-2 h-8 break-words text-right" style={{ width: hasSecondaryData ? "30%" : "40%", maxWidth: "80px" }}>
                           <span className="text-muted-foreground italic text-sm">-</span>
                         </TableCell>
                         {hasSecondaryData && (
-                          <TableCell className="py-2 px-3 h-8 whitespace-nowrap text-right w-auto">
+                          <TableCell className="py-2 px-2 h-8 break-words text-right" style={{ width: "30%", maxWidth: "80px" }}>
                             <span className="text-muted-foreground italic text-sm">-</span>
                           </TableCell>
                         )}

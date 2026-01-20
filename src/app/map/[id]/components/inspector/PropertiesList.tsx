@@ -17,11 +17,11 @@ export default function PropertiesList({
         if (!value) return <Fragment key={label}></Fragment>;
 
         return (
-          <div key={label}>
-            <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono">
+          <div key={label} className="break-words">
+            <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono break-words">
               {label}
             </dt>
-            <dd className="font-medium">{value}</dd>
+            <dd className="font-medium break-words">{value}</dd>
           </div>
         );
       })}
