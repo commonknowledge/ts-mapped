@@ -78,8 +78,7 @@ export default function InspectorDataTab({
     });
   }, [
     shouldUseInspectorConfig,
-    selectedBoundary?.areaCode,
-    selectedBoundary?.areaSetCode,
+    selectedBoundary,
     boundaryConfigs,
     getDataSourceById,
   ]);

@@ -1,21 +1,12 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTypeScript from "eslint-config-next/typescript";
 import unusedImports from "eslint-plugin-unused-imports";
 import tseslint from "typescript-eslint";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  {
-    ignores: [".next", ".sanity", "next-env.d.ts"],
-  },
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTypeScript,
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   {
@@ -24,7 +15,6 @@ const eslintConfig = [
     },
     rules: {
       "@typescript-eslint/consistent-type-imports": "error",
-      "unused-imports/no-unused-imports": "error",
       "import/order": [
         "error",
         {
@@ -44,20 +34,18 @@ const eslintConfig = [
           ],
         },
       ],
-      // Disable resolve checking as this is handled by typescript
       "import/no-unresolved": "off",
-      // Import sorting is handled by the import/order rule.
-      // However, sort-imports also sorts symbols inside a multi-import
-      //     e.g. import { a, b, c } from "d"
-      // Setting `ignoreDeclarationSort: true` restricts it to only this behavior.
+      "react-hooks/set-state-in-effect": "off",
       "sort-imports": [
         "error",
         {
           ignoreDeclarationSort: true,
         },
       ],
+      "unused-imports/no-unused-imports": "error",
     },
   },
-];
+  globalIgnores([".next/**", ".sanity/**", "next-env.d.ts"]),
+]);
 
 export default eslintConfig;

@@ -14,7 +14,6 @@ export function SearchBox() {
 
   return (
     <div className={styles["search-box"]}>
-      {/* @ts-expect-error The MapBox SearchBox component fails React component typescript validation, but it does work */}
       <_SearchBox
         theme={{
           variables: {
@@ -27,6 +26,7 @@ export function SearchBox() {
           flip: true,
         }}
         accessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""}
+        // eslint-disable-next-line react-hooks/refs
         map={mapRef?.current?.getMap()}
         mapboxgl={mapboxgl}
         options={{ country: "GB" }}

@@ -228,9 +228,9 @@ export function DataSourceDashboard({
 const isImporting = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.importInfo?.status &&
-      [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.importInfo?.status,
-      ),
+    [JobStatus.Running, JobStatus.Pending].includes(
+      dataSource.importInfo?.status,
+    ),
   );
 };
 

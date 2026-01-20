@@ -185,8 +185,8 @@ export function DataSourceEnrichmentDashboard({
 const isEnriching = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
   return Boolean(
     dataSource?.enrichmentInfo?.status &&
-      [JobStatus.Running, JobStatus.Pending].includes(
-        dataSource.enrichmentInfo?.status,
-      ),
+    [JobStatus.Running, JobStatus.Pending].includes(
+      dataSource.enrichmentInfo?.status,
+    ),
   );
 };

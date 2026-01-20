@@ -88,9 +88,7 @@ export function useInspector() {
     focusedRecord,
     getDataSourceById,
     mapConfig.membersDataSourceId,
-    selectedBoundary?.areaCode,
-    selectedBoundary?.name,
-    selectedBoundary?.sourceLayerId,
+    selectedBoundary,
     selectedTurf?.id,
     selectedTurf?.name,
   ]);

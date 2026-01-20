@@ -34,7 +34,7 @@ export default function InspectorPanel() {
   const { dataSource, properties, type } = inspectorContent ?? {};
   const isDetailsView = Boolean(
     (selectedTurf && type !== LayerType.Turf) ||
-      (selectedBoundary && type !== LayerType.Boundary),
+    (selectedBoundary && type !== LayerType.Boundary),
   );
 
   const markerCount = selectedRecords?.length || 0;
