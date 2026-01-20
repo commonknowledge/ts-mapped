@@ -40,7 +40,7 @@ export default function Legend() {
   const hasDataSource = Boolean(viewConfig.areaDataSourceId);
   const hasColumn = Boolean(
     viewConfig.areaDataColumn ||
-      viewConfig.calculationType === CalculationType.Count,
+    viewConfig.calculationType === CalculationType.Count,
   );
   const isBivariate =
     areaStats?.calculationType !== CalculationType.Count &&
@@ -244,30 +244,6 @@ export default function Legend() {
     }
   };
 
-  const VisibilityToggle = () => (
-    <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
-      <div
-        role="button"
-        tabIndex={0}
-        className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
-        aria-label={isLayerVisible ? "Hide layer" : "Show layer"}
-        onClick={(e) => {
-          e.stopPropagation();
-          toggleLayerVisibility();
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleLayerVisibility();
-          }
-        }}
-      >
-        {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
-      </div>
-    </div>
-  );
-
   return (
     <div className="group flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
       <div
@@ -291,7 +267,10 @@ export default function Legend() {
               <ChevronRight className="w-4 h-4" />
               <p className="flex items-center gap-0.5">{getColumnLabel()}</p>
             </div>
-            <VisibilityToggle />
+            <VisibilityToggle
+              isLayerVisible={isLayerVisible}
+              toggleLayerVisibility={toggleLayerVisibility}
+            />
           </div>
           {isLoading ? (
             <div className="flex items-center justify-center px-2 py-4">
@@ -309,3 +288,33 @@ export default function Legend() {
     </div>
   );
 }
+
+const VisibilityToggle = ({
+  isLayerVisible,
+  toggleLayerVisibility,
+}: {
+  isLayerVisible: boolean;
+  toggleLayerVisibility: () => void;
+}) => (
+  <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
+    <div
+      role="button"
+      tabIndex={0}
+      className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 cursor-pointer transition-colors"
+      aria-label={isLayerVisible ? "Hide layer" : "Show layer"}
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleLayerVisibility();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleLayerVisibility();
+        }
+      }}
+    >
+      {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+    </div>
+  </div>
+);

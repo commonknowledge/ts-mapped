@@ -52,7 +52,7 @@ export function BoundaryDataPanel({
       }
     });
     return filtered;
-  }, [data?.json, columns]);
+  }, [data, columns]);
 
   return (
     <TogglePanel
