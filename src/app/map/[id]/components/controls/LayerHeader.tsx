@@ -38,7 +38,7 @@ export default function LayerHeader({
 
   return (
     <div
-      className="flex items-center justify-between relative px-4 pt-3"
+      className="flex items-center justify-between relative px-4 py-3"
       data-layer-type={type}
     >
       <div className="group flex items-center gap-1">
