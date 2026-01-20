@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   type InspectorBoundaryConfig,
   InspectorBoundaryConfigType,
@@ -9,13 +9,9 @@ import TogglePanel from "../TogglePanel";
 import { BoundaryConfigItem } from "./BoundaryConfigItem";
 
 export default function InspectorConfigTab() {
-  const { view, viewConfig, updateView: updateViewOriginal } = useMapViews();
-  const { getDataSourceById: getDataSourceByIdOriginal } = useDataSources();
+  const { view, viewConfig, updateView } = useMapViews();
+  const { getDataSourceById } = useDataSources();
 
-  const updateView = useCallback(updateViewOriginal, [updateViewOriginal]);
-  const getDataSourceById = useCallback(getDataSourceByIdOriginal, [
-    getDataSourceByIdOriginal,
-  ]);
   const boundaryStatsConfig = view?.inspectorConfig?.boundaries || [];
   const initializationAttemptedRef = useRef(false);
 

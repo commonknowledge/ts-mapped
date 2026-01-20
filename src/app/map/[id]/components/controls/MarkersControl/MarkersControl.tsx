@@ -189,8 +189,8 @@ export default function MarkersControl() {
         setExpanded={setExpanded}
         enableVisibilityToggle={Boolean(
           placedMarkers.length > 0 ||
-            markerDataSources.length > 0 ||
-            membersDataSource,
+          markerDataSources.length > 0 ||
+          membersDataSource,
         )}
       >
         {loading && <LoaderPinwheel className="animate-spin" size={16} />}
