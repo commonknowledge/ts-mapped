@@ -152,6 +152,84 @@ function RangeSlider({
   );
 }
 
+// Helper function to calculate color for a step based on its position
+function calculateStepColor(
+  index: number,
+  totalSteps: number,
+  colorScheme: ColorScheme,
+  customColor: string | undefined,
+  isReversed: boolean,
+): string {
+  const interpolator = getInterpolator(colorScheme, customColor);
+  const gradientPosition = totalSteps > 1 ? index / (totalSteps - 1) : 0;
+  const t = isReversed ? 1 - gradientPosition : gradientPosition;
+  const clampedT = Math.max(0, Math.min(1, t));
+  return interpolator(clampedT) || "#cccccc";
+}
+
+// Helper function to create default steps
+function createDefaultSteps(
+  minValue: number,
+  maxValue: number,
+  colorScheme: ColorScheme,
+  customColor: string | undefined,
+  isReversed: boolean,
+): SteppedColorStep[] {
+  const stepSize = (maxValue - minValue) / 3;
+  const ranges = [
+    { start: minValue, end: minValue + stepSize },
+    { start: minValue + stepSize, end: minValue + stepSize * 2 },
+    { start: minValue + stepSize * 2, end: maxValue },
+  ];
+
+  return ranges.map((range, index) => ({
+    start: range.start,
+    end: range.end,
+    color: calculateStepColor(index, ranges.length, colorScheme, customColor, isReversed),
+  }));
+}
+
+// Helper function to validate steps against data range
+function areStepsValid(
+  steps: SteppedColorStep[],
+  minValue: number,
+  maxValue: number,
+): boolean {
+  if (!steps || steps.length === 0) return false;
+  
+  const tolerance = 0.00001;
+  const firstStep = steps[0];
+  const lastStep = steps[steps.length - 1];
+
+  const allStepsInRange = steps.every(
+    (step) =>
+      step.start >= minValue &&
+      step.end <= maxValue &&
+      step.start <= step.end,
+  );
+
+  const boundariesMatch =
+    firstStep &&
+    lastStep &&
+    Math.abs(firstStep.start - minValue) <= tolerance &&
+    Math.abs(lastStep.end - maxValue) <= tolerance;
+
+  return allStepsInRange && boundariesMatch;
+}
+
+// Helper function to update step colors while preserving ranges
+function updateStepColors(
+  steps: SteppedColorStep[],
+  colorScheme: ColorScheme,
+  customColor: string | undefined,
+  isReversed: boolean,
+): SteppedColorStep[] {
+  return steps.map((step, index) => ({
+    ...step,
+    color: calculateStepColor(index, steps.length, colorScheme, customColor, isReversed),
+  }));
+}
+
 export default function SteppedColorEditor() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const areaStatsQuery = useAreaStats();
@@ -163,260 +241,101 @@ export default function SteppedColorEditor() {
   const maxValue = areaStats?.primary?.maxValue ?? 0;
   const colorScheme = viewConfig.colorScheme || ColorScheme.RedBlue;
   const isReversed = Boolean(viewConfig.reverseColorScheme);
+  const hasValidRange = maxValue > minValue;
 
-  // Track previous column and dataSourceId to detect changes
-  const prevColumnRef = useRef<string | null>(null);
-  const prevDataSourceIdRef = useRef<string | null>(null);
+  // Create a key that changes when data source, column, or range changes
+  const dataKey = useMemo(() => {
+    if (!hasValidRange) return null;
+    return `${areaStats?.dataSourceId}-${areaStats?.primary?.column}-${minValue}-${maxValue}`;
+  }, [areaStats?.dataSourceId, areaStats?.primary?.column, minValue, maxValue, hasValidRange]);
 
-  // Reset stepped color steps when data source or column changes
-  useEffect(() => {
-    const currentColumn = areaStats?.primary?.column;
-    const currentDataSourceId = areaStats?.dataSourceId;
-
-    const columnChanged =
-      prevColumnRef.current !== null && prevColumnRef.current !== currentColumn;
-    const dataSourceChanged =
-      prevDataSourceIdRef.current !== null &&
-      prevDataSourceIdRef.current !== currentDataSourceId;
-
-    // Reset when column or data source changes, and we have valid data
-    if (
-      (columnChanged || dataSourceChanged) &&
-      areaStats?.primary &&
-      minValue !== undefined &&
-      maxValue !== undefined &&
-      maxValue >= minValue &&
-      maxValue > minValue // Ensure we have a valid range
-    ) {
-      // Immediately clear old steps to prevent stepRanges from using invalid data
-      // Then set new defaults based on current data range
-      const stepSize = (maxValue - minValue) / 3;
-      const defaultStepRanges = [
-        { start: minValue, end: minValue + stepSize },
-        { start: minValue + stepSize, end: minValue + stepSize * 2 },
-        { start: minValue + stepSize * 2, end: maxValue },
-      ];
-
-      // Calculate colors for default steps
-      const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-      const defaultSteps = defaultStepRanges.map((rangeItem, index) => {
-        const numSteps = defaultStepRanges.length;
-        const gradientPosition = numSteps > 1 ? index / (numSteps - 1) : 0;
-        const t = isReversed ? 1 - gradientPosition : gradientPosition;
-        const clampedT = Math.max(0, Math.min(1, t));
-        const color = interpolator(clampedT);
-
-        return {
-          start: rangeItem.start,
-          end: rangeItem.end,
-          color: color || "#cccccc",
-        };
-      });
-
-      // Update config with new steps - this will trigger stepRanges to recalculate
-      updateViewConfig({ steppedColorSteps: defaultSteps });
-    }
-
-    // Update refs for next comparison
-    prevColumnRef.current = currentColumn ?? null;
-    prevDataSourceIdRef.current = currentDataSourceId ?? null;
-  }, [
-    areaStats?.primary?.column,
-    areaStats?.dataSourceId,
-    areaStats?.primary,
-    minValue,
-    maxValue,
-    colorScheme,
-    isReversed,
-    viewConfig.customColor,
-    updateViewConfig,
-  ]);
-
-  // Get step ranges (without colors) from config or defaults
-  // Simplified: if steps don't match current data range, always use defaults
-  const stepRanges = useMemo(() => {
-    if (!minValue && !maxValue) {
-      return [];
-    }
-
-    // Check if we have steps that match the current data range
-    const steps = viewConfig.steppedColorSteps;
-
-    if (steps && steps.length > 0) {
-      // Strict validation: ALL steps must be completely within [minValue, maxValue]
-      // No tolerance - if any step is outside, reject all steps
-      const allStepsInRange = steps.every(
-        (step) =>
-          step.start >= minValue &&
-          step.end <= maxValue &&
-          step.start <= step.end,
-      );
-
-      // Check boundaries match exactly (with tiny tolerance only for floating point precision)
-      const tolerance = 0.00001;
-      const firstStep = steps[0];
-      const lastStep = steps[steps.length - 1];
-      const boundariesMatch =
-        firstStep &&
-        lastStep &&
-        Math.abs(firstStep.start - minValue) <= tolerance &&
-        Math.abs(lastStep.end - maxValue) <= tolerance;
-
-      // Only use steps if ALL are valid AND boundaries match
-      if (allStepsInRange && boundariesMatch) {
-        return steps.map((s) => ({
-          start: s.start,
-          end: s.end,
-        }));
-      }
-      // If validation fails, fall through to defaults below
-    }
-
-    // Default: 3 steps evenly distributed (fall through if no steps or invalid)
-
-    // Default: 3 steps evenly distributed
-    const stepSize = (maxValue - minValue) / 3;
-    return [
-      { start: minValue, end: minValue + stepSize },
-      { start: minValue + stepSize, end: minValue + stepSize * 2 },
-      { start: minValue + stepSize * 2, end: maxValue },
-    ];
-  }, [viewConfig.steppedColorSteps, minValue, maxValue]);
-
-  // Calculate steps with colors from gradient
-  const steps = useMemo(() => {
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-
-    return stepRanges.map((rangeItem, index) => {
-      const numSteps = stepRanges.length;
-      const gradientPosition = numSteps > 1 ? index / (numSteps - 1) : 0;
-
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-
-      const color = interpolator(clampedT);
-
-      return {
-        start: rangeItem.start,
-        end: rangeItem.end,
-        color: color || "#cccccc",
-      };
-    });
-  }, [stepRanges, colorScheme, isReversed, viewConfig.customColor]);
-
-  // Clear invalid steps and set defaults when data range changes
-  useEffect(() => {
-    if (!steps || steps.length === 0 || (!minValue && !maxValue)) {
-      return;
-    }
+  // Compute valid steps from config or create defaults
+  const validSteps = useMemo(() => {
+    if (!hasValidRange) return [];
 
     const configSteps = viewConfig.steppedColorSteps;
-
-    // If we have steps in config, validate them strictly
-    if (configSteps && configSteps.length > 0) {
-      const tolerance = 0.00001;
-      const firstStep = configSteps[0];
-      const lastStep = configSteps[configSteps.length - 1];
-
-      // Strict check: ALL steps must be within [minValue, maxValue]
-      const allStepsInRange = configSteps.every(
-        (step) =>
-          step.start >= minValue &&
-          step.end <= maxValue &&
-          step.start <= step.end,
+    
+    // If config steps are valid, use them (but update colors if needed)
+    if (configSteps && areStepsValid(configSteps, minValue, maxValue)) {
+      // Check if colors need updating (e.g., color scheme changed)
+      const updatedSteps = updateStepColors(
+        configSteps,
+        colorScheme,
+        viewConfig.customColor,
+        isReversed,
       );
-
-      const boundariesMatch =
-        firstStep &&
-        lastStep &&
-        Math.abs(firstStep.start - minValue) <= tolerance &&
-        Math.abs(lastStep.end - maxValue) <= tolerance;
-
-      // If steps are invalid, immediately replace with computed defaults
-      if (!allStepsInRange || !boundariesMatch) {
-        updateViewConfig({ steppedColorSteps: steps });
-        return;
-      }
-
-      // If steps are valid, check if colors need updating (e.g., reverse or color scheme changed)
-      // Compare colors to see if they've changed
-      const colorsChanged =
-        configSteps.length === steps.length &&
-        configSteps.some((step, index) => {
-          const computedStep = steps[index];
-          return computedStep && step.color !== computedStep.color;
-        });
-
+      
+      // Only update if colors actually changed
+      const colorsChanged = updatedSteps.some(
+        (step, index) => step.color !== configSteps[index]?.color,
+      );
+      
       if (colorsChanged) {
-        // Update colors while keeping the same ranges
-        updateViewConfig({ steppedColorSteps: steps });
+        // Update colors in config (async, won't block render)
+        updateViewConfig({ steppedColorSteps: updatedSteps });
       }
-    } else {
-      // No steps in config, set initial defaults
-      updateViewConfig({ steppedColorSteps: steps });
+      
+      return updatedSteps;
     }
+
+    // Create default steps
+    const defaults = createDefaultSteps(
+      minValue,
+      maxValue,
+      colorScheme,
+      viewConfig.customColor,
+      isReversed,
+    );
+    
+    // Update config with defaults if we don't have valid steps
+    if (!configSteps || !areStepsValid(configSteps, minValue, maxValue)) {
+      updateViewConfig({ steppedColorSteps: defaults });
+    }
+    
+    return defaults;
   }, [
-    steps,
-    updateViewConfig,
+    hasValidRange,
     viewConfig.steppedColorSteps,
     minValue,
     maxValue,
+    colorScheme,
+    viewConfig.customColor,
+    isReversed,
+    updateViewConfig,
   ]);
 
-  // Track previous min/max to detect range changes
-  const prevMinMaxRef = useRef<{ min: number; max: number } | null>(null);
-
-  // Clear localSteps when dialog closes
+  // Initialize local steps when dialog opens or data key changes
   useEffect(() => {
-    if (!isOpen) {
-      setLocalSteps([]);
-      prevMinMaxRef.current = null;
-    }
-  }, [isOpen]);
-
-  // Initialize local steps when dialog opens or when data range changes
-  // Always use computed steps - they're already validated in stepRanges
-  useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || !validSteps.length) {
+      if (!isOpen) {
+        setLocalSteps([]);
+      }
       return;
     }
 
-    if (!steps || steps.length === 0) {
-      setLocalSteps([]);
-      prevMinMaxRef.current = null;
-      return;
-    }
+    setLocalSteps([...validSteps]);
+  }, [isOpen, validSteps]);
 
-    // Always update localSteps to match computed steps
-    // Computed steps are already validated in stepRanges to be within [minValue, maxValue]
-    setLocalSteps([...steps]);
-
-    // Update ref to track current range
-    prevMinMaxRef.current = { min: minValue, max: maxValue };
-  }, [isOpen, steps, minValue, maxValue]);
-
-  // Recalculate colors when color scheme changes (but don't auto-apply)
-  const localStepsRef = useRef(localSteps);
+  // Update local step colors when color scheme changes (only if dialog is open)
   useEffect(() => {
-    localStepsRef.current = localSteps;
-  }, [localSteps]);
+    if (!isOpen || localSteps.length === 0) return;
 
-  useEffect(() => {
-    if (isOpen && localStepsRef.current.length > 0) {
-      const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-      const numSteps = localStepsRef.current.length;
-      const updatedSteps = localStepsRef.current.map((step, index) => {
-        const gradientPosition = numSteps > 1 ? index / (numSteps - 1) : 0;
-        const t = isReversed ? 1 - gradientPosition : gradientPosition;
-        const clampedT = Math.max(0, Math.min(1, t));
-        return {
-          ...step,
-          color: interpolator(clampedT) || "#cccccc",
-        };
-      });
+    const updatedSteps = updateStepColors(
+      localSteps,
+      colorScheme,
+      viewConfig.customColor,
+      isReversed,
+    );
+
+    // Only update if colors changed
+    const colorsChanged = updatedSteps.some(
+      (step, index) => step.color !== localSteps[index]?.color,
+    );
+
+    if (colorsChanged) {
       setLocalSteps(updatedSteps);
     }
-  }, [colorScheme, isReversed, viewConfig.customColor, isOpen]);
+  }, [isOpen, colorScheme, viewConfig.customColor, isReversed, localSteps]);
 
   if (
     !areaStats ||
@@ -448,16 +367,14 @@ export default function SteppedColorEditor() {
     }
 
     // Recalculate colors
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-    const numSteps = newSteps.length;
-    newSteps.forEach((step, i) => {
-      const gradientPosition = numSteps > 1 ? i / (numSteps - 1) : 0;
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-      step.color = interpolator(clampedT) || "#cccccc";
-    });
+    const updatedSteps = updateStepColors(
+      newSteps,
+      colorScheme,
+      viewConfig.customColor,
+      isReversed,
+    );
 
-    setLocalSteps(newSteps);
+    setLocalSteps(updatedSteps);
   };
 
   const handleAddStep = () => {
@@ -472,21 +389,19 @@ export default function SteppedColorEditor() {
     const newStep: SteppedColorStep = {
       start: midpoint,
       end: maxValue,
-      color: "#cccccc",
+      color: "#cccccc", // Will be recalculated
     };
     newSteps.push(newStep);
 
     // Recalculate colors
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-    const numSteps = newSteps.length;
-    newSteps.forEach((step, i) => {
-      const gradientPosition = numSteps > 1 ? i / (numSteps - 1) : 0;
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-      step.color = interpolator(clampedT) || "#cccccc";
-    });
+    const updatedSteps = updateStepColors(
+      newSteps,
+      colorScheme,
+      viewConfig.customColor,
+      isReversed,
+    );
 
-    setLocalSteps(newSteps);
+    setLocalSteps(updatedSteps);
   };
 
   const handleRemoveStep = (index: number) => {
@@ -503,20 +418,18 @@ export default function SteppedColorEditor() {
     }
 
     // Recalculate colors
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-    const numSteps = newSteps.length;
-    newSteps.forEach((step, i) => {
-      const gradientPosition = numSteps > 1 ? i / (numSteps - 1) : 0;
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-      step.color = interpolator(clampedT) || "#cccccc";
-    });
+    const updatedSteps = updateStepColors(
+      newSteps,
+      colorScheme,
+      viewConfig.customColor,
+      isReversed,
+    );
 
-    setLocalSteps(newSteps);
+    setLocalSteps(updatedSteps);
   };
 
   const handleReset = () => {
-    setLocalSteps(steps);
+    setLocalSteps([...validSteps]);
   };
 
   const handleApply = () => {
@@ -570,7 +483,7 @@ export default function SteppedColorEditor() {
           <div className="space-y-4">
             {localSteps.map((step, index) => {
               const isFirst = index === 0;
-              const isLast = index === steps.length - 1;
+              const isLast = index === localSteps.length - 1;
 
               return (
                 <div
