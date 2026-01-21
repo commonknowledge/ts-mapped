@@ -10,6 +10,7 @@ export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
   markerDisplayModes: z.record(z.nativeEnum(MarkerDisplayMode)).optional(),
+  markerColors: z.record(z.string()).optional(),
 });
 
 export type MapConfig = z.infer<typeof mapConfigSchema>;

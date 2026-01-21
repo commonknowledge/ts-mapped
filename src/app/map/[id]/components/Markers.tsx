@@ -89,7 +89,10 @@ function DataSourceMarkers({
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
-  mapConfig: { markerDisplayModes?: Record<string, MarkerDisplayMode> };
+  mapConfig: {
+    markerDisplayModes?: Record<string, MarkerDisplayMode>;
+    markerColors?: Record<string, string>;
+  };
 }) {
   const { filteredRecords, publicFilters } = useContext(PublicFiltersContext);
   const { publicMap, colorScheme } = useContext(PublicMapContext);
@@ -133,11 +136,14 @@ function DataSourceMarkers({
     publicMap?.id && colorScheme
       ? publicMapColorSchemes[colorScheme]?.primary
       : "";
-  const color = publicMapColor
-    ? publicMapColor
-    : isMembers
-      ? mapColors.member.color
-      : mapColors.dataSource.color;
+  
+  // Get custom color from mapConfig, or fall back to defaults
+  const customColor = mapConfig.markerColors?.[dataSourceMarkers.dataSourceId];
+  const defaultColor = isMembers
+    ? mapColors.member.color
+    : mapColors.dataSource.color;
+  
+  const color = publicMapColor || customColor || defaultColor;
 
   return (
     <Source

@@ -10,14 +10,20 @@ export default function ControlWrapper({
   name,
   isVisible,
   onVisibilityToggle,
+  color,
 }: {
   children: ReactNode;
   name: string;
   isVisible: boolean;
   onVisibilityToggle: () => void;
   layerType?: LayerType;
+  color?: string;
 }) {
   const getLayerColor = () => {
+    // Use custom color if provided, otherwise use default layer color
+    if (color) {
+      return color;
+    }
     switch (layerType) {
       case LayerType.Member:
         return mapColors.member.color;
