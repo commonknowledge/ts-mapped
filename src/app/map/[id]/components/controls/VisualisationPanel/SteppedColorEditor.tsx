@@ -149,8 +149,6 @@ function RangeSlider({
   );
 }
 
-// Helper function to calculate color for a step based on its position
-
 // Helper function to create default steps
 function createDefaultSteps(
   minValue: number,
