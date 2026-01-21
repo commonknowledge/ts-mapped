@@ -116,7 +116,7 @@ export default function UserDataSourcesList({
 
         {/* Member Collections Section */}
         <div>
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
             <UsersIcon className="w-4 h-4 text-neutral-500" />
             Member data sources
           </h2>
@@ -142,7 +142,7 @@ export default function UserDataSourcesList({
         {/* Other Data Sources Section */}
         <div>
           <div className="flex items-center mb-6 gap-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-medium flex items-center gap-2">
               Other data sources
             </h2>
             <div className="flex gap-2 flex-wrap">
