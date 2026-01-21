@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
@@ -7,34 +6,35 @@ import {
   TableIcon,
   XIcon,
 } from "lucide-react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { CalculationType, type ColorScheme } from "@/server/models/MapView";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
-import { useTRPC } from "@/services/trpc/react";
 import { useAreaStats } from "../../data";
-import { useMapRef } from "../../hooks/useMapCore";
-import { useMapViews } from "../../hooks/useMapViews";
+import { useChoropleth } from "../../hooks/useChoropleth";
 import {
   useChoroplethDataSource,
   useNonPointDataSources,
 } from "../../hooks/useDataSources";
-import { useChoropleth } from "../../hooks/useChoropleth";
+import { useMapRef } from "../../hooks/useMapCore";
+import { useMapViews } from "../../hooks/useMapViews";
 import BoundaryMarkersList from "./BoundaryMarkersList";
 import PropertiesList from "./PropertiesList";
 import TurfMarkersList from "./TurfMarkersList";
-import VisualizedColumnsList from "./VisualizedColumnsList";
 import {
   UnderlineTabs,
   UnderlineTabsContent,
   UnderlineTabsList,
   UnderlineTabsTrigger,
 } from "./UnderlineTabs";
+import VisualizedColumnsList from "./VisualizedColumnsList";
 import type { MapConfig } from "@/server/models/Map";
 
 export default function InspectorPanel() {

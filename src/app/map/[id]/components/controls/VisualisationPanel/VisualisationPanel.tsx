@@ -13,8 +13,8 @@ import {
   useChoroplethDataSource,
   useDataSources,
 } from "@/app/map/[id]/hooks/useDataSources";
-import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
