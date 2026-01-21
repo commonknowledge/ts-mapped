@@ -4,7 +4,6 @@ import { useColorScheme } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { ColumnType } from "@/server/models/DataSource";
-import { ColorScheme } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -22,10 +21,7 @@ export default function CategoryColorEditor() {
 
   const colorScheme = useColorScheme({
     areaStats,
-    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
-    isReversed: Boolean(viewConfig.reverseColorScheme),
-    categoryColors: viewConfig.categoryColors,
-    customColor: viewConfig.customColor,
+    viewConfig,
   });
 
   // Get unique categories from areaStats

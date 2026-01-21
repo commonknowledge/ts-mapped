@@ -21,6 +21,7 @@ import {
   CalculationType,
   ColorScaleType,
   ColorScheme,
+  DEFAULT_CALCULATION_TYPE,
 } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
@@ -328,7 +329,7 @@ export default function VisualisationPanel({
                 calculationType:
                   value === "counts"
                     ? CalculationType.Count
-                    : CalculationType.Avg,
+                    : DEFAULT_CALCULATION_TYPE,
               })
             }
           >

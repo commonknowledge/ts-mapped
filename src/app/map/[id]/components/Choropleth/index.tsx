@@ -4,8 +4,10 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MapType } from "@/server/models/MapView";
 import { mapColors } from "../../styles";
 import { getMapStyle } from "../../utils/map";
-import { useChoroplethAreaStats } from "./useChoroplethAreaStats";
-import { useChoroplethFeatureStatesEffect } from "./useChoroplethFeatureStatesEffect";
+import {
+  useChoroplethFeatureStatesEffect,
+  useChoroplethFillColor,
+} from "./useChoroplethColors";
 
 export default function Choropleth() {
   const { viewConfig } = useMapViews();
@@ -17,7 +19,7 @@ export default function Choropleth() {
   const choroplethTopLayerId = "choropleth-top";
 
   // Custom hooks for effects
-  const fillColor = useChoroplethAreaStats();
+  const fillColor = useChoroplethFillColor();
   const opacity = (viewConfig.choroplethOpacityPct ?? 80) / 100;
 
   useChoroplethFeatureStatesEffect();

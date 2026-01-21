@@ -1,7 +1,7 @@
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { Popup } from "react-map-gl/mapbox";
 import { ColumnType } from "@/server/models/DataSource";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import { CalculationType } from "@/server/models/MapView";
 import { formatNumber } from "@/utils/text";
 import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
@@ -56,8 +56,7 @@ function WrappedAreaPopup({
 
   const fillColor = useFillColor({
     areaStats,
-    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
-    isReversed: Boolean(viewConfig.reverseColorScheme),
+    viewConfig,
     selectedBivariateBucket: null,
   });
 
