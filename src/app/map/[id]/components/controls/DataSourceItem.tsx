@@ -205,7 +205,7 @@ export default function DataSourceItem({
                     />
                   ) : (
                     <span className="text-sm font-medium">
-                      {dataSource.name}
+                      {dataSource.name} test
                     </span>
                   )}
                   <div className="text-xs text-muted-foreground">

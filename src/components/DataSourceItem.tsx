@@ -67,15 +67,15 @@ const getDataSourceStyle = (type: DataSourceType | "unknown") => {
 const getGeocodingStatus = (dataSource: DataSourceItemType) => {
   const geocodingConfig = dataSource.geocodingConfig;
   if (geocodingConfig.type === "None") {
-    return { status: "No geocoding", color: "text-neutral-500" };
+    return { status: "No geocoding", color: "text-neutral-400" };
   }
   if (geocodingConfig.type === "Address") {
-    return { status: "Address geocoding", color: "text-green-600" };
+    return { status: "Address geocoding", color: "text-neutral-400" };
   }
   if (geocodingConfig.type === "Code" || geocodingConfig.type === "Name") {
-    return { status: "Area-based geocoding", color: "text-blue-600" };
+    return { status: "Area-based geocoding", color: "text-neutral-400" };
   }
-  return { status: "Geocoding configured", color: "text-blue-600" };
+  return { status: "Geocoding configured", color: "text-neutral-400" };
 };
 
 export function DataSourceItem({
@@ -96,62 +96,63 @@ export function DataSourceItem({
   return (
     <div
       className={cn(
-        "h-full flex flex-col gap-2 justify-between p-2 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-100",
+        "h-full flex flex-col gap-3 p-4 border rounded-lg cursor-pointer transition-all border-neutral-200 shadow-sm hover:bg-neutral-50 hover:border-neutral-300",
         className,
       )}
     >
-      <div className="flex items-center gap-2">
-        {/* Icon */}
+      {/* Header: Icon and Name */}
+      <div className="flex justify-between gap-2">
+
+      <div className="flex items-center gap-1">
         <DataSourceIcon type={dataSourceType} />
+        <p className="text-sm font-mono uppercase">{dataSourceType}</p>
+      </div>
+      {lastImportedText && (
+              <span className="text-xs inline-flex items-center gap-1.5 px-2 py-1 bg-blue-100 text-blue-800 rounded-md">
+                <RefreshCw className="w-3.5 h-3.5" />
+                {lastImportedText}
+              </span>
+            
+          )}
+      </div>
+        <div className="flex-1 min-w-0">
+          <h4 className=" text-lg font-medium text-neutral-900 truncate leading-tight">
+            {dataSource.name}
+          </h4>
+        </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0 space-y-4">
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <h4 className="font-medium truncate">{dataSource.name}</h4>
-            </div>
+      {/* Metadata: Consolidated stats and status */}
+      <div className="flex flex-col gap-2 text-xs">
+        {/* Primary stats: Records, columns, and last updated */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-neutral-700">
+            {dataSource.recordCount?.toLocaleString() || "Unknown"} records
+          </span>
+          <span className="text-neutral-400">•</span>
+          <span className="text-neutral-600">{dataSource.columnDefs.length} columns</span>
+        
+        </div>
 
-            <div className="flex gap-2">
-              {dataSource.public && (
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                  Public
-                </span>
-              )}
-              {lastImportedText && (
-                <span className="flex items-center gap-1 px-2 py-1 bg-neutral-100 text-neutral-500 text-xs rounded-sm">
-                  <RefreshCw className="w-3 h-3" />
-                  {lastImportedText}
-                </span>
-              )}
-            </div>
-          </div>
+        {/* Secondary info: Geocoding (muted) and status badges */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={cn("text-xs", geocodingStatus.color)}>
+            {geocodingStatus.status}
+          </span>
+          
+          {dataSource.public && (
+            <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
+              Public
+            </span>
+          )}
+          
+          {dataSource.autoImport && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+              <Database className="w-3 h-3" />
+              Auto-import
+            </span>
+          )}
         </div>
       </div>
-      {/* Stats */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
-        <span>{dataSource.columnDefs.length} columns</span>
-        <span className="text-neutral-400">•</span>
-        <span>{dataSource.recordCount || "Unknown"} records</span>
-        <span className="text-neutral-400">•</span>
-        <span>{geocodingStatus.status}</span>
-      </div>
-
-      {/* Type-specific info */}
-      {dataSourceType === DataSourceType.ActionNetwork && (
-        <span className="text-xs text-neutral-500">
-          Activist engagement data
-        </span>
-      )}
-      {dataSourceType === DataSourceType.Mailchimp && (
-        <span className="text-xs text-neutral-500">Email subscriber data</span>
-      )}
-      {dataSource.autoImport && (
-        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-          <Database className="w-3 h-3" />
-          Auto-import enabled
-        </span>
-      )}
     </div>
   );
 }
