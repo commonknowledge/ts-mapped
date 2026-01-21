@@ -40,6 +40,8 @@ import {
 } from "@/app/map/[id]/utils/position";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
+import { mapColors } from "../../../styles";
+import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useMapId } from "../../../hooks/useMapCore";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
@@ -63,6 +65,7 @@ export default function MarkersList({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { viewConfig } = useMapViews();
+  const { mapConfig, updateMapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const { updateFolder } = useFolderMutations();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
@@ -277,6 +280,16 @@ export default function MarkersList({
           position: newPosition,
         });
 
+        // Update marker color to match folder color
+        const folderColor =
+          mapConfig.folderColors?.[folderId] || mapColors.markers.color;
+        updateMapConfig({
+          placedMarkerColors: {
+            ...mapConfig.placedMarkerColors,
+            [activeMarker.id]: folderColor,
+          },
+        });
+
         // Animate movement - pulse the folder that received the marker
         setPulsingFolderId(folderId);
       } else if (over && over.id === "unassigned") {
@@ -289,6 +302,8 @@ export default function MarkersList({
           folderId: null,
           position: newPosition,
         });
+        // Keep the marker's current color when moved to unassigned
+        // (don't reset it, just keep what it has)
       } else if (over && over.id.toString().startsWith("marker-")) {
         // Handle reordering within the same container OR moving to a different container
         const overMarkerId = over.id.toString().replace("marker-", "");
@@ -325,10 +340,23 @@ export default function MarkersList({
             folderId: overMarker.folderId, // Move to the same folder as the marker we're dropping on
             position: newPosition,
           });
+
+          // Update marker color to match the folder it's being moved to
+          if (overMarker.folderId) {
+            const folderColor =
+              mapConfig.folderColors?.[overMarker.folderId] ||
+              mapColors.markers.color;
+            updateMapConfig({
+              placedMarkerColors: {
+                ...mapConfig.placedMarkerColors,
+                [activeMarker.id]: folderColor,
+              },
+            });
+          }
         }
       }
     },
-    [placedMarkers, updatePlacedMarker, setPulsingFolderId],
+    [placedMarkers, updatePlacedMarker, setPulsingFolderId, mapConfig, updateMapConfig],
   );
 
   const handleDragEndFolder = useCallback(
@@ -397,11 +425,25 @@ export default function MarkersList({
     return sortByPositionAndId(folders);
   }, [folders]);
 
-  // Get active marker for drag overlay
+  // Get active marker and color for drag overlay
   const getActiveMarker = () => {
     if (!activeId) return null;
     const markerId = activeId.replace("marker-", "");
     return placedMarkers.find((marker) => marker.id === markerId) || null;
+  };
+
+  const getActiveMarkerColor = () => {
+    const marker = getActiveMarker();
+    if (!marker) return mapColors.markers.color;
+    
+    // Get marker color (check folder color first, then marker color, then default)
+    if (marker.folderId && mapConfig.folderColors?.[marker.folderId]) {
+      return mapConfig.folderColors[marker.folderId];
+    }
+    if (mapConfig.placedMarkerColors?.[marker.id]) {
+      return mapConfig.placedMarkerColors[marker.id];
+    }
+    return mapColors.markers.color;
   };
 
   const hasMarkers =
@@ -493,7 +535,10 @@ export default function MarkersList({
         {createPortal(
           <DragOverlay dropAnimation={null}>
             {activeId && getActiveMarker() && (
-              <MarkerDragOverlay marker={getActiveMarker() as PlacedMarker} />
+              <MarkerDragOverlay
+                marker={getActiveMarker() as PlacedMarker}
+                color={getActiveMarkerColor()}
+              />
             )}
           </DragOverlay>,
           document.body,
