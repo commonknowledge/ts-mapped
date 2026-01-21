@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -68,11 +68,8 @@ export default function DataSourceItem({
   const isVisible = getDataSourceVisibility(dataSource?.id);
 
   // Get current display mode (defaults to Clusters)
-  const currentDisplayMode = useMemo(() => {
-    return (
-      mapConfig.markerDisplayModes?.[dataSource.id] ?? MarkerDisplayMode.Clusters
-    );
-  }, [mapConfig.markerDisplayModes, dataSource.id]);
+  const currentDisplayMode =
+    mapConfig.markerDisplayModes?.[dataSource.id] ?? MarkerDisplayMode.Clusters;
 
   const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
     updateMapConfig({
