@@ -2,10 +2,11 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { MarkerDisplayMode } from "@/server/models/Map";
 import { useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
@@ -19,7 +20,9 @@ import {
 } from "@/shadcn/ui/alert-dialog";
 import {
   ContextMenu,
+  ContextMenuCheckboxItem,
   ContextMenuItem,
+  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
@@ -63,6 +66,22 @@ export default function DataSourceItem({
       : mapColors.markers.color;
 
   const isVisible = getDataSourceVisibility(dataSource?.id);
+
+  // Get current display mode (defaults to Clusters)
+  const currentDisplayMode = useMemo(() => {
+    return (
+      mapConfig.markerDisplayModes?.[dataSource.id] ?? MarkerDisplayMode.Clusters
+    );
+  }, [mapConfig.markerDisplayModes, dataSource.id]);
+
+  const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
+    updateMapConfig({
+      markerDisplayModes: {
+        ...mapConfig.markerDisplayModes,
+        [dataSource.id]: mode,
+      },
+    });
+  };
 
   // Focus management for rename input
   useEffect(() => {
@@ -215,6 +234,28 @@ export default function DataSourceItem({
                 </>
               )}
             </ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuLabel>Display as</ContextMenuLabel>
+            <ContextMenuCheckboxItem
+              checked={currentDisplayMode === MarkerDisplayMode.Clusters}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  handleDisplayModeChange(MarkerDisplayMode.Clusters);
+                }
+              }}
+            >
+              Cluster
+            </ContextMenuCheckboxItem>
+            <ContextMenuCheckboxItem
+              checked={currentDisplayMode === MarkerDisplayMode.Heatmap}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  handleDisplayModeChange(MarkerDisplayMode.Heatmap);
+                }
+              }}
+            >
+              Heatmap
+            </ContextMenuCheckboxItem>
             <ContextMenuSeparator />
             <ContextMenuItem
               variant="destructive"

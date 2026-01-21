@@ -5,6 +5,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
+import { MarkerDisplayMode } from "@/server/models/Map";
 import { useLayers } from "../hooks/useLayers";
 import { mapColors } from "../styles";
 import { PublicFiltersContext } from "../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
@@ -14,19 +15,19 @@ import type { FeatureCollection } from "geojson";
 
 const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";
 
-// function hexToRgb(hex: string) {
-//   const normalized = hex.replace("#", "");
-//   const bigint = parseInt(normalized, 16);
-//   const r = (bigint >> 16) & 255;
-//   const g = (bigint >> 8) & 255;
-//   const b = bigint & 255;
-//   return { r, g, b };
-// }
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  const bigint = parseInt(normalized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return { r, g, b };
+}
 
-// function rgbaString(hex: string, alpha: number) {
-//   const { r, g, b } = hexToRgb(hex);
-//   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-// }
+function rgbaString(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 export default function Markers() {
   const { viewConfig } = useMapViews();
@@ -57,6 +58,7 @@ export default function Markers() {
           key={memberMarkers.dataSourceId}
           dataSourceMarkers={memberMarkers}
           isMembers
+          mapConfig={mapConfig}
         />
       )}
       {otherMarkers.map((markers) => {
@@ -72,6 +74,7 @@ export default function Markers() {
             key={markers.dataSourceId}
             dataSourceMarkers={markers}
             isMembers={false}
+            mapConfig={mapConfig}
           />
         );
       })}
@@ -82,12 +85,19 @@ export default function Markers() {
 function DataSourceMarkers({
   dataSourceMarkers,
   isMembers,
+  mapConfig,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
+  mapConfig: { markerDisplayModes?: Record<string, MarkerDisplayMode> };
 }) {
   const { filteredRecords, publicFilters } = useContext(PublicFiltersContext);
   const { publicMap, colorScheme } = useContext(PublicMapContext);
+
+  // Get display mode for this data source (defaults to Clusters)
+  const displayMode =
+    mapConfig.markerDisplayModes?.[dataSourceMarkers.dataSourceId] ??
+    MarkerDisplayMode.Clusters;
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
     // Don't add MARKER_CLIENT_EXCLUDED_KEY property if no public filters exist
@@ -135,7 +145,7 @@ function DataSourceMarkers({
       key={sourceId}
       type="geojson"
       data={safeMarkers}
-      cluster={true}
+      cluster={displayMode === MarkerDisplayMode.Clusters}
       clusterMaxZoom={publicMap ? 22 : 11}
       clusterRadius={50}
       clusterProperties={{
@@ -154,78 +164,69 @@ function DataSourceMarkers({
         ],
       }}
     >
-      <Layer
-        id={`${sourceId}-circles`}
-        key={`${sourceId}-circles`}
-        type="circle"
-        source={sourceId}
-        filter={["has", "point_count"]}
-        paint={{
-          // Circle radius based on point_count
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["get", "point_count"],
-            1,
-            15,
-            10,
-            25,
-            100,
-            35,
-            1000,
-            50,
-            10000,
-            70,
-          ],
-          // Circle color
-          "circle-color": color,
-          // Opacity based on matched_count
-          "circle-opacity": [
-            "case",
-            ["==", ["get", "matched_count"], 0],
-            0.5,
-            0.8,
-          ],
-        }}
-      />
-      <Layer
-        id={`${sourceId}-counts`}
-        key={`${sourceId}-counts`}
-        type="symbol"
-        source={sourceId}
-        filter={["has", "point_count"]}
-        layout={{
-          "text-field": ["get", "point_count"],
-          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
-          "text-size": 12,
-        }}
-      />
-      {/* TODO: Restore this with a switch
+      {displayMode === MarkerDisplayMode.Clusters && (
         <Layer
-          id={`${sourceId}-heatmap`}
-          type="heatmap"
+          id={`${sourceId}-circles`}
+          key={`${sourceId}-circles`}
+          type="circle"
           source={sourceId}
           filter={["has", "point_count"]}
           paint={{
-            // Adjust weight based on matched_count and point_count
+            // Circle radius based on point_count
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["get", "point_count"],
+              1,
+              15,
+              10,
+              25,
+              100,
+              35,
+              1000,
+              50,
+              10000,
+              70,
+            ],
+            // Circle color
+            "circle-color": color,
+            // Opacity based on matched_count
+            "circle-opacity": [
+              "case",
+              ["==", ["get", "matched_count"], 0],
+              0.5,
+              0.8,
+            ],
+          }}
+        />
+      )}
+      {displayMode === MarkerDisplayMode.Clusters && (
+        <Layer
+          id={`${sourceId}-counts`}
+          key={`${sourceId}-counts`}
+          type="symbol"
+          source={sourceId}
+          filter={["has", "point_count"]}
+          layout={{
+            "text-field": ["get", "point_count"],
+            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12,
+          }}
+        />
+      )}
+      {displayMode === MarkerDisplayMode.Heatmap && (
+        <Layer
+          id={`${sourceId}-heatmap`}
+          key={`${sourceId}-heatmap`}
+          type="heatmap"
+          source={sourceId}
+          paint={{
+            // Adjust weight based on matched_count
             "heatmap-weight": [
-              "*",
-              ["case", ["==", ["get", "matched_count"], 0], 0.5, 1.5],
-              [
-                "interpolate",
-                ["exponential", 0.5],
-                ["get", "point_count"],
-                1,
-                0.5,
-                10,
-                1,
-                100,
-                1.5,
-                1000,
-                2,
-                10000,
-                2.5,
-              ],
+              "case",
+              NOT_MATCHED_CASE,
+              0.5,
+              1.5,
             ],
             // Increase intensity as zoom level increases
             "heatmap-intensity": [
@@ -259,61 +260,130 @@ function DataSourceMarkers({
             "heatmap-radius": [
               "interpolate",
               ["linear"],
-              ["get", "point_count"],
-              2,
-              50,
+              ["zoom"],
+              0,
+              20,
+              15,
               100,
-              100,
-              1000,
-              200,
             ],
             "heatmap-opacity": 0.7,
           }}
-        /> */}
-      <Layer
-        id={`${sourceId}-pins`}
-        type="circle"
-        source={sourceId}
-        filter={[
-          "any",
-          ["!", ["has", "point_count"]],
-          ["==", ["get", "point_count"], 1],
-        ]}
-        paint={{
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
-          "circle-color": color,
-          "circle-opacity": ["case", NOT_MATCHED_CASE, 0.5, 1],
-          "circle-stroke-width": 1,
-          "circle-stroke-color": "#ffffff",
-        }}
-      />
-      <Layer
-        id={`${sourceId}-labels`}
-        type="symbol"
-        source="markers"
-        filter={[
-          "any",
-          ["!", ["has", "point_count"]],
-          ["==", ["get", "point_count"], 1],
-        ]}
-        minzoom={10}
-        layout={{
-          "text-field": [
-            "concat",
-            ["slice", ["get", "name"], 0, 20],
-            ["case", [">", ["length", ["get", "name"]], 20], "...", ""],
-          ],
-          "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
-          "text-size": 12,
-          "text-transform": "uppercase",
-          "text-offset": [0, -1.25],
-        }}
-        paint={{
-          "text-color": color,
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 1,
-        }}
-      />
+        />
+      )}
+      {/* Individual pins - only show for cluster mode or at high zoom in heatmap mode */}
+      {displayMode === MarkerDisplayMode.Clusters && (
+        <Layer
+          id={`${sourceId}-pins`}
+          type="circle"
+          source={sourceId}
+          filter={[
+            "any",
+            ["!", ["has", "point_count"]],
+            ["==", ["get", "point_count"], 1],
+          ]}
+          paint={{
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              8,
+              3,
+              16,
+              8,
+            ],
+            "circle-color": color,
+            "circle-opacity": ["case", NOT_MATCHED_CASE, 0.5, 1],
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#ffffff",
+          }}
+        />
+      )}
+      {displayMode === MarkerDisplayMode.Clusters && (
+        <Layer
+          id={`${sourceId}-labels`}
+          type="symbol"
+          source={sourceId}
+          filter={[
+            "any",
+            ["!", ["has", "point_count"]],
+            ["==", ["get", "point_count"], 1],
+          ]}
+          minzoom={10}
+          layout={{
+            "text-field": [
+              "concat",
+              ["slice", ["get", "name"], 0, 20],
+              [
+                "case",
+                [">", ["length", ["get", "name"]], 20],
+                "...",
+                "",
+              ],
+            ],
+            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12,
+            "text-transform": "uppercase",
+            "text-offset": [0, -1.25],
+          }}
+          paint={{
+            "text-color": color,
+            "text-halo-color": "#ffffff",
+            "text-halo-width": 1,
+          }}
+        />
+      )}
+      {displayMode === MarkerDisplayMode.Heatmap && (
+        <Layer
+          id={`${sourceId}-pins`}
+          type="circle"
+          source={sourceId}
+          minzoom={10}
+          paint={{
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              10,
+              3,
+              16,
+              8,
+            ],
+            "circle-color": color,
+            "circle-opacity": ["case", NOT_MATCHED_CASE, 0.5, 0.8],
+            "circle-stroke-width": 1,
+            "circle-stroke-color": "#ffffff",
+          }}
+        />
+      )}
+      {displayMode === MarkerDisplayMode.Heatmap && (
+        <Layer
+          id={`${sourceId}-labels`}
+          type="symbol"
+          source={sourceId}
+          minzoom={10}
+          layout={{
+            "text-field": [
+              "concat",
+              ["slice", ["get", "name"], 0, 20],
+              [
+                "case",
+                [">", ["length", ["get", "name"]], 20],
+                "...",
+                "",
+              ],
+            ],
+            "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12,
+            "text-transform": "uppercase",
+            "text-offset": [0, -1.25],
+          }}
+          paint={{
+            "text-color": color,
+            "text-halo-color": "#ffffff",
+            "text-halo-width": 1,
+          }}
+        />
+      )}
     </Source>
   );
 }

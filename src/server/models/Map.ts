@@ -1,9 +1,15 @@
 import z from "zod";
 import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
+export enum MarkerDisplayMode {
+  Clusters = "clusters",
+  Heatmap = "heatmap",
+}
+
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
+  markerDisplayModes: z.record(z.nativeEnum(MarkerDisplayMode)).optional(),
 });
 
 export type MapConfig = z.infer<typeof mapConfigSchema>;
