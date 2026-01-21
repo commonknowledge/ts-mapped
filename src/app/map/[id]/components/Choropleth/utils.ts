@@ -15,7 +15,7 @@ export const getChoroplethDataKey = (viewConfig: {
     viewConfig.areaDataSourceId,
     calculationType,
   ];
-  if (viewConfig.calculationType !== CalculationType.Count) {
+  if (calculationType !== CalculationType.Count) {
     parts.push(viewConfig.areaDataColumn);
     parts.push(viewConfig.areaDataSecondaryColumn);
   }
