@@ -101,14 +101,14 @@ export function DataSourceItem({
       )}
     >
       {/* Header: Icon and Name */}
-      <div className="flex justify-between gap-2">
+      <div className="flex justify-between gap-2 text-neutral-600">
 
       <div className="flex items-center gap-1">
         <DataSourceIcon type={dataSourceType} />
         <p className="text-sm font-mono uppercase">{dataSourceType}</p>
       </div>
       {lastImportedText && (
-              <span className="text-xs inline-flex items-center gap-1.5 px-2 py-1 bg-blue-100 text-blue-800 rounded-md">
+              <span className="text-xs inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
                 <RefreshCw className="w-3.5 h-3.5" />
                 {lastImportedText}
               </span>
@@ -116,7 +116,7 @@ export function DataSourceItem({
           )}
       </div>
         <div className="flex-1 min-w-0">
-          <h4 className=" text-lg font-medium text-neutral-900 truncate leading-tight">
+          <h4 className=" text-xl font-medium text-neutral-900 truncate leading-tight">
             {dataSource.name}
           </h4>
         </div>
