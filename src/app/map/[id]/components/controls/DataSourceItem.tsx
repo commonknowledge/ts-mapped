@@ -250,6 +250,24 @@ export default function DataSourceItem({
               )}
             </ContextMenuItem>
             <ContextMenuSeparator />
+            <ContextMenuSub>
+              <ContextMenuSubTrigger>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded border border-neutral-300"
+                    style={{ backgroundColor: currentColor }}
+                  />
+                  <span>Color</span>
+                </div>
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-auto p-2">
+                <ColorPalette
+                  selectedColor={currentColor}
+                  onColorSelect={handleColorChange}
+                />
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            <ContextMenuSeparator />
             <ContextMenuLabel>Display as</ContextMenuLabel>
             <ContextMenuCheckboxItem
               checked={currentDisplayMode === MarkerDisplayMode.Clusters}
@@ -289,24 +307,6 @@ export default function DataSourceItem({
                 <span>Heatmap</span>
               </div>
             </ContextMenuCheckboxItem>
-            <ContextMenuSeparator />
-            <ContextMenuSub>
-              <ContextMenuSubTrigger>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded border border-neutral-300"
-                    style={{ backgroundColor: currentColor }}
-                  />
-                  <span>Color</span>
-                </div>
-              </ContextMenuSubTrigger>
-              <ContextMenuSubContent className="w-auto p-2">
-                <ColorPalette
-                  selectedColor={currentColor}
-                  onColorSelect={handleColorChange}
-                />
-              </ContextMenuSubContent>
-            </ContextMenuSub>
             <ContextMenuSeparator />
             <ContextMenuItem
               variant="destructive"
