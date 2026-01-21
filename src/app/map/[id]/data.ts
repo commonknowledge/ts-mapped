@@ -1,6 +1,9 @@
 import { useQuery as useTanstackQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { CalculationType } from "@/server/models/MapView";
+import {
+  CalculationType,
+  DEFAULT_CALCULATION_TYPE,
+} from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { useChoropleth } from "./hooks/useChoropleth";
 import { useMapBounds } from "./hooks/useMapBounds";
@@ -105,7 +108,7 @@ export const useAreaStats = () => {
     trpc.area.stats.queryOptions(
       {
         areaSetCode,
-        calculationType: calculationType || CalculationType.Avg,
+        calculationType: calculationType || DEFAULT_CALCULATION_TYPE,
         dataSourceId,
         column: columnOrCount,
         secondaryColumn: secondaryColumn,

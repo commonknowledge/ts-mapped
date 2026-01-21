@@ -21,6 +21,7 @@ import {
   CalculationType,
   ColorScaleType,
   ColorScheme,
+  DEFAULT_CALCULATION_TYPE,
 } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
@@ -275,7 +276,7 @@ export default function VisualisationPanel({
           Visualisation
         </p>
 
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 items-center">
+        <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
           <Label
             htmlFor="choropleth-boundary-select"
             className="text-sm text-muted-foreground font-normal"
@@ -328,7 +329,7 @@ export default function VisualisationPanel({
                 calculationType:
                   value === "counts"
                     ? CalculationType.Count
-                    : CalculationType.Avg,
+                    : DEFAULT_CALCULATION_TYPE,
               })
             }
           >
@@ -470,7 +471,7 @@ export default function VisualisationPanel({
                   }
                 >
                   <SelectTrigger
-                    className="w-full"
+                    className="w-full min-w-0"
                     id="choropleth-aggregation-select"
                   >
                     <SelectValue placeholder="Choose an aggregation..." />
@@ -485,7 +486,7 @@ export default function VisualisationPanel({
 
           {viewConfig.calculationType !== CalculationType.Count &&
             columnOneIsNumber && (
-              <>
+              <div className="col-span-2 flex items-center gap-2">
                 <Label
                   htmlFor="choropleth-empty-zero-switch"
                   className="text-sm text-muted-foreground font-normal"
@@ -500,7 +501,7 @@ export default function VisualisationPanel({
                     updateViewConfig({ areaDataNullIsZero: v })
                   }
                 />
-              </>
+              </div>
             )}
         </div>
         {!viewConfig.areaDataSourceId && (
@@ -553,7 +554,7 @@ export default function VisualisationPanel({
           Style
         </p>
 
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 items-center">
+        <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
           {!viewConfig.areaDataSecondaryColumn && columnOneIsNumber && (
             <>
               <Label
@@ -571,7 +572,10 @@ export default function VisualisationPanel({
                   })
                 }
               >
-                <SelectTrigger className="w-full" id="color-scale-type-select">
+                <SelectTrigger
+                  className="w-full min-w-0"
+                  id="color-scale-type-select"
+                >
                   <SelectValue placeholder="Choose color scale...">
                     {viewConfig.colorScaleType === ColorScaleType.Gradient
                       ? "Gradient"
@@ -635,7 +639,7 @@ export default function VisualisationPanel({
                 }
               >
                 <SelectTrigger
-                  className="w-full"
+                  className="w-full min-w-0"
                   id="choropleth-color-scheme-select"
                 >
                   <SelectValue placeholder="Choose colour scheme..." />

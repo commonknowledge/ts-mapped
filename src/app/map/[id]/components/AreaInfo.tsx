@@ -5,7 +5,7 @@ import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo, useState } from "react";
 
 import { ColumnType } from "@/server/models/DataSource";
-import { CalculationType, ColorScheme } from "@/server/models/MapView";
+import { CalculationType } from "@/server/models/MapView";
 import {
   Table,
   TableBody,
@@ -84,13 +84,8 @@ export default function AreaInfo() {
 
   const fillColor = useFillColor({
     areaStats,
-    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
-    isReversed: Boolean(viewConfig.reverseColorScheme),
+    viewConfig,
     selectedBivariateBucket: null,
-    categoryColors: viewConfig.categoryColors,
-    colorScaleType: viewConfig.colorScaleType,
-    steppedColorSteps: viewConfig.steppedColorSteps,
-    customColor: viewConfig.customColor,
   });
 
   // Combine selected areas and hover area, avoiding duplicates
