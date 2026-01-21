@@ -76,8 +76,7 @@ export default function DataSourceItem({
     mapConfig.markerDisplayModes?.[dataSource.id] ?? MarkerDisplayMode.Clusters;
 
   // Get current color (defaults to layer color)
-  const currentColor =
-    mapConfig.markerColors?.[dataSource.id] ?? layerColor;
+  const currentColor = mapConfig.markerColors?.[dataSource.id] ?? layerColor;
 
   const handleDisplayModeChange = (mode: MarkerDisplayMode) => {
     updateMapConfig({

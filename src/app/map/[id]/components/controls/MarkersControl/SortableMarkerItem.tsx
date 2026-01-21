@@ -7,12 +7,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
-import { mapColors } from "../../../styles";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
@@ -26,6 +24,7 @@ import {
   usePlacedMarkerMutations,
   usePlacedMarkerState,
 } from "../../../hooks/usePlacedMarkers";
+import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";

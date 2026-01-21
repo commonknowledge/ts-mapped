@@ -40,9 +40,9 @@ import {
 } from "@/app/map/[id]/utils/position";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
-import { mapColors } from "../../../styles";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useMapId } from "../../../hooks/useMapCore";
+import { mapColors } from "../../../styles";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
 import MarkerDragOverlay from "./MarkerDragOverlay";
@@ -356,7 +356,13 @@ export default function MarkersList({
         }
       }
     },
-    [placedMarkers, updatePlacedMarker, setPulsingFolderId, mapConfig, updateMapConfig],
+    [
+      placedMarkers,
+      updatePlacedMarker,
+      setPulsingFolderId,
+      mapConfig,
+      updateMapConfig,
+    ],
   );
 
   const handleDragEndFolder = useCallback(
@@ -435,7 +441,7 @@ export default function MarkersList({
   const getActiveMarkerColor = () => {
     const marker = getActiveMarker();
     if (!marker) return mapColors.markers.color;
-    
+
     // Get marker color (check folder color first, then marker color, then default)
     if (marker.folderId && mapConfig.folderColors?.[marker.folderId]) {
       return mapConfig.folderColors[marker.folderId];

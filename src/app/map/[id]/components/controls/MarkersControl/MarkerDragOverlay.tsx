@@ -9,7 +9,7 @@ export default function MarkerDragOverlay({
   color?: string;
 }) {
   const markerColor = color || mapColors.markers.color;
-  
+
   return (
     <div className="relative flex items-center gap-1 p-0.5 bg-white border border-blue-300 rounded shadow-lg pointer-events-none">
       <div

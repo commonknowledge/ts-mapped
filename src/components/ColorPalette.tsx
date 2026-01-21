@@ -32,12 +32,7 @@ export default function ColorPalette({
   className,
 }: ColorPaletteProps) {
   return (
-    <div
-      className={cn(
-        "grid grid-cols-4 gap-2 p-2",
-        className
-      )}
-    >
+    <div className={cn("grid grid-cols-4 gap-2 p-2", className)}>
       {colors.map((color) => (
         <button
           key={color}
@@ -48,7 +43,7 @@ export default function ColorPalette({
             "focus:outline-none focus:ring-2 focus:ring-offset-1",
             selectedColor === color
               ? "border-neutral-900 shadow-md"
-              : "border-neutral-300 hover:border-neutral-400"
+              : "border-neutral-300 hover:border-neutral-400",
           )}
           style={{ backgroundColor: color }}
           title={color}

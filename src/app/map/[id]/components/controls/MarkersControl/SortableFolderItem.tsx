@@ -15,15 +15,13 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import ColorPalette from "@/components/ColorPalette";
 import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
+import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
-import { mapColors } from "../../../styles";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
@@ -32,12 +30,10 @@ import {
 } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useFolderMutations } from "../../../hooks/useFolders";
-import {
-  usePlacedMarkerMutations,
-  usePlacedMarkerState,
-} from "../../../hooks/usePlacedMarkers";
+import { useMapConfig } from "../../../hooks/useMapConfig";
+import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
+import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
 import SortableMarkerItem from "./SortableMarkerItem";
@@ -89,7 +85,6 @@ export default function SortableFolderItem({
 
   const { updateFolder, deleteFolder } = useFolderMutations();
   const { mapConfig, updateMapConfig } = useMapConfig();
-  const { updatePlacedMarker } = usePlacedMarkerMutations();
 
   // Get current folder color (defaults to marker color)
   const currentFolderColor =

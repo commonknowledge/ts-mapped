@@ -136,13 +136,13 @@ function DataSourceMarkers({
     publicMap?.id && colorScheme
       ? publicMapColorSchemes[colorScheme]?.primary
       : "";
-  
+
   // Get custom color from mapConfig, or fall back to defaults
   const customColor = mapConfig.markerColors?.[dataSourceMarkers.dataSourceId];
   const defaultColor = isMembers
     ? mapColors.member.color
     : mapColors.dataSource.color;
-  
+
   const color = publicMapColor || customColor || defaultColor;
 
   return (
@@ -228,12 +228,7 @@ function DataSourceMarkers({
           source={sourceId}
           paint={{
             // Adjust weight based on matched_count
-            "heatmap-weight": [
-              "case",
-              NOT_MATCHED_CASE,
-              0.5,
-              1.5,
-            ],
+            "heatmap-weight": ["case", NOT_MATCHED_CASE, 0.5, 1.5],
             // Increase intensity as zoom level increases
             "heatmap-intensity": [
               "interpolate",
@@ -288,15 +283,7 @@ function DataSourceMarkers({
             ["==", ["get", "point_count"], 1],
           ]}
           paint={{
-            "circle-radius": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              8,
-              3,
-              16,
-              8,
-            ],
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 3, 16, 8],
             "circle-color": color,
             "circle-opacity": ["case", NOT_MATCHED_CASE, 0.5, 1],
             "circle-stroke-width": 1,
@@ -319,12 +306,7 @@ function DataSourceMarkers({
             "text-field": [
               "concat",
               ["slice", ["get", "name"], 0, 20],
-              [
-                "case",
-                [">", ["length", ["get", "name"]], 20],
-                "...",
-                "",
-              ],
+              ["case", [">", ["length", ["get", "name"]], 20], "...", ""],
             ],
             "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
             "text-size": 12,
@@ -371,12 +353,7 @@ function DataSourceMarkers({
             "text-field": [
               "concat",
               ["slice", ["get", "name"], 0, 20],
-              [
-                "case",
-                [">", ["length", ["get", "name"]], 20],
-                "...",
-                "",
-              ],
+              ["case", [">", ["length", ["get", "name"]], 20], "...", ""],
             ],
             "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
             "text-size": 12,
