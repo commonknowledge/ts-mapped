@@ -1,7 +1,7 @@
 import { Database } from "lucide-react";
 import { useMemo, useState } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { DataSourceItem, getDataSourceType } from "@/components/DataSourceItem";
+import { getDataSourceType } from "@/components/DataSourceItem";
 import {
   type InspectorBoundaryConfig,
   InspectorBoundaryConfigType,
@@ -18,15 +18,18 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { useDataSources } from "../../hooks/useDataSources";
+import DataSourceSelectButton from "../DataSourceSelectButton";
 import TogglePanel from "../TogglePanel";
 
 export function BoundaryConfigItem({
   boundaryConfig,
   index,
+  onClickRemove,
   onUpdate,
 }: {
   boundaryConfig: InspectorBoundaryConfig;
   index: number;
+  onClickRemove: () => void;
   onUpdate: (config: InspectorBoundaryConfig) => void;
 }) {
   const { getDataSourceById } = useDataSources();
@@ -93,11 +96,11 @@ export function BoundaryConfigItem({
           </h3>
 
           {/* Data source info */}
-          <DataSourceItem
-            className="shadow-xs"
-            dataSource={{
-              ...dataSource,
-            }}
+          <DataSourceSelectButton
+            className="w-full"
+            dataSource={dataSource}
+            onClickRemove={onClickRemove}
+            onSelect={() => null}
           />
 
           {/* Name field */}
