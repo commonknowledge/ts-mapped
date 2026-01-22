@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 import {
   type InspectorBoundaryConfig,
   InspectorBoundaryConfigType,
@@ -17,6 +18,7 @@ export default function InspectorConfigTab() {
 
   const boundaryStatsConfig = view?.inspectorConfig?.boundaries || [];
   const initializationAttemptedRef = useRef(false);
+  const areaSetCode = selectedBoundary?.areaSetCode;
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -26,6 +28,7 @@ export default function InspectorConfigTab() {
 
       const dataSource = getDataSourceById(dataSourceId);
       const newBoundaryConfig: InspectorBoundaryConfig = {
+        id: uuidv4(),
         dataSourceId,
         name: dataSource?.name || "Boundary Data",
         type: InspectorBoundaryConfigType.Simple,
@@ -71,7 +74,8 @@ export default function InspectorConfigTab() {
         <div className="flex flex-col gap-4 pt-4">
           {boundaryStatsConfig.map((boundaryConfig, index) => (
             <BoundaryConfigItem
-              key={boundaryConfig.dataSourceId}
+              key={boundaryConfig.id}
+              areaSetCode={areaSetCode}
               boundaryConfig={boundaryConfig}
               index={index}
               onClickRemove={() => {
@@ -104,7 +108,7 @@ export default function InspectorConfigTab() {
           ))}
           <DataSourceSelectButton
             className="w-full"
-            areaSetCode={selectedBoundary?.areaSetCode}
+            areaSetCode={areaSetCode}
             onSelect={(dataSourceId) => addDataSourceToConfig(dataSourceId)}
             selectButtonText={"Add a data source"}
           />

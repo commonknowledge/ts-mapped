@@ -168,6 +168,7 @@ export const inspectorBoundaryTypes = Object.values(
  * - columns: Array of column names to display from this data source
  */
 export const inspectorBoundaryConfigSchema = z.object({
+  id: z.string(),
   dataSourceId: z.string(),
   name: z.string(),
   type: z.nativeEnum(InspectorBoundaryConfigType),

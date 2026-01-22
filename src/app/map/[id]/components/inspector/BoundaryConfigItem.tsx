@@ -1,4 +1,4 @@
-import { Database } from "lucide-react";
+import { Database, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
@@ -7,6 +7,7 @@ import {
   InspectorBoundaryConfigType,
   inspectorBoundaryTypes,
 } from "@/server/models/MapView";
+import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { MultiSelect } from "@/shadcn/ui/multi-select";
@@ -20,13 +21,16 @@ import {
 import { useDataSources } from "../../hooks/useDataSources";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import TogglePanel from "../TogglePanel";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export function BoundaryConfigItem({
+  areaSetCode,
   boundaryConfig,
   index,
   onClickRemove,
   onUpdate,
 }: {
+  areaSetCode: AreaSetCode | null | undefined;
   boundaryConfig: InspectorBoundaryConfig;
   index: number;
   onClickRemove: () => void;
@@ -51,8 +55,15 @@ export function BoundaryConfigItem({
 
   if (!dataSource) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
+      <div className="py-8 text-muted-foreground flex items-center justify-center">
         <p className="text-sm">Data source not found</p>
+        <Button
+          variant="ghost"
+          className="text-xs font-normal text-muted-foreground hover:text-destructive"
+          onClick={onClickRemove}
+        >
+          <X className="w-3 h-3" />
+        </Button>
       </div>
     );
   }
@@ -80,6 +91,15 @@ export function BoundaryConfigItem({
     });
   };
 
+  const handleDataSourceIdChange = (dataSourceId: string) => {
+    setSelectedColumns([]);
+    onUpdate({
+      ...boundaryConfig,
+      dataSourceId,
+      columns: [],
+    });
+  };
+
   return (
     <div className="border rounded-lg p-3">
       <TogglePanel
@@ -97,10 +117,11 @@ export function BoundaryConfigItem({
 
           {/* Data source info */}
           <DataSourceSelectButton
+            areaSetCode={areaSetCode}
             className="w-full"
             dataSource={dataSource}
             onClickRemove={onClickRemove}
-            onSelect={() => null}
+            onSelect={(dataSourceId) => handleDataSourceIdChange(dataSourceId)}
           />
 
           {/* Name field */}
