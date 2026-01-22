@@ -86,6 +86,7 @@ export interface FilterField {
 
 export enum LayerType {
   Boundary = "Boundary",
+  Cluster = "Cluster",
   Member = "Member",
   Marker = "Marker",
   Turf = "Turf",
