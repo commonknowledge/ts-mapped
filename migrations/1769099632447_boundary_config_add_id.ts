@@ -9,12 +9,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 				inspector_config,
 				'{boundaries}',
 				(
-					SELECT jsonb_agg(
-						jsonb_set(
-							boundary,
-							'{id}',
-							to_jsonb(gen_random_uuid()::text)
-						)
+					SELECT COALESCE(
+						jsonb_agg(
+							jsonb_set(
+								boundary,
+								'{id}',
+								to_jsonb(gen_random_uuid()::text)
+							)
+						),
+						'[]'::jsonb
 					)
 					FROM jsonb_array_elements(inspector_config->'boundaries') AS boundary
 				)
@@ -31,7 +34,10 @@ export async function down(db: Kysely<any>): Promise<void> {
 				inspector_config,
 				'{boundaries}',
 				(
-					SELECT jsonb_agg(boundary - 'id')
+					SELECT COALESCE(
+						jsonb_agg(boundary - 'id'),
+						'[]'::jsonb
+					)
 					FROM jsonb_array_elements(inspector_config->'boundaries') AS boundary
 				)
 			)
