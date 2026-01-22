@@ -62,18 +62,17 @@ export default function InspectorPanel() {
       id="inspector-panel"
       className={cn(
         "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5",
-        "bottom-24", // to avoid clash with bug report button
-        safeActiveTab === "config" ? "h-full" : "h-fit max-h-full",
       )}
       style={{
         minWidth: safeActiveTab === "config" ? "400px" : "250px",
         maxWidth: "450px",
+        maxHeight: "calc(100% - 80px)", // Avoid clash with buttons
       }}
     >
       <div
         className={cn(
-          "relative z-50 w-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
-          safeActiveTab === "config" ? "h-full" : "max-h-full",
+          "relative z-50 w-full flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+          "min-h-0",
         )}
       >
         <div className="flex justify-between items-center gap-4 p-3">
@@ -114,7 +113,7 @@ export default function InspectorPanel() {
           defaultValue="data"
           value={safeActiveTab}
           onValueChange={setActiveTab}
-          className="flex flex-col overflow-hidden h-full"
+          className="flex flex-col min-h-0"
         >
           <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
             {type !== LayerType.Cluster && (
@@ -140,10 +139,7 @@ export default function InspectorPanel() {
           </UnderlineTabsList>
 
           {type !== LayerType.Cluster && (
-            <UnderlineTabsContent
-              value="data"
-              className="grow overflow-auto p-3"
-            >
+            <UnderlineTabsContent value="data" className="overflow-auto p-3">
               <InspectorDataTab
                 dataSource={dataSource}
                 properties={properties}
@@ -154,25 +150,16 @@ export default function InspectorPanel() {
             </UnderlineTabsContent>
           )}
 
-          <UnderlineTabsContent
-            value="markers"
-            className="grow overflow-auto p-3"
-          >
+          <UnderlineTabsContent value="markers" className="overflow-auto p-3">
             {type && <InspectorMarkersTab type={type} />}
           </UnderlineTabsContent>
 
-          <UnderlineTabsContent
-            value="notes"
-            className="grow overflow-auto p-3"
-          >
+          <UnderlineTabsContent value="notes" className="overflow-auto p-3">
             <InspectorNotesTab />
           </UnderlineTabsContent>
 
           {type === LayerType.Boundary && (
-            <UnderlineTabsContent
-              value="config"
-              className="grow overflow-auto p-3 h-full"
-            >
+            <UnderlineTabsContent value="config" className="overflow-auto p-3">
               <InspectorConfigTab />
             </UnderlineTabsContent>
           )}

@@ -1,12 +1,13 @@
-import { Database } from "lucide-react";
+import { Database, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { DataSourceItem, getDataSourceType } from "@/components/DataSourceItem";
+import { getDataSourceType } from "@/components/DataSourceItem";
 import {
   type InspectorBoundaryConfig,
   InspectorBoundaryConfigType,
   inspectorBoundaryTypes,
 } from "@/server/models/MapView";
+import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { MultiSelect } from "@/shadcn/ui/multi-select";
@@ -18,15 +19,21 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { useDataSources } from "../../hooks/useDataSources";
+import DataSourceSelectButton from "../DataSourceSelectButton";
 import TogglePanel from "../TogglePanel";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export function BoundaryConfigItem({
+  areaSetCode,
   boundaryConfig,
   index,
+  onClickRemove,
   onUpdate,
 }: {
+  areaSetCode: AreaSetCode | null | undefined;
   boundaryConfig: InspectorBoundaryConfig;
   index: number;
+  onClickRemove: () => void;
   onUpdate: (config: InspectorBoundaryConfig) => void;
 }) {
   const { getDataSourceById } = useDataSources();
@@ -48,8 +55,15 @@ export function BoundaryConfigItem({
 
   if (!dataSource) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
+      <div className="py-8 text-muted-foreground flex items-center justify-center">
         <p className="text-sm">Data source not found</p>
+        <Button
+          variant="ghost"
+          className="text-xs font-normal text-muted-foreground hover:text-destructive"
+          onClick={onClickRemove}
+        >
+          <X className="w-3 h-3" />
+        </Button>
       </div>
     );
   }
@@ -77,6 +91,20 @@ export function BoundaryConfigItem({
     });
   };
 
+  const handleDataSourceIdChange = (dataSourceId: string) => {
+    const newDataSource = getDataSourceById(dataSourceId);
+    const newName = newDataSource?.name ?? configName;
+
+    setConfigName(newName || "");
+    setSelectedColumns([]);
+    onUpdate({
+      ...boundaryConfig,
+      dataSourceId,
+      columns: [],
+      name: newName,
+    });
+  };
+
   return (
     <div className="border rounded-lg p-3">
       <TogglePanel
@@ -93,11 +121,12 @@ export function BoundaryConfigItem({
           </h3>
 
           {/* Data source info */}
-          <DataSourceItem
-            className="shadow-xs"
-            dataSource={{
-              ...dataSource,
-            }}
+          <DataSourceSelectButton
+            areaSetCode={areaSetCode}
+            className="w-full"
+            dataSource={dataSource}
+            onClickRemove={onClickRemove}
+            onSelect={(dataSourceId) => handleDataSourceIdChange(dataSourceId)}
           />
 
           {/* Name field */}

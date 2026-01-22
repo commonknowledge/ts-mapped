@@ -38,7 +38,7 @@ export function BoundaryDataPanel({
           (selectedBoundary?.areaSetCode as AreaSetCode) || AreaSetCode.WMC24,
       },
       {
-        enabled: Boolean(selectedBoundary?.areaSetCode),
+        enabled: Boolean(selectedBoundary?.areaSetCode && dataSourceId),
       },
     ),
   );
