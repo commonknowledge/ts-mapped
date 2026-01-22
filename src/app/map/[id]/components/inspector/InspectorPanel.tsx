@@ -1,5 +1,5 @@
 import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { cn } from "@/shadcn/utils";
@@ -26,12 +26,26 @@ export default function InspectorPanel() {
     setFocusedRecord,
     selectedRecords,
   } = useInspector();
+  const { dataSource, properties, type } = inspectorContent ?? {};
+
+  const safeActiveTab = useMemo(() => {
+    if (activeTab === "data" && type === LayerType.Cluster) {
+      return "markers";
+    }
+    const isMarkers = type === LayerType.Marker || type === LayerType.Member;
+    if (activeTab === "markers" && isMarkers) {
+      return "data";
+    }
+    if (activeTab === "config" && type !== LayerType.Boundary) {
+      return type === LayerType.Cluster ? "markers" : "data";
+    }
+    return activeTab;
+  }, [activeTab, type]);
 
   if (!Boolean(inspectorContent)) {
     return <></>;
   }
 
-  const { dataSource, properties, type } = inspectorContent ?? {};
   const isDetailsView = Boolean(
     (selectedTurf && type !== LayerType.Turf) ||
     (selectedBoundary && type !== LayerType.Boundary),
@@ -49,17 +63,17 @@ export default function InspectorPanel() {
       className={cn(
         "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5",
         "bottom-24", // to avoid clash with bug report button
-        activeTab === "config" ? "h-full" : "h-fit max-h-full",
+        safeActiveTab === "config" ? "h-full" : "h-fit max-h-full",
       )}
       style={{
-        minWidth: activeTab === "config" ? "400px" : "250px",
+        minWidth: safeActiveTab === "config" ? "400px" : "250px",
         maxWidth: "450px",
       }}
     >
       <div
         className={cn(
           "relative z-50 w-full overflow-auto / flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
-          activeTab === "config" ? "h-full" : "max-h-full",
+          safeActiveTab === "config" ? "h-full" : "max-h-full",
         )}
       >
         <div className="flex justify-between items-center gap-4 p-3">
@@ -98,12 +112,14 @@ export default function InspectorPanel() {
 
         <UnderlineTabs
           defaultValue="data"
-          value={activeTab}
+          value={safeActiveTab}
           onValueChange={setActiveTab}
           className="flex flex-col overflow-hidden h-full"
         >
           <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
-            <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
+            {type !== LayerType.Cluster && (
+              <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
+            )}
             <UnderlineTabsTrigger
               value="markers"
               className={cn(
@@ -116,20 +132,27 @@ export default function InspectorPanel() {
             <UnderlineTabsTrigger value="notes" className="hidden">
               Notes 0
             </UnderlineTabsTrigger>
-            <UnderlineTabsTrigger value="config" className="px-2">
-              <SettingsIcon size={16} />
-            </UnderlineTabsTrigger>
+            {type === LayerType.Boundary && (
+              <UnderlineTabsTrigger value="config" className="px-2">
+                <SettingsIcon size={16} />
+              </UnderlineTabsTrigger>
+            )}
           </UnderlineTabsList>
 
-          <UnderlineTabsContent value="data" className="grow overflow-auto p-3">
-            <InspectorDataTab
-              dataSource={dataSource}
-              properties={properties}
-              isDetailsView={isDetailsView}
-              focusedRecord={focusedRecord}
-              type={type}
-            />
-          </UnderlineTabsContent>
+          {type !== LayerType.Cluster && (
+            <UnderlineTabsContent
+              value="data"
+              className="grow overflow-auto p-3"
+            >
+              <InspectorDataTab
+                dataSource={dataSource}
+                properties={properties}
+                isDetailsView={isDetailsView}
+                focusedRecord={focusedRecord}
+                type={type}
+              />
+            </UnderlineTabsContent>
+          )}
 
           <UnderlineTabsContent
             value="markers"
@@ -145,12 +168,14 @@ export default function InspectorPanel() {
             <InspectorNotesTab />
           </UnderlineTabsContent>
 
-          <UnderlineTabsContent
-            value="config"
-            className="grow overflow-auto p-3 h-full"
-          >
-            <InspectorConfigTab />
-          </UnderlineTabsContent>
+          {type === LayerType.Boundary && (
+            <UnderlineTabsContent
+              value="config"
+              className="grow overflow-auto p-3 h-full"
+            >
+              <InspectorConfigTab />
+            </UnderlineTabsContent>
+          )}
         </UnderlineTabs>
       </div>
     </div>

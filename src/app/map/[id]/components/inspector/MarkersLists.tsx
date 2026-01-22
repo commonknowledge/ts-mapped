@@ -14,7 +14,7 @@ export const MembersList = ({
 }: {
   markers: MarkerFeature[];
   dataSource: DataSource | null;
-  areaType: "area" | "boundary";
+  areaType: "area" | "boundary" | "cluster";
 }) => {
   const { setSelectedRecords } = useInspector();
 
