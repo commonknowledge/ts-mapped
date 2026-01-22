@@ -1,13 +1,11 @@
-import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { MarkersList, MembersList } from "./MarkersLists";
 import type { MarkerFeature } from "@/types";
 
 export default function ClusterMarkersList() {
-  const { getDataSourceById } = useDataSources();
   const { selectedRecords, inspectorContent } = useInspector();
-  const dataSource = getDataSourceById(inspectorContent?.dataSource?.id);
+  const dataSource = inspectorContent?.dataSource;
   const recordType = dataSource?.recordType;
   const markerFeatures = selectedRecords
     .map((r): MarkerFeature | null => {
