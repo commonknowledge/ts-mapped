@@ -71,26 +71,34 @@ export function useInspector() {
     }
 
     const dataSourceId = focusedRecord.dataSourceId;
-
     const dataSource = dataSourceId ? getDataSourceById(dataSourceId) : null;
+    if (selectedRecords.length > 1) {
+      return {
+        type: LayerType.Cluster,
+        name: "Cluster",
+        properties: null,
+        dataSource,
+      };
+    }
+
     const type =
       dataSourceId === mapConfig.membersDataSourceId
         ? LayerType.Member
         : LayerType.Marker;
 
     return {
-      type: type,
+      type,
       name: focusedRecord.name,
       properties: null,
-      dataSource: dataSource,
+      dataSource,
     };
   }, [
     focusedRecord,
     getDataSourceById,
     mapConfig.membersDataSourceId,
     selectedBoundary,
-    selectedTurf?.id,
-    selectedTurf?.name,
+    selectedRecords.length,
+    selectedTurf,
   ]);
 
   const resetInspector = useCallback(() => {
