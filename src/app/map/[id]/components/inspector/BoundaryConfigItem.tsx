@@ -92,11 +92,16 @@ export function BoundaryConfigItem({
   };
 
   const handleDataSourceIdChange = (dataSourceId: string) => {
+    const newDataSource = getDataSourceById(dataSourceId);
+    const newName = newDataSource?.name ?? configName;
+
+    setConfigName(newName || "");
     setSelectedColumns([]);
     onUpdate({
       ...boundaryConfig,
       dataSourceId,
       columns: [],
+      name: newName,
     });
   };
 
