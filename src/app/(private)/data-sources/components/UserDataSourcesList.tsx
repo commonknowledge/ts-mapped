@@ -2,8 +2,6 @@
 
 import { Boxes, Database, PlusIcon, Users, UsersIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { CollectionIcon } from "@/app/map/[id]/components/Icons";
-import { mapColors } from "@/app/map/[id]/styles";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import DataSourceRecordTypeIcon, {
   dataSourceRecordTypeColors,
@@ -32,7 +30,8 @@ export default function UserDataSourcesList({
     () =>
       dataSources
         ?.filter(
-          (dataSource) => dataSource.recordType === DataSourceRecordType.Members,
+          (dataSource) =>
+            dataSource.recordType === DataSourceRecordType.Members,
         )
         .sort((a, b) => {
           const aDate = a.importInfo?.lastCompleted
@@ -50,7 +49,8 @@ export default function UserDataSourcesList({
     () =>
       dataSources
         ?.filter(
-          (dataSource) => dataSource.recordType !== DataSourceRecordType.Members,
+          (dataSource) =>
+            dataSource.recordType !== DataSourceRecordType.Members,
         )
         .sort((a, b) => {
           const aDate = a.importInfo?.lastCompleted

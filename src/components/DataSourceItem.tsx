@@ -1,8 +1,8 @@
 import { formatDistanceToNow } from "date-fns";
 import { Database, RefreshCw } from "lucide-react";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { DataSourceType } from "@/server/models/DataSource";
 import { cn } from "@/shadcn/utils";
+import type { DataSourceType } from "@/server/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSourceItemType = NonNullable<
@@ -102,24 +102,22 @@ export function DataSourceItem({
     >
       {/* Header: Icon and Name */}
       <div className="flex justify-between gap-2 text-neutral-600">
-
-      <div className="flex items-center gap-1">
-        <DataSourceIcon type={dataSourceType} />
-        <p className="text-sm font-mono uppercase">{dataSourceType}</p>
-      </div>
-      {lastImportedText && (
-              <span className="text-xs inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
-                <RefreshCw className="w-3.5 h-3.5" />
-                {lastImportedText}
-              </span>
-            
-          )}
-      </div>
-        <div className="flex-1 min-w-0">
-          <h4 className=" text-xl font-medium text-neutral-900 truncate leading-tight">
-            {dataSource.name}
-          </h4>
+        <div className="flex items-center gap-1">
+          <DataSourceIcon type={dataSourceType} />
+          <p className="text-sm font-mono uppercase">{dataSourceType}</p>
         </div>
+        {lastImportedText && (
+          <span className="text-xs inline-flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
+            <RefreshCw className="w-3.5 h-3.5" />
+            {lastImportedText}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className=" text-xl font-medium text-neutral-900 truncate leading-tight">
+          {dataSource.name}
+        </h4>
+      </div>
 
       {/* Metadata: Consolidated stats and status */}
       <div className="flex flex-col gap-2 text-xs">
@@ -129,8 +127,9 @@ export function DataSourceItem({
             {dataSource.recordCount?.toLocaleString() || "Unknown"} records
           </span>
           <span className="text-neutral-400">•</span>
-          <span className="text-neutral-600">{dataSource.columnDefs.length} columns</span>
-        
+          <span className="text-neutral-600">
+            {dataSource.columnDefs.length} columns
+          </span>
         </div>
 
         {/* Secondary info: Geocoding (muted) and status badges */}
@@ -138,13 +137,13 @@ export function DataSourceItem({
           <span className={cn("text-xs", geocodingStatus.color)}>
             {geocodingStatus.status}
           </span>
-          
+
           {dataSource.public && (
             <span className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
               Public
             </span>
           )}
-          
+
           {dataSource.autoImport && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
               <Database className="w-3 h-3" />
