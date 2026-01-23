@@ -64,7 +64,7 @@ export default function Legend() {
   const makeBars = () => {
     if (!colorScheme) return null;
 
-    if (colorScheme.columnType === ColumnType.Number) {
+    if (colorScheme.colorSchemeType === "numeric") {
       // Handle stepped colors
       const steppedColorSteps =
         viewConfig.steppedColorStepsByKey?.[getChoroplethDataKey(viewConfig)];
@@ -229,7 +229,12 @@ export default function Legend() {
         <div className="flex flex-col gap-1.5 w-full py-1">
           {Object.keys(colorScheme.colorMap)
             .filter((key) => categoriesInData.has(key))
-            .toSorted()
+            .toSorted((a, b) => {
+              if (areaStats?.primary?.columnType === ColumnType.Number) {
+                return Number(a) < Number(b) ? -1 : 1;
+              }
+              return a < b ? -1 : 1;
+            })
             .map((key) => (
               <div className="flex items-center gap-2 text-xs" key={key}>
                 <div
