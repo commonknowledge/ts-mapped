@@ -71,6 +71,7 @@ export enum CalculationType {
   Count = "Count",
   Sum = "Sum",
   Avg = "Avg",
+  Mode = "Mode",
 }
 export const calculationTypes = Object.values(CalculationType);
 export const calculationType = z.nativeEnum(CalculationType);
@@ -88,6 +89,7 @@ export enum ColorScheme {
 export const colorSchemes = Object.values(ColorScheme);
 
 export enum ColorScaleType {
+  Categorical = "Categorical",
   Gradient = "Gradient",
   Stepped = "Stepped",
 }

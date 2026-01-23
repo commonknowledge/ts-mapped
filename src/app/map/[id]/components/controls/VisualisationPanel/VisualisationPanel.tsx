@@ -149,6 +149,12 @@ export default function VisualisationPanel({
     dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
       ?.type === ColumnType.Number;
 
+  const forceCategoryColors =
+    !viewConfig.areaDataSecondaryColumn && !columnOneIsNumber;
+  const showCategoryColors =
+    forceCategoryColors ||
+    viewConfig.colorScaleType === ColorScaleType.Categorical;
+
   return (
     <div
       className={cn(
@@ -419,6 +425,9 @@ export default function VisualisationPanel({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={CalculationType.Avg}>Average</SelectItem>
+                    <SelectItem value={CalculationType.Mode}>
+                      Most common
+                    </SelectItem>
                     <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
                   </SelectContent>
                 </Select>
@@ -518,11 +527,7 @@ export default function VisualisationPanel({
                   id="color-scale-type-select"
                 >
                   <SelectValue placeholder="Choose color scale...">
-                    {viewConfig.colorScaleType === ColorScaleType.Gradient
-                      ? "Gradient"
-                      : viewConfig.colorScaleType === ColorScaleType.Stepped
-                        ? "Stepped"
-                        : "Gradient"}
+                    {viewConfig.colorScaleType || ColorScaleType.Gradient}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -561,127 +566,158 @@ export default function VisualisationPanel({
                       <span>Stepped</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value={ColorScaleType.Categorical}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-3 rounded border border-neutral-300 overflow-hidden flex">
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#1f77b4" }}
+                        />
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#ff7f0e" }}
+                        />
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#2ca02c" }}
+                        />
+                        <div
+                          className="h-full flex-1"
+                          style={{ backgroundColor: "#d62728" }}
+                        />
+                      </div>
+                      <span>Categorical</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
-              <Label
-                htmlFor="choropleth-color-scheme-select"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Colour scheme
-              </Label>
-
-              <Select
-                value={viewConfig.colorScheme || ColorScheme.RedBlue}
-                onValueChange={(value) =>
-                  updateViewConfig({
-                    colorScheme: value as ColorScheme,
-                  })
-                }
-              >
-                <SelectTrigger
-                  className="w-full min-w-0"
-                  id="choropleth-color-scheme-select"
-                >
-                  <SelectValue placeholder="Choose colour scheme..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
-                    const isCustom = option.value === ColorScheme.Custom;
-                    const customColorValue = isCustom
-                      ? viewConfig.customColor || "#3b82f6"
-                      : undefined;
-                    return (
-                      <SelectItem
-                        key={index}
-                        value={option.value}
-                        className="flex items-center gap-2"
-                      >
-                        {isCustom && customColorValue ? (
-                          <div
-                            className="w-4 h-4 rounded"
-                            style={{
-                              background: `linear-gradient(to right, white, ${customColorValue})`,
-                            }}
-                          />
-                        ) : (
-                          <div className={`w-4 h-4 rounded ${option.color}`} />
-                        )}
-                        <span className="truncate">{option.label}</span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-
-              {viewConfig.colorScheme === ColorScheme.Custom && (
+              {viewConfig.colorScaleType !== ColorScaleType.Categorical && (
                 <>
                   <Label
-                    htmlFor="custom-color-picker"
+                    htmlFor="choropleth-color-scheme-select"
                     className="text-sm text-muted-foreground font-normal"
                   >
-                    Max color
+                    Colour scheme
                   </Label>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
-                      style={{
-                        backgroundColor:
-                          viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
-                      }}
+
+                  <Select
+                    value={viewConfig.colorScheme || ColorScheme.RedBlue}
+                    onValueChange={(value) =>
+                      updateViewConfig({
+                        colorScheme: value as ColorScheme,
+                      })
+                    }
+                  >
+                    <SelectTrigger
+                      className="w-full min-w-0"
+                      id="choropleth-color-scheme-select"
                     >
-                      <input
-                        type="color"
-                        id="custom-color-picker"
-                        value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
-                        onChange={(e) =>
-                          updateViewConfig({ customColor: e.target.value })
-                        }
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        title="Choose color for max value"
-                      />
-                    </div>
-                    <Input
-                      type="text"
-                      value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
-                      onChange={(e) =>
-                        updateViewConfig({ customColor: e.target.value })
-                      }
-                      className="flex-1"
-                      placeholder={DEFAULT_CUSTOM_COLOR}
-                    />
-                  </div>
-                </>
-              )}
+                      <SelectValue placeholder="Choose colour scheme..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
+                        const isCustom = option.value === ColorScheme.Custom;
+                        const customColorValue = isCustom
+                          ? viewConfig.customColor || "#3b82f6"
+                          : undefined;
+                        return (
+                          <SelectItem
+                            key={index}
+                            value={option.value}
+                            className="flex items-center gap-2"
+                          >
+                            {isCustom && customColorValue ? (
+                              <div
+                                className="w-4 h-4 rounded"
+                                style={{
+                                  background: `linear-gradient(to right, white, ${customColorValue})`,
+                                }}
+                              />
+                            ) : (
+                              <div
+                                className={`w-4 h-4 rounded ${option.color}`}
+                              />
+                            )}
+                            <span className="truncate">{option.label}</span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
 
-              <Label
-                htmlFor="choropleth-color-scheme-switch"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Reverse
-              </Label>
+                  {viewConfig.colorScheme === ColorScheme.Custom && (
+                    <>
+                      <Label
+                        htmlFor="custom-color-picker"
+                        className="text-sm text-muted-foreground font-normal"
+                      >
+                        Max color
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
+                          style={{
+                            backgroundColor:
+                              viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
+                          }}
+                        >
+                          <input
+                            type="color"
+                            id="custom-color-picker"
+                            value={
+                              viewConfig.customColor || DEFAULT_CUSTOM_COLOR
+                            }
+                            onChange={(e) =>
+                              updateViewConfig({ customColor: e.target.value })
+                            }
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            title="Choose color for max value"
+                          />
+                        </div>
+                        <Input
+                          type="text"
+                          value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
+                          onChange={(e) =>
+                            updateViewConfig({ customColor: e.target.value })
+                          }
+                          className="flex-1"
+                          placeholder={DEFAULT_CUSTOM_COLOR}
+                        />
+                      </div>
+                    </>
+                  )}
 
-              <Switch
-                id="choropleth-color-scheme-switch"
-                checked={Boolean(viewConfig.reverseColorScheme)}
-                onCheckedChange={(v) =>
-                  updateViewConfig({ reverseColorScheme: v })
-                }
-              />
-
-              {viewConfig.colorScaleType === ColorScaleType.Stepped && (
-                <>
-                  <Label className="text-sm text-muted-foreground font-normal">
-                    Color steps
+                  <Label
+                    htmlFor="choropleth-color-scheme-switch"
+                    className="text-sm text-muted-foreground font-normal"
+                  >
+                    Reverse
                   </Label>
-                  <div>
-                    <SteppedColorEditor />
-                  </div>
+
+                  <Switch
+                    id="choropleth-color-scheme-switch"
+                    checked={Boolean(viewConfig.reverseColorScheme)}
+                    onCheckedChange={(v) =>
+                      updateViewConfig({ reverseColorScheme: v })
+                    }
+                  />
+
+                  {viewConfig.colorScaleType === ColorScaleType.Stepped && (
+                    <>
+                      <Label className="text-sm text-muted-foreground font-normal">
+                        Color steps
+                      </Label>
+                      <div>
+                        <SteppedColorEditor />
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </>
           )}
-          {!viewConfig.areaDataSecondaryColumn && !columnOneIsNumber && (
+          {showCategoryColors && (
             <>
               <Label className="text-sm text-muted-foreground font-normal">
                 Category colors

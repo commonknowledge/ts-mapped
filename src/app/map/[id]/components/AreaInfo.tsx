@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useAtom } from "jotai";
 import { XIcon } from "lucide-react";
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo, useState } from "react";
@@ -16,12 +15,12 @@ import {
 } from "@/shadcn/ui/table";
 import { formatNumber } from "@/utils/text";
 
-import { selectedAreasAtom } from "../atoms/selectedAreasAtom";
 import { useFillColor } from "../colors";
 import { useAreaStats } from "../data";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
 import { useHoverArea } from "../hooks/useMapHover";
 import { useMapViews } from "../hooks/useMapViews";
+import { useSelectedAreas } from "../hooks/useSelectedAreas";
 
 const getDisplayValue = (
   calculationType: CalculationType | null | undefined,
@@ -76,7 +75,7 @@ export default function AreaInfo() {
     name: string;
     coordinates: [number, number];
   } | null>(null);
-  const [selectedAreas, setSelectedAreas] = useAtom(selectedAreasAtom);
+  const [selectedAreas, setSelectedAreas] = useSelectedAreas();
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
   const choroplethDataSource = useChoroplethDataSource();
@@ -213,11 +212,6 @@ export default function AreaInfo() {
     );
   };
 
-  // Early return after all hooks have been called
-  if (!areaStats) {
-    return null;
-  }
-
   return (
     <AnimatePresence mode="wait">
       {areasToDisplay.length > 0 && (
@@ -262,24 +256,26 @@ export default function AreaInfo() {
             <TableBody>
               {areasToDisplay.map((area) => {
                 const areaStat =
-                  areaStats.areaSetCode === area.areaSetCode
+                  areaStats?.areaSetCode === area.areaSetCode
                     ? areaStats.stats.find((s) => s.areaCode === area.code)
                     : null;
 
-                const primaryValue = areaStat
-                  ? getDisplayValue(
-                      areaStats.calculationType,
-                      areaStats.primary,
-                      areaStat.primary,
-                    )
-                  : "-";
-                const secondaryValue = areaStat
-                  ? getDisplayValue(
-                      areaStats.calculationType,
-                      areaStats.secondary,
-                      areaStat.secondary,
-                    )
-                  : "-";
+                const primaryValue =
+                  areaStats && areaStat
+                    ? getDisplayValue(
+                        areaStats.calculationType,
+                        areaStats.primary,
+                        areaStat.primary,
+                      )
+                    : null;
+                const secondaryValue =
+                  areaStats && areaStat
+                    ? getDisplayValue(
+                        areaStats.calculationType,
+                        areaStats.secondary,
+                        areaStat.secondary,
+                      )
+                    : null;
 
                 return (
                   <TableRow
@@ -337,23 +333,25 @@ export default function AreaInfo() {
                         <span className="truncate">{area.name}</span>
                       </div>
                     </TableCell>
-                    {!multipleAreas && (
+                    {primaryValue && !multipleAreas && (
                       <TableCell className="px-2 py-2 h-8">
                         <div className="w-px bg-neutral-200 h-full" />
                       </TableCell>
                     )}
-                    <TableCell className="py-2 px-3 whitespace-normal h-8">
-                      {!multipleAreas ? (
-                        <div className="flex flex-row justify-center items-center text-right">
-                          <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                            {statLabel}:
-                          </span>
-                          <span>{primaryValue}</span>
-                        </div>
-                      ) : (
-                        primaryValue
-                      )}
-                    </TableCell>
+                    {primaryValue && (
+                      <TableCell className="py-2 px-3 whitespace-normal h-8">
+                        {!multipleAreas ? (
+                          <div className="flex flex-row justify-center items-center text-right">
+                            <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                              {statLabel}:
+                            </span>
+                            <span>{primaryValue}</span>
+                          </div>
+                        ) : (
+                          primaryValue || "-"
+                        )}
+                      </TableCell>
+                    )}
                     {hasSecondaryData && (
                       <TableCell className="py-2 px-3 whitespace-normal h-8">
                         {!multipleAreas ? (
@@ -364,7 +362,7 @@ export default function AreaInfo() {
                             <span>{secondaryValue}</span>
                           </div>
                         ) : (
-                          secondaryValue
+                          secondaryValue || "-"
                         )}
                       </TableCell>
                     )}

@@ -43,12 +43,12 @@ const interpolateWhiteToColor = (targetColor: string) => {
 };
 
 export interface CategoricColorScheme {
-  columnType: ColumnType.String;
+  colorSchemeType: "categoric";
   colorMap: Record<string, string>;
 }
 
 export interface NumericColorScheme {
-  columnType: ColumnType.Number;
+  colorSchemeType: "numeric";
   minValue: number;
   maxValue: number;
   colorScale: ScaleSequential<string, never>;
@@ -176,7 +176,10 @@ const getColorScheme = ({
   const values = areaStats.stats.map((stat) => stat.primary);
 
   // ColumnType.String and others
-  if (areaStats.primary?.columnType !== ColumnType.Number) {
+  const isCategoric =
+    areaStats.primary?.columnType !== ColumnType.Number ||
+    viewConfig.colorScaleType === ColorScaleType.Categorical;
+  if (isCategoric) {
     const distinctValues = new Set(values.map(String));
     const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
@@ -186,7 +189,7 @@ const getColorScheme = ({
         viewConfig.categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
     });
     return {
-      columnType: ColumnType.String,
+      colorSchemeType: "categoric",
       colorMap,
     };
   }
@@ -194,8 +197,8 @@ const getColorScheme = ({
   // ColumnType.Number
 
   // Handle case where all values are the same (e.g., all counts are 1)
-  const minValue = areaStats.primary.minValue;
-  const maxValue = areaStats.primary.maxValue;
+  const minValue = areaStats.primary?.minValue || 0;
+  const maxValue = areaStats.primary?.maxValue || 0;
   if (minValue === maxValue) {
     const domain = viewConfig.reverseColorScheme ? [1, 0] : [0, 1];
     // For count records, create a simple color scheme
@@ -209,7 +212,7 @@ const getColorScheme = ({
       .interpolator(interpolator);
 
     return {
-      columnType: ColumnType.Number,
+      colorSchemeType: "numeric",
       minValue: 0,
       maxValue: 1,
       colorScale,
@@ -230,7 +233,7 @@ const getColorScheme = ({
     .interpolator(interpolator);
 
   return {
-    columnType: ColumnType.Number,
+    colorSchemeType: "numeric",
     minValue,
     maxValue,
     colorScale,
@@ -269,14 +272,18 @@ export const useFillColor = ({
     }
 
     // ColumnType.String and others
-    if (colorScheme.columnType !== ColumnType.Number) {
+    if (colorScheme.colorSchemeType === "categoric") {
       const ordinalColorStops: string[] = [];
       for (const key of Object.keys(colorScheme.colorMap)) {
         ordinalColorStops.push(key);
         ordinalColorStops.push(colorScheme.colorMap[key]);
       }
       ordinalColorStops.push(DEFAULT_FILL_COLOR);
-      return ["match", ["feature-state", "value"], ...ordinalColorStops];
+      return [
+        "match",
+        ["to-string", ["feature-state", "value"]],
+        ...ordinalColorStops,
+      ];
     }
 
     // ColumnType.Number - Check if stepped colors are enabled

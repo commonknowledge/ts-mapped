@@ -6,6 +6,8 @@ import { useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import {
+  CalculationType,
+  ColorScaleType,
   DEFAULT_CALCULATION_TYPE,
   MapType,
   type MapViewConfig,
@@ -202,6 +204,14 @@ export function useMapViews() {
       // Fallback to the default calculation type if a data column has been selected
       if (viewConfig.areaDataColumn && !viewConfig.calculationType) {
         viewConfig.calculationType = DEFAULT_CALCULATION_TYPE;
+      }
+
+      // Don't allow categorical colors if the calculation type is not Mode
+      if (
+        viewConfig.calculationType !== CalculationType.Mode &&
+        view.config.colorScaleType === ColorScaleType.Categorical
+      ) {
+        viewConfig.colorScaleType = ColorScaleType.Gradient;
       }
 
       // Clear the selected columns when the user changes the data source
