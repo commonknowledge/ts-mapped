@@ -202,14 +202,19 @@ export function useMapViews() {
       }
 
       // Fallback to the default calculation type if a data column has been selected
-      if (viewConfig.areaDataColumn && !viewConfig.calculationType) {
+      if (viewConfig.areaDataColumn && !view.config.calculationType) {
         viewConfig.calculationType = DEFAULT_CALCULATION_TYPE;
       }
 
       // Don't allow categorical colors if the calculation type is not Mode
+      // Derive the "next" values from the existing config plus this partial update.
+      const nextCalculationType =
+        viewConfig.calculationType ?? view.config.calculationType;
+      const nextColorScaleType =
+        viewConfig.colorScaleType ?? view.config.colorScaleType;
       if (
-        viewConfig.calculationType !== CalculationType.Mode &&
-        view.config.colorScaleType === ColorScaleType.Categorical
+        nextCalculationType !== CalculationType.Mode &&
+        nextColorScaleType === ColorScaleType.Categorical
       ) {
         viewConfig.colorScaleType = ColorScaleType.Gradient;
       }

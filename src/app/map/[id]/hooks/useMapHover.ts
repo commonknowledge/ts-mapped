@@ -261,7 +261,7 @@ export function useMapHoverEffect({
 
     return () => {
       // Clean up hover state on unmount
-      if (hoveredFeatureId !== undefined && map.getSource(sourceId)) {
+      if (hoveredFeatureId !== undefined && map.getSource(hoverSourceId)) {
         try {
           map.setFeatureState(
             {

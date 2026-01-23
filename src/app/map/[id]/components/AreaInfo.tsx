@@ -338,7 +338,7 @@ export default function AreaInfo() {
                         <div className="w-px bg-neutral-200 h-full" />
                       </TableCell>
                     )}
-                    {primaryValue && (
+                    {areaStats && (
                       <TableCell className="py-2 px-3 whitespace-normal h-8">
                         {!multipleAreas ? (
                           <div className="flex flex-row justify-center items-center text-right">

@@ -162,7 +162,7 @@ export default function Choropleth() {
           <Layer
             id={`${sourceId}-hover-overlay`}
             beforeId={choroplethTopLayerId}
-            source={sourceId}
+            source={hoverSourceId}
             source-layer={layerId}
             type="fill"
             paint={{
