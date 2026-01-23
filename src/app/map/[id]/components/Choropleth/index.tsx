@@ -22,6 +22,9 @@ export default function Choropleth() {
   const fillColor = useChoroplethFillColor();
   const opacity = (viewConfig.choroplethOpacityPct ?? 80) / 100;
 
+  const hoverSourceId = `${sourceId}-hover`;
+  const hoverSourceKey = `${layerId}-hover`;
+
   useChoroplethFeatureStatesEffect();
 
   return (
@@ -62,27 +65,6 @@ export default function Choropleth() {
             paint={{
               "fill-color": fillColor,
               "fill-opacity": viewConfig.showChoropleth ? opacity : 0,
-            }}
-          />
-
-          <Layer
-            id={`${sourceId}-hover-overlay`}
-            beforeId={choroplethTopLayerId}
-            source={sourceId}
-            source-layer={layerId}
-            type="fill"
-            paint={{
-              "fill-color": "#000000",
-              "fill-opacity": viewConfig.showChoropleth
-                ? [
-                    "case",
-                    ["boolean", ["feature-state", "hover"], false],
-                    // When hovering, apply darkness
-                    0.25,
-                    // Otherwise completely transparent
-                    0,
-                  ]
-                : 0,
             }}
           />
 
@@ -165,6 +147,38 @@ export default function Choropleth() {
               }}
             />
           )}
+        </Source>
+      )}
+      {/* Separate the hover state into a separate source for much better performance */}
+      {/* Mapbox is very slow at updating feature state when all features have state, e.g. in the case of a choropleth */}
+      {viewConfig.areaSetGroupCode && (
+        <Source
+          id={hoverSourceId}
+          key={hoverSourceKey}
+          promoteId={featureCodeProperty}
+          type="vector"
+          url={`mapbox://${sourceId}`}
+        >
+          <Layer
+            id={`${sourceId}-hover-overlay`}
+            beforeId={choroplethTopLayerId}
+            source={sourceId}
+            source-layer={layerId}
+            type="fill"
+            paint={{
+              "fill-color": "#000000",
+              "fill-opacity": viewConfig.showChoropleth
+                ? [
+                    "case",
+                    ["boolean", ["feature-state", "hover"], false],
+                    // When hovering, apply darkness
+                    0.25,
+                    // Otherwise completely transparent
+                    0,
+                  ]
+                : 0,
+            }}
+          />
         </Source>
       )}
     </>
