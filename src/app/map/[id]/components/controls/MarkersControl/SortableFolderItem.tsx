@@ -16,18 +16,24 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
+import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
+import { useMapConfig } from "../../../hooks/useMapConfig";
 import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
+import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
 import SortableMarkerItem from "./SortableMarkerItem";
@@ -78,6 +84,27 @@ export default function SortableFolderItem({
     usePlacedMarkerState();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
+  const { mapConfig, updateMapConfig } = useMapConfig();
+
+  // Get current folder color (defaults to marker color)
+  const currentFolderColor =
+    mapConfig.folderColors?.[folder.id] ?? mapColors.markers.color;
+
+  const handleFolderColorChange = (color: string) => {
+    // Update folder color and all marker colors in one operation
+    const updatedMarkerColors = { ...mapConfig.placedMarkerColors };
+    markers.forEach((marker) => {
+      updatedMarkerColors[marker.id] = color;
+    });
+
+    updateMapConfig({
+      folderColors: {
+        ...mapConfig.folderColors,
+        [folder.id]: color,
+      },
+      placedMarkerColors: updatedMarkerColors,
+    });
+  };
 
   const [isExpanded, setExpanded] = useState(false);
   const [isEditing, setEditing] = useState(false);
@@ -135,6 +162,7 @@ export default function SortableFolderItem({
         layerType={LayerType.Marker}
         isVisible={isFolderVisible}
         onVisibilityToggle={() => onVisibilityToggle()}
+        color={currentFolderColor}
       >
         {isEditing ? (
           <ControlEditForm
@@ -188,6 +216,24 @@ export default function SortableFolderItem({
                   </>
                 )}
               </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded border border-neutral-300"
+                      style={{ backgroundColor: currentFolderColor }}
+                    />
+                    <span>Color</span>
+                  </div>
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent className="w-auto p-2">
+                  <ColorPalette
+                    selectedColor={currentFolderColor}
+                    onColorSelect={handleFolderColorChange}
+                  />
+                </ContextMenuSubContent>
+              </ContextMenuSub>
               <ContextMenuSeparator />
               <ContextMenuItem
                 variant="destructive"

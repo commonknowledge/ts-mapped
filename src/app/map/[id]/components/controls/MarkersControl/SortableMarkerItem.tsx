@@ -5,20 +5,26 @@ import { CSS } from "@dnd-kit/utilities";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useMapRef } from "../../../hooks/useMapCore";
 import {
   usePlacedMarkerMutations,
   usePlacedMarkerState,
 } from "../../../hooks/usePlacedMarkers";
+import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
@@ -47,10 +53,24 @@ export default function SortableMarkerItem({
     setPlacedMarkerVisibility,
   } = usePlacedMarkerState();
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
+  const { mapConfig, updateMapConfig } = useMapConfig();
   const mapRef = useMapRef();
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  // Get current color (defaults to marker color)
+  const currentColor =
+    mapConfig.placedMarkerColors?.[marker.id] ?? mapColors.markers.color;
+
+  const handleColorChange = (color: string) => {
+    updateMapConfig({
+      placedMarkerColors: {
+        ...mapConfig.placedMarkerColors,
+        [marker.id]: color,
+      },
+    });
+  };
 
   // Check if this marker is the one being dragged (even outside its container)
   const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
@@ -121,6 +141,7 @@ export default function SortableMarkerItem({
           onVisibilityToggle={() =>
             setPlacedMarkerVisibility(marker.id, !isVisible)
           }
+          color={currentColor}
         >
           {isEditing ? (
             <ControlEditForm
@@ -166,6 +187,24 @@ export default function SortableMarkerItem({
                     </>
                   )}
                 </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded border border-neutral-300"
+                        style={{ backgroundColor: currentColor }}
+                      />
+                      <span>Color</span>
+                    </div>
+                  </ContextMenuSubTrigger>
+                  <ContextMenuSubContent className="w-auto p-2">
+                    <ColorPalette
+                      selectedColor={currentColor}
+                      onColorSelect={handleColorChange}
+                    />
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
                 <ContextMenuSeparator />
                 <ContextMenuItem
                   variant="destructive"
