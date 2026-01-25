@@ -2,6 +2,7 @@ import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import InspectorConfigTab from "./InspectorConfigTab";
@@ -15,8 +16,24 @@ import {
   UnderlineTabsTrigger,
 } from "./UnderlineTabs";
 
-export default function InspectorPanel() {
+export default function InspectorPanel({
+  boundariesPanelOpen = false,
+}: {
+  boundariesPanelOpen?: boolean;
+} = {}) {
   const [activeTab, setActiveTab] = useState("data");
+  const [hoverArea] = useHoverArea();
+  const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
+
+  console.log(
+    "[InspectorPanel] boundariesPanelOpen:",
+    boundariesPanelOpen,
+    "hoverArea:",
+    hoverArea,
+    "boundaryHoverVisible:",
+    boundaryHoverVisible,
+  );
+
   const {
     inspectorContent,
     resetInspector,
@@ -60,13 +77,14 @@ export default function InspectorPanel() {
   return (
     <div
       id="inspector-panel"
-      className={cn(
-        "absolute top-0 bottom-0 right-4 / flex flex-col gap-6 py-5",
-      )}
+      className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
       style={{
         minWidth: safeActiveTab === "config" ? "400px" : "250px",
         maxWidth: "450px",
-        maxHeight: "calc(100% - 80px)", // Avoid clash with buttons
+        maxHeight: "calc(100% - 80px)",
+        paddingTop: boundaryHoverVisible ? "80px" : "20px",
+        paddingBottom: "20px",
+        transition: "padding-top 0.3s",
       }}
     >
       <div
