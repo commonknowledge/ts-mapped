@@ -255,7 +255,7 @@ export function useMapHoverEffect({
     };
 
     map.on("mousemove", onMouseMove);
-    map.on("mouseleave", onMouseLeave);
+    map.on("mouseout", onMouseLeave);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
