@@ -5,13 +5,13 @@ import { DataSourceType } from "@/server/models/DataSource";
 import { cn } from "@/shadcn/utils";
 import type { RouterOutputs } from "@/services/trpc/react";
 
-type DataSourceItemType = NonNullable<
+export type DataSourceWithImportInfo = NonNullable<
   RouterOutputs["dataSource"]["byOrganisation"]
 >[0];
 
 // Helper function to get data source type from config
 export const getDataSourceType = (
-  dataSource: DataSourceItemType,
+  dataSource: DataSourceWithImportInfo,
 ): DataSourceType | "unknown" => {
   try {
     const config = dataSource.config;
@@ -64,7 +64,7 @@ const getDataSourceStyle = (type: DataSourceType | "unknown") => {
 }; */
 
 // Helper function to get geocoding status
-const getGeocodingStatus = (dataSource: DataSourceItemType) => {
+const getGeocodingStatus = (dataSource: DataSourceWithImportInfo) => {
   const geocodingConfig = dataSource.geocodingConfig;
   if (geocodingConfig.type === "None") {
     return { status: "No geocoding", color: "text-neutral-500" };
@@ -82,7 +82,7 @@ export function DataSourceItem({
   dataSource,
   className,
 }: {
-  dataSource: DataSourceItemType;
+  dataSource: DataSourceWithImportInfo;
   className?: string;
 }) {
   const dataSourceType = getDataSourceType(dataSource);

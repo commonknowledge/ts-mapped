@@ -13,8 +13,8 @@ export const MembersList = ({
   areaType,
 }: {
   markers: MarkerFeature[];
-  dataSource: DataSource | null;
-  areaType: "area" | "boundary";
+  dataSource: DataSource | undefined | null;
+  areaType: "area" | "boundary" | "cluster";
 }) => {
   const { setSelectedRecords } = useInspector();
 
@@ -68,7 +68,7 @@ export const MarkersList = ({
   dataSource,
 }: {
   markers: MarkerFeature[];
-  dataSource: DataSource | null;
+  dataSource: DataSource | undefined | null;
 }) => {
   const { setSelectedRecords } = useInspector();
   const total = markers.length;

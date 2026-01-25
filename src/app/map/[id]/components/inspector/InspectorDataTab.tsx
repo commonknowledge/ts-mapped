@@ -54,7 +54,9 @@ export default function InspectorDataTab({
     [view?.inspectorConfig?.boundaries],
   );
   const shouldUseInspectorConfig =
-    boundaryConfigs.length > 0 && type === LayerType.Boundary;
+    boundaryConfigs.length > 0 &&
+    type === LayerType.Boundary &&
+    boundaryConfigs.some((c) => c.columns.length);
 
   const boundaryData = useMemo(() => {
     if (
@@ -98,7 +100,7 @@ export default function InspectorDataTab({
         boundaryData.length > 0 ? (
           boundaryData.map((item, index) => (
             <BoundaryDataPanel
-              key={item.config.dataSourceId}
+              key={item.config.id}
               config={item.config}
               dataSourceId={item.dataSourceId}
               areaCode={item.areaCode}

@@ -3,8 +3,6 @@ import { useMemo, useState } from "react";
 import { useColorScheme } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { ColumnType } from "@/server/models/DataSource";
-import { ColorScheme } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -22,10 +20,7 @@ export default function CategoryColorEditor() {
 
   const colorScheme = useColorScheme({
     areaStats,
-    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
-    isReversed: Boolean(viewConfig.reverseColorScheme),
-    categoryColors: viewConfig.categoryColors,
-    customColor: viewConfig.customColor,
+    viewConfig,
   });
 
   // Get unique categories from areaStats
@@ -33,7 +28,7 @@ export default function CategoryColorEditor() {
     if (
       !areaStats ||
       !colorScheme ||
-      colorScheme.columnType === ColumnType.Number
+      colorScheme.colorSchemeType === "numeric"
     ) {
       return [];
     }
@@ -62,7 +57,7 @@ export default function CategoryColorEditor() {
 
   if (
     !colorScheme ||
-    colorScheme.columnType === ColumnType.Number ||
+    colorScheme.colorSchemeType === "numeric" ||
     categories.length === 0
   ) {
     return null;

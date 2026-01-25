@@ -1,7 +1,26 @@
 import { useEffect, useRef } from "react";
+import { useFillColor } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
-import { useMapRef } from "../../hooks/useMapCore";
+import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+
+export function useChoroplethFillColor() {
+  const { selectedBivariateBucket } = useChoropleth();
+
+  const { viewConfig } = useMapViews();
+  const areaStatsQuery = useAreaStats();
+  const areaStats = areaStatsQuery.data;
+
+  // Get fill color
+  const fillColor = useFillColor({
+    areaStats,
+    viewConfig,
+    selectedBivariateBucket,
+  });
+
+  return fillColor;
+}
 
 export function useChoroplethFeatureStatesEffect() {
   const mapRef = useMapRef();

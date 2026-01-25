@@ -26,6 +26,7 @@ export function useMapHoverEffect({
     areaSetCode,
     mapbox: { sourceId, layerId, featureNameProperty },
   } = choroplethLayerConfig;
+  const hoverSourceId = `${sourceId}-hover`;
 
   const [, setHoverArea] = useHoverArea();
   const [, setHoverMarker] = useHoverMarker();
@@ -60,7 +61,7 @@ export function useMapHoverEffect({
     const clearAreaHover = () => {
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
-          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          { source: hoverSourceId, sourceLayer: layerId, id: hoveredFeatureId },
           { hover: false },
         );
         setHoverArea(null);
@@ -193,7 +194,7 @@ export function useMapHoverEffect({
             if (hoveredFeatureId !== undefined) {
               map.setFeatureState(
                 {
-                  source: sourceId,
+                  source: hoverSourceId,
                   sourceLayer: layerId,
                   id: hoveredFeatureId,
                 },
@@ -204,7 +205,11 @@ export function useMapHoverEffect({
             // Set hover state on new feature
             hoveredFeatureId = feature.id;
             map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+              {
+                source: hoverSourceId,
+                sourceLayer: layerId,
+                id: hoveredFeatureId,
+              },
               { hover: true },
             );
             setHoverArea({
@@ -232,7 +237,7 @@ export function useMapHoverEffect({
 
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
-          { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          { source: hoverSourceId, sourceLayer: layerId, id: hoveredFeatureId },
           { hover: false },
         );
         hoveredFeatureId = undefined;
@@ -250,16 +255,20 @@ export function useMapHoverEffect({
     };
 
     map.on("mousemove", onMouseMove);
-    map.on("mouseleave", onMouseLeave);
+    map.on("mouseout", onMouseLeave);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
     return () => {
       // Clean up hover state on unmount
-      if (hoveredFeatureId !== undefined) {
+      if (hoveredFeatureId !== undefined && map.getSource(hoverSourceId)) {
         try {
           map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: hoveredFeatureId },
+            {
+              source: hoverSourceId,
+              sourceLayer: layerId,
+              id: hoveredFeatureId,
+            },
             { hover: false },
           );
         } catch {
@@ -284,6 +293,7 @@ export function useMapHoverEffect({
     featureNameProperty,
     areaSetCode,
     setCompareGeographiesMode,
+    hoverSourceId,
   ]);
 }
 

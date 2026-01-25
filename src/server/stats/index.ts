@@ -275,10 +275,12 @@ const getColumnValueByArea = async ({
     : sql`(NULLIF(json->>${column}, ''))::float`;
 
   // Select is always MODE for ColumnType !== Number
-  const valueSelect =
-    columnDef.type !== ColumnType.Number
-      ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
-      : db.fn(calculationType, [numberSelect]).as("value");
+  const isMode =
+    calculationType === CalculationType.Mode ||
+    columnDef.type !== ColumnType.Number;
+  const valueSelect = isMode
+    ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
+    : db.fn(calculationType, [numberSelect]).as("value");
 
   const query = db
     .selectFrom("dataRecord")

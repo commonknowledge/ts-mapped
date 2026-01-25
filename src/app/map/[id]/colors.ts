@@ -18,8 +18,10 @@ import {
   ColorScheme,
   type SteppedColorStep,
 } from "@/server/models/MapView";
+import { getChoroplethDataKey } from "./components/Choropleth/utils";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
 import type { CombinedAreaStats } from "./data";
+import type { MapViewConfig } from "@/server/models/MapView";
 import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
 import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
@@ -41,12 +43,12 @@ const interpolateWhiteToColor = (targetColor: string) => {
 };
 
 export interface CategoricColorScheme {
-  columnType: ColumnType.String;
+  colorSchemeType: "categoric";
   colorMap: Record<string, string>;
 }
 
 export interface NumericColorScheme {
-  columnType: ColumnType.Number;
+  colorSchemeType: "numeric";
   minValue: number;
   maxValue: number;
   colorScale: ScaleSequential<string, never>;
@@ -101,8 +103,24 @@ export const CHOROPLETH_COLOR_SCHEMES = [
   },
 ];
 
+export const calculateStepColor = (
+  index: number,
+  totalSteps: number,
+  viewConfig: MapViewConfig,
+) => {
+  const { colorScheme, customColor, reverseColorScheme } = viewConfig;
+  const interpolator = getInterpolator(
+    colorScheme || ColorScheme.RedBlue,
+    customColor,
+  );
+  const gradientPosition = totalSteps > 1 ? index / (totalSteps - 1) : 0;
+  const t = reverseColorScheme ? 1 - gradientPosition : gradientPosition;
+  const clampedT = Math.max(0, Math.min(1, t));
+  return interpolator(clampedT) || "#cccccc";
+};
+
 export const getInterpolator = (
-  scheme: ColorScheme | undefined,
+  scheme: ColorScheme | null | undefined,
   customColor?: string,
 ) => {
   switch (scheme) {
@@ -130,41 +148,26 @@ export const getInterpolator = (
 
 export const useColorScheme = ({
   areaStats,
-  scheme,
-  isReversed,
-  categoryColors,
-  customColor,
+  viewConfig,
 }: {
   areaStats: CombinedAreaStats | null;
-  scheme: ColorScheme;
-  isReversed: boolean;
-  categoryColors?: Record<string, string>;
-  customColor?: string;
+  viewConfig: MapViewConfig;
 }): CategoricColorScheme | NumericColorScheme | null => {
   // useMemo to cache calculated scales
   return useMemo(() => {
     return getColorScheme({
       areaStats,
-      scheme,
-      isReversed,
-      categoryColors,
-      customColor,
+      viewConfig,
     });
-  }, [areaStats, scheme, isReversed, categoryColors, customColor]);
+  }, [areaStats, viewConfig]);
 };
 
 const getColorScheme = ({
   areaStats,
-  scheme,
-  isReversed,
-  categoryColors,
-  customColor,
+  viewConfig,
 }: {
   areaStats: CombinedAreaStats | null;
-  scheme: ColorScheme;
-  isReversed: boolean;
-  categoryColors?: Record<string, string>;
-  customColor?: string;
+  viewConfig: MapViewConfig;
 }): CategoricColorScheme | NumericColorScheme | null => {
   if (!areaStats || !areaStats.stats.length) {
     return null;
@@ -173,16 +176,20 @@ const getColorScheme = ({
   const values = areaStats.stats.map((stat) => stat.primary);
 
   // ColumnType.String and others
-  if (areaStats.primary?.columnType !== ColumnType.Number) {
+  const isCategoric =
+    areaStats.primary?.columnType !== ColumnType.Number ||
+    viewConfig.colorScaleType === ColorScaleType.Categorical;
+  if (isCategoric) {
     const distinctValues = new Set(values.map(String));
     const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
     distinctValues.forEach((v) => {
       // Use custom color if provided, otherwise use default
-      colorMap[v] = categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
+      colorMap[v] =
+        viewConfig.categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
     });
     return {
-      columnType: ColumnType.String,
+      colorSchemeType: "categoric",
       colorMap,
     };
   }
@@ -190,19 +197,22 @@ const getColorScheme = ({
   // ColumnType.Number
 
   // Handle case where all values are the same (e.g., all counts are 1)
-  const minValue = areaStats.primary.minValue;
-  const maxValue = areaStats.primary.maxValue;
+  const minValue = areaStats.primary?.minValue || 0;
+  const maxValue = areaStats.primary?.maxValue || 0;
   if (minValue === maxValue) {
-    const domain = isReversed ? [1, 0] : [0, 1];
+    const domain = viewConfig.reverseColorScheme ? [1, 0] : [0, 1];
     // For count records, create a simple color scheme
     // Use a small range to ensure valid interpolation
-    const interpolator = getInterpolator(scheme, customColor);
+    const interpolator = getInterpolator(
+      viewConfig.colorScheme,
+      viewConfig.customColor,
+    );
     const colorScale = scaleSequential()
       .domain(domain) // Use 0-1 range for single values
       .interpolator(interpolator);
 
     return {
-      columnType: ColumnType.Number,
+      colorSchemeType: "numeric",
       minValue: 0,
       maxValue: 1,
       colorScale,
@@ -210,18 +220,20 @@ const getColorScheme = ({
     };
   }
 
-  const domain = (isReversed ? [maxValue, minValue] : [minValue, maxValue]) as [
-    number,
-    number,
-  ];
+  const domain = (
+    viewConfig.reverseColorScheme ? [maxValue, minValue] : [minValue, maxValue]
+  ) as [number, number];
 
-  const interpolator = getInterpolator(scheme, customColor);
+  const interpolator = getInterpolator(
+    viewConfig.colorScheme,
+    viewConfig.customColor,
+  );
   const colorScale = scaleSequential()
     .domain(domain)
     .interpolator(interpolator);
 
   return {
-    columnType: ColumnType.Number,
+    colorSchemeType: "numeric",
     minValue,
     maxValue,
     colorScale,
@@ -237,22 +249,12 @@ const getCategoricalColor = (
 
 export const useFillColor = ({
   areaStats,
-  scheme,
-  isReversed,
+  viewConfig,
   selectedBivariateBucket,
-  categoryColors,
-  colorScaleType,
-  steppedColorSteps,
-  customColor,
 }: {
   areaStats: CombinedAreaStats | null;
-  scheme: ColorScheme;
-  isReversed: boolean;
+  viewConfig: MapViewConfig;
   selectedBivariateBucket: string | null;
-  categoryColors?: Record<string, string>;
-  colorScaleType?: ColorScaleType;
-  steppedColorSteps?: SteppedColorStep[];
-  customColor?: string;
 }): DataDrivenPropertyValueSpecification<string> => {
   // useMemo to cache calculated fillColor
   return useMemo(() => {
@@ -263,33 +265,36 @@ export const useFillColor = ({
     const isCount = areaStats?.calculationType === CalculationType.Count;
     const colorScheme = getColorScheme({
       areaStats,
-      scheme,
-      isReversed,
-      categoryColors,
-      customColor,
+      viewConfig,
     });
     if (!colorScheme) {
       return DEFAULT_FILL_COLOR;
     }
 
     // ColumnType.String and others
-    if (colorScheme.columnType !== ColumnType.Number) {
+    if (colorScheme.colorSchemeType === "categoric") {
       const ordinalColorStops: string[] = [];
       for (const key of Object.keys(colorScheme.colorMap)) {
         ordinalColorStops.push(key);
         ordinalColorStops.push(colorScheme.colorMap[key]);
       }
       ordinalColorStops.push(DEFAULT_FILL_COLOR);
-      return ["match", ["feature-state", "value"], ...ordinalColorStops];
+      return [
+        "match",
+        ["to-string", ["feature-state", "value"]],
+        ...ordinalColorStops,
+      ];
     }
 
     // ColumnType.Number - Check if stepped colors are enabled
+    const steppedColorSteps =
+      viewConfig.steppedColorStepsByKey?.[getChoroplethDataKey(viewConfig)];
     if (
-      colorScaleType === ColorScaleType.Stepped &&
+      viewConfig.colorScaleType === ColorScaleType.Stepped &&
       steppedColorSteps &&
       steppedColorSteps.length > 0
     ) {
-      return getSteppedFillColor(steppedColorSteps, isCount);
+      return getSteppedFillColor(steppedColorSteps, isCount, viewConfig);
     }
 
     // ColumnType.Number - Gradient (default)
@@ -330,27 +335,23 @@ export const useFillColor = ({
         : ["feature-state", "value"],
       ...interpolateColorStops,
     ];
-  }, [
-    areaStats,
-    isReversed,
-    scheme,
-    selectedBivariateBucket,
-    categoryColors,
-    colorScaleType,
-    steppedColorSteps,
-    customColor,
-  ]);
+  }, [areaStats, viewConfig, selectedBivariateBucket]);
 };
 
 const getSteppedFillColor = (
   steps: SteppedColorStep[],
   isCount: boolean,
+  viewConfig: MapViewConfig,
 ): DataDrivenPropertyValueSpecification<string> => {
   // Sort steps by start value to ensure correct order
   const sortedSteps = [...steps].sort((a, b) => a.start - b.start);
 
   if (sortedSteps.length === 0) {
     return DEFAULT_FILL_COLOR;
+  }
+
+  if (sortedSteps.length === 1) {
+    return calculateStepColor(0, sortedSteps.length, viewConfig);
   }
 
   // Build a step expression: ["step", input, default, threshold1, color1, threshold2, color2, ...]
@@ -365,7 +366,7 @@ const getSteppedFillColor = (
     isCount
       ? ["coalesce", ["feature-state", "value"], 0]
       : ["feature-state", "value"],
-    sortedSteps[0]?.color || DEFAULT_FILL_COLOR, // Default color for values < first threshold
+    calculateStepColor(0, sortedSteps.length, viewConfig),
   ];
 
   // Add thresholds and colors
@@ -373,8 +374,9 @@ const getSteppedFillColor = (
   // The color applies to values >= threshold
   for (let i = 1; i < sortedSteps.length; i++) {
     const step = sortedSteps[i];
+    const color = calculateStepColor(i, sortedSteps.length, viewConfig);
     stepExpression.push(step.start); // Threshold
-    stepExpression.push(step.color); // Color for values >= threshold
+    stepExpression.push(color); // Color for values >= threshold
   }
 
   return stepExpression;
