@@ -9,7 +9,7 @@ import {
 } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
-import AreaInfo from "./AreaInfo";
+import BoundaryHoverInfo from "./BoundaryHoverInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
@@ -97,7 +97,7 @@ export default function MapWrapper({
           transition: "max-width 0.3s",
         }}
       >
-        <AreaInfo />
+        <BoundaryHoverInfo />
       </div>
 
       <div
