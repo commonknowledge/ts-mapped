@@ -43,7 +43,9 @@ export default function PlacedMarkers() {
         id: marker.id,
         name: marker.label,
         color:
-          mapConfig.placedMarkerColors?.[marker.id] ?? mapColors.markers.color,
+          (marker.folderId && mapConfig.folderColors?.[marker.folderId]) ??
+          mapConfig.placedMarkerColors?.[marker.id] ??
+          mapColors.markers.color,
       },
       geometry: {
         type: "Point",
