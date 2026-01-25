@@ -40,14 +40,14 @@ import {
 } from "@/app/map/[id]/utils/position";
 import { useTRPC } from "@/services/trpc/react";
 import { LayerType } from "@/types";
-import { useMapConfig } from "../../../hooks/useMapConfig";
-import { useMapId } from "../../../hooks/useMapCore";
-import { mapColors } from "../../../styles";
-import DataSourceControl from "../DataSourceItem";
-import EmptyLayer from "../LayerEmptyMessage";
-import MarkerDragOverlay from "./MarkerDragOverlay";
-import SortableFolderItem from "./SortableFolderItem";
-import UnassignedFolder from "./UnassignedFolder";
+import { useMapConfig } from "../../hooks/useMapConfig";
+import { useMapId } from "../../hooks/useMapCore";
+import { mapColors } from "../../styles";
+import DataSourceControl from "./DataSourceItem";
+import EmptyLayer from "./LayerEmptyMessage";
+import MarkerDragOverlay from "./MarkersControl/MarkerDragOverlay";
+import SortableFolderItem from "./MarkersControl/SortableFolderItem";
+import UnassignedFolder from "./MarkersControl/UnassignedFolder";
 import type { DropdownMenuItemType } from "@/components/MultiDropdownMenu";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type {
