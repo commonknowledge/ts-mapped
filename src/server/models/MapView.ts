@@ -71,9 +71,11 @@ export enum CalculationType {
   Count = "Count",
   Sum = "Sum",
   Avg = "Avg",
+  Mode = "Mode",
 }
 export const calculationTypes = Object.values(CalculationType);
 export const calculationType = z.nativeEnum(CalculationType);
+export const DEFAULT_CALCULATION_TYPE = CalculationType.Avg;
 
 export enum ColorScheme {
   RedBlue = "RedBlue",
@@ -87,6 +89,7 @@ export enum ColorScheme {
 export const colorSchemes = Object.values(ColorScheme);
 
 export enum ColorScaleType {
+  Categorical = "Categorical",
   Gradient = "Gradient",
   Stepped = "Stepped",
 }
@@ -109,7 +112,6 @@ export const mapStyleNames = Object.values(MapStyleName);
 export const steppedColorStepSchema = z.object({
   start: z.number(),
   end: z.number(),
-  color: z.string(),
 });
 
 export type SteppedColorStep = z.infer<typeof steppedColorStepSchema>;
@@ -135,7 +137,9 @@ export const mapViewConfigSchema = z.object({
   reverseColorScheme: z.boolean().nullish(),
   categoryColors: z.record(z.string(), z.string()).optional(),
   colorScaleType: z.nativeEnum(ColorScaleType).optional(),
-  steppedColorSteps: z.array(steppedColorStepSchema).optional(),
+  steppedColorStepsByKey: z
+    .record(z.string(), z.array(steppedColorStepSchema))
+    .optional(),
   customColor: z.string().optional(),
 });
 
@@ -166,6 +170,7 @@ export const inspectorBoundaryTypes = Object.values(
  * - columns: Array of column names to display from this data source
  */
 export const inspectorBoundaryConfigSchema = z.object({
+  id: z.string(),
   dataSourceId: z.string(),
   name: z.string(),
   type: z.nativeEnum(InspectorBoundaryConfigType),

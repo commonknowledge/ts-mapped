@@ -1,13 +1,5 @@
-import {
-  CircleAlert,
-  Database,
-  Palette,
-  PieChart,
-  PlusIcon,
-  RotateCwIcon,
-  X,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { CircleAlert, Database, Palette, PieChart, X } from "lucide-react";
+import { useState } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import {
   useChoroplethDataSource,
@@ -21,6 +13,7 @@ import {
   CalculationType,
   ColorScaleType,
   ColorScheme,
+  DEFAULT_CALCULATION_TYPE,
 } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
@@ -49,8 +42,8 @@ import {
   dataRecordsWillAggregate,
   getValidAreaSetGroupCodes,
 } from "../../Choropleth/areas";
+import DataSourceSelectButton from "../../DataSourceSelectButton";
 import CategoryColorEditor from "./CategoryColorEditor";
-import { DataSourceItem } from "./DataSourceItem";
 import SteppedColorEditor from "./SteppedColorEditor";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
@@ -146,43 +139,21 @@ export default function VisualisationPanel({
   const { data: dataSources, getDataSourceById } = useDataSources();
   const dataSource = useChoroplethDataSource();
 
-  const [activeTab, setActiveTab] = useState<"all" | "public" | "user">("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
     null,
   );
-
-  // Update the filtering logic to include search
-  const filteredAndSearchedDataSources = useMemo(() => {
-    let sources = dataSources || [];
-
-    if (searchQuery) {
-      sources = sources.filter(
-        (ds) =>
-          ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          ds.columnDefs.some((col) =>
-            col.name.toLowerCase().includes(searchQuery.toLowerCase()),
-          ),
-      );
-    }
-
-    if (activeTab === "public") {
-      // Include only public data sources
-      sources = sources.filter((ds) => ds.public);
-    } else if (activeTab === "user") {
-      // Include only user data sources
-      sources = sources.filter((ds) => !ds.public);
-    }
-
-    return sources;
-  }, [activeTab, dataSources, searchQuery]);
 
   if (!boundariesPanelOpen) return null;
 
   const columnOneIsNumber =
     dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
       ?.type === ColumnType.Number;
+
+  const forceCategoryColors =
+    !viewConfig.areaDataSecondaryColumn && !columnOneIsNumber;
+  const showCategoryColors =
+    forceCategoryColors ||
+    viewConfig.colorScaleType === ColorScaleType.Categorical;
 
   return (
     <div
@@ -212,61 +183,38 @@ export default function VisualisationPanel({
         <Label className="text-sm">
           <Database className="w-4 h-4 text-muted-foreground" /> Data source
         </Label>
-
-        {viewConfig.areaDataSourceId && dataSource ? (
-          // Show selected data source as a card
-          <div>
-            <button
-              type="button"
-              onClick={() => {
-                setIsModalOpen(true);
-              }}
-              className="group-hover:bg-neutral-100 transition-colors cursor-pointer rounded-lg"
-            >
-              <DataSourceItem
-                className="shadow-xs"
-                dataSource={{
-                  ...dataSource,
-                }}
-              />
-            </button>
-            <div className="flex justify-between gap-2 mt-1">
-              <Button
-                variant="ghost"
-                className="text-xs font-normal text-muted-foreground hover:text-primary"
-                onClick={() => setIsModalOpen(true)}
-              >
-                <span>Change data source</span>
-                <RotateCwIcon className="w-2 h-2" />
-              </Button>
-              <Button
-                variant="ghost"
-                className="text-xs font-normal text-muted-foreground hover:text-destructive"
-                onClick={() => {
-                  updateViewConfig({
-                    areaDataSourceId: "",
-                    areaDataColumn: "",
-                    calculationType: undefined,
-                  });
-                }}
-              >
-                <span>Remove</span>
-                <X className="w-3 h-3" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          // Show button to open modal when no data source selected
-
-          <Button
-            variant="outline"
-            className="w-full justify-between h-10"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <span>Select a data source</span>
-            <PlusIcon className="w-4 h-4 ml-2 flex-shrink-0" />
-          </Button>
-        )}
+        <DataSourceSelectButton
+          dataSource={dataSource}
+          onClickRemove={() =>
+            updateViewConfig({
+              areaDataSourceId: "",
+              areaDataColumn: "",
+              calculationType: undefined,
+            })
+          }
+          onSelect={(dataSourceId) => {
+            const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
+            if (!selectedAreaSetGroup) {
+              updateViewConfig({
+                areaDataSourceId: dataSourceId,
+                areaDataSecondaryColumn: undefined,
+              });
+              return;
+            }
+            const dataSource = getDataSourceById(dataSourceId);
+            const validAreaSetGroups = getValidAreaSetGroupCodes(
+              dataSource?.geocodingConfig,
+            );
+            if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
+              updateViewConfig({
+                areaDataSourceId: dataSourceId,
+                areaDataSecondaryColumn: undefined,
+              });
+              return;
+            }
+            setInvalidDataSourceId(dataSourceId);
+          }}
+        />
       </div>
 
       <div className="space-y-2 mb-4">
@@ -275,7 +223,7 @@ export default function VisualisationPanel({
           Visualisation
         </p>
 
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 items-center">
+        <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
           <Label
             htmlFor="choropleth-boundary-select"
             className="text-sm text-muted-foreground font-normal"
@@ -328,7 +276,7 @@ export default function VisualisationPanel({
                 calculationType:
                   value === "counts"
                     ? CalculationType.Count
-                    : CalculationType.Avg,
+                    : DEFAULT_CALCULATION_TYPE,
               })
             }
           >
@@ -470,13 +418,16 @@ export default function VisualisationPanel({
                   }
                 >
                   <SelectTrigger
-                    className="w-full"
+                    className="w-full min-w-0"
                     id="choropleth-aggregation-select"
                   >
                     <SelectValue placeholder="Choose an aggregation..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={CalculationType.Avg}>Average</SelectItem>
+                    <SelectItem value={CalculationType.Mode}>
+                      Most common
+                    </SelectItem>
                     <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
                   </SelectContent>
                 </Select>
@@ -485,7 +436,7 @@ export default function VisualisationPanel({
 
           {viewConfig.calculationType !== CalculationType.Count &&
             columnOneIsNumber && (
-              <>
+              <div className="col-span-2 flex items-center gap-2">
                 <Label
                   htmlFor="choropleth-empty-zero-switch"
                   className="text-sm text-muted-foreground font-normal"
@@ -500,7 +451,7 @@ export default function VisualisationPanel({
                     updateViewConfig({ areaDataNullIsZero: v })
                   }
                 />
-              </>
+              </div>
             )}
         </div>
         {!viewConfig.areaDataSourceId && (
@@ -553,7 +504,7 @@ export default function VisualisationPanel({
           Style
         </p>
 
-        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 items-center">
+        <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
           {!viewConfig.areaDataSecondaryColumn && columnOneIsNumber && (
             <>
               <Label
@@ -571,13 +522,12 @@ export default function VisualisationPanel({
                   })
                 }
               >
-                <SelectTrigger className="w-full" id="color-scale-type-select">
+                <SelectTrigger
+                  className="w-full min-w-0"
+                  id="color-scale-type-select"
+                >
                   <SelectValue placeholder="Choose color scale...">
-                    {viewConfig.colorScaleType === ColorScaleType.Gradient
-                      ? "Gradient"
-                      : viewConfig.colorScaleType === ColorScaleType.Stepped
-                        ? "Stepped"
-                        : "Gradient"}
+                    {viewConfig.colorScaleType || ColorScaleType.Gradient}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -616,127 +566,158 @@ export default function VisualisationPanel({
                       <span>Stepped</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value={ColorScaleType.Categorical}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-3 rounded border border-neutral-300 overflow-hidden flex">
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#1f77b4" }}
+                        />
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#ff7f0e" }}
+                        />
+                        <div
+                          className="h-full flex-1 border-r border-neutral-400"
+                          style={{ backgroundColor: "#2ca02c" }}
+                        />
+                        <div
+                          className="h-full flex-1"
+                          style={{ backgroundColor: "#d62728" }}
+                        />
+                      </div>
+                      <span>Categorical</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
-              <Label
-                htmlFor="choropleth-color-scheme-select"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Colour scheme
-              </Label>
-
-              <Select
-                value={viewConfig.colorScheme || ColorScheme.RedBlue}
-                onValueChange={(value) =>
-                  updateViewConfig({
-                    colorScheme: value as ColorScheme,
-                  })
-                }
-              >
-                <SelectTrigger
-                  className="w-full"
-                  id="choropleth-color-scheme-select"
-                >
-                  <SelectValue placeholder="Choose colour scheme..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
-                    const isCustom = option.value === ColorScheme.Custom;
-                    const customColorValue = isCustom
-                      ? viewConfig.customColor || "#3b82f6"
-                      : undefined;
-                    return (
-                      <SelectItem
-                        key={index}
-                        value={option.value}
-                        className="flex items-center gap-2"
-                      >
-                        {isCustom && customColorValue ? (
-                          <div
-                            className="w-4 h-4 rounded"
-                            style={{
-                              background: `linear-gradient(to right, white, ${customColorValue})`,
-                            }}
-                          />
-                        ) : (
-                          <div className={`w-4 h-4 rounded ${option.color}`} />
-                        )}
-                        <span className="truncate">{option.label}</span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-
-              {viewConfig.colorScheme === ColorScheme.Custom && (
+              {viewConfig.colorScaleType !== ColorScaleType.Categorical && (
                 <>
                   <Label
-                    htmlFor="custom-color-picker"
+                    htmlFor="choropleth-color-scheme-select"
                     className="text-sm text-muted-foreground font-normal"
                   >
-                    Max color
+                    Colour scheme
                   </Label>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
-                      style={{
-                        backgroundColor:
-                          viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
-                      }}
+
+                  <Select
+                    value={viewConfig.colorScheme || ColorScheme.RedBlue}
+                    onValueChange={(value) =>
+                      updateViewConfig({
+                        colorScheme: value as ColorScheme,
+                      })
+                    }
+                  >
+                    <SelectTrigger
+                      className="w-full min-w-0"
+                      id="choropleth-color-scheme-select"
                     >
-                      <input
-                        type="color"
-                        id="custom-color-picker"
-                        value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
-                        onChange={(e) =>
-                          updateViewConfig({ customColor: e.target.value })
-                        }
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        title="Choose color for max value"
-                      />
-                    </div>
-                    <Input
-                      type="text"
-                      value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
-                      onChange={(e) =>
-                        updateViewConfig({ customColor: e.target.value })
-                      }
-                      className="flex-1"
-                      placeholder={DEFAULT_CUSTOM_COLOR}
-                    />
-                  </div>
-                </>
-              )}
+                      <SelectValue placeholder="Choose colour scheme..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CHOROPLETH_COLOR_SCHEMES.map((option, index) => {
+                        const isCustom = option.value === ColorScheme.Custom;
+                        const customColorValue = isCustom
+                          ? viewConfig.customColor || "#3b82f6"
+                          : undefined;
+                        return (
+                          <SelectItem
+                            key={index}
+                            value={option.value}
+                            className="flex items-center gap-2"
+                          >
+                            {isCustom && customColorValue ? (
+                              <div
+                                className="w-4 h-4 rounded"
+                                style={{
+                                  background: `linear-gradient(to right, white, ${customColorValue})`,
+                                }}
+                              />
+                            ) : (
+                              <div
+                                className={`w-4 h-4 rounded ${option.color}`}
+                              />
+                            )}
+                            <span className="truncate">{option.label}</span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
 
-              <Label
-                htmlFor="choropleth-color-scheme-switch"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Reverse
-              </Label>
+                  {viewConfig.colorScheme === ColorScheme.Custom && (
+                    <>
+                      <Label
+                        htmlFor="custom-color-picker"
+                        className="text-sm text-muted-foreground font-normal"
+                      >
+                        Max color
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
+                          style={{
+                            backgroundColor:
+                              viewConfig.customColor || DEFAULT_CUSTOM_COLOR,
+                          }}
+                        >
+                          <input
+                            type="color"
+                            id="custom-color-picker"
+                            value={
+                              viewConfig.customColor || DEFAULT_CUSTOM_COLOR
+                            }
+                            onChange={(e) =>
+                              updateViewConfig({ customColor: e.target.value })
+                            }
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            title="Choose color for max value"
+                          />
+                        </div>
+                        <Input
+                          type="text"
+                          value={viewConfig.customColor || DEFAULT_CUSTOM_COLOR}
+                          onChange={(e) =>
+                            updateViewConfig({ customColor: e.target.value })
+                          }
+                          className="flex-1"
+                          placeholder={DEFAULT_CUSTOM_COLOR}
+                        />
+                      </div>
+                    </>
+                  )}
 
-              <Switch
-                id="choropleth-color-scheme-switch"
-                checked={Boolean(viewConfig.reverseColorScheme)}
-                onCheckedChange={(v) =>
-                  updateViewConfig({ reverseColorScheme: v })
-                }
-              />
-
-              {viewConfig.colorScaleType === ColorScaleType.Stepped && (
-                <>
-                  <Label className="text-sm text-muted-foreground font-normal">
-                    Color steps
+                  <Label
+                    htmlFor="choropleth-color-scheme-switch"
+                    className="text-sm text-muted-foreground font-normal"
+                  >
+                    Reverse
                   </Label>
-                  <div>
-                    <SteppedColorEditor />
-                  </div>
+
+                  <Switch
+                    id="choropleth-color-scheme-switch"
+                    checked={Boolean(viewConfig.reverseColorScheme)}
+                    onCheckedChange={(v) =>
+                      updateViewConfig({ reverseColorScheme: v })
+                    }
+                  />
+
+                  {viewConfig.colorScaleType === ColorScaleType.Stepped && (
+                    <>
+                      <Label className="text-sm text-muted-foreground font-normal">
+                        Color steps
+                      </Label>
+                      <div>
+                        <SteppedColorEditor />
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </>
           )}
-          {!viewConfig.areaDataSecondaryColumn && !columnOneIsNumber && (
+          {showCategoryColors && (
             <>
               <Label className="text-sm text-muted-foreground font-normal">
                 Category colors
@@ -884,91 +865,6 @@ export default function VisualisationPanel({
             </div>
           )}
       </div>
-
-      {/* Modal for data source selection */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>Select data source for visualisation</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-col">
-            {/* Search and Filter Bar */}
-            <div className="flex gap-2 mb-4">
-              <Input
-                placeholder="Search data sources..."
-                className="flex-1"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Select
-                value={activeTab}
-                onValueChange={(value) =>
-                  setActiveTab(value as "all" | "public" | "user")
-                }
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All sources</SelectItem>
-                  <SelectItem value="public">Public library</SelectItem>
-                  <SelectItem value="user">My data</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Data Source Grid */}
-            <div className="flex-1">
-              <div className="grid grid-cols-1 gap-3">
-                {filteredAndSearchedDataSources.map((ds) => (
-                  <button
-                    type="button"
-                    className="text-left"
-                    key={ds.id}
-                    onClick={() => {
-                      const selectedAreaSetGroup = viewConfig.areaSetGroupCode;
-                      if (!selectedAreaSetGroup) {
-                        updateViewConfig({
-                          areaDataSourceId: ds.id,
-                          areaDataSecondaryColumn: undefined,
-                        });
-                        setIsModalOpen(false);
-                        return;
-                      }
-                      const dataSource = getDataSourceById(ds.id);
-                      const validAreaSetGroups = getValidAreaSetGroupCodes(
-                        dataSource?.geocodingConfig,
-                      );
-                      if (validAreaSetGroups.includes(selectedAreaSetGroup)) {
-                        updateViewConfig({
-                          areaDataSourceId: ds.id,
-                          areaDataSecondaryColumn: undefined,
-                        });
-                        setIsModalOpen(false);
-                        return;
-                      }
-                      setInvalidDataSourceId(ds.id);
-                      setIsModalOpen(false);
-                    }}
-                  >
-                    <DataSourceItem
-                      className={
-                        viewConfig.areaDataSourceId === ds.id
-                          ? "border-blue-500 bg-blue-50"
-                          : "hover:border-blue-300"
-                      }
-                      dataSource={{
-                        ...ds,
-                      }}
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Modal for handling invalid data source / boundary combination */}
       <Dialog

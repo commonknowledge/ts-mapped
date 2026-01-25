@@ -7,7 +7,11 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { AreaSetGroupCodeLabels } from "@/labels";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
-import { CalculationType, MapType } from "@/server/models/MapView";
+import {
+  CalculationType,
+  DEFAULT_CALCULATION_TYPE,
+  MapType,
+} from "@/server/models/MapView";
 
 export function useBoundariesControl() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -107,7 +111,7 @@ export function useBoundariesControl() {
             updateViewConfig({
               areaDataSourceId: voteShareDataSource.id,
               areaDataColumn: column.name,
-              calculationType: CalculationType.Avg,
+              calculationType: DEFAULT_CALCULATION_TYPE,
             });
           },
         }))

@@ -1,14 +1,10 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getInterpolator } from "@/app/map/[id]/colors";
+import { calculateStepColor } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { ColumnType } from "@/server/models/DataSource";
-import {
-  ColorScaleType,
-  ColorScheme,
-  type SteppedColorStep,
-} from "@/server/models/MapView";
+import { ColorScaleType, type SteppedColorStep } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -17,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shadcn/ui/dialog";
+import { getChoroplethDataKey } from "../../Choropleth/utils";
 
 // Custom multi-handle range slider
 function RangeSlider({
@@ -152,118 +149,76 @@ function RangeSlider({
   );
 }
 
+// Helper function to create default steps
+function createDefaultSteps(
+  minValue: number,
+  maxValue: number,
+): SteppedColorStep[] {
+  const stepSize = (maxValue - minValue) / 3;
+  const ranges = [
+    { start: minValue, end: minValue + stepSize },
+    { start: minValue + stepSize, end: minValue + stepSize * 2 },
+    { start: minValue + stepSize * 2, end: maxValue },
+  ];
+
+  return ranges.map((range) => ({
+    start: range.start,
+    end: range.end,
+  }));
+}
+
 export default function SteppedColorEditor() {
   const { viewConfig, updateViewConfig } = useMapViews();
-  const areaStatsQuery = useAreaStats();
-  const areaStats = areaStatsQuery?.data;
+  const choroplethDataKey = getChoroplethDataKey(viewConfig);
+  const savedSteppedColorSteps =
+    viewConfig.steppedColorStepsByKey?.[choroplethDataKey];
+  const { data: areaStats } = useAreaStats();
   const [isOpen, setIsOpen] = useState(false);
-  const [localSteps, setLocalSteps] = useState<SteppedColorStep[]>([]);
+  const areaStatsDataKey = getChoroplethDataKey({
+    calculationType: areaStats?.calculationType,
+    areaDataSourceId: areaStats?.dataSourceId || "",
+    areaDataColumn: areaStats?.primary?.column || "",
+    areaDataSecondaryColumn: areaStats?.secondary?.column,
+  });
 
   const minValue = areaStats?.primary?.minValue ?? 0;
   const maxValue = areaStats?.primary?.maxValue ?? 0;
-  const colorScheme = viewConfig.colorScheme || ColorScheme.RedBlue;
-  const isReversed = Boolean(viewConfig.reverseColorScheme);
+  const hasValidRange = maxValue > minValue;
 
-  // Get step ranges (without colors) from config or defaults
-  const stepRanges = useMemo(() => {
-    if (minValue === 0 && maxValue === 0) {
+  // Compute default steps
+  const defaultSteps = useMemo(() => {
+    if (!hasValidRange) {
       return [];
     }
+    return createDefaultSteps(minValue, maxValue);
+  }, [hasValidRange, maxValue, minValue]);
+
+  const [localSteps, setLocalSteps] = useState<SteppedColorStep[]>(
+    savedSteppedColorSteps || [],
+  );
+
+  // Initial setup
+  useEffect(() => {
     if (
-      viewConfig.steppedColorSteps &&
-      viewConfig.steppedColorSteps.length > 0
+      !savedSteppedColorSteps?.length &&
+      choroplethDataKey === areaStatsDataKey
     ) {
-      const ranges = viewConfig.steppedColorSteps.map((s) => ({
-        start: s.start,
-        end: s.end,
-      }));
-
-      // Ensure boundaries are connected
-      for (let i = 0; i < ranges.length - 1; i++) {
-        ranges[i].end = ranges[i + 1].start;
-      }
-
-      // Ensure first starts at minValue and last ends at maxValue
-      if (ranges.length > 0) {
-        ranges[0].start = minValue;
-        ranges[ranges.length - 1].end = maxValue;
-      }
-
-      return ranges;
-    }
-    // Default: 3 steps evenly distributed
-    const stepSize = (maxValue - minValue) / 3;
-    return [
-      { start: minValue, end: minValue + stepSize },
-      { start: minValue + stepSize, end: minValue + stepSize * 2 },
-      { start: minValue + stepSize * 2, end: maxValue },
-    ];
-  }, [viewConfig.steppedColorSteps, minValue, maxValue]);
-
-  // Calculate steps with colors from gradient
-  const steps = useMemo(() => {
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-
-    return stepRanges.map((rangeItem, index) => {
-      const numSteps = stepRanges.length;
-      const gradientPosition = numSteps > 1 ? index / (numSteps - 1) : 0;
-
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-
-      const color = interpolator(clampedT);
-
-      return {
-        start: rangeItem.start,
-        end: rangeItem.end,
-        color: color || "#cccccc",
-      };
-    });
-  }, [stepRanges, colorScheme, isReversed, viewConfig.customColor]);
-
-  // Set initial steps
-  useEffect(() => {
-    if (!viewConfig.steppedColorSteps?.length && steps) {
-      updateViewConfig({ steppedColorSteps: steps });
-    }
-  }, [steps, updateViewConfig, viewConfig.steppedColorSteps]);
-
-  // Initialize local steps when dialog opens
-  useEffect(() => {
-    if (isOpen) {
-      if (
-        viewConfig.steppedColorSteps &&
-        viewConfig.steppedColorSteps.length > 0
-      ) {
-        setLocalSteps(viewConfig.steppedColorSteps);
-      } else {
-        setLocalSteps(steps);
-      }
-    }
-  }, [isOpen, viewConfig.steppedColorSteps, steps]);
-
-  // Recalculate colors when color scheme changes (but don't auto-apply)
-  const localStepsRef = useRef(localSteps);
-  useEffect(() => {
-    localStepsRef.current = localSteps;
-  }, [localSteps]);
-
-  useEffect(() => {
-    if (isOpen && localStepsRef.current.length > 0) {
-      const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-      const numSteps = localStepsRef.current.length;
-      const updatedSteps = localStepsRef.current.map((step, index) => {
-        const gradientPosition = numSteps > 1 ? index / (numSteps - 1) : 0;
-        const t = isReversed ? 1 - gradientPosition : gradientPosition;
-        const clampedT = Math.max(0, Math.min(1, t));
-        return {
-          ...step,
-          color: interpolator(clampedT) || "#cccccc",
-        };
+      setLocalSteps(defaultSteps);
+      updateViewConfig({
+        steppedColorStepsByKey: {
+          ...viewConfig.steppedColorStepsByKey,
+          [choroplethDataKey]: defaultSteps,
+        },
       });
-      setLocalSteps(updatedSteps);
     }
-  }, [colorScheme, isReversed, viewConfig.customColor, isOpen]);
+  }, [
+    areaStatsDataKey,
+    choroplethDataKey,
+    defaultSteps,
+    savedSteppedColorSteps?.length,
+    updateViewConfig,
+    viewConfig.steppedColorStepsByKey,
+  ]);
 
   if (
     !areaStats ||
@@ -294,16 +249,6 @@ export default function SteppedColorEditor() {
       newSteps[index - 1].end = newSteps[index].start;
     }
 
-    // Recalculate colors
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-    const numSteps = newSteps.length;
-    newSteps.forEach((step, i) => {
-      const gradientPosition = numSteps > 1 ? i / (numSteps - 1) : 0;
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-      step.color = interpolator(clampedT) || "#cccccc";
-    });
-
     setLocalSteps(newSteps);
   };
 
@@ -319,19 +264,8 @@ export default function SteppedColorEditor() {
     const newStep: SteppedColorStep = {
       start: midpoint,
       end: maxValue,
-      color: "#cccccc",
     };
     newSteps.push(newStep);
-
-    // Recalculate colors
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-    const numSteps = newSteps.length;
-    newSteps.forEach((step, i) => {
-      const gradientPosition = numSteps > 1 ? i / (numSteps - 1) : 0;
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-      step.color = interpolator(clampedT) || "#cccccc";
-    });
 
     setLocalSteps(newSteps);
   };
@@ -349,21 +283,12 @@ export default function SteppedColorEditor() {
       }
     }
 
-    // Recalculate colors
-    const interpolator = getInterpolator(colorScheme, viewConfig.customColor);
-    const numSteps = newSteps.length;
-    newSteps.forEach((step, i) => {
-      const gradientPosition = numSteps > 1 ? i / (numSteps - 1) : 0;
-      const t = isReversed ? 1 - gradientPosition : gradientPosition;
-      const clampedT = Math.max(0, Math.min(1, t));
-      step.color = interpolator(clampedT) || "#cccccc";
-    });
-
     setLocalSteps(newSteps);
   };
 
   const handleReset = () => {
-    setLocalSteps(steps);
+    const steps = savedSteppedColorSteps || defaultSteps;
+    setLocalSteps([...steps]);
   };
 
   const handleApply = () => {
@@ -382,7 +307,10 @@ export default function SteppedColorEditor() {
     }
 
     updateViewConfig({
-      steppedColorSteps: stepsToApply.length > 0 ? stepsToApply : undefined,
+      steppedColorStepsByKey: {
+        ...viewConfig.steppedColorStepsByKey,
+        [choroplethDataKey]: stepsToApply,
+      },
     });
     setIsOpen(false);
   };
@@ -417,7 +345,12 @@ export default function SteppedColorEditor() {
           <div className="space-y-4">
             {localSteps.map((step, index) => {
               const isFirst = index === 0;
-              const isLast = index === steps.length - 1;
+              const isLast = index === localSteps.length - 1;
+              const stepColor = calculateStepColor(
+                index,
+                localSteps.length,
+                viewConfig,
+              );
 
               return (
                 <div
@@ -428,8 +361,8 @@ export default function SteppedColorEditor() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2 min-w-[60px]">
                         <div
-                          className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0"
-                          style={{ backgroundColor: step.color }}
+                          className="w-6 h-6 rounded border border-neutral-300 shrink-0"
+                          style={{ backgroundColor: stepColor }}
                           title={`Step ${index + 1} color`}
                         />
                         <span className="text-xs font-medium">
@@ -470,7 +403,7 @@ export default function SteppedColorEditor() {
                             }
                           }}
                           step={stepSize}
-                          color={step.color}
+                          color={stepColor}
                           isFirst={isFirst}
                           isLast={isLast}
                         />
@@ -487,7 +420,7 @@ export default function SteppedColorEditor() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 flex-shrink-0"
+                      className="h-8 w-8 shrink-0"
                       onClick={() => handleRemoveStep(index)}
                       title="Remove step"
                     >
@@ -507,7 +440,7 @@ export default function SteppedColorEditor() {
               <Plus className="h-4 w-4 mr-2" />
               Add step
             </Button>
-            {viewConfig.steppedColorSteps && (
+            {localSteps && (
               <Button variant="outline" onClick={handleReset}>
                 Reset
               </Button>

@@ -3,20 +3,33 @@
 import { CheckIcon } from "lucide-react";
 import { cn } from "@/shadcn/utils";
 
-export const DEFAULT_COLOR_PALETTE = [
-  "#FF6B6B", // Red
-  "#678DE3", // Blue
-  "#4DAB37", // Green
-  "#FFA500", // Orange
-  "#9B59B6", // Purple
-  "#1ABC9C", // Turquoise
-  "#E67E22", // Carrot/Orange
-  "#34495E", // Dark Blue Grey
-  "#E74C3C", // Dark Red
-  "#3498DB", // Light Blue
-  "#2ECC71", // Emerald
-  "#8E44AD", // Dark Purple
-];
+const COLOR_PALETTE_DATA = [
+  { hex: "#FF6B6B", name: "Red" },
+  { hex: "#678DE3", name: "Blue" },
+  { hex: "#4DAB37", name: "Green" },
+  { hex: "#FFA500", name: "Orange" },
+  { hex: "#9B59B6", name: "Purple" },
+  { hex: "#1ABC9C", name: "Turquoise" },
+  { hex: "#E67E22", name: "Carrot" },
+  { hex: "#34495E", name: "Dark Blue Grey" },
+  { hex: "#E74C3C", name: "Dark Red" },
+  { hex: "#3498DB", name: "Light Blue" },
+  { hex: "#2ECC71", name: "Emerald" },
+  { hex: "#8E44AD", name: "Dark Purple" },
+] as const;
+
+export const DEFAULT_COLOR_PALETTE = COLOR_PALETTE_DATA.map((c) => c.hex);
+
+const COLOR_NAMES: Record<string, string> = Object.fromEntries(
+  COLOR_PALETTE_DATA.map((c) => [c.hex.toUpperCase(), c.name]),
+);
+
+const getColorLabel = (color: string): string => {
+  const colorName = COLOR_NAMES[color.toUpperCase()];
+  return colorName
+    ? `Select ${colorName} color (${color})`
+    : `Select color ${color}`;
+};
 
 export interface ColorPaletteProps {
   colors?: string[];
@@ -38,6 +51,7 @@ export default function ColorPalette({
           key={color}
           type="button"
           onClick={() => onColorSelect(color)}
+          aria-label={getColorLabel(color)}
           className={cn(
             "w-8 h-8 rounded border-2 transition-all hover:scale-110",
             "focus:outline-none focus:ring-2 focus:ring-offset-1",

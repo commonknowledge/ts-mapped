@@ -4,15 +4,12 @@ import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
-import {
-  CalculationType,
-  ColorScaleType,
-  ColorScheme,
-} from "@/server/models/MapView";
+import { CalculationType, ColorScaleType } from "@/server/models/MapView";
 import { formatNumber } from "@/utils/text";
-import { useColorScheme } from "../colors";
+import { calculateStepColor, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
+import { getChoroplethDataKey } from "./Choropleth/utils";
 
 export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -25,10 +22,7 @@ export default function Legend() {
 
   const colorScheme = useColorScheme({
     areaStats,
-    scheme: viewConfig.colorScheme || ColorScheme.RedBlue,
-    isReversed: Boolean(viewConfig.reverseColorScheme),
-    categoryColors: viewConfig.categoryColors,
-    customColor: viewConfig.customColor,
+    viewConfig,
   });
 
   const isLayerVisible = viewConfig.showChoropleth !== false;
@@ -70,14 +64,16 @@ export default function Legend() {
   const makeBars = () => {
     if (!colorScheme) return null;
 
-    if (colorScheme.columnType === ColumnType.Number) {
+    if (colorScheme.colorSchemeType === "numeric") {
       // Handle stepped colors
+      const steppedColorSteps =
+        viewConfig.steppedColorStepsByKey?.[getChoroplethDataKey(viewConfig)];
       if (
         viewConfig.colorScaleType === ColorScaleType.Stepped &&
-        viewConfig.steppedColorSteps &&
-        viewConfig.steppedColorSteps.length > 0
+        steppedColorSteps &&
+        steppedColorSteps.length > 0
       ) {
-        const sortedSteps = [...viewConfig.steppedColorSteps].sort(
+        const sortedSteps = [...steppedColorSteps].sort(
           (a, b) => a.start - b.start,
         );
         const range = colorScheme.maxValue - colorScheme.minValue;
@@ -111,7 +107,11 @@ export default function Legend() {
                     className="h-full border-r border-neutral-400 last:border-r-0"
                     style={{
                       width: `${width}%`,
-                      backgroundColor: step.color,
+                      backgroundColor: calculateStepColor(
+                        index,
+                        sortedSteps.length,
+                        viewConfig,
+                      ),
                     }}
                   />
                 );
@@ -229,7 +229,12 @@ export default function Legend() {
         <div className="flex flex-col gap-1.5 w-full py-1">
           {Object.keys(colorScheme.colorMap)
             .filter((key) => categoriesInData.has(key))
-            .toSorted()
+            .toSorted((a, b) => {
+              if (areaStats?.primary?.columnType === ColumnType.Number) {
+                return Number(a) < Number(b) ? -1 : 1;
+              }
+              return a < b ? -1 : 1;
+            })
             .map((key) => (
               <div className="flex items-center gap-2 text-xs" key={key}>
                 <div

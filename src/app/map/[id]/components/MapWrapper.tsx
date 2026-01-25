@@ -1,6 +1,7 @@
 import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
+import { useChoropleth } from "../hooks/useChoropleth";
 import { useInspector } from "../hooks/useInspector";
 import {
   useCompareGeographiesMode,
@@ -9,7 +10,7 @@ import {
 } from "../hooks/useMapControls";
 import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
-import AreaInfo from "./AreaInfo";
+import BoundaryHoverInfo from "./BoundaryHoverInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
@@ -29,6 +30,7 @@ export default function MapWrapper({
   const { viewConfig } = useMapViews();
   const { inspectorContent } = useInspector();
   const inspectorVisible = Boolean(inspectorContent);
+  const { boundariesPanelOpen } = useChoropleth();
   const compareGeographiesMode = useCompareGeographiesMode();
   const {
     pinDropMode,
@@ -88,16 +90,19 @@ export default function MapWrapper({
       {children}
 
       <div
-        className="absolute top-5 left-1/2 z-10 transition-transform duration-300 hidden md:block"
+        className={`absolute top-5 z-10 transition-all duration-300 hidden md:block ${
+          boundariesPanelOpen ? "right-4" : "left-8"
+        }`}
         style={{
-          ...absolutelyCenter,
+          ...positionLeft,
           maxWidth: showControls
             ? `calc(100% - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"} - 64px)`
             : `calc(100% - ${inspectorVisible ? "280px" : "32px"} - 64px)`,
-          transition: "max-width 0.3s",
+          transition: "max-width 0.3s, transform 0.3s",
+          ...(boundariesPanelOpen && { transform: "none" }),
         }}
       >
-        <AreaInfo />
+        <BoundaryHoverInfo />
       </div>
 
       <div
@@ -113,7 +118,7 @@ export default function MapWrapper({
 
       {!hideDrawControls && (
         <>
-          <InspectorPanel />
+          <InspectorPanel boundariesPanelOpen={boundariesPanelOpen} />
 
           {viewConfig.mapType !== MapType.Hex && (
             <div
