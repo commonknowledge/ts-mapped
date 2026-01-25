@@ -1,9 +1,7 @@
 "use client";
 
-import { Boxes, Database, PlusIcon, Users } from "lucide-react";
+import { Boxes, Database, PlusIcon, Users, UsersIcon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { CollectionIcon } from "@/app/map/[id]/components/Icons";
-import { mapColors } from "@/app/map/[id]/styles";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import DataSourceRecordTypeIcon, {
   dataSourceRecordTypeColors,
@@ -30,17 +28,39 @@ export default function UserDataSourcesList({
 
   const memberDataSources = useMemo(
     () =>
-      dataSources?.filter(
-        (dataSource) => dataSource.recordType === DataSourceRecordType.Members,
-      ),
+      dataSources
+        ?.filter(
+          (dataSource) =>
+            dataSource.recordType === DataSourceRecordType.Members,
+        )
+        .sort((a, b) => {
+          const aDate = a.importInfo?.lastCompleted
+            ? new Date(a.importInfo.lastCompleted).getTime()
+            : 0;
+          const bDate = b.importInfo?.lastCompleted
+            ? new Date(b.importInfo.lastCompleted).getTime()
+            : 0;
+          return bDate - aDate; // Most recent first
+        }),
     [dataSources],
   );
 
   const otherDataSources = useMemo(
     () =>
-      dataSources?.filter(
-        (dataSource) => dataSource.recordType !== DataSourceRecordType.Members,
-      ),
+      dataSources
+        ?.filter(
+          (dataSource) =>
+            dataSource.recordType !== DataSourceRecordType.Members,
+        )
+        .sort((a, b) => {
+          const aDate = a.importInfo?.lastCompleted
+            ? new Date(a.importInfo.lastCompleted).getTime()
+            : 0;
+          const bDate = b.importInfo?.lastCompleted
+            ? new Date(b.importInfo.lastCompleted).getTime()
+            : 0;
+          return bDate - aDate; // Most recent first
+        }),
     [dataSources],
   );
 
@@ -96,8 +116,8 @@ export default function UserDataSourcesList({
 
         {/* Member Collections Section */}
         <div>
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <CollectionIcon color={mapColors.member.color} />
+          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
+            <UsersIcon className="w-4 h-4 text-neutral-500" />
             Member data sources
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 ">
@@ -122,8 +142,7 @@ export default function UserDataSourcesList({
         {/* Other Data Sources Section */}
         <div>
           <div className="flex items-center mb-6 gap-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <CollectionIcon color={mapColors.dataSource.color} />
+            <h2 className="text-lg font-medium flex items-center gap-2">
               Other data sources
             </h2>
             <div className="flex gap-2 flex-wrap">
