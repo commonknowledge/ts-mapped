@@ -285,7 +285,7 @@ export default function MarkersList({
           mapConfig.folderColors?.[folderId] || mapColors.markers.color;
         updateMapConfig({
           placedMarkerColors: {
-            ...mapConfig.placedMarkerColors,
+            ...(mapConfig.placedMarkerColors ?? {}),
             [activeMarker.id]: folderColor,
           },
         });
