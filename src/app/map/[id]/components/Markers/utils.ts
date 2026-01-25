@@ -17,14 +17,12 @@ const FALLBACK_RGB = (() => {
 export function hexToRgb(hex: string) {
   // Validate hex format
   if (!HEX_COLOR_REGEX.test(hex)) {
-    console.warn(
-      `Invalid hex color format: "${hex}". Using fallback color.`,
-    );
+    console.warn(`Invalid hex color format: "${hex}". Using fallback color.`);
     return FALLBACK_RGB;
   }
 
   const normalized = hex.replace("#", "");
-  
+
   // Expand shorthand hex (e.g., #fff -> #ffffff)
   const expanded =
     normalized.length === 3
