@@ -442,12 +442,12 @@ export default function MarkersList({
     const marker = getActiveMarker();
     if (!marker) return mapColors.markers.color;
 
-    // Get marker color (check folder color first, then marker color, then default)
-    if (marker.folderId && mapConfig.folderColors?.[marker.folderId]) {
-      return mapConfig.folderColors[marker.folderId];
-    }
+    // Get marker color (check explicit marker color first, then folder color, then default)
     if (mapConfig.placedMarkerColors?.[marker.id]) {
       return mapConfig.placedMarkerColors[marker.id];
+    }
+    if (marker.folderId && mapConfig.folderColors?.[marker.folderId]) {
+      return mapConfig.folderColors[marker.folderId];
     }
     return mapColors.markers.color;
   };
