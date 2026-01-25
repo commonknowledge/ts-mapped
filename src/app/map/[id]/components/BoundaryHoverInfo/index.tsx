@@ -162,17 +162,17 @@ export default function BoundaryHoverInfo() {
 
   return (
     <AnimatePresence mode="wait">
-      {areasToDisplay.length > 0 && (
+      {hoverArea && areasToDisplay.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15, type: "tween" }}
-          className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-auto"
+          className="bg-white rounded shadow-lg py-1 pr-8 relative pointer-events-none"
         >
           {selectedAreas.length > 0 && (
             <button
-              className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20"
+              className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-neutral-100 rounded transition-colors z-20 pointer-events-auto"
               aria-label="Clear selected areas"
               onClick={() => setSelectedAreas([])}
             >
@@ -182,17 +182,19 @@ export default function BoundaryHoverInfo() {
               />
             </button>
           )}
-          <AreasList
-            areas={areasToDisplay}
-            statLabel={statLabel}
-            hasSecondaryData={hasSecondaryData}
-            secondaryColumnName={viewConfig.areaDataSecondaryColumn}
-            areaStats={areaStats}
-            getAreaColor={getAreaColor}
-            selectedAreas={selectedAreas}
-            setSelectedAreas={setSelectedAreas}
-            onHoveredRowAreaChange={setHoveredRowArea}
-          />
+          <div className="pointer-events-none">
+            <AreasList
+              areas={areasToDisplay}
+              statLabel={statLabel}
+              hasSecondaryData={hasSecondaryData}
+              secondaryColumnName={viewConfig.areaDataSecondaryColumn}
+              areaStats={areaStats}
+              getAreaColor={getAreaColor}
+              selectedAreas={selectedAreas}
+              setSelectedAreas={setSelectedAreas}
+              onHoveredRowAreaChange={setHoveredRowArea}
+            />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

@@ -25,15 +25,6 @@ export default function InspectorPanel({
   const [hoverArea] = useHoverArea();
   const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
-  console.log(
-    "[InspectorPanel] boundariesPanelOpen:",
-    boundariesPanelOpen,
-    "hoverArea:",
-    hoverArea,
-    "boundaryHoverVisible:",
-    boundaryHoverVisible,
-  );
-
   const {
     inspectorContent,
     resetInspector,
