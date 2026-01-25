@@ -22,7 +22,19 @@ export function HeatmapLayer({
         type="heatmap"
         source={sourceId}
         paint={{
-          "heatmap-weight": ["case", NOT_MATCHED_CASE, 0.5, 1.5],
+          "heatmap-weight": [
+            "interpolate",
+            ["linear"],
+            ["case", ["has", "point_count"], ["get", "point_count"], 1],
+            1,
+            ["case", NOT_MATCHED_CASE, 0.2, 0.4],
+            10,
+            ["case", NOT_MATCHED_CASE, 0.6, 1.1],
+            50,
+            ["case", NOT_MATCHED_CASE, 0.65, 1.15],
+            100,
+            ["case", NOT_MATCHED_CASE, 0.7, 1.2],
+          ],
           "heatmap-intensity": [
             "interpolate",
             ["linear"],
@@ -54,9 +66,9 @@ export function HeatmapLayer({
             ["linear"],
             ["zoom"],
             0,
-            20,
             15,
-            100,
+            15,
+            80,
           ],
           "heatmap-opacity": 0.7,
         }}
