@@ -3,13 +3,24 @@ export const MARKER_CLIENT_EXCLUDED_KEY = "__clientExcluded";
 const HEX_COLOR_REGEX = /^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 const DEFAULT_FALLBACK_COLOR = "#808080"; // Gray as fallback
 
+// Pre-compute fallback color RGB values to avoid redundant calculations
+const FALLBACK_RGB = (() => {
+  const normalized = DEFAULT_FALLBACK_COLOR.replace("#", "");
+  const bigint = parseInt(normalized, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255,
+  };
+})();
+
 export function hexToRgb(hex: string) {
   // Validate hex format
   if (!HEX_COLOR_REGEX.test(hex)) {
     console.warn(
       `Invalid hex color format: "${hex}". Using fallback color.`,
     );
-    hex = DEFAULT_FALLBACK_COLOR;
+    return FALLBACK_RGB;
   }
 
   const normalized = hex.replace("#", "");
@@ -24,19 +35,6 @@ export function hexToRgb(hex: string) {
       : normalized;
 
   const bigint = parseInt(expanded, 16);
-  
-  // Check if parsing resulted in NaN
-  if (isNaN(bigint)) {
-    console.warn(
-      `Failed to parse hex color: "${hex}". Using fallback color.`,
-    );
-    const fallbackInt = parseInt(DEFAULT_FALLBACK_COLOR.replace("#", ""), 16);
-    const r = (fallbackInt >> 16) & 255;
-    const g = (fallbackInt >> 8) & 255;
-    const b = fallbackInt & 255;
-    return { r, g, b };
-  }
-
   const r = (bigint >> 16) & 255;
   const g = (bigint >> 8) & 255;
   const b = bigint & 255;
