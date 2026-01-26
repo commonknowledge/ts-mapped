@@ -38,9 +38,14 @@ export default function CategoryColorEditor() {
     }
     return Object.keys(colorScheme.colorMap).toSorted((a, b) => {
       if (areaStats?.primary?.columnType === ColumnType.Number) {
-        return Number(a) < Number(b) ? -1 : 1;
+        const numA = Number(a);
+        const numB = Number(b);
+        if (isNaN(numA) || isNaN(numB)) {
+          return a.localeCompare(b);
+        }
+        return numA - numB;
       }
-      return a < b ? -1 : 1;
+      return a.localeCompare(b);
     });
   }, [areaStats, colorScheme]);
 
