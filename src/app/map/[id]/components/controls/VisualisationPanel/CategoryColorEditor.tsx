@@ -1,8 +1,9 @@
 import { X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useColorScheme } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { ColumnType } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
@@ -23,6 +24,9 @@ export default function CategoryColorEditor() {
     viewConfig,
   });
 
+  // Debounce timer ref
+  const debounceTimers = useRef<Record<string, NodeJS.Timeout | null>>({});
+
   // Get unique categories from areaStats
   const categories = useMemo(() => {
     if (
@@ -32,20 +36,50 @@ export default function CategoryColorEditor() {
     ) {
       return [];
     }
-    return Object.keys(colorScheme.colorMap).sort();
+    return Object.keys(colorScheme.colorMap).toSorted((a, b) => {
+      if (areaStats?.primary?.columnType === ColumnType.Number) {
+        return Number(a) < Number(b) ? -1 : 1;
+      }
+      return a < b ? -1 : 1;
+    });
   }, [areaStats, colorScheme]);
 
-  const handleColorChange = (category: string, color: string) => {
-    const currentColors = viewConfig.categoryColors || {};
-    updateViewConfig({
-      categoryColors: {
-        ...currentColors,
-        [category]: color,
-      },
-    });
-  };
+  const handleColorChange = useCallback(
+    (category: string, color: string) => {
+      const currentColors = viewConfig.categoryColors || {};
+      updateViewConfig({
+        categoryColors: {
+          ...currentColors,
+          [category]: color,
+        },
+      });
+    },
+    [updateViewConfig, viewConfig.categoryColors],
+  );
+
+  const handleColorChangeDebounced = useCallback(
+    (category: string, color: string) => {
+      // Clear existing timer for this category
+      if (debounceTimers.current[category]) {
+        clearTimeout(debounceTimers.current[category]);
+      }
+
+      // Set new timer
+      debounceTimers.current[category] = setTimeout(() => {
+        handleColorChange(category, color);
+        debounceTimers.current[category] = null;
+      }, 300);
+    },
+    [handleColorChange],
+  );
 
   const handleResetColor = (category: string) => {
+    // Clear any pending debounced update for this category
+    if (debounceTimers.current[category]) {
+      clearTimeout(debounceTimers.current[category]);
+      debounceTimers.current[category] = null;
+    }
+
     const currentColors = viewConfig.categoryColors || {};
     const newColors = Object.fromEntries(
       Object.entries(currentColors).filter(([key]) => key !== category),
@@ -94,14 +128,14 @@ export default function CategoryColorEditor() {
                         type="color"
                         value={currentColor}
                         onChange={(e) =>
-                          handleColorChange(category, e.target.value)
+                          handleColorChangeDebounced(category, e.target.value)
                         }
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         title={`Change color for ${category}`}
                       />
                     </div>
                     <span className="text-sm font-normal truncate flex-1">
-                      {category}
+                      {category === "__default" ? "Other" : category}
                     </span>
                   </label>
                 </div>

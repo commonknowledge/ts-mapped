@@ -145,15 +145,31 @@ export default function VisualisationPanel({
 
   if (!boundariesPanelOpen) return null;
 
+  const isCount = viewConfig.calculationType === CalculationType.Count;
+
   const columnOneIsNumber =
     dataSource?.columnDefs.find((c) => c.name === viewConfig.areaDataColumn)
       ?.type === ColumnType.Number;
+  const columnOneIsNotNumber = viewConfig.areaDataColumn && !columnOneIsNumber;
 
-  const forceCategoryColors =
-    !viewConfig.areaDataSecondaryColumn && !columnOneIsNumber;
-  const showCategoryColors =
-    forceCategoryColors ||
-    viewConfig.colorScaleType === ColorScaleType.Categorical;
+  const isCategorical =
+    viewConfig.colorScaleType === ColorScaleType.Categorical ||
+    columnOneIsNotNumber;
+
+  const canSelectColumn = !isCount && viewConfig.areaDataSourceId;
+  const canSelectSecondaryColumn = !isCount && columnOneIsNumber;
+  const canSelectAggregation =
+    !isCount &&
+    columnOneIsNumber &&
+    dataRecordsWillAggregate(
+      dataSource?.geocodingConfig,
+      viewConfig.areaSetGroupCode,
+    );
+  const showEmptyZeroSwitch = !isCount && columnOneIsNumber;
+
+  const canSelectColorScale = isCount || columnOneIsNumber;
+  const canSelectColorScheme = canSelectColorScale && !isCategorical;
+  const canSetCategoryColors = isCategorical;
 
   return (
     <div
@@ -292,167 +308,156 @@ export default function VisualisationPanel({
             </SelectContent>
           </Select>
 
-          {viewConfig.calculationType !== CalculationType.Count &&
-            viewConfig.areaDataSourceId && (
-              <>
-                <Label
-                  htmlFor="choropleth-column-1-select"
-                  className="text-sm text-muted-foreground font-normal"
-                >
-                  {viewConfig.areaDataSecondaryColumn !== undefined &&
-                  viewConfig.areaDataSecondaryColumn !== ""
-                    ? "Column 1"
-                    : "Column"}
-                </Label>
+          {canSelectColumn && (
+            <>
+              <Label
+                htmlFor="choropleth-column-1-select"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                {viewConfig.areaDataSecondaryColumn !== undefined &&
+                viewConfig.areaDataSecondaryColumn !== ""
+                  ? "Column 1"
+                  : "Column"}
+              </Label>
+              <Combobox
+                options={[
+                  { value: NULL_UUID, label: "None" },
+                  {
+                    value: MAX_COLUMN_KEY,
+                    label: "Highest-value column (String)",
+                  },
+                  ...(dataSources
+                    ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
+                    ?.columnDefs.map((col) => ({
+                      value: col.name,
+                      label: `${col.name} (${col.type})`,
+                    })) || []),
+                ]}
+                value={viewConfig.areaDataColumn || NULL_UUID}
+                onValueChange={(value) =>
+                  updateViewConfig({
+                    areaDataColumn: value === NULL_UUID ? "" : value,
+                  })
+                }
+                placeholder="Choose a column..."
+                searchPlaceholder="Search columns..."
+              />
+            </>
+          )}
+
+          {canSelectSecondaryColumn && viewConfig.areaDataSecondaryColumn && (
+            <>
+              <Label
+                htmlFor="choropleth-column-2-select"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                Column 2
+              </Label>
+              <div className="flex items-center gap-2">
                 <Combobox
                   options={[
                     { value: NULL_UUID, label: "None" },
-                    {
-                      value: MAX_COLUMN_KEY,
-                      label: "Highest-value column (String)",
-                    },
                     ...(dataSources
                       ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                      ?.columnDefs.map((col) => ({
+                      ?.columnDefs.filter(
+                        (col) => col.type === ColumnType.Number,
+                      )
+                      .map((col) => ({
                         value: col.name,
                         label: `${col.name} (${col.type})`,
                       })) || []),
                   ]}
-                  value={viewConfig.areaDataColumn || NULL_UUID}
+                  value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
                   onValueChange={(value) =>
                     updateViewConfig({
-                      areaDataColumn: value === NULL_UUID ? "" : value,
+                      areaDataSecondaryColumn:
+                        value === NULL_UUID ? undefined : value,
                     })
                   }
                   placeholder="Choose a column..."
                   searchPlaceholder="Search columns..."
                 />
-              </>
-            )}
-
-          {viewConfig.calculationType !== CalculationType.Count &&
-            viewConfig.areaDataSourceId &&
-            viewConfig.areaDataColumn &&
-            columnOneIsNumber &&
-            viewConfig.areaDataSecondaryColumn && (
-              <>
-                <Label
-                  htmlFor="choropleth-column-2-select"
-                  className="text-sm text-muted-foreground font-normal"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 flex-shrink-0"
+                  onClick={() => {
+                    updateViewConfig({ areaDataSecondaryColumn: undefined });
+                  }}
+                  title="Remove column 2"
                 >
-                  Column 2
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Combobox
-                    options={[
-                      { value: NULL_UUID, label: "None" },
-                      ...(dataSources
-                        ?.find((ds) => ds.id === viewConfig.areaDataSourceId)
-                        ?.columnDefs.filter(
-                          (col) => col.type === ColumnType.Number,
-                        )
-                        .map((col) => ({
-                          value: col.name,
-                          label: `${col.name} (${col.type})`,
-                        })) || []),
-                    ]}
-                    value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
-                    onValueChange={(value) =>
-                      updateViewConfig({
-                        areaDataSecondaryColumn:
-                          value === NULL_UUID ? undefined : value,
-                      })
-                    }
-                    placeholder="Choose a column..."
-                    searchPlaceholder="Search columns..."
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 flex-shrink-0"
-                    onClick={() => {
-                      updateViewConfig({ areaDataSecondaryColumn: undefined });
-                    }}
-                    title="Remove column 2"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="col-span-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs w-full justify-start"
-                    onClick={() => {
-                      updateViewConfig({ areaDataSecondaryColumn: undefined });
-                    }}
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Remove bivariate visualization
-                  </Button>
-                </div>
-              </>
-            )}
-
-          {viewConfig.calculationType !== CalculationType.Count &&
-            columnOneIsNumber &&
-            dataRecordsWillAggregate(
-              dataSource?.geocodingConfig,
-              viewConfig.areaSetGroupCode,
-            ) && (
-              <>
-                <Label
-                  htmlFor="choropleth-aggregation-select"
-                  className="text-sm text-muted-foreground font-normal"
-                >
-                  Aggregation
-                </Label>
-                <Select
-                  value={viewConfig.calculationType || ""}
-                  onValueChange={(value) =>
-                    updateViewConfig({
-                      calculationType: value as CalculationType,
-                    })
-                  }
-                >
-                  <SelectTrigger
-                    className="w-full min-w-0"
-                    id="choropleth-aggregation-select"
-                  >
-                    <SelectValue placeholder="Choose an aggregation..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={CalculationType.Avg}>Average</SelectItem>
-                    <SelectItem value={CalculationType.Mode}>
-                      Most common
-                    </SelectItem>
-                    <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-
-          {viewConfig.calculationType !== CalculationType.Count &&
-            columnOneIsNumber && (
-              <div className="col-span-2 flex items-center gap-2">
-                <Label
-                  htmlFor="choropleth-empty-zero-switch"
-                  className="text-sm text-muted-foreground font-normal"
-                >
-                  Treat empty values as zero
-                </Label>
-
-                <Switch
-                  id="choropleth-empty-zero-switch"
-                  checked={Boolean(viewConfig.areaDataNullIsZero)}
-                  onCheckedChange={(v) =>
-                    updateViewConfig({ areaDataNullIsZero: v })
-                  }
-                />
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-            )}
+              <div className="col-span-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs w-full justify-start"
+                  onClick={() => {
+                    updateViewConfig({ areaDataSecondaryColumn: undefined });
+                  }}
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Remove bivariate visualization
+                </Button>
+              </div>
+            </>
+          )}
+
+          {canSelectAggregation && (
+            <>
+              <Label
+                htmlFor="choropleth-aggregation-select"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                Aggregation
+              </Label>
+              <Select
+                value={viewConfig.calculationType || ""}
+                onValueChange={(value) =>
+                  updateViewConfig({
+                    calculationType: value as CalculationType,
+                  })
+                }
+              >
+                <SelectTrigger
+                  className="w-full min-w-0"
+                  id="choropleth-aggregation-select"
+                >
+                  <SelectValue placeholder="Choose an aggregation..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CalculationType.Avg}>Average</SelectItem>
+                  <SelectItem value={CalculationType.Mode}>
+                    Most common
+                  </SelectItem>
+                  <SelectItem value={CalculationType.Sum}>Sum</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          )}
+
+          {showEmptyZeroSwitch && (
+            <div className="col-span-2 flex items-center gap-2">
+              <Label
+                htmlFor="choropleth-empty-zero-switch"
+                className="text-sm text-muted-foreground font-normal"
+              >
+                Treat empty values as zero
+              </Label>
+
+              <Switch
+                id="choropleth-empty-zero-switch"
+                checked={Boolean(viewConfig.areaDataNullIsZero)}
+                onCheckedChange={(v) =>
+                  updateViewConfig({ areaDataNullIsZero: v })
+                }
+              />
+            </div>
+          )}
         </div>
         {!viewConfig.areaDataSourceId && (
           <div className="flex items-center gap-2">
@@ -463,17 +468,15 @@ export default function VisualisationPanel({
             </p>
           </div>
         )}
-        {viewConfig.areaDataSourceId &&
-          viewConfig.areaDataColumn &&
-          !viewConfig.areaSetGroupCode && (
-            <div className="flex items-center gap-2">
-              <CircleAlert className="w-4 h-4 text-yellow-500" />
-              <p className="text-xs text-gray-500">
-                No locality shapes selected. Please select a locality set to
-                render the filled map.
-              </p>
-            </div>
-          )}
+        {viewConfig.areaDataSourceId && !viewConfig.areaSetGroupCode && (
+          <div className="flex items-center gap-2">
+            <CircleAlert className="w-4 h-4 text-yellow-500" />
+            <p className="text-xs text-gray-500">
+              No locality shapes selected. Please select a locality set to
+              render the filled map.
+            </p>
+          </div>
+        )}
 
         {/* Include Columns Modal - only show when MAX_COLUMN_KEY is selected */}
         {viewConfig.areaDataColumn === MAX_COLUMN_KEY && dataSource && (
@@ -505,7 +508,7 @@ export default function VisualisationPanel({
         </p>
 
         <div className="grid grid-cols-[auto_minmax(200px,1fr)] gap-2 items-center">
-          {!viewConfig.areaDataSecondaryColumn && columnOneIsNumber && (
+          {canSelectColorScale && (
             <>
               <Label
                 htmlFor="color-scale-type-select"
@@ -592,7 +595,7 @@ export default function VisualisationPanel({
                 </SelectContent>
               </Select>
 
-              {viewConfig.colorScaleType !== ColorScaleType.Categorical && (
+              {canSelectColorScheme && (
                 <>
                   <Label
                     htmlFor="choropleth-color-scheme-select"
@@ -717,7 +720,7 @@ export default function VisualisationPanel({
               )}
             </>
           )}
-          {showCategoryColors && (
+          {canSetCategoryColors && (
             <>
               <Label className="text-sm text-muted-foreground font-normal">
                 Category colors
@@ -774,17 +777,33 @@ export default function VisualisationPanel({
         </div>
 
         {/* Bivariate visualization button at the bottom */}
-        {viewConfig.calculationType !== CalculationType.Count &&
-          viewConfig.areaDataSourceId &&
-          viewConfig.areaDataColumn &&
-          columnOneIsNumber &&
-          !viewConfig.areaDataSecondaryColumn && (
-            <div className="col-span-2 mt-6">
-              <div
-                role="button"
-                tabIndex={0}
-                className="w-full border border-neutral-200 rounded-md bg-white hover:bg-neutral-50 cursor-pointer transition-colors p-2"
-                onClick={() => {
+        {canSelectSecondaryColumn && !viewConfig.areaDataSecondaryColumn && (
+          <div className="col-span-2 mt-6">
+            <div
+              role="button"
+              tabIndex={0}
+              className="w-full border border-neutral-200 rounded-md bg-white hover:bg-neutral-50 cursor-pointer transition-colors p-2"
+              onClick={() => {
+                // Find the first available numeric column
+                const dataSource = dataSources?.find(
+                  (ds) => ds.id === viewConfig.areaDataSourceId,
+                );
+                const firstNumericColumn = dataSource?.columnDefs
+                  .filter((col) => col.type === ColumnType.Number)
+                  .find((col) => col.name !== viewConfig.areaDataColumn);
+                if (firstNumericColumn) {
+                  updateViewConfig({
+                    areaDataSecondaryColumn: firstNumericColumn.name,
+                  });
+                } else {
+                  updateViewConfig({
+                    areaDataSecondaryColumn: undefined,
+                  });
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
                   // Find the first available numeric column
                   const dataSource = dataSources?.find(
                     (ds) => ds.id === viewConfig.areaDataSourceId,
@@ -801,69 +820,49 @@ export default function VisualisationPanel({
                       areaDataSecondaryColumn: undefined,
                     });
                   }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    // Find the first available numeric column
-                    const dataSource = dataSources?.find(
-                      (ds) => ds.id === viewConfig.areaDataSourceId,
-                    );
-                    const firstNumericColumn = dataSource?.columnDefs
-                      .filter((col) => col.type === ColumnType.Number)
-                      .find((col) => col.name !== viewConfig.areaDataColumn);
-                    if (firstNumericColumn) {
-                      updateViewConfig({
-                        areaDataSecondaryColumn: firstNumericColumn.name,
-                      });
-                    } else {
-                      updateViewConfig({
-                        areaDataSecondaryColumn: undefined,
-                      });
-                    }
-                  }
-                }}
-              >
-                <div className="flex items-center justify-between gap-4 w-full">
-                  <div className="flex flex-col items-start gap-1 min-w-0">
-                    <span className="text-sm font-medium break-words">
-                      Create bivariate visualization
-                    </span>
-                    <span className="text-xs break-words">
-                      Using a second column
-                    </span>
+                }
+              }}
+            >
+              <div className="flex items-center justify-between gap-4 w-full">
+                <div className="flex flex-col items-start gap-1 min-w-0">
+                  <span className="text-sm font-medium break-words">
+                    Create bivariate visualization
+                  </span>
+                  <span className="text-xs break-words">
+                    Using a second column
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="text-[10px] text-muted-foreground">
+                    Column 1
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="text-[10px] text-muted-foreground">
-                      Column 1
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="grid grid-cols-3 gap-0.5 border border-neutral-300 rounded p-1.5 bg-white shadow-sm">
+                      {[
+                        ["#e8e8e8", "#ace4e4", "#5ac8c8"],
+                        ["#dfb0d6", "#a5add3", "#5698b9"],
+                        ["#be64ac", "#8c62aa", "#3b4994"],
+                      ]
+                        .reverse()
+                        .map((row, i) =>
+                          row.map((color, j) => (
+                            <div
+                              key={`${i}-${j}`}
+                              className="w-4 h-4 rounded-sm border border-neutral-200"
+                              style={{ backgroundColor: color }}
+                            />
+                          )),
+                        )}
                     </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="grid grid-cols-3 gap-0.5 border border-neutral-300 rounded p-1.5 bg-white shadow-sm">
-                        {[
-                          ["#e8e8e8", "#ace4e4", "#5ac8c8"],
-                          ["#dfb0d6", "#a5add3", "#5698b9"],
-                          ["#be64ac", "#8c62aa", "#3b4994"],
-                        ]
-                          .reverse()
-                          .map((row, i) =>
-                            row.map((color, j) => (
-                              <div
-                                key={`${i}-${j}`}
-                                className="w-4 h-4 rounded-sm border border-neutral-200"
-                                style={{ backgroundColor: color }}
-                              />
-                            )),
-                          )}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        Column 2 →
-                      </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      Column 2 →
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
       </div>
 
       {/* Modal for handling invalid data source / boundary combination */}

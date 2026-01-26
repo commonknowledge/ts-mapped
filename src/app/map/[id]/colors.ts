@@ -180,7 +180,7 @@ const getColorScheme = ({
     areaStats.primary?.columnType !== ColumnType.Number ||
     viewConfig.colorScaleType === ColorScaleType.Categorical;
   if (isCategoric) {
-    const distinctValues = new Set(values.map(String));
+    const distinctValues = Array.from(new Set(values.map(String))).slice(0, 50);
     const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
     distinctValues.forEach((v) => {
@@ -188,6 +188,8 @@ const getColorScheme = ({
       colorMap[v] =
         viewConfig.categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
     });
+    colorMap.__default =
+      viewConfig.categoryColors?.__default ?? DEFAULT_FILL_COLOR;
     return {
       colorSchemeType: "categoric",
       colorMap,
@@ -278,7 +280,7 @@ export const useFillColor = ({
         ordinalColorStops.push(key);
         ordinalColorStops.push(colorScheme.colorMap[key]);
       }
-      ordinalColorStops.push(DEFAULT_FILL_COLOR);
+      ordinalColorStops.push(colorScheme.colorMap.__default);
       return [
         "match",
         ["to-string", ["feature-state", "value"]],

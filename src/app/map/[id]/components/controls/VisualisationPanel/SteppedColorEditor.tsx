@@ -170,8 +170,9 @@ function createDefaultSteps(
 export default function SteppedColorEditor() {
   const { viewConfig, updateViewConfig } = useMapViews();
   const choroplethDataKey = getChoroplethDataKey(viewConfig);
+
   const savedSteppedColorSteps =
-    viewConfig.steppedColorStepsByKey?.[choroplethDataKey];
+    viewConfig.steppedColorStepsByKey?.[choroplethDataKey] || [];
   const { data: areaStats } = useAreaStats();
   const [isOpen, setIsOpen] = useState(false);
   const areaStatsDataKey = getChoroplethDataKey({
@@ -194,7 +195,7 @@ export default function SteppedColorEditor() {
   }, [hasValidRange, maxValue, minValue]);
 
   const [localSteps, setLocalSteps] = useState<SteppedColorStep[]>(
-    savedSteppedColorSteps || [],
+    copySteps(savedSteppedColorSteps), // Deep copy to avoid shared reference bugs
   );
 
   // Initial setup
@@ -233,7 +234,7 @@ export default function SteppedColorEditor() {
     newStart: number,
     newEnd?: number,
   ) => {
-    const newSteps = [...localSteps];
+    const newSteps = copySteps(localSteps);
 
     // Update current step
     newSteps[index].start = newStart;
@@ -258,14 +259,22 @@ export default function SteppedColorEditor() {
       ? (lastStep.start + lastStep.end) / 2
       : (minValue + maxValue) / 2;
 
-    const newSteps = [...localSteps];
-    newSteps[newSteps.length - 1].end = midpoint;
+    const newSteps = copySteps(localSteps);
+    if (newSteps.length) {
+      newSteps[newSteps.length - 1].end = midpoint;
 
-    const newStep: SteppedColorStep = {
-      start: midpoint,
-      end: maxValue,
-    };
-    newSteps.push(newStep);
+      const newStep: SteppedColorStep = {
+        start: midpoint,
+        end: maxValue,
+      };
+
+      newSteps.push(newStep);
+    } else {
+      newSteps.push({
+        start: minValue,
+        end: maxValue,
+      });
+    }
 
     setLocalSteps(newSteps);
   };
@@ -288,12 +297,12 @@ export default function SteppedColorEditor() {
 
   const handleReset = () => {
     const steps = savedSteppedColorSteps || defaultSteps;
-    setLocalSteps([...steps]);
+    setLocalSteps(copySteps(steps));
   };
 
   const handleApply = () => {
     // Ensure boundaries are connected before applying
-    const stepsToApply = [...localSteps];
+    const stepsToApply = copySteps(localSteps);
 
     // Connect boundaries: end of step N = start of step N+1
     for (let i = 0; i < stepsToApply.length - 1; i++) {
@@ -456,3 +465,7 @@ export default function SteppedColorEditor() {
     </Dialog>
   );
 }
+
+const copySteps = (s: SteppedColorStep[]): SteppedColorStep[] => {
+  return s.map((s) => ({ ...s }));
+};
