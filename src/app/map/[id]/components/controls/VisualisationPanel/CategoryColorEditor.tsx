@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useColorScheme } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -77,6 +77,16 @@ export default function CategoryColorEditor() {
     },
     [handleColorChange],
   );
+
+  // Cleanup effect to clear all pending timers on unmount
+  useEffect(() => {
+    const timers = debounceTimers.current;
+    return () => {
+      Object.values(timers).forEach(timer => {
+        if (timer) clearTimeout(timer);
+      });
+    };
+  }, []);
 
   const handleResetColor = (category: string) => {
     // Clear any pending debounced update for this category
