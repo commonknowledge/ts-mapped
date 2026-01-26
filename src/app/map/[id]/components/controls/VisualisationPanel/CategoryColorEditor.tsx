@@ -82,7 +82,7 @@ export default function CategoryColorEditor() {
   useEffect(() => {
     const timers = debounceTimers.current;
     return () => {
-      Object.values(timers).forEach(timer => {
+      Object.values(timers).forEach((timer) => {
         if (timer) clearTimeout(timer);
       });
     };
