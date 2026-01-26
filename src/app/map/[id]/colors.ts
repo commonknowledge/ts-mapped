@@ -180,7 +180,9 @@ const getColorScheme = ({
     areaStats.primary?.columnType !== ColumnType.Number ||
     viewConfig.colorScaleType === ColorScaleType.Categorical;
   if (isCategoric) {
-    const distinctValues = Array.from(new Set(values.map(String))).slice(0, 50);
+    const distinctValues = Array.from(new Set(values.map(String)))
+      .sort()
+      .slice(0, 50);
     const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
     distinctValues.forEach((v) => {
