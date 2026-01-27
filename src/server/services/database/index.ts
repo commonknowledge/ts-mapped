@@ -22,6 +22,7 @@ import type { UserTable } from "@/server/models/User";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: true,
 });
 
 const dialect = new PostgresDialect({

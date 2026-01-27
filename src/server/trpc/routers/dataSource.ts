@@ -20,6 +20,7 @@ import {
   getJobInfo,
   updateDataSource,
 } from "@/server/repositories/DataSource";
+import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
@@ -36,24 +37,30 @@ import type { DataSource, DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
   listReadable: publicProcedure.query(async ({ ctx }) => {
+    const organisations = ctx.user
+      ? await findOrganisationsByUserId(ctx.user.id)
+      : [];
     const dataSources = await db
       .selectFrom("dataSource")
       .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
       .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
-      .leftJoin(
-        "organisationUser",
-        "organisation.id",
-        "organisationUser.organisationId",
-      )
       .where((eb) => {
         const filter = [eb("public", "=", true)];
         if (ctx.user?.id) {
-          filter.push(eb("organisationUser.userId", "=", ctx.user.id));
+          filter.push(
+            eb(
+              "organisation.id",
+              "in",
+              organisations.map((o) => o.id),
+            ),
+          );
         }
         return eb.or(filter);
       })
       .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").distinct().as("recordCount"))
+      // .distinct() is not required here because each dataRecord will only appear once
+      // as it only belongs ton one dataSource, which only belongs to one organisation
+      .select(db.fn.count("dataRecord.id").as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
 
@@ -65,7 +72,9 @@ export const dataSourceRouter = router({
       .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
       .where("organisationId", "=", ctx.organisation.id)
       .selectAll("dataSource")
-      .select(db.fn.count("dataRecord.id").distinct().as("recordCount"))
+      // .distinct() is not required here because each dataRecord will only appear once
+      // as it only belongs ton one dataSource, which only belongs to one organisation
+      .select(db.fn.count("dataRecord.id").as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
 
