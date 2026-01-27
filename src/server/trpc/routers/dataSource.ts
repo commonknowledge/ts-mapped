@@ -46,20 +46,15 @@ export const dataSourceRouter = router({
       .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
       .where((eb) => {
         const filter = [eb("public", "=", true)];
-        if (ctx.user?.id) {
-          filter.push(
-            eb(
-              "organisation.id",
-              "in",
-              organisations.map((o) => o.id),
-            ),
-          );
+        const organisationIds = organisations.map((o) => o.id);
+        if (organisationIds.length > 0) {
+          filter.push(eb("organisation.id", "in", organisationIds));
         }
         return eb.or(filter);
       })
       .selectAll("dataSource")
       // .distinct() is not required here because each dataRecord will only appear once
-      // as it only belongs ton one dataSource, which only belongs to one organisation
+      // as it only belongs to one dataSource, which only belongs to one organisation
       .select(db.fn.count("dataRecord.id").as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
@@ -73,7 +68,7 @@ export const dataSourceRouter = router({
       .where("organisationId", "=", ctx.organisation.id)
       .selectAll("dataSource")
       // .distinct() is not required here because each dataRecord will only appear once
-      // as it only belongs ton one dataSource, which only belongs to one organisation
+      // as it only belongs to one dataSource, which only belongs to one organisation
       .select(db.fn.count("dataRecord.id").as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
