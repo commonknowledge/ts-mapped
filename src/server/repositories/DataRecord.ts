@@ -278,7 +278,9 @@ export async function findDataRecordByDataSourceAndAreaCode(
     dataSourceId,
     areaSetCode,
     areaCode,
-  ).executeTakeFirst();
+  )
+    .limit(1)
+    .executeTakeFirst();
 }
 
 export async function findDataRecordsByDataSourceAndAreaCode(
