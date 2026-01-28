@@ -4,9 +4,9 @@ import { AreaSetCode } from "@/server/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
 import {
   countDataRecordsForDataSource,
-  findDataRecordByDataSourceAndAreaCode,
   findDataRecordById,
   findDataRecordsByDataSource,
+  findDataRecordsByDataSourceAndAreaCode,
   findPageForDataRecord,
 } from "@/server/repositories/DataRecord";
 import { dataSourceReadProcedure, router } from "../index";
@@ -50,7 +50,7 @@ export const dataRecordRouter = router({
       }),
     )
     .query(({ input }) => {
-      return findDataRecordByDataSourceAndAreaCode(
+      return findDataRecordsByDataSourceAndAreaCode(
         input.dataSourceId,
         input.areaSetCode,
         input.areaCode,
