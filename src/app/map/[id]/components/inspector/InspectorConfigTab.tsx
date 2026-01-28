@@ -5,7 +5,6 @@ import {
   InspectorBoundaryConfigType,
 } from "@/server/models/MapView";
 import { useDataSources } from "../../hooks/useDataSources";
-import { useInspector } from "../../hooks/useInspector";
 import { useMapViews } from "../../hooks/useMapViews";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import TogglePanel from "../TogglePanel";
@@ -14,11 +13,9 @@ import { BoundaryConfigItem } from "./BoundaryConfigItem";
 export default function InspectorConfigTab() {
   const { view, viewConfig, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
-  const { selectedBoundary } = useInspector();
 
   const boundaryStatsConfig = view?.inspectorConfig?.boundaries || [];
   const initializationAttemptedRef = useRef(false);
-  const areaSetCode = selectedBoundary?.areaSetCode;
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -75,7 +72,6 @@ export default function InspectorConfigTab() {
           {boundaryStatsConfig.map((boundaryConfig, index) => (
             <BoundaryConfigItem
               key={boundaryConfig.id}
-              areaSetCode={areaSetCode}
               boundaryConfig={boundaryConfig}
               index={index}
               onClickRemove={() => {
@@ -108,7 +104,6 @@ export default function InspectorConfigTab() {
           ))}
           <DataSourceSelectButton
             className="w-full"
-            areaSetCode={areaSetCode}
             onSelect={(dataSourceId) => addDataSourceToConfig(dataSourceId)}
             selectButtonText={"Add a data source"}
           />

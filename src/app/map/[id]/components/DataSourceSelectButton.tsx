@@ -20,17 +20,14 @@ import { cn } from "@/shadcn/utils";
 import { useDataSources } from "../hooks/useDataSources";
 import { useMapViews } from "../hooks/useMapViews";
 import type { DataSourceWithImportInfo } from "@/components/DataSourceItem";
-import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export default function DataSourceSelectButton({
-  areaSetCode,
   className,
   dataSource,
   onClickRemove,
   onSelect,
   selectButtonText,
 }: {
-  areaSetCode?: AreaSetCode | null | undefined;
   className?: string | null | undefined;
   dataSource?: DataSourceWithImportInfo | null | undefined;
   onClickRemove?: () => void;
@@ -49,7 +46,6 @@ export default function DataSourceSelectButton({
         selectButtonText={selectButtonText}
       />
       <DataSourceSelectModal
-        areaSetCode={areaSetCode}
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
         onSelect={onSelect}
@@ -122,12 +118,10 @@ function DataSourceSelectButtonModalTrigger({
 }
 
 function DataSourceSelectModal({
-  areaSetCode,
   isModalOpen,
   setIsModalOpen,
   onSelect,
 }: {
-  areaSetCode?: AreaSetCode | null | undefined;
   isModalOpen: boolean;
   setIsModalOpen: (o: boolean) => void;
   onSelect: (dataSourceId: string) => void;
@@ -159,17 +153,8 @@ function DataSourceSelectModal({
       sources = sources.filter((ds) => !ds.public);
     }
 
-    if (areaSetCode) {
-      sources = sources.filter((ds) => {
-        if (!("areaSetCode" in ds.geocodingConfig)) {
-          return false;
-        }
-        return ds.geocodingConfig.areaSetCode === areaSetCode;
-      });
-    }
-
     return sources;
-  }, [activeTab, areaSetCode, dataSources, searchQuery]);
+  }, [activeTab, dataSources, searchQuery]);
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">

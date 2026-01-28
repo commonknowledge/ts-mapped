@@ -21,16 +21,13 @@ import {
 import { useDataSources } from "../../hooks/useDataSources";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import TogglePanel from "../TogglePanel";
-import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export function BoundaryConfigItem({
-  areaSetCode,
   boundaryConfig,
   index,
   onClickRemove,
   onUpdate,
 }: {
-  areaSetCode: AreaSetCode | null | undefined;
   boundaryConfig: InspectorBoundaryConfig;
   index: number;
   onClickRemove: () => void;
@@ -122,7 +119,6 @@ export function BoundaryConfigItem({
 
           {/* Data source info */}
           <DataSourceSelectButton
-            areaSetCode={areaSetCode}
             className="w-full"
             dataSource={dataSource}
             onClickRemove={onClickRemove}
