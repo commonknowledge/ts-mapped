@@ -44,6 +44,20 @@ npm run cmd -- upsertUser --email a@b.com --password 1234 --org "My Org"
 
 ## API Documentation
 
+### TypeScript SDK
+
+TypeScript types are available for consuming the REST API from external projects via a separate SDK package:
+
+```bash
+npm install github:commonknowledge/ts-mapped-sdk
+```
+
+```typescript
+import type { GeoJSONAPIResponse } from "@commonknowledge/ts-mapped-sdk";
+```
+
+See [src/api/README.md](src/api/README.md) for detailed usage examples.
+
 ### GeoJSON REST API
 
 The application provides a REST API endpoint to retrieve data source items as GeoJSON.
