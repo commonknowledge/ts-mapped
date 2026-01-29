@@ -24,9 +24,7 @@ export const structure: StructureResolver = (S, context) => {
                 child: () =>
                   S.documentList()
                     .title(docsSet.title)
-                    .filter(
-                      `_type == "docs" && docsSet._ref == $docsSetId`,
-                    )
+                    .filter(`_type == "docs" && docsSet._ref == $docsSetId`)
                     .params({ docsSetId: docsSet._id })
                     .canHandleIntent(
                       (intentName, params) =>
@@ -44,9 +42,7 @@ export const structure: StructureResolver = (S, context) => {
             // Show all docs sets
             S.listItem()
               .title("All Docs Sets")
-              .child(
-                S.documentTypeList("docsSet").title("All Docs Sets"),
-              ),
+              .child(S.documentTypeList("docsSet").title("All Docs Sets")),
 
             // Show all docs
             S.listItem()
@@ -62,7 +58,6 @@ export const structure: StructureResolver = (S, context) => {
     .items([
       // Docs section with dynamic hierarchy
       S.listItem().title("Docs").icon(FileText).child(docsHierarchy),
-
 
       // Solutions section
       S.listItem()
@@ -83,9 +78,7 @@ export const structure: StructureResolver = (S, context) => {
         .child(
           S.documentTypeList("features")
             .title("Features")
-            .defaultOrdering([
-              { field: "_createdAt", direction: "desc" },
-            ]),
+            .defaultOrdering([{ field: "_createdAt", direction: "desc" }]),
         ),
 
       // News section

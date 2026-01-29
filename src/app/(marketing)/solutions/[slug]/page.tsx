@@ -136,19 +136,18 @@ export default async function SolutionPage({
       <Container className="py-10 md:py-20">
         {(() => {
           const validFeatures = (solution.features?.filter(
-            (f: Feature | null): f is Feature => f !== null && f._id !== undefined
+            (f: Feature | null): f is Feature =>
+              f !== null && f._id !== undefined,
           ) || []) as Feature[];
-          
+
           return validFeatures.length > 0 ? (
-            validFeatures.map(
-              (feature: Feature, index: number) => (
-                <FeatureCard
-                  key={feature._id}
-                  feature={feature}
-                  isReversed={index % 2 === 1}
-                />
-              ),
-            )
+            validFeatures.map((feature: Feature, index: number) => (
+              <FeatureCard
+                key={feature._id}
+                feature={feature}
+                isReversed={index % 2 === 1}
+              />
+            ))
           ) : (
             <div className="text-center py-12">
               <TypographyH2>No features available</TypographyH2>
@@ -182,27 +181,26 @@ function FeatureCard({
           </TypographyP>
         ))}
       </div>
-      {feature.button && (() => {
-        let href: string | null = null;
-        
-        if (feature.button.linkType === "docs") {
-          if (feature.button.docsPage?.slug?.current) {
-            href = `/docs/${feature.button.docsPage.slug.current}`;
+      {feature.button &&
+        (() => {
+          let href: string | null = null;
+
+          if (feature.button.linkType === "docs") {
+            if (feature.button.docsPage?.slug?.current) {
+              href = `/docs/${feature.button.docsPage.slug.current}`;
+            }
+          } else {
+            href = feature.button.url || null;
           }
-        } else {
-          href = feature.button.url || null;
-        }
-        
-        if (!href) return null;
-        
-        return (
-          <Button className="mt-4" variant="secondary">
-            <Link href={href}>
-              {feature.button.text}
-            </Link>
-          </Button>
-        );
-      })()}
+
+          if (!href) return null;
+
+          return (
+            <Button className="mt-4" variant="secondary">
+              <Link href={href}>{feature.button.text}</Link>
+            </Button>
+          );
+        })()}
     </div>
   );
 
