@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "build:api": "tsc -p tsconfig.api.json",
     "cmd": "tsx --env-file=.env bin/cmd.ts",
     "dev": "next dev --turbopack --experimental-https",
     "emails": "email dev --port 3002 --dir src/server/emails",

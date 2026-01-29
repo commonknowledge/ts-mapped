@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "moduleResolution": "bundler",
+    "module": "ESNext"
+  },
+  "include": ["src/api/index.ts"],
+  "exclude": ["node_modules", ".next", "tests"]
+}

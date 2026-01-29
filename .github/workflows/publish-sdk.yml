@@ -1,0 +1,206 @@
+name: Publish SDK
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/api/**"
+      - "tsconfig.api.json"
+      - ".github/workflows/publish-sdk.yml"
+
+jobs:
+  publish-sdk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout ts-mapped
+        uses: actions/checkout@v4
+        with:
+          path: ts-mapped
+
+      - name: Checkout ts-mapped-sdk
+        uses: actions/checkout@v4
+        with:
+          repository: commonknowledge/ts-mapped-sdk
+          token: ${{ secrets.SDK_REPO_TOKEN }}
+          path: ts-mapped-sdk
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: ts-mapped
+        run: npm ci
+
+      - name: Build API types
+        working-directory: ts-mapped
+        run: npm run build:api
+
+      - name: Prepare SDK package
+        run: |
+          # Clear existing directories in SDK repo
+          rm -rf ts-mapped-sdk/src
+          rm -rf ts-mapped-sdk/dist
+
+          # Copy built types
+          mkdir -p ts-mapped-sdk/dist
+          cp -r ts-mapped/dist/api/* ts-mapped-sdk/dist/
+
+          # Copy source types (for reference/debugging)
+          mkdir -p ts-mapped-sdk/src
+          cp -r ts-mapped/src/api/* ts-mapped-sdk/src/
+
+          # Generate package.json for SDK
+          cat > ts-mapped-sdk/package.json << 'EOF'
+          {
+            "name": "@commonknowledge/ts-mapped-sdk",
+            "version": "0.0.0",
+            "description": "TypeScript types for the ts-mapped REST API",
+            "types": "./dist/index.d.ts",
+            "exports": {
+              ".": {
+                "types": "./dist/index.d.ts"
+              }
+            },
+            "files": [
+              "dist",
+              "src"
+            ],
+            "peerDependencies": {
+              "typescript": "^5.0.0"
+            },
+            "dependencies": {
+              "@types/geojson": "^7946.0.0"
+            },
+            "repository": {
+              "type": "git",
+              "url": "git+https://github.com/commonknowledge/ts-mapped-sdk.git"
+            },
+            "homepage": "https://github.com/commonknowledge/ts-mapped",
+            "license": "MIT",
+            "keywords": [
+              "typescript",
+              "types",
+              "geojson",
+              "api",
+              "sdk",
+              "mapped"
+            ]
+          }
+          EOF
+
+          # Generate README
+          cat > ts-mapped-sdk/README.md << 'EOF'
+          # ts-mapped SDK
+
+          TypeScript types for consuming the [ts-mapped](https://github.com/commonknowledge/ts-mapped) REST API.
+
+          > **Note:** This package is automatically generated from the ts-mapped repository. Do not edit directly.
+
+          ## Installation
+
+          ```bash
+          npm install github:commonknowledge/ts-mapped-sdk
+          # or if published to npm:
+          npm install @commonknowledge/ts-mapped-sdk
+          ```
+
+          ## Usage
+
+          ```typescript
+          import type {
+            GeoJSONAPIResponse,
+            GeoJSONAPIFeature,
+            GeoJSONFeatureProperties,
+            APIRecordFilter,
+            APIRecordSort,
+            APIFilterOperator,
+            APIFilterType,
+          } from '@commonknowledge/ts-mapped-sdk';
+
+          // Fetch data with proper typing
+          async function fetchGeoJSON(dataSourceId: string): Promise<GeoJSONAPIResponse> {
+            const response = await fetch(
+              `https://your-instance.com/api/rest/data-sources/${dataSourceId}/geojson`,
+              {
+                headers: {
+                  'Authorization': `Basic ${btoa('email:password')}`,
+                },
+              }
+            );
+            return response.json();
+          }
+          ```
+
+          ## Available Types
+
+          - `GeoJSONAPIResponse` - Main response type from the GeoJSON endpoint
+          - `GeoJSONAPIFeature` - Individual feature in the response
+          - `GeoJSONFeatureProperties` - Properties object for each feature
+          - `APIRecordFilter` - Filter configuration for querying
+          - `APIRecordSort` - Sort configuration
+          - `APIFilterOperator` - `AND` / `OR` operators
+          - `APIFilterType` - `GEO` / `MULTI` / `TEXT` filter types
+          - `APIPoint` - Geographic coordinates (lat/lng)
+          - `APIGeocodeResult` - Geocoding metadata
+          - `GeoJSONAPIErrorResponse` - Error response structure
+
+          ## Documentation
+
+          For detailed usage examples, see the [API documentation](https://github.com/commonknowledge/ts-mapped/blob/main/src/api/README.md).
+
+          ## License
+
+          MIT
+          EOF
+
+      - name: Get commit info
+        id: commit-info
+        working-directory: ts-mapped
+        run: |
+          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "message=$(git log -1 --pretty=%B | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Update SDK version
+        working-directory: ts-mapped-sdk
+        run: |
+          # Read current version or default to 0.0.0
+          if [ -f package.json ]; then
+            CURRENT_VERSION=$(node -p "require('./package.json').version || '0.0.0'")
+          else
+            CURRENT_VERSION="0.0.0"
+          fi
+
+          # Bump patch version
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+
+          # Update package.json with new version
+          node -e "
+            const pkg = require('./package.json');
+            pkg.version = '$NEW_VERSION';
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+          echo "Updated version from $CURRENT_VERSION to $NEW_VERSION"
+
+      - name: Commit and push to SDK repo
+        working-directory: ts-mapped-sdk
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore: sync types from ts-mapped@${{ steps.commit-info.outputs.sha }}" \
+                     -m "Source commit: ${{ steps.commit-info.outputs.message }}" \
+                     -m "Generated from: https://github.com/commonknowledge/ts-mapped/commit/${{ github.sha }}"
+
+          git push
