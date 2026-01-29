@@ -19,12 +19,6 @@ Then import from your local copy:
 import type { GeoJSONAPIResponse } from "./types/mapped-api";
 ```
 
-**Note:** You'll need `@types/geojson` installed in your project:
-
-```bash
-npm install -D @types/geojson
-```
-
 ### Option 2: TypeScript Path Mapping (Zero Install)
 
 Reference the types directly from GitHub using TypeScript's path mapping in your `tsconfig.json`:
@@ -54,13 +48,18 @@ npm install github:commonknowledge/ts-mapped
 
 **⚠️ Warning:** This installs ALL dependencies from the ts-mapped project (it's a full Next.js app), which adds ~500MB to node_modules. Only use this if you're already using ts-mapped as a dependency for other reasons.
 
-### Peer Dependencies
+## Requirements
 
-The types reference the `geojson` package types. Ensure you have:
+All installation options require a TypeScript project with:
 
 ```bash
-npm install -D @types/geojson
+npm install -D typescript @types/geojson
 ```
+
+**Minimum versions:**
+
+- TypeScript: `^5.0.0`
+- @types/geojson: `^7946.0.0`
 
 ## Available Types
 

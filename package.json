@@ -12,11 +12,15 @@
     "src/api"
   ],
   "peerDependencies": {
+    "typescript": "^5.0.0",
     "@types/geojson": "^7946.0.0"
   },
   "peerDependenciesMeta": {
+    "typescript": {
+      "optional": false
+    },
     "@types/geojson": {
-      "optional": true
+      "optional": false
     }
   },
   "scripts": {
