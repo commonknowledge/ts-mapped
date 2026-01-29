@@ -15,14 +15,17 @@ import type { DataSourceType } from "@/server/models/DataSource";
 import type z from "zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
+  LAD25: "Local Authority District (2025)",
   PC: "UK Postcode",
   OA21: "Census Output Area (2021)",
   MSOA21: "Middle Super Output Area (2021)",
   UKR18: "UK Regions (2018)",
   WMC24: "Westminster Constituency (2024)",
+  W25: "UK Wards (2025)",
 };
 
 export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
+  LAD25: "Local Authority District (2025)",
   OA21: "Census Output Area (2021)",
   UKR18: "UK Regions (2018)",
   WMC24: "Westminster Constituency (2024)",
