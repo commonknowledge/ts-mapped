@@ -52,7 +52,6 @@ export function useForm<T extends Record<string, string | number | boolean>>(
   const isValid = Object.keys(validate(formState)).length === 0;
 
   const isDirty = useMemo(() => {
-    // eslint-disable-next-line react-hooks/refs
     return Object.keys(initialStateRef.current).some((key) => {
       return (
         formState[key as keyof T] !== initialStateRef.current[key as keyof T]

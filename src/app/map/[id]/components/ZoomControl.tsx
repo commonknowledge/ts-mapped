@@ -8,7 +8,6 @@ export default function ZoomControl() {
   const zoomIn = () => map?.zoomIn({ duration: 500 });
   const zoomOut = () => map?.zoomOut({ duration: 500 });
 
-  // eslint-disable-next-line react-hooks/refs
   if (!map) {
     return <></>;
   }

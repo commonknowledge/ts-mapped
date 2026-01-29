@@ -28,7 +28,6 @@ export default function InvitePage() {
   const { mutate: confirmInvite, isPending } = useMutation(
     trpc.auth.confirmInvite.mutationOptions({
       onSuccess: () => {
-        // eslint-disable-next-line react-hooks/immutability
         window.location.href = "/dashboard";
       },
       onError: (error) => {

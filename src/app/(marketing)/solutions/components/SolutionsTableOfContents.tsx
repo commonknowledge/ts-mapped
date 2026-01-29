@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { urlFor } from "@/sanity/lib/image";
-import { TypographyH2 } from "@/components/typography";
 import Container from "@/components/layout/Container";
 
 interface Solution {
@@ -19,7 +18,10 @@ interface SolutionsTableOfContentsProps {
 
 // Generate slug-friendly IDs for anchor links
 const getSolutionId = (slug: string) => {
-  return slug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return slug
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 };
 
 export default function SolutionsTableOfContents({
@@ -35,8 +37,10 @@ export default function SolutionsTableOfContents({
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       // Find the entry with the highest intersection ratio that's intersecting
-      const intersectingEntries = entries.filter((entry) => entry.isIntersecting);
-      
+      const intersectingEntries = entries.filter(
+        (entry) => entry.isIntersecting,
+      );
+
       if (intersectingEntries.length === 0) {
         // If nothing is intersecting, find the closest section above the viewport
         const allElements = solutions
@@ -53,9 +57,10 @@ export default function SolutionsTableOfContents({
         let closestDistance = Infinity;
 
         for (const element of allElements) {
-          const elementTop = element.getBoundingClientRect().top + window.scrollY;
+          const elementTop =
+            element.getBoundingClientRect().top + window.scrollY;
           const distance = Math.abs(elementTop - viewportTop);
-          
+
           if (elementTop <= viewportTop && distance < closestDistance) {
             closestDistance = distance;
             closestElement = element;
@@ -197,4 +202,3 @@ export default function SolutionsTableOfContents({
     </div>
   );
 }
-

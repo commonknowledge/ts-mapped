@@ -6,11 +6,7 @@ import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import { Button } from "@/shadcn/ui/button";
 import MuxVideoPlayer from "@/components/marketing/MuxVideoPlayer";
-import {
-  TypographyH2,
-  TypographyH3,
-  TypographyP,
-} from "@/components/typography";
+import { TypographyH3 } from "@/components/typography";
 
 const HOMEPAGE_FEATURES_QUERY = `*[_type == "features" && showOnHomepage == true] | order(homepageOrder asc, _createdAt asc) {
   _id,
@@ -86,7 +82,6 @@ export default async function HomepageFeatures() {
       <div className="py-10 md:py-20">
         <div className="mb-12 text-center">
           <TypographyH3>Explore Our Features</TypographyH3>
-
         </div>
         <div className="flex flex-col gap-10 md:gap-50">
           {features.map((feature, index) => (
@@ -127,8 +122,9 @@ function FeatureCard({
 
   return (
     <div
-      className={`flex flex-col md:flex-row gap-8 xl:gap-20 ${alternate ? "md:flex-row-reverse" : ""
-        }`}
+      className={`flex flex-col md:flex-row gap-8 xl:gap-20 ${
+        alternate ? "md:flex-row-reverse" : ""
+      }`}
     >
       <div className="w-full md:w-1/2 my-auto">
         <div className="max-w-[50ch] flex flex-col gap-4 md:gap-6 / text-base md:text-lg text-balance ">
@@ -136,15 +132,11 @@ function FeatureCard({
             {feature.title}
           </h3>
 
-          <p className="text-lg max-w-[60ch]">
-            {feature.description}
-          </p>
+          <p className="text-lg max-w-[60ch]">{feature.description}</p>
 
           {href && (feature.button || feature.solution) && (
             <Button variant="secondary" size="sm" asChild className="mt-2">
-              <Link href={href}>
-                {feature.button?.text || "Learn more"}
-              </Link>
+              <Link href={href}>{feature.button?.text || "Learn more"}</Link>
             </Button>
           )}
         </div>
@@ -175,4 +167,3 @@ function FeatureCard({
     </div>
   );
 }
-

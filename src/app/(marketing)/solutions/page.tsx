@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { type SanityDocument } from "next-sanity";
 import React from "react";
 import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
@@ -7,14 +6,12 @@ import {
     TypographyH1,
     TypographyH2,
     TypographyLead,
-    TypographyMuted,
     TypographyP,
 } from "@/components/typography";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
-import { Separator } from "@/shadcn/ui/separator";
 import MuxVideoPlayer from "@/components/marketing/MuxVideoPlayer";
 import SolutionsTableOfContents from "./components/SolutionsTableOfContents";
 
@@ -99,7 +96,10 @@ export default async function SolutionsPage() {
 
     // Generate slug-friendly IDs for anchor links
     const getSolutionId = (slug: string) => {
-        return slug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+        return slug
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^a-z0-9-]/g, "");
     };
 
     return (
@@ -162,7 +162,10 @@ export default async function SolutionsPage() {
                                                         {solution.title}
                                                     </TypographyH1>
                                                     {solution.status === "coming-soon" && (
-                                                        <Badge variant="secondary" className="self-start sm:self-center">
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="self-start sm:self-center"
+                                                        >
                                                             Coming soon
                                                         </Badge>
                                                     )}
@@ -179,7 +182,8 @@ export default async function SolutionsPage() {
                                     {/* Solution Content */}
                                     {(() => {
                                         const validFeatures = (solution.features?.filter(
-                                            (f: Feature | null): f is Feature => f !== null && f._id !== undefined
+                                            (f: Feature | null): f is Feature =>
+                                                f !== null && f._id !== undefined,
                                         ) || []) as Feature[];
 
                                         return validFeatures.length > 0 ? (
@@ -238,27 +242,26 @@ function FeatureCard({
                     </TypographyP>
                 ))}
             </div>
-            {feature.button && (() => {
-                let href: string | null = null;
+            {feature.button &&
+                (() => {
+                    let href: string | null = null;
 
-                if (feature.button.linkType === "docs") {
-                    if (feature.button.docsPage?.slug?.current) {
-                        href = `/docs/${feature.button.docsPage.slug.current}`;
+                    if (feature.button.linkType === "docs") {
+                        if (feature.button.docsPage?.slug?.current) {
+                            href = `/docs/${feature.button.docsPage.slug.current}`;
+                        }
+                    } else {
+                        href = feature.button.url || null;
                     }
-                } else {
-                    href = feature.button.url || null;
-                }
 
-                if (!href) return null;
+                    if (!href) return null;
 
-                return (
-                    <Button className="mt-4" variant="secondary">
-                        <Link href={href}>
-                            {feature.button.text}
-                        </Link>
-                    </Button>
-                );
-            })()}
+                    return (
+                        <Button className="mt-4" variant="secondary">
+                            <Link href={href}>{feature.button.text}</Link>
+                        </Button>
+                    );
+                })()}
         </div>
     );
 
@@ -319,4 +322,3 @@ function FeatureCard({
         </div>
     );
 }
-
