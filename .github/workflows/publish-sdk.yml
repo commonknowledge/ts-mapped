@@ -167,15 +167,18 @@ jobs:
       - name: Update SDK version
         working-directory: ts-mapped-sdk
         run: |
-          # Read current version or default to 0.0.0
-          if [ -f package.json ]; then
+          # Read current version from the committed SDK package.json (HEAD),
+          # falling back to the working copy or 0.0.0 if necessary.
+          if git show HEAD:package.json >/tmp/original_package.json 2>/dev/null; then
+            CURRENT_VERSION=$(node -p "require('/tmp/original_package.json').version || '0.0.0'")
+          elif [ -f package.json ]; then
             CURRENT_VERSION=$(node -p "require('./package.json').version || '0.0.0'")
           else
             CURRENT_VERSION="0.0.0"
           fi
 
           # Bump patch version
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+          NEW_VERSION=$(echo "$CURRENT_VERSION" | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
 
           # Update package.json with new version
           node -e "
