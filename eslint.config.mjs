@@ -45,7 +45,7 @@ const eslintConfig = defineConfig([
       "unused-imports/no-unused-imports": "error",
     },
   },
-  globalIgnores([".next/**", ".sanity/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", ".sanity/**", "next-env.d.ts", "dist/**"]),
 ]);
 
 export default eslintConfig;

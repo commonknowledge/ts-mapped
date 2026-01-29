@@ -1,0 +1,12 @@
+# Build outputs
+.next/
+dist/
+
+# Environment files
+.env*
+
+# Dependencies
+node_modules/
+
+# Other
+.sanity/
