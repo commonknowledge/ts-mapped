@@ -2,7 +2,11 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
-import { findAreaByCode, findAreasByPoint } from "@/server/repositories/Area";
+import {
+  findAreaByCode,
+  findAreasByPoint,
+  findAreasContaining,
+} from "@/server/repositories/Area";
 import {
   countDataRecordsForDataSource,
   findDataRecordById,
@@ -52,15 +56,17 @@ export const dataRecordRouter = router({
       }),
     )
     .query(async ({ input, ctx: { dataSource } }) => {
-      const records = await findDataRecordsByDataSourceAndAreaCode(
+      let records = await findDataRecordsByDataSourceAndAreaCode(
         input.dataSourceId,
         input.areaSetCode,
         input.areaCode,
       );
 
+      let match = DataRecordMatchType.Exact;
+
       // Always return exact match records if found
       if (records.length) {
-        return { records, match: DataRecordMatchType.Exact };
+        return { records, match };
       }
 
       // If no records were found, but the data source is geocoded by area,
@@ -71,31 +77,42 @@ export const dataRecordRouter = router({
       // that contains the Ward, and then get the records for that Region.
       if (!("areaSetCode" in dataSource.geocodingConfig)) {
         // Data source not geocoded by area
-        return { records, match: DataRecordMatchType.Exact };
+        return { records, match };
       }
 
       const inputArea = await findAreaByCode(input.areaCode, input.areaSetCode);
       if (!inputArea) {
-        return { records, match: DataRecordMatchType.Exact };
+        return { records, match };
       }
 
       const dataSourceAreaSetCode = dataSource.geocodingConfig.areaSetCode;
-      const dataSourceArea = (
-        await findAreasByPoint({
-          point: inputArea.samplePoint,
+      let dataSourceArea = (
+        await findAreasContaining({
+          areaId: inputArea.id,
           includeAreaSetCode: dataSourceAreaSetCode,
         })
       )[0];
+
       if (!dataSourceArea) {
-        return { records, match: DataRecordMatchType.Exact };
+        dataSourceArea = (
+          await findAreasByPoint({
+            point: inputArea.samplePoint,
+            includeAreaSetCode: dataSourceAreaSetCode,
+          })
+        )[0];
+        match = DataRecordMatchType.Approximate;
       }
 
-      const approximate = await findDataRecordsByDataSourceAndAreaCode(
+      if (!dataSourceArea) {
+        return { records, match };
+      }
+
+      records = await findDataRecordsByDataSourceAndAreaCode(
         input.dataSourceId,
         dataSourceArea.areaSetCode,
         dataSourceArea.code,
       );
-      return { records: approximate, match: DataRecordMatchType.Approximate };
+      return { records, match };
     }),
   list: dataSourceReadProcedure
     .input(
