@@ -61,6 +61,7 @@ npm install -D typescript @types/geojson
 - `GeoJSONAPIResponse` - Main response type from the GeoJSON endpoint
 - `GeoJSONAPIFeature` - Individual feature in the response
 - `GeoJSONFeatureProperties` - Properties object for each feature
+- `GeoJSONAPIQueryParams` - Type-safe query parameters for the API
 - `APIRecordFilter` - Filter configuration for querying
 - `APIRecordSort` - Sort configuration
 - `APIFilterOperator` - `AND` / `OR` operators
@@ -149,6 +150,47 @@ async function processLocations(dataSourceId: string) {
 ```
 
 ## Filtering
+
+### Building Query Parameters
+
+Use the `GeoJSONAPIQueryParams` type to construct query parameters in a type-safe way:
+
+```typescript
+import type {
+  GeoJSONAPIQueryParams,
+  APIRecordFilter,
+  APIRecordSort,
+  APIFilterType,
+} from "@commonknowledge/ts-mapped-sdk";
+
+// Build query parameters with type safety
+const queryParams: GeoJSONAPIQueryParams = {
+  search: "london",
+  page: "0",
+  all: "false",
+  filter: JSON.stringify({
+    type: APIFilterType.TEXT,
+    column: "status",
+    search: "active",
+  } as APIRecordFilter),
+  sort: JSON.stringify([
+    {
+      name: "name",
+      desc: false,
+    },
+  ] as APIRecordSort[]),
+};
+
+// Convert to URLSearchParams
+const params = new URLSearchParams(
+  Object.entries(queryParams).filter(([_, v]) => v !== undefined) as [
+    string,
+    string,
+  ][],
+);
+
+const url = `https://your-instance.com/api/rest/data-sources/${dataSourceId}/geojson?${params}`;
+```
 
 ### Text Filters
 
