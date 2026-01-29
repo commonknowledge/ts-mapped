@@ -8,6 +8,8 @@ on:
       - "tsconfig.api.json"
       - ".github/workflows/publish-sdk.yml"
   workflow_dispatch:
+    branches:
+      - "*"
 
 jobs:
   publish-sdk:
