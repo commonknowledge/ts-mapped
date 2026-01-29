@@ -2,8 +2,20 @@
   "name": "mapped",
   "version": "0.1.0",
   "private": true,
+  "types": "./dist/api/index.d.ts",
+  "exports": {
+    "./api": {
+      "types": "./dist/api/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src/api"
+  ],
   "scripts": {
+    "build:api": "tsc -p tsconfig.api.json",
     "build": "next build",
+    "prepare": "npm run build:api",
     "cmd": "tsx --env-file=.env bin/cmd.ts",
     "dev": "next dev --turbopack --experimental-https",
     "emails": "email dev --port 3002 --dir src/server/emails",
