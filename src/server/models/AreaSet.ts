@@ -2,19 +2,23 @@ import z from "zod";
 import type { Generated, Insertable, Updateable } from "kysely";
 
 export enum AreaSetCode {
+  PC = "PC",
+  WMC24 = "WMC24",
+  LAD25 = "LAD25",
+  W25 = "W25",
   MSOA21 = "MSOA21",
   OA21 = "OA21",
-  PC = "PC",
   UKR18 = "UKR18",
-  WMC24 = "WMC24",
 }
 export const areaSetCodes = Object.values(AreaSetCode);
 
 export const areaSetCode = z.nativeEnum(AreaSetCode);
 
 export enum AreaSetGroupCode {
-  OA21 = "OA21",
   WMC24 = "WMC24",
+  LAD25 = "LAD25",
+  W25 = "W25",
+  OA21 = "OA21",
   UKR18 = "UKR18",
 }
 export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
@@ -25,6 +29,8 @@ export const AreaSetSizes: Record<AreaSetCode, number> = {
   [AreaSetCode.PC]: 1,
   [AreaSetCode.OA21]: 1,
   [AreaSetCode.MSOA21]: 2,
+  [AreaSetCode.W25]: 2,
+  [AreaSetCode.LAD25]: 4,
   [AreaSetCode.WMC24]: 4,
   [AreaSetCode.UKR18]: 8,
 };

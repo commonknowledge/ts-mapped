@@ -116,13 +116,13 @@ const geocodeRecordByPostcode = async (
     samplePoint,
   };
 
-  const mappedAreas = await findAreasByPoint(
-    JSON.stringify({
+  const mappedAreas = await findAreasByPoint({
+    point: JSON.stringify({
       type: "Point",
       coordinates: [samplePoint.lng, samplePoint.lat],
     }),
-    geocodingConfig.areaSetCode,
-  );
+    excludeAreaSetCode: geocodingConfig.areaSetCode,
+  });
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }
@@ -163,10 +163,10 @@ const geocodeRecordByArea = async (
     samplePoint: geojsonPointToPoint(area.samplePoint),
   };
 
-  const mappedAreas = await findAreasByPoint(
-    area.samplePoint,
-    geocodingConfig.areaSetCode,
-  );
+  const mappedAreas = await findAreasByPoint({
+    point: area.samplePoint,
+    excludeAreaSetCode: geocodingConfig.areaSetCode,
+  });
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }
@@ -221,7 +221,9 @@ const geocodeRecordByAddress = async (
     samplePoint: point,
   };
 
-  const mappedAreas = await findAreasByPoint(JSON.stringify(feature.geometry));
+  const mappedAreas = await findAreasByPoint({
+    point: JSON.stringify(feature.geometry),
+  });
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }
@@ -259,12 +261,12 @@ const geocodeRecordByCoordinates = async (
     samplePoint: point,
   };
 
-  const mappedAreas = await findAreasByPoint(
-    JSON.stringify({
+  const mappedAreas = await findAreasByPoint({
+    point: JSON.stringify({
       type: "Point",
       coordinates: [lng, lat],
     }),
-  );
+  });
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }

@@ -2,10 +2,12 @@ import { Command } from "commander";
 import { SignJWT } from "jose";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importConstituencies from "@/server/commands/importConstituencies";
+import importLADs from "@/server/commands/importLADs";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
 import importPostcodes from "@/server/commands/importPostcodes";
 import importRegions from "@/server/commands/importRegions";
+import importWards from "@/server/commands/importWards";
 import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import Invite from "@/server/emails/invite";
@@ -63,6 +65,20 @@ program
   .description("Import Westminster Constituencies")
   .action(async () => {
     await importConstituencies();
+  });
+
+program
+  .command("importLADs")
+  .description("Import Local Area Districts")
+  .action(async () => {
+    await importLADs();
+  });
+
+program
+  .command("importWards")
+  .description("Import UK Wards")
+  .action(async () => {
+    await importWards();
   });
 
 program

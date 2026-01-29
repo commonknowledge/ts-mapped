@@ -16,16 +16,20 @@ import type z from "zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "UK Postcode",
-  OA21: "Census Output Area (2021)",
-  MSOA21: "Middle Super Output Area (2021)",
-  UKR18: "UK Regions (2018)",
   WMC24: "Westminster Constituency (2024)",
+  LAD25: "Local Authority District (2025)",
+  W25: "Ward (2025)",
+  MSOA21: "Middle Super Output Area (2021)",
+  OA21: "Census Output Area (2021)",
+  UKR18: "UK Region (2018)",
 };
 
 export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
-  OA21: "Census Output Area (2021)",
-  UKR18: "UK Regions (2018)",
   WMC24: "Westminster Constituency (2024)",
+  LAD25: "Local Authority District (2025)",
+  W25: "Ward (2025)",
+  OA21: "Census Output Area (2021)",
+  UKR18: "UK Region (2018)",
 };
 
 type DataSourceConfigKey =

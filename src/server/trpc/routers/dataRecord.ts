@@ -3,12 +3,18 @@ import z from "zod";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
 import {
+  findAreaByCode,
+  findAreasByPoint,
+  findAreasContaining,
+} from "@/server/repositories/Area";
+import {
   countDataRecordsForDataSource,
   findDataRecordById,
   findDataRecordsByDataSource,
   findDataRecordsByDataSourceAndAreaCode,
   findPageForDataRecord,
 } from "@/server/repositories/DataRecord";
+import { DataRecordMatchType } from "@/types";
 import { dataSourceReadProcedure, router } from "../index";
 
 export const dataRecordRouter = router({
@@ -49,12 +55,78 @@ export const dataRecordRouter = router({
         areaCode: z.string(),
       }),
     )
-    .query(({ input }) => {
-      return findDataRecordsByDataSourceAndAreaCode(
+    .query(async ({ input, ctx: { dataSource } }) => {
+      let records = await findDataRecordsByDataSourceAndAreaCode(
         input.dataSourceId,
         input.areaSetCode,
         input.areaCode,
       );
+
+      const dataSourceAreaSetCode =
+        "areaSetCode" in dataSource.geocodingConfig
+          ? dataSource.geocodingConfig.areaSetCode
+          : null;
+
+      // Match type is only Exact if the provided area set is the same as the area set used by the data source
+      // Otherwise, the records found here were geocoded as within the provided area
+      let match =
+        dataSourceAreaSetCode === input.areaSetCode
+          ? DataRecordMatchType.Exact
+          : DataRecordMatchType.Contains;
+
+      // If some records are found, return them (as this will be all the records that match the provided area)
+      if (records.length) {
+        return { records, match };
+      }
+
+      // If no records were found, but the data source is geocoded by area,
+      // it is possible to find an area that matches the data source and overlaps
+      // with the input area, and then get records for that area instead.
+      // E.G. If the input area is small (e.g. a Ward), but the data source
+      // area is large (e.g. a Region), it is possible to find the Region
+      // that contains the Ward, and then get the records for that Region.
+      if (!dataSourceAreaSetCode) {
+        // Data source not geocoded by area
+        return { records, match };
+      }
+
+      // Update default match type
+      match = DataRecordMatchType.Approximate;
+
+      const inputArea = await findAreaByCode(input.areaCode, input.areaSetCode);
+      if (!inputArea) {
+        return { records, match };
+      }
+
+      let dataSourceArea = (
+        await findAreasContaining({
+          areaId: inputArea.id,
+          includeAreaSetCode: dataSourceAreaSetCode,
+        })
+      )[0];
+      if (dataSourceArea) {
+        match = DataRecordMatchType.ContainedBy;
+      }
+
+      if (!dataSourceArea) {
+        dataSourceArea = (
+          await findAreasByPoint({
+            point: inputArea.samplePoint,
+            includeAreaSetCode: dataSourceAreaSetCode,
+          })
+        )[0];
+      }
+
+      if (!dataSourceArea) {
+        return { records, match };
+      }
+
+      records = await findDataRecordsByDataSourceAndAreaCode(
+        input.dataSourceId,
+        dataSourceArea.areaSetCode,
+        dataSourceArea.code,
+      );
+      return { records, match };
     }),
   list: dataSourceReadProcedure
     .input(

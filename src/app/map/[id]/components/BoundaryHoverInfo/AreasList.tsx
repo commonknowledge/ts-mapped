@@ -112,22 +112,20 @@ export function AreasList({
               ? areaStats.stats.find((s) => s.areaCode === area.code)
               : null;
 
-          const primaryValue =
-            areaStats && areaStat
-              ? getDisplayValue(
-                  areaStats.calculationType,
-                  areaStats.primary,
-                  areaStat.primary,
-                )
-              : null;
-          const secondaryValue =
-            areaStats && areaStat
-              ? getDisplayValue(
-                  areaStats.calculationType,
-                  areaStats.secondary,
-                  areaStat.secondary,
-                )
-              : null;
+          const primaryValue = areaStats
+            ? getDisplayValue(
+                areaStats.calculationType,
+                areaStats.primary,
+                areaStat?.primary,
+              )
+            : null;
+          const secondaryValue = areaStats
+            ? getDisplayValue(
+                areaStats.calculationType,
+                areaStats.secondary,
+                areaStat?.secondary,
+              )
+            : null;
 
           return (
             <TableRow
