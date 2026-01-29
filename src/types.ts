@@ -91,3 +91,8 @@ export enum LayerType {
   Marker = "Marker",
   Turf = "Turf",
 }
+
+export enum DataRecordMatchType {
+  Exact = "Exact",
+  Approximate = "Approximate",
+}

@@ -73,15 +73,23 @@ const applyAreaWithPointsSelect = (
   ]);
 };
 
-export async function findAreasByPoint(
-  point: string,
-  excludeAreaSetCode: AreaSetCode | null = null,
-): Promise<AreaWithAreaSetCode[]> {
+export async function findAreasByPoint({
+  point,
+  excludeAreaSetCode,
+  includeAreaSetCode,
+}: {
+  point: string;
+  excludeAreaSetCode?: AreaSetCode | null | undefined;
+  includeAreaSetCode?: AreaSetCode | null | undefined;
+}): Promise<AreaWithAreaSetCode[]> {
   let query = db
     .selectFrom("area")
     .innerJoin("areaSet", "area.areaSetId", "areaSet.id");
   if (excludeAreaSetCode) {
     query = query.where("areaSet.code", "!=", excludeAreaSetCode);
+  }
+  if (includeAreaSetCode) {
+    query = query.where("areaSet.code", "=", includeAreaSetCode);
   }
   return query
     .where(sql<boolean>`ST_Intersects(geography, ST_GeomFromGeoJson(${point}))`)

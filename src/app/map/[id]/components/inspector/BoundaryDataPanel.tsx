@@ -6,6 +6,7 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
+import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
 import PropertiesList from "./PropertiesList";
@@ -56,17 +57,25 @@ export function BoundaryDataPanel({
         <div className="py-4 text-center text-muted-foreground">
           <p className="text-sm">Loading...</p>
         </div>
-      ) : data?.length === 1 ? (
-        <BoundaryDataProperties json={data[0].json} columns={columns} />
-      ) : data?.length ? (
+      ) : data?.records.length === 1 ? (
+        <BoundaryDataProperties
+          json={data.records[0].json}
+          columns={columns}
+          match={data.match}
+        />
+      ) : data?.records.length ? (
         <ul className="ml-2">
-          {data.map((d, i) => (
+          {data.records.map((d, i) => (
             <li key={d.id}>
               <TogglePanel
                 label={buildName(dataSource, d)}
                 defaultExpanded={i === 0}
               >
-                <BoundaryDataProperties json={d.json} columns={columns} />
+                <BoundaryDataProperties
+                  json={d.json}
+                  columns={columns}
+                  match={data.match}
+                />
               </TogglePanel>
             </li>
           ))}
@@ -83,9 +92,11 @@ export function BoundaryDataPanel({
 function BoundaryDataProperties({
   json,
   columns,
+  match,
 }: {
   json: Record<string, unknown>;
   columns: string[];
+  match: DataRecordMatchType;
 }) {
   const filteredProperties = useMemo(() => {
     const filtered: Record<string, unknown> = {};
@@ -98,6 +109,11 @@ function BoundaryDataProperties({
   }, [columns, json]);
   return (
     <div className="ml-6">
+      {match === DataRecordMatchType.Approximate && (
+        <p className="text-sm text-muted-foreground mb-2 italic">
+          Approximate boundary match
+        </p>
+      )}
       {Object.keys(filteredProperties).length > 0 ? (
         <PropertiesList properties={filteredProperties} />
       ) : (
