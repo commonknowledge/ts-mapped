@@ -39,18 +39,20 @@ export default function SolutionsTableOfContents({
       
       if (intersectingEntries.length === 0) {
         // If nothing is intersecting, find the closest section above the viewport
-        const allElements = solutions.map((solution) => {
-          const solutionId = getSolutionId(
-            solution.slug?.current || solution.title,
-          );
-          return document.getElementById(solutionId);
-        }).filter(Boolean) as HTMLElement[];
+        const allElements = solutions
+          .map((solution) => {
+            const solutionId = getSolutionId(
+              solution.slug?.current || solution.title,
+            );
+            return document.getElementById(solutionId);
+          })
+          .filter((el): el is HTMLElement => el !== null);
 
         const viewportTop = window.scrollY + 200; // Account for sticky header + TOC
         let closestElement: HTMLElement | null = null;
         let closestDistance = Infinity;
 
-        allElements.forEach((element) => {
+        for (const element of allElements) {
           const elementTop = element.getBoundingClientRect().top + window.scrollY;
           const distance = Math.abs(elementTop - viewportTop);
           
@@ -58,10 +60,11 @@ export default function SolutionsTableOfContents({
             closestDistance = distance;
             closestElement = element;
           }
-        });
+        }
 
         if (closestElement) {
-          setActiveId(closestElement.id);
+          const elementId = closestElement.id;
+          setActiveId(elementId);
         }
         return;
       }
@@ -99,18 +102,20 @@ export default function SolutionsTableOfContents({
 
     // Also handle scroll events to update active state when clicking links
     const handleScroll = () => {
-      const allElements = solutions.map((solution) => {
-        const solutionId = getSolutionId(
-          solution.slug?.current || solution.title,
-        );
-        return document.getElementById(solutionId);
-      }).filter(Boolean) as HTMLElement[];
+      const allElements = solutions
+        .map((solution) => {
+          const solutionId = getSolutionId(
+            solution.slug?.current || solution.title,
+          );
+          return document.getElementById(solutionId);
+        })
+        .filter((el): el is HTMLElement => el !== null);
 
       const viewportTop = window.scrollY + 200;
       let activeElement: HTMLElement | null = null;
       let minDistance = Infinity;
 
-      allElements.forEach((element) => {
+      for (const element of allElements) {
         const rect = element.getBoundingClientRect();
         const elementTop = rect.top + window.scrollY;
         const distance = Math.abs(elementTop - viewportTop);
@@ -120,10 +125,11 @@ export default function SolutionsTableOfContents({
           minDistance = distance;
           activeElement = element;
         }
-      });
+      }
 
       if (activeElement) {
-        setActiveId(activeElement.id);
+        const elementId = activeElement.id;
+        setActiveId(elementId);
       }
     };
 
