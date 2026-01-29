@@ -1,9 +1,9 @@
 import { defineField, defineType } from "sanity";
 import { getTextFromBlocks } from "../../sanity/helpers";
 
-export const featureSetType = defineType({
-  name: "featureSet",
-  title: "Feature Set",
+export const docsSetType = defineType({
+  name: "docsSet",
+  title: "Docs Set",
   type: "document",
   fields: [
     defineField({
@@ -37,9 +37,9 @@ export const featureSetType = defineType({
   },
 });
 
-export const featureType = defineType({
-  name: "feature",
-  title: "Feature",
+export const docsType = defineType({
+  name: "docs",
+  title: "Docs",
   type: "document",
   fields: [
     defineField({
@@ -216,10 +216,10 @@ export const featureType = defineType({
       ],
     }),
     defineField({
-      name: "featureSet",
+      name: "docsSet",
       type: "reference",
-      to: [{ type: "featureSet" }],
-      description: "The feature set this feature belongs to",
+      to: [{ type: "docsSet" }],
+      description: "The docs set this doc belongs to",
     }),
     defineField({
       name: "order",
@@ -231,14 +231,14 @@ export const featureType = defineType({
     select: {
       title: "title",
       subtitle: "subtitle",
-      featureSet: "featureSet.title",
+      docsSet: "docsSet.title",
       status: "status",
     },
     prepare(selection) {
-      const { title, subtitle, featureSet, status } = selection;
+      const { title, subtitle, docsSet, status } = selection;
       return {
         title,
-        subtitle: featureSet ? `${featureSet} - ${subtitle || ""}` : subtitle,
+        subtitle: docsSet ? `${docsSet} - ${subtitle || ""}` : subtitle,
         media:
           status === "active"
             ? "Active"

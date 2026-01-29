@@ -1,7 +1,5 @@
 "use client";
 
-import MuxPlayer from "@mux/mux-player-react";
-
 interface MuxVideoPlayerProps {
   playbackId: string;
   className?: string;
@@ -17,26 +15,21 @@ export default function MuxVideoPlayer({
   loop = true,
   muted = true,
 }: MuxVideoPlayerProps) {
+  // Build the iframe URL with query parameters
+  const iframeUrl = `https://player.mux.com/${playbackId}?autoplay=${autoplay ? "true" : "false"}&loop=${loop ? "true" : "false"}&muted=${muted ? "true" : "false"}`;
+
   return (
-    <MuxPlayer
-      playbackId={playbackId}
+    <iframe
+      src={iframeUrl}
       className={className}
-      autoPlay={autoplay}
-      loop={loop}
-      muted={muted}
       style={{
         width: "100%",
-        height: "auto",
-        backgroundColor: "transparent",
+        border: "none",
+        aspectRatio: "16/9",
         display: "block",
-        margin: 0,
-        padding: 0,
       }}
-      streamType="on-demand"
-      metadata={{
-        video_id: playbackId,
-        video_title: "Homepage Video",
-      }}
+      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+      allowFullScreen
     />
   );
 }
