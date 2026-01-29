@@ -62,9 +62,19 @@ export const dataRecordRouter = router({
         input.areaCode,
       );
 
-      let match = DataRecordMatchType.Exact;
+      const dataSourceAreaSetCode =
+        "areaSetCode" in dataSource.geocodingConfig
+          ? dataSource.geocodingConfig.areaSetCode
+          : null;
 
-      // Always return exact match records if found
+      // Match type is only Exact if the provided area set is the same as the area set used by the data source
+      // Otherwise, the records found here were geocoded as within the provided area
+      let match =
+        dataSourceAreaSetCode === input.areaSetCode
+          ? DataRecordMatchType.Exact
+          : DataRecordMatchType.Contains;
+
+      // If some records are found, return them (as this will be all the records that match the provided area)
       if (records.length) {
         return { records, match };
       }
@@ -75,23 +85,28 @@ export const dataRecordRouter = router({
       // E.G. If the input area is small (e.g. a Ward), but the data source
       // area is large (e.g. a Region), it is possible to find the Region
       // that contains the Ward, and then get the records for that Region.
-      if (!("areaSetCode" in dataSource.geocodingConfig)) {
+      if (!dataSourceAreaSetCode) {
         // Data source not geocoded by area
         return { records, match };
       }
+
+      // Update default match type
+      match = DataRecordMatchType.Approximate;
 
       const inputArea = await findAreaByCode(input.areaCode, input.areaSetCode);
       if (!inputArea) {
         return { records, match };
       }
 
-      const dataSourceAreaSetCode = dataSource.geocodingConfig.areaSetCode;
       let dataSourceArea = (
         await findAreasContaining({
           areaId: inputArea.id,
           includeAreaSetCode: dataSourceAreaSetCode,
         })
       )[0];
+      if (dataSourceArea) {
+        match = DataRecordMatchType.ContainedBy;
+      }
 
       if (!dataSourceArea) {
         dataSourceArea = (
@@ -100,7 +115,6 @@ export const dataRecordRouter = router({
             includeAreaSetCode: dataSourceAreaSetCode,
           })
         )[0];
-        match = DataRecordMatchType.Approximate;
       }
 
       if (!dataSourceArea) {

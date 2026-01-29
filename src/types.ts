@@ -93,6 +93,8 @@ export enum LayerType {
 }
 
 export enum DataRecordMatchType {
-  Exact = "Exact",
   Approximate = "Approximate",
+  Contains = "Contains",
+  ContainedBy = "ContainedBy",
+  Exact = "Exact",
 }
