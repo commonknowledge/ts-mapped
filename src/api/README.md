@@ -75,7 +75,10 @@ npm install -D typescript @types/geojson
 ### Fetching GeoJSON Data
 
 ```typescript
-import type { GeoJSONAPIResponse, GeoJSONFeatureProperties } from "mapped/api";
+import type {
+  GeoJSONAPIResponse,
+  GeoJSONFeatureProperties,
+} from "@commonknowledge/ts-mapped-sdk";
 
 async function fetchDataSourceGeoJSON(
   dataSourceId: string,
@@ -112,7 +115,10 @@ console.log(`Found ${data.features.length} locations`);
 ### Processing Features
 
 ```typescript
-import type { GeoJSONAPIResponse, GeoJSONAPIFeature } from "mapped/api";
+import type {
+  GeoJSONAPIResponse,
+  GeoJSONAPIFeature,
+} from "@commonknowledge/ts-mapped-sdk";
 
 async function processLocations(dataSourceId: string) {
   const data: GeoJSONAPIResponse = await fetchDataSourceGeoJSON(
@@ -147,7 +153,10 @@ async function processLocations(dataSourceId: string) {
 ### Text Filters
 
 ```typescript
-import type { APIRecordFilter, APIFilterType } from "mapped/api";
+import type {
+  APIRecordFilter,
+  APIFilterType,
+} from "@commonknowledge/ts-mapped-sdk";
 
 const textFilter: APIRecordFilter = {
   type: APIFilterType.TEXT,
@@ -165,7 +174,10 @@ const url = `https://your-instance.com/api/rest/data-sources/${dataSourceId}/geo
 ### Geographic Filters
 
 ```typescript
-import type { APIRecordFilter, APIFilterType } from "mapped/api";
+import type {
+  APIRecordFilter,
+  APIFilterType,
+} from "@commonknowledge/ts-mapped-sdk";
 
 const geoFilter: APIRecordFilter = {
   type: APIFilterType.GEO,
@@ -181,7 +193,7 @@ import type {
   APIRecordFilter,
   APIFilterType,
   APIFilterOperator,
-} from "mapped/api";
+} from "@commonknowledge/ts-mapped-sdk";
 
 const complexFilter: APIRecordFilter = {
   type: APIFilterType.MULTI,
@@ -231,7 +243,7 @@ const response = await fetch(
 ### Sort by Column
 
 ```typescript
-import type { APIRecordSort } from "mapped/api";
+import type { APIRecordSort } from "@commonknowledge/ts-mapped-sdk";
 
 const nameSort: APIRecordSort = {
   name: "businessName",
@@ -246,7 +258,7 @@ const params = new URLSearchParams({
 ### Sort by Distance from Location
 
 ```typescript
-import type { APIRecordSort, APIPoint } from "mapped/api";
+import type { APIRecordSort, APIPoint } from "@commonknowledge/ts-mapped-sdk";
 
 const distanceSort: APIRecordSort = {
   name: "distance",
@@ -265,7 +277,7 @@ const params = new URLSearchParams({
 ### Multiple Sort Criteria
 
 ```typescript
-import type { APIRecordSort } from "mapped/api";
+import type { APIRecordSort } from "@commonknowledge/ts-mapped-sdk";
 
 const sorts: APIRecordSort[] = [
   {
@@ -300,7 +312,10 @@ const allRecords = await fetch(`${baseUrl}/geojson?all=true`, options);
 ## Error Handling
 
 ```typescript
-import type { GeoJSONAPIResponse, GeoJSONAPIErrorResponse } from "mapped/api";
+import type {
+  GeoJSONAPIResponse,
+  GeoJSONAPIErrorResponse,
+} from "@commonknowledge/ts-mapped-sdk";
 
 function isErrorResponse(data: unknown): data is GeoJSONAPIErrorResponse {
   return typeof data === "object" && data !== null && "error" in data;
@@ -338,7 +353,7 @@ async function safeAPICall(
 
 ```typescript
 import { useState, useEffect } from 'react';
-import type { GeoJSONAPIResponse, GeoJSONAPIFeature } from 'mapped/api';
+import type { GeoJSONAPIResponse, GeoJSONAPIFeature } from '@commonknowledge/ts-mapped-sdk';
 
 function DataSourceMap({ dataSourceId }: { dataSourceId: string }) {
   const [data, setData] = useState<GeoJSONAPIResponse | null>(null);
@@ -378,7 +393,7 @@ function DataSourceMap({ dataSourceId }: { dataSourceId: string }) {
 
 ```typescript
 import mapboxgl from "mapbox-gl";
-import type { GeoJSONAPIResponse } from "mapped/api";
+import type { GeoJSONAPIResponse } from "@commonknowledge/ts-mapped-sdk";
 
 async function addDataToMap(map: mapboxgl.Map, dataSourceId: string) {
   const geojson: GeoJSONAPIResponse = await fetchDataSourceGeoJSON(
@@ -410,7 +425,7 @@ async function addDataToMap(map: mapboxgl.Map, dataSourceId: string) {
 
 ```typescript
 import L from "leaflet";
-import type { GeoJSONAPIResponse } from "mapped/api";
+import type { GeoJSONAPIResponse } from "@commonknowledge/ts-mapped-sdk";
 
 async function addDataToLeafletMap(map: L.Map, dataSourceId: string) {
   const geojson: GeoJSONAPIResponse = await fetchDataSourceGeoJSON(
@@ -440,7 +455,7 @@ import type {
   APIRecordSort,
   APIFilterType,
   APIFilterOperator,
-} from "mapped/api";
+} from "@commonknowledge/ts-mapped-sdk";
 
 class MappedAPIClient {
   constructor(
