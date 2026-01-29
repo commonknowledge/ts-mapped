@@ -6,6 +6,7 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
+import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
 import PropertiesList from "./PropertiesList";
 
@@ -43,17 +44,6 @@ export function BoundaryDataPanel({
     ),
   );
 
-  const filteredProperties = useMemo(() => {
-    if (!data?.json) return {};
-    const filtered: Record<string, unknown> = {};
-    columns.forEach((columnName) => {
-      if (data.json[columnName] !== undefined) {
-        filtered[columnName] = data.json[columnName];
-      }
-    });
-    return filtered;
-  }, [data, columns]);
-
   return (
     <TogglePanel
       label={config.name}
@@ -62,19 +52,57 @@ export function BoundaryDataPanel({
       }
       defaultExpanded={defaultExpanded}
     >
-      <div className="flex flex-col gap-4 pt-4">
-        {isLoading ? (
-          <div className="py-4 text-center text-muted-foreground">
-            <p className="text-sm">Loading...</p>
-          </div>
-        ) : Object.keys(filteredProperties).length > 0 ? (
-          <PropertiesList properties={filteredProperties} />
-        ) : (
-          <div className="py-4 text-center text-muted-foreground">
-            <p className="text-sm">No data available</p>
-          </div>
-        )}
-      </div>
+      {isLoading ? (
+        <div className="py-4 text-center text-muted-foreground">
+          <p className="text-sm">Loading...</p>
+        </div>
+      ) : data?.length === 1 ? (
+        <BoundaryDataProperties json={data[0].json} columns={columns} />
+      ) : data?.length ? (
+        <ul className="ml-2">
+          {data.map((d, i) => (
+            <li key={d.id}>
+              <TogglePanel
+                label={buildName(dataSource, d)}
+                defaultExpanded={i === 0}
+              >
+                <BoundaryDataProperties json={d.json} columns={columns} />
+              </TogglePanel>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="py-4 text-center text-muted-foreground">
+          <p className="text-sm">No data available</p>
+        </div>
+      )}
     </TogglePanel>
+  );
+}
+
+function BoundaryDataProperties({
+  json,
+  columns,
+}: {
+  json: Record<string, unknown>;
+  columns: string[];
+}) {
+  const filteredProperties = useMemo(() => {
+    const filtered: Record<string, unknown> = {};
+    columns.forEach((columnName) => {
+      if (json[columnName] !== undefined) {
+        filtered[columnName] = json[columnName];
+      }
+    });
+    return filtered;
+  }, [columns, json]);
+  return (
+    <div className="ml-6">
+      {Object.keys(filteredProperties).length > 0 ? (
+        <PropertiesList properties={filteredProperties} />
+      ) : (
+        <p className="text-sm">No data available</p>
+      )}
+    </div>
   );
 }

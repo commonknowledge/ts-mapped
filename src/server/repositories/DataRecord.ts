@@ -274,6 +274,32 @@ export async function findDataRecordByDataSourceAndAreaCode(
   areaSetCode: string,
   areaCode: string,
 ) {
+  return getDataRecordByDataSourceAndAreaCodeQuery(
+    dataSourceId,
+    areaSetCode,
+    areaCode,
+  )
+    .limit(1)
+    .executeTakeFirst();
+}
+
+export async function findDataRecordsByDataSourceAndAreaCode(
+  dataSourceId: string,
+  areaSetCode: string,
+  areaCode: string,
+) {
+  return getDataRecordByDataSourceAndAreaCodeQuery(
+    dataSourceId,
+    areaSetCode,
+    areaCode,
+  ).execute();
+}
+
+function getDataRecordByDataSourceAndAreaCodeQuery(
+  dataSourceId: string,
+  areaSetCode: string,
+  areaCode: string,
+) {
   return db
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
@@ -284,8 +310,8 @@ export async function findDataRecordByDataSourceAndAreaCode(
         areaCode,
       );
     })
-    .selectAll()
-    .executeTakeFirst();
+    .orderBy("id asc")
+    .selectAll();
 }
 
 export function upsertDataRecord(dataRecord: NewDataRecord) {
