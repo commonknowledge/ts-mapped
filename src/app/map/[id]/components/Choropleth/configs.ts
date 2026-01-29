@@ -45,18 +45,31 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
-  LAD25: [
+  W25: [
     {
       areaSetCode: AreaSetCode.W25,
-      minZoom: 10,
+      minZoom: 6,
       requiresBoundingBox: true,
       mapbox: {
         featureCodeProperty: "WD25CD",
         featureNameProperty: "WD25NM",
-        layerId: "WD_MAY_2025_UK_BGC_V2_-858102-5rdj7s",
-        sourceId: "commonknowledge.0s83l6a0",
+        layerId: "wards",
+        sourceId: "commonknowledge.9cnmf4m1",
       },
     },
+    {
+      areaSetCode: AreaSetCode.LAD25,
+      minZoom: 2,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "LAD25CD",
+        featureNameProperty: "LAD25NM",
+        layerId: "lads",
+        sourceId: "commonknowledge.3nsunzct",
+      },
+    },
+  ],
+  LAD25: [
     {
       areaSetCode: AreaSetCode.LAD25,
       minZoom: 2,
