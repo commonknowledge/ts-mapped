@@ -2,20 +2,26 @@
   "name": "mapped",
   "version": "0.1.1",
   "private": true,
-  "types": "./dist/api/index.d.ts",
+  "types": "./src/api/index.ts",
   "exports": {
     "./api": {
-      "types": "./dist/api/index.d.ts"
+      "types": "./src/api/index.ts"
     }
   },
   "files": [
-    "dist",
     "src/api"
   ],
+  "peerDependencies": {
+    "@types/geojson": "^7946.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/geojson": {
+      "optional": true
+    }
+  },
   "scripts": {
     "build:api": "tsc -p tsconfig.api.json",
     "build": "next build",
-    "prepare": "npm run build:api",
     "cmd": "tsx --env-file=.env bin/cmd.ts",
     "dev": "next dev --turbopack --experimental-https",
     "emails": "email dev --port 3002 --dir src/server/emails",

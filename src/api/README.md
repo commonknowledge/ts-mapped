@@ -4,18 +4,62 @@ This package exports TypeScript types for consuming the ts-mapped REST API from 
 
 ## Installation
 
-### From GitHub
+### Option 1: Copy Types Directly (Recommended for Types-Only)
+
+For the lightest weight option with zero dependencies, copy the types file directly:
+
+```bash
+# Download the types file
+curl -o src/types/mapped-api.ts https://raw.githubusercontent.com/commonknowledge/ts-mapped/main/src/api/index.ts
+```
+
+Then import from your local copy:
+
+```typescript
+import type { GeoJSONAPIResponse } from "./types/mapped-api";
+```
+
+**Note:** You'll need `@types/geojson` installed in your project:
+
+```bash
+npm install -D @types/geojson
+```
+
+### Option 2: TypeScript Path Mapping (Zero Install)
+
+Reference the types directly from GitHub using TypeScript's path mapping in your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "mapped/api": ["./node_modules/mapped/src/api/index.ts"]
+    }
+  }
+}
+```
+
+Or reference the raw GitHub URL (requires fetch during build):
+
+```typescript
+// @ts-expect-error - Remote type reference
+import type { GeoJSONAPIResponse } from "https://raw.githubusercontent.com/commonknowledge/ts-mapped/main/src/api/index.ts";
+```
+
+### Option 3: npm Install from GitHub
 
 ```bash
 npm install github:commonknowledge/ts-mapped
-# or
-npm install github:commonknowledge/ts-mapped#main
 ```
 
-### From Local Path (Development)
+**⚠️ Warning:** This installs ALL dependencies from the ts-mapped project (it's a full Next.js app), which adds ~500MB to node_modules. Only use this if you're already using ts-mapped as a dependency for other reasons.
+
+### Peer Dependencies
+
+The types reference the `geojson` package types. Ensure you have:
 
 ```bash
-npm install /path/to/ts-mapped
+npm install -D @types/geojson
 ```
 
 ## Available Types

@@ -48,15 +48,18 @@ npm run cmd -- upsertUser --email a@b.com --password 1234 --org "My Org"
 
 TypeScript types are available for consuming the REST API from external projects. See [src/api/README.md](src/api/README.md) for detailed usage examples.
 
-**Installation:**
+**Recommended: Copy types directly (zero dependencies):**
 
 ```bash
-npm install github:commonknowledge/ts-mapped
+curl -o src/types/mapped-api.ts https://raw.githubusercontent.com/commonknowledge/ts-mapped/main/src/api/index.ts
+npm install -D @types/geojson
 ```
 
 **Usage:**
 
 ```typescript
+import type { GeoJSONAPIResponse } from "./types/mapped-api";
+// or if installed via npm:
 import type { GeoJSONAPIResponse } from "mapped/api";
 ```
 

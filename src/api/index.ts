@@ -3,11 +3,12 @@
  *
  * These types can be imported by external projects that consume the ts-mapped REST API.
  *
- * Installation (from GitHub):
- *   npm install github:commonknowledge/ts-mapped
+ * Recommended Installation (zero dependencies):
+ *   curl -o src/types/mapped-api.ts https://raw.githubusercontent.com/commonknowledge/ts-mapped/main/src/api/index.ts
+ *   npm install -D @types/geojson
  *
  * Usage:
- *   import type { GeoJSONAPIResponse, GeoJSONFeatureProperties } from 'mapped/api';
+ *   import type { GeoJSONAPIResponse, GeoJSONFeatureProperties } from './types/mapped-api';
  *
  * Documentation:
  *   See src/api/README.md for detailed usage examples and API reference.
