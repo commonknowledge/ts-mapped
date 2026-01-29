@@ -7,6 +7,9 @@ import { useMapRef } from "../hooks/useMapCore";
 import { usePlacedMarkerState } from "../hooks/usePlacedMarkers";
 import styles from "./SearchBox.module.css";
 
+// Type assertion to fix TypeScript compatibility issue
+const SearchBoxComponent = _SearchBox as any;
+
 export function SearchBox() {
   const mapRef = useMapRef();
   const { setSearchMarker } = usePlacedMarkerState();
@@ -14,7 +17,7 @@ export function SearchBox() {
 
   return (
     <div className={styles["search-box"]}>
-      <_SearchBox
+      <SearchBoxComponent
         theme={{
           variables: {
             border: "1px solid var(--border)",
@@ -31,10 +34,10 @@ export function SearchBox() {
         mapboxgl={mapboxgl}
         options={{ country: "GB" }}
         value={search}
-        onChange={(d) => {
+        onChange={(d: string) => {
           setSearch(d);
         }}
-        onRetrieve={(e) => {
+        onRetrieve={(e: any) => {
           setSearchMarker(e.features.length ? e.features[0] : null);
         }}
       />
