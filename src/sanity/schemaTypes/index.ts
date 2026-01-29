@@ -1,7 +1,8 @@
 import { type SchemaTypeDefinition } from "sanity";
 import { aboutType } from "./about";
 import { blockContentType } from "./blockContent";
-import { featureSetType, featureType } from "./features";
+import { docsSetType, docsType } from "./features";
+import { featuresType } from "./featuresNew";
 import { homepageVideosType } from "./homepageVideos";
 import { newsSchema } from "./news";
 import { solutionsType } from "./solutions";
@@ -11,8 +12,9 @@ export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
     blockContentType,
     solutionsType,
-    featureSetType,
-    featureType,
+    docsSetType,
+    docsType,
+    featuresType,
     newsSchema,
     youtubeType,
     aboutType,

@@ -52,7 +52,6 @@ export const solutionsType = defineType({
       validation: (rule) => rule.required(),
       description: "Position in the list (lower numbers appear first)",
     }),
-
     defineField({
       name: "publishedAt",
       type: "datetime",
@@ -60,9 +59,22 @@ export const solutionsType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: "solutionsArray",
-      title: "Solutions Array",
+      name: "features",
+      title: "Features",
       type: "array",
+      description: "Reference features documents to display in this solution",
+      of: [
+        {
+          type: "reference",
+          to: [{ type: "features" }],
+        },
+      ],
+    }),
+    defineField({
+      name: "solutionsArray",
+      title: "Solutions Array (Legacy)",
+      type: "array",
+      description: "Legacy field - consider using Features references instead",
       of: [
         {
           type: "object",
@@ -121,7 +133,7 @@ export const solutionsType = defineType({
                   name: "docsPage",
                   type: "reference",
                   title: "Docs Page",
-                  to: [{ type: "feature" }],
+                  to: [{ type: "docs" }],
                   hidden: ({ parent }) => parent?.linkType !== "docs",
                   validation: (rule) =>
                     rule.custom((value, context) => {
