@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { SignJWT } from "jose";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import importConstituencies from "@/server/commands/importConstituencies";
+import importCountries from "@/server/commands/importCountries";
 import importLADs from "@/server/commands/importLADs";
 import importMSOAs from "@/server/commands/importMSOAs";
 import importOutputAreas from "@/server/commands/importOutputAreas";
@@ -86,6 +87,13 @@ program
   .description("Import English Regions & Nations")
   .action(async () => {
     await importRegions();
+  });
+
+program
+  .command("importCountries")
+  .description("Import UK Countries")
+  .action(async () => {
+    await importCountries();
   });
 
 program
