@@ -68,11 +68,14 @@ const geocodeRecordByPostcode = async (
   const dataRecordJson = dataRecord.json;
   const { column: areaColumn } = geocodingConfig;
   if (!(areaColumn in dataRecordJson)) {
-    throw new Error(`Missing area column "${areaColumn}" in row`);
+    throw new Error(`Missing postcode column "${areaColumn}" in row`);
   }
-  const postcode = String(dataRecordJson[areaColumn])
+  const postcode = String(dataRecordJson[areaColumn] || "")
     .replace(/\s+/g, "")
     .toUpperCase();
+  if (!postcode) {
+    throw new Error("Missing postcode in row");
+  }
   const postcodesResponse = await fetch(
     `https://api.postcodes.io/postcodes/${postcode}`,
   );
@@ -140,7 +143,10 @@ const geocodeRecordByArea = async (
     throw new Error(`Missing area column "${areaColumn}" in row`);
   }
 
-  let dataRecordArea = String(dataRecordJson[areaColumn]);
+  let dataRecordArea = String(dataRecordJson[areaColumn] || "");
+  if (!dataRecordArea) {
+    throw new Error("Missing area in row");
+  }
   let area = null;
   if (geocodingConfig.type === "Code") {
     if (geocodingConfig.areaSetCode === "PC") {
