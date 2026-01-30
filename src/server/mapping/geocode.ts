@@ -193,7 +193,13 @@ const geocodeRecordByAddress = async (
   }
 
   // TODO: remove UK when other countries are supported
-  const address = addressColumns.map((c) => dataRecordJson[c]).join(", ");
+  const address = addressColumns
+    .map((c) => dataRecordJson[c] || "")
+    .filter(Boolean)
+    .join(", ");
+  if (!address) {
+    throw new Error("Missing address in row");
+  }
   const geocodeUrl = new URL(
     "https://api.mapbox.com/search/geocode/v6/forward",
   );

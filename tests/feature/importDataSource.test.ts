@@ -83,7 +83,7 @@ describe("importDataSource tests", () => {
         externalId: "1",
         geocodePoint: { lat: 51.156594417, lng: 0.259700363 },
         geocodeResult: {
-          areas: { PC: "TN40PP" },
+          areas: { PC: "TN40PP", UKR18: "E15000008" },
           centralPoint: { lat: 51.156594417, lng: 0.259700363 },
           samplePoint: { lat: 51.15655915, lng: 0.25967437 },
         },
@@ -96,7 +96,7 @@ describe("importDataSource tests", () => {
         externalId: "2",
         geocodePoint: { lat: 51.559292453, lng: -0.120000759 },
         geocodeResult: {
-          areas: { PC: "N76AS" },
+          areas: { PC: "N76AS", UKR18: "E15000007" },
           centralPoint: { lat: 51.559292453, lng: -0.120000759 },
           samplePoint: { lat: 51.5592981, lng: -0.119958004 },
         },
@@ -109,7 +109,7 @@ describe("importDataSource tests", () => {
         externalId: "3",
         geocodePoint: { lat: 55.870966132, lng: -4.299308293 },
         geocodeResult: {
-          areas: { PC: "G115RD" },
+          areas: { PC: "G115RD", UKR18: "S15000001" },
           centralPoint: { lat: 55.870966132, lng: -4.299308293 },
           samplePoint: { lat: 55.8709776, lng: -4.299245212 },
         },
@@ -128,6 +128,7 @@ describe("importDataSource tests", () => {
           areas: {
             PC: "HP202QB",
             WMC24: "E14001071",
+            UKR18: "E15000008",
           },
           centralPoint: {
             lat: 51.816849,
@@ -251,6 +252,10 @@ describe("importDataSource tests", () => {
       {
         areaCode: "E14001071",
         value: 79169,
+      },
+      {
+        areaCode: "E14001088",
+        value: 72198,
       },
     ]);
   });
