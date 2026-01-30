@@ -19,6 +19,19 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
   AreaSetGroupCode,
   ChoroplethLayerConfig[]
 > = {
+  UKC24: [
+    {
+      areaSetCode: AreaSetCode.UKC24,
+      minZoom: 0,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "CTRY24CD",
+        featureNameProperty: "CTRY24NM",
+        layerId: "countries",
+        sourceId: "commonknowledge.4rj0pr4g",
+      },
+    },
+  ],
   UKR18: [
     {
       areaSetCode: AreaSetCode.UKR18,

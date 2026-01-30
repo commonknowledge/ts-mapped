@@ -18,11 +18,13 @@ export const getValidAreaSetGroupCodes = (
       : null;
 
   if (areaSetCode) {
-    // Get a list of area sets that are smaller or equal in size
-    // to the data source area set
+    // Get a list of area sets that are larger than the data source
+    // area set. Also always include the data source area set itself.
     const dataSourceAreaSize = AreaSetSizes[areaSetCode];
     const validAreaSets = Object.keys(AreaSetSizes).filter(
-      (code) => AreaSetSizes[code as AreaSetCode] >= dataSourceAreaSize,
+      (code) =>
+        code === areaSetCode ||
+        AreaSetSizes[code as AreaSetCode] > dataSourceAreaSize,
     );
 
     // Get the associated group for each valid area set
