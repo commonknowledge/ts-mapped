@@ -1,5 +1,7 @@
+import { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { beforeAll, describe, expect, it } from "vitest";
+import { GET } from "@/app/api/rest/data-sources/[dataSourceId]/geojson/route";
 import {
   ColumnType,
   DataSourceRecordType,
@@ -114,53 +116,52 @@ describe("GeoJSON REST API", () => {
   });
 
   it("should return 401 without authentication", async () => {
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+      }),
+      {
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
+      },
     );
     expect(response.status).toBe(401);
   });
 
   it("should return 401 with invalid credentials", async () => {
-    const credentials = Buffer.from(`${testUser.email}:wrongpassword`).toString(
-      "base64",
-    );
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+        credentials: { email: testUser.email, password: "wrongpassword" },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
     expect(response.status).toBe(401);
   });
 
   it("should return 404 for non-existent data source", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`,
-    ).toString("base64");
     const id = uuidv4();
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${id}/geojson`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${id}/geojson`,
+        credentials: { email: testUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: id }),
       },
     );
     expect(response.status).toBe(404);
   });
 
   it("should return GeoJSON for valid request", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`,
-    ).toString("base64");
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+        credentials: { email: testUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
 
@@ -203,30 +204,26 @@ describe("GeoJSON REST API", () => {
       avatarUrl: null,
     });
 
-    const credentials = Buffer.from(
-      `${otherUser.email}:${testPassword}`,
-    ).toString("base64");
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson`,
+        credentials: { email: otherUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
     expect(response.status).toBe(403);
   });
 
   it("should support search query parameter", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`,
-    ).toString("base64");
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?search=Location%201`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?search=Location%201`,
+        credentials: { email: testUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
 
@@ -244,15 +241,13 @@ describe("GeoJSON REST API", () => {
   });
 
   it("should support pagination with page parameter", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`,
-    ).toString("base64");
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=0&all=false`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=0&all=false`,
+        credentials: { email: testUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
 
@@ -264,15 +259,13 @@ describe("GeoJSON REST API", () => {
   });
 
   it("should support all parameter to get all records", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`,
-    ).toString("base64");
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?all=true`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?all=true`,
+        credentials: { email: testUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
 
@@ -284,16 +277,14 @@ describe("GeoJSON REST API", () => {
   });
 
   it("should support sort parameter", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`,
-    ).toString("base64");
     const sortParam = JSON.stringify([{ name: "name", desc: true }]);
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?sort=${encodeURIComponent(sortParam)}&all=true`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?sort=${encodeURIComponent(sortParam)}&all=true`,
+        credentials: { email: testUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
 
@@ -307,15 +298,13 @@ describe("GeoJSON REST API", () => {
   });
 
   it("should return 400 for invalid query parameters", async () => {
-    const credentials = Buffer.from(
-      `${testUser.email}:${testPassword}`,
-    ).toString("base64");
-    const response = await fetch(
-      `https://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=invalid`,
+    const response = await GET(
+      createNextRequest({
+        url: `http://localhost:3000/api/rest/data-sources/${testDataSource.id}/geojson?page=invalid`,
+        credentials: { email: testUser.email, password: testPassword },
+      }),
       {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
+        params: Promise.resolve({ dataSourceId: testDataSource.id }),
       },
     );
 
@@ -324,3 +313,20 @@ describe("GeoJSON REST API", () => {
     expect(error.error).toBe("Invalid query parameters");
   });
 });
+
+const createNextRequest = ({
+  url,
+  credentials,
+}: {
+  url: string;
+  credentials?: { email: string; password: string } | null | undefined;
+}) => {
+  const authorization = credentials
+    ? Buffer.from(`${credentials.email}:${credentials.password}`).toString(
+        "base64",
+      )
+    : "";
+  return new NextRequest(url, {
+    headers: authorization ? { Authorization: `Basic ${authorization}` } : {},
+  });
+};
