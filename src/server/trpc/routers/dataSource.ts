@@ -40,7 +40,7 @@ export const dataSourceRouter = router({
     const organisations = ctx.user
       ? await findOrganisationsByUserId(ctx.user.id)
       : [];
-    const dataSources = await db
+    const q = db
       .selectFrom("dataSource")
       .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
       .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
@@ -57,7 +57,9 @@ export const dataSourceRouter = router({
       // as it only belongs to one dataSource, which only belongs to one organisation
       .select(db.fn.count("dataRecord.id").as("recordCount"))
       .groupBy("dataSource.id")
-      .execute();
+    
+    console.log('dataSource query', q.compile().sql, q.compile().parameters)
+    const dataSources = await q.execute();
 
     return addImportInfo(dataSources);
   }),
