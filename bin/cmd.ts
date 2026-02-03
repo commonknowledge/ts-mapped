@@ -219,7 +219,12 @@ program
   .option("--id <id>", "The data source ID")
   .option("--exclude <exclude>", "A data source ID to exclude")
   .action(async (options) => {
-    await regeocode(options.id || null, options.exclude || null);
+    await regeocode({
+      onlyId: options.id,
+      excludeId: options.exclude,
+      batchSize: 100,
+      batchIntervalMillis: 100,
+    });
   });
 
 program

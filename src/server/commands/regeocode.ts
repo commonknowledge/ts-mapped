@@ -1,19 +1,27 @@
+import { sleep } from "@/utils/async";
 import { geocodeRecord } from "../mapping/geocode";
-import { upsertDataRecord } from "../repositories/DataRecord";
+import { upsertDataRecords } from "../repositories/DataRecord";
 import { db } from "../services/database";
 import logger from "../services/logger";
 import { batch } from "../utils";
 
-const regeocode = async (
-  dataSourceId: string | null = null,
-  excludeDataSourceId: string | null = null,
-) => {
+const regeocode = async ({
+  onlyId,
+  excludeId,
+  batchSize,
+  batchIntervalMillis,
+}: {
+  onlyId?: string;
+  excludeId?: string;
+  batchSize?: number;
+  batchIntervalMillis?: number;
+}) => {
   let dataSourceQuery = db.selectFrom("dataSource").selectAll();
-  if (dataSourceId) {
-    dataSourceQuery = dataSourceQuery.where("id", "=", dataSourceId);
+  if (onlyId) {
+    dataSourceQuery = dataSourceQuery.where("id", "=", onlyId);
   }
-  if (excludeDataSourceId) {
-    dataSourceQuery = dataSourceQuery.where("id", "!=", excludeDataSourceId);
+  if (excludeId) {
+    dataSourceQuery = dataSourceQuery.where("id", "!=", excludeId);
   }
   const dataSources = await dataSourceQuery.execute();
   for (const dataSource of dataSources) {
@@ -25,25 +33,30 @@ const regeocode = async (
     logger.info(
       `Re-geocoding ${records.length} records from data source ${dataSource.name} (${dataSource.id})`,
     );
-    const batches = batch(records, 100);
+    const batches = batch(records, batchSize || 100);
     for (let i = 0; i < batches.length; i++) {
       const b = batches[i];
-      await Promise.all(
+      const geocodedRecords = await Promise.all(
         b.map(async (r) => {
           const geocodeResult = await geocodeRecord(
             r,
             dataSource.geocodingConfig,
           );
-          await upsertDataRecord({
+          return {
             externalId: r.externalId,
             json: r.json,
             geocodeResult: geocodeResult,
             geocodePoint: geocodeResult?.centralPoint,
             dataSourceId: dataSource.id,
-          });
+          };
         }),
       );
+      await upsertDataRecords(geocodedRecords);
       logger.info(`Processed batch ${i + 1} of ${batches.length}`);
+      if (batchIntervalMillis) {
+        logger.info(`Sleeping for ${batchIntervalMillis} milliseconds`);
+        await sleep(batchIntervalMillis);
+      }
     }
   }
 };

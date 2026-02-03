@@ -314,19 +314,19 @@ function getDataRecordByDataSourceAndAreaCodeQuery(
     .selectAll();
 }
 
-export function upsertDataRecord(dataRecord: NewDataRecord) {
+export function upsertDataRecords(dataRecords: NewDataRecord[]) {
   return db
     .insertInto("dataRecord")
-    .values(dataRecord)
+    .values(dataRecords)
     .onConflict((oc) =>
-      oc.columns(["externalId", "dataSourceId"]).doUpdateSet({
-        json: dataRecord.json,
-        geocodeResult: dataRecord.geocodeResult,
-        geocodePoint: dataRecord.geocodePoint,
-      }),
+      oc.columns(["externalId", "dataSourceId"]).doUpdateSet((eb) => ({
+        json: eb.ref("excluded.json"),
+        geocodeResult: eb.ref("excluded.geocodeResult"),
+        geocodePoint: eb.ref("excluded.geocodePoint"),
+      })),
     )
     .returningAll()
-    .executeTakeFirstOrThrow();
+    .execute();
 }
 
 export const markDataRecordsAsDirty = async (
