@@ -6,19 +6,19 @@ import logger from "../services/logger";
 import { batch } from "../utils";
 
 const regeocode = async ({
-  onlyId,
+  onlyIds,
   excludeId,
   batchSize,
   batchIntervalMillis,
 }: {
-  onlyId?: string;
+  onlyIds?: string[];
   excludeId?: string;
   batchSize?: number;
   batchIntervalMillis?: number;
 }) => {
   let dataSourceQuery = db.selectFrom("dataSource").selectAll();
-  if (onlyId) {
-    dataSourceQuery = dataSourceQuery.where("id", "=", onlyId);
+  if (onlyIds && onlyIds.length) {
+    dataSourceQuery = dataSourceQuery.where("id", "in", onlyIds);
   }
   if (excludeId) {
     dataSourceQuery = dataSourceQuery.where("id", "!=", excludeId);

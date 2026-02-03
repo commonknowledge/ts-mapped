@@ -22,7 +22,7 @@ import type { UserTable } from "@/server/models/User";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: Number(process.env.DATABASE_POOL_SIZE) || undefined
+  max: Number(process.env.DATABASE_POOL_SIZE) || undefined,
 });
 
 const dialect = new PostgresDialect({

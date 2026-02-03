@@ -216,7 +216,7 @@ program
 program
   .command("regeocode")
   .description("Re-geocode all data records (e.g. after adding a new area set)")
-  .option("--id <id>", "The data source ID")
+  .option("--ids <ids>", "The data source IDs")
   .option("--exclude <exclude>", "A data source ID to exclude")
   .option("--batchSize <batchSize>", "The data record batch size")
   .option(
@@ -225,7 +225,7 @@ program
   )
   .action(async (options) => {
     await regeocode({
-      onlyId: options.id,
+      onlyIds: (options.ids || "").split(",").filter(Boolean),
       excludeId: options.exclude,
       batchSize: Number(options.batchSize) || 100,
       batchIntervalMillis: Number(options.batchInterval) || 0,
