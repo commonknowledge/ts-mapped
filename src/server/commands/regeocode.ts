@@ -24,6 +24,8 @@ const regeocode = async ({
     dataSourceQuery = dataSourceQuery.where("id", "!=", excludeId);
   }
   const dataSources = await dataSourceQuery.execute();
+  const dataSourcesTotal = dataSources.length;
+  let dataSourcesComplete = 0;
   for (const dataSource of dataSources) {
     const records = await db
       .selectFrom("dataRecord")
@@ -53,11 +55,15 @@ const regeocode = async ({
       );
       await upsertDataRecords(geocodedRecords);
       logger.info(`Processed batch ${i + 1} of ${batches.length}`);
+
       if (batchIntervalMillis && i < batches.length - 1) {
         logger.info(`Sleeping for ${batchIntervalMillis} milliseconds`);
         await sleep(batchIntervalMillis);
       }
     }
+
+    dataSourcesComplete++;
+    logger.info(`Processed ${dataSourcesComplete} of ${dataSourcesTotal}`);
   }
 };
 

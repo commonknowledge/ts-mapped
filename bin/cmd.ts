@@ -228,7 +228,7 @@ program
       onlyId: options.id,
       excludeId: options.exclude,
       batchSize: Number(options.batchSize) || 100,
-      batchIntervalMillis: Number(options.batchInterval) || 100,
+      batchIntervalMillis: Number(options.batchInterval) || 0,
     });
   });
 
