@@ -315,6 +315,7 @@ function getDataRecordByDataSourceAndAreaCodeQuery(
 }
 
 export function upsertDataRecords(dataRecords: NewDataRecord[]) {
+  if (dataRecords.length === 0) return [];
   return db
     .insertInto("dataRecord")
     .values(dataRecords)

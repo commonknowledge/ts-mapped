@@ -53,7 +53,7 @@ const regeocode = async ({
       );
       await upsertDataRecords(geocodedRecords);
       logger.info(`Processed batch ${i + 1} of ${batches.length}`);
-      if (batchIntervalMillis) {
+      if (batchIntervalMillis && i < batches.length - 1) {
         logger.info(`Sleeping for ${batchIntervalMillis} milliseconds`);
         await sleep(batchIntervalMillis);
       }
