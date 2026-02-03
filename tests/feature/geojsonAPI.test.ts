@@ -8,7 +8,7 @@ import {
   DataSourceType,
   GeocodingType,
 } from "@/server/models/DataSource";
-import { upsertDataRecord } from "@/server/repositories/DataRecord";
+import { upsertDataRecords } from "@/server/repositories/DataRecord";
 import { createDataSource } from "@/server/repositories/DataSource";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { upsertUser } from "@/server/repositories/User";
@@ -75,44 +75,43 @@ describe("GeoJSON REST API", () => {
       }));
 
     // Add test data records with geocoded points
-    await upsertDataRecord({
-      externalId: "record-1",
-      dataSourceId: testDataSource.id,
-      json: { name: "Location 1", address: "123 Main St" },
-      geocodePoint: { lat: 51.5074, lng: -0.1278 }, // London
-      geocodeResult: {
-        areas: {},
-        centralPoint: { lat: 51.5074, lng: -0.1278 },
-        samplePoint: { lat: 51.5074, lng: -0.1278 },
+    await upsertDataRecords([
+      {
+        externalId: "record-1",
+        dataSourceId: testDataSource.id,
+        json: { name: "Location 1", address: "123 Main St" },
+        geocodePoint: { lat: 51.5074, lng: -0.1278 }, // London
+        geocodeResult: {
+          areas: {},
+          centralPoint: { lat: 51.5074, lng: -0.1278 },
+          samplePoint: { lat: 51.5074, lng: -0.1278 },
+        },
+        needsEnrich: false,
+        needsImport: false,
       },
-      needsEnrich: false,
-      needsImport: false,
-    });
-
-    await upsertDataRecord({
-      externalId: "record-2",
-      dataSourceId: testDataSource.id,
-      json: { name: "Location 2", address: "456 Elm St" },
-      geocodePoint: { lat: 40.7128, lng: -74.006 }, // New York
-      geocodeResult: {
-        areas: {},
-        centralPoint: { lat: 40.7128, lng: -74.006 },
-        samplePoint: { lat: 40.7128, lng: -74.006 },
+      {
+        externalId: "record-2",
+        dataSourceId: testDataSource.id,
+        json: { name: "Location 2", address: "456 Elm St" },
+        geocodePoint: { lat: 40.7128, lng: -74.006 }, // New York
+        geocodeResult: {
+          areas: {},
+          centralPoint: { lat: 40.7128, lng: -74.006 },
+          samplePoint: { lat: 40.7128, lng: -74.006 },
+        },
+        needsEnrich: false,
+        needsImport: false,
       },
-      needsEnrich: false,
-      needsImport: false,
-    });
-
-    // Add a record without geocoding (should be excluded)
-    await upsertDataRecord({
-      externalId: "record-3",
-      dataSourceId: testDataSource.id,
-      json: { name: "Location 3", address: "789 Oak St" },
-      geocodePoint: null,
-      geocodeResult: null,
-      needsEnrich: false,
-      needsImport: false,
-    });
+      {
+        externalId: "record-3",
+        dataSourceId: testDataSource.id,
+        json: { name: "Location 3", address: "789 Oak St" },
+        geocodePoint: null,
+        geocodeResult: null,
+        needsEnrich: false,
+        needsImport: false,
+      },
+    ]);
   });
 
   it("should return 401 without authentication", async () => {

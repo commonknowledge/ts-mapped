@@ -4,7 +4,7 @@ import { geocodeRecord } from "@/server/mapping/geocode";
 import { ColumnType } from "@/server/models/DataSource";
 import {
   deleteByDataSourceId,
-  upsertDataRecord,
+  upsertDataRecords,
 } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
@@ -103,12 +103,12 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   return false;
 };
 
-export const importBatch = (
+export const importBatch = async (
   batch: ExternalRecord[],
   dataSource: DataSource,
   columnDefsAccumulator: ColumnDef[],
-) =>
-  Promise.all(
+) => {
+  const updatedRecords = await Promise.all(
     batch.map(async (record) => {
       const { columnDefs, typedJson } = typeJson(record.json);
       addColumnDefs(columnDefsAccumulator, columnDefs);
@@ -116,16 +116,18 @@ export const importBatch = (
         record,
         dataSource.geocodingConfig,
       );
-      await upsertDataRecord({
+      return {
         externalId: record.externalId,
         json: typedJson,
         geocodeResult: geocodeResult,
         geocodePoint: geocodeResult?.centralPoint,
         dataSourceId: dataSource.id,
-      });
-      logger.info(`Inserted data record ${record.externalId}`);
+      };
     }),
   );
+  await upsertDataRecords(updatedRecords);
+  logger.info(`Inserted ${updatedRecords.length} data records`);
+};
 
 export const typeJson = (
   json: Record<string, unknown>,
