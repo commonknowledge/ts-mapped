@@ -218,12 +218,17 @@ program
   .description("Re-geocode all data records (e.g. after adding a new area set)")
   .option("--id <id>", "The data source ID")
   .option("--exclude <exclude>", "A data source ID to exclude")
+  .option("--batchSize <batchSize>", "The data record batch size")
+  .option(
+    "--batchInterval <batchInterval>",
+    "Time to sleep between importing batches, in milliseconds",
+  )
   .action(async (options) => {
     await regeocode({
       onlyId: options.id,
       excludeId: options.exclude,
-      batchSize: 100,
-      batchIntervalMillis: 100,
+      batchSize: Number(options.batchSize) || 100,
+      batchIntervalMillis: Number(options.batchInterval) || 100,
     });
   });
 
