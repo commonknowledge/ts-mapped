@@ -402,7 +402,7 @@ const geocodeRecordsByCoordinates = async (
       if (!(longitudeColumn in dataRecordJson)) {
         return {
           externalId: dataRecord.externalId,
-          error: `Missing latitude column "${longitudeColumn}" in row`,
+          error: `Missing longitude column "${longitudeColumn}" in row`,
         };
       }
 
