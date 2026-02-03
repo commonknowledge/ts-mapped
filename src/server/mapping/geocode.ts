@@ -1,10 +1,11 @@
 import {
-  findAreaByCode,
-  findAreaByName,
-  findAreasByPoint,
+  findAreasByCodes,
+  findAreasByNames,
+  findAreasByPoints,
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
 import { AreaSetCode } from "../models/AreaSet";
+import { batch } from "../utils";
 import type {
   AddressGeocodingConfig,
   AreaGeocodingConfig,
@@ -12,278 +13,447 @@ import type {
   GeocodingConfig,
 } from "../models/DataSource";
 import type { GeocodeResult, Point } from "../models/shared";
+import type { AreaMatch } from "@/server/repositories/Area";
 import type { Point as GeoJSONPoint } from "geojson";
+
+interface GeocodePipelineRecord {
+  externalId: string;
+  error?: string | null;
+  search?: string;
+  samplePointGeoJSON?: string;
+  geocodeResult?: GeocodeResult;
+}
 
 interface MappingDataRecord {
   externalId: string;
   json: Record<string, unknown>;
 }
 
-export const geocodeRecord = async (
-  dataRecord: MappingDataRecord,
+export const geocodeRecords = async (
+  dataRecords: MappingDataRecord[],
   geocodingConfig: GeocodingConfig,
-): Promise<GeocodeResult | null> => {
-  try {
-    return await _geocodeRecord(dataRecord, geocodingConfig);
-  } catch (error) {
-    logger.warn(`Could not geocode record ${dataRecord.externalId}`, {
-      error,
-    });
+): Promise<GeocodePipelineRecord[]> => {
+  const results = await _geocodeRecords(dataRecords, geocodingConfig);
+  for (const result of results) {
+    if (result.error)
+      logger.warn(
+        `Could not geocode record ${result.externalId}: ${result.error}`,
+      );
   }
-  return null;
+  return results;
 };
 
-const _geocodeRecord = async (
-  dataRecord: MappingDataRecord,
+const _geocodeRecords = async (
+  dataRecords: MappingDataRecord[],
   geocodingConfig: GeocodingConfig,
-): Promise<GeocodeResult> => {
+): Promise<GeocodePipelineRecord[]> => {
   if (geocodingConfig.type === "Code" || geocodingConfig.type === "Name") {
     if (geocodingConfig.areaSetCode === AreaSetCode.PC) {
-      return geocodeRecordByPostcode(dataRecord, geocodingConfig);
+      return geocodeRecordsByPostcode(dataRecords, geocodingConfig);
     } else {
-      return geocodeRecordByArea(dataRecord, geocodingConfig);
+      return geocodeRecordsByArea(dataRecords, geocodingConfig);
     }
   }
   if (geocodingConfig.type === "Address") {
-    return geocodeRecordByAddress(dataRecord, geocodingConfig);
+    return geocodeRecordsByAddress(dataRecords, geocodingConfig);
   }
   if (geocodingConfig.type === "Coordinates") {
-    return geocodeRecordByCoordinates(dataRecord, geocodingConfig);
+    return geocodeRecordsByCoordinates(dataRecords, geocodingConfig);
   }
   throw new Error(`Unimplemented geocoding type: ${geocodingConfig.type}`);
 };
 
-const geocodeRecordByPostcode = async (
-  dataRecord: MappingDataRecord,
+const geocodeRecordsByPostcode = async (
+  dataRecords: MappingDataRecord[],
   geocodingConfig: AreaGeocodingConfig,
 ) => {
-  try {
-    return await geocodeRecordByArea(dataRecord, geocodingConfig);
-  } catch (error) {
-    logger.warn(
-      "Postcode lookup in database failed, attempting fallback to postcodes.io API",
-      { error },
-    );
-  }
-  const dataRecordJson = dataRecord.json;
-  const { column: areaColumn } = geocodingConfig;
-  if (!(areaColumn in dataRecordJson)) {
-    throw new Error(`Missing postcode column "${areaColumn}" in row`);
-  }
-  const postcode = String(dataRecordJson[areaColumn] || "")
-    .replace(/\s+/g, "")
-    .toUpperCase();
-  if (!postcode) {
-    throw new Error("Missing postcode in row");
-  }
-  const postcodesResponse = await fetch(
-    `https://api.postcodes.io/postcodes/${postcode}`,
+  const geocodePipelineRecords = await geocodeRecordsByArea(
+    dataRecords,
+    geocodingConfig,
   );
-  if (!postcodesResponse.ok) {
-    const text = (await postcodesResponse.text()) || "Unknown error";
-    throw new Error(
-      `Failed postcodes.io request: ${postcodesResponse.status}, ${text}`,
+
+  const recordsToTry = geocodePipelineRecords.filter(
+    (r) => !r.geocodeResult && r.search,
+  );
+  const batches = batch(recordsToTry, 100);
+  for (const recordBatch of batches) {
+    const postcodesResponse = await fetch(
+      `https://api.postcodes.io/postcodes`,
+      {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({ postcodes: recordBatch.map((r) => r.search) }),
+      },
     );
+
+    if (!postcodesResponse.ok) {
+      const text = (await postcodesResponse.text()) || "Unknown error";
+      const error = `Failed postcodes.io request: ${postcodesResponse.status}, ${text}`;
+      for (const r of recordBatch) {
+        r.error = error;
+      }
+      continue;
+    }
+
+    const postcodesData = await postcodesResponse.json();
+    if (
+      !postcodesData ||
+      typeof postcodesData !== "object" ||
+      !("result" in postcodesData) ||
+      !Array.isArray(postcodesData.result)
+    ) {
+      const error = `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`;
+      for (const r of recordBatch) {
+        r.error = error;
+      }
+      continue;
+    }
+
+    postcodesData.result.forEach((postcodesItem, i) => {
+      if (
+        !postcodesItem ||
+        !(typeof postcodesItem === "object") ||
+        !("result" in postcodesItem) ||
+        !postcodesItem.result ||
+        !(typeof postcodesItem.result === "object") ||
+        !("postcode" in postcodesItem.result) ||
+        !("latitude" in postcodesItem.result) ||
+        !("longitude" in postcodesItem.result) ||
+        !postcodesItem.result.postcode ||
+        !postcodesItem.result.latitude ||
+        !postcodesItem.result.longitude
+      ) {
+        recordBatch[i].error =
+          `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`;
+        return;
+      }
+
+      const samplePoint = {
+        lat: Number(postcodesItem.result.latitude),
+        lng: Number(postcodesItem.result.longitude),
+      };
+
+      recordBatch[i].error = null;
+      recordBatch[i].samplePointGeoJSON = JSON.stringify({
+        type: "Point",
+        coordinates: [samplePoint.lng, samplePoint.lat],
+      });
+      recordBatch[i].geocodeResult = {
+        areas: {
+          [AreaSetCode.PC]: String(postcodesItem.result.postcode)
+            .replace(/\s+/g, "")
+            .toUpperCase(),
+        },
+        centralPoint: samplePoint,
+        samplePoint,
+      };
+    });
+
+    const mappedAreas = await findAreasByPoints({
+      points: recordBatch
+        .map((r) => r.samplePointGeoJSON)
+        .filter((p) => p !== undefined),
+      excludeAreaSetCode: geocodingConfig.areaSetCode,
+    });
+
+    recordBatch.forEach((record) => {
+      if (record.geocodeResult) {
+        const matchedMappedAreas = mappedAreas.filter(
+          (mappedArea) => mappedArea.input === record.samplePointGeoJSON,
+        );
+        for (const area of matchedMappedAreas) {
+          const { areaSetCode, code } = area;
+          if (areaSetCode && code) {
+            record.geocodeResult.areas[areaSetCode] = code;
+          }
+        }
+      }
+    });
   }
-  const postcodesData = await postcodesResponse.json();
-  if (
-    !postcodesData ||
-    !(typeof postcodesData === "object") ||
-    !("result" in postcodesData) ||
-    !postcodesData.result ||
-    !(typeof postcodesData.result === "object") ||
-    !("postcode" in postcodesData.result) ||
-    !("latitude" in postcodesData.result) ||
-    !("longitude" in postcodesData.result) ||
-    !postcodesData.result.postcode ||
-    !postcodesData.result.latitude ||
-    !postcodesData.result.longitude
-  ) {
-    throw new Error(
-      `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`,
-    );
-  }
 
-  const samplePoint = {
-    lat: Number(postcodesData.result.latitude),
-    lng: Number(postcodesData.result.longitude),
-  };
-
-  const geocodeResult: GeocodeResult = {
-    areas: {
-      [AreaSetCode.PC]: String(postcodesData.result.postcode)
-        .replace(/\s+/g, "")
-        .toUpperCase(),
-    },
-    centralPoint: samplePoint,
-    samplePoint,
-  };
-
-  const mappedAreas = await findAreasByPoint({
-    point: JSON.stringify({
-      type: "Point",
-      coordinates: [samplePoint.lng, samplePoint.lat],
-    }),
-    excludeAreaSetCode: geocodingConfig.areaSetCode,
-  });
-  for (const area of mappedAreas) {
-    geocodeResult.areas[area.areaSetCode] = area.code;
-  }
-
-  return geocodeResult;
+  return geocodePipelineRecords;
 };
 
-const geocodeRecordByArea = async (
-  dataRecord: MappingDataRecord,
+const geocodeRecordsByArea = async (
+  dataRecords: MappingDataRecord[],
   geocodingConfig: AreaGeocodingConfig,
 ) => {
-  const dataRecordJson = dataRecord.json;
   const { column: areaColumn, areaSetCode } = geocodingConfig;
-  if (!(areaColumn in dataRecordJson)) {
-    throw new Error(`Missing area column "${areaColumn}" in row`);
-  }
+  const geocodePipelineRecords: GeocodePipelineRecord[] = dataRecords.map(
+    (dataRecord) => {
+      const dataRecordJson = dataRecord.json;
+      if (!(areaColumn in dataRecordJson)) {
+        return {
+          externalId: dataRecord.externalId,
+          error: `Missing area column "${areaColumn}" in row`,
+        };
+      }
 
-  let dataRecordArea = String(dataRecordJson[areaColumn] || "");
-  if (!dataRecordArea) {
-    throw new Error("Missing area in row");
-  }
-  let area = null;
+      let dataRecordArea = String(dataRecordJson[areaColumn] || "");
+      if (!dataRecordArea) {
+        return {
+          externalId: dataRecord.externalId,
+          error: "Missing area in row",
+        };
+      }
+      if (geocodingConfig.type === "Code") {
+        if (geocodingConfig.areaSetCode === "PC") {
+          dataRecordArea = dataRecordArea.replace(/\s+/g, "").toUpperCase();
+        }
+      }
+      return { externalId: dataRecord.externalId, search: dataRecordArea };
+    },
+  );
+
+  let areas: AreaMatch[] = [];
   if (geocodingConfig.type === "Code") {
-    if (geocodingConfig.areaSetCode === "PC") {
-      dataRecordArea = dataRecordArea.replace(/\s+/g, "").toUpperCase();
-    }
-    area = await findAreaByCode(dataRecordArea, areaSetCode);
+    areas = await findAreasByCodes(
+      geocodePipelineRecords
+        .map((a) => a.search)
+        .filter((s) => s !== undefined),
+      areaSetCode,
+    );
   } else {
-    area = await findAreaByName(dataRecordArea, areaSetCode);
-  }
-  if (!area) {
-    throw new Error(
-      `Area not found in area set ${areaSetCode}: ${dataRecordArea}`,
+    areas = await findAreasByNames(
+      geocodePipelineRecords
+        .map((a) => a.search)
+        .filter((s) => s !== undefined),
+      areaSetCode,
     );
   }
-  const geocodeResult: GeocodeResult = {
-    areas: {
-      [areaSetCode]: area.code,
-    },
-    centralPoint: geojsonPointToPoint(area.centralPoint),
-    samplePoint: geojsonPointToPoint(area.samplePoint),
-  };
 
-  const mappedAreas = await findAreasByPoint({
-    point: area.samplePoint,
+  geocodePipelineRecords.forEach((geocodePipelineRecord) => {
+    if (geocodePipelineRecord.error) {
+      return;
+    }
+    const matchedArea = areas.find(
+      (a) => a.input === geocodePipelineRecord.search,
+    );
+    if (
+      !matchedArea ||
+      !matchedArea.code ||
+      !matchedArea.centralPoint ||
+      !matchedArea.samplePoint
+    ) {
+      geocodePipelineRecord.error = `Area not found in area set ${areaSetCode}: ${geocodePipelineRecord.search}`;
+      return;
+    }
+    const geocodeResult: GeocodeResult = {
+      areas: {
+        [areaSetCode]: matchedArea.code,
+      },
+      centralPoint: geojsonPointToPoint(matchedArea.centralPoint),
+      samplePoint: geojsonPointToPoint(matchedArea.samplePoint),
+    };
+    geocodePipelineRecord.samplePointGeoJSON = matchedArea.samplePoint;
+    geocodePipelineRecord.geocodeResult = geocodeResult;
+  });
+
+  const mappedAreas = await findAreasByPoints({
+    points: geocodePipelineRecords
+      .map((r) => r.samplePointGeoJSON)
+      .filter((p) => p !== undefined),
     excludeAreaSetCode: geocodingConfig.areaSetCode,
   });
-  for (const area of mappedAreas) {
-    geocodeResult.areas[area.areaSetCode] = area.code;
-  }
 
-  return geocodeResult;
+  geocodePipelineRecords.forEach((geocodePipelineRecord) => {
+    if (geocodePipelineRecord.geocodeResult) {
+      const matchedMappedAreas = mappedAreas.filter(
+        (mappedArea) =>
+          mappedArea.input === geocodePipelineRecord.samplePointGeoJSON,
+      );
+      for (const area of matchedMappedAreas) {
+        const { areaSetCode, code } = area;
+        if (areaSetCode && code) {
+          geocodePipelineRecord.geocodeResult.areas[areaSetCode] = code;
+        }
+      }
+    }
+  });
+
+  return geocodePipelineRecords;
 };
 
-const geocodeRecordByAddress = async (
-  dataRecord: MappingDataRecord,
+const geocodeRecordsByAddress = async (
+  dataRecords: MappingDataRecord[],
   geocodingConfig: AddressGeocodingConfig,
 ) => {
-  const dataRecordJson = dataRecord.json;
   const { columns: addressColumns } = geocodingConfig;
-  for (const addressColumn of addressColumns) {
-    if (!(addressColumn in dataRecordJson)) {
-      throw new Error(`Missing area column "${addressColumn}" in row`);
-    }
-  }
+  const geocodePipelineRecords: GeocodePipelineRecord[] = dataRecords.map(
+    (dataRecord) => {
+      const dataRecordJson = dataRecord.json;
 
-  // TODO: remove UK when other countries are supported
-  const address = addressColumns
-    .map((c) => dataRecordJson[c] || "")
-    .filter(Boolean)
-    .join(", ");
-  if (!address) {
-    throw new Error("Missing address in row");
-  }
-  const geocodeUrl = new URL(
-    "https://api.mapbox.com/search/geocode/v6/forward",
+      for (const addressColumn of addressColumns) {
+        if (!(addressColumn in dataRecordJson)) {
+          return {
+            externalId: dataRecord.externalId,
+            error: `Missing address column "${addressColumn}" in row`,
+          };
+        }
+      }
+
+      const address = addressColumns
+        .map((c) => dataRecordJson[c] || "")
+        .filter(Boolean)
+        .join(", ");
+      if (!address) {
+        return {
+          externalId: dataRecord.externalId,
+          error: `Missing address in row`,
+        };
+      }
+      return { externalId: dataRecord.externalId, search: address };
+    },
   );
-  geocodeUrl.searchParams.set("q", address);
-  geocodeUrl.searchParams.set("country", "GB");
+
+  const recordsToTry = geocodePipelineRecords.filter((r) => r.search);
+  const geocodeUrl = new URL("https://api.mapbox.com/search/geocode/v6/batch");
   geocodeUrl.searchParams.set(
     "access_token",
     process.env.MAPBOX_SECRET_TOKEN || "",
   );
 
-  const response = await fetch(geocodeUrl);
-  if (!response.ok) {
-    throw new Error(`Geocode request failed: ${response.status}`);
-  }
-  const results = (await response.json()) as {
-    features?: { id: string; geometry: GeoJSONPoint }[];
-  };
-  if (!results.features?.length) {
-    throw new Error(`Geocode request returned no features`);
-  }
-
-  const feature = results.features[0];
-  const point = {
-    lng: feature.geometry.coordinates[0],
-    lat: feature.geometry.coordinates[1],
-  };
-
-  const geocodeResult: GeocodeResult = {
-    areas: {},
-    centralPoint: point,
-    samplePoint: point,
-  };
-
-  const mappedAreas = await findAreasByPoint({
-    point: JSON.stringify(feature.geometry),
+  // No need to batch here as Mapbox supports up to 1000 items
+  const response = await fetch(geocodeUrl, {
+    method: "POST",
+    // TODO: remove GB when other countries are supported
+    body: JSON.stringify(
+      recordsToTry.map((r) => ({
+        types: ["address"],
+        q: r.search,
+        country: "GB",
+        limit: 1,
+      })),
+    ),
   });
-  for (const area of mappedAreas) {
-    geocodeResult.areas[area.areaSetCode] = area.code;
+  if (!response.ok) {
+    recordsToTry.forEach((r) => {
+      r.error = `Geocode request failed: ${response.status}`;
+    });
+    return geocodePipelineRecords;
   }
 
-  return geocodeResult;
+  const results = (await response.json()) as {
+    batch: { features?: { id: string; geometry: GeoJSONPoint }[] }[];
+  };
+
+  recordsToTry.forEach((record, i) => {
+    const feature = results.batch[i]?.features?.[0];
+    if (!feature) {
+      record.error = `Geocode request returned no features for address ${record.search}`;
+      return;
+    }
+    const point = {
+      lng: feature.geometry.coordinates[0],
+      lat: feature.geometry.coordinates[1],
+    };
+
+    recordsToTry[i].samplePointGeoJSON = JSON.stringify({
+      type: "Point",
+      coordinates: [point.lng, point.lat],
+    });
+    recordsToTry[i].geocodeResult = {
+      areas: {},
+      centralPoint: point,
+      samplePoint: point,
+    };
+  });
+
+  const mappedAreas = await findAreasByPoints({
+    points: recordsToTry
+      .map((r) => r.samplePointGeoJSON)
+      .filter((p) => p !== undefined),
+  });
+
+  recordsToTry.forEach((record) => {
+    if (record.geocodeResult) {
+      const matchedMappedAreas = mappedAreas.filter(
+        (mappedArea) => mappedArea.input === record.samplePointGeoJSON,
+      );
+      for (const area of matchedMappedAreas) {
+        const { areaSetCode, code } = area;
+        if (areaSetCode && code) {
+          record.geocodeResult.areas[areaSetCode] = code;
+        }
+      }
+    }
+  });
+
+  return geocodePipelineRecords;
 };
 
-const geocodeRecordByCoordinates = async (
-  dataRecord: MappingDataRecord,
+const geocodeRecordsByCoordinates = async (
+  dataRecords: MappingDataRecord[],
   geocodingConfig: CoordinatesGeocodingConfig,
 ) => {
-  const dataRecordJson = dataRecord.json;
   const { latitudeColumn, longitudeColumn } = geocodingConfig;
+  const geocodePipelineRecords: GeocodePipelineRecord[] = dataRecords.map(
+    (dataRecord) => {
+      const dataRecordJson = dataRecord.json;
 
-  if (!(latitudeColumn in dataRecordJson)) {
-    throw new Error(`Missing latitude column "${latitudeColumn}" in row`);
-  }
-  if (!(longitudeColumn in dataRecordJson)) {
-    throw new Error(`Missing longitude column "${longitudeColumn}" in row`);
-  }
+      if (!(latitudeColumn in dataRecordJson)) {
+        return {
+          externalId: dataRecord.externalId,
+          error: `Missing latitude column "${latitudeColumn}" in row`,
+        };
+      }
+      if (!(longitudeColumn in dataRecordJson)) {
+        return {
+          externalId: dataRecord.externalId,
+          error: `Missing latitude column "${longitudeColumn}" in row`,
+        };
+      }
 
-  const lat = Number(dataRecordJson[latitudeColumn]);
-  const lng = Number(dataRecordJson[longitudeColumn]);
+      const lat = Number(dataRecordJson[latitudeColumn]);
+      const lng = Number(dataRecordJson[longitudeColumn]);
 
-  if (isNaN(lat) || isNaN(lng)) {
-    throw new Error(
-      `Invalid coordinates: latitude=${dataRecordJson[latitudeColumn]}, longitude=${dataRecordJson[longitudeColumn]}`,
-    );
-  }
+      if (isNaN(lat) || isNaN(lng)) {
+        return {
+          externalId: dataRecord.externalId,
+          error: `Invalid coordinates: latitude=${dataRecordJson[latitudeColumn]}, longitude=${dataRecordJson[longitudeColumn]}`,
+        };
+      }
 
-  const point = { lat, lng };
-  const geocodeResult: GeocodeResult = {
-    areas: {},
-    centralPoint: point,
-    samplePoint: point,
-  };
+      const point = { lng, lat };
+      const search = JSON.stringify({
+        type: "Point",
+        coordinates: [lng, lat],
+      });
+      return {
+        externalId: dataRecord.externalId,
+        search,
+        samplePointGeoJSON: search,
+        geocodeResult: {
+          areas: {},
+          centralPoint: point,
+          samplePoint: point,
+        },
+      };
+    },
+  );
 
-  const mappedAreas = await findAreasByPoint({
-    point: JSON.stringify({
-      type: "Point",
-      coordinates: [lng, lat],
-    }),
+  const mappedAreas = await findAreasByPoints({
+    points: geocodePipelineRecords
+      .map((r) => r.samplePointGeoJSON)
+      .filter((p) => p !== undefined),
   });
-  for (const area of mappedAreas) {
-    geocodeResult.areas[area.areaSetCode] = area.code;
-  }
+  geocodePipelineRecords.forEach((record) => {
+    if (record.geocodeResult) {
+      const matchedMappedAreas = mappedAreas.filter(
+        (mappedArea) => mappedArea.input === record.samplePointGeoJSON,
+      );
+      for (const area of matchedMappedAreas) {
+        const { areaSetCode, code } = area;
+        if (areaSetCode && code) {
+          record.geocodeResult.areas[areaSetCode] = code;
+        }
+      }
+    }
+  });
 
-  return geocodeResult;
+  return geocodePipelineRecords;
 };
 
 const geojsonPointToPoint = (geojson: string): Point | null => {

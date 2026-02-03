@@ -4,7 +4,7 @@ import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
-import { geocodeRecord } from "./geocode";
+import { geocodeRecords } from "./geocode";
 import type { GeocodeResult } from "../models/shared";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type {
@@ -27,7 +27,9 @@ export const enrichRecord = async (
   record: ExternalRecord,
   dataSource: DataSource,
 ): Promise<EnrichedRecord> => {
-  const geocodeResult = await geocodeRecord(record, dataSource.geocodingConfig);
+  const geocodeResult = (
+    await geocodeRecords([record], dataSource.geocodingConfig)
+  )[0]?.geocodeResult;
   if (!geocodeResult) {
     logger.warn(
       `Enrichment failed for record ${record.externalId}: could not geocode`,

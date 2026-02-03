@@ -1,5 +1,5 @@
-import { geocodeRecord } from "../mapping/geocode";
-import { upsertDataRecord } from "../repositories/DataRecord";
+import { geocodeRecords } from "../mapping/geocode";
+import { upsertDataRecords } from "../repositories/DataRecord";
 import { db } from "../services/database";
 import logger from "../services/logger";
 import { batch } from "../utils";
@@ -27,22 +27,22 @@ const regeocode = async (
     );
     const batches = batch(records, 100);
     for (let i = 0; i < batches.length; i++) {
-      const b = batches[i];
-      await Promise.all(
-        b.map(async (r) => {
-          const geocodeResult = await geocodeRecord(
-            r,
-            dataSource.geocodingConfig,
-          );
-          await upsertDataRecord({
-            externalId: r.externalId,
-            json: r.json,
-            geocodeResult: geocodeResult,
-            geocodePoint: geocodeResult?.centralPoint,
-            dataSourceId: dataSource.id,
-          });
-        }),
+      const records = batches[i];
+      const geocodedRecords = await geocodeRecords(
+        records,
+        dataSource.geocodingConfig,
       );
+      const updatedRecords = records.map((r, i) => {
+        const geocodedRecord = geocodedRecords[i];
+        return {
+          externalId: r.externalId,
+          json: r.json,
+          geocodeResult: geocodedRecord.geocodeResult,
+          geocodePoint: geocodedRecord?.geocodeResult?.centralPoint,
+          dataSourceId: dataSource.id,
+        };
+      });
+      await upsertDataRecords(updatedRecords);
       logger.info(`Processed batch ${i + 1} of ${batches.length}`);
     }
   }

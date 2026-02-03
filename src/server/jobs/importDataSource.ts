@@ -1,10 +1,10 @@
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import { geocodeRecord } from "@/server/mapping/geocode";
+import { geocodeRecords } from "@/server/mapping/geocode";
 import { ColumnType } from "@/server/models/DataSource";
 import {
   deleteByDataSourceId,
-  upsertDataRecord,
+  upsertDataRecords,
 } from "@/server/repositories/DataRecord";
 import {
   findDataSourceById,
@@ -103,29 +103,31 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
   return false;
 };
 
-export const importBatch = (
+export const importBatch = async (
   batch: ExternalRecord[],
   dataSource: DataSource,
   columnDefsAccumulator: ColumnDef[],
-) =>
-  Promise.all(
-    batch.map(async (record) => {
-      const { columnDefs, typedJson } = typeJson(record.json);
-      addColumnDefs(columnDefsAccumulator, columnDefs);
-      const geocodeResult = await geocodeRecord(
-        record,
-        dataSource.geocodingConfig,
-      );
-      await upsertDataRecord({
-        externalId: record.externalId,
-        json: typedJson,
-        geocodeResult: geocodeResult,
-        geocodePoint: geocodeResult?.centralPoint,
-        dataSourceId: dataSource.id,
-      });
-      logger.info(`Inserted data record ${record.externalId}`);
-    }),
+) => {
+  const geocodedRecords = await geocodeRecords(
+    batch,
+    dataSource.geocodingConfig,
   );
+  const updatedRecords = batch.map((r, i) => {
+    const geocodedRecord = geocodedRecords[i];
+    const { columnDefs, typedJson } = typeJson(r.json);
+    addColumnDefs(columnDefsAccumulator, columnDefs);
+    return {
+      externalId: r.externalId,
+      json: typedJson,
+      geocodeResult: geocodedRecord.geocodeResult,
+      geocodePoint: geocodedRecord?.geocodeResult?.centralPoint,
+      dataSourceId: dataSource.id,
+    };
+  });
+
+  await upsertDataRecords(updatedRecords);
+  logger.info(`Inserted ${updatedRecords.length} data records`);
+};
 
 export const typeJson = (
   json: Record<string, unknown>,
