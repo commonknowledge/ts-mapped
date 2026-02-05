@@ -73,6 +73,8 @@ const applyAreaWithPointsSelect = (
   ]);
 };
 
+// Uses the generated `geom` column for 10x performance improvement,
+// at the loss of some (potentially negligible) accuracy.
 export async function findAreasByPoint({
   point,
   excludeAreaSetCode,
@@ -93,7 +95,7 @@ export async function findAreasByPoint({
     query = query.where("areaSet.code", "=", includeAreaSetCode);
   }
   return query
-    .where(sql<boolean>`ST_Intersects(geography, ST_GeomFromGeoJson(${point}))`)
+    .where(sql<boolean>`ST_Covers(geom, ST_GeomFromGeoJson(${point}))`)
     .select([
       "area.id",
       "area.code",

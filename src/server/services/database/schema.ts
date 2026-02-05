@@ -4,7 +4,7 @@
  * This file represents the complete database schema as defined by all migrations.
  * It includes all tables, columns, types, constraints, and relationships.
  *
- * Last updated: 2026-01-15
+ * Last updated: 2026-02-05
  * Based on migrations up to: 1764611637231_map_view_inspector_config.ts
  */
 
@@ -39,6 +39,7 @@ export interface Area {
   name: string; // text, NOT NULL
   geography: unknown; // geography (PostGIS), NOT NULL
   areaSetId: number; // bigint, NOT NULL
+  geom: unknown; // geometry(MultiPolygon,4326), GENERATED ALWAYS AS ((geography)::geometry) STORED, NOT NULL
 
   // CONSTRAINTS:
   // - UNIQUE (code, areaSetId)
@@ -46,6 +47,8 @@ export interface Area {
   // - areaSetId -> areaSet.id (CASCADE DELETE, CASCADE UPDATE)
   // INDEXES:
   // - area_geography_gist USING GIST (geography)
+  // - area_area_set_id_geography_gist USING GIST (area_set_id, geography)
+  // - area_area_set_id_geom_gist USING GIST (area_set_id, geom)
 }
 
 // ============================================================================
@@ -82,8 +85,8 @@ export interface Organisation {
  */
 export interface OrganisationUser {
   id: number; // bigserial, NOT NULL
-  organisationId: string; // uuid, NOT NULL
-  userId: string; // uuid, NOT NULL
+  organisationId: string | null; // uuid, NULL
+  userId: string | null; // uuid, NULL
 
   // CONSTRAINTS:
   // - UNIQUE (organisationId, userId)
