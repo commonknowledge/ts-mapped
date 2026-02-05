@@ -1,6 +1,7 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import Cursor from "pg-cursor";
+import logger from "../logger";
 import { JSONPlugin } from "./plugins/JSONPlugin";
 import { PointPlugin } from "./plugins/PointPlugin";
 import type { AirtableWebhookTable } from "@/server/models/AirtableWebhook";
@@ -30,6 +31,14 @@ const readReplicaPool = new Pool({
   connectionString:
     process.env.DATABASE_READ_REPLICA_URL || process.env.DATABASE_URL,
   max: Number(process.env.DATABASE_POOL_SIZE) || undefined,
+});
+
+pool.on("error", (error) => {
+  logger.error("Unexpected Postgres pool error", { error });
+});
+
+readReplicaPool.on("error", (error) => {
+  logger.error("Unexpected Postgres pool error", { error });
 });
 
 const dialect = new PostgresDialect({
