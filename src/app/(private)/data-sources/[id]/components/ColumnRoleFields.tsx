@@ -39,7 +39,7 @@ export function ColumnRoleFields({
       />
       <CustomSelect
         id="config-date-column"
-        label="Date column"
+        label="Date column (if present)"
         hint="Select a field to use as the date for a record."
         value={dateColumn}
         options={dataSource?.columnDefs.map((cd) => ({
@@ -50,7 +50,7 @@ export function ColumnRoleFields({
       />
       <CustomSelect
         id="config-date-format"
-        label="Date format"
+        label="Date format (optional)"
         hint="Select a date format (if yours is not listed, contact us)."
         value={dateFormat}
         options={[

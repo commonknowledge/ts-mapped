@@ -9,7 +9,9 @@ import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
+import { getDisplayValue } from "../../utils/stats";
 import PropertiesList from "./PropertiesList";
+import type { ColumnDef } from "@/server/models/DataSource";
 
 export function BoundaryDataPanel({
   config,
@@ -61,6 +63,7 @@ export function BoundaryDataPanel({
         <BoundaryDataProperties
           json={data.records[0].json}
           columns={columns}
+          columnDefs={dataSource?.columnDefs}
           match={data.match}
         />
       ) : data?.records.length ? (
@@ -74,6 +77,7 @@ export function BoundaryDataPanel({
                 <BoundaryDataProperties
                   json={d.json}
                   columns={columns}
+                  columnDefs={dataSource?.columnDefs}
                   match={data.match}
                 />
               </TogglePanel>
@@ -92,21 +96,25 @@ export function BoundaryDataPanel({
 function BoundaryDataProperties({
   json,
   columns,
+  columnDefs,
   match,
 }: {
   json: Record<string, unknown>;
   columns: string[];
+  columnDefs?: ColumnDef[];
   match: DataRecordMatchType;
 }) {
   const filteredProperties = useMemo(() => {
     const filtered: Record<string, unknown> = {};
     columns.forEach((columnName) => {
       if (json[columnName] !== undefined) {
-        filtered[columnName] = json[columnName];
+        filtered[columnName] = getDisplayValue(json[columnName], {
+          columnType: columnDefs?.find((cd) => cd.name === columnName)?.type,
+        });
       }
     });
     return filtered;
-  }, [columns, json]);
+  }, [columnDefs, columns, json]);
   return (
     <div className="ml-6">
       {match === DataRecordMatchType.Approximate && (
