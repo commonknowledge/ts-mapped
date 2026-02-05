@@ -55,6 +55,7 @@ export const dataSourceRouter = router({
       .selectAll("dataSource")
       // .distinct() is not required here because each dataRecord will only appear once
       // as it only belongs to one dataSource, which only belongs to one organisation
+      // Count specifically data_record.id here to make use of the covering index
       .select(db.fn.count("dataRecord.id").as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
@@ -69,6 +70,7 @@ export const dataSourceRouter = router({
       .selectAll("dataSource")
       // .distinct() is not required here because each dataRecord will only appear once
       // as it only belongs to one dataSource, which only belongs to one organisation
+      // Count specifically data_record.id here to make use of the covering index
       .select(db.fn.count("dataRecord.id").as("recordCount"))
       .groupBy("dataSource.id")
       .execute();
