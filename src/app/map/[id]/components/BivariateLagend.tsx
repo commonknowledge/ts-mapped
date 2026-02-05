@@ -32,7 +32,7 @@ export default function BivariateLegend() {
                     ? { backgroundColor: color, opacity: 0.5 }
                     : { backgroundColor: color }
                 }
-                title={`${viewConfig.areaDataColumn}: ${i === 0 ? "Low" : i === 1 ? "Med" : "High"}, ${viewConfig.areaDataSecondaryColumn}: ${j === 0 ? "Low" : j === 1 ? "Med" : "High"}`}
+                title={`${viewConfig.areaDataColumn}: ${i === 0 ? "High" : i === 1 ? "Med" : "Low"}, ${viewConfig.areaDataSecondaryColumn}: ${j === 0 ? "Low" : j === 1 ? "Med" : "High"}`}
                 type="button"
                 onClick={() => {
                   if (selectedBivariateBucket === coords) {
