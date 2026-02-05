@@ -261,7 +261,7 @@ export const useFillColor = ({
   selectedBivariateBucket: string | null;
 }): DataDrivenPropertyValueSpecification<string> => {
   // useMemo to cache calculated fillColor
-  return useMemo(() => {
+  const fillColor = useMemo(() => {
     if (areaStats?.secondary) {
       return getBivariateFillColor(areaStats, selectedBivariateBucket);
     }
@@ -340,6 +340,13 @@ export const useFillColor = ({
       ...interpolateColorStops,
     ];
   }, [areaStats, viewConfig, selectedBivariateBucket]);
+
+  return [
+    "case",
+    ["!=", ["feature-state", "value"], null],
+    fillColor,
+    DEFAULT_FILL_COLOR,
+  ];
 };
 
 const getSteppedFillColor = (

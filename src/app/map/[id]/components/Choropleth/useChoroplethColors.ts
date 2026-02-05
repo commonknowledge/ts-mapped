@@ -42,6 +42,7 @@ export function useChoroplethFeatureStatesEffect() {
   useEffect(() => {
     const map = mapRef?.current;
     if (!areaStats || !map) {
+      prevAreaStatValues.current = new Map();
       return;
     }
 
@@ -107,10 +108,5 @@ export function useChoroplethFeatureStatesEffect() {
 
     areaCodesToClean.current = nextAreaCodesToClean;
     prevAreaStatValues.current = nextStatValues;
-
-    return () => {
-      areaCodesToClean.current = {};
-      prevAreaStatValues.current = new Map();
-    };
   }, [areaStats, lastLoadedSourceId, layerId, mapRef, sourceId]);
 }

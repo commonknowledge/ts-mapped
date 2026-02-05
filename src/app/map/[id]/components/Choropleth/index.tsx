@@ -20,6 +20,7 @@ export default function Choropleth() {
 
   // Custom hooks for effects
   const fillColor = useChoroplethFillColor();
+
   const opacity = (viewConfig.choroplethOpacityPct ?? 80) / 100;
 
   const hoverSourceId = `${sourceId}-hover`;

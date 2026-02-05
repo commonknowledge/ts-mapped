@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 
-import { getDisplayValue } from "./utils";
+import { getDisplayValue } from "../../utils/stats";
 import type { ColumnType } from "@/server/models/DataSource";
 import type { CalculationType } from "@/server/models/MapView";
 
@@ -113,18 +113,20 @@ export function AreasList({
               : null;
 
           const primaryValue = areaStats
-            ? getDisplayValue(
-                areaStats.calculationType,
-                areaStats.primary,
-                areaStat?.primary,
-              )
+            ? getDisplayValue(areaStat?.primary, {
+                calculationType: areaStats.calculationType,
+                columnType: areaStats.primary?.columnType,
+                minValue: areaStats.primary?.minValue,
+                maxValue: areaStats.primary?.maxValue,
+              })
             : null;
           const secondaryValue = areaStats
-            ? getDisplayValue(
-                areaStats.calculationType,
-                areaStats.secondary,
-                areaStat?.secondary,
-              )
+            ? getDisplayValue(areaStat?.secondary, {
+                calculationType: areaStats.calculationType,
+                columnType: areaStats.primary?.columnType,
+                minValue: areaStats.secondary?.minValue,
+                maxValue: areaStats.secondary?.maxValue,
+              })
             : null;
 
           return (
