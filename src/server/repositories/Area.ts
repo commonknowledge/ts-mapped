@@ -1,5 +1,5 @@
 import { sql } from "kysely";
-import { db } from "@/server/services/database";
+import { db, dbRead } from "@/server/services/database";
 import type { Area } from "@/server/models/Area";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Database } from "@/server/services/database";
@@ -82,7 +82,8 @@ export async function findAreasByPoint({
   excludeAreaSetCode?: AreaSetCode | null | undefined;
   includeAreaSetCode?: AreaSetCode | null | undefined;
 }): Promise<AreaWithAreaSetCode[]> {
-  let query = db
+  // Use the read replica for this expensive read query
+  let query = dbRead
     .selectFrom("area")
     .innerJoin("areaSet", "area.areaSetId", "areaSet.id");
   if (excludeAreaSetCode) {

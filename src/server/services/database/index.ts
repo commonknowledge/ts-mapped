@@ -25,9 +25,21 @@ export const pool = new Pool({
   max: Number(process.env.DATABASE_POOL_SIZE) || undefined,
 });
 
+// Set up read replica pool with graceful fallback
+const readReplicaPool = new Pool({
+  connectionString:
+    process.env.DATABASE_READ_REPLICA_URL || process.env.DATABASE_URL,
+  max: Number(process.env.DATABASE_POOL_SIZE) || undefined,
+});
+
 const dialect = new PostgresDialect({
   cursor: Cursor,
   pool,
+});
+
+const readReplicaDialect = new PostgresDialect({
+  cursor: Cursor,
+  pool: readReplicaPool,
 });
 
 export interface Database {
@@ -49,14 +61,20 @@ export interface Database {
   "pgboss.job": JobTable;
 }
 
+const sharedPlugins = [
+  new CamelCasePlugin({ maintainNestedObjectKeys: true }),
+  new PointPlugin(),
+  new JSONPlugin(),
+];
+
 export const db = new Kysely<Database>({
   dialect,
-  plugins: [
-    // Database `field_name` to TypeScript `fieldName`.
-    // `maintainNestedObjectKeys` prevents `data_record.json` being mangled
-    new CamelCasePlugin({ maintainNestedObjectKeys: true }),
-    new PointPlugin(),
-    new JSONPlugin(),
-  ],
+  plugins: sharedPlugins,
+  log: ["error"],
+});
+
+export const dbRead = new Kysely<Database>({
+  dialect: readReplicaDialect,
+  plugins: sharedPlugins,
   log: ["error"],
 });
