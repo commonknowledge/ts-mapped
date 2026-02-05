@@ -24,7 +24,15 @@ const refreshWebhooks = async (): Promise<boolean> => {
       config.tableId,
     );
     const enable = source.autoEnrich || source.autoImport;
-    await adaptor.toggleWebhook(enable);
+    try {
+      await adaptor.toggleWebhook(enable);
+    } catch (error) {
+      logger.warn(
+        `Failed to refresh airtable webhook for data source ${source.id}`,
+        { error },
+      );
+      continue;
+    }
   }
   return true;
 };
