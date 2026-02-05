@@ -26,7 +26,12 @@ export const getDisplayValue = (
   if (isNaN(nValue)) {
     return "-";
   }
-  if (minValue && minValue >= 0 && maxValue && maxValue <= 1) {
+  if (
+    typeof minValue === "number" &&
+    typeof maxValue === "number" &&
+    minValue >= 0 &&
+    maxValue <= 1
+  ) {
     return `${Math.round(nValue * 1000) / 10}%`;
   }
   return formatNumber(nValue);
