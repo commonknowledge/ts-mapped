@@ -154,6 +154,7 @@ const geocodeRecordByArea = async (
     }
     area = await findAreaByCode(dataRecordArea, areaSetCode);
   } else {
+    dataRecordArea = dataRecordArea.replace(/green party$/i, "").trim();
     area = await findAreaByName(dataRecordArea, areaSetCode);
   }
   if (!area) {
