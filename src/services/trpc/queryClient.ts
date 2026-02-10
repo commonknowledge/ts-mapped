@@ -2,6 +2,7 @@ import {
   QueryClient,
   defaultShouldDehydrateQuery,
 } from "@tanstack/react-query";
+import { TRPCClientError } from "@trpc/client";
 import superjson from "superjson";
 
 export function createQueryClient() {
@@ -10,6 +11,15 @@ export function createQueryClient() {
       queries: {
         // Manually invalidate queries if they need to be refetched
         staleTime: Infinity,
+        retry: (failureCount, error) => {
+          if (
+            error instanceof TRPCClientError &&
+            error.data?.httpStatus === 404
+          ) {
+            return false;
+          }
+          return failureCount < 3;
+        },
       },
       dehydrate: {
         serializeData: superjson.serialize,
