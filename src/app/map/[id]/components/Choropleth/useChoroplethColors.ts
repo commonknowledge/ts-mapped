@@ -38,6 +38,8 @@ export function useChoroplethFeatureStatesEffect() {
   const prevAreaStatValues = useRef<
     Map<string, { primary: unknown; secondary: unknown }>
   >(new Map());
+  // Track previous lastLoadedSourceId for full repaint
+  const prevLastLoadedSourceId = useRef(lastLoadedSourceId);
 
   useEffect(() => {
     const map = mapRef?.current;
@@ -75,6 +77,7 @@ export function useChoroplethFeatureStatesEffect() {
       nextStatValues.set(key, next);
 
       if (
+        prevLastLoadedSourceId.current !== lastLoadedSourceId ||
         !prev ||
         prev.primary !== next.primary ||
         prev.secondary !== next.secondary
@@ -108,5 +111,6 @@ export function useChoroplethFeatureStatesEffect() {
 
     areaCodesToClean.current = nextAreaCodesToClean;
     prevAreaStatValues.current = nextStatValues;
+    prevLastLoadedSourceId.current = lastLoadedSourceId;
   }, [areaStats, lastLoadedSourceId, layerId, mapRef, sourceId]);
 }

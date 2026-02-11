@@ -36,19 +36,22 @@ export default function InspectorPanel({
   } = useInspector();
   const { dataSource, properties, type } = inspectorContent ?? {};
 
+  const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
+  const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
+  const hasConfig = type === LayerType.Boundary;
+
   const safeActiveTab = useMemo(() => {
-    if (activeTab === "data" && type === LayerType.Cluster) {
+    if (activeTab === "data" && !hasData) {
       return "markers";
     }
-    const isMarkers = type === LayerType.Marker || type === LayerType.Member;
-    if (activeTab === "markers" && isMarkers) {
+    if (activeTab === "markers" && !hasMarkers) {
       return "data";
     }
-    if (activeTab === "config" && type !== LayerType.Boundary) {
-      return type === LayerType.Cluster ? "markers" : "data";
+    if (activeTab === "config" && !hasConfig) {
+      return hasMarkers ? "markers" : "data";
     }
     return activeTab;
-  }, [activeTab, type]);
+  }, [activeTab, hasConfig, hasData, hasMarkers]);
 
   if (!Boolean(inspectorContent)) {
     return <></>;
@@ -125,29 +128,25 @@ export default function InspectorPanel({
           className="flex flex-col min-h-0"
         >
           <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
-            {type !== LayerType.Cluster && (
+            {hasData && (
               <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
             )}
-            <UnderlineTabsTrigger
-              value="markers"
-              className={cn(
-                (type === LayerType.Member || type === LayerType.Marker) &&
-                  "hidden",
-              )}
-            >
-              Markers {markerCount > 0 ? markerCount : ""}
-            </UnderlineTabsTrigger>
+            {hasMarkers && (
+              <UnderlineTabsTrigger value="markers">
+                Markers {markerCount > 0 ? markerCount : ""}
+              </UnderlineTabsTrigger>
+            )}
             <UnderlineTabsTrigger value="notes" className="hidden">
               Notes 0
             </UnderlineTabsTrigger>
-            {type === LayerType.Boundary && (
+            {hasConfig && (
               <UnderlineTabsTrigger value="config" className="px-2">
                 <SettingsIcon size={16} />
               </UnderlineTabsTrigger>
             )}
           </UnderlineTabsList>
 
-          {type !== LayerType.Cluster && (
+          {hasData && (
             <UnderlineTabsContent value="data" className="overflow-auto p-3">
               <InspectorDataTab
                 dataSource={dataSource}
@@ -159,15 +158,17 @@ export default function InspectorPanel({
             </UnderlineTabsContent>
           )}
 
-          <UnderlineTabsContent value="markers" className="overflow-auto p-3">
-            {type && <InspectorMarkersTab type={type} />}
-          </UnderlineTabsContent>
+          {hasMarkers && (
+            <UnderlineTabsContent value="markers" className="overflow-auto p-3">
+              {type && <InspectorMarkersTab type={type} />}
+            </UnderlineTabsContent>
+          )}
 
           <UnderlineTabsContent value="notes" className="overflow-auto p-3">
             <InspectorNotesTab />
           </UnderlineTabsContent>
 
-          {type === LayerType.Boundary && (
+          {hasConfig && (
             <UnderlineTabsContent value="config" className="overflow-auto p-3">
               <InspectorConfigTab />
             </UnderlineTabsContent>
