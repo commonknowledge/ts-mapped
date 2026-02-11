@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useColorScheme } from "@/app/map/[id]/colors";
+import { getCategoryColorsKey, useColorScheme } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { ColumnType } from "@/server/models/DataSource";
@@ -51,15 +51,27 @@ export default function CategoryColorEditor() {
 
   const handleColorChange = useCallback(
     (category: string, color: string) => {
+      const categoryColorsKey = getCategoryColorsKey(
+        areaStats?.dataSourceId,
+        areaStats?.primary?.column,
+        category,
+      );
       const currentColors = viewConfig.categoryColors || {};
+      // Set both [category] and [key], to set the default value for this category
       updateViewConfig({
         categoryColors: {
           ...currentColors,
           [category]: color,
+          [categoryColorsKey]: color,
         },
       });
     },
-    [updateViewConfig, viewConfig.categoryColors],
+    [
+      areaStats?.dataSourceId,
+      areaStats?.primary?.column,
+      updateViewConfig,
+      viewConfig.categoryColors,
+    ],
   );
 
   const handleColorChangeDebounced = useCallback(
@@ -88,19 +100,30 @@ export default function CategoryColorEditor() {
     };
   }, []);
 
-  const handleResetColor = (category: string) => {
+  const handleResetColors = (categories: string[]) => {
     // Clear any pending debounced update for this category
-    if (debounceTimers.current[category]) {
-      clearTimeout(debounceTimers.current[category]);
-      debounceTimers.current[category] = null;
-    }
-
     const currentColors = viewConfig.categoryColors || {};
-    const newColors = Object.fromEntries(
-      Object.entries(currentColors).filter(([key]) => key !== category),
-    );
+    let nextColors = { ...currentColors };
+    for (const category of categories) {
+      if (debounceTimers.current[category]) {
+        clearTimeout(debounceTimers.current[category]);
+        debounceTimers.current[category] = null;
+      }
+
+      const categoryColorsKey = getCategoryColorsKey(
+        areaStats?.dataSourceId,
+        areaStats?.primary?.column,
+        category,
+      );
+      nextColors = Object.fromEntries(
+        Object.entries(nextColors).filter(
+          ([key]) => key !== category && key !== categoryColorsKey,
+        ),
+      );
+    }
     updateViewConfig({
-      categoryColors: Object.keys(newColors).length > 0 ? newColors : undefined,
+      categoryColors:
+        Object.keys(nextColors).length > 0 ? nextColors : undefined,
     });
   };
 
@@ -128,6 +151,14 @@ export default function CategoryColorEditor() {
             const currentColor =
               viewConfig.categoryColors?.[category] ||
               colorScheme.colorMap[category];
+            const categoryColorsKey = getCategoryColorsKey(
+              areaStats?.dataSourceId,
+              areaStats?.primary?.column,
+              category,
+            );
+            const isSet =
+              viewConfig.categoryColors?.[category] ||
+              viewConfig.categoryColors?.[categoryColorsKey];
             return (
               <div
                 key={category}
@@ -154,12 +185,12 @@ export default function CategoryColorEditor() {
                     </span>
                   </label>
                 </div>
-                {viewConfig.categoryColors?.[category] && (
+                {isSet && (
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 flex-shrink-0"
-                    onClick={() => handleResetColor(category)}
+                    onClick={() => handleResetColors([category])}
                     title="Reset to default color"
                   >
                     <X className="h-3 w-3" />
@@ -173,7 +204,7 @@ export default function CategoryColorEditor() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => updateViewConfig({ categoryColors: undefined })}
+                onClick={() => handleResetColors(categories)}
               >
                 Reset all colors
               </Button>

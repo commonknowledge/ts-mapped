@@ -186,9 +186,19 @@ const getColorScheme = ({
     const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
     distinctValues.forEach((v) => {
+      const categoryColorsKey = getCategoryColorsKey(
+        areaStats.dataSourceId,
+        areaStats.primary?.column,
+        v,
+      );
       // Use custom color if provided, otherwise use default
+      // Try the color set specifically for this column, if exists
+      // Fallback to the color set for this value
+      // Fallback again to D3 color generation
       colorMap[v] =
-        viewConfig.categoryColors?.[v] ?? getCategoricalColor(v, colorScale);
+        viewConfig.categoryColors?.[categoryColorsKey] ??
+        viewConfig.categoryColors?.[v] ??
+        getCategoricalColor(v, colorScale);
     });
     colorMap.__default =
       viewConfig.categoryColors?.__default ?? DEFAULT_FILL_COLOR;
@@ -468,4 +478,12 @@ const getBivariateFillColor = (
   cases.push(DEFAULT_FILL_COLOR);
 
   return cases;
+};
+
+export const getCategoryColorsKey = (
+  dataSourceId: string | undefined,
+  column: string | undefined,
+  category: unknown,
+) => {
+  return [dataSourceId, column, category].filter(Boolean).join(".");
 };
