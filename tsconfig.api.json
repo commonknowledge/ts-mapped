@@ -4,11 +4,11 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "outDir": "./dist/api",
+    "rootDir": "./src/api",
     "moduleResolution": "bundler",
-    "module": "ESNext"
+    "module": "ESNext",
+    "target": "ES2020"
   },
   "include": ["src/api/index.ts"],
   "exclude": ["node_modules", ".next", "tests"]
