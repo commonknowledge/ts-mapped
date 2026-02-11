@@ -1,6 +1,7 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import {
 import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Switch } from "@/shadcn/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { ColumnRoleFields } from "./ColumnRoleFields";
 import { GeocodingConfigFields } from "./GeocodingConfigFields";
 import type { SyntheticEvent } from "react";
@@ -20,9 +22,15 @@ import type { SyntheticEvent } from "react";
 export default function ConfigurationForm({
   dataSource,
   redirectToParent = false,
+  onAutoImportChange,
+  webhookStatus,
 }: {
   dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
   redirectToParent?: boolean;
+  onAutoImportChange?: (enabled: boolean) => void;
+  webhookStatus?:
+    | { hasWebhook: boolean; hasErrors: boolean; error: string | null }
+    | undefined;
 }) {
   const router = useRouter();
 
@@ -51,9 +59,21 @@ export default function ConfigurationForm({
   const [error, setError] = useState("");
 
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const { mutate: updateDataSourceConfig } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
+        // Notify parent of autoImport status change
+        onAutoImportChange?.(autoImport);
+
+        // Invalidate webhook status to refetch and show/hide errors
+        await queryClient.invalidateQueries({
+          queryKey: trpc.dataSource.checkWebhookStatus.queryKey({
+            dataSourceId: dataSource.id,
+          }),
+        });
+
         if (redirectToParent) {
           router.push(`/data-sources/${dataSource.id}`);
         } else {
@@ -64,7 +84,9 @@ export default function ConfigurationForm({
       onError: (error) => {
         console.error(error);
         setLoading(false);
-        setError("Could not update data source.");
+        const errorMessage = error.message || "Could not update data source.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       },
     }),
   );
@@ -117,7 +139,25 @@ export default function ConfigurationForm({
       {features.autoImport && (
         <>
           <FormFieldWrapper
-            label="Automatically sync data to Mapped"
+            label={
+              <span className="flex items-center gap-2">
+                Automatically sync data to Mapped
+                {webhookStatus?.hasErrors && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AlertCircle className="h-4 w-4 text-red-600 " />
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="bottom"
+                      sideOffset={8}
+                      className="max-w-xs"
+                    >
+                      {webhookStatus.error}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </span>
+            }
             hint="When enabled, any change you make in this database will automatically display on your map."
             isHorizontal
           >

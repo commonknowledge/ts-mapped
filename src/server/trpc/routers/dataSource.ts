@@ -164,6 +164,34 @@ export const dataSourceRouter = router({
       };
     }),
 
+  checkWebhookStatus: dataSourceOwnerProcedure.query(async ({ ctx }) => {
+    try {
+      const adaptor = getDataSourceAdaptor(ctx.dataSource);
+      if (
+        adaptor &&
+        "hasWebhookErrors" in adaptor &&
+        typeof adaptor.hasWebhookErrors === "function"
+      ) {
+        const hasErrors = await adaptor.hasWebhookErrors();
+        return {
+          hasWebhook: true,
+          hasErrors,
+          error: hasErrors
+            ? "Automatic sync is unavailable due to webhook errors. This is likely caused by special characters in the sheet name. Manual imports will still work and will attempt to repair the webhook automatically."
+            : null,
+        };
+      }
+      return { hasWebhook: false, hasErrors: false, error: null };
+    } catch (error) {
+      logger.error("Failed to check webhook status", { error });
+      return {
+        hasWebhook: false,
+        hasErrors: false,
+        error: "Failed to check webhook status",
+      };
+    }
+  }),
+
   create: organisationProcedure
     .input(
       dataSourceSchema.pick({ name: true, recordType: true, config: true }),
@@ -235,6 +263,34 @@ export const dataSourceRouter = router({
 
       if (autoChanged) {
         const enable = update.autoEnrich || update.autoImport || false;
+
+        // Check for webhook errors before enabling
+        if (enable && adaptor && "hasWebhookErrors" in adaptor) {
+          try {
+            const hasErrors = await adaptor.hasWebhookErrors();
+            if (hasErrors) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "Cannot enable automatic sync: webhook formulas contain errors. Please use manual import first - it will attempt to repair the webhook automatically.",
+              });
+            }
+          } catch (error) {
+            // If hasWebhookErrors throws, it's likely a permission issue
+            if (error instanceof TRPCError) {
+              throw error;
+            }
+            logger.error("Failed to check webhook status before enabling", {
+              error,
+            });
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "Failed to verify webhook status. Please ensure the integration has proper permissions.",
+            });
+          }
+        }
+
         logger.info(
           `Updating ${ctx.dataSource.config.type} webhook: ${ctx.dataSource.id}, enabled: ${enable}`,
         );
@@ -269,12 +325,52 @@ export const dataSourceRouter = router({
     return true;
   }),
 
-  enqueueImportJob: dataSourceOwnerProcedure.mutation(async ({ input }) => {
-    await enqueue("importDataSource", input.dataSourceId, {
-      dataSourceId: input.dataSourceId,
-    });
-    return true;
-  }),
+  enqueueImportJob: dataSourceOwnerProcedure.mutation(
+    async ({ ctx, input }) => {
+      // Auto-repair webhook if needed (for Google Sheets with formula errors)
+      // Note: Webhook errors should not prevent manual imports - webhooks are only
+      // needed for automatic syncing. We attempt to repair but always proceed with import.
+      try {
+        const adaptor = getDataSourceAdaptor(ctx.dataSource);
+        if (
+          adaptor &&
+          "hasWebhookErrors" in adaptor &&
+          "repairWebhook" in adaptor
+        ) {
+          const hasErrors = await adaptor.hasWebhookErrors();
+          if (hasErrors) {
+            logger.info(
+              `Attempting to repair webhook for data source ${ctx.dataSource.id}`,
+            );
+            await adaptor.repairWebhook();
+
+            // Verify the repair was successful
+            const stillHasErrors = await adaptor.hasWebhookErrors();
+            if (stillHasErrors) {
+              logger.warn(
+                `Webhook repair failed for data source ${ctx.dataSource.id}, but proceeding with import`,
+              );
+            } else {
+              logger.info(
+                `Webhook successfully repaired for data source ${ctx.dataSource.id}`,
+              );
+            }
+          }
+        }
+      } catch (error) {
+        // Don't fail the import if webhook repair fails - log and continue
+        logger.error(
+          "Failed to check/repair webhook before import, proceeding with import anyway",
+          { error },
+        );
+      }
+
+      await enqueue("importDataSource", input.dataSourceId, {
+        dataSourceId: input.dataSourceId,
+      });
+      return true;
+    },
+  ),
 
   delete: dataSourceOwnerProcedure.mutation(async ({ ctx }) => {
     await deleteDataSource(ctx.dataSource.id);

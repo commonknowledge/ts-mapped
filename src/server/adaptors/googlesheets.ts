@@ -328,6 +328,77 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     logger.info(`Removed dev webhooks for data source ${this.dataSourceId}`);
   }
 
+  /**
+   * Checks if the webhook sheet contains formula errors.
+   * Returns true if #ERROR! or other error values are detected.
+   */
+  async hasWebhookErrors(): Promise<boolean> {
+    try {
+      const notificationUrl = await getPublicUrl(
+        `/api/data-sources/${this.dataSourceId}/webhook`,
+      );
+      const notificationDomain = new URL(notificationUrl).hostname;
+      const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
+
+      // Read first few cells from webhook sheet to check for errors
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(webhookSheetName)}!A1:B5`;
+      const response = await this.makeGoogleSheetsRequest(url);
+
+      if (!response.ok) {
+        return false; // Sheet doesn't exist or can't be read
+      }
+
+      const data = (await response.json()) as { values: string[][] };
+      const rows = data.values || [];
+
+      // Check if any cells contain error values
+      for (const row of rows) {
+        for (const cell of row) {
+          if (
+            typeof cell === "string" &&
+            (cell.startsWith("#ERROR") || cell.startsWith("#N/A"))
+          ) {
+            logger.warn(
+              `Detected formula error in webhook sheet for ${this.dataSourceId}: ${cell}`,
+            );
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch (error) {
+      logger.warn(`Could not check webhook errors for ${this.dataSourceId}`, {
+        error,
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Repairs the webhook sheet by deleting and recreating it with fixed formulas.
+   * This is useful for fixing sheets created before the sheet name escaping bug was fixed.
+   */
+  async repairWebhook(): Promise<void> {
+    logger.info(`Repairing webhook for data source ${this.dataSourceId}`);
+
+    try {
+      // Delete and recreate the webhook sheet
+      await this.toggleWebhook(false); // Delete
+      await this.toggleWebhook(true); // Recreate with fixed formulas
+
+      logger.info(
+        `Successfully repaired webhook for data source ${this.dataSourceId}`,
+      );
+    } catch (error) {
+      logger.error(
+        `Failed to repair webhook for data source ${this.dataSourceId}`,
+        { error },
+      );
+      throw error;
+    }
+  }
+
   async toggleWebhook(enable: boolean): Promise<void> {
     const notificationUrl = await getPublicUrl(
       `/api/data-sources/${this.dataSourceId}/webhook`,

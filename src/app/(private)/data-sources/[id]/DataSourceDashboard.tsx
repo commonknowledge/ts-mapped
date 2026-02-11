@@ -1,9 +1,15 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { format, formatDistanceToNow } from "date-fns";
-import { LoaderPinwheel, MapIcon, RefreshCw, Trash2Icon } from "lucide-react";
+import {
+  AlertCircle,
+  LoaderPinwheel,
+  MapIcon,
+  RefreshCw,
+  Trash2Icon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -15,6 +21,7 @@ import { Link } from "@/components/Link";
 import { DataSourceConfigLabels } from "@/labels";
 import { JobStatus } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
+import { Alert, AlertDescription, AlertTitle } from "@/shadcn/ui/alert";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -45,14 +52,27 @@ export function DataSourceDashboard({
     : null;
 
   const [recordCount, setRecordCount] = useState(dataSource.recordCount || 0);
+  const [autoImportEnabled, setAutoImportEnabled] = useState(
+    dataSource.autoImport,
+  );
 
   const trpc = useTRPC();
+
+  // Check webhook status for Google Sheets data sources
+  const { data: webhookStatus } = useQuery(
+    trpc.dataSource.checkWebhookStatus.queryOptions({
+      dataSourceId: dataSource.id,
+    }),
+  );
+
   const { mutate: enqueueImportDataSourceJob } = useMutation(
     trpc.dataSource.enqueueImportJob.mutationOptions({
       onError: (error) => {
         console.error(`Could not schedule import job: ${error}`);
-        setImportError("Could not schedule import job.");
+        const errorMessage = error.message || "Could not schedule import job.";
+        setImportError(errorMessage);
         setImporting(false);
+        toast.error(errorMessage);
       },
     }),
   );
@@ -193,6 +213,14 @@ export function DataSourceDashboard({
 
       <Separator className="my-8" />
 
+      {webhookStatus?.hasErrors && autoImportEnabled && (
+        <Alert variant="destructive" className="mb-8">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Webhook Error</AlertTitle>
+          <AlertDescription>{webhookStatus.error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-2 gap-20 pb-10">
         <div className="flex flex-col gap-6">
           <h2 className="font-medium text-xl">About this data source</h2>
@@ -213,7 +241,11 @@ export function DataSourceDashboard({
 
         <div className="flex flex-col gap-6">
           <h2 className="font-medium text-xl">Configuration</h2>
-          <ConfigurationForm dataSource={dataSource} />
+          <ConfigurationForm
+            dataSource={dataSource}
+            onAutoImportChange={setAutoImportEnabled}
+            webhookStatus={webhookStatus}
+          />
           <Separator />
           <h2 className="font-medium text-xl">Danger zone</h2>
           <div>
