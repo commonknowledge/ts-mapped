@@ -455,10 +455,11 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     // Step 2: Construct formula rows
     // First cell is a row count (surprisingly complicated!)
     const countUpdateUrl = `${notificationUrl}?rowCount=`;
+    const escapedSheetName = escapeSheetNameForFormula(this.sheetName);
 
     const formulaRows: string[][] = [
       [
-        `=MAX(FILTER(ROW(${this.sheetName}!A1:Z), BYROW(${this.sheetName}!A1:Z, LAMBDA(row, COUNTA(row))) > 0))`,
+        `=MAX(FILTER(ROW(${escapedSheetName}!A1:Z), BYROW(${escapedSheetName}!A1:Z, LAMBDA(row, COUNTA(row))) > 0))`,
         `=IMPORTDATA("${countUpdateUrl}" & A1)`,
       ],
     ];
@@ -468,7 +469,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       const rowNum = i + 1;
       const urlWithParam = `${notificationUrl}?rowNumber=${rowNum}&unused=`;
       // IMPORTDATA triggers a GET request
-      const formula = `=LEFT(JOIN(",", ${this.sheetName}!${rowNum}:${rowNum}), 2000)`;
+      const formula = `=LEFT(JOIN(",", ${escapedSheetName}!${rowNum}:${rowNum}), 2000)`;
       formulaRows.push([
         formula,
         `=IMPORTDATA("${urlWithParam}" & A${rowNum})`,
@@ -676,4 +677,29 @@ function indexToLetter(index: number): string {
     index = Math.floor(index / 26) - 1;
   }
   return result;
+}
+
+/**
+ * Escapes a Google Sheets sheet name for use in formulas.
+ * Sheet names with spaces, special characters, or apostrophes must be wrapped in single quotes.
+ * Single quotes within the name are escaped by doubling them.
+ *
+ * @example
+ * escapeSheetNameForFormula("Sheet1") // "Sheet1"
+ * escapeSheetNameForFormula("My Sheet") // "'My Sheet'"
+ * escapeSheetNameForFormula("John's Data") // "'John''s Data'"
+ */
+export function escapeSheetNameForFormula(sheetName: string): string {
+  // Check if sheet name needs quoting (contains spaces or special chars)
+  const needsQuoting = /[\s'"!@#$%^&*()\-+=\[\]{};:,.<>?/\\|`~]/.test(
+    sheetName,
+  );
+
+  if (!needsQuoting) {
+    return sheetName;
+  }
+
+  // Escape single quotes by doubling them and wrap in single quotes
+  const escaped = sheetName.replace(/'/g, "''");
+  return `'${escaped}'`;
 }
