@@ -16,8 +16,8 @@ const mappedDataLibrary = {
       category: "Locality shapes",
     },
     {
-      id: "boundaries-oa21",
-      name: AreaSetGroupCodeLabels[AreaSetGroupCode.OA21],
+      id: "boundaries-lsoa21",
+      name: AreaSetGroupCodeLabels[AreaSetGroupCode.LSOA21],
       description: "Census Output Areas for detailed area mapping",
       type: "boundary",
       category: "Locality shapes",
