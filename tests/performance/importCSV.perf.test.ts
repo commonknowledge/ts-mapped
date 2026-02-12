@@ -40,10 +40,26 @@ interface PerformanceMetrics {
 
 describe("CSV Import Performance Tests", () => {
   let testDataSourceId: string;
+  let postcodesIoApiCalls = 0;
+  const originalFetch = global.fetch;
 
   beforeAll(async () => {
     // Suppress all logs during performance tests
     logger.silent = true;
+
+    // Intercept fetch to track postcodes.io API calls
+    global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+      if (url.includes("api.postcodes.io")) {
+        postcodesIoApiCalls++;
+      }
+      return originalFetch(input, init);
+    };
 
     generateCSV(RECORD_COUNT, TEST_CSV_PATH);
 
@@ -77,6 +93,9 @@ describe("CSV Import Performance Tests", () => {
   });
 
   afterAll(async () => {
+    // Restore original fetch
+    global.fetch = originalFetch;
+
     if (testDataSourceId) {
       await deleteDataSource(testDataSourceId);
     }
@@ -86,6 +105,9 @@ describe("CSV Import Performance Tests", () => {
   test("CSV full import performance baseline", async () => {
     // Track queries manually by counting
     const queryCountsBefore = await getQueryCounts();
+
+    // Reset postcodes.io API call counter
+    postcodesIoApiCalls = 0;
 
     const startTime = performance.now();
     await importDataSource({ dataSourceId: testDataSourceId });
@@ -115,7 +137,7 @@ describe("CSV Import Performance Tests", () => {
     };
 
     console.log(
-      `\n📈 CSV Import: ${metrics.recordCount} records in ${metrics.totalDuration.toFixed(0)}ms (${metrics.recordsPerSecond.toFixed(1)}/sec, ${metrics.queryStats.updateDataSourceCalls} updateDataSource calls)`,
+      `\n📈 CSV Import: ${metrics.recordCount} records in ${metrics.totalDuration.toFixed(0)}ms (${metrics.recordsPerSecond.toFixed(1)}/sec, ${metrics.queryStats.updateDataSourceCalls} updateDataSource calls, ${postcodesIoApiCalls} postcodes.io API calls)`,
     );
 
     // Verify records were imported

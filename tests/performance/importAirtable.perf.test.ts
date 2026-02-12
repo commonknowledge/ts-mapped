@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, inject, test } from "vitest";
 import importDataSource from "@/server/jobs/importDataSource";
+import { AreaSetCode } from "@/server/models/AreaSet";
 import {
   DataSourceRecordType,
   DataSourceType,
@@ -33,10 +34,26 @@ interface PerformanceMetrics {
 describe("Airtable Import Performance Tests", () => {
   let testDataSourceId: string;
   let actualRecordCount: number;
+  let postcodesIoApiCalls = 0;
+  const originalFetch = global.fetch;
 
   beforeAll(async () => {
     // Suppress all logs during performance tests
     logger.silent = true;
+
+    // Intercept fetch to track postcodes.io API calls
+    global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+      if (url.includes("api.postcodes.io")) {
+        postcodesIoApiCalls++;
+      }
+      return originalFetch(input, init);
+    };
 
     // Create test organisation
     const org = await upsertOrganisation({
@@ -60,7 +77,9 @@ describe("Airtable Import Performance Tests", () => {
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
-        type: GeocodingType.None,
+        type: GeocodingType.Code,
+        column: "Postcode",
+        areaSetCode: AreaSetCode.PC,
       },
       organisationId: org.id,
       public: false,
@@ -69,6 +88,9 @@ describe("Airtable Import Performance Tests", () => {
   });
 
   afterAll(async () => {
+    // Restore original fetch
+    global.fetch = originalFetch;
+
     if (testDataSourceId) {
       await deleteDataSource(testDataSourceId);
     }
@@ -77,6 +99,9 @@ describe("Airtable Import Performance Tests", () => {
   test("Airtable full import performance baseline", async () => {
     // Track queries manually by counting
     const queryCountsBefore = await getQueryCounts();
+
+    // Reset postcodes.io API call counter
+    postcodesIoApiCalls = 0;
 
     const startTime = performance.now();
     await importDataSource({ dataSourceId: testDataSourceId });
@@ -115,7 +140,7 @@ describe("Airtable Import Performance Tests", () => {
     };
 
     console.log(
-      `\n📈 Airtable Import: ${metrics.recordCount} records in ${metrics.totalDuration.toFixed(0)}ms (${metrics.recordsPerSecond.toFixed(1)}/sec, ${metrics.queryStats.updateDataSourceCalls} updateDataSource calls)`,
+      `\n📈 Airtable Import: ${metrics.recordCount} records in ${metrics.totalDuration.toFixed(0)}ms (${metrics.recordsPerSecond.toFixed(1)}/sec, ${metrics.queryStats.updateDataSourceCalls} updateDataSource calls, ${postcodesIoApiCalls} postcodes.io API calls)`,
     );
 
     // Verify records were imported
