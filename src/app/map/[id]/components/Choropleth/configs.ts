@@ -182,6 +182,32 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
+  SENC22: [
+    {
+      areaSetCode: AreaSetCode.SENC22,
+      minZoom: 0,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "SENC22CD",
+        featureNameProperty: "SENC22NM",
+        layerId: "senc",
+        sourceId: "commonknowledge.3b3c1f6n",
+      },
+    },
+  ],
+  SPC22: [
+    {
+      areaSetCode: AreaSetCode.SPC22,
+      minZoom: 0,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "SPC22CD",
+        featureNameProperty: "SPC22NM",
+        layerId: "spc",
+        sourceId: "commonknowledge.1i209o4g",
+      },
+    },
+  ],
 };
 
 export const HEX_CHOROPLETH_LAYER_CONFIG: ChoroplethLayerConfig = {
