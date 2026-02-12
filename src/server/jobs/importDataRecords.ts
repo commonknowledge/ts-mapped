@@ -86,6 +86,17 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
     }
   }
 
+  // Update the recordCount for the data source
+  const totalRecordCount = await db
+    .selectFrom("dataRecord")
+    .select(({ fn }) => fn.countAll().as("count"))
+    .where("dataSourceId", "=", dataSourceId)
+    .executeTakeFirst();
+
+  await updateDataSource(dataSourceId, {
+    recordCount: Number(totalRecordCount?.count ?? 0),
+  });
+
   return true;
 };
 

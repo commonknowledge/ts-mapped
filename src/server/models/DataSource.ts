@@ -240,6 +240,7 @@ export const dataSourceSchema = z.object({
   geocodingConfig: geocodingConfigSchema,
   organisationId: z.string(),
   public: z.boolean(),
+  recordCount: z.number(),
   createdAt: z.date(),
   dateFormat: z.string(),
 });
@@ -250,6 +251,7 @@ export type DataSourceTable = DataSource & {
   id: Generated<string>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
   dateFormat: Generated<string>;
+  recordCount: Generated<number>;
 };
 
 export type NewDataSource = Insertable<DataSourceTable>;
