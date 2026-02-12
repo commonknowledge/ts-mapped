@@ -8,6 +8,10 @@ declare module "vitest" {
         baseId: string;
         tableId: string;
         apiKey: string;
+        perf: {
+          baseId: string;
+          tableId: string;
+        };
       };
       googlesheets: {
         spreadsheetId: string;
