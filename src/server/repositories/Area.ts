@@ -138,3 +138,35 @@ export async function findAreasContaining({
     ])
     .execute();
 }
+
+export async function searchAreas(query: string) {
+  const words = query.trim().split(/\s+/);
+
+  // Build search conditions for each word
+  const conditions = words
+    .map((word) => `search_text ILIKE '%${word.replace(/'/g, "''")}%'`)
+    .join(" AND ");
+
+  // Query the materialized view for fast searching
+  const result = await sql<{
+    id: number;
+    code: string;
+    name: string;
+    areaSetId: number;
+    areaSetCode: string;
+    areaSetName: string;
+  }>`
+    SELECT
+      id,
+      code,
+      name,
+      area_set_id as "areaSetId",
+      area_set_code as "areaSetCode",
+      area_set_name as "areaSetName"
+    FROM area_search
+    WHERE ${sql.raw(conditions)}
+    LIMIT 50
+  `.execute(dbRead);
+
+  return result.rows;
+}

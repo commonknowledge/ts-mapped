@@ -1,0 +1,76 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { sql } from "kysely";
+import type { Kysely } from "kysely";
+
+// `any` is required here since migrations should be frozen in time. alternatively, keep a "snapshot" db interface.
+export async function up(db: Kysely<any>): Promise<void> {
+  // Enable pg_trgm extension for trigram-based fuzzy matching
+  await sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`.execute(db);
+
+  // Create a materialized view that denormalizes area + area_set for efficient searching
+  await sql`
+    CREATE MATERIALIZED VIEW area_search AS
+    SELECT 
+      area.id,
+      area.code,
+      area.name,
+      area_set.id as area_set_id,
+      area_set.code as area_set_code,
+      area_set.name as area_set_name,
+      CONCAT_WS(' ', area.name, area.code, area_set.name, area_set.code) as search_text
+    FROM area
+    INNER JOIN "areaSet" area_set ON area."areaSetId" = area_set.id
+  `.execute(db);
+
+  // Create a unique index on id for concurrent refresh
+  await sql`
+    CREATE UNIQUE INDEX area_search_id_idx ON area_search (id)
+  `.execute(db);
+
+  // Create GIN trigram index on the search text for fast ILIKE queries
+  await sql`
+    CREATE INDEX area_search_text_trgm_idx ON area_search 
+    USING GIN (search_text gin_trgm_ops)
+  `.execute(db);
+
+  // Create a function to refresh the materialized view
+  await sql`
+    CREATE OR REPLACE FUNCTION refresh_area_search()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      REFRESH MATERIALIZED VIEW CONCURRENTLY area_search;
+      RETURN NULL;
+    END;
+    $$ LANGUAGE plpgsql;
+  `.execute(db);
+
+  // Create triggers to refresh the materialized view when data changes
+  await sql`
+    CREATE TRIGGER refresh_area_search_on_area
+    AFTER INSERT OR UPDATE OR DELETE ON area
+    FOR EACH STATEMENT
+    EXECUTE FUNCTION refresh_area_search();
+  `.execute(db);
+
+  await sql`
+    CREATE TRIGGER refresh_area_search_on_area_set
+    AFTER INSERT OR UPDATE OR DELETE ON "areaSet"
+    FOR EACH STATEMENT
+    EXECUTE FUNCTION refresh_area_search();
+  `.execute(db);
+}
+
+// `any` is required here since migrations should be frozen in time. alternatively, keep a "snapshot" db interface.
+export async function down(db: Kysely<any>): Promise<void> {
+  await sql`DROP TRIGGER IF EXISTS refresh_area_search_on_area_set ON "areaSet"`.execute(
+    db,
+  );
+  await sql`DROP TRIGGER IF EXISTS refresh_area_search_on_area ON area`.execute(
+    db,
+  );
+  await sql`DROP FUNCTION IF EXISTS refresh_area_search()`.execute(db);
+  await sql`DROP INDEX IF EXISTS area_search_text_trgm_idx`.execute(db);
+  await sql`DROP INDEX IF EXISTS area_search_id_idx`.execute(db);
+  await sql`DROP MATERIALIZED VIEW IF EXISTS area_search`.execute(db);
+}
