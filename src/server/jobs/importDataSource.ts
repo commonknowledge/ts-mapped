@@ -1,7 +1,8 @@
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import { geocodeRecord } from "@/server/mapping/geocode";
-import { ColumnType } from "@/server/models/DataSource";
+import { bulkFetchPostcodes, geocodeRecord } from "@/server/mapping/geocode";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import { ColumnType, GeocodingType } from "@/server/models/DataSource";
 import {
   deleteByDataSourceId,
   upsertDataRecords,
@@ -13,6 +14,7 @@ import {
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
+import type { PostcodeResult } from "@/server/mapping/geocode";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSource } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
@@ -108,6 +110,33 @@ export const importBatch = async (
   dataSource: DataSource,
   columnDefsAccumulator: ColumnDef[],
 ) => {
+  // Pre-fetch postcodes if using postcode geocoding
+  let prefetchedPostcodes:
+    | { results: Map<string, PostcodeResult>; notFound: Set<string> }
+    | undefined;
+  if (
+    dataSource.geocodingConfig.type === GeocodingType.Code &&
+    "areaSetCode" in dataSource.geocodingConfig &&
+    dataSource.geocodingConfig.areaSetCode === AreaSetCode.PC &&
+    "column" in dataSource.geocodingConfig
+  ) {
+    const column = dataSource.geocodingConfig.column;
+    const uniquePostcodes = Array.from(
+      new Set(
+        batch
+          .map((record) => {
+            const pc = String(record.json[column] || "");
+            return pc ? pc.replace(/\s+/g, "").toUpperCase() : null;
+          })
+          .filter((pc): pc is string => pc !== null),
+      ),
+    );
+
+    if (uniquePostcodes.length > 0) {
+      prefetchedPostcodes = await bulkFetchPostcodes(uniquePostcodes);
+    }
+  }
+
   const updatedRecords = await Promise.all(
     batch.map(async (record) => {
       const { columnDefs, typedJson } = typeJson(record.json);
@@ -115,6 +144,7 @@ export const importBatch = async (
       const geocodeResult = await geocodeRecord(
         record,
         dataSource.geocodingConfig,
+        prefetchedPostcodes,
       );
       return {
         externalId: record.externalId,

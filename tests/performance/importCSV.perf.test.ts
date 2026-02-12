@@ -1,4 +1,3 @@
-import path from "path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import importDataSource from "@/server/jobs/importDataSource";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -14,14 +13,10 @@ import {
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
-import { cleanupTestFile, generateCSV } from "./helpers/generateTestData";
 
 const RECORD_COUNT = 5000;
 const TEST_CSV_FILENAME = "perf-test-5000.csv";
-const TEST_CSV_PATH = path.resolve(
-  __dirname,
-  `../resources/${TEST_CSV_FILENAME}`,
-);
+// Using permanent test file in tests/resources/perf-test-5000.csv
 
 interface PerformanceMetrics {
   recordCount: number;
@@ -61,8 +56,6 @@ describe("CSV Import Performance Tests", () => {
       return originalFetch(input, init);
     };
 
-    generateCSV(RECORD_COUNT, TEST_CSV_PATH);
-
     // Create test organisation
     const org = await upsertOrganisation({
       name: "CSV Performance Test Org",
@@ -99,7 +92,6 @@ describe("CSV Import Performance Tests", () => {
     if (testDataSourceId) {
       await deleteDataSource(testDataSourceId);
     }
-    cleanupTestFile(TEST_CSV_PATH);
   });
 
   test("CSV full import performance baseline", async () => {

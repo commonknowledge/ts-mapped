@@ -14,6 +14,82 @@ import type {
 import type { GeocodeResult, Point } from "../models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
 
+interface PostcodeResult {
+  postcode: string;
+  latitude: number;
+  longitude: number;
+}
+
+export type { PostcodeResult };
+
+/**
+ * Bulk lookup postcodes using postcodes.io API
+ * Maximum 100 postcodes per request
+ * Returns a Map with successful results and a Set of postcodes that were not found
+ */
+export async function bulkFetchPostcodes(postcodes: string[]): Promise<{
+  results: Map<string, PostcodeResult>;
+  notFound: Set<string>;
+}> {
+  if (postcodes.length === 0) {
+    return { results: new Map(), notFound: new Set() };
+  }
+
+  const results = new Map<string, PostcodeResult>();
+  const notFound = new Set<string>();
+  const normalizedPostcodes = postcodes.map((pc) =>
+    pc.replace(/\s+/g, "").toUpperCase(),
+  );
+
+  // postcodes.io supports max 100 postcodes per request
+  const chunks = [];
+  for (let i = 0; i < normalizedPostcodes.length; i += 100) {
+    chunks.push(normalizedPostcodes.slice(i, i + 100));
+  }
+
+  for (const chunk of chunks) {
+    try {
+      const response = await fetch("https://api.postcodes.io/postcodes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postcodes: chunk }),
+      });
+
+      if (!response.ok) {
+        logger.warn(`Bulk postcodes.io request failed: ${response.status}`);
+        // Mark all postcodes in this chunk as not found to avoid individual retries
+        chunk.forEach((pc) => notFound.add(pc));
+        continue;
+      }
+
+      const data = (await response.json()) as {
+        result?: {
+          query: string;
+          result: PostcodeResult | null;
+        }[];
+      };
+
+      if (data.result) {
+        for (const item of data.result) {
+          const normalizedPC = item.query.replace(/\s+/g, "").toUpperCase();
+          if (item.result) {
+            results.set(normalizedPC, item.result);
+          } else {
+            // Postcode not found in API - track it to avoid individual retry
+            notFound.add(normalizedPC);
+          }
+        }
+      }
+    } catch (error) {
+      logger.warn("Bulk postcodes.io request error", { error });
+      // Mark all postcodes in this chunk as not found to avoid individual retries
+      chunk.forEach((pc) => notFound.add(pc));
+    }
+  }
+
+  return { results, notFound };
+}
+
 interface MappingDataRecord {
   externalId: string;
   json: Record<string, unknown>;
@@ -22,9 +98,17 @@ interface MappingDataRecord {
 export const geocodeRecord = async (
   dataRecord: MappingDataRecord,
   geocodingConfig: GeocodingConfig,
+  prefetchedPostcodes?: {
+    results: Map<string, PostcodeResult>;
+    notFound: Set<string>;
+  },
 ): Promise<GeocodeResult | null> => {
   try {
-    return await _geocodeRecord(dataRecord, geocodingConfig);
+    return await _geocodeRecord(
+      dataRecord,
+      geocodingConfig,
+      prefetchedPostcodes,
+    );
   } catch (error) {
     logger.warn(`Could not geocode record ${dataRecord.externalId}`, {
       error,
@@ -36,10 +120,18 @@ export const geocodeRecord = async (
 const _geocodeRecord = async (
   dataRecord: MappingDataRecord,
   geocodingConfig: GeocodingConfig,
+  prefetchedPostcodes?: {
+    results: Map<string, PostcodeResult>;
+    notFound: Set<string>;
+  },
 ): Promise<GeocodeResult> => {
   if (geocodingConfig.type === "Code" || geocodingConfig.type === "Name") {
     if (geocodingConfig.areaSetCode === AreaSetCode.PC) {
-      return geocodeRecordByPostcode(dataRecord, geocodingConfig);
+      return geocodeRecordByPostcode(
+        dataRecord,
+        geocodingConfig,
+        prefetchedPostcodes,
+      );
     } else {
       return geocodeRecordByArea(dataRecord, geocodingConfig);
     }
@@ -56,6 +148,10 @@ const _geocodeRecord = async (
 const geocodeRecordByPostcode = async (
   dataRecord: MappingDataRecord,
   geocodingConfig: AreaGeocodingConfig,
+  prefetchedPostcodes?: {
+    results: Map<string, PostcodeResult>;
+    notFound: Set<string>;
+  },
 ) => {
   try {
     return await geocodeRecordByArea(dataRecord, geocodingConfig);
@@ -76,42 +172,63 @@ const geocodeRecordByPostcode = async (
   if (!postcode) {
     throw new Error("Missing postcode in row");
   }
-  const postcodesResponse = await fetch(
-    `https://api.postcodes.io/postcodes/${postcode}`,
-  );
-  if (!postcodesResponse.ok) {
-    const text = (await postcodesResponse.text()) || "Unknown error";
-    throw new Error(
-      `Failed postcodes.io request: ${postcodesResponse.status}, ${text}`,
-    );
+
+  // Check if we already tried to bulk fetch this postcode and it wasn't found
+  if (prefetchedPostcodes?.notFound.has(postcode)) {
+    throw new Error(`Postcode not found in bulk lookup: ${postcode}`);
   }
-  const postcodesData = await postcodesResponse.json();
-  if (
-    !postcodesData ||
-    !(typeof postcodesData === "object") ||
-    !("result" in postcodesData) ||
-    !postcodesData.result ||
-    !(typeof postcodesData.result === "object") ||
-    !("postcode" in postcodesData.result) ||
-    !("latitude" in postcodesData.result) ||
-    !("longitude" in postcodesData.result) ||
-    !postcodesData.result.postcode ||
-    !postcodesData.result.latitude ||
-    !postcodesData.result.longitude
-  ) {
-    throw new Error(
-      `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`,
+
+  // Check if we have a prefetched result
+  let postcodeData = prefetchedPostcodes?.results.get(postcode);
+
+  // If not prefetched, make individual API call
+  if (!postcodeData) {
+    const postcodesResponse = await fetch(
+      `https://api.postcodes.io/postcodes/${postcode}`,
     );
+    if (!postcodesResponse.ok) {
+      const text = (await postcodesResponse.text()) || "Unknown error";
+      throw new Error(
+        `Failed postcodes.io request: ${postcodesResponse.status}, ${text}`,
+      );
+    }
+    const postcodesResponseData = await postcodesResponse.json();
+    if (
+      !postcodesResponseData ||
+      !(typeof postcodesResponseData === "object") ||
+      !("result" in postcodesResponseData) ||
+      !postcodesResponseData.result ||
+      !(typeof postcodesResponseData.result === "object") ||
+      !("postcode" in postcodesResponseData.result) ||
+      !("latitude" in postcodesResponseData.result) ||
+      !("longitude" in postcodesResponseData.result) ||
+      !postcodesResponseData.result.postcode ||
+      !postcodesResponseData.result.latitude ||
+      !postcodesResponseData.result.longitude
+    ) {
+      throw new Error(
+        `Bad postcodes.io response: ${JSON.stringify(postcodesResponseData)}`,
+      );
+    }
+    postcodeData = {
+      postcode: String(postcodesResponseData.result.postcode),
+      latitude: Number(postcodesResponseData.result.latitude),
+      longitude: Number(postcodesResponseData.result.longitude),
+    };
+  }
+
+  if (!postcodeData) {
+    throw new Error(`Could not fetch postcode data for ${postcode}`);
   }
 
   const samplePoint = {
-    lat: Number(postcodesData.result.latitude),
-    lng: Number(postcodesData.result.longitude),
+    lat: Number(postcodeData.latitude),
+    lng: Number(postcodeData.longitude),
   };
 
   const geocodeResult: GeocodeResult = {
     areas: {
-      [AreaSetCode.PC]: String(postcodesData.result.postcode)
+      [AreaSetCode.PC]: String(postcodeData.postcode)
         .replace(/\s+/g, "")
         .toUpperCase(),
     },
