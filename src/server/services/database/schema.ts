@@ -136,6 +136,7 @@ export interface DataSource {
   public: boolean; // boolean, NOT NULL, DEFAULT false
   recordType: string; // text, NOT NULL, DEFAULT 'Other' (Members, People, Locations, Events, Data, Other)
   dateFormat: string; // text, NOT NULL, DEFAULT 'yyyy-MM-dd'
+  recordCount: number; // integer, NOT NULL, DEFAULT 0
   createdAt: Date; // timestamp, DEFAULT CURRENT_TIMESTAMP, NOT NULL
 
   // FOREIGN KEYS:

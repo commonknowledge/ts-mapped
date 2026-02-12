@@ -77,6 +77,7 @@ const importDataSource = async (args: object | null): Promise<boolean> => {
 
     await updateDataSource(dataSource.id, {
       columnDefs: columnDefsAccumulator,
+      recordCount: count,
     });
 
     pubsub.publish("dataSourceEvent", {
