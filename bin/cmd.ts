@@ -1,19 +1,14 @@
 import { Command } from "commander";
 import { SignJWT } from "jose";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
-import importConstituencies from "@/server/commands/importConstituencies";
-import importCountries from "@/server/commands/importCountries";
-import importLADs from "@/server/commands/importLADs";
-import importMSOAs from "@/server/commands/importMSOAs";
-import importOutputAreas from "@/server/commands/importOutputAreas";
+import importAreaSet from "@/server/commands/importAreaSet";
 import importPostcodes from "@/server/commands/importPostcodes";
-import importRegions from "@/server/commands/importRegions";
-import importWards from "@/server/commands/importWards";
 import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import Invite from "@/server/emails/invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
+import { AreaSetCode } from "@/server/models/AreaSet";
 import { createInvitation } from "@/server/repositories/Invitation";
 import {
   findOrganisationByName,
@@ -65,35 +60,49 @@ program
   .command("importConstituencies")
   .description("Import Westminster Constituencies")
   .action(async () => {
-    await importConstituencies();
+    await importAreaSet(AreaSetCode.WMC24);
   });
 
 program
   .command("importLADs")
   .description("Import Local Area Districts")
   .action(async () => {
-    await importLADs();
+    await importAreaSet(AreaSetCode.LAD25);
   });
 
 program
   .command("importWards")
   .description("Import UK Wards")
   .action(async () => {
-    await importWards();
+    await importAreaSet(AreaSetCode.W25);
   });
 
 program
   .command("importRegions")
   .description("Import English Regions & Nations")
   .action(async () => {
-    await importRegions();
+    await importAreaSet(AreaSetCode.UKR18);
   });
 
 program
   .command("importCountries")
   .description("Import UK Countries")
   .action(async () => {
-    await importCountries();
+    await importAreaSet(AreaSetCode.UKC24);
+  });
+
+program
+  .command("importCounties")
+  .description("Import Counties")
+  .action(async () => {
+    await importAreaSet(AreaSetCode.CTYUA24);
+  });
+
+program
+  .command("importCombinedAuthorities")
+  .description("Import Combined Authorities")
+  .action(async () => {
+    await importAreaSet(AreaSetCode.CAUTH25);
   });
 
 program
@@ -104,17 +113,24 @@ program
   });
 
 program
+  .command("importLSOAs")
+  .description("Import LSOAs")
+  .action(async () => {
+    await importAreaSet(AreaSetCode.LSOA21);
+  });
+
+program
   .command("importMSOAs")
   .description("Import MSOAs")
   .action(async () => {
-    await importMSOAs();
+    await importAreaSet(AreaSetCode.MSOA21);
   });
 
 program
   .command("importOutputAreas")
   .description("Import English Output Areas")
   .action(async () => {
-    await importOutputAreas();
+    await importAreaSet(AreaSetCode.OA21);
   });
 
 program

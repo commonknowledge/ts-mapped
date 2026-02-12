@@ -45,6 +45,19 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
+  CAUTH25: [
+    {
+      areaSetCode: AreaSetCode.CAUTH25,
+      minZoom: 2,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "CAUTH25CD",
+        featureNameProperty: "CAUTH25NM",
+        layerId: "combined_authorities",
+        sourceId: "commonknowledge.4zw669r1",
+      },
+    },
+  ],
   WMC24: [
     {
       areaSetCode: AreaSetCode.WMC24,
@@ -62,7 +75,7 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
     {
       areaSetCode: AreaSetCode.W25,
       minZoom: 6,
-      requiresBoundingBox: true,
+      requiresBoundingBox: false,
       mapbox: {
         featureCodeProperty: "WD25CD",
         featureNameProperty: "WD25NM",
@@ -95,7 +108,56 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
-  OA21: [
+  CTYUA24: [
+    {
+      areaSetCode: AreaSetCode.CTYUA24,
+      minZoom: 2,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "CTYUA24CD",
+        featureNameProperty: "CTYUA24NM",
+        layerId: "counties",
+        sourceId: "commonknowledge.5s67wwy7",
+      },
+    },
+  ],
+  LSOA21: [
+    {
+      areaSetCode: AreaSetCode.OA21,
+      minZoom: 10,
+      requiresBoundingBox: true,
+      mapbox: {
+        featureCodeProperty: "OA21CD",
+        featureNameProperty: "OA21CD",
+        layerId: "output_areas_latlng-8qk00p",
+        sourceId: "commonknowledge.3pgj1hgo",
+      },
+    },
+    {
+      areaSetCode: AreaSetCode.LSOA21,
+      minZoom: 8,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "LSOA21CD",
+        featureNameProperty: "LSOA21NM",
+        layerId: "Lower_layer_Super_Output_Area-4f3tc0",
+        sourceId: "commonknowledge.6zdkm90w",
+      },
+    },
+    {
+      areaSetCode: AreaSetCode.MSOA21,
+      minZoom: 2,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "MSOA21CD",
+        featureNameProperty: "MSOA21NM",
+        layerId:
+          "Middle_layer_Super_Output_Areas_December_2021_Boundaries_EW_BGC",
+        sourceId: "commonknowledge.bjml5p4d",
+      },
+    },
+  ],
+  MSOA21: [
     {
       areaSetCode: AreaSetCode.OA21,
       minZoom: 10,

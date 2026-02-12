@@ -19,19 +19,25 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   WMC24: "Westminster Constituency (2024)",
   LAD25: "Local Authority District (2025)",
   W25: "Ward (2025)",
+  LSOA21: "Lower Super Output Area (2021)",
   MSOA21: "Middle Super Output Area (2021)",
   OA21: "Census Output Area (2021)",
+  CTYUA24: "County (2024)",
+  CAUTH25: "Combined Authority (2025)",
   UKR18: "UK Region (2018)",
   UKC24: "UK Country (2024)",
 };
 
 export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
-  WMC24: "Westminster Constituency (2024)",
-  LAD25: "Local Authority District (2025)",
-  W25: "Local Authority District -> Ward (2025)",
-  OA21: "MSOA -> Census Output Area (2021)",
-  UKR18: "UK Region (2018)",
-  UKC24: "UK Country (2024)",
+  WMC24: "Westminster Constituency",
+  CTYUA24: "County",
+  LAD25: "Local Authority District",
+  W25: "Local Authority District -> Ward",
+  MSOA21: "MSOA -> Census Output Area",
+  LSOA21: "MSOA -> LSOA -> Census Output Area",
+  CAUTH25: "Combined Authority",
+  UKR18: "UK Region",
+  UKC24: "UK Country",
 };
 
 type DataSourceConfigKey =
