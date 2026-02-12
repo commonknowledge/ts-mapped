@@ -8,7 +8,6 @@ import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import Invite from "@/server/emails/invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
-import { AreaSetCode } from "@/server/models/AreaSet";
 import { createInvitation } from "@/server/repositories/Invitation";
 import {
   findOrganisationByName,
@@ -57,80 +56,10 @@ program
   });
 
 program
-  .command("importConstituencies")
-  .description("Import Westminster Constituencies")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.WMC24);
-  });
-
-program
-  .command("importLADs")
-  .description("Import Local Area Districts")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.LAD25);
-  });
-
-program
-  .command("importWards")
-  .description("Import UK Wards")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.W25);
-  });
-
-program
-  .command("importRegions")
-  .description("Import English Regions & Nations")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.UKR18);
-  });
-
-program
-  .command("importCountries")
-  .description("Import UK Countries")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.UKC24);
-  });
-
-program
-  .command("importCounties")
-  .description("Import Counties")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.CTYUA24);
-  });
-
-program
-  .command("importCombinedAuthorities")
-  .description("Import Combined Authorities")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.CAUTH25);
-  });
-
-program
-  .command("importDataSource <dataSourceId>")
-  .description("Import a data source by its ID")
-  .action(async (dataSourceId) => {
-    await importDataSource({ dataSourceId });
-  });
-
-program
-  .command("importLSOAs")
-  .description("Import LSOAs")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.LSOA21);
-  });
-
-program
-  .command("importMSOAs")
-  .description("Import MSOAs")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.MSOA21);
-  });
-
-program
-  .command("importOutputAreas")
-  .description("Import English Output Areas")
-  .action(async () => {
-    await importAreaSet(AreaSetCode.OA21);
+  .command("importAreaSet <areaSetCode>")
+  .description("Import Area Set by code")
+  .action(async (areaSetCode) => {
+    await importAreaSet(areaSetCode);
   });
 
 program
@@ -138,6 +67,13 @@ program
   .description("Import Postcodes")
   .action(async () => {
     await importPostcodes();
+  });
+
+program
+  .command("importDataSource <dataSourceId>")
+  .description("Import a data source by its ID")
+  .action(async (dataSourceId) => {
+    await importDataSource({ dataSourceId });
   });
 
 program

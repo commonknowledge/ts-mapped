@@ -103,4 +103,22 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
     codeKey: "CAUTH25CD",
     nameKey: "CAUTH25NM",
   },
+  {
+    code: AreaSetCode.SPC22,
+    name: "Scottish Parliament Constituencies 2022",
+    filename: "sp_constituencies.geojson",
+    link: "https://www.data.gov.uk/dataset/58363e4f-c65f-4f19-bc3b-b07d04520804/scottish-parliamentary-constituencies-december-2022-boundaries-sc-bgc",
+    isNationalGridSRID: true,
+    codeKey: "SPC22CD",
+    nameKey: "SPC22NM",
+  },
+  {
+    code: AreaSetCode.SENC22,
+    name: "Senedd Constituencies 2022",
+    filename: "senedd_constituencies.geojson",
+    link: "https://www.data.gov.uk/dataset/b15cb929-0c68-411e-bd1e-2be98fbe2625/senedd-cymru-constituencies-december-2022-boundaries-wa-bgc",
+    isNationalGridSRID: true,
+    codeKey: "SENC22CD",
+    nameKey: "SENC22NM",
+  },
 ];

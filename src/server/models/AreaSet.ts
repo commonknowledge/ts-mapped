@@ -13,6 +13,8 @@ export enum AreaSetCode {
   UKC24 = "UKC24",
   CTYUA24 = "CTYUA24",
   CAUTH25 = "CAUTH25",
+  SPC22 = "SPC22",
+  SENC22 = "SENC22",
 }
 export const areaSetCodes = Object.values(AreaSetCode);
 
@@ -28,6 +30,8 @@ export enum AreaSetGroupCode {
   CAUTH25 = "CAUTH25",
   UKR18 = "UKR18",
   UKC24 = "UKC24",
+  SPC22 = "SPC22",
+  SENC22 = "SENC22",
 }
 export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
 
@@ -41,6 +45,8 @@ export const AreaSetSizes: Record<AreaSetCode, number> = {
   [AreaSetCode.W25]: 3,
   [AreaSetCode.LAD25]: 4,
   [AreaSetCode.WMC24]: 4,
+  [AreaSetCode.SPC22]: 4,
+  [AreaSetCode.SENC22]: 4,
   [AreaSetCode.CTYUA24]: 6,
   [AreaSetCode.CAUTH25]: 6,
   [AreaSetCode.UKR18]: 8,

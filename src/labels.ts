@@ -26,6 +26,8 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   CAUTH25: "Combined Authority (2025)",
   UKR18: "UK Region (2018)",
   UKC24: "UK Country (2024)",
+  SPC22: "Scottish Parliament Constituency (2022)",
+  SENC22: "Senedd Constituency (2022)",
 };
 
 export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
@@ -38,6 +40,8 @@ export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
   CAUTH25: "Combined Authority",
   UKR18: "UK Region",
   UKC24: "UK Country",
+  SPC22: "Scottish Parliament Constituency",
+  SENC22: "Senedd Constituency",
 };
 
 type DataSourceConfigKey =
