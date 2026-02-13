@@ -54,6 +54,8 @@ export default function ConfigurationForm({
 
   const [isPublic, setIsPublic] = useState(dataSource.public);
 
+  const [naIsNull, setNaIsNull] = useState(dataSource.naIsNull || false);
+
   // Form state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -108,6 +110,7 @@ export default function ConfigurationForm({
       autoImport,
       dateFormat,
       public: isPublic,
+      naIsNull,
     });
   };
 
@@ -181,6 +184,14 @@ export default function ConfigurationForm({
           )}
         </>
       )}
+
+      <FormFieldWrapper
+        label='Interpret "NA" values as blank'
+        hint='Some data export tools (e.g. Pandas) export blank values as "NA".'
+        isHorizontal
+      >
+        <Switch checked={naIsNull} onCheckedChange={(v) => setNaIsNull(v)} />
+      </FormFieldWrapper>
 
       <FormFieldWrapper
         label="Share this data with the Movement Data Library"
