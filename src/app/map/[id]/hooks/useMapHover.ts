@@ -103,12 +103,12 @@ export function useMapHoverEffect({
         return;
       }
 
-      if (handleHoverTurf(e)) {
-        clearAreaHover();
+      if (handleHoverArea(e)) {
         return;
       }
 
-      if (handleHoverArea(e)) {
+      if (handleHoverTurf(e)) {
+        clearAreaHover();
         return;
       }
 

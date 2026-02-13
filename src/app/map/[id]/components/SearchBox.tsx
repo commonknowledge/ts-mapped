@@ -75,7 +75,10 @@ export function SearchBox() {
         center: mapSearchResult.geometry.coordinates as [number, number],
         zoom: 12,
       });
-    } else if (mapSearchResult.geometry.type === "Polygon" || mapSearchResult.geometry.type === "MultiPolygon") {
+    } else if (
+      mapSearchResult.geometry.type === "Polygon" ||
+      mapSearchResult.geometry.type === "MultiPolygon"
+    ) {
       // Fit bounds to the polygon
       const [minLng, minLat, maxLng, maxLat] = turf.bbox(mapSearchResult);
       map.fitBounds(

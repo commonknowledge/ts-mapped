@@ -13,6 +13,7 @@ import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
 import { useDraw } from "../hooks/useDraw";
+import { useInspector } from "../hooks/useInspector";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
@@ -64,6 +65,7 @@ export default function Map({
   const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
+  const { resetInspector, setSelectedTurf, selectedTurf } = useInspector();
 
   const [draw, setDraw] = useDraw();
   const [currentMode, setCurrentMode] = useState<string | null>("");
@@ -294,30 +296,57 @@ export default function Map({
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle={`mapbox://styles/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
-        onDblClick={(e) => {
-          if (
-            draw &&
-            currentMode !== "draw_polygon" &&
-            currentMode !== "direct_select" &&
-            !pinDropMode
-          ) {
-            const polygonFeature = getClickedPolygonFeature(draw, e);
-
-            if (polygonFeature) {
-              // enter edit mode
-              (draw.changeMode as (mode: string, options?: object) => void)(
-                "direct_select",
-                {
-                  featureId: polygonFeature.id,
-                },
-              );
-              setCurrentMode("direct_select");
-
-              // Prevent default map zoom on double-click
-              e.preventDefault();
-              return;
-            }
+        onClick={(e) => {
+          // Prevent default turf single-click behavior
+          // Code kept here to colocate with turf double click behavior below
+          if (!draw || pinDropMode) {
+            return;
           }
+
+          const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (polygonFeature?.properties?.id) {
+            draw.changeMode("simple_select");
+          }
+        }}
+        onDblClick={(e) => {
+          if (!draw || pinDropMode) {
+            return;
+          }
+
+          const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (!polygonFeature) {
+            return;
+          }
+
+          // Prevent default map zoom on double-click turf
+          e.preventDefault();
+
+          // If this turf is already selected, go into edit mode
+          if (
+            selectedTurf &&
+            polygonFeature.properties?.id === selectedTurf.id
+          ) {
+            // enter edit mode
+            (draw.changeMode as (mode: string, options?: object) => void)(
+              "direct_select",
+              {
+                featureId: polygonFeature.id,
+              },
+            );
+            setCurrentMode("direct_select");
+            return;
+          }
+
+          // If this turf was not already selected, display it in the inspector
+          resetInspector();
+          setSelectedTurf({
+            id: polygonFeature.properties?.id,
+            name: polygonFeature.properties?.label,
+            geometry: polygonFeature.geometry as Polygon,
+          });
+          // prevent edit mode
+          draw.changeMode("simple_select");
+          setCurrentMode("simple_select");
         }}
         onLoad={() => {
           const map = mapRef?.current;

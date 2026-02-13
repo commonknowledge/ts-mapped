@@ -13,7 +13,10 @@ export const multiPolygonSchema = z.object({
   coordinates: z.array(z.array(z.array(z.array(z.number())))),
 });
 
-export const polygonOrMultiPolygonSchema = z.union([polygonSchema, multiPolygonSchema]);
+export const polygonOrMultiPolygonSchema = z.union([
+  polygonSchema,
+  multiPolygonSchema,
+]);
 
 export type Polygon = z.infer<typeof polygonSchema>;
 export type MultiPolygon = z.infer<typeof multiPolygonSchema>;

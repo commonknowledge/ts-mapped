@@ -82,7 +82,9 @@ function mapMultiPolygon(multiPolygon: MultiPolygon): string {
     .map((polygon) => {
       const rings = polygon
         .map((ring) => {
-          const coords = ring.map((coord) => `${coord[0]} ${coord[1]}`).join(", ");
+          const coords = ring
+            .map((coord) => `${coord[0]} ${coord[1]}`)
+            .join(", ");
           return `(${coords})`;
         })
         .join(", ");

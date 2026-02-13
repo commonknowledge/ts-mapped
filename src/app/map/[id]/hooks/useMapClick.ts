@@ -234,7 +234,7 @@ export function useMapClickEffect({
 
         if (polygonFeature) {
           // Prevent turf becoming draggable
-          draw.changeMode("simple_select", { featureIds: [] });
+          draw.changeMode("simple_select");
 
           resetInspector();
           setSelectedTurf({
@@ -380,11 +380,11 @@ export function useMapClickEffect({
         return;
       }
 
-      if (handleTurfClick(e)) {
+      if (handleAreaClick(e)) {
         return;
       }
 
-      if (handleAreaClick(e)) {
+      if (handleTurfClick(e)) {
         return;
       }
 

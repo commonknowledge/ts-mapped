@@ -38,7 +38,9 @@ export default function SearchResultMarker() {
 
   if (!mapSearchResult || !center) return <></>;
 
-  const isPolygon = mapSearchResult.geometry.type === "Polygon" || mapSearchResult.geometry.type === "MultiPolygon";
+  const isPolygon =
+    mapSearchResult.geometry.type === "Polygon" ||
+    mapSearchResult.geometry.type === "MultiPolygon";
 
   return (
     <>
@@ -82,14 +84,17 @@ export default function SearchResultMarker() {
             if (isPolygon) {
               // Add as turf/area
               if (!mapSearchResult) return;
-              
-              const areaName = mapSearchResult.properties?.name || "Unknown Area";
+
+              const areaName =
+                mapSearchResult.properties?.name || "Unknown Area";
               const areaSetName = mapSearchResult.properties?.areaSetName;
-              const fullLabel = areaSetName ? `${areaName} (${areaSetName})` : areaName;
-              
+              const fullLabel = areaSetName
+                ? `${areaName} (${areaSetName})`
+                : areaName;
+
               // Calculate area in square meters
               const area = 0; // Will be calculated by backend
-              
+
               insertTurf({
                 id: uuidv4(),
                 label: fullLabel,
@@ -97,7 +102,7 @@ export default function SearchResultMarker() {
                 area,
                 polygon: mapSearchResult.geometry as PolygonOrMultiPolygon,
               });
-              
+
               setMapSearchResult(null);
               toast.success("Area added!");
             } else {
@@ -111,7 +116,11 @@ export default function SearchResultMarker() {
           <span className="font-sans inline-flex items-center gap-[0.5em] text-sm">
             Add to your
             <span className="inline-flex items-center gap-[0.3em] font-semibold">
-              <MarkerIcon color={isPolygon ? mapColors.areas.color : mapColors.markers.color} />
+              <MarkerIcon
+                color={
+                  isPolygon ? mapColors.areas.color : mapColors.markers.color
+                }
+              />
               {isPolygon ? "Areas" : "Markers"}
             </span>
           </span>
@@ -123,14 +132,13 @@ export default function SearchResultMarker() {
 
 const MarkerIcon = ({ color }: { color: string }) => {
   return (
-    <div
-      className="w-2 h-2 rounded-full"
-      style={{ background: color }}
-    ></div>
+    <div className="w-2 h-2 rounded-full" style={{ background: color }}></div>
   );
 };
 
-const getFeatureCenter = (feature: Feature | null | undefined): [number, number] | null => {
+const getFeatureCenter = (
+  feature: Feature | null | undefined,
+): [number, number] | null => {
   if (!feature) {
     return null;
   }
