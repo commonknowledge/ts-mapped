@@ -23,11 +23,11 @@ export const areaRouter = router({
   search: protectedProcedure
     .input(
       z.object({
-        query: z.string().min(1),
+        search: z.string().min(1),
       }),
     )
-    .query(({ input: { query } }) => {
-      return searchAreas(query);
+    .query(({ input: { search } }) => {
+      return searchAreas(search);
     }),
   stats: dataSourceReadProcedure
     .input(

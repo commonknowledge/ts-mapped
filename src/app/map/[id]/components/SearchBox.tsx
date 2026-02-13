@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import * as turf from "@turf/turf";
 import { MapIcon, MapPinIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -13,8 +14,10 @@ import {
   CommandItem,
   CommandList,
 } from "@/shadcn/ui/command";
+import { useMapRef } from "../hooks/useMapCore";
 import { usePlacedMarkerState } from "../hooks/usePlacedMarkers";
 import styles from "./SearchBox.module.css";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Point } from "geojson";
 
 const mapboxFeatureSchema = z.object({
@@ -50,35 +53,9 @@ const mapboxResponseSchema = z.object({
 
 type MapboxFeature = z.infer<typeof mapboxFeatureSchema>;
 
-// Helper function to calculate center of a polygon/multipolygon
-function calculateCenter(geography: {
-  type: string;
-  coordinates: number[][][] | number[][][][];
-}): [number, number] {
-  if (geography.type === "Polygon") {
-    const coords = geography.coordinates as number[][][];
-    const ring = coords[0] as [number, number][];
-    const center = ring.reduce(
-      (acc, coord) =>
-        [acc[0] + coord[0], acc[1] + coord[1]] as [number, number],
-      [0, 0] as [number, number],
-    );
-    return [center[0] / ring.length, center[1] / ring.length];
-  } else if (geography.type === "MultiPolygon") {
-    const coords = geography.coordinates as number[][][][];
-    const firstPolygon = coords[0][0] as [number, number][];
-    const center = firstPolygon.reduce(
-      (acc, coord) =>
-        [acc[0] + coord[0], acc[1] + coord[1]] as [number, number],
-      [0, 0] as [number, number],
-    );
-    return [center[0] / firstPolygon.length, center[1] / firstPolygon.length];
-  }
-  return [0, 0];
-}
-
 export function SearchBox() {
-  const { setSearchMarker } = usePlacedMarkerState();
+  const mapRef = useMapRef();
+  const { mapSearchResult, setMapSearchResult } = usePlacedMarkerState();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -87,6 +64,33 @@ export function SearchBox() {
   const [mapboxResults, setMapboxResults] = useState<MapboxFeature[]>([]);
   const [loading, setLoading] = useState(false);
   const [isMac, setIsMac] = useState(false);
+
+  // Zoom to search result when it's set
+  useEffect(() => {
+    const map = mapRef?.current;
+    if (!map || !mapSearchResult) return;
+
+    if (mapSearchResult.geometry.type === "Point") {
+      map.flyTo({
+        center: mapSearchResult.geometry.coordinates as [number, number],
+        zoom: 12,
+      });
+    } else if (mapSearchResult.geometry.type === "Polygon" || mapSearchResult.geometry.type === "MultiPolygon") {
+      // Fit bounds to the polygon
+      const [minLng, minLat, maxLng, maxLat] = turf.bbox(mapSearchResult);
+      map.fitBounds(
+        [
+          [minLng, minLat],
+          [maxLng, maxLat],
+        ],
+        {
+          padding: 50,
+          maxZoom: 12,
+          duration: 1000,
+        },
+      );
+    }
+  }, [mapRef, mapSearchResult]);
 
   // Debounce search input
   useEffect(() => {
@@ -105,7 +109,7 @@ export function SearchBox() {
   // Search areas using tRPC
   const { data: areaResults = [] } = useQuery(
     trpc.area.search.queryOptions(
-      { query: debouncedSearch },
+      { search: debouncedSearch },
       { enabled: debouncedSearch.length >= 2 },
     ),
   );
@@ -156,8 +160,8 @@ export function SearchBox() {
   }, [debouncedSearch]);
 
   const handleSelectMapbox = (feature: MapboxFeature) => {
-    // Convert Mapbox feature to the format expected by setSearchMarker
-    setSearchMarker({
+    // Convert Mapbox feature to the format expected by setMapSearchResult
+    setMapSearchResult({
       id: feature.id,
       type: "Feature",
       geometry: feature.geometry as Point,
@@ -176,34 +180,21 @@ export function SearchBox() {
   };
 
   const handleSelectArea = async (area: (typeof areaResults)[number]) => {
-    // Fetch the full area data with geometry using the byCode endpoint
     const areaWithGeometry = await queryClient.fetchQuery(
       trpc.area.byCode.queryOptions({
         code: area.code,
-        areaSetCode: area.areaSetCode as never,
+        areaSetCode: area.areaSetCode as AreaSetCode,
       }),
     );
 
     if (!areaWithGeometry) return;
 
-    // Calculate center point from geometry
-    const center = calculateCenter(areaWithGeometry.geography);
-
-    setSearchMarker({
+    setMapSearchResult({
       id: `area-${area.id}`,
       type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: center,
-      } as Point,
+      geometry: areaWithGeometry.geography,
       properties: {
-        name: area.name,
-        full_address: `${area.name} (${area.areaSetName})`,
-        place_formatted: `${area.name} - ${area.code}`,
-        coordinates: {
-          longitude: center[0],
-          latitude: center[1],
-        },
+        ...area,
       },
     });
     setOpen(false);

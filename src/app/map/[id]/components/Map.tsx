@@ -234,6 +234,7 @@ export default function Map({
             top: isMobile ? 0 : 100,
             bottom: isMobile ? 0 : 100,
           },
+          maxZoom: 12,
           duration: 1000,
         },
       );
@@ -294,7 +295,12 @@ export default function Map({
         mapStyle={`mapbox://styles/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
         onDblClick={(e) => {
-          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
+          if (
+            draw &&
+            currentMode !== "draw_polygon" &&
+            currentMode !== "direct_select" &&
+            !pinDropMode
+          ) {
             const polygonFeature = getClickedPolygonFeature(draw, e);
 
             if (polygonFeature) {
@@ -305,6 +311,7 @@ export default function Map({
                   featureId: polygonFeature.id,
                 },
               );
+              setCurrentMode("direct_select");
 
               // Prevent default map zoom on double-click
               e.preventDefault();

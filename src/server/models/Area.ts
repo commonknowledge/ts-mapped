@@ -51,11 +51,10 @@ export type AreaUpdate = Updateable<AreaTable>;
 
 export interface AreaSearchTable {
   id: GeneratedAlways<number>;
-  areaId: GeneratedAlways<number>;
+  code: GeneratedAlways<string>;
+  name: GeneratedAlways<string>;
   areaSetId: GeneratedAlways<number>;
-  areaName: GeneratedAlways<number>;
-  areaCode: GeneratedAlways<number>;
-  areaSetName: GeneratedAlways<number>;
-  areaSetCode: GeneratedAlways<number>;
+  areaSetName: GeneratedAlways<string>;
+  areaSetCode: GeneratedAlways<string>;
   searchText: GeneratedAlways<string>;
 }

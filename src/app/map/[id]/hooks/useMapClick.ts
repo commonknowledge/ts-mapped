@@ -224,10 +224,18 @@ export function useMapClickEffect({
 
     const handleTurfClick = (e: mapboxgl.MapMouseEvent): boolean => {
       if (draw) {
+        // Don't handle turf clicks when in direct_select (edit) mode
+        // This prevents interference with double-click editing
+        if (currentModeRef.current === "direct_select") {
+          return false;
+        }
+
         const polygonFeature = getClickedPolygonFeature(draw, e);
 
         if (polygonFeature) {
+          // Prevent turf becoming draggable
           draw.changeMode("simple_select", { featureIds: [] });
+
           resetInspector();
           setSelectedTurf({
             id: polygonFeature.properties?.id,
