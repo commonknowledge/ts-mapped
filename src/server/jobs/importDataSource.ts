@@ -109,9 +109,10 @@ export const importBatch = async (
   dataSource: DataSource,
   columnDefsAccumulator: ColumnDef[],
 ) => {
+  const naIsNull = Boolean(dataSource.naIsNull);
   const updatedRecords = await Promise.all(
     batch.map(async (record) => {
-      const { columnDefs, typedJson } = typeJson(record.json);
+      const { columnDefs, typedJson } = typeJson(record.json, naIsNull);
       addColumnDefs(columnDefsAccumulator, columnDefs);
       const geocodeResult = await geocodeRecord(
         record,
@@ -132,15 +133,19 @@ export const importBatch = async (
 
 export const typeJson = (
   json: Record<string, unknown>,
+  naIsNull: boolean,
 ): { columnDefs: ColumnDef[]; typedJson: Record<string, unknown> } => {
   const columnDefs: ColumnDef[] = [];
   const typedJson: Record<string, unknown> = {};
   for (const key of Object.keys(json)) {
     const value = json[key];
-    const columnType = getType(value);
+    const columnType = getType(value, naIsNull);
     let typedValue = value;
     if (columnType === ColumnType.Object) {
-      typedValue = typeJson(value as Record<string, unknown>).typedJson;
+      typedValue = typeJson(
+        value as Record<string, unknown>,
+        naIsNull,
+      ).typedJson;
     } else if (columnType === ColumnType.Number) {
       typedValue = parseNumber(value);
     } else if (columnType === ColumnType.Empty) {
@@ -152,7 +157,7 @@ export const typeJson = (
   return { columnDefs, typedJson };
 };
 
-const getType = (value: unknown): ColumnType => {
+const getType = (value: unknown, naIsNull: boolean): ColumnType => {
   /**
    * Rules:
    *
@@ -185,13 +190,18 @@ const getType = (value: unknown): ColumnType => {
   }
 
   if (typeof value === "string") {
-    const trimmedValue = cleanNumber(value);
-    if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(trimmedValue)) {
-      return ColumnType.Number;
-    }
-    if (!trimmedValue || trimmedValue === "-") {
+    if (value.trim().toLowerCase() === "na" && naIsNull) {
       return ColumnType.Empty;
     }
+
+    const numericValue = cleanNumber(value);
+    if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(numericValue)) {
+      return ColumnType.Number;
+    }
+    if (!numericValue || numericValue === "-") {
+      return ColumnType.Empty;
+    }
+
     return ColumnType.String;
   }
 

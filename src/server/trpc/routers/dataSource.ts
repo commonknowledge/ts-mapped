@@ -241,6 +241,7 @@ export const dataSourceRouter = router({
         geocodingConfig: input.geocodingConfig,
         dateFormat: input.dateFormat,
         public: input.public,
+        naIsNull: input.naIsNull,
       } as DataSourceUpdate;
 
       logger.info(
