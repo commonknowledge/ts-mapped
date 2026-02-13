@@ -142,31 +142,15 @@ export async function findAreasContaining({
 export async function searchAreas(query: string) {
   const words = query.trim().split(/\s+/);
 
-  // Build search conditions for each word
-  const conditions = words
-    .map((word) => `search_text ILIKE '%${word.replace(/'/g, "''")}%'`)
-    .join(" AND ");
+  // Query the materialized view for fast trigram-based searching
+  let queryBuilder = dbRead.selectFrom("areaSearch").selectAll().limit(50);
 
-  // Query the materialized view for fast searching
-  const result = await sql<{
-    id: number;
-    code: string;
-    name: string;
-    areaSetId: number;
-    areaSetCode: string;
-    areaSetName: string;
-  }>`
-    SELECT
-      id,
-      code,
-      name,
-      area_set_id as "areaSetId",
-      area_set_code as "areaSetCode",
-      area_set_name as "areaSetName"
-    FROM area_search
-    WHERE ${sql.raw(conditions)}
-    LIMIT 50
-  `.execute(dbRead);
+  // Apply ILIKE condition for each word to match all words in the search text
+  for (const word of words) {
+    queryBuilder = queryBuilder.where(
+      sql<boolean>`search_text ILIKE ${`%${word}%`}`,
+    );
+  }
 
-  return result.rows;
+  return queryBuilder.execute();
 }
