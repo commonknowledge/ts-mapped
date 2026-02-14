@@ -61,7 +61,6 @@ export const dataSourceRouter = router({
       .selectFrom("dataSource")
       .where("organisationId", "=", ctx.organisation.id)
       .selectAll("dataSource")
-      .groupBy("dataSource.id")
       .execute();
 
     return addImportInfo(dataSources);
