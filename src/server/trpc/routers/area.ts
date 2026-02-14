@@ -23,7 +23,7 @@ export const areaRouter = router({
   search: protectedProcedure
     .input(
       z.object({
-        search: z.string().min(1),
+        search: z.string().min(1).max(200),
       }),
     )
     .query(({ input: { search } }) => {
