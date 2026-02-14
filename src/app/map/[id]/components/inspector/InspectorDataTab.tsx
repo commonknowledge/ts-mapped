@@ -96,23 +96,25 @@ export default function InspectorDataTab({
   return (
     <div className="flex flex-col gap-4">
       {shouldUseInspectorConfig ? (
-        // Show data based on inspector config
-        boundaryData.length > 0 ? (
-          boundaryData.map((item, index) => (
-            <BoundaryDataPanel
-              key={item.config.id}
-              config={item.config}
-              dataSourceId={item.dataSourceId}
-              areaCode={item.areaCode}
-              columns={item.columns}
-              defaultExpanded={index === 0}
-            />
-          ))
-        ) : (
-          <div className="py-8 text-center text-muted-foreground">
-            <p className="text-sm">No boundary data configured</p>
-          </div>
-        )
+        <>
+          <PropertiesList properties={properties} />
+          {boundaryData.length > 0 ? (
+            boundaryData.map((item, index) => (
+              <BoundaryDataPanel
+                key={item.config.id}
+                config={item.config}
+                dataSourceId={item.dataSourceId}
+                areaCode={item.areaCode}
+                columns={item.columns}
+                defaultExpanded={index === 0}
+              />
+            ))
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              <p className="text-sm">No boundary data configured</p>
+            </div>
+          )}
+        </>
       ) : (
         // Show default data source and properties
         <>

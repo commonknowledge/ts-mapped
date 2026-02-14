@@ -321,32 +321,21 @@ export default function Map({
           // Prevent default map zoom on double-click turf
           e.preventDefault();
 
-          // If this turf is already selected, go into edit mode
-          if (
-            selectedTurf &&
-            polygonFeature.properties?.id === selectedTurf.id
-          ) {
-            // enter edit mode
-            (draw.changeMode as (mode: string, options?: object) => void)(
-              "direct_select",
-              {
-                featureId: polygonFeature.id,
-              },
-            );
-            setCurrentMode("direct_select");
-            return;
-          }
-
-          // If this turf was not already selected, display it in the inspector
-          resetInspector();
-          setSelectedTurf({
-            id: polygonFeature.properties?.id,
-            name: polygonFeature.properties?.label,
-            geometry: polygonFeature.geometry as Polygon,
-          });
-          // prevent edit mode
+          // prevent edit mode (preserved at right click / double right click)
           draw.changeMode("simple_select");
           setCurrentMode("simple_select");
+
+          // If this turf is already selected, go into edit mode
+          const polygonId = polygonFeature.properties?.id;
+          if (polygonId && polygonId !== selectedTurf?.id) {
+            // If this turf was not already selected, display it in the inspector
+            resetInspector();
+            setSelectedTurf({
+              id: polygonFeature.properties?.id,
+              name: polygonFeature.properties?.label,
+              geometry: polygonFeature.geometry as Polygon,
+            });
+          }
         }}
         onLoad={() => {
           const map = mapRef?.current;

@@ -62,8 +62,8 @@ export function useInspector() {
           type: LayerType.Boundary,
           name: selectedBoundary.name,
           properties: {
-            ["Area Code"]: selectedBoundary?.areaCode,
-            Dataset: getBoundaryDatasetName(selectedBoundary?.sourceLayerId),
+            ["Boundary Code"]: selectedBoundary?.areaCode,
+            ["Boundary set"]: getBoundaryDatasetName(selectedBoundary?.sourceLayerId),
           },
         };
       }

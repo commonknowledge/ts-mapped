@@ -1,3 +1,4 @@
+import * as turf from "@turf/turf";
 import { Plus } from "lucide-react";
 import { Layer, Marker, Popup, Source } from "react-map-gl/mapbox";
 import { toast } from "sonner";
@@ -93,7 +94,8 @@ export default function SearchResultMarker() {
                 : areaName;
 
               // Calculate area in square meters
-              const area = 0; // Will be calculated by backend
+              const calculatedArea = turf.area(mapSearchResult.geometry);
+              const area = Math.round(calculatedArea * 100) / 100;
 
               insertTurf({
                 id: uuidv4(),
