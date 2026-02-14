@@ -33,22 +33,10 @@ export async function up(db: Kysely<any>): Promise<void> {
     CREATE INDEX area_search_text_trgm_idx ON area_search 
     USING GIN (search_text gin_trgm_ops)
   `.execute(db);
-
-  // Create a function to refresh the materialized view
-  await sql`
-    CREATE OR REPLACE FUNCTION refresh_area_search()
-    RETURNS TRIGGER AS $$
-    BEGIN
-      REFRESH MATERIALIZED VIEW CONCURRENTLY area_search;
-      RETURN NULL;
-    END;
-    $$ LANGUAGE plpgsql;
-  `.execute(db);
 }
 
 // `any` is required here since migrations should be frozen in time. alternatively, keep a "snapshot" db interface.
 export async function down(db: Kysely<any>): Promise<void> {
-  await sql`DROP FUNCTION IF EXISTS refresh_area_search()`.execute(db);
   await sql`DROP INDEX IF EXISTS area_search_text_trgm_idx`.execute(db);
   await sql`DROP INDEX IF EXISTS area_search_id_idx`.execute(db);
   await sql`DROP MATERIALIZED VIEW IF EXISTS area_search`.execute(db);

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import { MapIcon, MapPinIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { useTRPC } from "@/services/trpc/react";
 import {
@@ -99,9 +100,11 @@ export function SearchBox() {
   useEffect(() => {
     if (!search || search.length < 2) {
       setDebouncedSearch("");
+      setLoading(false);
       return;
     }
 
+    setLoading(true);
     const timeoutId = setTimeout(() => {
       setDebouncedSearch(search);
     }, 300);
@@ -110,7 +113,7 @@ export function SearchBox() {
   }, [search]);
 
   // Search areas using tRPC
-  const { data: areaResults = [] } = useQuery(
+  const { data: areaResults = [], isFetching: areaSearchFetching } = useQuery(
     trpc.area.search.queryOptions(
       { search: debouncedSearch },
       { enabled: debouncedSearch.length >= 2 },
@@ -183,25 +186,33 @@ export function SearchBox() {
   };
 
   const handleSelectArea = async (area: (typeof areaResults)[number]) => {
-    const areaWithGeometry = await queryClient.fetchQuery(
-      trpc.area.byCode.queryOptions({
-        code: area.code,
-        areaSetCode: area.areaSetCode as AreaSetCode,
-      }),
-    );
+    try {
+      const areaWithGeometry = await queryClient.fetchQuery(
+        trpc.area.byCode.queryOptions({
+          code: area.code,
+          areaSetCode: area.areaSetCode as AreaSetCode,
+        }),
+      );
 
-    if (!areaWithGeometry) return;
+      if (!areaWithGeometry) {
+        toast.error("Unable to load area geometry");
+        return;
+      }
 
-    setMapSearchResult({
-      id: `area-${area.id}`,
-      type: "Feature",
-      geometry: areaWithGeometry.geography,
-      properties: {
-        ...area,
-      },
-    });
-    setOpen(false);
-    setSearch("");
+      setMapSearchResult({
+        id: `area-${area.id}`,
+        type: "Feature",
+        geometry: areaWithGeometry.geography,
+        properties: {
+          ...area,
+        },
+      });
+      setOpen(false);
+      setSearch("");
+    } catch (error) {
+      console.error("Failed to fetch area geometry:", error);
+      toast.error("Failed to load area. Please try again.");
+    }
   };
 
   return (
@@ -227,7 +238,9 @@ export function SearchBox() {
         />
         <CommandList>
           <CommandEmpty>
-            {loading ? "Searching..." : "No results found."}
+            {loading || areaSearchFetching
+              ? "Searching..."
+              : "No results found."}
           </CommandEmpty>
           {areaResults.length > 0 && (
             <CommandGroup heading="Areas">

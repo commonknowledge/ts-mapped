@@ -147,7 +147,7 @@ export async function searchAreas(query: string) {
     .selectFrom("areaSearch")
     .select(["id", "code", "name", "areaSetCode", "areaSetName"])
     .where("areaSetCode", "!=", AreaSetCode.PC)
-    .limit(50);
+    .limit(10);
 
   // Apply ILIKE condition for each word to match all words in the search text
   for (const word of words) {

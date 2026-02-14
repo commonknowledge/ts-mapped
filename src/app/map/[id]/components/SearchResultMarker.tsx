@@ -144,30 +144,8 @@ const getFeatureCenter = (
   if (!feature) {
     return null;
   }
-  switch (feature.geometry.type) {
-    case "Point":
-      return feature.geometry.coordinates as [number, number];
-    case "Polygon": {
-      const coords = feature.geometry.coordinates as number[][][];
-      const ring = coords[0] as [number, number][];
-      const center = ring.reduce(
-        (acc, coord) =>
-          [acc[0] + coord[0], acc[1] + coord[1]] as [number, number],
-        [0, 0] as [number, number],
-      );
-      return [center[0] / ring.length, center[1] / ring.length];
-    }
-    case "MultiPolygon": {
-      const coords = feature.geometry.coordinates as number[][][][];
-      const firstPolygon = coords[0][0] as [number, number][];
-      const center = firstPolygon.reduce(
-        (acc, coord) =>
-          [acc[0] + coord[0], acc[1] + coord[1]] as [number, number],
-        [0, 0] as [number, number],
-      );
-      return [center[0] / firstPolygon.length, center[1] / firstPolygon.length];
-    }
-    default:
-      return null;
-  }
+
+  // Use turf.center for accurate center calculation across all geometry types
+  const centerFeature = turf.center(feature);
+  return centerFeature.geometry.coordinates as [number, number];
 };
