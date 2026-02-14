@@ -325,10 +325,9 @@ export default function Map({
           draw.changeMode("simple_select");
           setCurrentMode("simple_select");
 
-          // If this turf is already selected, go into edit mode
+          // If this turf is not already selected, select it and display it in the inspector
           const polygonId = polygonFeature.properties?.id;
           if (polygonId && polygonId !== selectedTurf?.id) {
-            // If this turf was not already selected, display it in the inspector
             resetInspector();
             setSelectedTurf({
               id: polygonFeature.properties?.id,

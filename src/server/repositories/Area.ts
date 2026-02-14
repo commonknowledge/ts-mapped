@@ -140,7 +140,11 @@ export async function findAreasContaining({
 }
 
 export async function searchAreas(query: string) {
-  const words = query.trim().split(/\s+/);
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) {
+    return [];
+  }
+  const words = trimmedQuery.split(/\s+/).filter((word) => word.length > 0);
 
   // Query the materialized view for fast trigram-based searching
   let queryBuilder = dbRead
