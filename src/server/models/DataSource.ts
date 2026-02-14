@@ -243,6 +243,7 @@ export const dataSourceSchema = z.object({
   recordCount: z.number(),
   createdAt: z.date(),
   dateFormat: z.string(),
+  naIsNull: z.boolean().optional(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;

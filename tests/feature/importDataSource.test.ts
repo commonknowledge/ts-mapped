@@ -260,6 +260,148 @@ describe("importDataSource tests", () => {
     ]);
   });
 
+  test("importDataSource handles naIsNull=false with NA values", async () => {
+    // 1. Create test organisation
+    const org = await upsertOrganisation({
+      name: "Test naIsNull Org",
+    });
+
+    // 2. Create test data source with CSV file containing NA values
+    // When naIsNull is false (or undefined), "NA" should be treated as a string
+    // value, causing the column to have Unknown type since it contains mixed types
+    const dataSource = await createDataSource({
+      name: "Test naIsNull CSV Source",
+      autoEnrich: false,
+      autoImport: false,
+      recordType: DataSourceRecordType.Data,
+      config: {
+        type: DataSourceType.CSV,
+        url: "file://tests/resources/stats_with_na.csv",
+      },
+      columnDefs: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: {
+        type: GeocodingType.Code,
+        column: "Code",
+        areaSetCode: AreaSetCode.WMC24,
+      },
+      organisationId: org.id,
+      public: false,
+      naIsNull: false,
+    });
+
+    // 3. Call importDataSource
+    await importDataSource({ dataSourceId: dataSource.id });
+
+    // 4. Verify data was imported
+    const importedDataSource = await findDataSourceById(dataSource.id);
+    const columnDefs = importedDataSource?.columnDefs;
+    columnDefs?.sort((a, b) => (a.name < b.name ? -1 : 1));
+
+    // The Electorate column should be Unknown because it contains both numbers and "NA"
+    expect(columnDefs).toEqual([
+      { name: "Code", type: ColumnType.String },
+      { name: "Electorate", type: ColumnType.Unknown },
+      { name: "Name", type: ColumnType.String },
+    ]);
+
+    // 5. Verify records were imported
+    const stream = streamDataRecordsByDataSource(
+      dataSource.id,
+      { type: FilterType.MULTI },
+      "",
+    );
+    const records = [];
+    for await (const record of stream) {
+      records.push({
+        externalId: record.externalId,
+        json: record.json,
+      });
+    }
+
+    // Should have all 4 records
+    expect(records.length).toBe(4);
+
+    // Find the record with NA value
+    const recordWithNA = records.find((r) => r.json.Code === "E14001088");
+    expect(recordWithNA?.json.Electorate).toBe("NA");
+
+    // Clean up immediately to avoid unique constraint violation
+    await deleteDataSource(dataSource.id);
+  });
+
+  test("importDataSource handles naIsNull=true with NA values", async () => {
+    // 1. Create test organisation
+    const org = await upsertOrganisation({
+      name: "Test naIsNull True Org",
+    });
+
+    // 2. Create test data source with CSV file containing NA values
+    // When naIsNull is true, "NA" should be treated as empty,
+    // allowing the column to be typed as Number
+    const dataSource = await createDataSource({
+      name: "Test naIsNull True CSV Source",
+      autoEnrich: false,
+      autoImport: false,
+      recordType: DataSourceRecordType.Data,
+      config: {
+        type: DataSourceType.CSV,
+        url: "file://tests/resources/stats_with_na.csv",
+      },
+      columnDefs: [],
+      columnRoles: { nameColumns: [] },
+      enrichments: [],
+      geocodingConfig: {
+        type: GeocodingType.Code,
+        column: "Code",
+        areaSetCode: AreaSetCode.WMC24,
+      },
+      organisationId: org.id,
+      public: false,
+      naIsNull: true,
+    });
+
+    // 3. Call importDataSource
+    await importDataSource({ dataSourceId: dataSource.id });
+
+    // 4. Verify data was imported
+    const importedDataSource = await findDataSourceById(dataSource.id);
+    const columnDefs = importedDataSource?.columnDefs;
+    columnDefs?.sort((a, b) => (a.name < b.name ? -1 : 1));
+
+    // The Electorate column should be Number because "NA" is treated as empty
+    expect(columnDefs).toEqual([
+      { name: "Code", type: ColumnType.String },
+      { name: "Electorate", type: ColumnType.Number },
+      { name: "Name", type: ColumnType.String },
+    ]);
+
+    // 5. Verify records were imported
+    const stream = streamDataRecordsByDataSource(
+      dataSource.id,
+      { type: FilterType.MULTI },
+      "",
+    );
+    const records = [];
+    for await (const record of stream) {
+      records.push({
+        externalId: record.externalId,
+        json: record.json,
+      });
+    }
+
+    // Should have all 4 records
+    expect(records.length).toBe(4);
+
+    // Find the record with NA value - it should now be empty string
+    const recordWithNA = records.find((r) => r.json.Code === "E14001088");
+    expect(recordWithNA?.json.Electorate).toBe("");
+
+    // Clean up immediately
+    await deleteDataSource(dataSource.id);
+  });
+
   afterAll(async () => {
     for (const id of toRemove) {
       await deleteDataSource(id);
