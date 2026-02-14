@@ -1,7 +1,7 @@
 import { sql } from "kysely";
+import { AreaSetCode } from "@/server/models/AreaSet";
 import { db, dbRead } from "@/server/services/database";
 import type { Area } from "@/server/models/Area";
-import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Database } from "@/server/services/database";
 import type { SelectQueryBuilder } from "kysely";
 
@@ -137,4 +137,28 @@ export async function findAreasContaining({
       "areaSet.code as areaSetCode",
     ])
     .execute();
+}
+
+export async function searchAreas(query: string) {
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) {
+    return [];
+  }
+  const words = trimmedQuery.split(/\s+/).filter((word) => word.length > 0);
+
+  // Query the materialized view for fast trigram-based searching
+  let queryBuilder = dbRead
+    .selectFrom("areaSearch")
+    .select(["id", "code", "name", "areaSetCode", "areaSetName"])
+    .where("areaSetCode", "!=", AreaSetCode.PC)
+    .limit(10);
+
+  // Apply ILIKE condition for each word to match all words in the search text
+  for (const word of words) {
+    queryBuilder = queryBuilder.where(
+      sql<boolean>`search_text ILIKE ${`%${word}%`}`,
+    );
+  }
+
+  return queryBuilder.execute();
 }

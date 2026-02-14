@@ -1,25 +1,29 @@
+import * as turf from "@turf/turf";
 import { Plus } from "lucide-react";
-import { Marker, Popup } from "react-map-gl/mapbox";
+import { Layer, Marker, Popup, Source } from "react-map-gl/mapbox";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import {
   usePlacedMarkerMutations,
   usePlacedMarkerState,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
 import { mapColors } from "../styles";
+import type { PolygonOrMultiPolygon } from "@/server/models/Turf";
 import type { Feature } from "geojson";
 
 export default function SearchResultMarker() {
-  const { searchMarker, setSearchMarker } = usePlacedMarkerState();
+  const { mapSearchResult, setMapSearchResult } = usePlacedMarkerState();
   const { insertPlacedMarker } = usePlacedMarkerMutations();
+  const { insertTurf } = useTurfMutations();
 
-  const center = getFeatureCenter(searchMarker);
+  const center = getFeatureCenter(mapSearchResult);
   const label =
-    (searchMarker?.properties && searchMarker.properties["name"]) ||
+    (mapSearchResult?.properties && mapSearchResult.properties["name"]) ||
     "Unknown location";
 
   const addMarker = () => {
-    if (!searchMarker || !center) return;
+    if (!mapSearchResult || !center) return;
 
     insertPlacedMarker({
       id: uuidv4(),
@@ -29,37 +33,97 @@ export default function SearchResultMarker() {
       folderId: null,
     });
 
-    setSearchMarker(null);
+    setMapSearchResult(null);
     toast.success("Marker added!");
   };
 
-  if (!searchMarker || !center) return <></>;
+  if (!mapSearchResult || !center) return <></>;
+
+  const isPolygon =
+    mapSearchResult.geometry.type === "Polygon" ||
+    mapSearchResult.geometry.type === "MultiPolygon";
 
   return (
     <>
-      <Marker longitude={center[0]} latitude={center[1]}>
-        <MarkerIcon />
-      </Marker>
+      {isPolygon && (
+        <Source id="map-search-result" type="geojson" data={mapSearchResult}>
+          <Layer
+            id="map-search-result-fill"
+            type="fill"
+            paint={{
+              "fill-color": mapColors.areas.color,
+              "fill-opacity": 0.2,
+            }}
+          />
+          <Layer
+            id="map-search-result-line"
+            type="line"
+            paint={{
+              "line-color": mapColors.areas.textColor,
+              "line-width": 2,
+            }}
+          />
+        </Source>
+      )}
+      {!isPolygon && (
+        <Marker longitude={center[0]} latitude={center[1]}>
+          <MarkerIcon color={mapColors.markers.color} />
+        </Marker>
+      )}
       <Popup
         longitude={center[0]}
         latitude={center[1]}
         offset={8}
         closeButton={false}
-        onClose={() => setSearchMarker(null)}
+        onClose={() => setMapSearchResult(null)}
       >
         <div className="flex items-center gap-2 pb-2 border-b / font-sans font-semibold text-sm">
           {label}
         </div>
         <button
-          onClick={() => addMarker()}
+          onClick={() => {
+            if (isPolygon) {
+              // Add as turf/area
+              if (!mapSearchResult) return;
+
+              const areaName =
+                mapSearchResult.properties?.name || "Unknown Area";
+              const areaSetName = mapSearchResult.properties?.areaSetName;
+              const fullLabel = areaSetName
+                ? `${areaName} (${areaSetName})`
+                : areaName;
+
+              // Calculate area in square meters
+              const calculatedArea = turf.area(mapSearchResult.geometry);
+              const area = Math.round(calculatedArea * 100) / 100;
+
+              insertTurf({
+                id: uuidv4(),
+                label: fullLabel,
+                notes: "",
+                area,
+                polygon: mapSearchResult.geometry as PolygonOrMultiPolygon,
+              });
+
+              setMapSearchResult(null);
+              toast.success("Area added!");
+            } else {
+              // Add as marker
+              addMarker();
+            }
+          }}
           className="flex items-center gap-2 mt-2 cursor-pointer"
         >
           <Plus size={12} />
           <span className="font-sans inline-flex items-center gap-[0.5em] text-sm">
             Add to your
             <span className="inline-flex items-center gap-[0.3em] font-semibold">
-              <MarkerIcon />
-              Markers
+              <MarkerIcon
+                color={
+                  isPolygon ? mapColors.areas.color : mapColors.markers.color
+                }
+              />
+              {isPolygon ? "Areas" : "Markers"}
             </span>
           </span>
         </button>
@@ -68,23 +132,20 @@ export default function SearchResultMarker() {
   );
 }
 
-const MarkerIcon = () => {
+const MarkerIcon = ({ color }: { color: string }) => {
   return (
-    <div
-      className="w-2 h-2 rounded-full"
-      style={{ background: mapColors.markers.color }}
-    ></div>
+    <div className="w-2 h-2 rounded-full" style={{ background: color }}></div>
   );
 };
 
-const getFeatureCenter = (feature: Feature | null | undefined) => {
+const getFeatureCenter = (
+  feature: Feature | null | undefined,
+): [number, number] | null => {
   if (!feature) {
     return null;
   }
-  switch (feature.geometry.type) {
-    case "Point":
-      return feature.geometry.coordinates;
-    default:
-      return null;
-  }
+
+  // Use turf.center for accurate center calculation across all geometry types
+  const centerFeature = turf.center(feature);
+  return centerFeature.geometry.coordinates as [number, number];
 };

@@ -42,7 +42,6 @@ export const dataSourceRouter = router({
       : [];
     const dataSources = await db
       .selectFrom("dataSource")
-      .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
       .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
       .where((eb) => {
         const filter = [eb("public", "=", true)];
@@ -53,11 +52,6 @@ export const dataSourceRouter = router({
         return eb.or(filter);
       })
       .selectAll("dataSource")
-      // .distinct() is not required here because each dataRecord will only appear once
-      // as it only belongs to one dataSource, which only belongs to one organisation
-      // Count specifically data_record.id here to make use of the covering index
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
-      .groupBy("dataSource.id")
       .execute();
 
     return addImportInfo(dataSources);
@@ -65,14 +59,8 @@ export const dataSourceRouter = router({
   byOrganisation: organisationProcedure.query(async ({ ctx }) => {
     const dataSources = await db
       .selectFrom("dataSource")
-      .leftJoin("dataRecord", "dataRecord.dataSourceId", "dataSource.id")
       .where("organisationId", "=", ctx.organisation.id)
       .selectAll("dataSource")
-      // .distinct() is not required here because each dataRecord will only appear once
-      // as it only belongs to one dataSource, which only belongs to one organisation
-      // Count specifically data_record.id here to make use of the covering index
-      .select(db.fn.count("dataRecord.id").as("recordCount"))
-      .groupBy("dataSource.id")
       .execute();
 
     return addImportInfo(dataSources);
@@ -403,9 +391,7 @@ export const dataSourceRouter = router({
   }),
 });
 
-const addImportInfo = async (
-  dataSources: (DataSource & { recordCount: unknown })[],
-) => {
+const addImportInfo = async (dataSources: DataSource[]) => {
   // Get import info for all data sources
   const importInfos = await Promise.all(
     dataSources.map((dataSource) =>
@@ -415,7 +401,6 @@ const addImportInfo = async (
 
   return dataSources.map((dataSource, index) => ({
     ...dataSource,
-    recordCount: Number(dataSource.recordCount) || 0,
     importInfo: importInfos[index],
   }));
 };

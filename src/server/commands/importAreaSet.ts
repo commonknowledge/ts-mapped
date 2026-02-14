@@ -110,7 +110,13 @@ const importAreaSet = async (areaSetCode: AreaSetCode) => {
     logger.info(`Inserted area ${code}. ${percentComplete}% complete`);
   }
 
-  logger.info(`Completed import of ${metadata.name}`);
+  logger.info(
+    `Completed import of ${metadata.name}, refreshing area search index...`,
+  );
+
+  // Refresh the materialized view for area search
+  await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY area_search`.execute(db);
+  logger.info("Area search index refreshed");
 };
 
 export default importAreaSet;

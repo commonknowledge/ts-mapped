@@ -13,6 +13,7 @@ import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
 import { useDraw } from "../hooks/useDraw";
+import { useInspector } from "../hooks/useInspector";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
@@ -64,6 +65,7 @@ export default function Map({
   const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
+  const { resetInspector, setSelectedTurf, selectedTurf } = useInspector();
 
   const [draw, setDraw] = useDraw();
   const [currentMode, setCurrentMode] = useState<string | null>("");
@@ -234,6 +236,7 @@ export default function Map({
             top: isMobile ? 0 : 100,
             bottom: isMobile ? 0 : 100,
           },
+          maxZoom: 12,
           duration: 1000,
         },
       );
@@ -293,23 +296,44 @@ export default function Map({
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle={`mapbox://styles/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
+        onClick={(e) => {
+          // Prevent default turf single-click behavior
+          // Code kept here to colocate with turf double click behavior below
+          if (!draw || pinDropMode) {
+            return;
+          }
+
+          const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (polygonFeature?.properties?.id) {
+            draw.changeMode("simple_select");
+          }
+        }}
         onDblClick={(e) => {
-          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
-            const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (!draw || pinDropMode) {
+            return;
+          }
 
-            if (polygonFeature) {
-              // enter edit mode
-              (draw.changeMode as (mode: string, options?: object) => void)(
-                "direct_select",
-                {
-                  featureId: polygonFeature.id,
-                },
-              );
+          const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (!polygonFeature) {
+            return;
+          }
 
-              // Prevent default map zoom on double-click
-              e.preventDefault();
-              return;
-            }
+          // Prevent default map zoom on double-click turf
+          e.preventDefault();
+
+          // prevent edit mode (preserved at right click / double right click)
+          draw.changeMode("simple_select");
+          setCurrentMode("simple_select");
+
+          // If this turf is not already selected, select it and display it in the inspector
+          const polygonId = polygonFeature.properties?.id;
+          if (polygonId && polygonId !== selectedTurf?.id) {
+            resetInspector();
+            setSelectedTurf({
+              id: polygonFeature.properties?.id,
+              name: polygonFeature.properties?.label,
+              geometry: polygonFeature.geometry as Polygon,
+            });
           }
         }}
         onLoad={() => {

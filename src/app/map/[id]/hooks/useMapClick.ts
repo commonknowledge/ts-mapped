@@ -224,10 +224,18 @@ export function useMapClickEffect({
 
     const handleTurfClick = (e: mapboxgl.MapMouseEvent): boolean => {
       if (draw) {
+        // Don't handle turf clicks when in direct_select (edit) mode
+        // This prevents interference with double-click editing
+        if (currentModeRef.current === "direct_select") {
+          return false;
+        }
+
         const polygonFeature = getClickedPolygonFeature(draw, e);
 
         if (polygonFeature) {
-          draw.changeMode("simple_select", { featureIds: [] });
+          // Prevent turf becoming draggable
+          draw.changeMode("simple_select");
+
           resetInspector();
           setSelectedTurf({
             id: polygonFeature.properties?.id,
@@ -372,11 +380,11 @@ export function useMapClickEffect({
         return;
       }
 
-      if (handleTurfClick(e)) {
+      if (handleAreaClick(e)) {
         return;
       }
 
-      if (handleAreaClick(e)) {
+      if (handleTurfClick(e)) {
         return;
       }
 

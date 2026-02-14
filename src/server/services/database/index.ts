@@ -5,7 +5,7 @@ import logger from "../logger";
 import { JSONPlugin } from "./plugins/JSONPlugin";
 import { PointPlugin } from "./plugins/PointPlugin";
 import type { AirtableWebhookTable } from "@/server/models/AirtableWebhook";
-import type { AreaTable } from "@/server/models/Area";
+import type { AreaSearchTable, AreaTable } from "@/server/models/Area";
 import type { AreaSetTable } from "@/server/models/AreaSet";
 import type { DataRecordTable } from "@/server/models/DataRecord";
 import type { DataSourceTable } from "@/server/models/DataSource";
@@ -54,6 +54,7 @@ const readReplicaDialect = new PostgresDialect({
 export interface Database {
   airtableWebhook: AirtableWebhookTable;
   area: AreaTable;
+  areaSearch: AreaSearchTable;
   areaSet: AreaSetTable;
   dataSource: DataSourceTable;
   dataRecord: DataRecordTable;

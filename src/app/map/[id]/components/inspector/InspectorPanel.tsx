@@ -1,8 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
+import * as turf from "@turf/turf";
 import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
+import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import { useTRPC } from "@/services/trpc/react";
+import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import InspectorConfigTab from "./InspectorConfigTab";
@@ -36,6 +44,20 @@ export default function InspectorPanel({
   } = useInspector();
   const { dataSource, properties, type } = inspectorContent ?? {};
 
+  const trpc = useTRPC();
+  const { insertTurf, loading: savingTurf } = useTurfMutations();
+
+  // Fetch boundary geography when a boundary is selected
+  const { data: areaData } = useQuery(
+    trpc.area.byCode.queryOptions(
+      {
+        code: selectedBoundary?.areaCode || "",
+        areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
+      },
+      { enabled: Boolean(selectedBoundary && type === LayerType.Boundary) },
+    ),
+  );
+
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
   const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
   const hasConfig = type === LayerType.Boundary;
@@ -66,6 +88,32 @@ export default function InspectorPanel({
 
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
+  };
+
+  const handleAddToMyAreas = () => {
+    if (!areaData?.geography || !selectedBoundary) {
+      toast.error("Unable to add boundary to areas");
+      return;
+    }
+
+    try {
+      // Convert the boundary geography to a turf polygon
+      const area = turf.area(areaData.geography);
+      const roundedArea = Math.round(area * 100) / 100;
+
+      insertTurf({
+        id: uuidv4(),
+        label: selectedBoundary.name || "Boundary",
+        notes: "",
+        area: roundedArea,
+        polygon: areaData.geography,
+      });
+
+      toast.success(`Added ${selectedBoundary.name} to your areas`);
+    } catch (error) {
+      console.error("Error adding boundary to areas:", error);
+      toast.error("Failed to add boundary to areas");
+    }
   };
 
   return (
@@ -174,6 +222,18 @@ export default function InspectorPanel({
             </UnderlineTabsContent>
           )}
         </UnderlineTabs>
+        {type === LayerType.Boundary && (
+          <div className="border-t p-3">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleAddToMyAreas}
+              disabled={savingTurf || !areaData}
+            >
+              Add to my areas
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
