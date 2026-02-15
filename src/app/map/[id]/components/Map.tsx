@@ -95,7 +95,11 @@ export default function Map({
   useEffect(() => {
     if (!visibleTurfs || !draw) return;
 
-    draw.deleteAll();
+    try {
+      draw.deleteAll();
+    } catch {
+      // Ignore failure to remove existing turfs
+    }
 
     // Add existing polygons from your array
     visibleTurfs.forEach((turf) => {
@@ -483,6 +487,23 @@ export default function Map({
 
           const map = mapRef?.current?.getMap();
           if (map) {
+            // Move draw (turf) layers above choropleth layers after a style change.
+            // Only move if a draw layer is not already the topmost layer to avoid
+            // an infinite loop (moveLayer fires another styledata event).
+            if (draw) {
+              const allLayerIds =
+                map.getStyle()?.layers?.map((l) => l.id) || [];
+              const lastLayerId = allLayerIds[allLayerIds.length - 1];
+              if (lastLayerId && !lastLayerId.startsWith("gl-draw")) {
+                const drawLayerIds = allLayerIds.filter((id) =>
+                  id.startsWith("gl-draw"),
+                );
+                for (const id of drawLayerIds) {
+                  map.moveLayer(id);
+                }
+              }
+            }
+
             const layers = map.getStyle().layers;
             if (!layers) return;
 
