@@ -4,18 +4,22 @@ import { formatNumber } from "@/utils/text";
 
 export const getDisplayValue = (
   value: unknown,
-  {
-    calculationType,
-    columnType,
-    minValue,
-    maxValue,
-  }: {
-    calculationType?: CalculationType;
-    columnType?: ColumnType;
-    minValue?: number;
-    maxValue?: number;
-  },
+  config:
+    | {
+        calculationType?: CalculationType;
+        columnType?: ColumnType;
+        minValue?: number;
+        maxValue?: number;
+      }
+    | null
+    | undefined,
 ): string => {
+  if (!config) {
+    return String(value || "-");
+  }
+
+  const { calculationType, columnType, minValue, maxValue } = config;
+
   if (value === undefined || value === null || value === "") {
     return calculationType === CalculationType.Count ? "0" : "-";
   }

@@ -26,7 +26,7 @@ export function useMapHoverEffect({
     areaSetCode,
     mapbox: { sourceId, layerId, featureNameProperty },
   } = choroplethLayerConfig;
-  const hoverSourceId = `${sourceId}-hover`;
+  const interactionSourceId = `${sourceId}-interaction`;
 
   const [, setHoverArea] = useHoverArea();
   const [, setHoverMarker] = useHoverMarker();
@@ -61,7 +61,11 @@ export function useMapHoverEffect({
     const clearAreaHover = () => {
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
-          { source: hoverSourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          {
+            source: interactionSourceId,
+            sourceLayer: layerId,
+            id: hoveredFeatureId,
+          },
           { hover: false },
         );
         setHoverArea(null);
@@ -194,7 +198,7 @@ export function useMapHoverEffect({
             if (hoveredFeatureId !== undefined) {
               map.setFeatureState(
                 {
-                  source: hoverSourceId,
+                  source: interactionSourceId,
                   sourceLayer: layerId,
                   id: hoveredFeatureId,
                 },
@@ -206,7 +210,7 @@ export function useMapHoverEffect({
             hoveredFeatureId = feature.id;
             map.setFeatureState(
               {
-                source: hoverSourceId,
+                source: interactionSourceId,
                 sourceLayer: layerId,
                 id: hoveredFeatureId,
               },
@@ -237,7 +241,11 @@ export function useMapHoverEffect({
 
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
-          { source: hoverSourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          {
+            source: interactionSourceId,
+            sourceLayer: layerId,
+            id: hoveredFeatureId,
+          },
           { hover: false },
         );
         hoveredFeatureId = undefined;
@@ -261,11 +269,14 @@ export function useMapHoverEffect({
 
     return () => {
       // Clean up hover state on unmount
-      if (hoveredFeatureId !== undefined && map.getSource(hoverSourceId)) {
+      if (
+        hoveredFeatureId !== undefined &&
+        map.getSource(interactionSourceId)
+      ) {
         try {
           map.setFeatureState(
             {
-              source: hoverSourceId,
+              source: interactionSourceId,
               sourceLayer: layerId,
               id: hoveredFeatureId,
             },
@@ -293,7 +304,7 @@ export function useMapHoverEffect({
     featureNameProperty,
     areaSetCode,
     setCompareGeographiesMode,
-    hoverSourceId,
+    interactionSourceId,
   ]);
 }
 

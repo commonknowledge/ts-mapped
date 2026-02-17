@@ -28,7 +28,7 @@ export interface SelectedTurf {
 
 export interface SelectedBoundary {
   id: string;
-  areaCode: string;
+  code: string;
   areaSetCode: AreaSetCode;
   sourceLayerId: string;
   name: string;

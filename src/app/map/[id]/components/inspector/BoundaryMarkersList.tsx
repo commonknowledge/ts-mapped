@@ -31,7 +31,7 @@ export default function BoundaryMarkersList() {
   const { data: areaData, isPending: areaDataLoading } = useQuery(
     trpc.area.byCode.queryOptions(
       {
-        code: selectedBoundary?.areaCode || "",
+        code: selectedBoundary?.code || "",
         areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
       },
       { enabled: Boolean(selectedBoundary) },

@@ -11,6 +11,7 @@ import { type DataSource } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
+import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import PropertiesList from "./PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
@@ -36,6 +37,8 @@ export default function InspectorDataTab({
   const { view } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
+  const { areaToDisplay, primaryLabel, secondaryLabel } =
+    useDisplayAreaStat(selectedBoundary);
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -53,18 +56,11 @@ export default function InspectorDataTab({
     () => view?.inspectorConfig?.boundaries || [],
     [view?.inspectorConfig?.boundaries],
   );
-  const shouldUseInspectorConfig =
-    boundaryConfigs.length > 0 &&
-    type === LayerType.Boundary &&
-    boundaryConfigs.some((c) => c.columns.length);
+
+  const isBoundary = type === LayerType.Boundary;
 
   const boundaryData = useMemo(() => {
-    if (
-      !shouldUseInspectorConfig ||
-      !selectedBoundary?.areaCode ||
-      !selectedBoundary?.areaSetCode
-    )
-      return [];
+    if (!isBoundary || !selectedBoundary) return [];
 
     return boundaryConfigs.map((config) => {
       const ds = getDataSourceById(config.dataSourceId);
@@ -73,17 +69,26 @@ export default function InspectorDataTab({
         config,
         dataSource: ds,
         dataSourceId: config.dataSourceId,
-        areaCode: selectedBoundary.areaCode,
+        areaCode: selectedBoundary.code,
         areaSetCode: selectedBoundary.areaSetCode,
         columns: config.columns,
       };
     });
-  }, [
-    shouldUseInspectorConfig,
-    selectedBoundary,
-    boundaryConfigs,
-    getDataSourceById,
-  ]);
+  }, [isBoundary, selectedBoundary, boundaryConfigs, getDataSourceById]);
+
+  const boundaryProperties = useMemo(() => {
+    if (!areaToDisplay) {
+      return properties;
+    }
+    const propertiesWithData = { ...properties };
+    if (primaryLabel) {
+      propertiesWithData[primaryLabel] = areaToDisplay.primaryDisplayValue;
+    }
+    if (secondaryLabel) {
+      propertiesWithData[secondaryLabel] = areaToDisplay.secondaryDisplayValue;
+    }
+    return propertiesWithData;
+  }, [properties, areaToDisplay, primaryLabel, secondaryLabel]);
 
   const flyToMarker = () => {
     const map = mapRef?.current;
@@ -95,10 +100,10 @@ export default function InspectorDataTab({
 
   return (
     <div className="flex flex-col gap-4">
-      {shouldUseInspectorConfig ? (
+      {isBoundary ? (
         <>
-          <PropertiesList properties={properties} />
-          {boundaryData.length > 0 ? (
+          <PropertiesList properties={boundaryProperties} />
+          {boundaryData.length > 0 &&
             boundaryData.map((item, index) => (
               <BoundaryDataPanel
                 key={item.config.id}
@@ -108,12 +113,7 @@ export default function InspectorDataTab({
                 columns={item.columns}
                 defaultExpanded={index === 0}
               />
-            ))
-          ) : (
-            <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm">No boundary data configured</p>
-            </div>
-          )}
+            ))}
         </>
       ) : (
         // Show default data source and properties
