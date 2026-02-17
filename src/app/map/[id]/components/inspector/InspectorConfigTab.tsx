@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   type InspectorBoundaryConfig,
@@ -11,11 +11,10 @@ import TogglePanel from "../TogglePanel";
 import { BoundaryConfigItem } from "./BoundaryConfigItem";
 
 export default function InspectorConfigTab() {
-  const { view, viewConfig, updateView } = useMapViews();
+  const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
 
   const boundaryStatsConfig = view?.inspectorConfig?.boundaries || [];
-  const initializationAttemptedRef = useRef(false);
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -44,26 +43,6 @@ export default function InspectorConfigTab() {
     },
     [getDataSourceById, updateView, view],
   );
-
-  // Initialize boundaries with areaDataSourceId if empty
-  useEffect(() => {
-    if (!view || initializationAttemptedRef.current) return;
-
-    const hasBoundaries = boundaryStatsConfig.length > 0;
-    const hasAreaDataSource = viewConfig.areaDataSourceId;
-
-    if (!hasBoundaries && hasAreaDataSource) {
-      initializationAttemptedRef.current = true;
-      addDataSourceToConfig(viewConfig.areaDataSourceId);
-    }
-  }, [
-    view,
-    viewConfig.areaDataSourceId,
-    boundaryStatsConfig.length,
-    getDataSourceById,
-    updateView,
-    addDataSourceToConfig,
-  ]);
 
   return (
     <div className="flex flex-col">

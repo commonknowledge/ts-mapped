@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
 import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
@@ -46,12 +47,13 @@ export default function InspectorPanel({
 
   const trpc = useTRPC();
   const { insertTurf, loading: savingTurf } = useTurfMutations();
+  const { areaToDisplay } = useDisplayAreaStat(selectedBoundary);
 
   // Fetch boundary geography when a boundary is selected
   const { data: areaData } = useQuery(
     trpc.area.byCode.queryOptions(
       {
-        code: selectedBoundary?.areaCode || "",
+        code: selectedBoundary?.code || "",
         areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
       },
       { enabled: Boolean(selectedBoundary && type === LayerType.Boundary) },
@@ -136,7 +138,13 @@ export default function InspectorPanel({
         )}
       >
         <div className="flex justify-between items-center gap-4 p-3">
-          <h1 className="grow flex gap-2 / text-sm font-semibold">
+          <h1 className="grow flex gap-2 items-center / text-sm font-semibold">
+            {type === LayerType.Boundary && areaToDisplay?.backgroundColor && (
+              <span
+                className="w-4 h-4 rounded shrink-0"
+                style={{ backgroundColor: areaToDisplay.backgroundColor }}
+              />
+            )}
             {inspectorContent?.name as string}
           </h1>
           <button

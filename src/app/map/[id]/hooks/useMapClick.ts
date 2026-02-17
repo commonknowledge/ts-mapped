@@ -46,6 +46,7 @@ export function useMapClickEffect({
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
     areaSetCode,
   } = choroplethLayerConfig;
+  const interactionSourceId = `${sourceId}-interaction`;
 
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
@@ -103,7 +104,11 @@ export function useMapClickEffect({
         if (area.areaSetCode === areaSetCode) {
           try {
             map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: area.code },
+              {
+                source: interactionSourceId,
+                sourceLayer: layerId,
+                id: area.code,
+              },
               { selected: false },
             );
           } catch {
@@ -117,7 +122,11 @@ export function useMapClickEffect({
         if (area.areaSetCode === areaSetCode) {
           try {
             map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: area.code },
+              {
+                source: interactionSourceId,
+                sourceLayer: layerId,
+                id: area.code,
+              },
               { selected: true },
             );
           } catch {
@@ -147,7 +156,15 @@ export function useMapClickEffect({
     return () => {
       map.off("sourcedata", onSourceData);
     };
-  }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
+  }, [
+    selectedAreas,
+    mapRef,
+    ready,
+    sourceId,
+    layerId,
+    areaSetCode,
+    interactionSourceId,
+  ]);
 
   /* Handle clicks to set active state */
   useEffect(() => {
@@ -270,7 +287,7 @@ export function useMapClickEffect({
             // Deactivate the current area
             map.setFeatureState(
               {
-                source: sourceId,
+                source: interactionSourceId,
                 sourceLayer: layerId,
                 id: activeFeatureId.current,
               },
@@ -285,7 +302,7 @@ export function useMapClickEffect({
           if (activeFeatureId.current !== undefined) {
             map.setFeatureState(
               {
-                source: sourceId,
+                source: interactionSourceId,
                 sourceLayer: layerId,
                 id: activeFeatureId.current,
               },
@@ -296,14 +313,14 @@ export function useMapClickEffect({
           // Use areaCode as the ID for feature state (matches promoteId)
           activeFeatureId.current = areaCode;
           map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: areaCode },
+            { source: interactionSourceId, sourceLayer: layerId, id: areaCode },
             { active: true },
           );
 
           resetInspector();
           setSelectedBoundary({
             id: feature?.id as string,
-            areaCode: areaCode,
+            code: areaCode,
             areaSetCode: areaSetCode,
             sourceLayerId: feature?.sourceLayer as string,
             name: areaName,
@@ -413,6 +430,7 @@ export function useMapClickEffect({
     ready,
     setSelectedRecords,
     setSelectedAreas,
+    interactionSourceId,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
@@ -425,7 +443,7 @@ export function useMapClickEffect({
       const map = mapRef.current;
       map.setFeatureState(
         {
-          source: sourceId,
+          source: interactionSourceId,
           sourceLayer: layerId,
           id: activeFeatureId.current,
         },
@@ -433,7 +451,7 @@ export function useMapClickEffect({
       );
       activeFeatureId.current = undefined;
     }
-  }, [selectedBoundary, mapRef, sourceId, layerId]);
+  }, [selectedBoundary, mapRef, sourceId, layerId, interactionSourceId]);
 }
 
 export const getClickedPolygonFeature = (

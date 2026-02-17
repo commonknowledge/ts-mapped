@@ -23,8 +23,8 @@ export default function Choropleth() {
 
   const opacity = (viewConfig.choroplethOpacityPct ?? 80) / 100;
 
-  const hoverSourceId = `${sourceId}-hover`;
-  const hoverSourceKey = `${layerId}-hover`;
+  const interactionSourceId = `${sourceId}-interaction`;
+  const interactionSourceKey = `${layerId}-interaction`;
 
   useChoroplethFeatureStatesEffect();
 
@@ -69,49 +69,6 @@ export default function Choropleth() {
             }}
           />
 
-          {/* Line Layer - show for both boundary-only and choropleth */}
-          <Layer
-            id={`${sourceId}-line`}
-            beforeId={`${choroplethTopLayerId}-line`}
-            source={sourceId}
-            source-layer={layerId}
-            type="line"
-            paint={{
-              "line-color": [
-                "case",
-                // Blue-green for both selected and active
-                [
-                  "all",
-                  ["==", ["feature-state", "active"], true],
-                  ["==", ["feature-state", "selected"], true],
-                ],
-                "#3693B1",
-                // Blue for active (inspecting)
-                ["==", ["feature-state", "active"], true],
-                "#3b82f6",
-                // Green for selected (comparing)
-                ["==", ["feature-state", "selected"], true],
-                mapColors.geography.color,
-                "#999",
-              ],
-              "line-width": [
-                "case",
-                [
-                  "any",
-                  ["==", ["feature-state", "active"], true],
-                  ["==", ["feature-state", "selected"], true],
-                ],
-                3,
-                1,
-              ],
-              "line-opacity": 1,
-            }}
-            layout={{
-              "line-cap": "round",
-              "line-join": "round",
-            }}
-          />
-
           {/* Symbol Layer (Labels) */}
           {viewConfig.mapType !== MapType.Hex && viewConfig.showLabels && (
             <Layer
@@ -150,20 +107,62 @@ export default function Choropleth() {
           )}
         </Source>
       )}
-      {/* Separate the hover state into a separate source for much better performance */}
+      {/* Separate the selected/hover state into a separate source for much better performance */}
       {/* Mapbox is very slow at updating feature state when all features have state, e.g. in the case of a choropleth */}
       {viewConfig.areaSetGroupCode && (
         <Source
-          id={hoverSourceId}
-          key={hoverSourceKey}
+          id={interactionSourceId}
+          key={interactionSourceKey}
           promoteId={featureCodeProperty}
           type="vector"
           url={`mapbox://${sourceId}`}
         >
+          {/* Line Layer - show for both boundary-only and choropleth */}
+          <Layer
+            id={`${sourceId}-line`}
+            beforeId={`${choroplethTopLayerId}-line`}
+            source={interactionSourceId}
+            source-layer={layerId}
+            type="line"
+            paint={{
+              "line-color": [
+                "case",
+                // Blue-green for both selected and active
+                [
+                  "all",
+                  ["==", ["feature-state", "active"], true],
+                  ["==", ["feature-state", "selected"], true],
+                ],
+                "#3693B1",
+                // Blue for active (inspecting)
+                ["==", ["feature-state", "active"], true],
+                "#3b82f6",
+                // Green for selected (comparing)
+                ["==", ["feature-state", "selected"], true],
+                mapColors.geography.color,
+                "#999",
+              ],
+              "line-width": [
+                "case",
+                [
+                  "any",
+                  ["==", ["feature-state", "active"], true],
+                  ["==", ["feature-state", "selected"], true],
+                ],
+                3,
+                1,
+              ],
+              "line-opacity": 1,
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
+            }}
+          />
           <Layer
             id={`${sourceId}-hover-overlay`}
             beforeId={choroplethTopLayerId}
-            source={hoverSourceId}
+            source={interactionSourceId}
             source-layer={layerId}
             type="fill"
             paint={{
