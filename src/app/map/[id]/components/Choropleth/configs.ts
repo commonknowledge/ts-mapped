@@ -260,3 +260,23 @@ export const getChoroplethLayerConfig = ({
   }
   return CHOROPLETH_LAYER_CONFIGS["WMC24"][0];
 };
+
+export const getSecondaryAreaSetConfig = ({
+  areaSetCode,
+  mapType,
+}: {
+  areaSetCode: AreaSetCode | null | undefined;
+  mapType: MapType | null | undefined;
+}) => {
+  if (mapType === MapType.Hex) {
+    return null;
+  }
+  for (const sources of Object.values(CHOROPLETH_LAYER_CONFIGS)) {
+    for (const source of sources) {
+      if (source.areaSetCode === areaSetCode) {
+        return source;
+      }
+    }
+  }
+  return null;
+};

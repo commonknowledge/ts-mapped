@@ -1,7 +1,11 @@
 import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
-import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
+import {
+  hoverAreaAtom,
+  hoverMarkerAtom,
+  hoverSecondaryAreaAtom,
+} from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
 import {
   useCompareGeographiesModeAtom,
@@ -9,6 +13,7 @@ import {
   usePinDropMode,
 } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
+import { useSecondaryAreaSetConfig } from "./useSecondaryAreaSet";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 export function useMapHoverEffect({
@@ -22,6 +27,7 @@ export function useMapHoverEffect({
 }) {
   const mapRef = useMapRef();
   const { choroplethLayerConfig } = useChoropleth();
+  const secondaryAreaSetConfig = useSecondaryAreaSetConfig();
   const {
     areaSetCode,
     mapbox: { sourceId, layerId, featureNameProperty },
@@ -29,6 +35,7 @@ export function useMapHoverEffect({
   const interactionSourceId = `${sourceId}-interaction`;
 
   const [, setHoverArea] = useHoverArea();
+  const [, setHoverSecondaryArea] = useHoverSecondaryArea();
   const [, setHoverMarker] = useHoverMarker();
   const [compareGeographiesMode, setCompareGeographiesMode] =
     useCompareGeographiesModeAtom();
@@ -184,6 +191,33 @@ export function useMapHoverEffect({
         return false;
       }
 
+      if (secondaryAreaSetConfig) {
+        const secondaryFillLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-fill`;
+        const secondaryLineLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-line`;
+        const secondaryFeatures = map.queryRenderedFeatures(e.point, {
+          layers: [secondaryFillLayerId, secondaryLineLayerId].filter((l) =>
+            map.getLayer(l),
+          ),
+        });
+        const secondaryFeature = secondaryFeatures.length
+          ? secondaryFeatures[0]
+          : null;
+        if (secondaryFeature?.id !== undefined) {
+          setHoverSecondaryArea({
+            coordinates: [e.lngLat.lng, e.lngLat.lat],
+            areaSetCode: secondaryAreaSetConfig.areaSetCode,
+            code: String(secondaryFeature.id),
+            name: String(
+              secondaryFeature.properties?.[
+                secondaryAreaSetConfig.mapbox.featureNameProperty
+              ] || secondaryFeature.id,
+            ),
+          });
+        } else {
+          setHoverSecondaryArea(null);
+        }
+      }
+
       const features = map.queryRenderedFeatures(e.point, {
         layers: [fillLayerId, lineLayerId].filter((l) => map.getLayer(l)),
       });
@@ -305,11 +339,17 @@ export function useMapHoverEffect({
     areaSetCode,
     setCompareGeographiesMode,
     interactionSourceId,
+    secondaryAreaSetConfig,
+    setHoverSecondaryArea,
   ]);
 }
 
 export function useHoverArea() {
   return useAtom(hoverAreaAtom);
+}
+
+export function useHoverSecondaryArea() {
+  return useAtom(hoverSecondaryAreaAtom);
 }
 
 export function useHoverMarker() {
