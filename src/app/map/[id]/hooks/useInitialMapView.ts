@@ -1,9 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { DataSourceType } from "@/server/models/DataSource";
+import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
+import { useDataSources } from "./useDataSources";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import { useViewIdAtom } from "./useMapViews";
@@ -19,6 +22,7 @@ export function useInitialMapViewEffect() {
   /* Server Data */
   const mapQuery = useMapQuery(mapId);
   const { data: mapData } = mapQuery;
+  const { data: dataSources } = useDataSources();
 
   const viewsInitialized = useRef(false);
 
@@ -42,11 +46,33 @@ export function useInitialMapViewEffect() {
         mapData.views.find((v) => v.id === viewId) || mapData.views[0];
       setViewId(nextView.id);
     } else {
+      // Build dataSourceViews for ActionNetwork data sources with a default
+      // "subscribed" filter on email_subscribed_status
+      const dataSourceViews = (dataSources || [])
+        .filter((ds) => {
+          return ds.config?.type === DataSourceType.ActionNetwork;
+        })
+        .map((ds) => ({
+          sort: [],
+          filter: {
+            type: FilterType.MULTI,
+            children: [
+              {
+                type: FilterType.TEXT,
+                column: "email_subscribed_status",
+                search: "subscribed",
+              },
+            ],
+          },
+          search: "",
+          dataSourceId: ds.id,
+        }));
+
       const newView = {
         id: uuidv4(),
         name: "Default View",
         config: createNewViewConfig(),
-        dataSourceViews: [],
+        dataSourceViews,
         inspectorConfig: { boundaries: [] },
         mapId: mapId,
         position: getNewLastPosition(mapData.views),
@@ -63,7 +89,9 @@ export function useInitialMapViewEffect() {
   }, [
     viewId,
     mapData?.views,
+    mapData?.config,
     mapId,
+    dataSources,
     queryClient,
     trpc.map.byId,
     createDefaultViewMutate,

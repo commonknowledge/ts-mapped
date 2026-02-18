@@ -490,7 +490,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         record.email_addresses.find((e) => e.primary) ||
         record.email_addresses[0];
       normalized.primary_email = primaryEmail.address;
-      normalized.email_subscribed_status = primaryEmail.status;
+      normalized.email_subscribed_status = primaryEmail.status ?? "unknown";
     } else {
       normalized.email_subscribed_status = "unknown";
     }
@@ -504,7 +504,7 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       const primaryPhone =
         record.phone_numbers.find((p) => p.primary) || record.phone_numbers[0];
       normalized.primary_phone = primaryPhone.number;
-      normalized.phone_subscribed_status = primaryPhone.status;
+      normalized.phone_subscribed_status = primaryPhone.status ?? "unknown";
     } else {
       normalized.phone_subscribed_status = "unknown";
     }
