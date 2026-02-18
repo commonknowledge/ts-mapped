@@ -64,6 +64,7 @@ export function useMapHoverEffect({
     const lineLayerId = `${sourceId}-line`;
     const prevPointer = { cursor: "" };
     let hoveredFeatureId: string | number | undefined;
+    let hoveredSecondaryFeatureId: string | number | undefined;
 
     const clearAreaHover = () => {
       if (hoveredFeatureId !== undefined) {
@@ -106,7 +107,7 @@ export function useMapHoverEffect({
         map.getCanvas().style.cursor = "crosshair";
         clearAreaHover();
         setHoverMarker(null);
-        setHoverSecondaryArea(null);
+        clearSecondaryAreaHover();
         return;
       }
 
@@ -133,7 +134,7 @@ export function useMapHoverEffect({
     const onMouseLeave = () => {
       clearAreaHover();
       setHoverMarker(null);
-      setHoverSecondaryArea(null);
+      clearSecondaryAreaHover();
       if (pinDropModeRef.current || editAreaModeRef.current) {
         map.getCanvas().style.cursor = "crosshair";
       } else {
@@ -190,6 +191,13 @@ export function useMapHoverEffect({
       return false;
     };
 
+    const clearSecondaryAreaHover = () => {
+      if (hoveredSecondaryFeatureId !== undefined) {
+        setHoverSecondaryArea(null);
+        hoveredSecondaryFeatureId = undefined;
+      }
+    };
+
     const handleHoverSecondaryArea = (e: mapboxgl.MapMouseEvent): void => {
       if (secondaryAreaSetConfig) {
         const secondaryFillLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-secondary-fill`;
@@ -203,21 +211,24 @@ export function useMapHoverEffect({
           ? secondaryFeatures[0]
           : null;
         if (secondaryFeature?.id !== undefined) {
-          setHoverSecondaryArea({
-            coordinates: [e.lngLat.lng, e.lngLat.lat],
-            areaSetCode: secondaryAreaSetConfig.areaSetCode,
-            code: String(secondaryFeature.id),
-            name: String(
-              secondaryFeature.properties?.[
-                secondaryAreaSetConfig.mapbox.featureNameProperty
-              ] || secondaryFeature.id,
-            ),
-          });
+          if (hoveredSecondaryFeatureId !== secondaryFeature.id) {
+            hoveredSecondaryFeatureId = secondaryFeature.id;
+            setHoverSecondaryArea({
+              coordinates: [e.lngLat.lng, e.lngLat.lat],
+              areaSetCode: secondaryAreaSetConfig.areaSetCode,
+              code: String(secondaryFeature.id),
+              name: String(
+                secondaryFeature.properties?.[
+                  secondaryAreaSetConfig.mapbox.featureNameProperty
+                ] || secondaryFeature.id,
+              ),
+            });
+          }
         } else {
-          setHoverSecondaryArea(null);
+          clearSecondaryAreaHover();
         }
       } else {
-        setHoverSecondaryArea(null);
+        clearSecondaryAreaHover();
       }
     };
 
