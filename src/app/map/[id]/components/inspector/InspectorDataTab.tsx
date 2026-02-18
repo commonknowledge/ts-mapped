@@ -7,11 +7,13 @@ import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { AreaSetCodeLabels } from "@/labels";
 import { type DataSource } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
 import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
+import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import PropertiesList from "./PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
@@ -39,6 +41,7 @@ export default function InspectorDataTab({
   const { selectedBoundary } = useInspector();
   const { areaToDisplay, primaryLabel, secondaryLabel } =
     useDisplayAreaStat(selectedBoundary);
+  const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -87,8 +90,20 @@ export default function InspectorDataTab({
     if (secondaryLabel) {
       propertiesWithData[secondaryLabel] = areaToDisplay.secondaryDisplayValue;
     }
+    if (selectedSecondaryArea) {
+      propertiesWithData[
+        AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
+          "Secondary boundary"
+      ] = selectedSecondaryArea.name;
+    }
     return propertiesWithData;
-  }, [properties, areaToDisplay, primaryLabel, secondaryLabel]);
+  }, [
+    areaToDisplay,
+    properties,
+    primaryLabel,
+    secondaryLabel,
+    selectedSecondaryArea,
+  ]);
 
   const flyToMarker = () => {
     const map = mapRef?.current;

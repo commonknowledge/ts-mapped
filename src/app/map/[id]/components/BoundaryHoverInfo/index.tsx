@@ -33,7 +33,7 @@ export default function BoundaryHoverInfo() {
     // Add hover area only if it's not already in selected areas
     if (hoverArea) {
       const isHoverAreaSelected = selectedAreas.some(
-        (a: { code: string; areaSetCode: string }) =>
+        (a) =>
           a.code === hoverArea.code && a.areaSetCode === hoverArea.areaSetCode,
       );
       if (!isHoverAreaSelected) {

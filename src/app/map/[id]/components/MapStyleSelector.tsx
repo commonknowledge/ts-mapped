@@ -7,7 +7,7 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { NULL_UUID } from "@/constants";
 import { AreaSetCodeLabels, AreaSetGroupCodeLabels } from "@/labels";
-import { AreaSetCode, AreaSetGroupCode } from "@/server/models/AreaSet";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { type MapStyleName, MapType, mapTypes } from "@/server/models/MapView";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import {
@@ -23,6 +23,8 @@ import { cn } from "@/shadcn/utils";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
 import mapStyles from "../styles";
 import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
+import { CHOROPLETH_AREA_SET_CODES } from "./Choropleth/configs";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export default memo(function MapStyleSelector() {
   const [open, setOpen] = useState(false);
@@ -233,8 +235,10 @@ export default memo(function MapStyleSelector() {
                       <SelectValue placeholder="Choose secondary boundaries..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={NULL_UUID}>No secondary boundaries</SelectItem>
-                      {Object.values(AreaSetCode).map((code) => (
+                      <SelectItem value={NULL_UUID}>
+                        No secondary boundaries
+                      </SelectItem>
+                      {CHOROPLETH_AREA_SET_CODES.map((code) => (
                         <SelectItem key={code} value={code}>
                           {AreaSetCodeLabels[code]}
                         </SelectItem>

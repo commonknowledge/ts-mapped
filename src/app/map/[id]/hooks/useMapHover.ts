@@ -109,6 +109,8 @@ export function useMapHoverEffect({
         return;
       }
 
+      handleHoverSecondaryArea(e);
+
       if (handleHoverMarker(e)) {
         clearAreaHover();
         return;
@@ -186,11 +188,7 @@ export function useMapHoverEffect({
       return false;
     };
 
-    const handleHoverArea = (e: mapboxgl.MapMouseEvent): boolean => {
-      if (!map.getLayer(fillLayerId) && !map.getLayer(lineLayerId)) {
-        return false;
-      }
-
+    const handleHoverSecondaryArea = (e: mapboxgl.MapMouseEvent): void => {
       if (secondaryAreaSetConfig) {
         const secondaryFillLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-fill`;
         const secondaryLineLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-line`;
@@ -216,6 +214,12 @@ export function useMapHoverEffect({
         } else {
           setHoverSecondaryArea(null);
         }
+      }
+    };
+
+    const handleHoverArea = (e: mapboxgl.MapMouseEvent): boolean => {
+      if (!map.getLayer(fillLayerId) && !map.getLayer(lineLayerId)) {
+        return false;
       }
 
       const features = map.queryRenderedFeatures(e.point, {

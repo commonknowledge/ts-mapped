@@ -7,18 +7,19 @@ import { useAreaStats } from "../data";
 import { getDisplayValue } from "../utils/stats";
 import { useChoroplethDataSource } from "./useDataSources";
 import { useMapViews } from "./useMapViews";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export interface DisplayAreaStat {
   code: string;
   name: string;
-  areaSetCode: string;
+  areaSetCode: AreaSetCode;
   primaryDisplayValue: string;
   secondaryDisplayValue?: string;
   backgroundColor: string;
 }
 
 export const useDisplayAreaStats = <
-  T extends { code: string; name: string; areaSetCode: string },
+  T extends { code: string; name: string; areaSetCode: AreaSetCode },
 >(
   areas: T[],
 ) => {
@@ -93,7 +94,7 @@ export const useDisplayAreaStats = <
 };
 
 export const useDisplayAreaStat = <
-  T extends { code: string; name: string; areaSetCode: string },
+  T extends { code: string; name: string; areaSetCode: AreaSetCode },
 >(
   area: T | null | undefined,
 ) => {
