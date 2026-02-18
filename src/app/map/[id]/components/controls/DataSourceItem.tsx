@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import ColorPalette from "@/components/ColorPalette";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
@@ -31,8 +31,10 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useDataRecords } from "../../hooks/useDataRecords";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
+import { useMapViews } from "../../hooks/useMapViews";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
 import type { DataSourceType } from "@/server/models/DataSource";
@@ -56,8 +58,22 @@ export default function DataSourceItem({
 }) {
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const { view } = useMapViews();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  const dataSourceView = useMemo(
+    () =>
+      view?.dataSourceViews.find((dsv) => dsv.dataSourceId === dataSource.id),
+    [dataSource.id, view?.dataSourceViews],
+  );
+
+  const hasActiveFilter =
+    (dataSourceView?.filter?.children?.length ?? 0) > 0 ||
+    Boolean(dataSourceView?.search);
+
+  const { data: dataRecordsResult, isFetching: matchedCountLoading } =
+    useDataRecords(hasActiveFilter ? dataSource.id : "", 0);
   const [isRenaming, setIsRenaming] = useState(false);
   const [editName, setEditName] = useState(dataSource.name);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -210,7 +226,22 @@ export default function DataSourceItem({
                   )}
                   <div className="text-xs text-muted-foreground">
                     {Boolean(dataSource?.recordCount) ? (
-                      <p>{dataSource.recordCount} records</p>
+                      hasActiveFilter ? (
+                        matchedCountLoading ? (
+                          <p>
+                            <span className="animate-pulse">…</span> /{" "}
+                            {dataSource.recordCount} records
+                          </p>
+                        ) : (
+                          <p>
+                            {dataRecordsResult?.count?.matched ??
+                              dataSource.recordCount}{" "}
+                            / {dataSource.recordCount} records
+                          </p>
+                        )
+                      ) : (
+                        <p>{dataSource.recordCount} records</p>
+                      )
                     ) : (
                       <p>No records</p>
                     )}
