@@ -26,8 +26,6 @@ export default function Choropleth() {
   const interactionSourceId = `${sourceId}-interaction`;
   const interactionSourceKey = `${layerId}-interaction`;
 
-  console.log('fill color', fillColor)
-
   useChoroplethFeatureStatesEffect();
 
   return (
