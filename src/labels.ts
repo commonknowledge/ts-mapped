@@ -10,6 +10,7 @@ import type {
   csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
+  payloadCMSConfigSchema,
 } from "./server/models/DataSource";
 import type { DataSourceType } from "@/server/models/DataSource";
 import type z from "zod";
@@ -49,11 +50,14 @@ type DataSourceConfigKey =
   | keyof z.infer<typeof airtableConfigSchema>
   | keyof z.infer<typeof googleSheetsConfigSchema>
   | keyof z.infer<typeof mailchimpConfigSchema>
-  | keyof z.infer<typeof csvConfigSchema>;
+  | keyof z.infer<typeof csvConfigSchema>
+  | keyof z.infer<typeof payloadCMSConfigSchema>;
 
 export const DataSourceConfigLabels: Record<DataSourceConfigKey, string> = {
   apiKey: "API Key",
+  apiBaseUrl: "API Base URL",
   baseId: "Base ID",
+  collectionName: "Collection Name",
   listId: "List ID",
   oAuthCredentials: "OAuth Credentials",
   sheetName: "Sheet Name",
@@ -69,6 +73,7 @@ export const DataSourceTypeLabels: Record<DataSourceType, string> = {
   csv: "CSV",
   googlesheets: "Google Sheets",
   mailchimp: "Mailchimp",
+  payloadcms: "PayloadCMS",
 };
 
 export const EnrichmentSourceTypeLabels: Record<EnrichmentSourceType, string> =

@@ -7,6 +7,7 @@ import {
   csvConfigSchema,
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
+  payloadCMSConfigSchema,
 } from "@/server/models/DataSource";
 
 export const newCSVConfigSchema = csvConfigSchema.extend({
@@ -22,6 +23,7 @@ export const newDataSourceConfigSchema = z.discriminatedUnion("type", [
   mailchimpConfigSchema,
   googleSheetsConfigSchema,
   newCSVConfigSchema,
+  payloadCMSConfigSchema,
 ]);
 
 export type NewDataSourceConfig = z.infer<typeof newDataSourceConfigSchema>;
