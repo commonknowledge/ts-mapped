@@ -177,6 +177,9 @@ export default function DataSourceItem({
     setShowRemoveDialog(false);
   };
 
+  const matchedRecordCount =
+    dataRecordsResult?.count?.matched ?? dataSource.recordCount;
+
   return (
     <>
       <ControlWrapper
@@ -226,19 +229,16 @@ export default function DataSourceItem({
                   )}
                   <div className="text-xs text-muted-foreground">
                     {Boolean(dataSource?.recordCount) ? (
-                      hasActiveFilter ? (
-                        matchedCountLoading ? (
-                          <p>
-                            <span className="animate-pulse">…</span> /{" "}
-                            {dataSource.recordCount} records
-                          </p>
-                        ) : (
-                          <p>
-                            {dataRecordsResult?.count?.matched ??
-                              dataSource.recordCount}{" "}
-                            / {dataSource.recordCount} records
-                          </p>
-                        )
+                      matchedCountLoading ? (
+                        <p>
+                          <span className="animate-pulse">…</span> /{" "}
+                          {dataSource.recordCount} records
+                        </p>
+                      ) : matchedRecordCount !== dataSource.recordCount ? (
+                        <p>
+                          {matchedRecordCount} / {dataSource.recordCount}{" "}
+                          records
+                        </p>
                       ) : (
                         <p>{dataSource.recordCount} records</p>
                       )
