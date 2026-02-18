@@ -418,10 +418,22 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         created_date: z.string(),
         modified_date: z.string(),
         email_addresses: z.array(
-          z.object({ address: z.string(), primary: z.boolean() }).partial(),
+          z
+            .object({
+              address: z.string(),
+              primary: z.boolean(),
+              status: z.string(),
+            })
+            .partial(),
         ),
         phone_numbers: z.array(
-          z.object({ number: z.string(), primary: z.boolean() }).partial(),
+          z
+            .object({
+              number: z.string(),
+              primary: z.boolean(),
+              status: z.string(),
+            })
+            .partial(),
         ),
         postal_addresses: z.array(
           z.object({ postal_code: z.string(), primary: z.boolean() }).partial(),
@@ -478,6 +490,9 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         record.email_addresses.find((e) => e.primary) ||
         record.email_addresses[0];
       normalized.primary_email = primaryEmail.address;
+      normalized.email_subscribed_status = primaryEmail.status;
+    } else {
+      normalized.email_subscribed_status = "unknown";
     }
 
     // Flatten phone numbers
@@ -489,6 +504,9 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
       const primaryPhone =
         record.phone_numbers.find((p) => p.primary) || record.phone_numbers[0];
       normalized.primary_phone = primaryPhone.number;
+      normalized.phone_subscribed_status = primaryPhone.status;
+    } else {
+      normalized.phone_subscribed_status = "unknown";
     }
 
     // Always include a postcode record for better UX

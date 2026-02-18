@@ -5,11 +5,12 @@ import {
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
 import { AreaSetCode } from "../models/AreaSet";
-import type {
-  AddressGeocodingConfig,
-  AreaGeocodingConfig,
-  CoordinatesGeocodingConfig,
-  GeocodingConfig,
+import {
+  type AddressGeocodingConfig,
+  type AreaGeocodingConfig,
+  type CoordinatesGeocodingConfig,
+  type GeocodingConfig,
+  GeocodingType,
 } from "../models/DataSource";
 import type { GeocodeResult, Point } from "../models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
@@ -24,7 +25,9 @@ export const geocodeRecord = async (
   geocodingConfig: GeocodingConfig,
 ): Promise<GeocodeResult | null> => {
   try {
-    return await _geocodeRecord(dataRecord, geocodingConfig);
+    if (geocodingConfig.type !== GeocodingType.None) {
+      return await _geocodeRecord(dataRecord, geocodingConfig);
+    }
   } catch (error) {
     logger.warn(`Could not geocode record ${dataRecord.externalId}`, {
       error,
