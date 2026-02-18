@@ -226,13 +226,13 @@ export const MAPBOX_SOURCE_IDS = Object.values(CHOROPLETH_LAYER_CONFIGS)
   .flatMap((sources) => sources.map((source) => source.mapbox.sourceId))
   .concat([HEX_CHOROPLETH_LAYER_CONFIG.mapbox.sourceId]);
 
-export const CHOROPLETH_AREA_SET_CODES = new Set(
-  Object.values(CHOROPLETH_LAYER_CONFIGS).flatMap((configs) =>
-    configs.map((c) => c.areaSetCode),
+export const CHOROPLETH_AREA_SET_CODES = Array.from(
+  new Set(
+    Object.values(CHOROPLETH_LAYER_CONFIGS).flatMap((configs) =>
+      configs.map((c) => c.areaSetCode),
+    ),
   ),
-)
-  .values()
-  .toArray();
+);
 
 export const getChoroplethLayerConfig = ({
   dataSourceAreaSetCode,
