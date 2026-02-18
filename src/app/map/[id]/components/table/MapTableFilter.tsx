@@ -329,6 +329,7 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
         {filter.column}
       </span>
       <select
+        aria-label="Filter type"
         value={filter.type === FilterType.EXACT ? "is" : "contains"}
         onChange={(e) =>
           updateFilter({
