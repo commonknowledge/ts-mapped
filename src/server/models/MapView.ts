@@ -16,6 +16,7 @@ export enum FilterOperator {
 export const filterOperators = Object.values(FilterOperator);
 
 export enum FilterType {
+  EXACT = "EXACT",
   GEO = "GEO",
   MULTI = "MULTI",
   TEXT = "TEXT",

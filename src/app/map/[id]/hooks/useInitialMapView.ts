@@ -58,7 +58,7 @@ export function useInitialMapViewEffect() {
             type: FilterType.MULTI,
             children: [
               {
-                type: FilterType.TEXT,
+                type: FilterType.EXACT,
                 column: "email_subscribed_status",
                 search: "subscribed",
               },

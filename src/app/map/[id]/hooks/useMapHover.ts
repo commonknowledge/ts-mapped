@@ -83,6 +83,9 @@ export function useMapHoverEffect({
 
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "c" || e.key === "C") && !e.repeat) {
+        // Skip if the user is typing in an input, select, or textarea
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
         setCompareGeographiesMode(true);
         const canvas = map.getCanvas();
         if (canvas.style.cursor === "pointer") {
@@ -93,6 +96,8 @@ export function useMapHoverEffect({
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === "c" || e.key === "C") {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
         setCompareGeographiesMode(false);
         const canvas = map.getCanvas();
         if (canvas.style.cursor === "copy") {

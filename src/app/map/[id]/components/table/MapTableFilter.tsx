@@ -274,6 +274,32 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
     [filter, setFilter],
   );
 
+  const [localSearch, setLocalSearch] = useState(filter.search || "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync local state when filter.search changes externally
+  useEffect(() => {
+    setLocalSearch(filter.search || "");
+  }, [filter.search]);
+
+  const onSearchChange = useCallback(
+    (value: string) => {
+      setLocalSearch(value);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        updateFilter({ search: value });
+      }, 300);
+    },
+    [updateFilter],
+  );
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   if (filter.type === FilterType.GEO) {
     return (
       <div className="flex gap-1 items-center">
@@ -298,16 +324,29 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
   }
 
   return (
-    <div className="flex gap-1 items-center">
-      <span className="text-muted-foreground whitespace-nowrap">
-        {filter.column} is
+    <div className="flex">
+      <span className="text-muted-foreground whitespace-nowrap my-auto mr-1">
+        {filter.column}
       </span>
+      <select
+        value={filter.type === FilterType.EXACT ? "is" : "contains"}
+        onChange={(e) =>
+          updateFilter({
+            type: e.target.value === "is" ? FilterType.EXACT : FilterType.TEXT,
+          })
+        }
+        className="bg-neutral-100 text-sm cursor-pointer border-0 border-l text-center font-medium"
+      >
+        <option value="contains">contains</option>
+        <option value="is">is</option>
+      </select>
       <Input
         type="text"
         placeholder="Search"
-        value={filter.search || ""}
-        onChange={(e) => updateFilter({ search: e.target.value })}
-        className="w-20 h-7 p-2 text-sm text-center border-y-0 border-r-0 rounded-none bg-neutral-100 font-medium"
+        value={localSearch}
+        onChange={(e) => onSearchChange(e.target.value)}
+        style={{ width: `${Math.max(5, localSearch.length + 1)}ch` }}
+        className="min-w-20 h-7 p-2 text-sm border-y-0 border-r-0 rounded-none bg-neutral-100 font-medium text-center"
         ref={inputRef}
         required
       />

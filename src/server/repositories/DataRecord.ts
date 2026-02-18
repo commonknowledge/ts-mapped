@@ -89,6 +89,14 @@ export function applyFilterAndSearch(
       }
     }
 
+    if (filter?.type === FilterType.EXACT && filter.search) {
+      return eb(
+        eb.fn("lower", [eb.ref("json", "->>").key(filter?.column || "")]),
+        "=",
+        filter.search.toLowerCase(),
+      );
+    }
+
     if (filter?.type === FilterType.TEXT && filter.search) {
       return eb(
         eb.fn("lower", [eb.ref("json", "->>").key(filter?.column || "")]),
