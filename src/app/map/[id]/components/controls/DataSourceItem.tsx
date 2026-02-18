@@ -31,6 +31,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useDataRecords } from "../../hooks/useDataRecords";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { mapColors } from "../../styles";
@@ -58,6 +59,8 @@ export default function DataSourceItem({
   const { mapConfig, updateMapConfig } = useMapConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  const { data: dataRecordsResult } = useDataRecords(dataSource.id, 0);
   const [isRenaming, setIsRenaming] = useState(false);
   const [editName, setEditName] = useState(dataSource.name);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -210,7 +213,16 @@ export default function DataSourceItem({
                   )}
                   <div className="text-xs text-muted-foreground">
                     {Boolean(dataSource?.recordCount) ? (
-                      <p>{dataSource.recordCount} records</p>
+                      dataRecordsResult?.count &&
+                      dataRecordsResult.count.matched !==
+                        dataRecordsResult.count.count ? (
+                        <p>
+                          {dataRecordsResult.count.matched} /{" "}
+                          {dataSource.recordCount} records
+                        </p>
+                      ) : (
+                        <p>{dataSource.recordCount} records</p>
+                      )
                     ) : (
                       <p>No records</p>
                     )}
