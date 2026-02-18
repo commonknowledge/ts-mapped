@@ -46,7 +46,7 @@ function Boundaries({ config }: { config: ChoroplethLayerConfig }) {
     >
       {/* Line Layer */}
       <Layer
-        id={`${sourceId}-line`}
+        id={`${sourceId}-secondary-line`}
         beforeId={`${SECONDARY_TOP_LAYER_ID}-line`}
         source={secondarySourceId}
         source-layer={layerId}
@@ -63,7 +63,7 @@ function Boundaries({ config }: { config: ChoroplethLayerConfig }) {
       />
       {/* Fill Layer */}
       <Layer
-        id={`${sourceId}-fill`}
+        id={`${sourceId}-secondary-fill`}
         beforeId={SECONDARY_TOP_LAYER_ID}
         source={secondarySourceId}
         source-layer={layerId}

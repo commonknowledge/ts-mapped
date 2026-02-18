@@ -273,8 +273,8 @@ export function useMapClickEffect({
 
     const handleSecondaryAreaClick = (e: mapboxgl.MapMouseEvent): void => {
       if (secondaryAreaSetConfig) {
-        const secondaryFillLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-fill`;
-        const secondaryLineLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-line`;
+        const secondaryFillLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-secondary-fill`;
+        const secondaryLineLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-secondary-line`;
         const secondaryFeatures = map.queryRenderedFeatures(e.point, {
           layers: [secondaryFillLayerId, secondaryLineLayerId].filter((l) =>
             map.getLayer(l),
@@ -297,6 +297,8 @@ export function useMapClickEffect({
         } else {
           setSelectedSecondaryArea(null);
         }
+      } else {
+        setSelectedSecondaryArea(null);
       }
     };
 
