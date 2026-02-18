@@ -125,9 +125,17 @@ export default function Map({
 
       for (const layer of style.layers) {
         if (layer.id.startsWith("gl-draw-polygon-fill")) {
-          map.setPaintProperty(layer.id, "fill-color", turfColor);
+          map.setPaintProperty(layer.id, "fill-color", [
+            "coalesce",
+            ["get", "user_color"],
+            turfColor,
+          ]);
         } else if (layer.id.startsWith("gl-draw-polygon-stroke")) {
-          map.setPaintProperty(layer.id, "line-color", turfColor);
+          map.setPaintProperty(layer.id, "line-color", [
+            "coalesce",
+            ["get", "user_color"],
+            turfColor,
+          ]);
         } else if (
           layer.id.startsWith("gl-draw-polygon-and-line-vertex-active")
         ) {
@@ -394,7 +402,11 @@ export default function Map({
                     ["!=", "mode", "draw_polygon"],
                   ],
                   paint: {
-                    "fill-color": turfColor,
+                    "fill-color": [
+                      "coalesce",
+                      ["get", "user_color"],
+                      turfColor,
+                    ],
                     "fill-opacity": 0.3,
                   },
                 },
@@ -403,7 +415,11 @@ export default function Map({
                   type: "line",
                   filter: ["all", ["==", "$type", "Polygon"]],
                   paint: {
-                    "line-color": turfColor,
+                    "line-color": [
+                      "coalesce",
+                      ["get", "user_color"],
+                      turfColor,
+                    ],
                     "line-width": 2,
                   },
                 },
@@ -453,6 +469,7 @@ export default function Map({
                   notes: "",
                   area: roundedArea,
                   polygon: feature.geometry as Polygon,
+                  color: null,
                 });
                 setEditAreaMode(false);
               }
@@ -475,6 +492,7 @@ export default function Map({
                     createdAt: new Date(
                       feature?.properties?.createdAt as string,
                     ),
+                    color: feature?.properties?.color ?? null,
                   });
                 });
               }

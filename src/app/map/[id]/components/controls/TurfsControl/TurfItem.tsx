@@ -5,6 +5,7 @@ import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
+import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,13 +13,14 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
+import { Input } from "@/shadcn/ui/input";
 import { LayerType } from "@/types";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useShowControls } from "../../../hooks/useMapControls";
 import { useMapRef } from "../../../hooks/useMapCore";
 import { useTurfMutations } from "../../../hooks/useTurfMutations";
 import { useTurfState } from "../../../hooks/useTurfState";
-import { CONTROL_PANEL_WIDTH } from "../../../styles";
+import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
 import type { Turf } from "@/server/models/Turf";
@@ -33,6 +35,13 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   const [editText, setEditText] = useState(turf.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { mapConfig } = useMapConfig();
+
+  const currentColor =
+    turf.color ?? mapConfig.turfColor ?? mapColors.areas.color;
+
+  const handleColorChange = (color: string) => {
+    updateTurf({ ...turf, color });
+  };
 
   const handleFlyTo = (turf: Turf) => {
     const map = mapRef?.current;
@@ -92,7 +101,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
         layerType={LayerType.Turf}
         isVisible={isVisible}
         onVisibilityToggle={() => setTurfVisibility(turf.id, !isVisible)}
-        color={mapConfig.turfColor}
+        color={currentColor}
       >
         {isEditing ? (
           <ControlEditForm
@@ -130,6 +139,43 @@ export default function TurfItem({ turf }: { turf: Turf }) {
                   </>
                 )}
               </ContextMenuItem>
+              <ContextMenuSeparator />
+              <div className="px-2 py-1.5">
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                  Area colour
+                </p>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0 relative"
+                    style={{ backgroundColor: currentColor }}
+                  >
+                    <input
+                      type="color"
+                      value={currentColor}
+                      onChange={(e) => handleColorChange(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      title="Choose area colour"
+                    />
+                  </div>
+                  <Input
+                    type="text"
+                    value={currentColor}
+                    onChange={(e) => handleColorChange(e.target.value)}
+                    className="h-6 w-24 text-xs"
+                    placeholder={mapColors.areas.color}
+                  />
+                </div>
+                {turf.color && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 w-full text-xs h-7"
+                    onClick={() => updateTurf({ ...turf, color: null })}
+                  >
+                    Reset to default
+                  </Button>
+                )}
+              </div>
               <ContextMenuSeparator />
               <ContextMenuItem
                 variant="destructive"
