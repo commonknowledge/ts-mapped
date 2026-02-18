@@ -42,7 +42,7 @@ export default function FormFieldWrapper({
   );
 }
 export function FormFieldHint({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-muted-foreground">{children}</p>;
+  return <div className="text-sm text-muted-foreground">{children}</div>;
 }
 
 export function FormFieldError({

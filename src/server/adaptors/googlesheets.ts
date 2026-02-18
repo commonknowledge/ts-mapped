@@ -400,21 +400,30 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   }
 
   async toggleWebhook(enable: boolean): Promise<void> {
-    const notificationUrl = await getPublicUrl(
-      `/api/data-sources/${this.dataSourceId}/webhook`,
-    );
+    try {
+      const notificationUrl = await getPublicUrl(
+        `/api/data-sources/${this.dataSourceId}/webhook`,
+      );
 
-    // Shorten identifying URL as sheet names must be <= 100 characters
-    const notificationDomain = new URL(notificationUrl).hostname;
-    const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
+      // Shorten identifying URL as sheet names must be <= 100 characters
+      const notificationDomain = new URL(notificationUrl).hostname;
+      const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
 
-    if (!enable) {
-      await this.deleteSheet(webhookSheetName);
-      return;
+      if (!enable) {
+        await this.deleteSheet(webhookSheetName);
+        return;
+      }
+
+      await this.ensureSheet(webhookSheetName);
+      await this.prepareWebhookSheet(webhookSheetName, notificationUrl);
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("PERMISSION_DENIED")) {
+        throw new Error(
+          "Failed to create webhook sheet, please check you have edit permissions.",
+        );
+      }
+      throw e;
     }
-
-    await this.ensureSheet(webhookSheetName);
-    await this.prepareWebhookSheet(webhookSheetName, notificationUrl);
   }
 
   public async listSheets(): Promise<
