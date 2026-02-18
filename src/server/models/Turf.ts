@@ -30,6 +30,7 @@ export const turfSchema = z.object({
   polygon: polygonOrMultiPolygonSchema,
   mapId: z.string(),
   createdAt: z.date(),
+  color: z.string().nullish(),
 });
 
 export type Turf = z.infer<typeof turfSchema>;

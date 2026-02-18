@@ -74,6 +74,8 @@ export default function Map({
 
   const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
 
+  const turfColor = mapConfig.turfColor ?? mapColors.areas.color;
+
   const markerLayers = useMemo(
     () =>
       getDataSourceIds(mapConfig)
@@ -111,6 +113,39 @@ export default function Map({
       });
     });
   }, [visibleTurfs, draw, viewConfig?.showTurf]);
+
+  // Update draw layer colors when turfColor changes
+  useEffect(() => {
+    const map = mapRef?.current?.getMap();
+    if (!map || !draw || !ready) return;
+
+    try {
+      const style = map.getStyle();
+      if (!style?.layers) return;
+
+      for (const layer of style.layers) {
+        if (layer.id.startsWith("gl-draw-polygon-fill")) {
+          map.setPaintProperty(layer.id, "fill-color", [
+            "coalesce",
+            ["get", "user_color"],
+            turfColor,
+          ]);
+        } else if (layer.id.startsWith("gl-draw-polygon-stroke")) {
+          map.setPaintProperty(layer.id, "line-color", [
+            "coalesce",
+            ["get", "user_color"],
+            turfColor,
+          ]);
+        } else if (
+          layer.id.startsWith("gl-draw-polygon-and-line-vertex-active")
+        ) {
+          map.setPaintProperty(layer.id, "circle-color", turfColor);
+        }
+      }
+    } catch {
+      // Ignore if layers don't exist yet
+    }
+  }, [turfColor, mapRef, draw, ready]);
 
   // Save draw mode in context
   useEffect(() => {
@@ -367,7 +402,11 @@ export default function Map({
                     ["!=", "mode", "draw_polygon"],
                   ],
                   paint: {
-                    "fill-color": mapColors.areas.color,
+                    "fill-color": [
+                      "coalesce",
+                      ["get", "user_color"],
+                      turfColor,
+                    ],
                     "fill-opacity": 0.3,
                   },
                 },
@@ -376,7 +415,11 @@ export default function Map({
                   type: "line",
                   filter: ["all", ["==", "$type", "Polygon"]],
                   paint: {
-                    "line-color": mapColors.areas.color,
+                    "line-color": [
+                      "coalesce",
+                      ["get", "user_color"],
+                      turfColor,
+                    ],
                     "line-width": 2,
                   },
                 },
@@ -403,7 +446,7 @@ export default function Map({
                   ],
                   paint: {
                     "circle-radius": 10,
-                    "circle-color": mapColors.areas.color,
+                    "circle-color": turfColor,
                   },
                 },
               ],
@@ -426,6 +469,7 @@ export default function Map({
                   notes: "",
                   area: roundedArea,
                   polygon: feature.geometry as Polygon,
+                  color: null,
                 });
                 setEditAreaMode(false);
               }
@@ -448,6 +492,7 @@ export default function Map({
                     createdAt: new Date(
                       feature?.properties?.createdAt as string,
                     ),
+                    color: feature?.properties?.color ?? null,
                   });
                 });
               }
