@@ -106,6 +106,7 @@ export function useMapHoverEffect({
         map.getCanvas().style.cursor = "crosshair";
         clearAreaHover();
         setHoverMarker(null);
+        setHoverSecondaryArea(null);
         return;
       }
 
@@ -132,6 +133,7 @@ export function useMapHoverEffect({
     const onMouseLeave = () => {
       clearAreaHover();
       setHoverMarker(null);
+      setHoverSecondaryArea(null);
       if (pinDropModeRef.current || editAreaModeRef.current) {
         map.getCanvas().style.cursor = "crosshair";
       } else {

@@ -53,7 +53,8 @@ export default function BoundaryHoverInfo() {
   const { areasToDisplay, primaryLabel, secondaryLabel } =
     useDisplayAreaStats(allAreas);
 
-  const showInfo = areasToDisplay.length > 0 || hoverSecondaryArea;
+  const hasSecondaryArea = hoverSecondaryArea && secondaryAreaSetConfig;
+  const showInfo = areasToDisplay.length > 0 || hasSecondaryArea;
 
   return (
     <AnimatePresence mode="wait">
@@ -85,7 +86,7 @@ export default function BoundaryHoverInfo() {
               setSelectedAreas={setSelectedAreas}
             />
           )}
-          {hoverSecondaryArea && secondaryAreaSetConfig && (
+          {hasSecondaryArea && (
             <>
               {areasToDisplay.length > 0 && (
                 <hr className="border-neutral-200 mx-3 my-1" />

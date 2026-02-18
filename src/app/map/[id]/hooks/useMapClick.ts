@@ -480,7 +480,7 @@ export function useMapClickEffect({
       activeFeatureId.current !== undefined
     ) {
       const map = mapRef.current;
-      if (map.getSource(sourceId)) {
+      if (map.getSource(interactionSourceId)) {
         map.setFeatureState(
           {
             source: interactionSourceId,
@@ -492,7 +492,7 @@ export function useMapClickEffect({
       }
       activeFeatureId.current = undefined;
     }
-  }, [selectedBoundary, mapRef, sourceId, layerId, interactionSourceId]);
+  }, [selectedBoundary, mapRef, layerId, interactionSourceId]);
 }
 
 export const getClickedPolygonFeature = (
