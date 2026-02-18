@@ -8,11 +8,12 @@ import {
 } from "@/shadcn/ui/table";
 
 import type { SelectedArea } from "../../atoms/selectedAreasAtom";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 interface AreasListProps {
   areas: {
     code: string;
-    areaSetCode: string;
+    areaSetCode: AreaSetCode;
     name: string;
     coordinates: [number, number];
     isSelected: boolean;

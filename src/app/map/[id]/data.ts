@@ -67,6 +67,12 @@ export const useAreaStats = () => {
     !areaSetGroupCode || // Skip if user has not selected an area set group
     isMissingDataColumn;
 
+  // Return blank data if the user doesn't have an area set group selected
+  // This fixes a bug when switching from the default area set (WMC24)
+  // and "No locality" - the choropleth wouldn't reappear when switching
+  // back to WMC24
+  const safeAreaSetCode = areaSetGroupCode ? areaSetCode : null;
+
   const trpc = useTRPC();
 
   // Deduplicate stats by area code
@@ -107,7 +113,7 @@ export const useAreaStats = () => {
   const areaStatsQuery = useTanstackQuery(
     trpc.area.stats.queryOptions(
       {
-        areaSetCode,
+        areaSetCode: safeAreaSetCode,
         calculationType: calculationType || DEFAULT_CALCULATION_TYPE,
         dataSourceId,
         column: columnOrCount,
@@ -123,7 +129,7 @@ export const useAreaStats = () => {
   // Reset area stats when calculation changes
   // Note: this only works if all the useEffect dependencies trigger a change in areaStatsQuery.data
   const calcKey = JSON.stringify([
-    areaSetCode,
+    safeAreaSetCode,
     calculationType,
     dataSourceId,
     column,
@@ -138,7 +144,8 @@ export const useAreaStats = () => {
 
   // Store area stats when queries complete, and aggregate data for different bounding boxes
   useEffect(() => {
-    if (!areaStatsQuery.data) {
+    const areaStatsData = areaStatsQuery.data;
+    if (!areaStatsData) {
       return;
     }
     setDedupedAreaStats((prev) => {
@@ -146,7 +153,7 @@ export const useAreaStats = () => {
         string,
         { areaCode: string; primary?: unknown; secondary?: unknown }
       > = {};
-      const primaryStats = areaStatsQuery.data.primary?.stats || [];
+      const primaryStats = areaStatsData.primary?.stats || [];
       for (const stat of primaryStats) {
         nextStats[stat.areaCode] = {
           areaCode: stat.areaCode,
@@ -154,7 +161,7 @@ export const useAreaStats = () => {
         };
       }
 
-      const secondaryStats = areaStatsQuery.data.secondary?.stats || [];
+      const secondaryStats = areaStatsData.secondary?.stats || [];
       for (const stat of secondaryStats) {
         const prevStat = nextStats[stat.areaCode] || {
           areaCode: stat.areaCode,
@@ -164,24 +171,24 @@ export const useAreaStats = () => {
 
       if (!prev) {
         return {
-          areaSetCode: areaStatsQuery.data.areaSetCode,
-          calculationType: areaStatsQuery.data.calculationType,
-          dataSourceId: areaStatsQuery.data.dataSourceId,
-          primary: areaStatsQuery.data.primary
+          areaSetCode: areaStatsData.areaSetCode,
+          calculationType: areaStatsData.calculationType,
+          dataSourceId: areaStatsData.dataSourceId,
+          primary: areaStatsData.primary
             ? {
-                column: areaStatsQuery.data.primary.column,
-                columnType: areaStatsQuery.data.primary.columnType,
-                maxValue: areaStatsQuery.data.primary.maxValue,
-                minValue: areaStatsQuery.data.primary.minValue,
+                column: areaStatsData.primary.column,
+                columnType: areaStatsData.primary.columnType,
+                maxValue: areaStatsData.primary.maxValue,
+                minValue: areaStatsData.primary.minValue,
                 stats: primaryStats,
               }
             : null,
-          secondary: areaStatsQuery.data.secondary
+          secondary: areaStatsData.secondary
             ? {
-                column: areaStatsQuery.data.secondary.column,
-                columnType: areaStatsQuery.data.secondary.columnType,
-                maxValue: areaStatsQuery.data.secondary.maxValue,
-                minValue: areaStatsQuery.data.secondary.minValue,
+                column: areaStatsData.secondary.column,
+                columnType: areaStatsData.secondary.columnType,
+                maxValue: areaStatsData.secondary.maxValue,
+                minValue: areaStatsData.secondary.minValue,
                 stats: secondaryStats,
               }
             : null,
@@ -190,11 +197,11 @@ export const useAreaStats = () => {
       }
 
       if (
-        prev.areaSetCode === areaStatsQuery.data.areaSetCode &&
-        prev.calculationType === areaStatsQuery.data.calculationType &&
-        prev.dataSourceId === areaStatsQuery.data.dataSourceId &&
-        prev.primary?.column === areaStatsQuery.data.primary?.column &&
-        prev.secondary?.column === areaStatsQuery.data.secondary?.column
+        prev.areaSetCode === areaStatsData.areaSetCode &&
+        prev.calculationType === areaStatsData.calculationType &&
+        prev.dataSourceId === areaStatsData.dataSourceId &&
+        prev.primary?.column === areaStatsData.primary?.column &&
+        prev.secondary?.column === areaStatsData.secondary?.column
       ) {
         return {
           ...prev,

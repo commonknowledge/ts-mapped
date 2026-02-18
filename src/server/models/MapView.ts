@@ -1,5 +1,5 @@
 import z from "zod";
-import { areaSetGroupCode } from "./AreaSet";
+import { areaSetCode, areaSetGroupCode } from "./AreaSet";
 import { pointSchema } from "./shared";
 import type {
   Generated,
@@ -122,6 +122,7 @@ export const mapViewConfigSchema = z.object({
   areaDataSecondaryColumn: z.string().optional(),
   areaDataNullIsZero: z.boolean().optional(),
   areaSetGroupCode: areaSetGroupCode.nullish(),
+  secondaryAreaSetCode: areaSetCode.nullish(),
   choroplethOpacityPct: z.number().optional(),
   includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),

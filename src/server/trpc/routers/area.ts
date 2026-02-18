@@ -32,7 +32,9 @@ export const areaRouter = router({
   stats: dataSourceReadProcedure
     .input(
       z.object({
-        areaSetCode: z.nativeEnum(AreaSetCode),
+        // areaSetCode needs to be nullable so that an empty response can be returned
+        // when the user has no area selected
+        areaSetCode: z.nativeEnum(AreaSetCode).nullable(),
         calculationType: z.nativeEnum(CalculationType),
         column: z.string(),
         secondaryColumn: z.string().optional(),
@@ -42,6 +44,10 @@ export const areaRouter = router({
       }),
     )
     .query(({ input }) => {
-      return getAreaStats(input);
+      const areaSetCode = input.areaSetCode;
+      if (!areaSetCode) {
+        return null;
+      }
+      return getAreaStats({ ...input, areaSetCode });
     }),
 });

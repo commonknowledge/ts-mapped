@@ -226,6 +226,14 @@ export const MAPBOX_SOURCE_IDS = Object.values(CHOROPLETH_LAYER_CONFIGS)
   .flatMap((sources) => sources.map((source) => source.mapbox.sourceId))
   .concat([HEX_CHOROPLETH_LAYER_CONFIG.mapbox.sourceId]);
 
+export const CHOROPLETH_AREA_SET_CODES = Array.from(
+  new Set(
+    Object.values(CHOROPLETH_LAYER_CONFIGS).flatMap((configs) =>
+      configs.map((c) => c.areaSetCode),
+    ),
+  ),
+);
+
 export const getChoroplethLayerConfig = ({
   dataSourceAreaSetCode,
   areaSetGroupCode,
@@ -259,4 +267,24 @@ export const getChoroplethLayerConfig = ({
     }
   }
   return CHOROPLETH_LAYER_CONFIGS["WMC24"][0];
+};
+
+export const getSecondaryAreaSetConfig = ({
+  areaSetCode,
+  mapType,
+}: {
+  areaSetCode: AreaSetCode | null | undefined;
+  mapType: MapType | null | undefined;
+}) => {
+  if (mapType === MapType.Hex) {
+    return null;
+  }
+  for (const sources of Object.values(CHOROPLETH_LAYER_CONFIGS)) {
+    for (const source of sources) {
+      if (source.areaSetCode === areaSetCode) {
+        return source;
+      }
+    }
+  }
+  return null;
 };

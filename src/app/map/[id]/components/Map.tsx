@@ -40,6 +40,7 @@ import MarkerPopup from "./MarkerPopup";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import SecondaryBoundaries from "./SecondaryBoundaries";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
@@ -539,6 +540,7 @@ export default function Map({
         {ready && (
           <>
             <Choropleth />
+            <SecondaryBoundaries />
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />

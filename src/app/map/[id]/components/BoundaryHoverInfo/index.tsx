@@ -3,14 +3,18 @@ import { XIcon } from "lucide-react";
 
 import { useMemo } from "react";
 
+import { AreaSetCodeLabels } from "@/labels";
 import { useDisplayAreaStats } from "../../hooks/useDisplayAreaStats";
-import { useHoverArea } from "../../hooks/useMapHover";
+import { useHoverArea, useHoverSecondaryArea } from "../../hooks/useMapHover";
+import { useSecondaryAreaSetConfig } from "../../hooks/useSecondaryAreaSet";
 import { useSelectedAreas } from "../../hooks/useSelectedAreas";
 import { AreasList } from "./AreasList";
 
 export default function BoundaryHoverInfo() {
   const [selectedAreas, setSelectedAreas] = useSelectedAreas();
   const [hoverArea] = useHoverArea();
+  const [hoverSecondaryArea] = useHoverSecondaryArea();
+  const secondaryAreaSetConfig = useSecondaryAreaSetConfig();
 
   const allAreas = useMemo(() => {
     const areas = [];
@@ -29,7 +33,7 @@ export default function BoundaryHoverInfo() {
     // Add hover area only if it's not already in selected areas
     if (hoverArea) {
       const isHoverAreaSelected = selectedAreas.some(
-        (a: { code: string; areaSetCode: string }) =>
+        (a) =>
           a.code === hoverArea.code && a.areaSetCode === hoverArea.areaSetCode,
       );
       if (!isHoverAreaSelected) {
@@ -49,9 +53,12 @@ export default function BoundaryHoverInfo() {
   const { areasToDisplay, primaryLabel, secondaryLabel } =
     useDisplayAreaStats(allAreas);
 
+  const hasSecondaryArea = hoverSecondaryArea && secondaryAreaSetConfig;
+  const showInfo = areasToDisplay.length > 0 || hasSecondaryArea;
+
   return (
     <AnimatePresence mode="wait">
-      {areasToDisplay.length > 0 && (
+      {showInfo && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -71,12 +78,29 @@ export default function BoundaryHoverInfo() {
               />
             </button>
           )}
-          <AreasList
-            areas={areasToDisplay}
-            primaryLabel={primaryLabel}
-            secondaryLabel={secondaryLabel}
-            setSelectedAreas={setSelectedAreas}
-          />
+          {areasToDisplay.length > 0 && (
+            <AreasList
+              areas={areasToDisplay}
+              primaryLabel={primaryLabel}
+              secondaryLabel={secondaryLabel}
+              setSelectedAreas={setSelectedAreas}
+            />
+          )}
+          {hasSecondaryArea && (
+            <>
+              {areasToDisplay.length > 0 && (
+                <hr className="border-neutral-200 mx-3 my-1" />
+              )}
+              <div className="px-3 py-1 flex flex-row items-center font-medium">
+                <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                  {AreaSetCodeLabels[secondaryAreaSetConfig.areaSetCode] ||
+                    "Secondary boundary"}
+                  :
+                </span>
+                <span className="text-sm">{hoverSecondaryArea.name}</span>
+              </div>
+            </>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
