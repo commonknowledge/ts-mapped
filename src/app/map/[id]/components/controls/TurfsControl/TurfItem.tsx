@@ -13,6 +13,7 @@ import {
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useShowControls } from "../../../hooks/useMapControls";
 import { useMapRef } from "../../../hooks/useMapCore";
 import { useTurfMutations } from "../../../hooks/useTurfMutations";
@@ -31,6 +32,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { mapConfig } = useMapConfig();
 
   const handleFlyTo = (turf: Turf) => {
     const map = mapRef?.current;
@@ -90,6 +92,7 @@ export default function TurfItem({ turf }: { turf: Turf }) {
         layerType={LayerType.Turf}
         isVisible={isVisible}
         onVisibilityToggle={() => setTurfVisibility(turf.id, !isVisible)}
+        color={mapConfig.turfColor}
       >
         {isEditing ? (
           <ControlEditForm
