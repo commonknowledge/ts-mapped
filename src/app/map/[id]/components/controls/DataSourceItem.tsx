@@ -69,8 +69,7 @@ export default function DataSourceItem({
   );
 
   const hasActiveFilter =
-    (dataSourceView?.filter?.children &&
-      dataSourceView.filter.children.length > 0) ||
+    (dataSourceView?.filter?.children?.length ?? 0) > 0 ||
     Boolean(dataSourceView?.search);
 
   const { data: dataRecordsResult, isFetching: matchedCountLoading } =
