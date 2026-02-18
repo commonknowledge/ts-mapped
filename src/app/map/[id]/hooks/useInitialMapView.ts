@@ -89,7 +89,6 @@ export function useInitialMapViewEffect() {
   }, [
     viewId,
     mapData?.views,
-    mapData?.config,
     mapId,
     dataSources,
     queryClient,
