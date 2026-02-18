@@ -233,7 +233,7 @@ export default memo(function MapStyleSelector() {
                       <SelectValue placeholder="Choose secondary boundaries..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={NULL_UUID}>No locality</SelectItem>
+                      <SelectItem value={NULL_UUID}>No secondary boundaries</SelectItem>
                       {Object.values(AreaSetCode).map((code) => (
                         <SelectItem key={code} value={code}>
                           {AreaSetCodeLabels[code]}
