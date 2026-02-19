@@ -191,10 +191,11 @@ const geocodeRecordByAddress = async (
 ) => {
   const dataRecordJson = dataRecord.json;
   const { columns: addressColumns } = geocodingConfig;
-  for (const addressColumn of addressColumns) {
-    if (!(addressColumn in dataRecordJson)) {
-      throw new Error(`Missing area column "${addressColumn}" in row`);
-    }
+  const hasColumn = addressColumns.some((c) => c in dataRecordJson);
+  if (!hasColumn) {
+    throw new Error(
+      `Missing area columns "${addressColumns.join(", ")}" in row`,
+    );
   }
 
   // TODO: remove UK when other countries are supported
