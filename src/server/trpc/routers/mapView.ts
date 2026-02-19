@@ -16,6 +16,7 @@ export const mapViewRouter = router({
       await enqueue("tagDataSource", ctx.dataSource.id, {
         dataSourceId: ctx.dataSource.id,
         viewId: input.viewId,
+        userEmail: ctx.user.email,
       });
       return true;
     }),
