@@ -141,7 +141,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   async getRecordCount(): Promise<number | null> {
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!A:A`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!A:Z`;
       const response = await this.makeGoogleSheetsRequest(url);
 
       if (!response.ok) {
