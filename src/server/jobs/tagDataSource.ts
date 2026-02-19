@@ -20,11 +20,15 @@ const sendFailureEmail = async (
   viewName: string,
   reason: string,
 ) => {
-  await sendEmail(
-    userEmail,
-    "Tagging failed",
-    TaggingFailed({ dataSourceName, viewName, reason }),
-  );
+  try {
+    await sendEmail(
+      userEmail,
+      "Tagging failed",
+      TaggingFailed({ dataSourceName, viewName, reason }),
+    );
+  } catch (error) {
+    logger.error("Failed to send tagging failure email", { error });
+  }
 };
 
 const tagDataSource = async (args: object | null): Promise<boolean> => {
@@ -119,14 +123,18 @@ const tagDataSource = async (args: object | null): Promise<boolean> => {
       `Tagged data source ${dataSourceId} with view ${view.name} (${view.id})`,
     );
 
-    await sendEmail(
-      userEmail,
-      "Tagging complete",
-      TaggingComplete({
-        dataSourceName: dataSource.name,
-        viewName: view.name,
-      }),
-    );
+    try {
+      await sendEmail(
+        userEmail,
+        "Tagging complete",
+        TaggingComplete({
+          dataSourceName: dataSource.name,
+          viewName: view.name,
+        }),
+      );
+    } catch (error) {
+      logger.error("Failed to send tagging success email", { error });
+    }
 
     return true;
   } catch (error) {
