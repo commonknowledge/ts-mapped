@@ -1,57 +1,57 @@
-import { FileText, Info, Newspaper, Puzzle, Video } from "lucide-react";
+import { FileText, Folder, Info, Newspaper, Puzzle, Video } from "lucide-react";
 import { map } from "rxjs";
 import type { StructureResolver } from "sanity/structure";
 
 // https://www.sanity.io/docs/structure-builder-cheat-sheet
 export const structure: StructureResolver = (S, context) => {
-  // Helper function to create parent-child structure for features
-  const featureHierarchy = () => {
-    const filter = `_type == "featureSet" && !(_id in path("drafts.**"))`;
+  // Helper function to create parent-child structure for docs
+  const docsHierarchy = () => {
+    const filter = `_type == "docsSet" && !(_id in path("drafts.**"))`;
     const query = `*[${filter}]{ _id, title, order } | order(order asc)`;
     const options = { apiVersion: "2025-09-04" };
 
     return context.documentStore.listenQuery(query, {}, options).pipe(
-      map((featureSets: { _id: string; title: string }[]) =>
+      map((docsSets: { _id: string; title: string }[]) =>
         S.list()
-          .title("Feature Sets")
+          .title("Docs Sets")
           .items([
-            // Create a list item for each feature set
-            ...featureSets.map((featureSet: { _id: string; title: string }) =>
+            // Create a list item for each docs set
+            ...docsSets.map((docsSet: { _id: string; title: string }) =>
               S.listItem({
-                id: featureSet._id,
-                title: featureSet.title,
-                schemaType: "featureSet",
+                id: docsSet._id,
+                title: docsSet.title,
+                schemaType: "docsSet",
                 child: () =>
                   S.documentList()
-                    .title(featureSet.title)
+                    .title(docsSet.title)
                     .filter(
-                      `_type == "feature" && featureSet._ref == $featureSetId`,
+                      `_type == "docs" && docsSet._ref == $docsSetId`,
                     )
-                    .params({ featureSetId: featureSet._id })
+                    .params({ docsSetId: docsSet._id })
                     .canHandleIntent(
                       (intentName, params) =>
                         intentName === "create" &&
-                        params.template === "feature-child",
+                        params.template === "docs-child",
                     )
                     .initialValueTemplates([
-                      S.initialValueTemplateItem("feature-child", {
-                        featureSetId: featureSet._id,
+                      S.initialValueTemplateItem("docs-child", {
+                        docsSetId: docsSet._id,
                       }),
                     ]),
               }),
             ),
             S.divider(),
-            // Show all feature sets
+            // Show all docs sets
             S.listItem()
-              .title("All Feature Sets")
+              .title("All Docs Sets")
               .child(
-                S.documentTypeList("featureSet").title("All Feature Sets"),
+                S.documentTypeList("docsSet").title("All Docs Sets"),
               ),
 
-            // Show all features
+            // Show all docs
             S.listItem()
-              .title("All Feature Items")
-              .child(S.documentTypeList("feature").title("All Feature Items")),
+              .title("All Docs Items")
+              .child(S.documentTypeList("docs").title("All Docs Items")),
           ]),
       ),
     );
@@ -60,18 +60,30 @@ export const structure: StructureResolver = (S, context) => {
   return S.list()
     .title("Content")
     .items([
-      // Features section with dynamic hierarchy
-      S.listItem().title("Features").icon(FileText).child(featureHierarchy),
+      // Docs section with dynamic hierarchy
+      S.listItem().title("Docs").icon(FileText).child(docsHierarchy),
+
 
       // Solutions section
       S.listItem()
         .title("Solutions")
-        .icon(Puzzle)
+        .icon(Folder)
         .child(
           S.documentTypeList("solutions")
             .title("Solutions")
             .defaultOrdering([
               { field: "position", direction: "asc" },
+              { field: "_createdAt", direction: "desc" },
+            ]),
+        ),
+      // Features section
+      S.listItem()
+        .title("Features")
+        .icon(Puzzle)
+        .child(
+          S.documentTypeList("features")
+            .title("Features")
+            .defaultOrdering([
               { field: "_createdAt", direction: "desc" },
             ]),
         ),

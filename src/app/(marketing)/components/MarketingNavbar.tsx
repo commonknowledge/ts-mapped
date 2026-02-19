@@ -1,33 +1,17 @@
 "use client";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Link } from "@/components/Link";
-import { urlFor } from "@/sanity/lib/image";
-import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
 import {
   NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/shadcn/ui/navigation-menu";
 import { cn } from "@/shadcn/utils";
 import type { CurrentUser } from "@/authTypes";
-
-interface Solution {
-  _id: string;
-  title: string;
-  subtitle: string;
-  status: "active" | "archived" | "coming-soon";
-  slug: { current: string };
-  position: number;
-  icon: string;
-}
 
 interface NavItem {
   label: string;
@@ -35,6 +19,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { label: "Solutions", href: "/solutions" },
   { label: "Docs", href: "/docs" },
   { label: "News", href: "/news" },
   { label: "About", href: "/about" },
@@ -42,13 +27,10 @@ const NAV_ITEMS: NavItem[] = [
 
 export const MarketingNavbar = ({
   currentUser,
-  solutions,
 }: {
   currentUser: CurrentUser | null;
-  solutions: Solution[];
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSolutionsOpen, setIsSolutionsOpen] = useState(false);
 
   return (
     <>
@@ -67,7 +49,7 @@ export const MarketingNavbar = ({
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6 mx-auto justify-center p-4 ">
-          <DesktopNavbar solutions={solutions} />
+          <DesktopNavbar />
         </div>
 
         {/* Mobile Menu Button */}
@@ -119,61 +101,7 @@ export const MarketingNavbar = ({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex flex-col space-y-4">
-            {/* Solutions Accordion */}
-            <div>
-              <button
-                onClick={() => setIsSolutionsOpen(!isSolutionsOpen)}
-                className="flex items-center justify-between w-full text-lg font-medium py-2 border-b border-gray-100"
-              >
-                Solutions
-                {isSolutionsOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-              {isSolutionsOpen && (
-                <div className="space-y-2 mt-2">
-                  {solutions.length > 0 ? (
-                    solutions
-                      .sort((a, b) => a.position - b.position)
-                      .map((solution) => (
-                        <Link
-                          key={solution._id}
-                          href={`/solutions/${solution.slug?.current || solution._id}`}
-                          className="text-base py-2 pl-2 border-b border-gray-100 flex gap-1"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <Image
-                            src={urlFor(solution.icon).url()}
-                            alt={solution.title}
-                            className="w-4 h-4 mr-2 mt-1 opacity-50"
-                            width={20}
-                            height={20}
-                          />
-                          <div className="flex flex-col">
-                            <div className="font-medium">
-                              {solution.title}&nbsp;
-                              {solution.status === "coming-soon" && (
-                                <Badge variant="secondary">Coming soon</Badge>
-                              )}
-                            </div>
-                            <div className="text-sm text-neutral-500">
-                              {solution.subtitle}
-                            </div>
-                          </div>
-                        </Link>
-                      ))
-                  ) : (
-                    <div className="text-sm text-neutral-500 pl-4">
-                      No solutions available
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Other Navigation Items */}
+            {/* Navigation Items */}
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
@@ -195,57 +123,10 @@ export const MarketingNavbar = ({
   );
 };
 
-const DesktopNavbar = ({ solutions }: { solutions: Solution[] }) => {
+const DesktopNavbar = () => {
   return (
     <NavigationMenu>
       <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Solutions</NavigationMenuTrigger>
-          <NavigationMenuContent className="border-0 shadow-lg">
-            <ul className="grid w-[436px] gap-2 p-2">
-              {solutions.length > 0 ? (
-                solutions
-                  .sort((a, b) => a.position - b.position)
-                  .map((solution) => (
-                    <li
-                      key={solution._id}
-                      className="cursor-pointer hover:bg-neutral-100 p-2 rounded-sm"
-                    >
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href={`/solutions/${solution.slug?.current || solution._id}`}
-                          className="flex  gap-1"
-                        >
-                          <Image
-                            src={urlFor(solution.icon).url()}
-                            alt={solution.title}
-                            className="w-4 h-4 mr-2 mt-1 opacity-50"
-                            width={20}
-                            height={20}
-                          />
-                          <div className="flex flex-col">
-                            <div className="font-medium">
-                              {solution.title}&nbsp;
-                              {solution.status === "coming-soon" && (
-                                <Badge variant="secondary">Coming soon</Badge>
-                              )}
-                            </div>
-                            <div className="text-muted-foreground text-sm">
-                              {solution.subtitle}
-                            </div>
-                          </div>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  ))
-              ) : (
-                <li className="text-sm text-muted-foreground">
-                  No solutions available
-                </li>
-              )}
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
         {NAV_ITEMS.map((item) => (
           <NavigationMenuLink
             key={item.href}

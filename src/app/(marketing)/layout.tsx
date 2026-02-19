@@ -6,7 +6,6 @@ import Container from "@/components/layout/Container";
 import { Link } from "@/components/Link";
 import CTA from "@/components/marketing/CTA";
 import Prose from "@/components/Prose";
-import { client } from "@/sanity/lib/client";
 import { MarketingNavbar } from "./components/MarketingNavbar";
 
 export default async function Layout({
@@ -14,16 +13,10 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  const solutions = await client.fetch(
-    `*[_type == "solutions"] | order(position asc)`,
-  );
   const serverSession = await getServerSession();
   return (
     <>
-      <MarketingNavbar
-        currentUser={serverSession.currentUser}
-        solutions={solutions}
-      />
+      <MarketingNavbar currentUser={serverSession.currentUser} />
 
       {children}
 
