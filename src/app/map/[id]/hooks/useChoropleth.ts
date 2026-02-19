@@ -50,7 +50,7 @@ export function useChoropleth() {
 
   const setBoundariesPanelOpen = useCallback(
     (open: boolean) => {
-      if (open && !viewConfig.areaSetGroupCode) {
+      if (open && viewConfig.areaSetGroupCode === undefined) {
         updateViewConfig({ areaSetGroupCode: AreaSetGroupCode.WMC24 });
       }
       _setBoundariesPanelOpen(open);
