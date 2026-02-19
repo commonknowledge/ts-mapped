@@ -48,6 +48,9 @@ import SteppedColorEditor from "./SteppedColorEditor";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
 
+const SELECT_TO_BUTTON_CLASSES =
+  "bg-background hover:bg-accent hover:text-accent-foreground hover:border-border font-medium cursor-pointer";
+
 function IncludeColumnsModal({
   dataSource,
   selectedColumns,
@@ -258,7 +261,7 @@ export default function VisualisationPanel({
             }
           >
             <SelectTrigger
-              className="w-full min-w-0"
+              className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
               id="choropleth-boundary-select"
             >
               <SelectValue placeholder="Choose boundaries..." />
@@ -298,7 +301,7 @@ export default function VisualisationPanel({
             }
           >
             <SelectTrigger
-              className="w-full min-w-0"
+              className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
               id="choropleth-calculation-select"
             >
               <SelectValue placeholder="Choose calculation..." />
@@ -425,7 +428,7 @@ export default function VisualisationPanel({
                 }
               >
                 <SelectTrigger
-                  className="w-full min-w-0"
+                  className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
                   id="choropleth-aggregation-select"
                 >
                   <SelectValue placeholder="Choose an aggregation..." />
