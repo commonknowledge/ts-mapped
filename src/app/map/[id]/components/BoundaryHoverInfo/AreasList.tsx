@@ -39,7 +39,7 @@ export function AreasList({
       className="border-none"
       style={{ tableLayout: "auto", width: "auto" }}
     >
-      {multipleAreas && (
+      {multipleAreas && primaryLabel && (
         <TableHeader className="pointer-events-auto">
           <TableRow className="border-none hover:bg-transparent uppercase font-mono">
             <TableHead className="py-2 px-3 text-left h-8" />
@@ -91,23 +91,25 @@ export function AreasList({
                   <span className="truncate">{area.name}</span>
                 </div>
               </TableCell>
-              {area.primaryDisplayValue && !multipleAreas && (
+              {primaryLabel && !multipleAreas && (
                 <TableCell className="px-2 py-2 h-8">
                   <div className="w-px bg-neutral-200 h-full" />
                 </TableCell>
               )}
-              <TableCell className="py-2 px-3 whitespace-normal h-8">
-                {multipleAreas ? (
-                  area.primaryDisplayValue || "-"
-                ) : (
-                  <div className="flex flex-row justify-center items-center text-right">
-                    <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                      {primaryLabel}:
-                    </span>
-                    <span>{area.primaryDisplayValue}</span>
-                  </div>
-                )}
-              </TableCell>
+              {primaryLabel && (
+                <TableCell className="py-2 px-3 whitespace-normal h-8">
+                  {multipleAreas ? (
+                    area.primaryDisplayValue || "-"
+                  ) : (
+                    <div className="flex flex-row justify-center items-center text-right">
+                      <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
+                        {primaryLabel}:
+                      </span>
+                      <span>{area.primaryDisplayValue}</span>
+                    </div>
+                  )}
+                </TableCell>
+              )}
               {secondaryLabel && (
                 <TableCell className="py-2 px-3 whitespace-normal h-8">
                   {multipleAreas ? (
