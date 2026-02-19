@@ -8,7 +8,6 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { batchAsync } from "../utils";
 import { importBatch } from "./importDataSource";
-import type { ColumnDef } from "@/server/models/DataSource";
 
 const importDataRecords = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {
@@ -49,19 +48,15 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
   }
 
   const batches = batchAsync(dataRecords, DATA_RECORDS_JOB_BATCH_SIZE);
+  const columnDefsAccumulator = [...dataSource.columnDefs];
 
   for await (const batch of batches) {
     try {
-      const columnDefsAccumulator = [] as ColumnDef[];
       const records = await adaptor.fetchByExternalId(
         batch.map((r) => r.externalId),
       );
 
       await importBatch(records, dataSource, columnDefsAccumulator);
-
-      await updateDataSource(dataSource.id, {
-        columnDefs: columnDefsAccumulator,
-      });
 
       await db
         .updateTable("dataRecord")
@@ -85,6 +80,10 @@ const importDataRecords = async (args: object | null): Promise<boolean> => {
       return false;
     }
   }
+
+  await updateDataSource(dataSource.id, {
+    columnDefs: columnDefsAccumulator,
+  });
 
   // Update the recordCount for the data source
   const totalRecordCount = await db
