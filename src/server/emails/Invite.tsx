@@ -9,7 +9,7 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 import { getAbsoluteUrl } from "@/utils/appUrl";
-import { EmailLayout } from "./layout";
+import { EmailLayout } from "./Layout";
 
 export default function Invite({ token }: { token: string }) {
   const baseUrl = getAbsoluteUrl();

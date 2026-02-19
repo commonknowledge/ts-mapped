@@ -5,7 +5,7 @@ import importAreaSet from "@/server/commands/importAreaSet";
 import importPostcodes from "@/server/commands/importPostcodes";
 import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
-import Invite from "@/server/emails/invite";
+import Invite from "@/server/emails/Invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import { createInvitation } from "@/server/repositories/Invitation";
@@ -140,7 +140,7 @@ program
       const orgs = await findOrganisationsByUserId(user.id);
 
       if (!orgs.length) {
-        logger.warning(`No organisation found for user ${user.email}`);
+        logger.warn(`No organisation found for user ${user.email}`);
         continue;
       }
 
