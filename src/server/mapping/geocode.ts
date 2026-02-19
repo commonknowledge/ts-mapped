@@ -194,7 +194,7 @@ const geocodeRecordByAddress = async (
   const hasColumn = addressColumns.some((c) => c in dataRecordJson);
   if (!hasColumn) {
     throw new Error(
-      `Missing area columns "${addressColumns.join(", ")}" in row`,
+      `Missing address columns "${addressColumns.join(", ")}" in row`,
     );
   }
 
