@@ -4,6 +4,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import { DataSourceType } from "../models/DataSource";
+import { enqueue } from "../services/queue";
 import type { DataSourceAdaptor } from "./abstract";
 import type { googleOAuthCredentialsSchema } from "../models/DataSource";
 import type { EnrichedRecord } from "@/server/mapping/enrich";
@@ -47,6 +48,10 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       for await (const record of records) {
         yield record.externalId;
       }
+      // Refresh the webhook to cover any new rows
+      await enqueue("refreshWebhooks", this.dataSourceId, {
+        dataSourceId: this.dataSourceId,
+      });
     } else if (body.rowNumber && typeof body.rowNumber === "string") {
       yield body.rowNumber;
     }
@@ -136,7 +141,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   async getRecordCount(): Promise<number | null> {
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}!A:A`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!A:A`;
       const response = await this.makeGoogleSheetsRequest(url);
 
       if (!response.ok) {
@@ -162,7 +167,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       return this.cachedHeaders;
     }
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}!1:1`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!1:1`;
     const response = await this.makeGoogleSheetsRequest(url);
 
     if (!response.ok) {
@@ -176,7 +181,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}`;
     const response = await this.makeGoogleSheetsRequest(url);
 
     if (!response.ok) {
@@ -219,7 +224,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   async fetchFirst(): Promise<ExternalRecord | null> {
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}!1:2`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!1:2`;
       const response = await this.makeGoogleSheetsRequest(url);
 
       if (!response.ok) {
@@ -270,7 +275,9 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     const headers = await this.getHeaders();
 
     // Batch requests for efficiency
-    const ranges = externalIds.map((id) => `${this.sheetName}!${id}:${id}`);
+    const ranges = externalIds.map(
+      (id) => `${encodeURIComponent(this.sheetName)}!${id}:${id}`,
+    );
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values:batchGet?ranges=${ranges.join("&ranges=")}`;
 
     const response = await this.makeGoogleSheetsRequest(url);
@@ -598,7 +605,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     // Add new columns to the sheet
     if (newColumns.size > 0) {
       const newHeaders = [...headers, ...Array.from(newColumns)];
-      const headerRange = `${this.sheetName}!1:1`;
+      const headerRange = `${encodeURIComponent(this.sheetName)}!1:1`;
       const headerUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${headerRange}?valueInputOption=USER_ENTERED`;
 
       const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
@@ -663,7 +670,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     const fieldName = taggedRecords[0].tag.name;
     if (!headers.includes(fieldName)) {
       const newHeaders = [...headers, fieldName];
-      const headerRange = `${this.sheetName}!1:1`;
+      const headerRange = `${encodeURIComponent(this.sheetName)}!1:1`;
       const headerUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${headerRange}?valueInputOption=USER_ENTERED`;
 
       const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
@@ -728,7 +735,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
     const headerLetter = indexToLetter(headerIndex);
 
-    const headerRange = `${this.sheetName}!${headerLetter}:${headerLetter}`;
+    const headerRange = `${encodeURIComponent(this.sheetName)}!${headerLetter}:${headerLetter}`;
     const headerUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${headerRange}?valueInputOption=USER_ENTERED`;
 
     const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
