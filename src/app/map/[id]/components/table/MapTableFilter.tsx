@@ -225,7 +225,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
               <div className="flex items-center gap-1.5">
                 <Switch
                   id="hide-filtered-markers"
-                  checked={viewConfig.hideFilteredMarkers}
+                  checked={Boolean(viewConfig.hideFilteredMarkers)}
                   onCheckedChange={(checked) =>
                     updateViewConfig({ hideFilteredMarkers: checked })
                   }
