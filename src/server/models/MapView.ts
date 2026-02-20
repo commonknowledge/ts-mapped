@@ -143,6 +143,7 @@ export const mapViewConfigSchema = z.object({
     .record(z.string(), z.array(steppedColorStepSchema))
     .optional(),
   customColor: z.string().optional(),
+  hideFilteredMarkers: z.boolean().optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

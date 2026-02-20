@@ -3,6 +3,7 @@ import { ListFilter, XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfsQuery";
@@ -19,6 +20,8 @@ import {
   CommandList,
 } from "@/shadcn/ui/command";
 import { Input } from "@/shadcn/ui/input";
+import { Label } from "@/shadcn/ui/label";
+import { Switch } from "@/shadcn/ui/switch";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { buildName } from "@/utils/dataRecord";
 import { mapColors } from "../../styles";
@@ -52,6 +55,7 @@ export default function MapTableFilter({
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const { mapConfig } = useMapConfig();
+  const { viewConfig, updateViewConfig } = useMapViews();
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { getDataSourceById } = useDataSources();
@@ -214,6 +218,25 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                 operator={filter.operator || FilterOperator.OR}
                 onOperatorChange={updateOperator}
               />
+            ) : null}
+
+            {/* Show filtered markers toggle */}
+            {children.length > 0 ? (
+              <div className="flex items-center gap-1.5">
+                <Switch
+                  id="hide-filtered-markers"
+                  checked={Boolean(viewConfig.hideFilteredMarkers)}
+                  onCheckedChange={(checked) =>
+                    updateViewConfig({ hideFilteredMarkers: checked })
+                  }
+                />
+                <Label
+                  htmlFor="hide-filtered-markers"
+                  className="text-xs text-muted-foreground whitespace-nowrap cursor-pointer"
+                >
+                  Remove filtered from map
+                </Label>
+              </div>
             ) : null}
           </div>
         </ul>
