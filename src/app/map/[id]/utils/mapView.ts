@@ -20,5 +20,6 @@ export const createNewViewConfig = (): MapViewConfig => {
     calculationType: DEFAULT_CALCULATION_TYPE,
     colorScheme: ColorScheme.RedBlue,
     reverseColorScheme: false,
+    hideFilteredMarkers: true,
   };
 };

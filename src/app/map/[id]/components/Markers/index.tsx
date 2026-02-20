@@ -36,6 +36,7 @@ export default function Markers() {
           dataSourceMarkers={memberMarkers}
           isMembers
           mapConfig={mapConfig}
+          hideFilteredMarkers={viewConfig.hideFilteredMarkers}
         />
       )}
       {otherMarkers.map((markers) => {
@@ -52,6 +53,7 @@ export default function Markers() {
             dataSourceMarkers={markers}
             isMembers={false}
             mapConfig={mapConfig}
+            hideFilteredMarkers={viewConfig.hideFilteredMarkers}
           />
         );
       })}
