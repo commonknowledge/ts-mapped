@@ -1,5 +1,6 @@
 // Human friendly labels for enums
 
+import { FilterType } from "./server/models/MapView";
 import type { AreaSetCode, AreaSetGroupCode } from "./server/models/AreaSet";
 import type {
   DataSourceRecordType,
@@ -11,6 +12,7 @@ import type {
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "./server/models/DataSource";
+import type { columnFilterTypes } from "./server/models/MapView";
 import type { DataSourceType } from "@/server/models/DataSource";
 import type z from "zod";
 
@@ -42,6 +44,16 @@ export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
   UKC24: "UK Country",
   SPC22: "Scottish Parliament Constituency",
   SENC22: "Senedd Constituency",
+};
+
+export const FilterTypeLabels: Record<
+  (typeof columnFilterTypes)[number],
+  string
+> = {
+  [FilterType.TEXT]: "contains",
+  [FilterType.EXACT]: "is",
+  [FilterType.EMPTY]: "is empty",
+  [FilterType.NOT_EMPTY]: "is not empty",
 };
 
 type DataSourceConfigKey =

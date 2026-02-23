@@ -8,7 +8,12 @@ import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfsQuery";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
-import { FilterOperator, FilterType } from "@/server/models/MapView";
+import { FilterTypeLabels } from "@/labels";
+import {
+  FilterOperator,
+  FilterType,
+  columnFilterTypes,
+} from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -353,27 +358,37 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
       </span>
       <select
         aria-label="Filter type"
-        value={filter.type === FilterType.EXACT ? "is" : "contains"}
-        onChange={(e) =>
+        value={filter.type}
+        onChange={(e) => {
+          const newType = e.target.value as FilterType;
+          const needsSearch =
+            newType !== FilterType.EMPTY && newType !== FilterType.NOT_EMPTY;
           updateFilter({
-            type: e.target.value === "is" ? FilterType.EXACT : FilterType.TEXT,
-          })
-        }
+            type: newType,
+            search: needsSearch ? filter.search : undefined,
+          });
+        }}
         className="bg-neutral-100 text-sm cursor-pointer border-0 border-l text-center font-medium"
       >
-        <option value="contains">contains</option>
-        <option value="is">is</option>
+        {columnFilterTypes.map((type) => (
+          <option key={type} value={type}>
+            {FilterTypeLabels[type]}
+          </option>
+        ))}
       </select>
-      <Input
-        type="text"
-        placeholder="Search"
-        value={localSearch}
-        onChange={(e) => onSearchChange(e.target.value)}
-        style={{ width: `${Math.max(5, localSearch.length + 1)}ch` }}
-        className="min-w-20 h-7 p-2 text-sm border-y-0 border-r-0 rounded-none bg-neutral-100 font-medium text-center"
-        ref={inputRef}
-        required
-      />
+      {filter.type !== FilterType.EMPTY &&
+        filter.type !== FilterType.NOT_EMPTY && (
+          <Input
+            type="text"
+            placeholder="Search"
+            value={localSearch}
+            onChange={(e) => onSearchChange(e.target.value)}
+            style={{ width: `${Math.max(5, localSearch.length + 1)}ch` }}
+            className="min-w-20 h-7 p-2 text-sm border-y-0 border-r-0 rounded-none bg-neutral-100 font-medium text-center"
+            ref={inputRef}
+            required
+          />
+        )}
     </div>
   );
 }
