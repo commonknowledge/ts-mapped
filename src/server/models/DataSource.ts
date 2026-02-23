@@ -209,6 +209,16 @@ export const columnDefSchema = z.object({
 
 export type ColumnDef = z.infer<typeof columnDefSchema>;
 
+// columnDefs and columnMetadata are separated, as columnDefs are
+// derived from the data, but columnMetadata is user-supplied
+export const columnMetadataSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  valueLabels: z.record(z.string(), z.string()),
+});
+
+export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;
+
 export const columnRolesSchema = z.object({
   dateColumn: z.string().optional(),
   nameColumns: z.array(z.string()),
@@ -235,6 +245,7 @@ export const dataSourceSchema = z.object({
   }),
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
+  columnMetadata: z.array(columnMetadataSchema),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,

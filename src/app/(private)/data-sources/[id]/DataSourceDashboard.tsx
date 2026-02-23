@@ -30,6 +30,7 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import ColumnMetadataForm from "./components/ColumnMetadataForm";
 import ConfigurationForm from "./components/ConfigurationForm";
 import type { RouterOutputs } from "@/services/trpc/react";
 
@@ -237,6 +238,7 @@ export function DataSourceDashboard({
                 : mappedInformation
             }
           />
+          <ColumnMetadataForm dataSource={dataSource} />
         </div>
 
         <div className="flex flex-col gap-6">

@@ -11,7 +11,7 @@ import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
 import { getDisplayValue } from "../../utils/stats";
 import PropertiesList from "./PropertiesList";
-import type { ColumnDef } from "@/server/models/DataSource";
+import type { ColumnDef, ColumnMetadata } from "@/server/models/DataSource";
 
 export function BoundaryDataPanel({
   config,
@@ -64,6 +64,7 @@ export function BoundaryDataPanel({
           json={data.records[0].json}
           columns={columns}
           columnDefs={dataSource?.columnDefs}
+          columnMetadata={dataSource?.columnMetadata}
           match={data.match}
         />
       ) : data?.records.length ? (
@@ -78,6 +79,7 @@ export function BoundaryDataPanel({
                   json={d.json}
                   columns={columns}
                   columnDefs={dataSource?.columnDefs}
+                  columnMetadata={dataSource?.columnMetadata}
                   match={data.match}
                 />
               </TogglePanel>
@@ -97,24 +99,33 @@ function BoundaryDataProperties({
   json,
   columns,
   columnDefs,
+  columnMetadata,
   match,
 }: {
   json: Record<string, unknown>;
   columns: string[];
   columnDefs?: ColumnDef[];
+  columnMetadata?: ColumnMetadata[];
   match: DataRecordMatchType;
 }) {
   const filteredProperties = useMemo(() => {
     const filtered: Record<string, unknown> = {};
     columns.forEach((columnName) => {
       if (json[columnName] !== undefined) {
-        filtered[columnName] = getDisplayValue(json[columnName], {
-          columnType: columnDefs?.find((cd) => cd.name === columnName)?.type,
-        });
+        const valueLabels = columnMetadata?.find(
+          (c) => c.name === columnName,
+        )?.valueLabels;
+        filtered[columnName] = getDisplayValue(
+          json[columnName],
+          {
+            columnType: columnDefs?.find((cd) => cd.name === columnName)?.type,
+          },
+          valueLabels,
+        );
       }
     });
     return filtered;
-  }, [columnDefs, columns, json]);
+  }, [columnDefs, columns, json, columnMetadata]);
   return (
     <div className="ml-6">
       {match === DataRecordMatchType.Approximate && (

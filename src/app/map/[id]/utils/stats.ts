@@ -13,7 +13,18 @@ export const getDisplayValue = (
       }
     | null
     | undefined,
+  valueLabels: Record<string, string> | null | undefined,
 ): string => {
+  if (valueLabels && Object.keys(valueLabels).length) {
+    if (value) {
+      return valueLabels[String(value)] || String(value || "-");
+    } else {
+      return (
+        valueLabels[String(value)] || valueLabels[""] || String(value || "-")
+      );
+    }
+  }
+
   if (!config) {
     return String(value || "-");
   }
