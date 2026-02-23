@@ -105,6 +105,20 @@ export function applyFilterAndSearch(
       );
     }
 
+    if (filter?.type === FilterType.EMPTY && filter.column) {
+      return eb.or([
+        eb(eb.ref("json", "->>").key(filter.column), "is", null),
+        eb(eb.ref("json", "->>").key(filter.column), "=", ""),
+      ]);
+    }
+
+    if (filter?.type === FilterType.NOT_EMPTY && filter.column) {
+      return eb.and([
+        eb(eb.ref("json", "->>").key(filter.column), "is not", null),
+        eb(eb.ref("json", "->>").key(filter.column), "!=", ""),
+      ]);
+    }
+
     // Trivially always true fallthrough expression for reliability
     // (e.g. in the case of a broken filter, return everything rather than nothing)
     return eb(eb.val(1), "=", 1);

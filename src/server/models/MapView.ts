@@ -16,13 +16,22 @@ export enum FilterOperator {
 export const filterOperators = Object.values(FilterOperator);
 
 export enum FilterType {
+  EMPTY = "EMPTY",
   EXACT = "EXACT",
   GEO = "GEO",
   MULTI = "MULTI",
+  NOT_EMPTY = "NOT_EMPTY",
   TEXT = "TEXT",
 }
 
 export const filterTypes = Object.values(FilterType);
+
+export const columnFilterTypes = [
+  FilterType.TEXT,
+  FilterType.EXACT,
+  FilterType.EMPTY,
+  FilterType.NOT_EMPTY,
+] as const;
 
 const baseRecordFilterSchema = z.object({
   column: z.string().nullish(),
