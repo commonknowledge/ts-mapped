@@ -1,10 +1,11 @@
-import { ChevronRight, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, Info, LoaderPinwheel } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScaleType } from "@/server/models/MapView";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor, useColorScheme } from "../colors";
@@ -49,18 +50,74 @@ export default function Legend() {
 
   const getColumnLabel = () => {
     if (!hasColumn) {
-      return "No column selected";
+      return <p>No column selected</p>;
     }
     if (viewConfig.areaDataColumn === MAX_COLUMN_KEY) {
-      return "Highest-value column";
+      return <p>Highest-value column</p>;
     }
     if (viewConfig.calculationType === CalculationType.Count) {
-      return "Count";
+      return <p>Count</p>;
     }
-    if (viewConfig.areaDataSecondaryColumn) {
-      return `${viewConfig.areaDataColumn} vs ${viewConfig.areaDataSecondaryColumn}`;
+
+    const primaryDescription = dataSource?.columnMetadata.find(
+      (c) => c.name === viewConfig.areaDataColumn,
+    )?.description;
+
+    const primaryLabel = (
+      <div>
+        {viewConfig.areaDataColumn}
+        {primaryDescription && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
+                aria-label="Column description"
+                tabIndex={0}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{primaryDescription}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    );
+
+    if (!viewConfig.areaDataSecondaryColumn) {
+      return primaryLabel;
     }
-    return viewConfig.areaDataColumn;
+
+    const secondaryDescription = dataSource?.columnMetadata.find(
+      (c) => c.name === viewConfig.areaDataSecondaryColumn,
+    )?.description;
+
+    const secondaryLabel = (
+      <div>
+        {viewConfig.areaDataSecondaryColumn}
+        {secondaryDescription && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
+                aria-label="Secondary column description"
+                tabIndex={0}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{secondaryDescription}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    );
+
+    return (
+      <div>
+        {primaryLabel}
+        <span>vs</span>
+        {secondaryLabel}
+      </div>
+    );
   };
 
   const makeBars = () => {
@@ -327,7 +384,9 @@ export default function Legend() {
                 {dataSource?.name}
               </p>
               <ChevronRight className="w-4 h-4" />
-              <p className="flex items-center gap-0.5">{getColumnLabel()}</p>
+              <div className="flex items-center gap-0.5">
+                {getColumnLabel()}
+              </div>
             </div>
             <VisibilityToggle
               isLayerVisible={isLayerVisible}

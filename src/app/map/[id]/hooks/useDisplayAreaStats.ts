@@ -102,6 +102,7 @@ export const useDisplayAreaStats = <
     areasToDisplay,
     primaryLabel,
     secondaryLabel: viewConfig.areaDataSecondaryColumn,
+    columnMetadata: choroplethDataSource?.columnMetadata,
   };
 };
 
@@ -110,13 +111,13 @@ export const useDisplayAreaStat = <
 >(
   area: T | null | undefined,
 ) => {
-  const { areasToDisplay, primaryLabel, secondaryLabel } = useDisplayAreaStats(
-    area ? [area] : [],
-  );
+  const { areasToDisplay, primaryLabel, secondaryLabel, columnMetadata } =
+    useDisplayAreaStats(area ? [area] : []);
   return {
     areaToDisplay: areasToDisplay.length ? areasToDisplay[0] : null,
     primaryLabel,
     secondaryLabel,
+    columnMetadata,
   };
 };
 

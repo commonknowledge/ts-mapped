@@ -39,7 +39,7 @@ export default function InspectorDataTab({
   const { view } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
-  const { areaToDisplay, primaryLabel, secondaryLabel } =
+  const { areaToDisplay, primaryLabel, secondaryLabel, columnMetadata } =
     useDisplayAreaStat(selectedBoundary);
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
@@ -117,7 +117,10 @@ export default function InspectorDataTab({
     <div className="flex flex-col gap-4">
       {isBoundary ? (
         <>
-          <PropertiesList properties={boundaryProperties} />
+          <PropertiesList
+            properties={boundaryProperties}
+            columnMetadata={columnMetadata}
+          />
           {boundaryData.length > 0 &&
             boundaryData.map((item, index) => (
               <BoundaryDataPanel
@@ -169,7 +172,12 @@ export default function InspectorDataTab({
               );
             }
 
-            return <PropertiesList properties={mergedProperties} />;
+            return (
+              <PropertiesList
+                properties={mergedProperties}
+                columnMetadata={dataSource?.columnMetadata}
+              />
+            );
           })()}
         </>
       )}
