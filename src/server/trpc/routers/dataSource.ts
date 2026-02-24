@@ -18,6 +18,7 @@ import {
   deleteDataSource,
   findDataSourcesByIds,
   getJobInfo,
+  getUniqueColumnValues,
   updateDataSource,
 } from "@/server/repositories/DataSource";
 import { findOrganisationsByUserId } from "@/server/repositories/Organisation";
@@ -152,6 +153,12 @@ export const dataSourceRouter = router({
       };
     }),
 
+  uniqueColumnValues: dataSourceReadProcedure
+    .input(z.object({ column: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return getUniqueColumnValues(ctx.dataSource.id, input.column);
+    }),
+
   checkWebhookStatus: dataSourceOwnerProcedure.query(async ({ ctx }) => {
     try {
       const adaptor = getDataSourceAdaptor(ctx.dataSource);
@@ -207,6 +214,7 @@ export const dataSourceRouter = router({
         autoImport: false,
         public: false,
         columnDefs,
+        columnMetadata: [],
         columnRoles: { nameColumns: [] },
         geocodingConfig: { type: GeocodingType.None },
         enrichments: [],
@@ -225,6 +233,7 @@ export const dataSourceRouter = router({
       const update = {
         name: input.name,
         columnRoles: input.columnRoles,
+        columnMetadata: input.columnMetadata,
         enrichments: input.enrichments,
         geocodingConfig: input.geocodingConfig,
         dateFormat: input.dateFormat,

@@ -37,6 +37,7 @@ describe("importDataSource tests", () => {
         url: "file://tests/resources/members.csv",
       },
       columnDefs: [],
+      columnMetadata: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -198,6 +199,7 @@ describe("importDataSource tests", () => {
         url: "file://tests/resources/stats.csv",
       },
       columnDefs: [],
+      columnMetadata: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -279,6 +281,7 @@ describe("importDataSource tests", () => {
         url: "file://tests/resources/stats_with_na.csv",
       },
       columnDefs: [],
+      columnMetadata: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -350,6 +353,7 @@ describe("importDataSource tests", () => {
         url: "file://tests/resources/stats_with_na.csv",
       },
       columnDefs: [],
+      columnMetadata: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {

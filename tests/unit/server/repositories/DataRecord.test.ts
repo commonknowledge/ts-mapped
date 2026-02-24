@@ -37,6 +37,7 @@ describe("webhook route tests", () => {
         tableId: credentials.airtable.tableId,
       },
       columnDefs: [],
+      columnMetadata: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {

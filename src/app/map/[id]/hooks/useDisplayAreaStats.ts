@@ -70,15 +70,27 @@ export const useDisplayAreaStats = <
         primaryDisplayValue: getDisplayValue(
           areaStat?.primary,
           areaStats?.primary,
+          choroplethDataSource?.columnMetadata.find(
+            (c) => c.name === areaStats?.primary?.column,
+          )?.valueLabels,
         ),
         secondaryDisplayValue: getDisplayValue(
           areaStat?.secondary,
           areaStats?.secondary,
+          choroplethDataSource?.columnMetadata.find(
+            (c) => c.name === areaStats?.secondary?.column,
+          )?.valueLabels,
         ),
         backgroundColor: toRGBA(colorResult),
       };
     });
-  }, [areaStats, fillColorExpression, result, areas]);
+  }, [
+    areas,
+    areaStats,
+    result,
+    fillColorExpression,
+    choroplethDataSource?.columnMetadata,
+  ]);
 
   const primaryLabel = areaStats
     ? areaStats.calculationType === CalculationType.Count

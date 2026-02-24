@@ -154,3 +154,19 @@ export async function updateDataSource(
     .where("id", "=", id)
     .execute();
 }
+
+export async function getUniqueColumnValues(id: string, column: string) {
+  const result = await sql<{ value: string }>`
+    SELECT DISTINCT json->>${column} AS "value"
+    FROM data_record
+    WHERE data_source_id = ${id}
+    AND json->>${column} IS NOT NULL
+    LIMIT 11
+  `.execute(db);
+  const values = result.rows.map((row) => row.value);
+  // Don't let users configure value labels when there are too many unique values
+  if (values.length > 10) {
+    return null;
+  }
+  return values;
+}
