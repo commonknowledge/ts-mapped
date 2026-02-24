@@ -38,7 +38,6 @@ describe("importDataSource tests", () => {
       },
       columnDefs: [],
       columnMetadata: [],
-
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
