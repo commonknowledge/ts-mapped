@@ -69,7 +69,11 @@ export default function Legend() {
         {primaryDescription && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1" />
+              <Info
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
+                aria-label="Column description"
+                tabIndex={0}
+              />
             </TooltipTrigger>
             <TooltipContent side="top">
               <p>{primaryDescription}</p>
@@ -93,7 +97,11 @@ export default function Legend() {
         {secondaryDescription && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-3.5 w-3.5 shrink-0 cursor-help text-black" />
+              <Info
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
+                aria-label="Secondary column description"
+                tabIndex={0}
+              />
             </TooltipTrigger>
             <TooltipContent side="top">
               <p>{secondaryDescription}</p>

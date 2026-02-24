@@ -32,7 +32,11 @@ export default function PropertiesList({
               {description ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 shrink-0 cursor-help text-black" />
+                    <Info
+                      className="h-3.5 w-3.5 shrink-0 cursor-help text-black"
+                      aria-label="Column description"
+                      tabIndex={0}
+                    />
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <p>{description}</p>
