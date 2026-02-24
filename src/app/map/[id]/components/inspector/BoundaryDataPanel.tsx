@@ -134,7 +134,10 @@ function BoundaryDataProperties({
         </p>
       )}
       {Object.keys(filteredProperties).length > 0 ? (
-        <PropertiesList properties={filteredProperties} />
+        <PropertiesList
+          properties={filteredProperties}
+          columnMetadata={columnMetadata}
+        />
       ) : (
         <p className="text-sm">No data available</p>
       )}
