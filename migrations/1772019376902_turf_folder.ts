@@ -26,8 +26,13 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema
     .alterTable("turf")
+    .dropConstraint("turfFolderIdFKey")
     .dropColumn("folderId")
     .dropColumn("position")
     .execute();
-  await db.schema.dropTable("folder").execute();
+
+  await db.schema
+    .alterTable("folder")
+    .dropColumn("type")
+    .execute();
 }
