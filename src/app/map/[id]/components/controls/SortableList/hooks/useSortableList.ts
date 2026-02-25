@@ -1,5 +1,15 @@
+import {
+  type DragEndEvent,
+  type DragOverEvent,
+  type DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFolderMutations } from "@/app/map/[id]/hooks/useFolders";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
@@ -17,7 +27,6 @@ import { useTRPC } from "@/services/trpc/react";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { Turf } from "@/server/models/Turf";
-import type { DragEndEvent, DragOverEvent } from "@dnd-kit/core";
 
 interface DraggableItem {
   id: string;
@@ -26,19 +35,10 @@ interface DraggableItem {
 }
 
 interface DragHandlerDeps {
-  items: DraggableItem;
   folders: Folder[];
-  updateItemInCache: (
-    item: Omit<PlacedMarker, "mapId"> | Omit<Turf, "mapId">,
-  ) => void;
-  setPulsingFolderId: (id: string | null) => void;
 }
 
-export function useDragHandlers({
-  folders,
-  updateItemInCache,
-  setPulsingFolderId,
-}: DragHandlerDeps) {
+function useSortableList({ folders }: DragHandlerDeps) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
   const mapId = useMapId();
@@ -46,6 +46,8 @@ export function useDragHandlers({
   const { updateTurf } = useTurfMutations();
   const { updateFolder } = useFolderMutations();
   const { mapConfig, updateMapConfig } = useMapConfig();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [keyboardCapture, setKeyboardCapture] = useState(false);
 
   const currentCacheData = mapId
     ? queryClient.getQueryData(trpc.map.byId.queryKey({ mapId }))
@@ -58,6 +60,21 @@ export function useDragHandlers({
   const currentTurfs = useMemo(
     () => currentCacheData?.turfs || [],
     [currentCacheData?.turfs],
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+      // Disable keyboard while text input is active
+      keyboardCodes: keyboardCapture
+        ? { start: [], cancel: [], end: [] }
+        : undefined,
+    }),
   );
 
   const findItem = useCallback(
@@ -110,6 +127,50 @@ export function useDragHandlers({
       updatePlacedMarker,
       updateTurf,
     ],
+  );
+
+  // Update cache only (for optimistic updates during drag) - NO mutation
+  const updateItemInCache = useCallback(
+    (item: Omit<PlacedMarker, "mapId"> | Omit<Turf, "mapId">) => {
+      if (!mapId) return;
+
+      if ("polygon" in item) {
+        const fullTurf = {
+          ...item,
+          mapId,
+          color: item.color ?? null,
+          folderId: item.folderId ?? null,
+        };
+        queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            turfs:
+              old.turfs?.map((m) => (m.id === fullTurf.id ? fullTurf : m)) ||
+              [],
+          };
+        });
+        return;
+      }
+
+      const fullMarker = {
+        ...item,
+        mapId,
+        folderId: item.folderId ?? null,
+      };
+
+      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          placedMarkers:
+            old.placedMarkers?.map((m) =>
+              m.id === fullMarker.id ? fullMarker : m,
+            ) || [],
+        };
+      });
+    },
+    [mapId, queryClient, trpc.map.byId],
   );
 
   const handleDragOver = useCallback(
@@ -196,7 +257,7 @@ export function useDragHandlers({
     [findItem, findOtherItemsInFolder, mapId, updateItemInCache],
   );
 
-  const handleDragEndMarker = useCallback(
+  const handleDragEndItem = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
 
@@ -232,8 +293,6 @@ export function useDragHandlers({
           folderId,
           position: newPosition,
         } as PlacedMarker);
-
-        setPulsingFolderId(folderId);
       } else if (over && over.id === "unassigned") {
         const unassignedItems = findOtherItemsInFolder(activeItem.id, null);
         const newPosition = getNewFirstPosition(unassignedItems);
@@ -267,7 +326,7 @@ export function useDragHandlers({
         }
       }
     },
-    [findItem, findOtherItemsInFolder, setPulsingFolderId, updateItem],
+    [findItem, findOtherItemsInFolder, updateItem],
   );
 
   const handleDragEndFolder = useCallback(
@@ -302,9 +361,40 @@ export function useDragHandlers({
     [folders, updateFolder],
   );
 
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      setActiveId(event.active.id.toString());
+    },
+    [setActiveId],
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active } = event;
+
+      const activeIdStr = active.id.toString();
+      if (activeIdStr.startsWith("item-")) {
+        handleDragEndItem(event);
+      } else if (activeIdStr.startsWith("folder-drag-")) {
+        handleDragEndFolder(event);
+      }
+
+      // Update UI AFTER handling the drag
+      setActiveId(null);
+    },
+    [handleDragEndFolder, handleDragEndItem, setActiveId],
+  );
+
   return {
+    activeId,
+    setActiveId,
+    keyboardCapture,
+    setKeyboardCapture,
+    handleDragStart,
+    handleDragEnd,
     handleDragOver,
-    handleDragEndMarker,
-    handleDragEndFolder,
+    sensors,
   };
 }
+
+export default useSortableList;

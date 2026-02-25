@@ -36,20 +36,23 @@ import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
 import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
-import SortableMarkerItem from "./SortableMarkerItem";
+import SortableMarkerItem from "../MarkersControl/SortableMarkerItem";
+import TurfItem from "../TurfsControl/TurfItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { Turf } from "@/server/models/Turf";
 
 export default function SortableFolderItem({
   folder,
-  markers,
+  markers = [],
+  turfs = [],
   activeId,
   setKeyboardCapture,
 }: {
   folder: Folder;
-  markers: PlacedMarker[];
+  markers?: PlacedMarker[];
+  turfs?: Turf[];
   activeId: string | null;
-  isPulsing: boolean;
   setKeyboardCapture: (captured: boolean) => void;
 }) {
   const { setNodeRef: setHeaderNodeRef, isOver: isHeaderOver } = useDroppable({
@@ -72,7 +75,7 @@ export default function SortableFolderItem({
   // Check if this folder is the one being dragged
   const isCurrentlyDragging =
     isDragging || activeId === `folder-drag-${folder.id}`;
-  const isDraggingMarker = activeId?.startsWith("marker-");
+  const isDraggingMarker = activeId?.startsWith("item-");
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -111,9 +114,10 @@ export default function SortableFolderItem({
   const [editText, setEditText] = useState(folder.name);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const sortedMarkers = useMemo(() => {
-    return sortByPositionAndId(markers);
-  }, [markers]);
+  const sortedItems = useMemo(() => {
+    const items: (PlacedMarker | Turf)[] = markers;
+    return sortByPositionAndId(items.concat(turfs));
+  }, [markers, turfs]);
 
   const onClickFolder = () => {
     if (isCurrentlyDragging || isEditing) {
@@ -141,16 +145,15 @@ export default function SortableFolderItem({
   };
 
   const visibleMarkers = useMemo(
-    () =>
-      sortedMarkers.filter((marker) => getPlacedMarkerVisibility(marker.id)),
-    [sortedMarkers, getPlacedMarkerVisibility],
+    () => sortedItems.filter((marker) => getPlacedMarkerVisibility(marker.id)),
+    [sortedItems, getPlacedMarkerVisibility],
   );
-  const isFolderVisible = sortedMarkers?.length
+  const isFolderVisible = sortedItems?.length
     ? Boolean(visibleMarkers?.length)
     : true;
 
   const onVisibilityToggle = () => {
-    sortedMarkers.forEach((marker) =>
+    sortedItems.forEach((marker) =>
       setPlacedMarkerVisibility(marker.id, !isFolderVisible),
     );
   };
@@ -193,7 +196,7 @@ export default function SortableFolderItem({
                   <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
                 )}
                 <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
-                  {sortedMarkers.length}
+                  {sortedItems.length}
                 </span>
                 {folder.name}
               </button>
@@ -249,40 +252,46 @@ export default function SortableFolderItem({
 
       {isExpanded && (
         <>
-          {sortedMarkers.length > 0 ? (
+          {sortedItems.length > 0 ? (
             <ul className="flex flex-col gap-1 mt-2 ml-2">
               <SortableContext
-                items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
+                items={sortedItems.map((item) => `item-${item.id}`)}
                 strategy={verticalListSortingStrategy}
               >
-                {sortedMarkers.map((marker, index) => (
+                {sortedItems.map((item, index) => (
                   <li
-                    key={`${marker.id}-${index}`}
+                    key={`${item.id}-${index}`}
                     className="flex items-center gap-1 w-full"
                   >
                     <CornerDownRightIcon
                       size={16}
                       className="text-neutral-400"
                     />
-                    <SortableMarkerItem
-                      marker={marker}
-                      activeId={activeId}
-                      setKeyboardCapture={setKeyboardCapture}
-                    />
+                    {"polygon" in item ? (
+                      <TurfItem key={`${item.id}-${index}`} turf={item} />
+                    ) : (
+                      <SortableMarkerItem
+                        key={`${item.id}-${index}`}
+                        marker={item}
+                        activeId={activeId}
+                        setKeyboardCapture={setKeyboardCapture}
+                      />
+                    )}
                   </li>
                 ))}
               </SortableContext>
             </ul>
           ) : (
             <div className="ml-3 mt-1 text-sm text-muted-foreground">
-              No markers in this folder
+              This folder is empty
             </div>
           )}
           {/* Invisible footer drop zone */}
           <div
             ref={isDraggingMarker ? setFooterNodeRef : null}
-            className={`h-2 rounded`}
+            className="h-1"
           />
+          <div className="h-3" />
         </>
       )}
 
