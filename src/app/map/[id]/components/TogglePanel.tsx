@@ -16,7 +16,7 @@ interface TogglePanelProps {
 export default function TogglePanel({
   label,
   icon: Icon,
-  defaultExpanded = false,
+  defaultExpanded = true,
   children,
   headerRight,
   rightIconButton: RightIconButton,
@@ -25,23 +25,22 @@ export default function TogglePanel({
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <div>
-      <div className="flex items-center justify-between relative">
+    <div className="bg-neutral-100 rounded-lg p-2">
+      <div className="flex items-center justify-between relative group">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 hover:bg-neutral-100 rounded px-1 py-2 -mx-1 / text-sm font-medium cursor-pointer"
+          className="flex items-center gap-2 rounded mb-2 text-sm font-medium cursor-pointer"
         >
-          <ChevronDown
-            size={16}
-            className={cn(
-              "transition-transform",
-              expanded ? "rotate-0" : "-rotate-90",
-            )}
-          />
-
           {Icon}
 
           {label}
+          <ChevronDown
+            size={16}
+            className={cn(
+              "transition group-hover:opacity-100 opacity-0 ",
+              expanded ? "rotate-0" : "-rotate-90",
+            )}
+          />
         </button>
 
         {headerRight && (

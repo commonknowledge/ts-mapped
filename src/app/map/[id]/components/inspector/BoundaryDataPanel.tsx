@@ -5,23 +5,30 @@ import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
 import { AreaSetCode } from "@/server/models/AreaSet";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
-import PropertiesList from "./PropertiesList";
+import PropertiesList, { type PropertyEntry } from "./PropertiesList";
 
 export function BoundaryDataPanel({
   config,
   dataSourceId,
   areaCode,
   columns,
+  columnMetadata,
+  columnGroups,
+  layout,
   defaultExpanded,
 }: {
   config: { name: string; dataSourceId: string };
   dataSourceId: string;
   areaCode: string;
   columns: string[];
+  columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
+  columnGroups?: InspectorBoundaryConfig["columnGroups"];
+  layout?: InspectorBoundaryConfig["layout"];
   defaultExpanded: boolean;
 }) {
   const trpc = useTRPC();
@@ -61,6 +68,9 @@ export function BoundaryDataPanel({
         <BoundaryDataProperties
           json={data.records[0].json}
           columns={columns}
+          columnMetadata={columnMetadata}
+          columnGroups={columnGroups}
+          layout={layout}
           match={data.match}
         />
       ) : data?.records.length ? (
@@ -74,6 +84,9 @@ export function BoundaryDataPanel({
                 <BoundaryDataProperties
                   json={d.json}
                   columns={columns}
+                  columnMetadata={columnMetadata}
+                  columnGroups={columnGroups}
+                  layout={layout}
                   match={data.match}
                 />
               </TogglePanel>
@@ -92,30 +105,57 @@ export function BoundaryDataPanel({
 function BoundaryDataProperties({
   json,
   columns,
+  columnMetadata,
+  columnGroups,
+  layout,
   match,
 }: {
   json: Record<string, unknown>;
   columns: string[];
+  columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
+  columnGroups?: InspectorBoundaryConfig["columnGroups"];
+  layout?: InspectorBoundaryConfig["layout"];
   match: DataRecordMatchType;
 }) {
-  const filteredProperties = useMemo(() => {
-    const filtered: Record<string, unknown> = {};
-    columns.forEach((columnName) => {
-      if (json[columnName] !== undefined) {
-        filtered[columnName] = json[columnName];
-      }
+  const entries = useMemo((): PropertyEntry[] => {
+    const meta = columnMetadata ?? {};
+    const groups = columnGroups ?? [];
+    const keyToGroup = new Map<string, string>();
+    groups.forEach((g) => {
+      g.columnNames.forEach((col) => keyToGroup.set(col, g.label));
     });
-    return filtered;
-  }, [columns, json]);
+    const ordered: PropertyEntry[] = [];
+    groups.forEach((g) => {
+      g.columnNames.forEach((col) => {
+        if (json[col] === undefined) return;
+        ordered.push({
+          key: col,
+          label: meta[col]?.displayName ?? col,
+          value: json[col],
+          groupLabel: g.label,
+        });
+      });
+    });
+    columns.forEach((col) => {
+      if (keyToGroup.has(col)) return;
+      if (json[col] === undefined) return;
+      ordered.push({
+        key: col,
+        label: meta[col]?.displayName ?? col,
+        value: json[col],
+      });
+    });
+    return ordered;
+  }, [json, columns, columnMetadata, columnGroups]);
   return (
-    <div className="ml-6">
+    <div className="">
       {match === DataRecordMatchType.Approximate && (
         <p className="text-sm text-muted-foreground mb-2 italic">
           Approximate boundary match
         </p>
       )}
-      {Object.keys(filteredProperties).length > 0 ? (
-        <PropertiesList properties={filteredProperties} />
+      {entries.length > 0 ? (
+        <PropertiesList entries={entries} layout={layout ?? "single"} />
       ) : (
         <p className="text-sm">No data available</p>
       )}

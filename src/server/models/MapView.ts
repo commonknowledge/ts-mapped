@@ -163,11 +163,32 @@ export const inspectorBoundaryTypes = Object.values(
 );
 
 /**
+ * Display metadata for a single column (e.g. custom label)
+ */
+export const inspectorColumnMetaSchema = z.object({
+  displayName: z.string().optional(),
+});
+export type InspectorColumnMeta = z.infer<typeof inspectorColumnMetaSchema>;
+
+/**
+ * A group of columns shown under one heading in the inspector
+ */
+export const inspectorColumnGroupSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  columnNames: z.array(z.string()),
+});
+export type InspectorColumnGroup = z.infer<typeof inspectorColumnGroupSchema>;
+
+/**
  * Configuration for a single boundary data source in the inspector
  * - dataSourceId: Reference to the data source
  * - name: User-friendly name for this inspector config
  * - type: The type of inspector display (currently only "simple")
- * - columns: Array of column names to display from this data source
+ * - columns: Ordered array of column names to display
+ * - columnMetadata: Optional display names per column
+ * - columnGroups: Optional groups for visual grouping (columns appear under group label)
+ * - layout: "single" (one column) or "twoColumn" (Airtable-style grid)
  */
 export const inspectorBoundaryConfigSchema = z.object({
   id: z.string(),
@@ -175,6 +196,12 @@ export const inspectorBoundaryConfigSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(InspectorBoundaryConfigType),
   columns: z.array(z.string()),
+  columnMetadata: z
+    .record(z.string(), inspectorColumnMetaSchema)
+    .optional()
+    .nullable(),
+  columnGroups: z.array(inspectorColumnGroupSchema).optional().nullable(),
+  layout: z.enum(["single", "twoColumn"]).optional().nullable(),
 });
 
 export type InspectorBoundaryConfig = z.infer<

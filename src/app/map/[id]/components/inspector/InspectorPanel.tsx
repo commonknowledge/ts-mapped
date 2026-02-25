@@ -3,12 +3,13 @@ import { useMemo, useState } from "react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
+import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import InspectorConfigTab from "./InspectorConfigTab";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
+import InspectorSettingsModal from "./InspectorSettingsModal";
 import {
   UnderlineTabs,
   UnderlineTabsContent,
@@ -22,6 +23,7 @@ export default function InspectorPanel({
   boundariesPanelOpen?: boolean;
 } = {}) {
   const [activeTab, setActiveTab] = useState("data");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [hoverArea] = useHoverArea();
   const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
@@ -43,9 +45,6 @@ export default function InspectorPanel({
     const isMarkers = type === LayerType.Marker || type === LayerType.Member;
     if (activeTab === "markers" && isMarkers) {
       return "data";
-    }
-    if (activeTab === "config" && type !== LayerType.Boundary) {
-      return type === LayerType.Cluster ? "markers" : "data";
     }
     return activeTab;
   }, [activeTab, type]);
@@ -70,8 +69,7 @@ export default function InspectorPanel({
       id="inspector-panel"
       className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
       style={{
-        minWidth: safeActiveTab === "config" ? "400px" : "250px",
-        maxWidth: "450px",
+        width: "300px",
         maxHeight: "calc(100% - 80px)",
         paddingTop: boundaryHoverVisible ? "80px" : "20px",
         paddingBottom: "20px",
@@ -84,18 +82,33 @@ export default function InspectorPanel({
           "min-h-0",
         )}
       >
-        <div className="flex justify-between items-center gap-4 p-3">
-          <h1 className="grow flex gap-2 / text-sm font-semibold">
+        <div className="flex justify-between items-center gap-2 p-3">
+          <h1 className="grow flex gap-2 / text-sm font-semibold min-w-0 truncate">
             {inspectorContent?.name as string}
           </h1>
-          <button
-            className="cursor-pointer"
-            aria-label="Close inspector panel"
-            onClick={() => resetInspector()}
-          >
-            <XIcon size={16} />
-          </button>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Inspector settings"
+            >
+              <SettingsIcon className="w-4 h-4" />
+            </Button>
+            <button
+              className="cursor-pointer p-1 rounded hover:bg-neutral-100"
+              aria-label="Close inspector panel"
+              onClick={() => resetInspector()}
+            >
+              <XIcon size={16} />
+            </button>
+          </div>
         </div>
+        <InspectorSettingsModal
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+        />
 
         {isDetailsView && (
           <div className="px-4 pb-2">
@@ -140,11 +153,6 @@ export default function InspectorPanel({
             <UnderlineTabsTrigger value="notes" className="hidden">
               Notes 0
             </UnderlineTabsTrigger>
-            {type === LayerType.Boundary && (
-              <UnderlineTabsTrigger value="config" className="px-2">
-                <SettingsIcon size={16} />
-              </UnderlineTabsTrigger>
-            )}
           </UnderlineTabsList>
 
           {type !== LayerType.Cluster && (
@@ -166,12 +174,6 @@ export default function InspectorPanel({
           <UnderlineTabsContent value="notes" className="overflow-auto p-3">
             <InspectorNotesTab />
           </UnderlineTabsContent>
-
-          {type === LayerType.Boundary && (
-            <UnderlineTabsContent value="config" className="overflow-auto p-3">
-              <InspectorConfigTab />
-            </UnderlineTabsContent>
-          )}
         </UnderlineTabs>
       </div>
     </div>

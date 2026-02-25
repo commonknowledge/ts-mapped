@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { MapPinIcon, TableIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
@@ -8,10 +9,16 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { type DataSource } from "@/server/models/DataSource";
+import {
+  type InspectorBoundaryConfig,
+  InspectorBoundaryConfigType,
+} from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
+import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
+import InspectorOnMapSection from "./InspectorOnMapSection";
 import PropertiesList from "./PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 
@@ -33,9 +40,33 @@ export default function InspectorDataTab({
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
   const trpc = useTRPC();
-  const { view } = useMapViews();
+  const { view, viewConfig, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
+  const initializationAttemptedRef = useRef(false);
+
+  const addDataSourceToConfig = useCallback(
+    (dataSourceId: string) => {
+      if (!view) return;
+      const ds = getDataSourceById(dataSourceId);
+      const newBoundaryConfig: InspectorBoundaryConfig = {
+        id: uuidv4(),
+        dataSourceId,
+        name: ds?.name || "Boundary Data",
+        type: InspectorBoundaryConfigType.Simple,
+        columns: [],
+      };
+      const prev = view.inspectorConfig?.boundaries || [];
+      updateView({
+        ...view,
+        inspectorConfig: {
+          ...view.inspectorConfig,
+          boundaries: [...prev, newBoundaryConfig],
+        },
+      });
+    },
+    [getDataSourceById, updateView, view],
+  );
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -53,37 +84,27 @@ export default function InspectorDataTab({
     () => view?.inspectorConfig?.boundaries || [],
     [view?.inspectorConfig?.boundaries],
   );
-  const shouldUseInspectorConfig =
-    boundaryConfigs.length > 0 &&
-    type === LayerType.Boundary &&
-    boundaryConfigs.some((c) => c.columns.length);
 
   const boundaryData = useMemo(() => {
-    if (
-      !shouldUseInspectorConfig ||
-      !selectedBoundary?.areaCode ||
-      !selectedBoundary?.areaSetCode
-    )
-      return [];
+    if (type !== LayerType.Boundary) return [];
+    return boundaryConfigs.map((config) => ({
+      config,
+      dataSourceId: config.dataSourceId,
+      areaCode: selectedBoundary?.areaCode ?? "",
+      columns: config.columns,
+    }));
+  }, [type, selectedBoundary?.areaCode, boundaryConfigs]);
 
-    return boundaryConfigs.map((config) => {
-      const ds = getDataSourceById(config.dataSourceId);
-
-      return {
-        config,
-        dataSource: ds,
-        dataSourceId: config.dataSourceId,
-        areaCode: selectedBoundary.areaCode,
-        areaSetCode: selectedBoundary.areaSetCode,
-        columns: config.columns,
-      };
-    });
-  }, [
-    shouldUseInspectorConfig,
-    selectedBoundary,
-    boundaryConfigs,
-    getDataSourceById,
-  ]);
+  // Initialise boundary inspector config from choropleth data source when empty
+  useEffect(() => {
+    if (!view || type !== LayerType.Boundary || initializationAttemptedRef.current) return;
+    const hasBoundaries = boundaryConfigs.length > 0;
+    const hasAreaDataSource = viewConfig.areaDataSourceId;
+    if (!hasBoundaries && hasAreaDataSource) {
+      initializationAttemptedRef.current = true;
+      addDataSourceToConfig(viewConfig.areaDataSourceId);
+    }
+  }, [view, type, viewConfig.areaDataSourceId, boundaryConfigs.length, addDataSourceToConfig]);
 
   const flyToMarker = () => {
     const map = mapRef?.current;
@@ -95,26 +116,45 @@ export default function InspectorDataTab({
 
   return (
     <div className="flex flex-col gap-4">
-      {shouldUseInspectorConfig ? (
-        // Show data based on inspector config
-        boundaryData.length > 0 ? (
-          boundaryData.map((item, index) => (
-            <BoundaryDataPanel
-              key={item.config.id}
-              config={item.config}
-              dataSourceId={item.dataSourceId}
-              areaCode={item.areaCode}
-              columns={item.columns}
-              defaultExpanded={index === 0}
-            />
-          ))
-        ) : (
-          <div className="py-8 text-center text-muted-foreground">
-            <p className="text-sm">No boundary data configured</p>
-          </div>
-        )
-      ) : (
-        // Show default data source and properties
+      {type === LayerType.Boundary && (
+        <>
+          <InspectorOnMapSection />
+          <section className="flex flex-col gap-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Data in this area
+            </p>
+            {boundaryConfigs.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-neutral-200 py-6 text-center">
+                <p className="mb-3 text-sm text-muted-foreground">
+                  No data sources added yet
+                </p>
+                <DataSourceSelectButton
+                  className="mx-auto"
+                  onSelect={addDataSourceToConfig}
+                  selectButtonText="Add a data source"
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {boundaryData.map((item, index) => (
+                  <BoundaryDataPanel
+                    key={item.config.id}
+                    config={item.config}
+                    dataSourceId={item.dataSourceId}
+                    areaCode={item.areaCode}
+                    columns={item.columns}
+                    columnMetadata={item.config.columnMetadata}
+                    columnGroups={item.config.columnGroups}
+                    layout={item.config.layout}
+                    defaultExpanded={index === 0}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
+      {type !== LayerType.Boundary && (
         <>
           {dataSource && (
             <div className="bg-muted py-1 px-2 rounded">
