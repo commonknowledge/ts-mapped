@@ -109,6 +109,7 @@ export default function InspectorPanel({
         notes: "",
         area: roundedArea,
         polygon: areaData.geography,
+        position: 0,
       });
 
       toast.success(`Added ${selectedBoundary.name} to your areas`);

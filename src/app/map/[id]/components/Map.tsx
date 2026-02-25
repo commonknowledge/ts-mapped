@@ -470,6 +470,7 @@ export default function Map({
                   area: roundedArea,
                   polygon: feature.geometry as Polygon,
                   color: null,
+                  position: 0,
                 });
                 setEditAreaMode(false);
               }
@@ -482,7 +483,6 @@ export default function Map({
                   const area = turf.area(feature);
                   const roundedArea = Math.round(area * 100) / 100;
 
-                  // Update your turf using the feature.id
                   updateTurf({
                     id: feature?.properties?.id,
                     notes: feature?.properties?.notes,
@@ -493,6 +493,8 @@ export default function Map({
                       feature?.properties?.createdAt as string,
                     ),
                     color: feature?.properties?.color ?? null,
+                    position: feature?.properties?.position ?? 0,
+                    folderId: feature?.properties?.folderId,
                   });
                 });
               }

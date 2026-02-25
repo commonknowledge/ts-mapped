@@ -100,6 +100,8 @@ export function useTurfMutations() {
     (newTurf: Omit<Turf, "mapId" | "createdAt">) => {
       if (!mapId) return;
 
+      console.log('insert turf', newTurf)
+
       // Optimistic update: add to cache immediately
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
         if (!old) return old;
@@ -107,7 +109,14 @@ export function useTurfMutations() {
           ...old,
           turfs: [
             ...(old.turfs || []),
-            { ...newTurf, mapId, color: newTurf.color, createdAt: new Date() },
+            {
+              ...newTurf,
+              mapId,
+              color: newTurf.color,
+              createdAt: new Date(),
+              position: 0,
+              folderId: null,
+            },
           ],
         };
       });
@@ -128,7 +137,9 @@ export function useTurfMutations() {
           ...old,
           turfs:
             old.turfs?.map((t) =>
-              t.id === turf.id ? { ...turf, color: turf.color, mapId } : t,
+              t.id === turf.id
+                ? { ...turf, color: turf.color, folderId: turf.folderId, mapId }
+                : t,
             ) || [],
         };
       });

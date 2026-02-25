@@ -103,6 +103,7 @@ export default function SearchResultMarker() {
                 notes: "",
                 area,
                 polygon: mapSearchResult.geometry as PolygonOrMultiPolygon,
+                position: 0,
               });
 
               setMapSearchResult(null);
