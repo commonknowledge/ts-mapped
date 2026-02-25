@@ -10,6 +10,7 @@ import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
 import { InspectorChart } from "./InspectorChart";
+import { getChartColumnNames } from "./inspectorColumnOrder";
 import {
   InspectorPanelIcon,
   getBarColorForLabel,
@@ -20,22 +21,7 @@ import PropertiesList, { type PropertyEntry } from "./PropertiesList";
 import type {
   InspectorBoundaryConfig,
   InspectorChartConfig,
-  InspectorChartDataSource,
 } from "@/server/models/MapView";
-
-function getChartColumns(
-  columns: string[],
-  columnMetadata: InspectorBoundaryConfig["columnMetadata"],
-  chartDataSource: InspectorChartDataSource,
-  chartColumnNames: string[] | undefined,
-): string[] {
-  const meta = columnMetadata ?? {};
-  if (chartDataSource === "custom" && chartColumnNames?.length) {
-    return chartColumnNames.filter((c) => columns.includes(c));
-  }
-  const formatMatch = chartDataSource as "number" | "percentage" | "scale";
-  return columns.filter((col) => meta[col]?.format === formatMatch);
-}
 
 export function BoundaryDataPanel({
   config,
@@ -115,7 +101,7 @@ export function BoundaryDataPanel({
             match={data.match}
             hideFromListColumnNames={
               config.chart?.enabled && config.chart?.hideChartColumnsFromList
-                ? getChartColumns(
+                ? getChartColumnNames(
                     columns,
                     columnMetadata,
                     config.chart.dataSource,
@@ -165,7 +151,7 @@ function BoundaryChart({
   columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
   chart: InspectorChartConfig;
 }) {
-  const chartColumns = getChartColumns(
+  const chartColumns = getChartColumnNames(
     columns,
     columnMetadata,
     chart.dataSource,

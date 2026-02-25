@@ -25,10 +25,26 @@ export const DEFAULT_BAR_COLOR_VALUE = "__default__";
 export const SMART_MATCH_BAR_COLOR_VALUE = "__smart__";
 
 /** Bar colour options (percentage/scale bars and chart). Default = primary, Smart match = party/palette. */
-export const INSPECTOR_BAR_COLOR_OPTIONS: { value: string; label: string; hex: string }[] = [
-  { value: DEFAULT_BAR_COLOR_VALUE, label: "Default", hex: "hsl(var(--primary))" },
-  { value: SMART_MATCH_BAR_COLOR_VALUE, label: "Smart match", hex: "transparent" },
-  ...COLOR_PALETTE_DATA.map((c) => ({ value: c.hex, label: c.name, hex: c.hex })),
+export const INSPECTOR_BAR_COLOR_OPTIONS: {
+  value: string;
+  label: string;
+  hex: string;
+}[] = [
+  {
+    value: DEFAULT_BAR_COLOR_VALUE,
+    label: "Default",
+    hex: "hsl(var(--primary))",
+  },
+  {
+    value: SMART_MATCH_BAR_COLOR_VALUE,
+    label: "Smart match",
+    hex: "transparent",
+  },
+  ...COLOR_PALETTE_DATA.map((c) => ({
+    value: c.hex,
+    label: c.name,
+    hex: c.hex,
+  })),
 ];
 
 /**
@@ -36,22 +52,98 @@ export const INSPECTOR_BAR_COLOR_OPTIONS: { value: string; label: string; hex: s
  * against column name and display name. Order matters: more specific patterns first.
  * partyName is used for "Smart match (Party name)" in the UI.
  */
-const POLITICAL_PARTY_COLORS: { patterns: string[]; color: string; partyName: string }[] = [
-  { patterns: ["conservative", "con ", " con", "con %", "con%"], color: "#0087DC", partyName: "Conservative" },
-  { patterns: ["labour", "lab ", " lab", "lab %", "lab%"], color: "#E4003B", partyName: "Labour" },
-  { patterns: ["liberal democrat", "lib dem", "ld ", " ld", "ld %", "ld%"], color: "#FAA61A", partyName: "Liberal Democrat" },
-  { patterns: ["scottish national", "snp "], color: "#FDF38E", partyName: "Scottish National Party" },
-  { patterns: ["green ", " green", "green %", "green%"], color: "#6AB023", partyName: "Green party" },
-  { patterns: ["reform uk", "reform ", " reform", "reform %", "ruk ", " ruk", "ruk %", "ruk%"], color: "#00AEEF", partyName: "Reform UK" },
+const POLITICAL_PARTY_COLORS: {
+  patterns: string[];
+  color: string;
+  partyName: string;
+}[] = [
+  {
+    patterns: ["conservative", "con ", " con", "con %", "con%"],
+    color: "#0087DC",
+    partyName: "Conservative",
+  },
+  {
+    patterns: ["labour", "lab ", " lab", "lab %", "lab%"],
+    color: "#E4003B",
+    partyName: "Labour",
+  },
+  {
+    patterns: ["liberal democrat", "lib dem", "ld ", " ld", "ld %", "ld%"],
+    color: "#FAA61A",
+    partyName: "Liberal Democrat",
+  },
+  {
+    patterns: ["scottish national", "snp "],
+    color: "#FDF38E",
+    partyName: "Scottish National Party",
+  },
+  {
+    patterns: ["green ", " green", "green %", "green%"],
+    color: "#6AB023",
+    partyName: "Green party",
+  },
+  {
+    patterns: [
+      "reform uk",
+      "reform ",
+      " reform",
+      "reform %",
+      "ruk ",
+      " ruk",
+      "ruk %",
+      "ruk%",
+    ],
+    color: "#00AEEF",
+    partyName: "Reform UK",
+  },
   { patterns: ["ukip", "uk indep"], color: "#70147A", partyName: "UKIP" },
-  { patterns: ["plaid cymru", "plaid", "pc ", " pc", "pc %", "pc%"], color: "#008142", partyName: "Plaid Cymru" },
-  { patterns: ["sinn féin", "sinn fein", "sf ", " sf", "sf %", "sf%"], color: "#326760", partyName: "Sinn Féin" },
-  { patterns: ["democratic unionist", "dup "], color: "#D46A4C", partyName: "DUP" },
-  { patterns: ["ulster unionist", "ulster union", "uup ", " uup", "uup %", "uup%"], color: "#80BD41", partyName: "UUP" },
-  { patterns: ["social democratic", "sdlp"], color: "#2AA82C", partyName: "SDLP" },
-  { patterns: ["alliance ", " alliance", "alliance %"], color: "#F6CB2F", partyName: "Alliance" },
-  { patterns: ["traditional unionist", "tuv "], color: "#000080", partyName: "TUV" },
-  { patterns: ["other win", "other ", " other", "other %", "other%"], color: "#6B7280", partyName: "Other" },
+  {
+    patterns: ["plaid cymru", "plaid", "pc ", " pc", "pc %", "pc%"],
+    color: "#008142",
+    partyName: "Plaid Cymru",
+  },
+  {
+    patterns: ["sinn féin", "sinn fein", "sf ", " sf", "sf %", "sf%"],
+    color: "#326760",
+    partyName: "Sinn Féin",
+  },
+  {
+    patterns: ["democratic unionist", "dup "],
+    color: "#D46A4C",
+    partyName: "DUP",
+  },
+  {
+    patterns: [
+      "ulster unionist",
+      "ulster union",
+      "uup ",
+      " uup",
+      "uup %",
+      "uup%",
+    ],
+    color: "#80BD41",
+    partyName: "UUP",
+  },
+  {
+    patterns: ["social democratic", "sdlp"],
+    color: "#2AA82C",
+    partyName: "SDLP",
+  },
+  {
+    patterns: ["alliance ", " alliance", "alliance %"],
+    color: "#F6CB2F",
+    partyName: "Alliance",
+  },
+  {
+    patterns: ["traditional unionist", "tuv "],
+    color: "#000080",
+    partyName: "TUV",
+  },
+  {
+    patterns: ["other win", "other ", " other", "other %", "other%"],
+    color: "#6B7280",
+    partyName: "Other",
+  },
 ];
 
 /** Fallback palette when no party match; looped by index. */
@@ -88,7 +180,8 @@ export function getSmartMatchInfo(
   label: string,
   columnName: string,
 ): { color: string; matchLabel: string } {
-  const combined = normaliseForMatching(label) + normaliseForMatching(columnName);
+  const combined =
+    normaliseForMatching(label) + normaliseForMatching(columnName);
   for (const { patterns, color, partyName } of POLITICAL_PARTY_COLORS) {
     for (const p of patterns) {
       const plain = p.trim().toLowerCase();
@@ -97,7 +190,8 @@ export function getSmartMatchInfo(
       }
     }
   }
-  const fallbackIndex = hashForFallback(combined + columnName) % BAR_COLOR_FALLBACK_PALETTE.length;
+  const fallbackIndex =
+    hashForFallback(combined + columnName) % BAR_COLOR_FALLBACK_PALETTE.length;
   return {
     color: BAR_COLOR_FALLBACK_PALETTE[fallbackIndex],
     matchLabel: "Palette",
@@ -125,7 +219,11 @@ export function getBarColorForLabel(
 import type { LucideIcon } from "lucide-react";
 
 /** General/sector icon options for inspector data source panels */
-export const INSPECTOR_ICON_OPTIONS: { value: string; label: string; Icon: LucideIcon }[] = [
+export const INSPECTOR_ICON_OPTIONS: {
+  value: string;
+  label: string;
+  Icon: LucideIcon;
+}[] = [
   { value: "", label: "Default", Icon: Database },
   { value: "Users", label: "People / community", Icon: Users },
   { value: "UtensilsCrossed", label: "Food / access", Icon: UtensilsCrossed },
@@ -145,7 +243,9 @@ const iconMap: Record<string, LucideIcon> = Object.fromEntries(
   INSPECTOR_ICON_OPTIONS.filter((o) => o.value).map((o) => [o.value, o.Icon]),
 );
 
-export function getInspectorIcon(iconName: string | null | undefined): LucideIcon | null {
+export function getInspectorIcon(
+  iconName: string | null | undefined,
+): LucideIcon | null {
   if (!iconName) return null;
   return iconMap[iconName] ?? null;
 }
@@ -179,7 +279,11 @@ const LAYER_COLOR_NAME_TO_BG: Record<string, string> = {
 };
 
 /** Same colours as layer panel (ColorPalette), for inspector panel background */
-export const INSPECTOR_COLOR_OPTIONS: { value: string; label: string; className: string }[] = [
+export const INSPECTOR_COLOR_OPTIONS: {
+  value: string;
+  label: string;
+  className: string;
+}[] = [
   { value: "", label: "Default", className: "bg-neutral-100" },
   ...COLOR_PALETTE_DATA.map((c) => ({
     value: c.name,
@@ -188,7 +292,9 @@ export const INSPECTOR_COLOR_OPTIONS: { value: string; label: string; className:
   })),
 ];
 
-export function getInspectorColorClass(color: string | null | undefined): string {
+export function getInspectorColorClass(
+  color: string | null | undefined,
+): string {
   if (!color) return "bg-neutral-100";
   const option = INSPECTOR_COLOR_OPTIONS.find((o) => o.value === color);
   return option ? option.className : "bg-neutral-100";

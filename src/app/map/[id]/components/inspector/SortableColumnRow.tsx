@@ -79,15 +79,14 @@ function BarColorSelect({
       <Select
         value={value}
         onValueChange={(v) => {
-          if (v === DEFAULT_BAR_COLOR_VALUE) onBarColorChange(DEFAULT_BAR_COLOR_VALUE);
-          else if (v === SMART_MATCH_BAR_COLOR_VALUE) onBarColorChange(SMART_MATCH_BAR_COLOR_VALUE);
+          if (v === DEFAULT_BAR_COLOR_VALUE)
+            onBarColorChange(DEFAULT_BAR_COLOR_VALUE);
+          else if (v === SMART_MATCH_BAR_COLOR_VALUE)
+            onBarColorChange(SMART_MATCH_BAR_COLOR_VALUE);
           else onBarColorChange(v);
         }}
       >
-        <SelectTrigger
-          className="h-7 text-xs"
-          onClick={onClick}
-        >
+        <SelectTrigger className="h-7 text-xs" onClick={onClick}>
           {triggerLabel !== null ? (
             <span className="flex items-center gap-2">
               <span
@@ -112,7 +111,9 @@ function BarColorSelect({
             const isDefault = opt.value === DEFAULT_BAR_COLOR_VALUE;
             const isSmart = opt.value === SMART_MATCH_BAR_COLOR_VALUE;
             const swatchColor = isSmart ? smartMatch.color : opt.hex;
-            const label = isSmart ? `Smart match (${smartMatch.matchLabel})` : opt.label;
+            const label = isSmart
+              ? `Smart match (${smartMatch.matchLabel})`
+              : opt.label;
             return (
               <SelectItem key={opt.value} value={opt.value}>
                 <span className="flex items-center gap-2">

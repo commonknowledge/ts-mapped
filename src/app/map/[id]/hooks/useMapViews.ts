@@ -151,6 +151,16 @@ export function useMapViews() {
     }),
   );
 
+  /** Read the current view from the cache (avoids stale closure when updating from modal/preview). */
+  const getLatestView = useCallback((): View | null => {
+    if (!mapId) return null;
+    const data = queryClient.getQueryData(
+      trpc.map.byId.queryKey({ mapId }),
+    ) as { views?: View[] } | undefined;
+    const list = data?.views ?? [];
+    return list.find((v) => v.id === viewId) ?? null;
+  }, [mapId, viewId, queryClient, trpc.map.byId]);
+
   const updateView = useCallback(
     (view: View) => {
       if (!mapId) return;
@@ -279,6 +289,7 @@ export function useMapViews() {
     views: views || [],
     view,
     viewConfig,
+    getLatestView,
     updateViewConfig,
     insertView,
     updateView,
