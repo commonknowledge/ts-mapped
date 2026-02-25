@@ -8,6 +8,7 @@ export const folderSchema = z.object({
   position: z.number(),
   mapId: z.string(),
   hideMarkers: z.boolean().nullish(),
+  type: z.enum(["placedMarker", "turf"]).default("placedMarker"),
 });
 
 export type Folder = z.infer<typeof folderSchema>;

@@ -6,7 +6,7 @@ import {
 import { useMemo } from "react";
 import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
 import SortableMarkerItem from "../MarkersControl/SortableMarkerItem";
-import TurfItem from "../TurfsControl/TurfItem";
+import SortableTurfItem from "../TurfsControl/SortableTurfItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { Turf } from "@/server/models/Turf";
@@ -44,7 +44,12 @@ export default function UnassignedFolder({
       >
         {sortedItems.map((item, index) =>
           "polygon" in item ? (
-            <TurfItem key={`${item.id}-${index}`} turf={item} />
+            <SortableTurfItem
+              key={`${item.id}-${index}`}
+              turf={item}
+              activeId={activeId}
+              setKeyboardCapture={setKeyboardCapture}
+            />
           ) : (
             <SortableMarkerItem
               key={`${item.id}-${index}`}

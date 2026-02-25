@@ -36,6 +36,10 @@ export default function MarkersList({
   const markerDataSources = useMarkerDataSources();
   const membersDataSource = useMembersDataSource();
 
+  const markerFolders = useMemo(() => {
+    return folders.filter((f) => !f.type || f.type === "placedMarker");
+  }, [folders]);
+
   const {
     activeId,
     setActiveId,
@@ -45,7 +49,7 @@ export default function MarkersList({
     handleDragStart,
     handleDragEnd,
   } = useSortableList({
-    folders,
+    folders: markerFolders,
   });
 
   const activeMarker = useMemo(
@@ -54,14 +58,14 @@ export default function MarkersList({
   );
 
   const sortedFolders = useMemo(() => {
-    return sortByPositionAndId(folders);
-  }, [folders]);
+    return sortByPositionAndId(markerFolders);
+  }, [markerFolders]);
 
   const hasMarkers =
     membersDataSource ||
     markerDataSources?.length ||
     placedMarkers.length ||
-    folders.length;
+    markerFolders.length;
 
   return (
     <div className="relative pt-2">
@@ -136,7 +140,7 @@ export default function MarkersList({
             <UnassignedFolder
               markers={placedMarkers.filter((p) => !p.folderId)}
               activeId={activeId}
-              folders={folders}
+              folders={markerFolders}
               setKeyboardCapture={setKeyboardCapture}
             />
           </div>

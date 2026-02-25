@@ -33,11 +33,13 @@ import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
+import { useTurfMutations } from "../../../hooks/useTurfMutations";
+import { useTurfState } from "../../../hooks/useTurfState";
 import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
 import SortableMarkerItem from "../MarkersControl/SortableMarkerItem";
-import TurfItem from "../TurfsControl/TurfItem";
+import SortableTurfItem from "../TurfsControl/SortableTurfItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { Turf } from "@/server/models/Turf";
@@ -85,28 +87,44 @@ export default function SortableFolderItem({
 
   const { getPlacedMarkerVisibility, setPlacedMarkerVisibility } =
     usePlacedMarkerState();
+  const { getTurfVisibility, setTurfVisibility } = useTurfState();
+  const { updateTurf: updateTurfMutation } = useTurfMutations();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
   const { mapConfig, updateMapConfig } = useMapConfig();
 
-  // Get current folder color (defaults to marker color)
+  const isTurfFolder = folder.type === "turf";
+
+  // Get current folder color (defaults based on folder type)
+  const defaultFolderColor = isTurfFolder
+    ? mapColors.areas.color
+    : mapColors.markers.color;
   const currentFolderColor =
-    mapConfig.folderColors?.[folder.id] ?? mapColors.markers.color;
+    mapConfig.folderColors?.[folder.id] ?? defaultFolderColor;
 
   const handleFolderColorChange = (color: string) => {
-    // Update folder color and all marker colors in one operation
-    const updatedMarkerColors = { ...mapConfig.placedMarkerColors };
-    markers.forEach((marker) => {
-      updatedMarkerColors[marker.id] = color;
-    });
+    const updatedFolderColors = {
+      ...mapConfig.folderColors,
+      [folder.id]: color,
+    };
 
-    updateMapConfig({
-      folderColors: {
-        ...mapConfig.folderColors,
-        [folder.id]: color,
-      },
-      placedMarkerColors: updatedMarkerColors,
-    });
+    if (isTurfFolder) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      turfs.forEach(({ mapId, ...rest }) => {
+        updateTurfMutation({ ...rest, color });
+      });
+      updateMapConfig({ folderColors: updatedFolderColors });
+    } else {
+      // Update folder color and all marker colors in one operation
+      const updatedMarkerColors = { ...mapConfig.placedMarkerColors };
+      markers.forEach((marker) => {
+        updatedMarkerColors[marker.id] = color;
+      });
+      updateMapConfig({
+        folderColors: updatedFolderColors,
+        placedMarkerColors: updatedMarkerColors,
+      });
+    }
   };
 
   const [isExpanded, setExpanded] = useState(false);
@@ -144,25 +162,30 @@ export default function SortableFolderItem({
     setKeyboardCapture(false);
   };
 
-  const visibleMarkers = useMemo(
-    () => sortedItems.filter((marker) => getPlacedMarkerVisibility(marker.id)),
-    [sortedItems, getPlacedMarkerVisibility],
+  const getItemVisibility = isTurfFolder
+    ? getTurfVisibility
+    : getPlacedMarkerVisibility;
+  const setItemVisibility = isTurfFolder
+    ? setTurfVisibility
+    : setPlacedMarkerVisibility;
+
+  const visibleItems = useMemo(
+    () => sortedItems.filter((item) => getItemVisibility(item.id)),
+    [sortedItems, getItemVisibility],
   );
   const isFolderVisible = sortedItems?.length
-    ? Boolean(visibleMarkers?.length)
+    ? Boolean(visibleItems?.length)
     : true;
 
   const onVisibilityToggle = () => {
-    sortedItems.forEach((marker) =>
-      setPlacedMarkerVisibility(marker.id, !isFolderVisible),
-    );
+    sortedItems.forEach((item) => setItemVisibility(item.id, !isFolderVisible));
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <ControlWrapper
         name={folder.name}
-        layerType={LayerType.Marker}
+        layerType={isTurfFolder ? LayerType.Turf : LayerType.Marker}
         isVisible={isFolderVisible}
         onVisibilityToggle={() => onVisibilityToggle()}
         color={currentFolderColor}
@@ -268,7 +291,12 @@ export default function SortableFolderItem({
                       className="text-neutral-400"
                     />
                     {"polygon" in item ? (
-                      <TurfItem key={`${item.id}-${index}`} turf={item} />
+                      <SortableTurfItem
+                        key={`${item.id}-${index}`}
+                        turf={item}
+                        activeId={activeId}
+                        setKeyboardCapture={setKeyboardCapture}
+                      />
                     ) : (
                       <SortableMarkerItem
                         key={`${item.id}-${index}`}
@@ -298,7 +326,7 @@ export default function SortableFolderItem({
       <DeleteConfirmationDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        description={`This action cannot be undone. This will permanently delete the folder "${folder.name}" and any markers in the folder will be lost.`}
+        description={`This action cannot be undone. This will permanently delete the folder "${folder.name}" and any ${isTurfFolder ? "areas" : "markers"} in the folder will be lost.`}
         onConfirm={handleDelete}
       />
     </div>

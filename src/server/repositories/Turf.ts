@@ -13,6 +13,10 @@ export async function deleteTurf(id: string) {
     .executeTakeFirstOrThrow();
 }
 
+export async function deleteTurfsByFolderId(folderId: string) {
+  return db.deleteFrom("turf").where("folderId", "=", folderId).execute();
+}
+
 export async function insertTurf(turf: NewTurf) {
   return db
     .insertInto("turf")
