@@ -64,12 +64,16 @@ export default function PrivateMapControls() {
             className="flex-1 overflow-y-auto / flex flex-col"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
-            {viewConfig.mapType !== MapType.Hex && (
-              <>
-                <MarkersControl />
-                <TurfsControl />
-              </>
-            )}
+            <div
+              className={`border-b border-neutral-200 ${
+                viewConfig.mapType === MapType.Hex
+                  ? "opacity-50 pointer-events-none select-none"
+                  : ""
+              }`}
+            >
+              <MarkersControl />
+              <TurfsControl />
+            </div>
             <BoundariesControl />
           </div>
         </div>
