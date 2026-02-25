@@ -11,6 +11,8 @@ interface TogglePanelProps {
   headerRight?: React.ReactNode;
   rightIconButton?: LucideIcon;
   onRightIconButtonClick?: () => void;
+  /** Optional class for the outer wrapper (e.g. panel background colour) */
+  wrapperClassName?: string;
 }
 
 export default function TogglePanel({
@@ -21,11 +23,12 @@ export default function TogglePanel({
   headerRight,
   rightIconButton: RightIconButton,
   onRightIconButtonClick,
+  wrapperClassName,
 }: TogglePanelProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="bg-neutral-100 rounded-lg p-2">
+    <div className={cn("rounded-lg p-2", wrapperClassName ?? "bg-neutral-100")}>
       <div className="flex items-center justify-between relative group">
         <button
           onClick={() => setExpanded(!expanded)}

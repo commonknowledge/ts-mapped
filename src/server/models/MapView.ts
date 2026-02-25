@@ -163,10 +163,30 @@ export const inspectorBoundaryTypes = Object.values(
 );
 
 /**
- * Display metadata for a single column (e.g. custom label)
+ * How to display a column value in the inspector
+ * - text: plain string
+ * - number: formatted number
+ * - percentage: 0–100 (or 0–1) shown as progress bar
+ * - scale: integer 0..scaleMax-1 (or 1..scaleMax), shown as N thin filled/grey bars
+ */
+export const inspectorColumnFormatSchema = z.enum([
+  "text",
+  "number",
+  "percentage",
+  "scale",
+]);
+export type InspectorColumnFormat = z.infer<typeof inspectorColumnFormatSchema>;
+
+/**
+ * Display metadata for a single column (label, format, scale size, bar colour)
  */
 export const inspectorColumnMetaSchema = z.object({
   displayName: z.string().optional(),
+  format: inspectorColumnFormatSchema.optional(),
+  /** For format "scale": max value (e.g. 3 for a 0–2 or 1–3 scale). Number of bars shown. */
+  scaleMax: z.number().int().min(2).max(10).optional(),
+  /** Bar colour (CSS color) for percentage/scale bars and chart bar. Empty = primary. */
+  barColor: z.string().optional(),
 });
 export type InspectorColumnMeta = z.infer<typeof inspectorColumnMetaSchema>;
 
@@ -181,6 +201,39 @@ export const inspectorColumnGroupSchema = z.object({
 export type InspectorColumnGroup = z.infer<typeof inspectorColumnGroupSchema>;
 
 /**
+ * Chart data source: which columns to include in the inspector chart
+ * - number: columns with Number format
+ * - percentage: columns with Percentage format
+ * - scale: columns with Scale format
+ * - custom: columns selected via chartColumnNames
+ */
+export const inspectorChartDataSourceSchema = z.enum([
+  "number",
+  "percentage",
+  "scale",
+  "custom",
+]);
+export type InspectorChartDataSource = z.infer<
+  typeof inspectorChartDataSourceSchema
+>;
+
+/**
+ * Chart config: show a chart at the top of this boundary panel
+ */
+export const inspectorChartConfigSchema = z.object({
+  enabled: z.boolean(),
+  /** Which columns to use: by format or custom list */
+  dataSource: inspectorChartDataSourceSchema,
+  /** When dataSource is "custom", column names to include in the chart */
+  columnNames: z.array(z.string()).optional(),
+  /** When true, bars with value 0 are not shown in the chart */
+  hideZeroValues: z.boolean().optional(),
+  /** When true, columns used in the chart are hidden from the list below to avoid duplication */
+  hideChartColumnsFromList: z.boolean().optional(),
+});
+export type InspectorChartConfig = z.infer<typeof inspectorChartConfigSchema>;
+
+/**
  * Configuration for a single boundary data source in the inspector
  * - dataSourceId: Reference to the data source
  * - name: User-friendly name for this inspector config
@@ -189,6 +242,10 @@ export type InspectorColumnGroup = z.infer<typeof inspectorColumnGroupSchema>;
  * - columnMetadata: Optional display names per column
  * - columnGroups: Optional groups for visual grouping (columns appear under group label)
  * - layout: "single" (one column) or "twoColumn" (Airtable-style grid)
+ * - icon: optional Lucide icon name for custom panel icon
+ * - color: optional Tailwind color name for panel background (e.g. "blue" -> bg-blue-50)
+ * - chart: optional chart shown at top of panel (data source: number/percentage/scale/custom)
+ * - columnOrder: optional display order for all columns (used for Available list order; when set, reorderable)
  */
 export const inspectorBoundaryConfigSchema = z.object({
   id: z.string(),
@@ -196,12 +253,17 @@ export const inspectorBoundaryConfigSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(InspectorBoundaryConfigType),
   columns: z.array(z.string()),
+  /** When set, order of "Available" list; full list of column names in desired order. */
+  columnOrder: z.array(z.string()).optional().nullable(),
   columnMetadata: z
     .record(z.string(), inspectorColumnMetaSchema)
     .optional()
     .nullable(),
   columnGroups: z.array(inspectorColumnGroupSchema).optional().nullable(),
   layout: z.enum(["single", "twoColumn"]).optional().nullable(),
+  icon: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
+  chart: inspectorChartConfigSchema.optional().nullable(),
 });
 
 export type InspectorBoundaryConfig = z.infer<

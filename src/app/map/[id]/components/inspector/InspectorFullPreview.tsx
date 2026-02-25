@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -30,11 +30,30 @@ import type { DragEndEvent } from "@dnd-kit/core";
  * Renders a full preview of the inspector Data tab for boundaries:
  * On the map section + Data in this area with all BoundaryDataPanels expanded.
  * Panels can be reordered by dragging; order is synced to the list.
+ * When selectedDataSourceId is set, the preview scrolls so that panel is visible.
  */
-export function InspectorFullPreview({ className }: { className?: string }) {
+export function InspectorFullPreview({
+  className,
+  selectedDataSourceId,
+}: {
+  className?: string;
+  selectedDataSourceId?: string | null;
+}) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { selectedBoundary } = useInspector();
   const { view, updateView } = useMapViews();
   const boundaryConfigs = view?.inspectorConfig?.boundaries ?? [];
+
+  useEffect(() => {
+    if (!selectedDataSourceId) return;
+    const escaped = selectedDataSourceId
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"');
+    const el = scrollContainerRef.current?.querySelector(
+      `[data-data-source-id="${escaped}"]`,
+    );
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selectedDataSourceId]);
 
   const boundaryData = useMemo(
     () =>
@@ -95,7 +114,10 @@ export function InspectorFullPreview({ className }: { className?: string }) {
           {selectedBoundary?.name ?? "Boundary"}
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-3 flex flex-col gap-4"
+      >
         <InspectorOnMapSection />
         <section className="flex flex-col gap-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -158,6 +180,7 @@ function SortableBoundaryPanel({
     <div
       ref={setNodeRef}
       style={style}
+      data-data-source-id={item.config.dataSourceId}
       className={cn("flex items-start gap-1", isDragging && "opacity-60 z-10")}
     >
       <button

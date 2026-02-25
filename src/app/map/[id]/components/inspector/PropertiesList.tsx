@@ -1,12 +1,95 @@
 import { Fragment } from "react";
 import { cn } from "@/shadcn/utils";
 
+export type ColumnFormat = "text" | "number" | "percentage" | "scale";
+
 export type PropertyEntry = {
   key: string;
   label: string;
   value: unknown;
   groupLabel?: string;
+  format?: ColumnFormat;
+  scaleMax?: number;
+  /** Bar colour (CSS color) for percentage/scale; same colour used in chart. */
+  barColor?: string;
 };
+
+function formatNumber(n: number): string {
+  if (Number.isInteger(n)) return n.toLocaleString();
+  const s = n.toFixed(2);
+  if (s.endsWith("00")) return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  return n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function parseNumeric(value: unknown): number | null {
+  if (typeof value === "number" && !Number.isNaN(value)) return value;
+  const n = Number(value);
+  return Number.isNaN(n) ? null : n;
+}
+
+function barFill(barColor?: string): string {
+  return barColor?.trim() ? barColor : "hsl(var(--primary))";
+}
+
+function PropertyValue({
+  value,
+  format = "text",
+  scaleMax = 3,
+  barColor,
+}: {
+  value: unknown;
+  format?: ColumnFormat;
+  scaleMax?: number;
+  barColor?: string;
+}) {
+  const num = parseNumeric(value);
+  const fill = barFill(barColor);
+
+  if (format === "number" && num !== null) {
+    return <span className="font-medium tabular-nums">{formatNumber(num)}</span>;
+  }
+
+  if (format === "percentage" && num !== null) {
+    const pct = num > 1 ? Math.min(100, Math.max(0, num)) : Math.min(100, Math.max(0, num * 100));
+    return (
+      <div className="flex items-center gap-2 min-w-0">
+        <div
+          className="h-2 flex-1 min-w-0 rounded-full bg-neutral-200 overflow-hidden"
+          title={`${pct.toFixed(0)}%`}
+        >
+          <div
+            className="h-full rounded-full transition-[width]"
+            style={{ width: `${pct}%`, backgroundColor: fill }}
+          />
+        </div>
+        <span className="text-xs font-medium tabular-nums shrink-0 w-8 text-right">
+          {pct.toFixed(0)}%
+        </span>
+      </div>
+    );
+  }
+
+  if (format === "scale" && num !== null) {
+    const max = Math.max(2, Math.min(10, scaleMax));
+    const filled = Math.min(max, Math.max(0, Math.round(num)));
+    return (
+      <div className="flex items-center gap-1" title={`${filled} / ${max}`}>
+        {Array.from({ length: max }, (_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-2 flex-1 min-w-[6px] rounded-sm transition-colors",
+              i < filled ? "" : "bg-neutral-200",
+            )}
+            style={i < filled ? { backgroundColor: fill } : undefined}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return <span className="font-medium">{String(value)}</span>;
+}
 
 export default function PropertiesList({
   properties,
@@ -35,7 +118,14 @@ export default function PropertiesList({
       <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono">
         {e.label}
       </dt>
-      <dd className="font-medium">{String(e.value)}</dd>
+      <dd>
+        <PropertyValue
+          value={e.value}
+          format={e.format}
+          scaleMax={e.scaleMax}
+          barColor={e.barColor}
+        />
+      </dd>
     </div>
   );
 

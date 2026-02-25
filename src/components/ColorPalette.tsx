@@ -3,7 +3,8 @@
 import { CheckIcon } from "lucide-react";
 import { cn } from "@/shadcn/utils";
 
-const COLOR_PALETTE_DATA = [
+/** Same palette as layer panel colour picker; export for reuse (e.g. inspector) */
+export const COLOR_PALETTE_DATA = [
   { hex: "#FF6B6B", name: "Red" },
   { hex: "#678DE3", name: "Blue" },
   { hex: "#4DAB37", name: "Green" },
