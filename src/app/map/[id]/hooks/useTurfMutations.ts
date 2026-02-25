@@ -100,8 +100,6 @@ export function useTurfMutations() {
     (newTurf: Omit<Turf, "mapId" | "createdAt">) => {
       if (!mapId) return;
 
-      console.log("insert turf", newTurf);
-
       // Optimistic update: add to cache immediately
       queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
         if (!old) return old;
