@@ -42,17 +42,17 @@ export default function UnassignedFolder({
         items={sortedItems.map((item) => `item-${item.id}`)}
         strategy={verticalListSortingStrategy}
       >
-        {sortedItems.map((item, index) =>
+        {sortedItems.map((item) =>
           "polygon" in item ? (
             <SortableTurfItem
-              key={`${item.id}-${index}`}
+              key={item.id}
               turf={item}
               activeId={activeId}
               setKeyboardCapture={setKeyboardCapture}
             />
           ) : (
             <SortableMarkerItem
-              key={`${item.id}-${index}`}
+              key={item.id}
               marker={item}
               activeId={activeId}
               setKeyboardCapture={setKeyboardCapture}

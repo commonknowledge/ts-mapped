@@ -104,7 +104,12 @@ function useSortableList({ folders }: DragHandlerDeps) {
   const updateItem = useCallback(
     (item: PlacedMarker | Turf) => {
       if ("polygon" in item) {
-        updateTurf(item);
+        let turfColor = item.color;
+        if (item.folderId) {
+          turfColor =
+            mapConfig.folderColors?.[item.folderId] ?? mapColors.areas.color;
+        }
+        updateTurf({ ...item, color: turfColor });
         return;
       }
       updatePlacedMarker(item);
@@ -322,6 +327,10 @@ function useSortableList({ folders }: DragHandlerDeps) {
             ...activeItem,
             folderId: overItem.folderId,
             position: newPosition,
+          });
+        } else {
+          updateItem({
+            ...activeItem,
           });
         }
       }

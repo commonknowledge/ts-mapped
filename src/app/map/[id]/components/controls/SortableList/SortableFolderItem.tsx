@@ -281,25 +281,22 @@ export default function SortableFolderItem({
                 items={sortedItems.map((item) => `item-${item.id}`)}
                 strategy={verticalListSortingStrategy}
               >
-                {sortedItems.map((item, index) => (
-                  <li
-                    key={`${item.id}-${index}`}
-                    className="flex items-center gap-1 w-full"
-                  >
+                {sortedItems.map((item) => (
+                  <li key={item.id} className="flex items-center gap-1 w-full">
                     <CornerDownRightIcon
                       size={16}
                       className="text-neutral-400"
                     />
                     {"polygon" in item ? (
                       <SortableTurfItem
-                        key={`${item.id}-${index}`}
+                        key={item.id}
                         turf={item}
                         activeId={activeId}
                         setKeyboardCapture={setKeyboardCapture}
                       />
                     ) : (
                       <SortableMarkerItem
-                        key={`${item.id}-${index}`}
+                        key={item.id}
                         marker={item}
                         activeId={activeId}
                         setKeyboardCapture={setKeyboardCapture}
