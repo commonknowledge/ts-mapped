@@ -73,7 +73,7 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
    */
   {
     code: AreaSetCode.SOA22,
-    name: "Scottish Census Output Areas 2021",
+    name: "Scottish Census Output Areas 2022",
     filename: "scotland_output_areas.geojson",
     link: "https://www.nrscotland.gov.uk/media/uwdpx4hn/output-area-2022-mhw.zip",
     isNationalGridSRID: false,

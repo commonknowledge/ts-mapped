@@ -47,7 +47,7 @@ export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
   UKC24: "UK Country",
   SPC22: "Scottish Parliament Constituency",
   SENC22: "Senedd Constituency",
-  SOA22: "Scottish Output Area",
+  SOA22: "Scottish Inter. Zone ➔ Data Zone ➔ Output Area",
 };
 
 export const FilterTypeLabels: Record<
