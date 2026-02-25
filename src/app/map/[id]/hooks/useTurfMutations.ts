@@ -112,8 +112,8 @@ export function useTurfMutations() {
               mapId,
               color: newTurf.color,
               createdAt: new Date(),
-              position: 0,
-              folderId: null,
+              position: newTurf.position ?? 0,
+              folderId: newTurf.folderId ?? null,
             },
           ],
         };
