@@ -25,7 +25,7 @@ import { LayerType } from "@/types";
 import { CollectionIcon } from "../../Icons";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
-import MarkersList from "../MarkersList";
+import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const router = useRouter();
@@ -45,6 +45,7 @@ export default function MarkersControl() {
       id: uuidv4(),
       name: `New Folder ${folders.length + 1}`,
       notes: "",
+      type: "placedMarker" as const,
     };
     insertFolder(newFolder);
   };

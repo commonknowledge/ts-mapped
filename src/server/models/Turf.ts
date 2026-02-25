@@ -31,6 +31,8 @@ export const turfSchema = z.object({
   mapId: z.string(),
   createdAt: z.date(),
   color: z.string().nullish(),
+  folderId: z.string().nullish(),
+  position: z.number(),
 });
 
 export type Turf = z.infer<typeof turfSchema>;

@@ -33,23 +33,28 @@ import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
+import { useTurfMutations } from "../../../hooks/useTurfMutations";
+import { useTurfState } from "../../../hooks/useTurfState";
 import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
-import SortableMarkerItem from "./SortableMarkerItem";
+import SortableMarkerItem from "../MarkersControl/SortableMarkerItem";
+import SortableTurfItem from "../TurfsControl/SortableTurfItem";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
+import type { Turf } from "@/server/models/Turf";
 
 export default function SortableFolderItem({
   folder,
-  markers,
+  markers = [],
+  turfs = [],
   activeId,
   setKeyboardCapture,
 }: {
   folder: Folder;
-  markers: PlacedMarker[];
+  markers?: PlacedMarker[];
+  turfs?: Turf[];
   activeId: string | null;
-  isPulsing: boolean;
   setKeyboardCapture: (captured: boolean) => void;
 }) {
   const { setNodeRef: setHeaderNodeRef, isOver: isHeaderOver } = useDroppable({
@@ -72,7 +77,7 @@ export default function SortableFolderItem({
   // Check if this folder is the one being dragged
   const isCurrentlyDragging =
     isDragging || activeId === `folder-drag-${folder.id}`;
-  const isDraggingMarker = activeId?.startsWith("marker-");
+  const isDraggingMarker = activeId?.startsWith("item-");
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -82,28 +87,44 @@ export default function SortableFolderItem({
 
   const { getPlacedMarkerVisibility, setPlacedMarkerVisibility } =
     usePlacedMarkerState();
+  const { getTurfVisibility, setTurfVisibility } = useTurfState();
+  const { updateTurf: updateTurfMutation } = useTurfMutations();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
   const { mapConfig, updateMapConfig } = useMapConfig();
 
-  // Get current folder color (defaults to marker color)
+  const isTurfFolder = folder.type === "turf";
+
+  // Get current folder color (defaults based on folder type)
+  const defaultFolderColor = isTurfFolder
+    ? mapColors.areas.color
+    : mapColors.markers.color;
   const currentFolderColor =
-    mapConfig.folderColors?.[folder.id] ?? mapColors.markers.color;
+    mapConfig.folderColors?.[folder.id] ?? defaultFolderColor;
 
   const handleFolderColorChange = (color: string) => {
-    // Update folder color and all marker colors in one operation
-    const updatedMarkerColors = { ...mapConfig.placedMarkerColors };
-    markers.forEach((marker) => {
-      updatedMarkerColors[marker.id] = color;
-    });
+    const updatedFolderColors = {
+      ...mapConfig.folderColors,
+      [folder.id]: color,
+    };
 
-    updateMapConfig({
-      folderColors: {
-        ...mapConfig.folderColors,
-        [folder.id]: color,
-      },
-      placedMarkerColors: updatedMarkerColors,
-    });
+    if (isTurfFolder) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      turfs.forEach(({ mapId, ...rest }) => {
+        updateTurfMutation({ ...rest, color });
+      });
+      updateMapConfig({ folderColors: updatedFolderColors });
+    } else {
+      // Update folder color and all marker colors in one operation
+      const updatedMarkerColors = { ...mapConfig.placedMarkerColors };
+      markers.forEach((marker) => {
+        updatedMarkerColors[marker.id] = color;
+      });
+      updateMapConfig({
+        folderColors: updatedFolderColors,
+        placedMarkerColors: updatedMarkerColors,
+      });
+    }
   };
 
   const [isExpanded, setExpanded] = useState(false);
@@ -111,9 +132,10 @@ export default function SortableFolderItem({
   const [editText, setEditText] = useState(folder.name);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const sortedMarkers = useMemo(() => {
-    return sortByPositionAndId(markers);
-  }, [markers]);
+  const sortedItems = useMemo(() => {
+    const items: (PlacedMarker | Turf)[] = markers;
+    return sortByPositionAndId(items.concat(turfs));
+  }, [markers, turfs]);
 
   const onClickFolder = () => {
     if (isCurrentlyDragging || isEditing) {
@@ -140,26 +162,30 @@ export default function SortableFolderItem({
     setKeyboardCapture(false);
   };
 
-  const visibleMarkers = useMemo(
-    () =>
-      sortedMarkers.filter((marker) => getPlacedMarkerVisibility(marker.id)),
-    [sortedMarkers, getPlacedMarkerVisibility],
+  const getItemVisibility = isTurfFolder
+    ? getTurfVisibility
+    : getPlacedMarkerVisibility;
+  const setItemVisibility = isTurfFolder
+    ? setTurfVisibility
+    : setPlacedMarkerVisibility;
+
+  const visibleItems = useMemo(
+    () => sortedItems.filter((item) => getItemVisibility(item.id)),
+    [sortedItems, getItemVisibility],
   );
-  const isFolderVisible = sortedMarkers?.length
-    ? Boolean(visibleMarkers?.length)
+  const isFolderVisible = sortedItems?.length
+    ? Boolean(visibleItems?.length)
     : true;
 
   const onVisibilityToggle = () => {
-    sortedMarkers.forEach((marker) =>
-      setPlacedMarkerVisibility(marker.id, !isFolderVisible),
-    );
+    sortedItems.forEach((item) => setItemVisibility(item.id, !isFolderVisible));
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <ControlWrapper
         name={folder.name}
-        layerType={LayerType.Marker}
+        layerType={isTurfFolder ? LayerType.Turf : LayerType.Marker}
         isVisible={isFolderVisible}
         onVisibilityToggle={() => onVisibilityToggle()}
         color={currentFolderColor}
@@ -193,7 +219,7 @@ export default function SortableFolderItem({
                   <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
                 )}
                 <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
-                  {sortedMarkers.length}
+                  {sortedItems.length}
                 </span>
                 {folder.name}
               </button>
@@ -249,47 +275,55 @@ export default function SortableFolderItem({
 
       {isExpanded && (
         <>
-          {sortedMarkers.length > 0 ? (
+          {sortedItems.length > 0 ? (
             <ul className="flex flex-col gap-1 mt-2 ml-2">
               <SortableContext
-                items={sortedMarkers.map((marker) => `marker-${marker.id}`)}
+                items={sortedItems.map((item) => `item-${item.id}`)}
                 strategy={verticalListSortingStrategy}
               >
-                {sortedMarkers.map((marker, index) => (
-                  <li
-                    key={`${marker.id}-${index}`}
-                    className="flex items-center gap-1 w-full"
-                  >
+                {sortedItems.map((item) => (
+                  <li key={item.id} className="flex items-center gap-1 w-full">
                     <CornerDownRightIcon
                       size={16}
                       className="text-neutral-400"
                     />
-                    <SortableMarkerItem
-                      marker={marker}
-                      activeId={activeId}
-                      setKeyboardCapture={setKeyboardCapture}
-                    />
+                    {"polygon" in item ? (
+                      <SortableTurfItem
+                        key={item.id}
+                        turf={item}
+                        activeId={activeId}
+                        setKeyboardCapture={setKeyboardCapture}
+                      />
+                    ) : (
+                      <SortableMarkerItem
+                        key={item.id}
+                        marker={item}
+                        activeId={activeId}
+                        setKeyboardCapture={setKeyboardCapture}
+                      />
+                    )}
                   </li>
                 ))}
               </SortableContext>
             </ul>
           ) : (
             <div className="ml-3 mt-1 text-sm text-muted-foreground">
-              No markers in this folder
+              This folder is empty
             </div>
           )}
           {/* Invisible footer drop zone */}
           <div
             ref={isDraggingMarker ? setFooterNodeRef : null}
-            className={`h-2 rounded`}
+            className="h-1"
           />
+          <div className="h-3" />
         </>
       )}
 
       <DeleteConfirmationDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
-        description={`This action cannot be undone. This will permanently delete the folder "${folder.name}" and any markers in the folder will be lost.`}
+        description={`This action cannot be undone. This will permanently delete the folder "${folder.name}" and any ${isTurfFolder ? "areas" : "markers"} in the folder will be lost.`}
         onConfirm={handleDelete}
       />
     </div>

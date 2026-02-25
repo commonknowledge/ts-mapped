@@ -1,5 +1,16 @@
-import { ArrowRight, PlusIcon, SettingsIcon } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowRight,
+  FolderPlusIcon,
+  LoaderPinwheel,
+  PlusIcon,
+  SettingsIcon,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import {
+  useFolderMutations,
+  useFoldersQuery,
+} from "@/app/map/[id]/hooks/useFolders";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -14,9 +25,8 @@ import { useTurfsQuery } from "../../../hooks/useTurfsQuery";
 import { useTurfState } from "../../../hooks/useTurfState";
 import { mapColors } from "../../../styles";
 import LayerControlWrapper from "../LayerControlWrapper";
-import EmptyLayer from "../LayerEmptyMessage";
 import LayerHeader from "../LayerHeader";
-import TurfItem from "./TurfItem";
+import TurfsList from "./TurfsList";
 
 export default function AreasControl() {
   const { handleAddArea } = useTurfState();
@@ -24,7 +34,13 @@ export default function AreasControl() {
   const setEditAreaMode = useSetEditAreaMode();
   const [expanded, setExpanded] = useState(true);
   const { data: turfs = [] } = useTurfsQuery();
+  const { data: folders = [] } = useFoldersQuery();
+  const { insertFolder, isMutating: isFoldersMutating } = useFolderMutations();
   const { mapConfig, updateMapConfig } = useMapConfig();
+
+  const turfFolders = useMemo(() => {
+    return folders.filter((f) => f.type === "turf");
+  }, [folders]);
 
   const onAddArea = () => {
     if (editAreaMode) {
@@ -35,6 +51,31 @@ export default function AreasControl() {
     }
   };
 
+  const createFolder = () => {
+    const newFolder = {
+      id: uuidv4(),
+      name: `New Folder ${turfFolders.length + 1}`,
+      notes: "",
+      type: "turf" as const,
+    };
+    insertFolder(newFolder);
+  };
+
+  const getDropdownItems = () => [
+    {
+      type: "item" as const,
+      label: "Draw Area",
+      onClick: () => onAddArea(),
+    },
+    { type: "separator" as const },
+    {
+      type: "item" as const,
+      icon: <FolderPlusIcon className="w-4 h-4 text-muted-foreground" />,
+      label: "Add Folder",
+      onClick: () => createFolder(),
+    },
+  ];
+
   return (
     <LayerControlWrapper>
       <LayerHeader
@@ -42,7 +83,7 @@ export default function AreasControl() {
         type={LayerType.Turf}
         expanded={expanded}
         setExpanded={setExpanded}
-        enableVisibilityToggle={Boolean(turfs?.length)}
+        enableVisibilityToggle={Boolean(turfs?.length || turfFolders.length)}
       >
         <div className="flex items-center gap-1">
           <Popover>
@@ -95,10 +136,16 @@ export default function AreasControl() {
               )}
             </PopoverContent>
           </Popover>
+          {isFoldersMutating && (
+            <LoaderPinwheel className="animate-spin" size={16} />
+          )}
           {!editAreaMode ? (
             <IconButtonWithTooltip
-              tooltip="Add Area"
-              onClick={() => onAddArea()}
+              align="start"
+              side="right"
+              tooltip="Area options"
+              dropdownLabel="Area options"
+              dropdownItems={getDropdownItems()}
             >
               <PlusIcon className="w-4 h-4" />
             </IconButtonWithTooltip>
@@ -112,21 +159,8 @@ export default function AreasControl() {
       </LayerHeader>
 
       {expanded && (
-        <div className="relative px-4 pb-6 pt-2">
-          {turfs && turfs.length === 0 && (
-            <EmptyLayer
-              message="Add an Area Layer"
-              onClick={onAddArea}
-              showAsButton
-            />
-          )}
-          <ul className="flex flex-col gap-1 ml-1">
-            {turfs.map((turf) => (
-              <li key={turf.id}>
-                <TurfItem turf={turf} />
-              </li>
-            ))}
-          </ul>
+        <div className="px-4 pb-6">
+          <TurfsList onAddArea={onAddArea} />
         </div>
       )}
     </LayerControlWrapper>

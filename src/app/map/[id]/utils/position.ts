@@ -1,6 +1,9 @@
-export const sortByPositionAndId = <T extends { id: string; position: number }>(
-  items: T[],
-) => {
+interface SortableItem {
+  id: string;
+  position: number;
+}
+
+export const sortByPositionAndId = <T extends SortableItem>(items: T[]) => {
   return items.toSorted(compareByPositionAndId);
 };
 

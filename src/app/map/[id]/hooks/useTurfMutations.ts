@@ -107,7 +107,14 @@ export function useTurfMutations() {
           ...old,
           turfs: [
             ...(old.turfs || []),
-            { ...newTurf, mapId, color: newTurf.color, createdAt: new Date() },
+            {
+              ...newTurf,
+              mapId,
+              color: newTurf.color,
+              createdAt: new Date(),
+              position: newTurf.position ?? 0,
+              folderId: newTurf.folderId ?? null,
+            },
           ],
         };
       });
@@ -128,7 +135,9 @@ export function useTurfMutations() {
           ...old,
           turfs:
             old.turfs?.map((t) =>
-              t.id === turf.id ? { ...turf, color: turf.color, mapId } : t,
+              t.id === turf.id
+                ? { ...turf, color: turf.color, folderId: turf.folderId, mapId }
+                : t,
             ) || [],
         };
       });
