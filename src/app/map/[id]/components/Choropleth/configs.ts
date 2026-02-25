@@ -208,6 +208,41 @@ export const CHOROPLETH_LAYER_CONFIGS: Record<
       },
     },
   ],
+  SOA22: [
+    {
+      areaSetCode: AreaSetCode.SOA22,
+      minZoom: 10,
+      requiresBoundingBox: true,
+      mapbox: {
+        featureCodeProperty: "code",
+        featureNameProperty: "code",
+        layerId: "scotland_output_areas-7mq31n",
+        sourceId: "commonknowledge.dfimbxts",
+      },
+    },
+    {
+      areaSetCode: AreaSetCode.SDZ22,
+      minZoom: 9,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "dzcode",
+        featureNameProperty: "dzname",
+        layerId: "scotland_data_zones-bn52ug",
+        sourceId: "commonknowledge.36ypbhdk",
+      },
+    },
+    {
+      areaSetCode: AreaSetCode.SIZ22,
+      minZoom: 2,
+      requiresBoundingBox: false,
+      mapbox: {
+        featureCodeProperty: "IZCode",
+        featureNameProperty: "IZName",
+        layerId: "scotland_intermediate_zones",
+        sourceId: "commonknowledge.15vyk0j5",
+      },
+    },
+  ],
 };
 
 export const HEX_CHOROPLETH_LAYER_CONFIG: ChoroplethLayerConfig = {

@@ -64,8 +64,40 @@ export const areaSetsMetadata: AreaSetMetadata[] = [
     link: "https://www.data.gov.uk/dataset/4d4e021d-fe98-4a0e-88e2-3ead84538537/output-areas-december-2021-boundaries-ew-bgc-v21",
     isNationalGridSRID: true,
     codeKey: "OA21CD",
-    nameKey: "LSOA21NM",
+    nameKey: "OA21CD",
     nameFormatter: (props) => `${props.LSOA21NM}: ${props.OA21CD}`,
+  },
+  /* Note: these boundaries are provided as shapefiles. Convert with
+   * `ogr2ogr -f GeoJSON -s_srs EPSG:27700 -t_srs EPSG:4326 [output].geojson [input].shp`
+   * The `ogr2ogr` program is provided with PostGIS
+   */
+  {
+    code: AreaSetCode.SOA22,
+    name: "Scottish Census Output Areas 2021",
+    filename: "scotland_output_areas.geojson",
+    link: "https://www.nrscotland.gov.uk/media/uwdpx4hn/output-area-2022-mhw.zip",
+    isNationalGridSRID: false,
+    codeKey: "code",
+    nameKey: "code",
+    nameFormatter: (props) => `${props.council}: ${props.code}`,
+  },
+  {
+    code: AreaSetCode.SDZ22,
+    name: "Scottish Data Zones 2022",
+    filename: "scotland_data_zones.geojson",
+    link: "https://maps.gov.scot/ATOM/shapefiles/SG_DataZoneBdry_2022.zip",
+    isNationalGridSRID: false,
+    codeKey: "dzcode",
+    nameKey: "dzname",
+  },
+  {
+    code: AreaSetCode.SIZ22,
+    name: "Scottish Intermediate Zones 2022",
+    filename: "scotland_intermediate_zones.geojson",
+    link: "https://maps.gov.scot/ATOM/shapefiles/SG_IntermediateZoneBdry_2022.zip",
+    isNationalGridSRID: false,
+    codeKey: "IZCode",
+    nameKey: "IZName",
   },
   {
     code: AreaSetCode.UKR18,

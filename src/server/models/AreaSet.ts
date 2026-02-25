@@ -9,6 +9,9 @@ export enum AreaSetCode {
   LSOA21 = "LSOA21",
   MSOA21 = "MSOA21",
   OA21 = "OA21",
+  SDZ22 = "SDZ22",
+  SIZ22 = "SIZ22",
+  SOA22 = "SOA22",
   UKR18 = "UKR18",
   UKC24 = "UKC24",
   CTYUA24 = "CTYUA24",
@@ -32,6 +35,7 @@ export enum AreaSetGroupCode {
   UKC24 = "UKC24",
   SPC22 = "SPC22",
   SENC22 = "SENC22",
+  SOA22 = "SOA22",
 }
 export const areaSetGroupCodes = Object.values(AreaSetGroupCode);
 
@@ -40,8 +44,11 @@ export const areaSetGroupCode = z.nativeEnum(AreaSetGroupCode);
 export const AreaSetSizes: Record<AreaSetCode, number> = {
   [AreaSetCode.PC]: 1,
   [AreaSetCode.OA21]: 1,
+  [AreaSetCode.SOA22]: 1,
   [AreaSetCode.LSOA21]: 2,
+  [AreaSetCode.SDZ22]: 2,
   [AreaSetCode.MSOA21]: 3,
+  [AreaSetCode.SIZ22]: 3,
   [AreaSetCode.W25]: 3,
   [AreaSetCode.LAD25]: 4,
   [AreaSetCode.WMC24]: 4,
