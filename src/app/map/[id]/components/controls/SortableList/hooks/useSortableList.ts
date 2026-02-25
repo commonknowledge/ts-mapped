@@ -292,7 +292,7 @@ function useSortableList({ folders }: DragHandlerDeps) {
           ...activeItem,
           folderId,
           position: newPosition,
-        } as PlacedMarker);
+        });
       } else if (over && over.id === "unassigned") {
         const unassignedItems = findOtherItemsInFolder(activeItem.id, null);
         const newPosition = getNewFirstPosition(unassignedItems);
