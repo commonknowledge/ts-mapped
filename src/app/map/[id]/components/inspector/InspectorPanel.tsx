@@ -14,7 +14,6 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import InspectorConfigTab from "./InspectorConfigTab";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
@@ -212,11 +211,6 @@ export default function InspectorPanel({
             <UnderlineTabsTrigger value="notes" className="hidden">
               Notes 0
             </UnderlineTabsTrigger>
-            {hasConfig && (
-              <UnderlineTabsTrigger value="config" className="px-2">
-                <SettingsIcon size={16} />
-              </UnderlineTabsTrigger>
-            )}
           </UnderlineTabsList>
 
           {hasData && (
@@ -240,12 +234,6 @@ export default function InspectorPanel({
           <UnderlineTabsContent value="notes" className="overflow-auto p-3">
             <InspectorNotesTab />
           </UnderlineTabsContent>
-
-          {hasConfig && (
-            <UnderlineTabsContent value="config" className="overflow-auto p-3">
-              <InspectorConfigTab />
-            </UnderlineTabsContent>
-          )}
         </UnderlineTabs>
         {type === LayerType.Boundary && (
           <div className="border-t p-3">

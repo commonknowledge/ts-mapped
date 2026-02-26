@@ -61,10 +61,10 @@ export function InspectorFullPreview({
       boundaryConfigs.map((config) => ({
         config,
         dataSourceId: config.dataSourceId,
-        areaCode: selectedBoundary?.areaCode ?? "",
+        areaCode: selectedBoundary?.code ?? "",
         columns: getSelectedColumnsOrdered(config),
       })),
-    [boundaryConfigs, selectedBoundary?.areaCode],
+    [boundaryConfigs, selectedBoundary?.code],
   );
 
   const reorderBoundaries = useCallback(

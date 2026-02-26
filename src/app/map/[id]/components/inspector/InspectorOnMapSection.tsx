@@ -16,14 +16,14 @@ export default function InspectorOnMapSection() {
   const areaStats = areaStatsQuery.data;
 
   const hasChoropleth = Boolean(viewConfig.areaDataSourceId);
-  if (!hasChoropleth || !selectedBoundary?.areaCode || !areaStats) {
+  if (!hasChoropleth || !selectedBoundary?.code || !areaStats) {
     return null;
   }
 
   const isSameAreaSet = areaStats.areaSetCode === selectedBoundary.areaSetCode;
   const stat = isSameAreaSet
     ? areaStats.stats.find(
-        (s: { areaCode: string }) => s.areaCode === selectedBoundary.areaCode,
+        (s: { areaCode: string }) => s.areaCode === selectedBoundary.code,
       )
     : null;
 
