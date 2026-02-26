@@ -309,9 +309,14 @@ export default function Legend() {
 
     if (hasValueLabels) {
       values = Object.keys(valueLabels)
-        .map(Number)
-        .filter((v) => v >= colorScheme.minValue && v <= colorScheme.maxValue)
-        .toSorted();
+        .map((key) => Number(key))
+        .filter(
+          (v) =>
+            Number.isFinite(v) &&
+            v >= colorScheme.minValue &&
+            v <= colorScheme.maxValue,
+        )
+        .toSorted((a, b) => a - b);
       numTicks = values.length;
       denom = Math.max(numTicks - 1, 1);
     }
