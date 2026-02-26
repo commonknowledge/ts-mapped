@@ -3,10 +3,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useMemo } from "react";
-import type {
-  InspectorBoundaryConfig,
-  InspectorChartDataSource,
-} from "@/server/models/MapView";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
@@ -17,8 +14,6 @@ export function DroppableSelectedColumns({
   updateConfig,
   onRemoveColumn,
   activeId,
-  chartDataSource,
-  chartColumnNames,
 }: {
   columns: string[];
   columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
@@ -27,8 +22,6 @@ export function DroppableSelectedColumns({
   ) => void;
   onRemoveColumn?: (columnName: string) => void;
   activeId: string | null;
-  chartDataSource?: InspectorChartDataSource | null;
-  chartColumnNames?: string[];
 }) {
   const meta = columnMetadata ?? {};
   const { setNodeRef, isOver } = useDroppable({ id: SELECTED_DROPPABLE_ID });
@@ -113,37 +106,6 @@ export function DroppableSelectedColumns({
                       },
                     }))
                   }
-                  includeInChart={
-                    chartDataSource === "custom" &&
-                    (chartColumnNames?.includes(col) ?? false)
-                  }
-                  onIncludeInChartChange={
-                    chartDataSource === "custom"
-                      ? (include) =>
-                          updateConfig((prev) => {
-                            const current = prev.chart?.columnNames ?? [];
-                            const next = include
-                              ? current.includes(col)
-                                ? current
-                                : [...current, col]
-                              : current.filter((c) => c !== col);
-                            const chart = prev.chart ?? {
-                              enabled: true,
-                              dataSource: "custom" as const,
-                              columnNames: [],
-                            };
-                            return {
-                              ...prev,
-                              chart: {
-                                ...chart,
-                                dataSource: "custom",
-                                columnNames: next,
-                              },
-                            };
-                          })
-                      : undefined
-                  }
-                  showChartCheckbox={chartDataSource === "custom"}
                   onRemove={
                     onRemoveColumn
                       ? () => onRemoveColumn(col)
@@ -157,21 +119,9 @@ export function DroppableSelectedColumns({
                                 ([k]) => k !== col,
                               ),
                             );
-                            const nextChartColumnNames = (
-                              prev.chart?.columnNames ?? []
-                            ).filter((c) => c !== col);
                             const base: Partial<InspectorBoundaryConfig> = {
                               columns: nextColumns,
                               columnMetadata: nextMeta,
-                              chart: prev.chart
-                                ? {
-                                    ...prev.chart,
-                                    columnNames:
-                                      nextChartColumnNames.length > 0
-                                        ? nextChartColumnNames
-                                        : undefined,
-                                  }
-                                : prev.chart,
                             };
                             if (prev.columnItems?.length) {
                               base.columnItems = prev.columnItems.filter(

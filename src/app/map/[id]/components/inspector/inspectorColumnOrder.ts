@@ -2,7 +2,6 @@
 
 import type {
   InspectorBoundaryConfig,
-  InspectorChartDataSource,
   InspectorColumnItem,
 } from "@/server/models/MapView";
 
@@ -156,19 +155,3 @@ export function getSelectedItemsOrdered(
   return ordered.filter((c) => allColumnNames.includes(c));
 }
 
-/**
- * Chart columns in the same order as config.columns (so chart order matches column list).
- */
-export function getChartColumnNames(
-  columns: string[],
-  columnMetadata: InspectorBoundaryConfig["columnMetadata"],
-  chartDataSource: InspectorChartDataSource,
-  chartColumnNames: string[] | undefined,
-): string[] {
-  const meta = columnMetadata ?? {};
-  if (chartDataSource === "custom" && chartColumnNames?.length) {
-    return columns.filter((c) => chartColumnNames.includes(c));
-  }
-  const formatMatch = chartDataSource as "number" | "percentage" | "scale";
-  return columns.filter((col) => meta[col]?.format === formatMatch);
-}

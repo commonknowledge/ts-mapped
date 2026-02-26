@@ -4,7 +4,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X } from "lucide-react";
 import { type MouseEvent, useEffect, useState } from "react";
-import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -146,9 +145,6 @@ export function SortableColumnRow({
   onFormatChange,
   scaleMax = 3,
   onScaleMaxChange,
-  includeInChart,
-  onIncludeInChartChange,
-  showChartCheckbox,
   barColor,
   onBarColorChange,
   onRemove,
@@ -162,9 +158,6 @@ export function SortableColumnRow({
   onFormatChange?: (format: InspectorColumnFormat) => void;
   scaleMax?: number;
   onScaleMaxChange?: (value: number) => void;
-  includeInChart?: boolean;
-  onIncludeInChartChange?: (include: boolean) => void;
-  showChartCheckbox?: boolean;
   barColor?: string;
   onBarColorChange?: (value: string) => void;
   onRemove?: () => void;
@@ -307,24 +300,6 @@ export function SortableColumnRow({
           columnName={columnName}
           onClick={(e: MouseEvent) => e.stopPropagation()}
         />
-      )}
-      {showChartCheckbox && onIncludeInChartChange && (
-        <div className="flex items-center gap-2 pt-1">
-          <Checkbox
-            id={`${id}-chart`}
-            checked={includeInChart ?? false}
-            onCheckedChange={(checked) =>
-              onIncludeInChartChange(checked === true)
-            }
-            onClick={(e) => e.stopPropagation()}
-          />
-          <Label
-            htmlFor={`${id}-chart`}
-            className="text-[10px] text-muted-foreground cursor-pointer"
-          >
-            Include in chart
-          </Label>
-        </div>
       )}
     </div>
   );

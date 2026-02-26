@@ -288,12 +288,6 @@ export function ColumnsSection({
               updateConfig={updateConfig}
               onRemoveColumn={handleRemoveColumnFromRight}
               activeId={activeId}
-              chartDataSource={
-                config.chart?.enabled
-                  ? (config.chart?.dataSource ?? null)
-                  : null
-              }
-              chartColumnNames={config.chart?.columnNames}
             />
           </div>
         </div>

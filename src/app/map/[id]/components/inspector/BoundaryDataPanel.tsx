@@ -9,8 +9,6 @@ import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
-import { InspectorChart } from "./InspectorChart";
-import { getChartColumnNames } from "./inspectorColumnOrder";
 import {
   InspectorPanelIcon,
   getBarColorForLabel,
@@ -18,10 +16,7 @@ import {
 } from "./inspectorPanelOptions";
 import PropertiesList, { type PropertyEntry } from "./PropertiesList";
 
-import type {
-  InspectorBoundaryConfig,
-  InspectorChartConfig,
-} from "@/server/models/MapView";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 export function BoundaryDataPanel({
   config,
@@ -35,7 +30,7 @@ export function BoundaryDataPanel({
 }: {
   config: Pick<
     InspectorBoundaryConfig,
-    "name" | "dataSourceId" | "icon" | "color" | "chart" | "columnItems"
+    "name" | "dataSourceId" | "icon" | "color" | "columnItems"
   >;
   dataSourceId: string;
   areaCode: string;
@@ -84,36 +79,16 @@ export function BoundaryDataPanel({
           <p className="text-sm">Loading...</p>
         </div>
       ) : data?.records.length === 1 ? (
-        <>
-          {config.chart?.enabled && (
-            <BoundaryChart
-              json={data.records[0].json}
-              columns={columns}
-              columnMetadata={columnMetadata}
-              chart={config.chart}
-            />
-          )}
-          <BoundaryDataProperties
-            json={data.records[0].json}
-            columns={columns}
-            columnMetadata={columnMetadata}
-            columnGroups={columnGroups}
-            columnItems={config.columnItems}
-            layout={layout}
-            match={data.match}
-            dividerBackgroundClassName={getInspectorColorClass(config.color)}
-            hideFromListColumnNames={
-              config.chart?.enabled && config.chart?.hideChartColumnsFromList
-                ? getChartColumnNames(
-                    columns,
-                    columnMetadata,
-                    config.chart.dataSource,
-                    config.chart.columnNames,
-                  )
-                : undefined
-            }
-          />
-        </>
+        <BoundaryDataProperties
+          json={data.records[0].json}
+          columns={columns}
+          columnMetadata={columnMetadata}
+          columnGroups={columnGroups}
+          columnItems={config.columnItems}
+          layout={layout}
+          match={data.match}
+          dividerBackgroundClassName={getInspectorColorClass(config.color)}
+        />
       ) : data?.records.length ? (
         <ul className="ml-2">
           {data.records.map((d, i) => (
@@ -130,7 +105,9 @@ export function BoundaryDataPanel({
                   columnItems={config.columnItems}
                   layout={layout}
                   match={data.match}
-                  dividerBackgroundClassName={getInspectorColorClass(config.color)}
+                  dividerBackgroundClassName={getInspectorColorClass(
+                    config.color,
+                  )}
                 />
               </TogglePanel>
             </li>
@@ -142,34 +119,6 @@ export function BoundaryDataPanel({
         </div>
       )}
     </TogglePanel>
-  );
-}
-
-function BoundaryChart({
-  json,
-  columns,
-  columnMetadata,
-  chart,
-}: {
-  json: Record<string, unknown>;
-  columns: string[];
-  columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
-  chart: InspectorChartConfig;
-}) {
-  const chartColumns = getChartColumnNames(
-    columns,
-    columnMetadata,
-    chart.dataSource,
-    chart.columnNames,
-  );
-  if (chartColumns.length === 0) return null;
-  return (
-    <InspectorChart
-      json={json}
-      columnNames={chartColumns}
-      columnMetadata={columnMetadata}
-      hideZeroValues={chart.hideZeroValues}
-    />
   );
 }
 
@@ -191,7 +140,6 @@ function BoundaryDataProperties({
   columnItems,
   layout,
   match,
-  hideFromListColumnNames,
   dividerBackgroundClassName,
 }: {
   json: Record<string, unknown>;
@@ -201,18 +149,9 @@ function BoundaryDataProperties({
   columnItems?: InspectorBoundaryConfig["columnItems"];
   layout?: InspectorBoundaryConfig["layout"];
   match: DataRecordMatchType;
-  /** When set, these columns are excluded from the list (e.g. already shown in chart) */
-  hideFromListColumnNames?: string[];
   /** Background class for divider labels. Matches panel color. */
   dividerBackgroundClassName?: string;
 }) {
-  const hideSet = useMemo(
-    () =>
-      hideFromListColumnNames?.length
-        ? new Set(hideFromListColumnNames)
-        : undefined,
-    [hideFromListColumnNames],
-  );
   const entries = useMemo((): PropertyEntry[] => {
     const meta = columnMetadata ?? {};
     const columnsSet = new Set(columns);
@@ -229,12 +168,11 @@ function BoundaryDataProperties({
           });
           currentGroupLabel = item.label;
         } else if (typeof item === "string" && columnsSet.has(item)) {
-          if (hideSet?.has(item)) continue;
           if (json[item] === undefined) continue;
           const m = meta[item];
           const label = m?.displayName ?? item;
           ordered.push({
-            key: item,
+            key: `${item}-${ordered.length}`,
             label,
             value: json[item],
             groupLabel: currentGroupLabel,
@@ -260,29 +198,32 @@ function BoundaryDataProperties({
     const ordered: PropertyEntry[] = [];
     groups.forEach((g) => {
       g.columnNames.forEach((col) => {
-        if (hideSet?.has(col)) return;
         if (json[col] === undefined) return;
         const m = meta[col];
         const label = m?.displayName ?? col;
         ordered.push({
-          key: col,
+          key: `${col}-${ordered.length}`,
           label,
           value: json[col],
           groupLabel: g.label,
           format: m?.format,
           scaleMax: m?.scaleMax,
-          barColor: getBarColorForLabel(label, col, ordered.length, m?.barColor),
+          barColor: getBarColorForLabel(
+            label,
+            col,
+            ordered.length,
+            m?.barColor,
+          ),
         });
       });
     });
     columns.forEach((col) => {
-      if (hideSet?.has(col)) return;
       if (keyToGroup.has(col)) return;
       if (json[col] === undefined) return;
       const m = meta[col];
       const label = m?.displayName ?? col;
       ordered.push({
-        key: col,
+        key: `${col}-${ordered.length}`,
         label,
         value: json[col],
         format: m?.format,
@@ -291,7 +232,7 @@ function BoundaryDataProperties({
       });
     });
     return ordered;
-  }, [json, columns, columnMetadata, columnGroups, columnItems, hideSet]);
+  }, [json, columns, columnMetadata, columnGroups, columnItems]);
   return (
     <div className="">
       {match === DataRecordMatchType.Approximate && (

@@ -24,7 +24,6 @@ import {
   INSPECTOR_ICON_OPTIONS,
 } from "../inspectorPanelOptions";
 import type { DataSource } from "@/server/models/DataSource";
-import { ChartSection } from "./ChartSection";
 import { ColumnsSection } from "./ColumnsSection";
 import { DEFAULT_SELECT_VALUE } from "./constants";
 import { inferFormat } from "./constants";
@@ -139,9 +138,6 @@ export function InspectorSourceConfigPanel({
             ([k]) => k !== colName,
           ),
         );
-        const nextChartColumnNames = (prev.chart?.columnNames ?? []).filter(
-          (c) => c !== colName,
-        );
         const order = prev.columnOrder?.filter((c) =>
           allColumnNames.includes(c),
         );
@@ -155,16 +151,6 @@ export function InspectorSourceConfigPanel({
           columnOrder: newOrder,
           ...(nextItems !== undefined && { columnItems: nextItems }),
           columnMetadata: nextMeta,
-          chart:
-            prev.chart && nextChartColumnNames.length >= 0
-              ? {
-                  ...prev.chart,
-                  columnNames:
-                    nextChartColumnNames.length > 0
-                      ? nextChartColumnNames
-                      : undefined,
-                }
-              : prev.chart,
         };
       });
     },
@@ -180,9 +166,6 @@ export function InspectorSourceConfigPanel({
             ([k]) => k !== colName,
           ),
         );
-        const nextChartColumnNames = (prev.chart?.columnNames ?? []).filter(
-          (c) => c !== colName,
-        );
         const newColumnOrder = [
           ...nextColumns,
           ...allColumnsInOrder.filter((c) => !nextColumns.includes(c)),
@@ -194,16 +177,6 @@ export function InspectorSourceConfigPanel({
           columnOrder: newColumnOrder,
           ...(nextItems !== undefined && { columnItems: nextItems }),
           columnMetadata: nextMeta,
-          chart:
-            prev.chart && nextChartColumnNames.length >= 0
-              ? {
-                  ...prev.chart,
-                  columnNames:
-                    nextChartColumnNames.length > 0
-                      ? nextChartColumnNames
-                      : undefined,
-                }
-              : prev.chart,
         };
       });
     },
@@ -335,8 +308,6 @@ export function InspectorSourceConfigPanel({
             </p>
           </div>
         </div>
-
-        <ChartSection config={config} updateConfig={updateConfig} />
 
         <ColumnsSection
           config={config}
