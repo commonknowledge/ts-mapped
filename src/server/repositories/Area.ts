@@ -1,7 +1,7 @@
 import { sql } from "kysely";
-import { db } from "@/server/services/database";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import { db, dbRead } from "@/server/services/database";
 import type { Area } from "@/server/models/Area";
-import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Database } from "@/server/services/database";
 import type { SelectQueryBuilder } from "kysely";
 
@@ -73,6 +73,8 @@ const applyAreaWithPointsSelect = (
   ]);
 };
 
+// Uses the generated `geom` column for 10x performance improvement,
+// at the loss of some (potentially negligible) accuracy.
 export async function findAreasByPoint({
   point,
   excludeAreaSetCode,
@@ -82,7 +84,8 @@ export async function findAreasByPoint({
   excludeAreaSetCode?: AreaSetCode | null | undefined;
   includeAreaSetCode?: AreaSetCode | null | undefined;
 }): Promise<AreaWithAreaSetCode[]> {
-  let query = db
+  // Use the read replica for this expensive read query
+  let query = dbRead
     .selectFrom("area")
     .innerJoin("areaSet", "area.areaSetId", "areaSet.id");
   if (excludeAreaSetCode) {
@@ -92,7 +95,7 @@ export async function findAreasByPoint({
     query = query.where("areaSet.code", "=", includeAreaSetCode);
   }
   return query
-    .where(sql<boolean>`ST_Intersects(geography, ST_GeomFromGeoJson(${point}))`)
+    .where(sql<boolean>`ST_Covers(geom, ST_GeomFromGeoJson(${point}))`)
     .select([
       "area.id",
       "area.code",
@@ -134,4 +137,28 @@ export async function findAreasContaining({
       "areaSet.code as areaSetCode",
     ])
     .execute();
+}
+
+export async function searchAreas(query: string) {
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) {
+    return [];
+  }
+  const words = trimmedQuery.split(/\s+/).filter((word) => word.length > 0);
+
+  // Query the materialized view for fast trigram-based searching
+  let queryBuilder = dbRead
+    .selectFrom("areaSearch")
+    .select(["id", "code", "name", "areaSetCode", "areaSetName"])
+    .where("areaSetCode", "!=", AreaSetCode.PC)
+    .limit(10);
+
+  // Apply ILIKE condition for each word to match all words in the search text
+  for (const word of words) {
+    queryBuilder = queryBuilder.where(
+      sql<boolean>`search_text ILIKE ${`%${word}%`}`,
+    );
+  }
+
+  return queryBuilder.execute();
 }

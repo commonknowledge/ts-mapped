@@ -1,19 +1,10 @@
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
-  closestCorners,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { DndContext, DragOverlay, closestCorners } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   useMarkerDataSources,
@@ -27,14 +18,11 @@ import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
 import { LayerType } from "@/types";
 import DataSourceControl from "../DataSourceItem";
 import EmptyLayer from "../LayerEmptyMessage";
-import MarkerDragOverlay from "../MarkersControl/MarkerDragOverlay";
-import SortableFolderItem from "../MarkersControl/SortableFolderItem";
-import UnassignedFolder from "../MarkersControl/UnassignedFolder";
-import { useDragHandlers } from "./useDragHandlers";
-import { useMarkerListState } from "./useMarkerListState";
+import useSortableList from "../SortableList/hooks/useSortableList";
+import SortableFolderItem from "../SortableList/SortableFolderItem";
+import UnassignedFolder from "../SortableList/UnassignedFolder";
+import MarkerDragOverlay from "./MarkerDragOverlay";
 import type { DropdownMenuItemType } from "@/components/MultiDropdownMenu";
-import type { PlacedMarker } from "@/server/models/PlacedMarker";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 
 export default function MarkersList({
   dropdownItems,
@@ -48,76 +36,36 @@ export default function MarkersList({
   const markerDataSources = useMarkerDataSources();
   const membersDataSource = useMembersDataSource();
 
+  const markerFolders = useMemo(() => {
+    return folders.filter((f) => !f.type || f.type === "placedMarker");
+  }, [folders]);
+
   const {
     activeId,
     setActiveId,
-    pulsingFolderId,
-    keyboardCapture,
+    sensors,
     setKeyboardCapture,
-    updateMarkerInCache,
-    setPulsingFolderId,
-    getActiveMarker,
-    getActiveMarkerColor,
-  } = useMarkerListState(placedMarkers);
+    handleDragOver,
+    handleDragStart,
+    handleDragEnd,
+  } = useSortableList({
+    folders: markerFolders,
+  });
 
-  const { handleDragOver, handleDragEndMarker, handleDragEndFolder } =
-    useDragHandlers({
-      placedMarkers,
-      folders,
-      updateMarkerInCache,
-      setPulsingFolderId,
-    });
-
-  // DnD sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-      // Disable keyboard while text input is active
-      keyboardCodes: keyboardCapture
-        ? { start: [], cancel: [], end: [] }
-        : undefined,
-    }),
-  );
-
-  // Drag and drop handlers
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      setActiveId(event.active.id.toString());
-    },
-    [setActiveId],
-  );
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active } = event;
-
-      const activeIdStr = active.id.toString();
-      if (activeIdStr.startsWith("marker-")) {
-        handleDragEndMarker(event);
-      } else if (activeIdStr.startsWith("folder-drag-")) {
-        handleDragEndFolder(event);
-      }
-
-      // Update UI AFTER handling the drag
-      setActiveId(null);
-    },
-    [handleDragEndFolder, handleDragEndMarker, setActiveId],
+  const activeMarker = useMemo(
+    () => placedMarkers.find((m) => `item-${m.id}` === activeId),
+    [activeId, placedMarkers],
   );
 
   const sortedFolders = useMemo(() => {
-    return sortByPositionAndId(folders);
-  }, [folders]);
+    return sortByPositionAndId(markerFolders);
+  }, [markerFolders]);
 
   const hasMarkers =
     membersDataSource ||
     markerDataSources?.length ||
     placedMarkers.length ||
-    folders.length;
+    markerFolders.length;
 
   return (
     <div className="relative pt-2">
@@ -183,7 +131,6 @@ export default function MarkersList({
                   )}
                   activeId={activeId}
                   setKeyboardCapture={setKeyboardCapture}
-                  isPulsing={pulsingFolderId === folder.id}
                 />
               ))}
             </SortableContext>
@@ -193,7 +140,7 @@ export default function MarkersList({
             <UnassignedFolder
               markers={placedMarkers.filter((p) => !p.folderId)}
               activeId={activeId}
-              folders={folders}
+              folders={markerFolders}
               setKeyboardCapture={setKeyboardCapture}
             />
           </div>
@@ -201,11 +148,8 @@ export default function MarkersList({
 
         {createPortal(
           <DragOverlay dropAnimation={null}>
-            {activeId && getActiveMarker() && (
-              <MarkerDragOverlay
-                marker={getActiveMarker() as PlacedMarker}
-                color={getActiveMarkerColor()}
-              />
+            {activeId && activeMarker && (
+              <MarkerDragOverlay marker={activeMarker} />
             )}
           </DragOverlay>,
           document.body,

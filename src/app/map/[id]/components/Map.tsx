@@ -13,6 +13,7 @@ import { DEFAULT_ZOOM } from "@/constants";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MapType } from "@/server/models/MapView";
 import { useDraw } from "../hooks/useDraw";
+import { useInspector } from "../hooks/useInspector";
 import { useSetZoom } from "../hooks/useMapCamera";
 import {
   getClickedPolygonFeature,
@@ -39,6 +40,7 @@ import MarkerPopup from "./MarkerPopup";
 import Markers from "./Markers";
 import PlacedMarkers from "./PlacedMarkers";
 import SearchResultMarker from "./SearchResultMarker";
+import SecondaryBoundaries from "./SecondaryBoundaries";
 import type { Polygon } from "@/server/models/Turf";
 import type { DrawDeleteEvent, DrawModeChangeEvent } from "@/types";
 
@@ -64,12 +66,15 @@ export default function Map({
   const { visibleTurfs } = useTurfState();
   const markerQueries = useMarkerQueries();
   const [styleLoaded, setStyleLoaded] = useState(false);
+  const { resetInspector, setSelectedTurf, selectedTurf } = useInspector();
 
   const [draw, setDraw] = useDraw();
   const [currentMode, setCurrentMode] = useState<string | null>("");
   const [didInitialFit, setDidInitialFit] = useState(false);
 
   const { insertTurf, updateTurf, deleteTurf } = useTurfMutations();
+
+  const turfColor = mapConfig.turfColor ?? mapColors.areas.color;
 
   const markerLayers = useMemo(
     () =>
@@ -93,7 +98,11 @@ export default function Map({
   useEffect(() => {
     if (!visibleTurfs || !draw) return;
 
-    draw.deleteAll();
+    try {
+      draw.deleteAll();
+    } catch {
+      // Ignore failure to remove existing turfs
+    }
 
     // Add existing polygons from your array
     visibleTurfs.forEach((turf) => {
@@ -104,6 +113,39 @@ export default function Map({
       });
     });
   }, [visibleTurfs, draw, viewConfig?.showTurf]);
+
+  // Update draw layer colors when turfColor changes
+  useEffect(() => {
+    const map = mapRef?.current?.getMap();
+    if (!map || !draw || !ready) return;
+
+    try {
+      const style = map.getStyle();
+      if (!style?.layers) return;
+
+      for (const layer of style.layers) {
+        if (layer.id.startsWith("gl-draw-polygon-fill")) {
+          map.setPaintProperty(layer.id, "fill-color", [
+            "coalesce",
+            ["get", "user_color"],
+            turfColor,
+          ]);
+        } else if (layer.id.startsWith("gl-draw-polygon-stroke")) {
+          map.setPaintProperty(layer.id, "line-color", [
+            "coalesce",
+            ["get", "user_color"],
+            turfColor,
+          ]);
+        } else if (
+          layer.id.startsWith("gl-draw-polygon-and-line-vertex-active")
+        ) {
+          map.setPaintProperty(layer.id, "circle-color", turfColor);
+        }
+      }
+    } catch {
+      // Ignore if layers don't exist yet
+    }
+  }, [turfColor, mapRef, draw, ready]);
 
   // Save draw mode in context
   useEffect(() => {
@@ -234,6 +276,7 @@ export default function Map({
             top: isMobile ? 0 : 100,
             bottom: isMobile ? 0 : 100,
           },
+          maxZoom: 12,
           duration: 1000,
         },
       );
@@ -293,23 +336,44 @@ export default function Map({
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
         mapStyle={`mapbox://styles/${getMapStyle(viewConfig).slug}`}
         interactiveLayerIds={markerLayers}
+        onClick={(e) => {
+          // Prevent default turf single-click behavior
+          // Code kept here to colocate with turf double click behavior below
+          if (!draw || pinDropMode) {
+            return;
+          }
+
+          const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (polygonFeature?.properties?.id) {
+            draw.changeMode("simple_select");
+          }
+        }}
         onDblClick={(e) => {
-          if (draw && currentMode !== "draw_polygon" && !pinDropMode) {
-            const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (!draw || pinDropMode) {
+            return;
+          }
 
-            if (polygonFeature) {
-              // enter edit mode
-              (draw.changeMode as (mode: string, options?: object) => void)(
-                "direct_select",
-                {
-                  featureId: polygonFeature.id,
-                },
-              );
+          const polygonFeature = getClickedPolygonFeature(draw, e);
+          if (!polygonFeature) {
+            return;
+          }
 
-              // Prevent default map zoom on double-click
-              e.preventDefault();
-              return;
-            }
+          // Prevent default map zoom on double-click turf
+          e.preventDefault();
+
+          // prevent edit mode (preserved at right click / double right click)
+          draw.changeMode("simple_select");
+          setCurrentMode("simple_select");
+
+          // If this turf is not already selected, select it and display it in the inspector
+          const polygonId = polygonFeature.properties?.id;
+          if (polygonId && polygonId !== selectedTurf?.id) {
+            resetInspector();
+            setSelectedTurf({
+              id: polygonFeature.properties?.id,
+              name: polygonFeature.properties?.label,
+              geometry: polygonFeature.geometry as Polygon,
+            });
           }
         }}
         onLoad={() => {
@@ -338,7 +402,11 @@ export default function Map({
                     ["!=", "mode", "draw_polygon"],
                   ],
                   paint: {
-                    "fill-color": mapColors.areas.color,
+                    "fill-color": [
+                      "coalesce",
+                      ["get", "user_color"],
+                      turfColor,
+                    ],
                     "fill-opacity": 0.3,
                   },
                 },
@@ -347,7 +415,11 @@ export default function Map({
                   type: "line",
                   filter: ["all", ["==", "$type", "Polygon"]],
                   paint: {
-                    "line-color": mapColors.areas.color,
+                    "line-color": [
+                      "coalesce",
+                      ["get", "user_color"],
+                      turfColor,
+                    ],
                     "line-width": 2,
                   },
                 },
@@ -374,7 +446,7 @@ export default function Map({
                   ],
                   paint: {
                     "circle-radius": 10,
-                    "circle-color": mapColors.areas.color,
+                    "circle-color": turfColor,
                   },
                 },
               ],
@@ -397,6 +469,8 @@ export default function Map({
                   notes: "",
                   area: roundedArea,
                   polygon: feature.geometry as Polygon,
+                  color: null,
+                  position: 0,
                 });
                 setEditAreaMode(false);
               }
@@ -409,7 +483,6 @@ export default function Map({
                   const area = turf.area(feature);
                   const roundedArea = Math.round(area * 100) / 100;
 
-                  // Update your turf using the feature.id
                   updateTurf({
                     id: feature?.properties?.id,
                     notes: feature?.properties?.notes,
@@ -419,6 +492,9 @@ export default function Map({
                     createdAt: new Date(
                       feature?.properties?.createdAt as string,
                     ),
+                    color: feature?.properties?.color ?? null,
+                    position: feature?.properties?.position ?? 0,
+                    folderId: feature?.properties?.folderId,
                   });
                 });
               }
@@ -459,6 +535,23 @@ export default function Map({
 
           const map = mapRef?.current?.getMap();
           if (map) {
+            // Move draw (turf) layers above choropleth layers after a style change.
+            // Only move if a draw layer is not already the topmost layer to avoid
+            // an infinite loop (moveLayer fires another styledata event).
+            if (draw) {
+              const allLayerIds =
+                map.getStyle()?.layers?.map((l) => l.id) || [];
+              const lastLayerId = allLayerIds[allLayerIds.length - 1];
+              if (lastLayerId && !lastLayerId.startsWith("gl-draw")) {
+                const drawLayerIds = allLayerIds.filter((id) =>
+                  id.startsWith("gl-draw"),
+                );
+                for (const id of drawLayerIds) {
+                  map.moveLayer(id);
+                }
+              }
+            }
+
             const layers = map.getStyle().layers;
             if (!layers) return;
 
@@ -494,6 +587,7 @@ export default function Map({
         {ready && (
           <>
             <Choropleth />
+            <SecondaryBoundaries />
             <FilterMarkers />
             <PlacedMarkers />
             <Markers />

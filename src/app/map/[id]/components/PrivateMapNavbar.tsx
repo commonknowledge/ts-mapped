@@ -173,6 +173,14 @@ export default function PrivateMapNavbar() {
                     ref={inputRef}
                     className="px-3 py-1 border border-neutral-300 rounded text-sm"
                     onChange={(e) => setEditedName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        onSubmitSaveName();
+                      } else if (e.key === "Escape") {
+                        setIsEditingName(false);
+                        setEditedName(map ? map.name : "");
+                      }
+                    }}
                   />
                   <Button
                     variant="outline"

@@ -1,12 +1,67 @@
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, inject, test } from "vitest";
-import { GoogleSheetsAdaptor } from "@/server/adaptors/googlesheets";
+import {
+  GoogleSheetsAdaptor,
+  escapeSheetNameForFormula,
+} from "@/server/adaptors/googlesheets";
 import { ColumnType } from "@/server/models/DataSource";
 import { getPublicUrl } from "@/server/services/urls";
 
 const credentials = inject("credentials");
 
 const uuid = uuidv4();
+
+describe("escapeSheetNameForFormula", () => {
+  test("does not escape simple sheet names", () => {
+    expect(escapeSheetNameForFormula("Sheet1")).toBe("Sheet1");
+    expect(escapeSheetNameForFormula("MySheet")).toBe("MySheet");
+    expect(escapeSheetNameForFormula("Data2024")).toBe("Data2024");
+  });
+
+  test("escapes sheet names with spaces", () => {
+    expect(escapeSheetNameForFormula("My Sheet")).toBe("'My Sheet'");
+    expect(escapeSheetNameForFormula("Events tracker")).toBe(
+      "'Events tracker'",
+    );
+    expect(escapeSheetNameForFormula("Q1 2024 Data")).toBe("'Q1 2024 Data'");
+  });
+
+  test("escapes sheet names with apostrophes", () => {
+    expect(escapeSheetNameForFormula("John's Data")).toBe("'John''s Data'");
+    expect(escapeSheetNameForFormula("Team's Sheet")).toBe("'Team''s Sheet'");
+    expect(escapeSheetNameForFormula("'QuotedSheet'")).toBe(
+      "'''QuotedSheet'''",
+    );
+  });
+
+  test("escapes sheet names with both spaces and apostrophes", () => {
+    expect(escapeSheetNameForFormula("John's Events tracker")).toBe(
+      "'John''s Events tracker'",
+    );
+    expect(escapeSheetNameForFormula("Team's Q1 Data")).toBe(
+      "'Team''s Q1 Data'",
+    );
+  });
+
+  test("escapes sheet names with special characters", () => {
+    expect(escapeSheetNameForFormula("Data-2024")).toBe("'Data-2024'");
+    expect(escapeSheetNameForFormula("Sheet#1")).toBe("'Sheet#1'");
+    expect(escapeSheetNameForFormula("Data@Home")).toBe("'Data@Home'");
+    expect(escapeSheetNameForFormula("Price($)")).toBe("'Price($)'");
+    expect(escapeSheetNameForFormula("Data!Important")).toBe(
+      "'Data!Important'",
+    );
+  });
+
+  test("handles edge cases", () => {
+    // Empty string - not a valid sheet name in practice, returns as-is
+    expect(escapeSheetNameForFormula("")).toBe("");
+    // Single quote needs escaping
+    expect(escapeSheetNameForFormula("'")).toBe("''''");
+    // Multiple spaces need quoting
+    expect(escapeSheetNameForFormula("  ")).toBe("'  '");
+  });
+});
 
 describe("Google Sheets adaptor tests", () => {
   test("Connection succeeds", async () => {
@@ -189,6 +244,39 @@ describe("Google Sheets adaptor tests", () => {
     expect(sheets.some((s) => s.properties.title.includes(baseDomain))).toBe(
       false,
     );
+  });
+
+  test("webhooks - formulas are valid for sheets with spaces in name", async () => {
+    // This test verifies the fix for the sheet name escaping bug
+    // Only run if credentials have a sheet name with spaces
+    if (!credentials.googlesheets.sheetName.includes(" ")) {
+      console.log(
+        "Skipping space-in-name test - sheet name has no spaces:",
+        credentials.googlesheets.sheetName,
+      );
+      return;
+    }
+
+    const adaptor = new GoogleSheetsAdaptor(
+      uuid,
+      credentials.googlesheets.spreadsheetId,
+      credentials.googlesheets.sheetName,
+      credentials.googlesheets.oAuthCredentials,
+    );
+
+    await adaptor.toggleWebhook(true);
+
+    const sheets = await adaptor.listSheets();
+    const baseUrl = await getPublicUrl();
+    const baseDomain = new URL(baseUrl).hostname;
+
+    const webhookSheet = sheets.find((s) =>
+      s.properties.title.includes(baseDomain),
+    );
+    expect(webhookSheet).toBeDefined();
+
+    // Clean up
+    await adaptor.toggleWebhook(false);
   });
 
   test("removeDevWebhooks removes webhooks without error", async () => {

@@ -19,7 +19,7 @@ export async function register() {
     }
 
     if (!getBooleanEnvVar("SKIP_WORKER")) {
-      const { runWorker } = await import("./server/services/queue");
+      const { runWorker } = await import("./server/services/worker");
       await runWorker();
     }
 

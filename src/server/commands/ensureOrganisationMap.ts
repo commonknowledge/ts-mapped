@@ -20,7 +20,11 @@ import {
 } from "@/server/repositories/MapView";
 import { upsertOrganisation } from "@/server/repositories/Organisation";
 import { AreaSetCode, AreaSetGroupCode } from "../models/AreaSet";
-import { ColorScheme, MapStyleName } from "../models/MapView";
+import {
+  ColorScheme,
+  DEFAULT_CALCULATION_TYPE,
+  MapStyleName,
+} from "../models/MapView";
 import { countDataRecordsForDataSource } from "../repositories/DataRecord";
 import type { MapView } from "../models/MapView";
 import type { DataSource } from "@/server/models/DataSource";
@@ -87,11 +91,12 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
       areaDataColumn: "Lab",
       areaDataSourceId: electionResultsDataSource.id,
       areaSetGroupCode: AreaSetGroupCode.WMC24,
-      calculationType: null,
+      calculationType: DEFAULT_CALCULATION_TYPE,
       colorScheme: ColorScheme.GreenYellowRed,
       mapStyleName: MapStyleName.Light,
       reverseColorScheme: false,
       showBoundaryOutline: true,
+      showChoropleth: true,
       showLabels: true,
       showLocations: true,
       showMembers: true,
@@ -123,6 +128,7 @@ const ensureMembersDataSource = async (orgId: string): Promise<DataSource> => {
         column: "Postcode",
       },
       columnDefs: [],
+      columnMetadata: [],
       public: false,
       recordType: DataSourceRecordType.Members,
     });
@@ -155,6 +161,7 @@ const ensureElectionResultsDataSource = async (): Promise<DataSource> => {
         column: "ONS ID",
       },
       columnDefs: [],
+      columnMetadata: [],
       public: true,
       recordType: DataSourceRecordType.Data,
     });

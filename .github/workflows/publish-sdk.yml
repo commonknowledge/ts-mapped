@@ -58,10 +58,13 @@ jobs:
           {
             "name": "@commonknowledge/ts-mapped-sdk",
             "version": "0.0.0",
-            "description": "TypeScript types for the ts-mapped REST API",
+            "description": "TypeScript SDK for the ts-mapped REST API",
+            "type": "module",
+            "main": "./dist/index.js",
             "types": "./dist/index.d.ts",
             "exports": {
               ".": {
+                "import": "./dist/index.js",
                 "types": "./dist/index.d.ts"
               }
             },
@@ -96,7 +99,7 @@ jobs:
           cat > ts-mapped-sdk/README.md << 'EOF'
           # ts-mapped SDK
 
-          TypeScript types for consuming the [ts-mapped](https://github.com/commonknowledge/ts-mapped) REST API.
+          TypeScript SDK for consuming the [ts-mapped](https://github.com/commonknowledge/ts-mapped) REST API.
 
           > **Note:** This package is automatically generated from the ts-mapped repository. Do not edit directly.
 
@@ -111,12 +114,12 @@ jobs:
           ## Usage
 
           ```typescript
-          import type {
-            GeoJSONAPIResponse,
-            GeoJSONAPIFeature,
-            GeoJSONFeatureProperties,
-            APIRecordFilter,
-            APIRecordSort,
+          import {
+            type GeoJSONAPIResponse,
+            type GeoJSONAPIFeature,
+            type GeoJSONFeatureProperties,
+            type APIRecordFilter,
+            type APIRecordSort,
             APIFilterOperator,
             APIFilterType,
           } from '@commonknowledge/ts-mapped-sdk';
@@ -133,6 +136,14 @@ jobs:
             );
             return response.json();
           }
+
+          // Use enums for filter operators
+          const filter: APIRecordFilter = {
+            type: APIFilterType.TEXT,
+            column: 'name',
+            search: 'example',
+            operator: APIFilterOperator.AND,
+          };
           ```
 
           ## Available Types
@@ -142,8 +153,8 @@ jobs:
           - `GeoJSONFeatureProperties` - Properties object for each feature
           - `APIRecordFilter` - Filter configuration for querying
           - `APIRecordSort` - Sort configuration
-          - `APIFilterOperator` - `AND` / `OR` operators
-          - `APIFilterType` - `GEO` / `MULTI` / `TEXT` filter types
+          - `APIFilterOperator` - `AND` / `OR` operators (enum)
+          - `APIFilterType` - `GEO` / `MULTI` / `TEXT` filter types (enum)
           - `APIPoint` - Geographic coordinates (lat/lng)
           - `APIGeocodeResult` - Geocoding metadata
           - `GeoJSONAPIErrorResponse` - Error response structure
@@ -155,6 +166,28 @@ jobs:
           ## License
 
           MIT
+          EOF
+
+          # Generate tsconfig.json for SDK
+          cat > ts-mapped-sdk/tsconfig.json << 'EOF'
+          {
+            "compilerOptions": {
+              "target": "ES2020",
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "declaration": true,
+              "declarationMap": true,
+              "outDir": "./dist",
+              "rootDir": "./src",
+              "strict": true,
+              "esModuleInterop": true,
+              "skipLibCheck": true,
+              "forceConsistentCasingInFileNames": true,
+              "resolveJsonModule": true
+            },
+            "include": ["src/**/*"],
+            "exclude": ["node_modules", "dist"]
+          }
           EOF
 
       - name: Get commit info

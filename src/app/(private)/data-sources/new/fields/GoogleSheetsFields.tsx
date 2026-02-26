@@ -104,6 +104,7 @@ function GoogleSheetsFieldsWithOAuth({
   // Load sheet names if OAuth complete and Spreadsheet ID provided
   useEffect(() => {
     const loadSheets = async () => {
+      setError("");
       try {
         if (config.oAuthCredentials && spreadsheetUrl) {
           if (!config.spreadsheetId) {

@@ -8,7 +8,7 @@ import {
 import {
   findDataRecordsByDataSource,
   markDataRecordsAsDirty,
-  upsertDataRecord,
+  upsertDataRecords,
 } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
@@ -37,6 +37,7 @@ describe("webhook route tests", () => {
         tableId: credentials.airtable.tableId,
       },
       columnDefs: [],
+      columnMetadata: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {
@@ -48,13 +49,15 @@ describe("webhook route tests", () => {
       public: false,
     });
 
-    await upsertDataRecord({
-      externalId: "abc",
-      dataSourceId: dataSource.id,
-      json: { foo: "bar" },
-      needsImport: false,
-      needsEnrich: false,
-    });
+    await upsertDataRecords([
+      {
+        externalId: "abc",
+        dataSourceId: dataSource.id,
+        json: { foo: "bar" },
+        needsImport: false,
+        needsEnrich: false,
+      },
+    ]);
 
     await markDataRecordsAsDirty(["abc", "def"], dataSource.id);
 

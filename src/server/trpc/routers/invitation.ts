@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { SignJWT } from "jose";
 import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
-import Invite from "@/server/emails/invite";
+import Invite from "@/server/emails/Invite";
 import {
   createInvitation,
   listPendingInvitations,

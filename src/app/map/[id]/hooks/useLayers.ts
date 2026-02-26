@@ -6,6 +6,7 @@ import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
 import { hiddenLayersAtom } from "../atoms/layerAtoms";
 import { dataSourceVisibilityAtom } from "../atoms/markerAtoms";
+import { useMapViews } from "./useMapViews";
 import { usePlacedMarkersQuery } from "./usePlacedMarkers";
 import { usePlacedMarkerState } from "./usePlacedMarkers";
 import { useTurfsQuery } from "./useTurfsQuery";
@@ -13,6 +14,7 @@ import { useTurfState } from "./useTurfState";
 
 export function useLayers() {
   const { mapConfig } = useMapConfig();
+  const { updateViewConfig } = useMapViews();
   const { data: turfs = [] } = useTurfsQuery();
   const { setTurfVisibility, visibleTurfs } = useTurfState();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
@@ -54,16 +56,19 @@ export function useLayers() {
         );
       } else if (layer === LayerType.Turf) {
         turfs.forEach((t) => setTurfVisibility(t.id, true));
+      } else if (layer === LayerType.Boundary) {
+        updateViewConfig({ showChoropleth: true });
       }
     },
     [
-      setHiddenLayers,
       mapConfig.membersDataSourceId,
-      setDataSourceVisibility,
       placedMarkers,
+      setDataSourceVisibility,
+      setHiddenLayers,
       setPlacedMarkerVisibility,
-      turfs,
       setTurfVisibility,
+      turfs,
+      updateViewConfig,
     ],
   );
 
@@ -81,16 +86,19 @@ export function useLayers() {
         );
       } else if (layer === LayerType.Turf) {
         turfs.forEach((t) => setTurfVisibility(t.id, false));
+      } else if (layer === LayerType.Boundary) {
+        updateViewConfig({ showChoropleth: false });
       }
     },
     [
-      setHiddenLayers,
       mapConfig.membersDataSourceId,
-      setDataSourceVisibility,
       placedMarkers,
+      setDataSourceVisibility,
+      setHiddenLayers,
       setPlacedMarkerVisibility,
-      turfs,
       setTurfVisibility,
+      turfs,
+      updateViewConfig,
     ],
   );
 

@@ -3,11 +3,17 @@ import { ListFilter, XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { usePlacedMarkersQuery } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { useTurfsQuery } from "@/app/map/[id]/hooks/useTurfsQuery";
 import MultiDropdownMenu from "@/components/MultiDropdownMenu";
-import { FilterOperator, FilterType } from "@/server/models/MapView";
+import { FilterTypeLabels } from "@/labels";
+import {
+  FilterOperator,
+  FilterType,
+  columnFilterTypes,
+} from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -19,6 +25,8 @@ import {
   CommandList,
 } from "@/shadcn/ui/command";
 import { Input } from "@/shadcn/ui/input";
+import { Label } from "@/shadcn/ui/label";
+import { Switch } from "@/shadcn/ui/switch";
 import { Toggle } from "@/shadcn/ui/toggle";
 import { buildName } from "@/utils/dataRecord";
 import { mapColors } from "../../styles";
@@ -52,6 +60,7 @@ export default function MapTableFilter({
 
 function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
   const { mapConfig } = useMapConfig();
+  const { viewConfig, updateViewConfig } = useMapViews();
   const { data: turfs = [] } = useTurfsQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
   const { getDataSourceById } = useDataSources();
@@ -215,6 +224,25 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
                 onOperatorChange={updateOperator}
               />
             ) : null}
+
+            {/* Show filtered markers toggle */}
+            {children.length > 0 ? (
+              <div className="flex items-center gap-1.5">
+                <Switch
+                  id="hide-filtered-markers"
+                  checked={Boolean(viewConfig.hideFilteredMarkers)}
+                  onCheckedChange={(checked) =>
+                    updateViewConfig({ hideFilteredMarkers: checked })
+                  }
+                />
+                <Label
+                  htmlFor="hide-filtered-markers"
+                  className="text-xs text-muted-foreground whitespace-nowrap cursor-pointer"
+                >
+                  Remove filtered from map
+                </Label>
+              </div>
+            ) : null}
           </div>
         </ul>
       </div>
@@ -274,6 +302,32 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
     [filter, setFilter],
   );
 
+  const [localSearch, setLocalSearch] = useState(filter.search || "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync local state when filter.search changes externally
+  useEffect(() => {
+    setLocalSearch(filter.search || "");
+  }, [filter.search]);
+
+  const onSearchChange = useCallback(
+    (value: string) => {
+      setLocalSearch(value);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        updateFilter({ search: value });
+      }, 300);
+    },
+    [updateFilter],
+  );
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   if (filter.type === FilterType.GEO) {
     return (
       <div className="flex gap-1 items-center">
@@ -298,19 +352,43 @@ function ChildFilter({ filter, setFilter }: TableFilterProps) {
   }
 
   return (
-    <div className="flex gap-1 items-center">
-      <span className="text-muted-foreground whitespace-nowrap">
-        {filter.column} is
+    <div className="flex">
+      <span className="text-muted-foreground whitespace-nowrap my-auto mr-1">
+        {filter.column}
       </span>
-      <Input
-        type="text"
-        placeholder="Search"
-        value={filter.search || ""}
-        onChange={(e) => updateFilter({ search: e.target.value })}
-        className="w-20 h-7 p-2 text-sm text-center border-y-0 border-r-0 rounded-none bg-neutral-100 font-medium"
-        ref={inputRef}
-        required
-      />
+      <select
+        aria-label="Filter type"
+        value={filter.type}
+        onChange={(e) => {
+          const newType = e.target.value as FilterType;
+          const needsSearch =
+            newType !== FilterType.EMPTY && newType !== FilterType.NOT_EMPTY;
+          updateFilter({
+            type: newType,
+            search: needsSearch ? filter.search : undefined,
+          });
+        }}
+        className="bg-neutral-100 text-sm cursor-pointer border-0 border-l text-center font-medium"
+      >
+        {columnFilterTypes.map((type) => (
+          <option key={type} value={type}>
+            {FilterTypeLabels[type]}
+          </option>
+        ))}
+      </select>
+      {filter.type !== FilterType.EMPTY &&
+        filter.type !== FilterType.NOT_EMPTY && (
+          <Input
+            type="text"
+            placeholder="Search"
+            value={localSearch}
+            onChange={(e) => onSearchChange(e.target.value)}
+            style={{ width: `${Math.max(5, localSearch.length + 1)}ch` }}
+            className="min-w-20 h-7 p-2 text-sm border-y-0 border-r-0 rounded-none bg-neutral-100 font-medium text-center"
+            ref={inputRef}
+            required
+          />
+        )}
     </div>
   );
 }

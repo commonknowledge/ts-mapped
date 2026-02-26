@@ -6,7 +6,9 @@ import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useCompareGeographiesMode, usePinDropMode } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
+import { useSecondaryAreaSetConfig } from "./useSecondaryAreaSet";
 import { useSelectedAreas } from "./useSelectedAreas";
+import { useSelectedSecondaryArea } from "./useSelectedSecondaryArea";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type {
   Feature,
@@ -40,12 +42,15 @@ export function useMapClickEffect({
     setSelectedTurf,
   } = useInspector();
   const [selectedAreas, setSelectedAreas] = useSelectedAreas();
+  const [, setSelectedSecondaryArea] = useSelectedSecondaryArea();
   const compareGeographiesMode = useCompareGeographiesMode();
+  const secondaryAreaSetConfig = useSecondaryAreaSetConfig();
 
   const {
     mapbox: { sourceId, layerId, featureCodeProperty, featureNameProperty },
     areaSetCode,
   } = choroplethLayerConfig;
+  const interactionSourceId = `${sourceId}-interaction`;
 
   const activeFeatureId = useRef<string | undefined>(undefined);
   const selectedAreasRef = useRef(selectedAreas);
@@ -103,7 +108,11 @@ export function useMapClickEffect({
         if (area.areaSetCode === areaSetCode) {
           try {
             map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: area.code },
+              {
+                source: interactionSourceId,
+                sourceLayer: layerId,
+                id: area.code,
+              },
               { selected: false },
             );
           } catch {
@@ -117,7 +126,11 @@ export function useMapClickEffect({
         if (area.areaSetCode === areaSetCode) {
           try {
             map.setFeatureState(
-              { source: sourceId, sourceLayer: layerId, id: area.code },
+              {
+                source: interactionSourceId,
+                sourceLayer: layerId,
+                id: area.code,
+              },
               { selected: true },
             );
           } catch {
@@ -147,7 +160,15 @@ export function useMapClickEffect({
     return () => {
       map.off("sourcedata", onSourceData);
     };
-  }, [selectedAreas, mapRef, ready, sourceId, layerId, areaSetCode]);
+  }, [
+    selectedAreas,
+    mapRef,
+    ready,
+    sourceId,
+    layerId,
+    areaSetCode,
+    interactionSourceId,
+  ]);
 
   /* Handle clicks to set active state */
   useEffect(() => {
@@ -224,10 +245,18 @@ export function useMapClickEffect({
 
     const handleTurfClick = (e: mapboxgl.MapMouseEvent): boolean => {
       if (draw) {
+        // Don't handle turf clicks when in direct_select (edit) mode
+        // This prevents interference with double-click editing
+        if (currentModeRef.current === "direct_select") {
+          return false;
+        }
+
         const polygonFeature = getClickedPolygonFeature(draw, e);
 
         if (polygonFeature) {
-          draw.changeMode("simple_select", { featureIds: [] });
+          // Prevent turf becoming draggable
+          draw.changeMode("simple_select");
+
           resetInspector();
           setSelectedTurf({
             id: polygonFeature.properties?.id,
@@ -240,6 +269,37 @@ export function useMapClickEffect({
       }
 
       return false;
+    };
+
+    const handleSecondaryAreaClick = (e: mapboxgl.MapMouseEvent): void => {
+      if (secondaryAreaSetConfig) {
+        const secondaryFillLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-secondary-fill`;
+        const secondaryLineLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-secondary-line`;
+        const secondaryFeatures = map.queryRenderedFeatures(e.point, {
+          layers: [secondaryFillLayerId, secondaryLineLayerId].filter((l) =>
+            map.getLayer(l),
+          ),
+        });
+        const secondaryFeature = secondaryFeatures.length
+          ? secondaryFeatures[0]
+          : null;
+        if (secondaryFeature?.id !== undefined) {
+          setSelectedSecondaryArea({
+            coordinates: [e.lngLat.lng, e.lngLat.lat],
+            areaSetCode: secondaryAreaSetConfig.areaSetCode,
+            code: String(secondaryFeature.id),
+            name: String(
+              secondaryFeature.properties?.[
+                secondaryAreaSetConfig.mapbox.featureNameProperty
+              ] || secondaryFeature.id,
+            ),
+          });
+        } else {
+          setSelectedSecondaryArea(null);
+        }
+      } else {
+        setSelectedSecondaryArea(null);
+      }
     };
 
     const handleAreaClick = (e: mapboxgl.MapMouseEvent): boolean => {
@@ -262,7 +322,7 @@ export function useMapClickEffect({
             // Deactivate the current area
             map.setFeatureState(
               {
-                source: sourceId,
+                source: interactionSourceId,
                 sourceLayer: layerId,
                 id: activeFeatureId.current,
               },
@@ -277,7 +337,7 @@ export function useMapClickEffect({
           if (activeFeatureId.current !== undefined) {
             map.setFeatureState(
               {
-                source: sourceId,
+                source: interactionSourceId,
                 sourceLayer: layerId,
                 id: activeFeatureId.current,
               },
@@ -288,14 +348,14 @@ export function useMapClickEffect({
           // Use areaCode as the ID for feature state (matches promoteId)
           activeFeatureId.current = areaCode;
           map.setFeatureState(
-            { source: sourceId, sourceLayer: layerId, id: areaCode },
+            { source: interactionSourceId, sourceLayer: layerId, id: areaCode },
             { active: true },
           );
 
           resetInspector();
           setSelectedBoundary({
             id: feature?.id as string,
-            areaCode: areaCode,
+            code: areaCode,
             areaSetCode: areaSetCode,
             sourceLayerId: feature?.sourceLayer as string,
             name: areaName,
@@ -361,6 +421,8 @@ export function useMapClickEffect({
         return;
       }
 
+      handleSecondaryAreaClick(e);
+
       // Check if compare areas mode is active
       if (compareGeographiesModeRef.current) {
         if (handleCtrlAreaClick(e)) {
@@ -372,11 +434,11 @@ export function useMapClickEffect({
         return;
       }
 
-      if (handleTurfClick(e)) {
+      if (handleAreaClick(e)) {
         return;
       }
 
-      if (handleAreaClick(e)) {
+      if (handleTurfClick(e)) {
         return;
       }
 
@@ -405,6 +467,9 @@ export function useMapClickEffect({
     ready,
     setSelectedRecords,
     setSelectedAreas,
+    interactionSourceId,
+    secondaryAreaSetConfig,
+    setSelectedSecondaryArea,
   ]);
 
   // Clear active feature state when selectedBoundary is cleared (resetInspector called from outside)
@@ -415,17 +480,19 @@ export function useMapClickEffect({
       activeFeatureId.current !== undefined
     ) {
       const map = mapRef.current;
-      map.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerId,
-          id: activeFeatureId.current,
-        },
-        { active: false },
-      );
+      if (map.getSource(interactionSourceId)) {
+        map.setFeatureState(
+          {
+            source: interactionSourceId,
+            sourceLayer: layerId,
+            id: activeFeatureId.current,
+          },
+          { active: false },
+        );
+      }
       activeFeatureId.current = undefined;
     }
-  }, [selectedBoundary, mapRef, sourceId, layerId]);
+  }, [selectedBoundary, mapRef, layerId, interactionSourceId]);
 }
 
 export const getClickedPolygonFeature = (

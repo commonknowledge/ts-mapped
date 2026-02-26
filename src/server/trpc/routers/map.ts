@@ -129,6 +129,7 @@ export const mapRouter = router({
         markerColors: mapConfig.markerColors,
         placedMarkerColors: mapConfig.placedMarkerColors,
         folderColors: mapConfig.folderColors,
+        turfColor: mapConfig.turfColor,
       } as z.infer<typeof mapConfigSchema>;
 
       return updateMap(mapId, { config });

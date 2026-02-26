@@ -6,7 +6,7 @@ import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { NULL_UUID } from "@/constants";
-import { AreaSetGroupCodeLabels } from "@/labels";
+import { AreaSetCodeLabels, AreaSetGroupCodeLabels } from "@/labels";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { type MapStyleName, MapType, mapTypes } from "@/server/models/MapView";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
@@ -23,6 +23,8 @@ import { cn } from "@/shadcn/utils";
 import { useChoroplethDataSource } from "../hooks/useDataSources";
 import mapStyles from "../styles";
 import { getValidAreaSetGroupCodes } from "./Choropleth/areas";
+import { CHOROPLETH_AREA_SET_CODES } from "./Choropleth/configs";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export default memo(function MapStyleSelector() {
   const [open, setOpen] = useState(false);
@@ -213,6 +215,34 @@ export default memo(function MapStyleSelector() {
                           </Tooltip>
                         ),
                       )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1 p-3 border-b">
+                  <span className="text-muted-foreground font-mono uppercase text-sm">
+                    Secondary boundaries
+                  </span>
+                  <Select
+                    value={viewConfig.secondaryAreaSetCode || NULL_UUID}
+                    onValueChange={(value) => {
+                      updateViewConfig({
+                        secondaryAreaSetCode:
+                          value === NULL_UUID ? null : (value as AreaSetCode),
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="w-full min-w-0">
+                      <SelectValue placeholder="Choose secondary boundaries..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NULL_UUID}>
+                        No secondary boundaries
+                      </SelectItem>
+                      {CHOROPLETH_AREA_SET_CODES.map((code) => (
+                        <SelectItem key={code} value={code}>
+                          {AreaSetCodeLabels[code]}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

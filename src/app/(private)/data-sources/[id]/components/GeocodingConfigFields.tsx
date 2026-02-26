@@ -99,6 +99,11 @@ export function GeocodingConfigFields({
     }
   };
 
+  // Include previous options that are no longer in the data source column defs, so they can be removed
+  const allOptions = Array.from(
+    new Set(locationColumnOptions.map((c) => c.label).concat(columns)),
+  );
+
   return (
     <>
       <CustomSelect
@@ -114,7 +119,7 @@ export function GeocodingConfigFields({
         <CustomMultiSelect
           id="config-location-columns-multi"
           label="Location columns"
-          allOptions={dataSource?.columnDefs.map((cd) => cd.name)}
+          allOptions={allOptions}
           selectedOptions={columns}
           onChange={onDropdownChange}
         />

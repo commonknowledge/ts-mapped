@@ -1,9 +1,12 @@
+import { Info } from "lucide-react";
 import { Fragment } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
+import type { ColumnMetadata } from "@/server/models/DataSource";
 
 export type ColumnFormat = "text" | "number" | "percentage" | "scale";
 
-export type PropertyEntry = {
+export interface PropertyEntry {
   key: string;
   label: string;
   /** Not used when isDivider is true. */
@@ -15,7 +18,9 @@ export type PropertyEntry = {
   barColor?: string;
   /** When true, renders as a label divider row (spans 2 cols when grid layout). */
   isDivider?: boolean;
-};
+  /** Optional description for tooltip (e.g. from column metadata). */
+  description?: string;
+}
 
 function formatNumber(n: number): string {
   if (Number.isInteger(n)) return n.toLocaleString();
@@ -105,11 +110,13 @@ function PropertyValue({
 
 export default function PropertiesList({
   properties,
+  columnMetadata,
   entries: entriesProp,
   layout = "single",
   dividerBackgroundClassName,
 }: {
   properties?: Record<string, unknown> | null;
+  columnMetadata?: ColumnMetadata[];
   entries?: PropertyEntry[] | null;
   layout?: "single" | "twoColumn";
   /** Background class for divider labels (to cover vertical line). Inherits from panel color. */
@@ -126,6 +133,7 @@ export default function PropertiesList({
           key,
           label: key,
           value,
+          description: columnMetadata?.find((c) => c.name === key)?.description,
         }))
       : [];
 
@@ -134,8 +142,22 @@ export default function PropertiesList({
   const isTwoColumn = layout === "twoColumn";
   const renderEntry = (e: PropertyEntry) => (
     <div key={e.key}>
-      <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono ">
+      <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-1">
         {e.label}
+        {e.description ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-black"
+                aria-label="Column description"
+                tabIndex={0}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{e.description}</p>
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
       </dt>
       <dd>
         <PropertyValue

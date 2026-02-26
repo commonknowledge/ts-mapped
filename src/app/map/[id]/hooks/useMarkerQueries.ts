@@ -42,6 +42,9 @@ export function useMarkerQueries() {
           const response = await fetch(
             `/api/data-sources/${dataSourceId}/markers?${params.toString()}`,
           );
+          if (response.status === 404) {
+            return [];
+          }
           if (!response.ok) {
             throw new Error(`Bad response: ${response.status}`);
           }

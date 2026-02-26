@@ -16,6 +16,7 @@ export function DataSourceMarkers({
   dataSourceMarkers,
   isMembers,
   mapConfig,
+  hideFilteredMarkers = false,
 }: {
   dataSourceMarkers: { dataSourceId: string; markers: MarkerFeature[] };
   isMembers: boolean;
@@ -23,6 +24,7 @@ export function DataSourceMarkers({
     markerDisplayModes?: Record<string, MarkerDisplayMode>;
     markerColors?: Record<string, string>;
   };
+  hideFilteredMarkers?: boolean;
 }) {
   const { filteredRecords, publicFilters } = useContext(
     PublicFiltersContext,
@@ -40,27 +42,44 @@ export function DataSourceMarkers({
     MarkerDisplayMode.Clusters;
 
   const safeMarkers = useMemo<FeatureCollection>(() => {
-    if (Object.keys(publicFilters).length === 0) {
+    const hasClientFilters = Object.keys(publicFilters).length > 0;
+
+    let features = dataSourceMarkers.markers;
+
+    // When hideFilteredMarkers is true, remove server-side unmatched markers
+    if (hideFilteredMarkers) {
+      features = features.filter((f) => f.properties.matched !== false);
+    }
+
+    if (!hasClientFilters) {
       return {
         type: "FeatureCollection",
-        features: dataSourceMarkers.markers,
+        features,
       };
     }
 
     const recordIds = (filteredRecords || [])
       .map((r: { id: string | number }) => r.id)
       .filter(Boolean);
+
+    const mappedFeatures = features.map((f) => ({
+      ...f,
+      properties: {
+        ...f.properties,
+        [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(f.properties.id),
+      },
+    }));
+
     return {
       type: "FeatureCollection",
-      features: dataSourceMarkers.markers.map((f) => ({
-        ...f,
-        properties: {
-          ...f.properties,
-          [MARKER_CLIENT_EXCLUDED_KEY]: !recordIds.includes(f.properties.id),
-        },
-      })),
+      features: mappedFeatures,
     };
-  }, [dataSourceMarkers.markers, filteredRecords, publicFilters]);
+  }, [
+    dataSourceMarkers.markers,
+    filteredRecords,
+    publicFilters,
+    hideFilteredMarkers,
+  ]);
 
   const sourceId = `${dataSourceMarkers.dataSourceId}-markers`;
   const publicMapColor =

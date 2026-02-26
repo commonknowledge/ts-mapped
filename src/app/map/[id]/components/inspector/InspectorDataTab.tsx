@@ -8,6 +8,7 @@ import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
+import { AreaSetCodeLabels } from "@/labels";
 import { type DataSource } from "@/server/models/DataSource";
 import {
   type InspectorBoundaryConfig,
@@ -16,6 +17,8 @@ import {
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
+import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
+import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import { getSelectedColumnsOrdered } from "./inspectorColumnOrder";
@@ -45,6 +48,9 @@ export default function InspectorDataTab({
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
   const initializationAttemptedRef = useRef(false);
+  const { areaToDisplay, primaryLabel, secondaryLabel, columnMetadata } =
+    useDisplayAreaStat(selectedBoundary);
+  const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -86,15 +92,43 @@ export default function InspectorDataTab({
     [view?.inspectorConfig?.boundaries],
   );
 
+  const isBoundary = type === LayerType.Boundary;
+
   const boundaryData = useMemo(() => {
-    if (type !== LayerType.Boundary) return [];
+    if (!isBoundary) return [];
     return boundaryConfigs.map((config) => ({
       config,
       dataSourceId: config.dataSourceId,
-      areaCode: selectedBoundary?.areaCode ?? "",
+      areaCode: selectedBoundary?.code ?? "",
       columns: getSelectedColumnsOrdered(config),
     }));
-  }, [type, selectedBoundary?.areaCode, boundaryConfigs]);
+  }, [isBoundary, selectedBoundary?.code, boundaryConfigs]);
+
+  const boundaryProperties = useMemo(() => {
+    if (!areaToDisplay) {
+      return properties;
+    }
+    const propertiesWithData = { ...properties };
+    if (primaryLabel) {
+      propertiesWithData[primaryLabel] = areaToDisplay.primaryDisplayValue;
+    }
+    if (secondaryLabel) {
+      propertiesWithData[secondaryLabel] = areaToDisplay.secondaryDisplayValue;
+    }
+    if (selectedSecondaryArea) {
+      propertiesWithData[
+        AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
+          "Secondary boundary"
+      ] = selectedSecondaryArea.name;
+    }
+    return propertiesWithData;
+  }, [
+    areaToDisplay,
+    properties,
+    primaryLabel,
+    secondaryLabel,
+    selectedSecondaryArea,
+  ]);
 
   // Initialise boundary inspector config from choropleth data source when empty
   useEffect(() => {
@@ -117,9 +151,13 @@ export default function InspectorDataTab({
 
   return (
     <div className="flex flex-col gap-4">
-      {type === LayerType.Boundary && (
+      {isBoundary ? (
         <>
           <InspectorOnMapSection />
+          <PropertiesList
+            properties={boundaryProperties}
+            columnMetadata={columnMetadata}
+          />
           <section className="flex flex-col gap-3">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Data in this area
@@ -154,8 +192,7 @@ export default function InspectorDataTab({
             )}
           </section>
         </>
-      )}
-      {type !== LayerType.Boundary && (
+      ) : (
         <>
           {dataSource && (
             <div className="bg-muted py-1 px-2 rounded">
@@ -193,7 +230,12 @@ export default function InspectorDataTab({
               );
             }
 
-            return <PropertiesList properties={mergedProperties} />;
+            return (
+              <PropertiesList
+                properties={mergedProperties}
+                columnMetadata={dataSource?.columnMetadata}
+              />
+            );
           })()}
         </>
       )}

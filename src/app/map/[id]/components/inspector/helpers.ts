@@ -95,11 +95,11 @@ export const groupPlacedMarkersByFolder = (
   });
 };
 
-function findAreaSetCodeByLayerId(layerId: string): string | null {
-  for (const [key, items] of Object.entries(CHOROPLETH_LAYER_CONFIGS)) {
-    const found = items.some((item) => item.mapbox?.layerId === layerId);
+function findAreaSetCodeByLayerId(layerId: string): AreaSetCode | null {
+  for (const [, items] of Object.entries(CHOROPLETH_LAYER_CONFIGS)) {
+    const found = items.find((item) => item.mapbox?.layerId === layerId);
     if (found) {
-      return key;
+      return found.areaSetCode;
     }
   }
   return null;
@@ -118,5 +118,5 @@ export const getBoundaryDatasetName = (
     return "Boundary Data";
   }
 
-  return AreaSetCodeLabels?.[configName as AreaSetCode] ?? "Boundary Data";
+  return AreaSetCodeLabels?.[configName] ?? "Boundary Data";
 };

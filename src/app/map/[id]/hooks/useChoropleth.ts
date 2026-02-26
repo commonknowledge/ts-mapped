@@ -1,7 +1,8 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { GeocodingType } from "@/server/models/DataSource";
 import {
   boundariesPanelOpenAtom,
@@ -15,10 +16,10 @@ import { useMapViews } from "./useMapViews";
 
 export function useChoropleth() {
   const zoom = useZoom();
-  const { viewConfig } = useMapViews();
+  const { viewConfig, updateViewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
 
-  const [boundariesPanelOpen, setBoundariesPanelOpen] = useAtom(
+  const [boundariesPanelOpen, _setBoundariesPanelOpen] = useAtom(
     boundariesPanelOpenAtom,
   );
   const [selectedBivariateBucket, setSelectedBivariateBucket] = useAtom(
@@ -46,6 +47,16 @@ export function useChoropleth() {
     viewConfig.mapType,
     zoom,
   ]);
+
+  const setBoundariesPanelOpen = useCallback(
+    (open: boolean) => {
+      if (open && viewConfig.areaSetGroupCode === undefined) {
+        updateViewConfig({ areaSetGroupCode: AreaSetGroupCode.WMC24 });
+      }
+      _setBoundariesPanelOpen(open);
+    },
+    [_setBoundariesPanelOpen, updateViewConfig, viewConfig.areaSetGroupCode],
+  );
 
   return {
     boundariesPanelOpen,

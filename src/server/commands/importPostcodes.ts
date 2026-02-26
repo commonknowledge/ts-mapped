@@ -69,6 +69,12 @@ const importPostcodes = async () => {
 
     logger.info(`Processed postcode file ${i} of 10`);
   }
+
+  logger.info(`Completed postcodes import, refreshing area search index...`);
+
+  // Refresh the materialized view for area search
+  await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY area_search`.execute(db);
+  logger.info("Area search index refreshed");
 };
 
 export default importPostcodes;

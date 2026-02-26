@@ -1,17 +1,11 @@
 import { Command } from "commander";
 import { SignJWT } from "jose";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
-import importConstituencies from "@/server/commands/importConstituencies";
-import importCountries from "@/server/commands/importCountries";
-import importLADs from "@/server/commands/importLADs";
-import importMSOAs from "@/server/commands/importMSOAs";
-import importOutputAreas from "@/server/commands/importOutputAreas";
+import importAreaSet from "@/server/commands/importAreaSet";
 import importPostcodes from "@/server/commands/importPostcodes";
-import importRegions from "@/server/commands/importRegions";
-import importWards from "@/server/commands/importWards";
 import regeocode from "@/server/commands/regeocode";
 import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
-import Invite from "@/server/emails/invite";
+import Invite from "@/server/emails/Invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
 import { createInvitation } from "@/server/repositories/Invitation";
@@ -26,9 +20,9 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
 import { getPubSub } from "@/server/services/pubsub";
-import { runWorker } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
 import { stopPublicTunnel } from "@/server/services/urls";
+import { runWorker } from "@/server/services/worker";
 
 const program = new Command();
 
@@ -62,59 +56,10 @@ program
   });
 
 program
-  .command("importConstituencies")
-  .description("Import Westminster Constituencies")
-  .action(async () => {
-    await importConstituencies();
-  });
-
-program
-  .command("importLADs")
-  .description("Import Local Area Districts")
-  .action(async () => {
-    await importLADs();
-  });
-
-program
-  .command("importWards")
-  .description("Import UK Wards")
-  .action(async () => {
-    await importWards();
-  });
-
-program
-  .command("importRegions")
-  .description("Import English Regions & Nations")
-  .action(async () => {
-    await importRegions();
-  });
-
-program
-  .command("importCountries")
-  .description("Import UK Countries")
-  .action(async () => {
-    await importCountries();
-  });
-
-program
-  .command("importDataSource <dataSourceId>")
-  .description("Import a data source by its ID")
-  .action(async (dataSourceId) => {
-    await importDataSource({ dataSourceId });
-  });
-
-program
-  .command("importMSOAs")
-  .description("Import MSOAs")
-  .action(async () => {
-    await importMSOAs();
-  });
-
-program
-  .command("importOutputAreas")
-  .description("Import English Output Areas")
-  .action(async () => {
-    await importOutputAreas();
+  .command("importAreaSet <areaSetCode>")
+  .description("Import Area Set by code")
+  .action(async (areaSetCode) => {
+    await importAreaSet(areaSetCode);
   });
 
 program
@@ -122,6 +67,13 @@ program
   .description("Import Postcodes")
   .action(async () => {
     await importPostcodes();
+  });
+
+program
+  .command("importDataSource <dataSourceId>")
+  .description("Import a data source by its ID")
+  .action(async (dataSourceId) => {
+    await importDataSource({ dataSourceId });
   });
 
 program
@@ -188,7 +140,7 @@ program
       const orgs = await findOrganisationsByUserId(user.id);
 
       if (!orgs.length) {
-        logger.warning(`No organisation found for user ${user.email}`);
+        logger.warn(`No organisation found for user ${user.email}`);
         continue;
       }
 
@@ -216,10 +168,20 @@ program
 program
   .command("regeocode")
   .description("Re-geocode all data records (e.g. after adding a new area set)")
-  .option("--id <id>", "The data source ID")
+  .option("--ids <ids>", "The data source IDs")
   .option("--exclude <exclude>", "A data source ID to exclude")
+  .option("--batchSize <batchSize>", "The data record batch size")
+  .option(
+    "--batchInterval <batchInterval>",
+    "Time to sleep between importing batches, in milliseconds",
+  )
   .action(async (options) => {
-    await regeocode(options.id || null, options.exclude || null);
+    await regeocode({
+      onlyIds: (options.ids || "").split(",").filter(Boolean),
+      excludeId: options.exclude,
+      batchSize: Number(options.batchSize) || 100,
+      batchIntervalMillis: Number(options.batchInterval) || 0,
+    });
   });
 
 program

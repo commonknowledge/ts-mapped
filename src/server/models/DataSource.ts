@@ -209,6 +209,16 @@ export const columnDefSchema = z.object({
 
 export type ColumnDef = z.infer<typeof columnDefSchema>;
 
+// columnDefs and columnMetadata are separated, as columnDefs are
+// derived from the data, but columnMetadata is user-supplied
+export const columnMetadataSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  valueLabels: z.record(z.string(), z.string()),
+});
+
+export type ColumnMetadata = z.infer<typeof columnMetadataSchema>;
+
 export const columnRolesSchema = z.object({
   dateColumn: z.string().optional(),
   nameColumns: z.array(z.string()),
@@ -235,13 +245,16 @@ export const dataSourceSchema = z.object({
   }),
   config: dataSourceConfigSchema,
   columnDefs: z.array(columnDefSchema),
+  columnMetadata: z.array(columnMetadataSchema),
   columnRoles: columnRolesSchema,
   enrichments: z.array(enrichmentSchema),
   geocodingConfig: geocodingConfigSchema,
   organisationId: z.string(),
   public: z.boolean(),
+  recordCount: z.number(),
   createdAt: z.date(),
   dateFormat: z.string(),
+  naIsNull: z.boolean().optional(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;
@@ -250,6 +263,7 @@ export type DataSourceTable = DataSource & {
   id: Generated<string>;
   createdAt: KyselyColumnType<Date, string | undefined, never>;
   dateFormat: Generated<string>;
+  recordCount: Generated<number>;
 };
 
 export type NewDataSource = Insertable<DataSourceTable>;

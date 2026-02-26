@@ -1,7 +1,11 @@
 import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
-import { hoverAreaAtom, hoverMarkerAtom } from "../atoms/hoverAtoms";
+import {
+  hoverAreaAtom,
+  hoverMarkerAtom,
+  hoverSecondaryAreaAtom,
+} from "../atoms/hoverAtoms";
 import { getClickedPolygonFeature } from "./useMapClick";
 import {
   useCompareGeographiesModeAtom,
@@ -9,6 +13,7 @@ import {
   usePinDropMode,
 } from "./useMapControls";
 import { useMapRef } from "./useMapCore";
+import { useSecondaryAreaSetConfig } from "./useSecondaryAreaSet";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 export function useMapHoverEffect({
@@ -22,13 +27,15 @@ export function useMapHoverEffect({
 }) {
   const mapRef = useMapRef();
   const { choroplethLayerConfig } = useChoropleth();
+  const secondaryAreaSetConfig = useSecondaryAreaSetConfig();
   const {
     areaSetCode,
     mapbox: { sourceId, layerId, featureNameProperty },
   } = choroplethLayerConfig;
-  const hoverSourceId = `${sourceId}-hover`;
+  const interactionSourceId = `${sourceId}-interaction`;
 
   const [, setHoverArea] = useHoverArea();
+  const [, setHoverSecondaryArea] = useHoverSecondaryArea();
   const [, setHoverMarker] = useHoverMarker();
   const [compareGeographiesMode, setCompareGeographiesMode] =
     useCompareGeographiesModeAtom();
@@ -57,11 +64,16 @@ export function useMapHoverEffect({
     const lineLayerId = `${sourceId}-line`;
     const prevPointer = { cursor: "" };
     let hoveredFeatureId: string | number | undefined;
+    let hoveredSecondaryFeatureId: string | number | undefined;
 
     const clearAreaHover = () => {
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
-          { source: hoverSourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          {
+            source: interactionSourceId,
+            sourceLayer: layerId,
+            id: hoveredFeatureId,
+          },
           { hover: false },
         );
         setHoverArea(null);
@@ -71,6 +83,9 @@ export function useMapHoverEffect({
 
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "c" || e.key === "C") && !e.repeat) {
+        // Skip if the user is typing in an input, select, or textarea
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
         setCompareGeographiesMode(true);
         const canvas = map.getCanvas();
         if (canvas.style.cursor === "pointer") {
@@ -81,6 +96,8 @@ export function useMapHoverEffect({
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === "c" || e.key === "C") {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
         setCompareGeographiesMode(false);
         const canvas = map.getCanvas();
         if (canvas.style.cursor === "copy") {
@@ -95,20 +112,23 @@ export function useMapHoverEffect({
         map.getCanvas().style.cursor = "crosshair";
         clearAreaHover();
         setHoverMarker(null);
+        clearSecondaryAreaHover();
         return;
       }
+
+      handleHoverSecondaryArea(e);
 
       if (handleHoverMarker(e)) {
         clearAreaHover();
         return;
       }
 
-      if (handleHoverTurf(e)) {
-        clearAreaHover();
+      if (handleHoverArea(e)) {
         return;
       }
 
-      if (handleHoverArea(e)) {
+      if (handleHoverTurf(e)) {
+        clearAreaHover();
         return;
       }
 
@@ -119,6 +139,7 @@ export function useMapHoverEffect({
     const onMouseLeave = () => {
       clearAreaHover();
       setHoverMarker(null);
+      clearSecondaryAreaHover();
       if (pinDropModeRef.current || editAreaModeRef.current) {
         map.getCanvas().style.cursor = "crosshair";
       } else {
@@ -175,6 +196,47 @@ export function useMapHoverEffect({
       return false;
     };
 
+    const clearSecondaryAreaHover = () => {
+      if (hoveredSecondaryFeatureId !== undefined) {
+        setHoverSecondaryArea(null);
+        hoveredSecondaryFeatureId = undefined;
+      }
+    };
+
+    const handleHoverSecondaryArea = (e: mapboxgl.MapMouseEvent): void => {
+      if (secondaryAreaSetConfig) {
+        const secondaryFillLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-secondary-fill`;
+        const secondaryLineLayerId = `${secondaryAreaSetConfig.mapbox.sourceId}-secondary-line`;
+        const secondaryFeatures = map.queryRenderedFeatures(e.point, {
+          layers: [secondaryFillLayerId, secondaryLineLayerId].filter((l) =>
+            map.getLayer(l),
+          ),
+        });
+        const secondaryFeature = secondaryFeatures.length
+          ? secondaryFeatures[0]
+          : null;
+        if (secondaryFeature?.id !== undefined) {
+          if (hoveredSecondaryFeatureId !== secondaryFeature.id) {
+            hoveredSecondaryFeatureId = secondaryFeature.id;
+            setHoverSecondaryArea({
+              coordinates: [e.lngLat.lng, e.lngLat.lat],
+              areaSetCode: secondaryAreaSetConfig.areaSetCode,
+              code: String(secondaryFeature.id),
+              name: String(
+                secondaryFeature.properties?.[
+                  secondaryAreaSetConfig.mapbox.featureNameProperty
+                ] || secondaryFeature.id,
+              ),
+            });
+          }
+        } else {
+          clearSecondaryAreaHover();
+        }
+      } else {
+        clearSecondaryAreaHover();
+      }
+    };
+
     const handleHoverArea = (e: mapboxgl.MapMouseEvent): boolean => {
       if (!map.getLayer(fillLayerId) && !map.getLayer(lineLayerId)) {
         return false;
@@ -194,7 +256,7 @@ export function useMapHoverEffect({
             if (hoveredFeatureId !== undefined) {
               map.setFeatureState(
                 {
-                  source: hoverSourceId,
+                  source: interactionSourceId,
                   sourceLayer: layerId,
                   id: hoveredFeatureId,
                 },
@@ -206,7 +268,7 @@ export function useMapHoverEffect({
             hoveredFeatureId = feature.id;
             map.setFeatureState(
               {
-                source: hoverSourceId,
+                source: interactionSourceId,
                 sourceLayer: layerId,
                 id: hoveredFeatureId,
               },
@@ -237,7 +299,11 @@ export function useMapHoverEffect({
 
       if (hoveredFeatureId !== undefined) {
         map.setFeatureState(
-          { source: hoverSourceId, sourceLayer: layerId, id: hoveredFeatureId },
+          {
+            source: interactionSourceId,
+            sourceLayer: layerId,
+            id: hoveredFeatureId,
+          },
           { hover: false },
         );
         hoveredFeatureId = undefined;
@@ -261,11 +327,14 @@ export function useMapHoverEffect({
 
     return () => {
       // Clean up hover state on unmount
-      if (hoveredFeatureId !== undefined && map.getSource(hoverSourceId)) {
+      if (
+        hoveredFeatureId !== undefined &&
+        map.getSource(interactionSourceId)
+      ) {
         try {
           map.setFeatureState(
             {
-              source: hoverSourceId,
+              source: interactionSourceId,
               sourceLayer: layerId,
               id: hoveredFeatureId,
             },
@@ -293,12 +362,18 @@ export function useMapHoverEffect({
     featureNameProperty,
     areaSetCode,
     setCompareGeographiesMode,
-    hoverSourceId,
+    interactionSourceId,
+    secondaryAreaSetConfig,
+    setHoverSecondaryArea,
   ]);
 }
 
 export function useHoverArea() {
   return useAtom(hoverAreaAtom);
+}
+
+export function useHoverSecondaryArea() {
+  return useAtom(hoverSecondaryAreaAtom);
 }
 
 export function useHoverMarker() {

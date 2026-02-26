@@ -33,6 +33,7 @@ describe("dataRecord router tests", () => {
         url: "file://tests/resources/stats.csv",
       },
       columnDefs: [],
+      columnMetadata: [],
       columnRoles: { nameColumns: [] },
       enrichments: [],
       geocodingConfig: {

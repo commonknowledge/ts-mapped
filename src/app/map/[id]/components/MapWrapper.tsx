@@ -90,7 +90,7 @@ export default function MapWrapper({
       {children}
 
       <div
-        className={`absolute top-5 z-10 transition-all duration-300 hidden md:block ${
+        className={`absolute top-5 z-10 transition-all duration-300 hidden md:block pointer-events-none ${
           boundariesPanelOpen ? "right-4" : "left-8"
         }`}
         style={{

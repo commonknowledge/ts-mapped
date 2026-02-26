@@ -45,7 +45,7 @@ export default function SortableMarkerItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `marker-${marker.id}` });
+  } = useSortable({ id: `item-${marker.id}` });
 
   const {
     setSelectedPlacedMarkerId,
@@ -73,7 +73,7 @@ export default function SortableMarkerItem({
   };
 
   // Check if this marker is the one being dragged (even outside its container)
-  const isCurrentlyDragging = isDragging || activeId === `marker-${marker.id}`;
+  const isCurrentlyDragging = isDragging || activeId === `item-${marker.id}`;
   const isVisible = getPlacedMarkerVisibility(marker.id);
 
   const style = {

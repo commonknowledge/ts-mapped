@@ -5,11 +5,12 @@ import {
 } from "@/server/repositories/Area";
 import logger from "@/server/services/logger";
 import { AreaSetCode } from "../models/AreaSet";
-import type {
-  AddressGeocodingConfig,
-  AreaGeocodingConfig,
-  CoordinatesGeocodingConfig,
-  GeocodingConfig,
+import {
+  type AddressGeocodingConfig,
+  type AreaGeocodingConfig,
+  type CoordinatesGeocodingConfig,
+  type GeocodingConfig,
+  GeocodingType,
 } from "../models/DataSource";
 import type { GeocodeResult, Point } from "../models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
@@ -24,7 +25,9 @@ export const geocodeRecord = async (
   geocodingConfig: GeocodingConfig,
 ): Promise<GeocodeResult | null> => {
   try {
-    return await _geocodeRecord(dataRecord, geocodingConfig);
+    if (geocodingConfig.type !== GeocodingType.None) {
+      return await _geocodeRecord(dataRecord, geocodingConfig);
+    }
   } catch (error) {
     logger.warn(`Could not geocode record ${dataRecord.externalId}`, {
       error,
@@ -154,6 +157,8 @@ const geocodeRecordByArea = async (
     }
     area = await findAreaByCode(dataRecordArea, areaSetCode);
   } else {
+    // TODO: Better fuzzy matching logic
+    dataRecordArea = dataRecordArea.replace(/green party$/i, "").trim();
     area = await findAreaByName(dataRecordArea, areaSetCode);
   }
   if (!area) {
@@ -186,10 +191,11 @@ const geocodeRecordByAddress = async (
 ) => {
   const dataRecordJson = dataRecord.json;
   const { columns: addressColumns } = geocodingConfig;
-  for (const addressColumn of addressColumns) {
-    if (!(addressColumn in dataRecordJson)) {
-      throw new Error(`Missing area column "${addressColumn}" in row`);
-    }
+  const hasColumn = addressColumns.some((c) => c in dataRecordJson);
+  if (!hasColumn) {
+    throw new Error(
+      `Missing address columns "${addressColumns.join(", ")}" in row`,
+    );
   }
 
   // TODO: remove UK when other countries are supported

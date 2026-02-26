@@ -7,99 +7,48 @@ import {
   TableRow,
 } from "@/shadcn/ui/table";
 
-import { getDisplayValue } from "./utils";
-import type { ColumnType } from "@/server/models/DataSource";
-import type { CalculationType } from "@/server/models/MapView";
-
-interface AreaStat {
-  areaCode: string;
-  primary?: unknown;
-  secondary?: unknown;
-}
-
-interface AreaStats {
-  areaSetCode: string;
-  calculationType: CalculationType;
-  primary: {
-    column: string;
-    columnType: ColumnType;
-    minValue: number;
-    maxValue: number;
-  } | null;
-  secondary: {
-    column: string;
-    columnType: ColumnType;
-    minValue: number;
-    maxValue: number;
-  } | null;
-  stats: AreaStat[];
-}
+import type { SelectedArea } from "../../atoms/selectedAreasAtom";
+import type { AreaSetCode } from "@/server/models/AreaSet";
 
 interface AreasListProps {
   areas: {
     code: string;
-    areaSetCode: string;
+    areaSetCode: AreaSetCode;
     name: string;
     coordinates: [number, number];
     isSelected: boolean;
+    primaryDisplayValue: string;
+    secondaryDisplayValue?: string | null | undefined;
+    backgroundColor: string;
   }[];
-  statLabel: string;
-  hasSecondaryData: boolean;
-  secondaryColumnName?: string;
-  areaStats: AreaStats | null;
-  getAreaColor: (area: { code: string; areaSetCode: string }) => string;
-  selectedAreas: {
-    code: string;
-    areaSetCode: string;
-    name: string;
-    coordinates: [number, number];
-  }[];
-  setSelectedAreas: (
-    areas: {
-      code: string;
-      areaSetCode: string;
-      name: string;
-      coordinates: [number, number];
-    }[],
-  ) => void;
-  onHoveredRowAreaChange: (
-    area: {
-      code: string;
-      areaSetCode: string;
-      name: string;
-      coordinates: [number, number];
-    } | null,
-  ) => void;
+  primaryLabel: string;
+  secondaryLabel?: string | null | undefined;
+  setSelectedAreas: (as: SelectedArea[]) => void;
 }
 
 export function AreasList({
   areas,
-  statLabel,
-  hasSecondaryData,
-  secondaryColumnName,
-  areaStats,
-  getAreaColor,
-  selectedAreas,
+  primaryLabel,
+  secondaryLabel,
   setSelectedAreas,
-  onHoveredRowAreaChange,
 }: AreasListProps) {
-  const multipleAreas = selectedAreas.length > 1;
+  const multipleAreas = areas.length > 1;
 
   return (
     <Table
       className="border-none"
       style={{ tableLayout: "auto", width: "auto" }}
     >
-      {multipleAreas && (
-        <TableHeader className="">
+      {multipleAreas && primaryLabel && (
+        <TableHeader className="pointer-events-auto">
           <TableRow className="border-none hover:bg-transparent uppercase font-mono">
             <TableHead className="py-2 px-3 text-left h-8" />
             <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8">
-              {statLabel}
+              {primaryLabel}
             </TableHead>
-            {hasSecondaryData && (
+            {secondaryLabel && (
               <TableHead className="py-2 px-3 text-muted-foreground text-xs text-left h-8">
-                {secondaryColumnName}
+                {secondaryLabel}
               </TableHead>
             )}
           </TableRow>
@@ -107,32 +56,12 @@ export function AreasList({
       )}
       <TableBody>
         {areas.map((area) => {
-          const areaStat =
-            areaStats?.areaSetCode === area.areaSetCode
-              ? areaStats.stats.find((s) => s.areaCode === area.code)
-              : null;
-
-          const primaryValue = areaStats
-            ? getDisplayValue(
-                areaStats.calculationType,
-                areaStats.primary,
-                areaStat?.primary,
-              )
-            : null;
-          const secondaryValue = areaStats
-            ? getDisplayValue(
-                areaStats.calculationType,
-                areaStats.secondary,
-                areaStat?.secondary,
-              )
-            : null;
-
           return (
             <TableRow
               key={`${area.areaSetCode}-${area.code}`}
               className={`border-none font-medium my-1 ${
                 area.isSelected
-                  ? "hover:bg-neutral-50 cursor-pointer"
+                  ? "hover:bg-neutral-50 cursor-pointer pointer-events-auto"
                   : "cursor-default"
               }`}
               style={
@@ -140,78 +69,57 @@ export function AreasList({
                   ? { borderLeft: "4px solid var(--brandGreen)" }
                   : undefined
               }
-              onMouseEnter={() => {
-                if (!area.isSelected) {
-                  onHoveredRowAreaChange(area);
-                }
-              }}
-              onMouseLeave={() => {
-                onHoveredRowAreaChange(null);
-              }}
               onClick={() => {
-                if (area.isSelected) {
-                  // Remove from selected areas
-                  setSelectedAreas(
-                    selectedAreas.filter(
-                      (a) =>
-                        !(
-                          a.code === area.code &&
-                          a.areaSetCode === area.areaSetCode
-                        ),
-                    ),
-                  );
-                } else {
-                  // Add to selected areas
-                  setSelectedAreas([
-                    ...selectedAreas,
-                    {
-                      code: area.code,
-                      name: area.name,
-                      areaSetCode: area.areaSetCode,
-                      coordinates: area.coordinates,
-                    },
-                  ]);
-                }
+                // Remove from selected areas
+                setSelectedAreas(
+                  areas.filter(
+                    (a) =>
+                      !(
+                        a.code === area.code &&
+                        a.areaSetCode === area.areaSetCode
+                      ),
+                  ),
+                );
               }}
             >
               <TableCell className="py-2 px-3 truncate h-8">
                 <div className="flex items-center gap-2">
                   <div
                     className="w-4 h-4 rounded shrink-0"
-                    style={{ backgroundColor: getAreaColor(area) }}
+                    style={{ backgroundColor: area.backgroundColor }}
                   />
                   <span className="truncate">{area.name}</span>
                 </div>
               </TableCell>
-              {primaryValue && !multipleAreas && (
+              {primaryLabel && !multipleAreas && (
                 <TableCell className="px-2 py-2 h-8">
                   <div className="w-px bg-neutral-200 h-full" />
                 </TableCell>
               )}
-              {areaStats && (
+              {primaryLabel && (
                 <TableCell className="py-2 px-3 whitespace-normal h-8">
                   {multipleAreas ? (
-                    primaryValue || "-"
+                    area.primaryDisplayValue || "-"
                   ) : (
                     <div className="flex flex-row justify-center items-center text-right">
                       <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                        {statLabel}:
+                        {primaryLabel}:
                       </span>
-                      <span>{primaryValue}</span>
+                      <span>{area.primaryDisplayValue}</span>
                     </div>
                   )}
                 </TableCell>
               )}
-              {hasSecondaryData && (
+              {secondaryLabel && (
                 <TableCell className="py-2 px-3 whitespace-normal h-8">
                   {multipleAreas ? (
-                    secondaryValue || "-"
+                    area.secondaryDisplayValue || "-"
                   ) : (
                     <div className="flex flex-row justify-center items-center text-right">
                       <span className="mr-3 text-muted-foreground uppercase font-mono text-xs">
-                        {secondaryColumnName}:
+                        {secondaryLabel}:
                       </span>
-                      <span>{secondaryValue}</span>
+                      <span>{area.secondaryDisplayValue}</span>
                     </div>
                   )}
                 </TableCell>

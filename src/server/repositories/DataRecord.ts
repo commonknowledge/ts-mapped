@@ -89,12 +89,34 @@ export function applyFilterAndSearch(
       }
     }
 
+    if (filter?.type === FilterType.EXACT && filter.search) {
+      return eb(
+        eb.fn("lower", [eb.ref("json", "->>").key(filter?.column || "")]),
+        "=",
+        filter.search.toLowerCase(),
+      );
+    }
+
     if (filter?.type === FilterType.TEXT && filter.search) {
       return eb(
         eb.fn("lower", [eb.ref("json", "->>").key(filter?.column || "")]),
         "ilike",
         `%${filter.search}%`,
       );
+    }
+
+    if (filter?.type === FilterType.EMPTY && filter.column) {
+      return eb.or([
+        eb(eb.ref("json", "->>").key(filter.column), "is", null),
+        eb(eb.ref("json", "->>").key(filter.column), "=", ""),
+      ]);
+    }
+
+    if (filter?.type === FilterType.NOT_EMPTY && filter.column) {
+      return eb.and([
+        eb(eb.ref("json", "->>").key(filter.column), "is not", null),
+        eb(eb.ref("json", "->>").key(filter.column), "!=", ""),
+      ]);
     }
 
     // Trivially always true fallthrough expression for reliability
@@ -314,19 +336,20 @@ function getDataRecordByDataSourceAndAreaCodeQuery(
     .selectAll();
 }
 
-export function upsertDataRecord(dataRecord: NewDataRecord) {
+export function upsertDataRecords(dataRecords: NewDataRecord[]) {
+  if (dataRecords.length === 0) return [];
   return db
     .insertInto("dataRecord")
-    .values(dataRecord)
+    .values(dataRecords)
     .onConflict((oc) =>
-      oc.columns(["externalId", "dataSourceId"]).doUpdateSet({
-        json: dataRecord.json,
-        geocodeResult: dataRecord.geocodeResult,
-        geocodePoint: dataRecord.geocodePoint,
-      }),
+      oc.columns(["externalId", "dataSourceId"]).doUpdateSet((eb) => ({
+        json: eb.ref("excluded.json"),
+        geocodeResult: eb.ref("excluded.geocodeResult"),
+        geocodePoint: eb.ref("excluded.geocodePoint"),
+      })),
     )
     .returningAll()
-    .executeTakeFirstOrThrow();
+    .execute();
 }
 
 export const markDataRecordsAsDirty = async (

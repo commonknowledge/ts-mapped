@@ -5,7 +5,7 @@ import { NoResultError } from "kysely";
 import { cookies } from "next/headers";
 import z from "zod";
 import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
-import ForgotPassword from "@/server/emails/forgot-password";
+import ForgotPassword from "@/server/emails/ForgotPassword";
 import {
   findAndUseInvitation,
   updateInvitation,

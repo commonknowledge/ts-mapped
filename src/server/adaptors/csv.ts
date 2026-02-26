@@ -49,8 +49,10 @@ export class CSVAdaptor implements DataSourceAdaptor {
       throw new Error(`Could not read URL ${this.url}`);
     }
 
-    // @ts-expect-error Fix type argument mismatch (https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/65542)
-    return Readable.fromWeb(response.body);
+    // Buffer the entire response to avoid Render's proxy killing
+    // long-lived HTTP connections during slow stream consumption
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return Readable.from(buffer);
   }
 
   createFileReadStream(url: string) {

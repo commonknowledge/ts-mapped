@@ -1,5 +1,6 @@
 // Human friendly labels for enums
 
+import { FilterType } from "./server/models/MapView";
 import type { AreaSetCode, AreaSetGroupCode } from "./server/models/AreaSet";
 import type {
   DataSourceRecordType,
@@ -11,6 +12,7 @@ import type {
   googleSheetsConfigSchema,
   mailchimpConfigSchema,
 } from "./server/models/DataSource";
+import type { columnFilterTypes } from "./server/models/MapView";
 import type { DataSourceType } from "@/server/models/DataSource";
 import type z from "zod";
 
@@ -19,19 +21,43 @@ export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   WMC24: "Westminster Constituency (2024)",
   LAD25: "Local Authority District (2025)",
   W25: "Ward (2025)",
+  LSOA21: "Lower Super Output Area (2021)",
   MSOA21: "Middle Super Output Area (2021)",
   OA21: "Census Output Area (2021)",
+  CTYUA24: "County (2024)",
+  CAUTH25: "Combined Authority (2025)",
   UKR18: "UK Region (2018)",
   UKC24: "UK Country (2024)",
+  SPC22: "Scottish Parliament Constituency (2022)",
+  SENC22: "Senedd Constituency (2022)",
+  SOA22: "Scottish Output Area (2022)",
+  SDZ22: "Scottish Data Zone (2022)",
+  SIZ22: "Scottish Intermediate Zone (2022)",
 };
 
 export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
-  WMC24: "Westminster Constituency (2024)",
-  LAD25: "Local Authority District (2025)",
-  W25: "Local Authority District -> Ward (2025)",
-  OA21: "MSOA -> Census Output Area (2021)",
-  UKR18: "UK Region (2018)",
-  UKC24: "UK Country (2024)",
+  WMC24: "Westminster Constituency",
+  CTYUA24: "County",
+  LAD25: "Local Authority District",
+  W25: "Local Authority District ➔ Ward",
+  MSOA21: "MSOA ➔ Census Output Area",
+  LSOA21: "MSOA ➔ LSOA ➔ Census Output Area",
+  CAUTH25: "Combined Authority",
+  UKR18: "UK Region",
+  UKC24: "UK Country",
+  SPC22: "Scottish Parliament Constituency",
+  SENC22: "Senedd Constituency",
+  SOA22: "Scottish Inter. Zone ➔ Data Zone ➔ Output Area",
+};
+
+export const FilterTypeLabels: Record<
+  (typeof columnFilterTypes)[number],
+  string
+> = {
+  [FilterType.TEXT]: "contains",
+  [FilterType.EXACT]: "is",
+  [FilterType.EMPTY]: "is empty",
+  [FilterType.NOT_EMPTY]: "is not empty",
 };
 
 type DataSourceConfigKey =

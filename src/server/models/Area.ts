@@ -1,5 +1,10 @@
 import z from "zod";
-import type { Generated, Insertable, Updateable } from "kysely";
+import type {
+  Generated,
+  GeneratedAlways,
+  Insertable,
+  Updateable,
+} from "kysely";
 
 export const areaGeographySchema = z.union([
   z.object({
@@ -43,3 +48,13 @@ export type AreaTable = Area & {
 };
 export type NewArea = Insertable<AreaTable>;
 export type AreaUpdate = Updateable<AreaTable>;
+
+export interface AreaSearchTable {
+  id: GeneratedAlways<number>;
+  code: GeneratedAlways<string>;
+  name: GeneratedAlways<string>;
+  areaSetId: GeneratedAlways<number>;
+  areaSetName: GeneratedAlways<string>;
+  areaSetCode: GeneratedAlways<string>;
+  searchText: GeneratedAlways<string>;
+}

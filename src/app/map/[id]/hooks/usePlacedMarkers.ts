@@ -11,8 +11,8 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useTRPC } from "@/services/trpc/react";
 import {
+  mapSearchResultAtom,
   placedMarkerVisibilityAtom,
-  searchMarkerAtom,
   selectedPlacedMarkerIdAtom,
 } from "../atoms/markerAtoms";
 import { getNewLastPosition } from "../utils/position";
@@ -193,7 +193,7 @@ export function usePlacedMarkerState() {
   const [selectedPlacedMarkerId, setSelectedPlacedMarkerId] = useAtom(
     selectedPlacedMarkerIdAtom,
   );
-  const [searchMarker, setSearchMarker] = useAtom(searchMarkerAtom);
+  const [mapSearchResult, setMapSearchResult] = useAtom(mapSearchResultAtom);
   const [placedMarkerVisibility, _setPlacedMarkerVisibility] = useAtom(
     placedMarkerVisibilityAtom,
   );
@@ -218,8 +218,8 @@ export function usePlacedMarkerState() {
   return {
     selectedPlacedMarkerId,
     setSelectedPlacedMarkerId,
-    searchMarker,
-    setSearchMarker,
+    mapSearchResult,
+    setMapSearchResult,
     setPlacedMarkerVisibility,
     getPlacedMarkerVisibility,
   };

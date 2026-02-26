@@ -7,6 +7,7 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
+import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { FilterType } from "@/server/models/MapView";
@@ -30,7 +31,6 @@ export default function MapTable() {
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { focusedRecord, setFocusedRecord } = useInspector();
-  const enableSyncToCRM = useFeatureFlagEnabled("sync-to-crm");
   const [lookingUpPage, setLookingUpPage] = useState(false);
 
   const {
@@ -53,7 +53,9 @@ export default function MapTable() {
   const { mutate: tagRecords } = useMutation(
     trpc.mapView.tagRecordsWithViewName.mutationOptions({
       onSuccess: () => {
-        toast.success("Tagging records in the background");
+        toast.success(
+          "Tagging records in the background - we will email you when the process completes.",
+        );
       },
       onError: () => {
         toast.error("Failed to tag records with view name");
@@ -136,13 +138,13 @@ export default function MapTable() {
     view,
   ]);
 
-  if (!selectedDataSourceId || !view) {
-    return null;
-  }
-
   const dataSource = getDataSourceById(selectedDataSourceId);
+  const enableSyncToCRM =
+    useFeatureFlagEnabled("sync-to-crm") &&
+    dataSource &&
+    DataSourceFeatures[dataSource.config.type].syncToCrm;
 
-  if (!dataSource) {
+  if (!dataSource || !view) {
     return null;
   }
 

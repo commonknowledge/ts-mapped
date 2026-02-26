@@ -40,7 +40,7 @@ yarn-error.log*
 test_credentials.json
 
 resources/areaSets/*
-!resources/areaSets/.gitkeep
+!resources/areaSets/index.ts
 
 uploads/*
 !uploads/.gitkeep

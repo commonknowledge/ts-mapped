@@ -1,5 +1,5 @@
 import z from "zod";
-import { areaSetGroupCode } from "./AreaSet";
+import { areaSetCode, areaSetGroupCode } from "./AreaSet";
 import { pointSchema } from "./shared";
 import type {
   Generated,
@@ -16,12 +16,22 @@ export enum FilterOperator {
 export const filterOperators = Object.values(FilterOperator);
 
 export enum FilterType {
+  EMPTY = "EMPTY",
+  EXACT = "EXACT",
   GEO = "GEO",
   MULTI = "MULTI",
+  NOT_EMPTY = "NOT_EMPTY",
   TEXT = "TEXT",
 }
 
 export const filterTypes = Object.values(FilterType);
+
+export const columnFilterTypes = [
+  FilterType.TEXT,
+  FilterType.EXACT,
+  FilterType.EMPTY,
+  FilterType.NOT_EMPTY,
+] as const;
 
 const baseRecordFilterSchema = z.object({
   column: z.string().nullish(),
@@ -122,6 +132,7 @@ export const mapViewConfigSchema = z.object({
   areaDataSecondaryColumn: z.string().optional(),
   areaDataNullIsZero: z.boolean().optional(),
   areaSetGroupCode: areaSetGroupCode.nullish(),
+  secondaryAreaSetCode: areaSetCode.nullish(),
   choroplethOpacityPct: z.number().optional(),
   includeColumnsString: z.string().optional(),
   mapStyleName: z.nativeEnum(MapStyleName),
@@ -141,6 +152,7 @@ export const mapViewConfigSchema = z.object({
     .record(z.string(), z.array(steppedColorStepSchema))
     .optional(),
   customColor: z.string().optional(),
+  hideFilteredMarkers: z.boolean().optional(),
 });
 
 export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;

@@ -10,7 +10,7 @@ export const createNewViewConfig = (): MapViewConfig => {
     areaDataSourceId: "",
     areaDataColumn: "",
     areaDataNullIsZero: true,
-    areaSetGroupCode: null,
+    areaSetGroupCode: undefined,
     mapStyleName: MapStyleName.Light,
     showLabels: true,
     showBoundaryOutline: false,
@@ -20,5 +20,6 @@ export const createNewViewConfig = (): MapViewConfig => {
     calculationType: DEFAULT_CALCULATION_TYPE,
     colorScheme: ColorScheme.RedBlue,
     reverseColorScheme: false,
+    hideFilteredMarkers: true,
   };
 };

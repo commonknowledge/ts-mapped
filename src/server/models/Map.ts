@@ -15,6 +15,7 @@ export const mapConfigSchema = z.object({
   markerColors: z.record(hexColorSchema).optional(),
   placedMarkerColors: z.record(hexColorSchema).optional(),
   folderColors: z.record(hexColorSchema).optional(),
+  turfColor: hexColorSchema.optional(),
 });
 
 export type MapConfig = z.infer<typeof mapConfigSchema>;

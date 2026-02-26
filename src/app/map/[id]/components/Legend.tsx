@@ -1,15 +1,18 @@
-import { ChevronRight, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, Info, LoaderPinwheel } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScaleType } from "@/server/models/MapView";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { cn } from "@/shadcn/utils";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
 import { getChoroplethDataKey } from "./Choropleth/utils";
+import type { NumericColorScheme } from "../colors";
 
 export default function Legend() {
   const { viewConfig, updateViewConfig } = useMapViews();
@@ -47,18 +50,74 @@ export default function Legend() {
 
   const getColumnLabel = () => {
     if (!hasColumn) {
-      return "No column selected";
+      return <p>No column selected</p>;
     }
     if (viewConfig.areaDataColumn === MAX_COLUMN_KEY) {
-      return "Highest-value column";
+      return <p>Highest-value column</p>;
     }
     if (viewConfig.calculationType === CalculationType.Count) {
-      return "Count";
+      return <p>Count</p>;
     }
-    if (viewConfig.areaDataSecondaryColumn) {
-      return `${viewConfig.areaDataColumn} vs ${viewConfig.areaDataSecondaryColumn}`;
+
+    const primaryDescription = dataSource?.columnMetadata.find(
+      (c) => c.name === viewConfig.areaDataColumn,
+    )?.description;
+
+    const primaryLabel = (
+      <div>
+        {viewConfig.areaDataColumn}
+        {primaryDescription && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
+                aria-label="Column description"
+                tabIndex={0}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{primaryDescription}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    );
+
+    if (!viewConfig.areaDataSecondaryColumn) {
+      return primaryLabel;
     }
-    return viewConfig.areaDataColumn;
+
+    const secondaryDescription = dataSource?.columnMetadata.find(
+      (c) => c.name === viewConfig.areaDataSecondaryColumn,
+    )?.description;
+
+    const secondaryLabel = (
+      <div>
+        {viewConfig.areaDataSecondaryColumn}
+        {secondaryDescription && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info
+                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
+                aria-label="Secondary column description"
+                tabIndex={0}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{secondaryDescription}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    );
+
+    return (
+      <div>
+        {primaryLabel}
+        <span>vs</span>
+        {secondaryLabel}
+      </div>
+    );
   };
 
   const makeBars = () => {
@@ -73,150 +132,11 @@ export default function Legend() {
         steppedColorSteps &&
         steppedColorSteps.length > 0
       ) {
-        const sortedSteps = [...steppedColorSteps].sort(
-          (a, b) => a.start - b.start,
-        );
-        const range = colorScheme.maxValue - colorScheme.minValue;
-
-        // Collect all unique boundary positions
-        const boundaries = new Set<number>();
-        boundaries.add(colorScheme.minValue);
-        sortedSteps.forEach((step) => {
-          boundaries.add(step.start);
-          boundaries.add(step.end);
-        });
-        boundaries.add(colorScheme.maxValue);
-        const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b);
-
-        return (
-          <div className="w-full">
-            <div className="flex w-full h-4 border border-neutral-200 overflow-hidden rounded">
-              {sortedSteps.map((step, index) => {
-                const stepStart = Math.max(step.start, colorScheme.minValue);
-                const stepEnd =
-                  index < sortedSteps.length - 1
-                    ? sortedSteps[index + 1].start
-                    : Math.min(step.end, colorScheme.maxValue);
-                const width =
-                  range > 0
-                    ? ((stepEnd - stepStart) / range) * 100
-                    : 100 / sortedSteps.length;
-                return (
-                  <div
-                    key={index}
-                    className="h-full border-r border-neutral-400 last:border-r-0"
-                    style={{
-                      width: `${width}%`,
-                      backgroundColor: calculateStepColor(
-                        index,
-                        sortedSteps.length,
-                        viewConfig,
-                      ),
-                    }}
-                  />
-                );
-              })}
-            </div>
-            <div className="relative mt-1 h-6">
-              {sortedBoundaries.map((boundary, index) => {
-                const isFirst = index === 0;
-                const isLast = index === sortedBoundaries.length - 1;
-                const position =
-                  range > 0
-                    ? ((boundary - colorScheme.minValue) / range) * 100
-                    : (index / (sortedBoundaries.length - 1)) * 100;
-
-                return (
-                  <div
-                    key={index}
-                    className="absolute flex flex-col"
-                    style={{
-                      left: `${position}%`,
-                      transform: isFirst
-                        ? "translateX(0%)"
-                        : isLast
-                          ? "translateX(-100%)"
-                          : "translateX(-50%)",
-                      alignItems: isFirst
-                        ? "flex-start"
-                        : isLast
-                          ? "flex-end"
-                          : "center",
-                    }}
-                  >
-                    <div className="text-[10px] text-neutral-500 mt-0.5 font-mono whitespace-nowrap">
-                      {formatNumber(boundary)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
+        return makeSteppedBars(colorScheme, steppedColorSteps);
       }
 
       // Handle gradient colors (default)
-      const numStops = 24;
-      const stops = new Array(numStops + 1)
-        .fill(null)
-        .map((_, i) => {
-          const t = i / numStops;
-          const value =
-            colorScheme.minValue +
-            t * (colorScheme.maxValue - colorScheme.minValue);
-          const color = colorScheme.colorScale(value);
-          return `${color} ${t * 100}%`;
-        })
-        .join(", ");
-
-      const numTicks = 5 as number; // number of numeric step labels
-      const denom = Math.max(numTicks - 1, 1);
-
-      return (
-        <div className="w-full">
-          <div
-            className="w-full h-4 border border-neutral-200"
-            style={{ background: `linear-gradient(to right, ${stops})` }}
-          />
-          <div className="relative mt-1 h-6">
-            {Array.from({ length: numTicks }).map((_, i) => {
-              const t = i / denom;
-              const value =
-                colorScheme.minValue +
-                t * (colorScheme.maxValue - colorScheme.minValue);
-              const positionStyle =
-                i === 0
-                  ? { left: 0, transform: "translateX(0%)" }
-                  : i === numTicks - 1
-                    ? { left: "100%", transform: "translateX(-100%)" }
-                    : { left: `${t * 100}%`, transform: "translateX(-50%)" };
-              const alignClass =
-                i === 0
-                  ? "items-start"
-                  : i === numTicks - 1
-                    ? "items-end"
-                    : "items-center";
-              return (
-                <div
-                  key={i}
-                  className={`absolute flex flex-col ${alignClass}`}
-                  style={positionStyle}
-                >
-                  <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
-                    {(() => {
-                      const isPercent =
-                        colorScheme.minValue >= 0 && colorScheme.maxValue <= 1;
-                      return isPercent
-                        ? `${Math.round(value * 100)}%`
-                        : formatNumber(value);
-                    })()}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
+      return makeGradientBars(colorScheme);
     } else {
       // Filter to only show categories that actually appear in the data
       const categoriesInData = new Set(
@@ -256,6 +176,193 @@ export default function Legend() {
     }
   };
 
+  const makeSteppedBars = (
+    colorScheme: NumericColorScheme,
+    steppedColorSteps: { start: number; end: number }[],
+  ) => {
+    const sortedSteps = [...steppedColorSteps].sort(
+      (a, b) => a.start - b.start,
+    );
+    const range = colorScheme.maxValue - colorScheme.minValue;
+
+    // Collect all unique boundary positions
+    const boundaries = new Set<number>();
+    boundaries.add(colorScheme.minValue);
+    sortedSteps.forEach((step) => {
+      boundaries.add(step.start);
+      boundaries.add(step.end);
+    });
+    boundaries.add(colorScheme.maxValue);
+    const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b);
+
+    return (
+      <div className="w-full">
+        <div className="flex w-full h-4 border border-neutral-200 overflow-hidden rounded">
+          {sortedSteps.map((step, index) => {
+            const stepStart = Math.max(step.start, colorScheme.minValue);
+            const stepEnd =
+              index < sortedSteps.length - 1
+                ? sortedSteps[index + 1].start
+                : Math.min(step.end, colorScheme.maxValue);
+            const width =
+              range > 0
+                ? ((stepEnd - stepStart) / range) * 100
+                : 100 / sortedSteps.length;
+            return (
+              <div
+                key={index}
+                className="h-full border-r border-neutral-400 last:border-r-0"
+                style={{
+                  width: `${width}%`,
+                  backgroundColor: calculateStepColor(
+                    index,
+                    sortedSteps.length,
+                    viewConfig,
+                  ),
+                }}
+              />
+            );
+          })}
+        </div>
+        <div className="relative mt-1 h-6">
+          {sortedBoundaries.map((boundary, index) => {
+            const isFirst = index === 0;
+            const isLast = index === sortedBoundaries.length - 1;
+            const position =
+              range > 0
+                ? ((boundary - colorScheme.minValue) / range) * 100
+                : (index / (sortedBoundaries.length - 1)) * 100;
+
+            return (
+              <div
+                key={index}
+                className="absolute flex flex-col"
+                style={{
+                  left: `${position}%`,
+                  transform: isFirst
+                    ? "translateX(0%)"
+                    : isLast
+                      ? "translateX(-100%)"
+                      : "translateX(-50%)",
+                  alignItems: isFirst
+                    ? "flex-start"
+                    : isLast
+                      ? "flex-end"
+                      : "center",
+                }}
+              >
+                <div className="text-[10px] text-neutral-500 mt-0.5 font-mono whitespace-nowrap">
+                  {formatNumber(boundary)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const makeGradientBars = (colorScheme: NumericColorScheme) => {
+    const numStops = 24;
+    const stops = new Array(numStops + 1)
+      .fill(null)
+      .map((_, i) => {
+        const t = i / numStops;
+        const value =
+          colorScheme.minValue +
+          t * (colorScheme.maxValue - colorScheme.minValue);
+        const color = colorScheme.colorScale(value);
+        return `${color} ${t * 100}%`;
+      })
+      .join(", ");
+
+    let numTicks = 5 as number; // number of numeric step labels
+    let denom = Math.max(numTicks - 1, 1);
+    let values = Array.from({ length: numTicks }).map((_, i) => {
+      const t = i / denom;
+      return (
+        colorScheme.minValue + t * (colorScheme.maxValue - colorScheme.minValue)
+      );
+    });
+
+    const valueLabels =
+      dataSource?.columnMetadata.find(
+        (c) => c.name === viewConfig.areaDataColumn,
+      )?.valueLabels || {};
+
+    const hasValueLabels = Object.keys(valueLabels).length > 0;
+
+    if (hasValueLabels) {
+      numTicks = Object.keys(valueLabels).length;
+      denom = Math.max(numTicks - 1, 1);
+      values = Object.keys(valueLabels).map(Number).toSorted();
+    }
+
+    return (
+      <div className="w-full">
+        <div
+          className="w-full h-4 border border-neutral-200"
+          style={{ background: `linear-gradient(to right, ${stops})` }}
+        />
+        <div className={cn("relative mt-1", hasValueLabels ? "h-10" : "h-6")}>
+          {Array.from({ length: numTicks }).map((_, i) => {
+            const t = i / denom;
+            const value = values[i];
+            const positionStyle =
+              i === 0
+                ? {
+                    left: 0,
+                    transform: "translateX(0%)",
+                    width: `${100 / (denom + 1)}%`,
+                  }
+                : i === numTicks - 1
+                  ? {
+                      left: "100%",
+                      transform: "translateX(-100%)",
+                      width: `${100 / (denom + 1)}%`,
+                    }
+                  : {
+                      left: `${t * 100}%`,
+                      transform: "translateX(-50%)",
+                      width: `${100 / (denom + 1)}%`,
+                    };
+            const alignClass =
+              i === 0
+                ? "items-start"
+                : i === numTicks - 1
+                  ? "items-end text-right"
+                  : "items-center text-center";
+            return (
+              <div
+                key={i}
+                className={`absolute flex flex-col ${alignClass}`}
+                style={positionStyle}
+              >
+                <div className="text-[10px] text-neutral-500 mt-0.5 font-mono">
+                  {(() => {
+                    if (hasValueLabels) {
+                      if (value) {
+                        return valueLabels[String(value)];
+                      } else {
+                        // Handle empty values
+                        return valueLabels[String(value)] || valueLabels[""];
+                      }
+                    }
+                    const isPercent =
+                      colorScheme.minValue >= 0 && colorScheme.maxValue <= 1;
+                    return isPercent
+                      ? `${Math.round(value * 100)}%`
+                      : formatNumber(value);
+                  })()}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="group flex flex-col gap-1 rounded-sm overflow-auto bg-white border border-neutral-200 w-full">
       <div
@@ -277,7 +384,9 @@ export default function Legend() {
                 {dataSource?.name}
               </p>
               <ChevronRight className="w-4 h-4" />
-              <p className="flex items-center gap-0.5">{getColumnLabel()}</p>
+              <div className="flex items-center gap-0.5">
+                {getColumnLabel()}
+              </div>
             </div>
             <VisibilityToggle
               isLayerVisible={isLayerVisible}

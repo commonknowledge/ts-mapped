@@ -50,6 +50,9 @@ class PointTransformer extends OperationNodeTransformer {
     if (isPoint(value)) {
       return mapPoint(value);
     }
+    if (isMultiPolygon(value)) {
+      return mapMultiPolygon(value);
+    }
     if (isPolygon(value)) {
       return mapPolygon(value);
     }
@@ -71,6 +74,25 @@ function mapPolygon(polygon: Polygon): string {
     .join(", ");
 
   return `SRID=4326;POLYGON(${rings})`;
+}
+
+function mapMultiPolygon(multiPolygon: MultiPolygon): string {
+  // Convert MultiPolygon coordinates to WKT format
+  const polygons = multiPolygon.coordinates
+    .map((polygon) => {
+      const rings = polygon
+        .map((ring) => {
+          const coords = ring
+            .map((coord) => `${coord[0]} ${coord[1]}`)
+            .join(", ");
+          return `(${coords})`;
+        })
+        .join(", ");
+      return `(${rings})`;
+    })
+    .join(", ");
+
+  return `SRID=4326;MULTIPOLYGON(${polygons})`;
 }
 
 function isPoint(point: unknown): point is Point {
@@ -103,6 +125,33 @@ function isPolygon(polygon: unknown): polygon is Polygon {
         ),
     );
   return isP;
+}
+
+function isMultiPolygon(multiPolygon: unknown): multiPolygon is MultiPolygon {
+  return (
+    typeof multiPolygon === "object" &&
+    multiPolygon !== null &&
+    "type" in multiPolygon &&
+    multiPolygon.type === "MultiPolygon" &&
+    "coordinates" in multiPolygon &&
+    Array.isArray(multiPolygon.coordinates) &&
+    multiPolygon.coordinates.length > 0 &&
+    multiPolygon.coordinates.every(
+      (polygon) =>
+        Array.isArray(polygon) &&
+        polygon.every(
+          (ring) =>
+            Array.isArray(ring) &&
+            ring.every(
+              (coord) =>
+                Array.isArray(coord) &&
+                coord.length === 2 &&
+                typeof coord[0] === "number" &&
+                typeof coord[1] === "number",
+            ),
+        ),
+    )
+  );
 }
 
 // --- New: handle reading from DB ---

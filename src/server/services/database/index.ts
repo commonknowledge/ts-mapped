@@ -1,10 +1,11 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import Cursor from "pg-cursor";
+import logger from "../logger";
 import { JSONPlugin } from "./plugins/JSONPlugin";
 import { PointPlugin } from "./plugins/PointPlugin";
 import type { AirtableWebhookTable } from "@/server/models/AirtableWebhook";
-import type { AreaTable } from "@/server/models/Area";
+import type { AreaSearchTable, AreaTable } from "@/server/models/Area";
 import type { AreaSetTable } from "@/server/models/AreaSet";
 import type { DataRecordTable } from "@/server/models/DataRecord";
 import type { DataSourceTable } from "@/server/models/DataSource";
@@ -22,6 +23,22 @@ import type { UserTable } from "@/server/models/User";
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: Number(process.env.DATABASE_POOL_SIZE) || undefined,
+});
+
+// Set up read replica pool with graceful fallback
+const readReplicaPool = new Pool({
+  connectionString:
+    process.env.DATABASE_READ_REPLICA_URL || process.env.DATABASE_URL,
+  max: Number(process.env.DATABASE_POOL_SIZE) || undefined,
+});
+
+pool.on("error", (error) => {
+  logger.error("Unexpected Postgres pool error", { error });
+});
+
+readReplicaPool.on("error", (error) => {
+  logger.error("Unexpected Postgres pool error", { error });
 });
 
 const dialect = new PostgresDialect({
@@ -29,9 +46,15 @@ const dialect = new PostgresDialect({
   pool,
 });
 
+const readReplicaDialect = new PostgresDialect({
+  cursor: Cursor,
+  pool: readReplicaPool,
+});
+
 export interface Database {
   airtableWebhook: AirtableWebhookTable;
   area: AreaTable;
+  areaSearch: AreaSearchTable;
   areaSet: AreaSetTable;
   dataSource: DataSourceTable;
   dataRecord: DataRecordTable;
@@ -48,14 +71,20 @@ export interface Database {
   "pgboss.job": JobTable;
 }
 
+const sharedPlugins = [
+  new CamelCasePlugin({ maintainNestedObjectKeys: true }),
+  new PointPlugin(),
+  new JSONPlugin(),
+];
+
 export const db = new Kysely<Database>({
   dialect,
-  plugins: [
-    // Database `field_name` to TypeScript `fieldName`.
-    // `maintainNestedObjectKeys` prevents `data_record.json` being mangled
-    new CamelCasePlugin({ maintainNestedObjectKeys: true }),
-    new PointPlugin(),
-    new JSONPlugin(),
-  ],
+  plugins: sharedPlugins,
+  log: ["error"],
+});
+
+export const dbRead = new Kysely<Database>({
+  dialect: readReplicaDialect,
+  plugins: sharedPlugins,
   log: ["error"],
 });

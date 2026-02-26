@@ -4,6 +4,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import { DataSourceType } from "../models/DataSource";
+import { enqueue } from "../services/queue";
 import type { DataSourceAdaptor } from "./abstract";
 import type { googleOAuthCredentialsSchema } from "../models/DataSource";
 import type { EnrichedRecord } from "@/server/mapping/enrich";
@@ -47,6 +48,10 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       for await (const record of records) {
         yield record.externalId;
       }
+      // Refresh the webhook to cover any new rows
+      await enqueue("refreshWebhooks", this.dataSourceId, {
+        dataSourceId: this.dataSourceId,
+      });
     } else if (body.rowNumber && typeof body.rowNumber === "string") {
       yield body.rowNumber;
     }
@@ -136,7 +141,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   async getRecordCount(): Promise<number | null> {
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}!A:A`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!A:Z`;
       const response = await this.makeGoogleSheetsRequest(url);
 
       if (!response.ok) {
@@ -162,7 +167,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       return this.cachedHeaders;
     }
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}!1:1`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!1:1`;
     const response = await this.makeGoogleSheetsRequest(url);
 
     if (!response.ok) {
@@ -176,7 +181,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   }
 
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}`;
     const response = await this.makeGoogleSheetsRequest(url);
 
     if (!response.ok) {
@@ -219,7 +224,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
   async fetchFirst(): Promise<ExternalRecord | null> {
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${this.sheetName}!1:2`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(this.sheetName)}!1:2`;
       const response = await this.makeGoogleSheetsRequest(url);
 
       if (!response.ok) {
@@ -270,7 +275,9 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     const headers = await this.getHeaders();
 
     // Batch requests for efficiency
-    const ranges = externalIds.map((id) => `${this.sheetName}!${id}:${id}`);
+    const ranges = externalIds.map(
+      (id) => `${encodeURIComponent(this.sheetName)}!${id}:${id}`,
+    );
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values:batchGet?ranges=${ranges.join("&ranges=")}`;
 
     const response = await this.makeGoogleSheetsRequest(url);
@@ -328,22 +335,102 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     logger.info(`Removed dev webhooks for data source ${this.dataSourceId}`);
   }
 
-  async toggleWebhook(enable: boolean): Promise<void> {
-    const notificationUrl = await getPublicUrl(
-      `/api/data-sources/${this.dataSourceId}/webhook`,
-    );
+  /**
+   * Checks if the webhook sheet contains formula errors.
+   * Returns true if #ERROR! or other error values are detected.
+   */
+  async hasWebhookErrors(): Promise<boolean> {
+    try {
+      const notificationUrl = await getPublicUrl(
+        `/api/data-sources/${this.dataSourceId}/webhook`,
+      );
+      const notificationDomain = new URL(notificationUrl).hostname;
+      const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
 
-    // Shorten identifying URL as sheet names must be <= 100 characters
-    const notificationDomain = new URL(notificationUrl).hostname;
-    const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
+      // Read first few cells from webhook sheet to check for errors
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${encodeURIComponent(webhookSheetName)}!A1:B5`;
+      const response = await this.makeGoogleSheetsRequest(url);
 
-    if (!enable) {
-      await this.deleteSheet(webhookSheetName);
-      return;
+      if (!response.ok) {
+        return false; // Sheet doesn't exist or can't be read
+      }
+
+      const data = (await response.json()) as { values: string[][] };
+      const rows = data.values || [];
+
+      // Check if any cells contain error values
+      for (const row of rows) {
+        for (const cell of row) {
+          if (
+            typeof cell === "string" &&
+            (cell.startsWith("#ERROR") || cell.startsWith("#N/A"))
+          ) {
+            logger.warn(
+              `Detected formula error in webhook sheet for ${this.dataSourceId}: ${cell}`,
+            );
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch (error) {
+      logger.warn(`Could not check webhook errors for ${this.dataSourceId}`, {
+        error,
+      });
+      return false;
     }
+  }
 
-    await this.ensureSheet(webhookSheetName);
-    await this.prepareWebhookSheet(webhookSheetName, notificationUrl);
+  /**
+   * Repairs the webhook sheet by deleting and recreating it with fixed formulas.
+   * This is useful for fixing sheets created before the sheet name escaping bug was fixed.
+   */
+  async repairWebhook(): Promise<void> {
+    logger.info(`Repairing webhook for data source ${this.dataSourceId}`);
+
+    try {
+      // Delete and recreate the webhook sheet
+      await this.toggleWebhook(false); // Delete
+      await this.toggleWebhook(true); // Recreate with fixed formulas
+
+      logger.info(
+        `Successfully repaired webhook for data source ${this.dataSourceId}`,
+      );
+    } catch (error) {
+      logger.error(
+        `Failed to repair webhook for data source ${this.dataSourceId}`,
+        { error },
+      );
+      throw error;
+    }
+  }
+
+  async toggleWebhook(enable: boolean): Promise<void> {
+    try {
+      const notificationUrl = await getPublicUrl(
+        `/api/data-sources/${this.dataSourceId}/webhook`,
+      );
+
+      // Shorten identifying URL as sheet names must be <= 100 characters
+      const notificationDomain = new URL(notificationUrl).hostname;
+      const webhookSheetName = `Mapped Webhook: ${notificationDomain}/${this.dataSourceId}`;
+
+      if (!enable) {
+        await this.deleteSheet(webhookSheetName);
+        return;
+      }
+
+      await this.ensureSheet(webhookSheetName);
+      await this.prepareWebhookSheet(webhookSheetName, notificationUrl);
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("PERMISSION_DENIED")) {
+        throw new Error(
+          "Failed to create webhook sheet, please check you have edit permissions.",
+        );
+      }
+      throw e;
+    }
   }
 
   public async listSheets(): Promise<
@@ -455,10 +542,11 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     // Step 2: Construct formula rows
     // First cell is a row count (surprisingly complicated!)
     const countUpdateUrl = `${notificationUrl}?rowCount=`;
+    const escapedSheetName = escapeSheetNameForFormula(this.sheetName);
 
     const formulaRows: string[][] = [
       [
-        `=MAX(FILTER(ROW(${this.sheetName}!A1:Z), BYROW(${this.sheetName}!A1:Z, LAMBDA(row, COUNTA(row))) > 0))`,
+        `=MAX(FILTER(ROW(${escapedSheetName}!A1:Z), BYROW(${escapedSheetName}!A1:Z, LAMBDA(row, COUNTA(row))) > 0))`,
         `=IMPORTDATA("${countUpdateUrl}" & A1)`,
       ],
     ];
@@ -468,7 +556,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       const rowNum = i + 1;
       const urlWithParam = `${notificationUrl}?rowNumber=${rowNum}&unused=`;
       // IMPORTDATA triggers a GET request
-      const formula = `=LEFT(JOIN(",", ${this.sheetName}!${rowNum}:${rowNum}), 2000)`;
+      const formula = `=LEFT(JOIN(",", ${escapedSheetName}!${rowNum}:${rowNum}), 2000)`;
       formulaRows.push([
         formula,
         `=IMPORTDATA("${urlWithParam}" & A${rowNum})`,
@@ -517,7 +605,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     // Add new columns to the sheet
     if (newColumns.size > 0) {
       const newHeaders = [...headers, ...Array.from(newColumns)];
-      const headerRange = `${this.sheetName}!1:1`;
+      const headerRange = `${encodeURIComponent(this.sheetName)}!1:1`;
       const headerUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${headerRange}?valueInputOption=USER_ENTERED`;
 
       const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
@@ -582,7 +670,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     const fieldName = taggedRecords[0].tag.name;
     if (!headers.includes(fieldName)) {
       const newHeaders = [...headers, fieldName];
-      const headerRange = `${this.sheetName}!1:1`;
+      const headerRange = `${encodeURIComponent(this.sheetName)}!1:1`;
       const headerUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${headerRange}?valueInputOption=USER_ENTERED`;
 
       const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
@@ -647,7 +735,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
 
     const headerLetter = indexToLetter(headerIndex);
 
-    const headerRange = `${this.sheetName}!${headerLetter}:${headerLetter}`;
+    const headerRange = `${encodeURIComponent(this.sheetName)}!${headerLetter}:${headerLetter}`;
     const headerUrl = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/${headerRange}?valueInputOption=USER_ENTERED`;
 
     const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
@@ -676,4 +764,29 @@ function indexToLetter(index: number): string {
     index = Math.floor(index / 26) - 1;
   }
   return result;
+}
+
+/**
+ * Escapes a Google Sheets sheet name for use in formulas.
+ * Sheet names with spaces, special characters, or apostrophes must be wrapped in single quotes.
+ * Single quotes within the name are escaped by doubling them.
+ *
+ * @example
+ * escapeSheetNameForFormula("Sheet1") // "Sheet1"
+ * escapeSheetNameForFormula("My Sheet") // "'My Sheet'"
+ * escapeSheetNameForFormula("John's Data") // "'John''s Data'"
+ */
+export function escapeSheetNameForFormula(sheetName: string): string {
+  // Check if sheet name needs quoting (contains spaces or special chars)
+  const needsQuoting = /[\s'"!@#$%^&*()\-+=\[\]{};:,.<>?/\\|`~]/.test(
+    sheetName,
+  );
+
+  if (!needsQuoting) {
+    return sheetName;
+  }
+
+  // Escape single quotes by doubling them and wrap in single quotes
+  const escaped = sheetName.replace(/'/g, "''");
+  return `'${escaped}'`;
 }

@@ -113,11 +113,9 @@ export function DataSourceItem({
           </span>
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        <h4 className=" text-xl font-medium text-neutral-900 truncate leading-tight">
-          {dataSource.name}
-        </h4>
-      </div>
+      <h4 className="text-lg font-medium text-neutral-900 truncate leading-tight max-w-full">
+        {dataSource.name}
+      </h4>
 
       {/* Metadata: Consolidated stats and status */}
       <div className="flex flex-col gap-2 text-xs">

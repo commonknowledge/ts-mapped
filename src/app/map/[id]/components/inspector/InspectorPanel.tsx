@@ -1,11 +1,20 @@
+import { useQuery } from "@tanstack/react-query";
+import * as turf from "@turf/turf";
 import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
+import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
+import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
+import { AreaSetCode } from "@/server/models/AreaSet";
+import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
+import InspectorConfigTab from "./InspectorConfigTab";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
@@ -38,16 +47,37 @@ export default function InspectorPanel({
   } = useInspector();
   const { dataSource, properties, type } = inspectorContent ?? {};
 
+  const trpc = useTRPC();
+  const { insertTurf, loading: savingTurf } = useTurfMutations();
+  const { areaToDisplay } = useDisplayAreaStat(selectedBoundary);
+
+  // Fetch boundary geography when a boundary is selected
+  const { data: areaData } = useQuery(
+    trpc.area.byCode.queryOptions(
+      {
+        code: selectedBoundary?.code || "",
+        areaSetCode: selectedBoundary?.areaSetCode || AreaSetCode.WMC24,
+      },
+      { enabled: Boolean(selectedBoundary && type === LayerType.Boundary) },
+    ),
+  );
+
+  const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
+  const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
+  const hasConfig = type === LayerType.Boundary;
+
   const safeActiveTab = useMemo(() => {
-    if (activeTab === "data" && type === LayerType.Cluster) {
+    if (activeTab === "data" && !hasData) {
       return "markers";
     }
-    const isMarkers = type === LayerType.Marker || type === LayerType.Member;
-    if (activeTab === "markers" && isMarkers) {
+    if (activeTab === "markers" && !hasMarkers) {
       return "data";
     }
+    if (activeTab === "config" && !hasConfig) {
+      return hasMarkers ? "markers" : "data";
+    }
     return activeTab;
-  }, [activeTab, type]);
+  }, [activeTab, hasConfig, hasData, hasMarkers]);
 
   if (!Boolean(inspectorContent)) {
     return <></>;
@@ -62,6 +92,33 @@ export default function InspectorPanel({
 
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
+  };
+
+  const handleAddToMyAreas = () => {
+    if (!areaData?.geography || !selectedBoundary) {
+      toast.error("Unable to add boundary to areas");
+      return;
+    }
+
+    try {
+      // Convert the boundary geography to a turf polygon
+      const area = turf.area(areaData.geography);
+      const roundedArea = Math.round(area * 100) / 100;
+
+      insertTurf({
+        id: uuidv4(),
+        label: selectedBoundary.name || "Boundary",
+        notes: "",
+        area: roundedArea,
+        polygon: areaData.geography,
+        position: 0,
+      });
+
+      toast.success(`Added ${selectedBoundary.name} to your areas`);
+    } catch (error) {
+      console.error("Error adding boundary to areas:", error);
+      toast.error("Failed to add boundary to areas");
+    }
   };
 
   return (
@@ -82,8 +139,14 @@ export default function InspectorPanel({
           "min-h-0",
         )}
       >
-        <div className="flex justify-between items-center gap-2 p-3">
-          <h1 className="grow flex gap-2 / text-sm font-semibold min-w-0 truncate">
+        <div className="flex justify-between items-center gap-4 p-3">
+          <h1 className="grow flex gap-2 items-center min-w-0 truncate / text-sm font-semibold">
+            {type === LayerType.Boundary && areaToDisplay?.backgroundColor && (
+              <span
+                className="w-4 h-4 rounded shrink-0"
+                style={{ backgroundColor: areaToDisplay.backgroundColor }}
+              />
+            )}
             {inspectorContent?.name as string}
           </h1>
           <div className="flex items-center gap-0.5 shrink-0">
@@ -138,24 +201,25 @@ export default function InspectorPanel({
           className="flex flex-col min-h-0"
         >
           <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
-            {type !== LayerType.Cluster && (
+            {hasData && (
               <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
             )}
-            <UnderlineTabsTrigger
-              value="markers"
-              className={cn(
-                (type === LayerType.Member || type === LayerType.Marker) &&
-                  "hidden",
-              )}
-            >
-              Markers {markerCount > 0 ? markerCount : ""}
-            </UnderlineTabsTrigger>
+            {hasMarkers && (
+              <UnderlineTabsTrigger value="markers">
+                Markers {markerCount > 0 ? markerCount : ""}
+              </UnderlineTabsTrigger>
+            )}
             <UnderlineTabsTrigger value="notes" className="hidden">
               Notes 0
             </UnderlineTabsTrigger>
+            {hasConfig && (
+              <UnderlineTabsTrigger value="config" className="px-2">
+                <SettingsIcon size={16} />
+              </UnderlineTabsTrigger>
+            )}
           </UnderlineTabsList>
 
-          {type !== LayerType.Cluster && (
+          {hasData && (
             <UnderlineTabsContent value="data" className="overflow-auto p-3">
               <InspectorDataTab
                 dataSource={dataSource}
@@ -167,14 +231,34 @@ export default function InspectorPanel({
             </UnderlineTabsContent>
           )}
 
-          <UnderlineTabsContent value="markers" className="overflow-auto p-3">
-            {type && <InspectorMarkersTab type={type} />}
-          </UnderlineTabsContent>
+          {hasMarkers && (
+            <UnderlineTabsContent value="markers" className="overflow-auto p-3">
+              {type && <InspectorMarkersTab type={type} />}
+            </UnderlineTabsContent>
+          )}
 
           <UnderlineTabsContent value="notes" className="overflow-auto p-3">
             <InspectorNotesTab />
           </UnderlineTabsContent>
+
+          {hasConfig && (
+            <UnderlineTabsContent value="config" className="overflow-auto p-3">
+              <InspectorConfigTab />
+            </UnderlineTabsContent>
+          )}
         </UnderlineTabs>
+        {type === LayerType.Boundary && (
+          <div className="border-t p-3">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleAddToMyAreas}
+              disabled={savingTurf || !areaData}
+            >
+              Add to my areas
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
