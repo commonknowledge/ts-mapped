@@ -14,6 +14,7 @@ import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { useMapViews } from "../../../hooks/useMapViews";
 import { InspectorBoundaryConfigType } from "@/server/models/MapView";
 import type { DataSource } from "@/server/models/DataSource";
+import { dedupeColumns, dedupeColumnItems } from "../inspectorColumnOrder";
 import { DataSourcesList } from "./DataSourcesList";
 import { InspectorFullPreview } from "../InspectorFullPreview";
 import { InspectorSourceConfigPanel } from "./InspectorSourceConfigPanel";
@@ -114,15 +115,22 @@ export default function InspectorSettingsModal({
   const handleAddToInspector = useCallback(() => {
     if (!view || !selectedDataSourceId) return;
     const ds = (dataSources ?? []).find((d) => d.id === selectedDataSourceId);
+    const defaultConfig = ds?.defaultInspectorConfig;
+    const columns = dedupeColumns(defaultConfig?.columns ?? []);
+    const columnItems = dedupeColumnItems(defaultConfig?.columnItems);
     const newConfig: InspectorBoundaryConfig = {
       id: uuidv4(),
       dataSourceId: selectedDataSourceId,
-      name: ds?.name ?? "Boundary Data",
-      type: InspectorBoundaryConfigType.Simple,
-      columns: [],
-      columnMetadata: undefined,
-      columnGroups: undefined,
-      layout: "single",
+      name: defaultConfig?.name ?? ds?.name ?? "Boundary Data",
+      type: defaultConfig?.type ?? InspectorBoundaryConfigType.Simple,
+      columns,
+      columnOrder: defaultConfig?.columnOrder,
+      columnItems,
+      columnMetadata: defaultConfig?.columnMetadata,
+      columnGroups: defaultConfig?.columnGroups,
+      layout: defaultConfig?.layout ?? "single",
+      icon: defaultConfig?.icon,
+      color: defaultConfig?.color,
     };
     const prev = view.inspectorConfig?.boundaries ?? [];
     updateView({

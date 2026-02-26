@@ -39,7 +39,7 @@ export interface Area {
   name: string; // text, NOT NULL
   geography: unknown; // geography (PostGIS), NOT NULL
   areaSetId: number; // bigint, NOT NULL
-  geom: unknown; // geometry(MultiPolygon,4326), GENERATED ALWAYS AS ((geography)::geometry) STORED, NOT NULL
+  geom: unknown; // geometry(Geometry,4326), GENERATED ALWAYS AS ((geography)::geometry) STORED, NOT NULL
 
   // CONSTRAINTS:
   // - UNIQUE (code, areaSetId)
@@ -138,6 +138,7 @@ export interface DataSource {
   dateFormat: string; // text, NOT NULL, DEFAULT 'yyyy-MM-dd'
   recordCount: number; // integer, NOT NULL, DEFAULT 0
   createdAt: Date; // timestamp, DEFAULT CURRENT_TIMESTAMP, NOT NULL
+  defaultInspectorConfig: unknown | null; // jsonb, NULL – default inspector settings for public data sources
 
   // FOREIGN KEYS:
   // - organisationId -> organisation.id (CASCADE DELETE, CASCADE UPDATE)

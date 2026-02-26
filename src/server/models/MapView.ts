@@ -266,6 +266,20 @@ export type InspectorBoundaryConfig = z.infer<
 >;
 
 /**
+ * Template for default inspector settings stored on a data source.
+ * When someone adds this data source to the inspector, these settings are applied.
+ * Omits id and dataSourceId (set when adding to a view).
+ */
+export const defaultInspectorBoundaryConfigSchema =
+  inspectorBoundaryConfigSchema.omit({
+    id: true,
+    dataSourceId: true,
+  });
+export type DefaultInspectorBoundaryConfig = z.infer<
+  typeof defaultInspectorBoundaryConfigSchema
+>;
+
+/**
  * Complete inspector configuration for a map view
  * Organized by aspect (boundaries, markers, members, etc.)
  */

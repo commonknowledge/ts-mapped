@@ -21,7 +21,11 @@ import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
-import { getSelectedColumnsOrdered } from "./inspectorColumnOrder";
+import {
+  dedupeColumns,
+  dedupeColumnItems,
+  getSelectedColumnsOrdered,
+} from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
 import PropertiesList from "./PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
@@ -56,12 +60,22 @@ export default function InspectorDataTab({
     (dataSourceId: string) => {
       if (!view) return;
       const ds = getDataSourceById(dataSourceId);
+      const defaultConfig = ds?.defaultInspectorConfig;
+      const columns = dedupeColumns(defaultConfig?.columns ?? []);
+      const columnItems = dedupeColumnItems(defaultConfig?.columnItems);
       const newBoundaryConfig: InspectorBoundaryConfig = {
         id: uuidv4(),
         dataSourceId,
-        name: ds?.name || "Boundary Data",
-        type: InspectorBoundaryConfigType.Simple,
-        columns: [],
+        name: defaultConfig?.name ?? ds?.name ?? "Boundary Data",
+        type: defaultConfig?.type ?? InspectorBoundaryConfigType.Simple,
+        columns,
+        columnOrder: defaultConfig?.columnOrder,
+        columnItems,
+        columnMetadata: defaultConfig?.columnMetadata,
+        columnGroups: defaultConfig?.columnGroups,
+        layout: defaultConfig?.layout ?? "single",
+        icon: defaultConfig?.icon,
+        color: defaultConfig?.color,
       };
       const prev = view.inspectorConfig?.boundaries || [];
       updateView({
@@ -175,7 +189,7 @@ export default function InspectorDataTab({
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {boundaryData.map((item, index) => (
+                {boundaryData.map((item) => (
                   <BoundaryDataPanel
                     key={item.config.id}
                     config={item.config}
@@ -185,7 +199,7 @@ export default function InspectorDataTab({
                     columnMetadata={item.config.columnMetadata}
                     columnGroups={item.config.columnGroups}
                     layout={item.config.layout}
-                    defaultExpanded={index === 0}
+                    defaultExpanded={true}
                   />
                 ))}
               </div>

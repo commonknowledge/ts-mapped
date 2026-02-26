@@ -30,8 +30,10 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import ColumnMetadataForm from "./components/ColumnMetadataForm";
 import ConfigurationForm from "./components/ConfigurationForm";
+import { DefaultInspectorConfigSection } from "./components/DefaultInspectorConfigSection";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function DataSourceDashboard({
@@ -222,39 +224,50 @@ export function DataSourceDashboard({
         </Alert>
       )}
 
-      <div className="grid grid-cols-2 gap-20 pb-10">
-        <div className="flex flex-col gap-6">
-          <h2 className="font-medium text-xl">About this data source</h2>
-          <DefinitionList
-            items={
-              lastImported
-                ? [
-                    ...mappedInformation,
-                    {
-                      label: "Last imported",
-                      value: `${lastImportedDateReadable} (${lastImportedFormattedFromNow})`,
-                    },
-                  ]
-                : mappedInformation
-            }
-          />
-          <ColumnMetadataForm dataSource={dataSource} />
-        </div>
+      <Tabs defaultValue="datasource" className="w-full">
+        <TabsList>
+          <TabsTrigger value="datasource">Datasource settings</TabsTrigger>
+          <TabsTrigger value="inspector">Inspector settings</TabsTrigger>
+        </TabsList>
+        <TabsContent value="datasource" className="mt-6">
+          <div className="grid grid-cols-2 gap-20 pb-10">
+            <div className="flex flex-col gap-6">
+              <h2 className="font-medium text-xl">About this data source</h2>
+              <DefinitionList
+                items={
+                  lastImported
+                    ? [
+                        ...mappedInformation,
+                        {
+                          label: "Last imported",
+                          value: `${lastImportedDateReadable} (${lastImportedFormattedFromNow})`,
+                        },
+                      ]
+                    : mappedInformation
+                }
+              />
+              <ColumnMetadataForm dataSource={dataSource} />
+            </div>
 
-        <div className="flex flex-col gap-6">
-          <h2 className="font-medium text-xl">Configuration</h2>
-          <ConfigurationForm
-            dataSource={dataSource}
-            onAutoImportChange={setAutoImportEnabled}
-            webhookStatus={webhookStatus}
-          />
-          <Separator />
-          <h2 className="font-medium text-xl">Danger zone</h2>
-          <div>
-            <DeleteDataSourceButton dataSource={dataSource} />
+            <div className="flex flex-col gap-6">
+              <h2 className="font-medium text-xl">Configuration</h2>
+              <ConfigurationForm
+                dataSource={dataSource}
+                onAutoImportChange={setAutoImportEnabled}
+                webhookStatus={webhookStatus}
+              />
+              <Separator />
+              <h2 className="font-medium text-xl">Danger zone</h2>
+              <div>
+                <DeleteDataSourceButton dataSource={dataSource} />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+        <TabsContent value="inspector" className="mt-6 w-full pb-10">
+          <DefaultInspectorConfigSection dataSource={dataSource} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

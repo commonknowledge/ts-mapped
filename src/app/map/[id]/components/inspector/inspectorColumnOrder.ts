@@ -6,6 +6,37 @@ import type {
 } from "@/server/models/MapView";
 
 /**
+ * Dedupe columns preserving order (first occurrence wins).
+ * Use when loading or applying config to avoid duplicate column entries.
+ */
+export function dedupeColumns(cols: string[]): string[] {
+  const seen = new Set<string>();
+  return cols.filter((c) => {
+    if (seen.has(c)) return false;
+    seen.add(c);
+    return true;
+  });
+}
+
+/**
+ * Dedupe columnItems: keep dividers, dedupe column names (first occurrence wins).
+ */
+export function dedupeColumnItems(
+  items: InspectorBoundaryConfig["columnItems"],
+): InspectorBoundaryConfig["columnItems"] {
+  if (!items?.length) return items;
+  const seen = new Set<string>();
+  return items.filter((i) => {
+    if (typeof i === "string") {
+      if (seen.has(i)) return false;
+      seen.add(i);
+      return true;
+    }
+    return true;
+  });
+}
+
+/**
  * Single source of truth for inspector column order.
  * - allColumnsInOrder: full list in display order (columnOrder when valid, else selected first then alphabetical)
  * - selectedColumnsInOrder: columns that are in config.columns, in the same order as allColumnsInOrder

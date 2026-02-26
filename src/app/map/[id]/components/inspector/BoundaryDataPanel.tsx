@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { List } from "lucide-react";
 import { useMemo } from "react";
 import TogglePanel from "@/app/map/[id]/components/TogglePanel";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
@@ -67,52 +68,69 @@ export function BoundaryDataPanel({
     ),
   );
 
+  const recordCount = data?.records.length ?? 0;
+  const isList = recordCount > 1;
+
   return (
     <TogglePanel
       label={config.name}
       icon={panelIcon}
       defaultExpanded={expanded}
       wrapperClassName={getInspectorColorClass(config.color)}
+      headerRight={
+        isList ? (
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
+            <List className="w-3.5 h-3.5 shrink-0" aria-hidden />
+            {recordCount} records
+          </span>
+        ) : undefined
+      }
     >
       {isLoading ? (
         <div className="py-4 text-center text-muted-foreground">
           <p className="text-sm">Loading...</p>
         </div>
-      ) : data?.records.length === 1 ? (
+      ) : recordCount === 1 ? (
         <BoundaryDataProperties
-          json={data.records[0].json}
+          json={data!.records[0].json}
           columns={columns}
           columnMetadata={columnMetadata}
           columnGroups={columnGroups}
           columnItems={config.columnItems}
           layout={layout}
-          match={data.match}
+          match={data!.match}
           dividerBackgroundClassName={getInspectorColorClass(config.color)}
         />
-      ) : data?.records.length ? (
-        <ul className="ml-2">
-          {data.records.map((d, i) => (
-            <li key={d.id}>
-              <TogglePanel
-                label={buildName(dataSource, d)}
-                defaultExpanded={i === 0}
-              >
-                <BoundaryDataProperties
-                  json={d.json}
-                  columns={columns}
-                  columnMetadata={columnMetadata}
-                  columnGroups={columnGroups}
-                  columnItems={config.columnItems}
-                  layout={layout}
-                  match={data.match}
-                  dividerBackgroundClassName={getInspectorColorClass(
-                    config.color,
-                  )}
-                />
-              </TogglePanel>
-            </li>
-          ))}
-        </ul>
+      ) : isList ? (
+        <div className="border-l-2 border-neutral-200/80 pl-3 ml-0.5">
+          <p className="text-xs font-medium text-muted-foreground mb-2">
+            {recordCount} records in this area
+          </p>
+          <ul className="space-y-2 list-none pl-0" role="list">
+            {data!.records.map((d, i) => (
+              <li key={d.id} className="min-w-0">
+                <TogglePanel
+                  label={buildName(dataSource, d)}
+                  defaultExpanded={i === 0}
+                  wrapperClassName="bg-white/60"
+                >
+                  <BoundaryDataProperties
+                    json={d.json}
+                    columns={columns}
+                    columnMetadata={columnMetadata}
+                    columnGroups={columnGroups}
+                    columnItems={config.columnItems}
+                    layout={layout}
+                    match={data!.match}
+                    dividerBackgroundClassName={getInspectorColorClass(
+                      config.color,
+                    )}
+                  />
+                </TogglePanel>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : (
         <div className="py-4 text-center text-muted-foreground">
           <p className="text-sm">No data available</p>

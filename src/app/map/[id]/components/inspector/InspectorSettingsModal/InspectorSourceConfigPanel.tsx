@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shadcn/ui/select";
-import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import { useDebouncedCallback } from "../../../hooks/useDebouncedCallback";
 import {
@@ -98,17 +97,19 @@ export function InspectorSourceConfigPanel({
 
   const handleAddColumn = useCallback(
     (colName: string) => {
+      if (!allColumnNames.includes(colName)) return;
       const inferred = inferFormat(colName);
       updateConfig((prev) => {
+        if (prev.columns.includes(colName)) return prev;
         const order = prev.columnOrder?.filter((c) =>
           allColumnNames.includes(c),
         );
         const baseOrder =
           order?.length === allColumnNames.length ? order : allColumnsSorted;
-        const newOrder = [colName, ...baseOrder.filter((c) => c !== colName)];
-        const nextColumns = [colName, ...prev.columns];
+        const newOrder = [...baseOrder.filter((c) => c !== colName), colName];
+        const nextColumns = [...prev.columns, colName];
         const nextItems = prev.columnItems
-          ? [colName, ...prev.columnItems]
+          ? [...prev.columnItems, colName]
           : undefined;
         return {
           ...prev,
@@ -211,8 +212,8 @@ export function InspectorSourceConfigPanel({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        <div className="grid grid-cols-5 gap-4 border-b pb-6">
-          <div className="space-y-2 col-span-2 min-w-[200px]">
+        <div className="grid xl:grid-cols-4 grid-cols-2 gap-4 border-b pb-6">
+          <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Display name</Label>
             <Input
               value={displayName}
@@ -225,7 +226,7 @@ export function InspectorSourceConfigPanel({
               className="max-w-sm"
             />
           </div>
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Icon</Label>
             <Select
               value={panelIcon ?? DEFAULT_SELECT_VALUE}
@@ -236,8 +237,8 @@ export function InspectorSourceConfigPanel({
                 }))
               }
             >
-              <SelectTrigger className="h-9 w-full truncate">
-                <SelectValue placeholder="Default" />
+              <SelectTrigger className="h-9 w-full min-w-0 truncate">
+                <SelectValue placeholder="Default" className="truncate" />
               </SelectTrigger>
               <SelectContent>
                 {INSPECTOR_ICON_OPTIONS.map((opt) => (
@@ -254,7 +255,7 @@ export function InspectorSourceConfigPanel({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2 min-w-[120px]">
+          <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Colour</Label>
             <Select
               value={panelColor ?? DEFAULT_SELECT_VALUE}
@@ -265,8 +266,8 @@ export function InspectorSourceConfigPanel({
                 }))
               }
             >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Default" />
+              <SelectTrigger className="h-9 w-full min-w-0 truncate">
+                <SelectValue placeholder="Default" className="truncate" />
               </SelectTrigger>
               <SelectContent>
                 {INSPECTOR_COLOR_OPTIONS.map((opt) => (
@@ -288,24 +289,32 @@ export function InspectorSourceConfigPanel({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Layout</Label>
-            <div className="flex items-center gap-2">
-              <LayoutList className="w-4 h-4 text-muted-foreground" />
-              <Switch
-                checked={layout === "twoColumn"}
-                onCheckedChange={(checked) =>
-                  updateConfig((prev) => ({
-                    ...prev,
-                    layout: checked ? "twoColumn" : "single",
-                  }))
-                }
-              />
-              <LayoutGrid className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {layout === "single" ? "Single column" : "Two-column grid"}
-            </p>
+            <Select
+              value={layout}
+              onValueChange={(value: InspectorLayout) =>
+                updateConfig((prev) => ({ ...prev, layout: value }))
+              }
+            >
+              <SelectTrigger className="h-9 w-full min-w-0 truncate">
+                <SelectValue placeholder="Layout" className="truncate" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="single">
+                  <span className="flex items-center gap-2">
+                    <LayoutList className="w-4 h-4 shrink-0 text-muted-foreground" />
+                    Single column
+                  </span>
+                </SelectItem>
+                <SelectItem value="twoColumn">
+                  <span className="flex items-center gap-2">
+                    <LayoutGrid className="w-4 h-4 shrink-0 text-muted-foreground" />
+                    Two-column grid
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -325,7 +334,7 @@ export function InspectorSourceConfigPanel({
           handleRemoveColumn={handleRemoveColumn}
           handleRemoveColumnFromRight={handleRemoveColumnFromRight}
         />
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

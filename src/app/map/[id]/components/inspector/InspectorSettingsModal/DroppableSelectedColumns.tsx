@@ -26,7 +26,7 @@ export function DroppableSelectedColumns({
   const meta = columnMetadata ?? {};
   const { setNodeRef, isOver } = useDroppable({ id: SELECTED_DROPPABLE_ID });
   const columnIds = useMemo(
-    () => columns.map((c) => `col-${c}`),
+    () => columns.map((c, i) => `col-${i}-${c}`),
     [columns],
   );
 
@@ -49,10 +49,10 @@ export function DroppableSelectedColumns({
       ) : (
         <SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-1.5 flex-1">
-            {columns.map((col) => (
+            {columns.map((col, i) => (
                 <SortableColumnRow
-                  key={`col-${col}`}
-                  id={`col-${col}`}
+                  key={columnIds[i]}
+                  id={columnIds[i]}
                   columnName={col}
                   displayName={meta[col]?.displayName}
                   onDisplayNameChange={(value) =>
@@ -131,7 +131,7 @@ export function DroppableSelectedColumns({
                             return { ...prev, ...base };
                           })
                   }
-                  isDragging={activeId === `col-${col}`}
+                  isDragging={activeId === columnIds[i]}
                 />
             ))}
           </div>
