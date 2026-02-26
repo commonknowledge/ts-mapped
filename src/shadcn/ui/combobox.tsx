@@ -29,6 +29,19 @@ interface ComboboxProps {
   emptyMessage?: string;
 }
 
+/**
+ * Note: this component has been modified from its original version to fix a bug
+ * when options contained trailing whitespace. This can happen because the options
+ * are derived from the user's data source columns, which can contain whitespace.
+ *
+ * The modified section is the onSelect handler here:
+ *
+ *     <CommandItem
+ *         key={option.value}
+ *         value={option.value}
+ *         onSelect={() => handleSelect(option.value)}
+ *     >
+ */
 export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
   (
     {
@@ -87,7 +100,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                       <CommandItem
                         key={option.value}
                         value={option.value}
-                        onSelect={handleSelect}
+                        onSelect={() => handleSelect(option.value)}
                       >
                         <Check
                           className={cn(
