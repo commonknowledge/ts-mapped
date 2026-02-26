@@ -255,6 +255,7 @@ export const dataSourceSchema = z.object({
   createdAt: z.date(),
   dateFormat: z.string(),
   naIsNull: z.boolean().optional(),
+  nullIsZero: z.boolean().optional(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;

@@ -145,6 +145,11 @@ export default function Legend() {
           .filter((v) => v && v !== "null" && v !== "undefined"),
       );
 
+      const valueLabels =
+        dataSource?.columnMetadata.find(
+          (c) => c.name === viewConfig.areaDataColumn,
+        )?.valueLabels || {};
+
       return (
         <div className="flex flex-col gap-1.5 w-full py-1">
           {Object.keys(colorScheme.colorMap)
@@ -155,15 +160,25 @@ export default function Legend() {
               }
               return a < b ? -1 : 1;
             })
-            .map((key) => (
-              <div className="flex items-center gap-2 text-xs" key={key}>
-                <div
-                  className="w-3 h-3 flex-shrink-0 border border-neutral-300"
-                  style={{ backgroundColor: colorScheme.colorMap[key] }}
-                />
-                <span>{key}</span>
-              </div>
-            ))}
+            .map((key) => {
+              let label = valueLabels[key];
+              if (
+                !label &&
+                areaStats?.primary?.columnType === ColumnType.Number &&
+                Number(key) === 0
+              ) {
+                label = valueLabels[""];
+              }
+              return (
+                <div className="flex items-center gap-2 text-xs" key={key}>
+                  <div
+                    className="w-3 h-3 flex-shrink-0 border border-neutral-300"
+                    style={{ backgroundColor: colorScheme.colorMap[key] }}
+                  />
+                  <span>{label || key}</span>
+                </div>
+              );
+            })}
           <div className="flex items-center gap-2 text-xs">
             <div
               className="w-3 h-3 flex-shrink-0 border border-neutral-300"
@@ -293,9 +308,20 @@ export default function Legend() {
     const hasValueLabels = Object.keys(valueLabels).length > 0;
 
     if (hasValueLabels) {
-      numTicks = Object.keys(valueLabels).length;
-      denom = Math.max(numTicks - 1, 1);
-      values = Object.keys(valueLabels).map(Number).toSorted();
+      const numericKeys = Object.keys(valueLabels)
+        .map((key) => Number(key))
+        .filter(
+          (v) =>
+            Number.isFinite(v) &&
+            v >= colorScheme.minValue &&
+            v <= colorScheme.maxValue,
+        )
+        .toSorted((a, b) => a - b);
+      if (numericKeys.length) {
+        values = numericKeys;
+        numTicks = values.length;
+        denom = Math.max(numTicks - 1, 1);
+      }
     }
 
     return (

@@ -239,6 +239,7 @@ export const dataSourceRouter = router({
         dateFormat: input.dateFormat,
         public: input.public,
         naIsNull: input.naIsNull,
+        nullIsZero: input.nullIsZero,
       } as DataSourceUpdate;
 
       logger.info(

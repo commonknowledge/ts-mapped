@@ -55,6 +55,7 @@ export default function ConfigurationForm({
   const [isPublic, setIsPublic] = useState(dataSource.public);
 
   const [naIsNull, setNaIsNull] = useState(dataSource.naIsNull || false);
+  const [nullIsZero, setNullIsZero] = useState(dataSource.nullIsZero || false);
 
   // Form state
   const [loading, setLoading] = useState(false);
@@ -69,12 +70,26 @@ export default function ConfigurationForm({
         // Notify parent of autoImport status change
         onAutoImportChange?.(autoImport);
 
-        // Invalidate webhook status to refetch and show/hide errors
-        await queryClient.invalidateQueries({
-          queryKey: trpc.dataSource.checkWebhookStatus.queryKey({
-            dataSourceId: dataSource.id,
+        // Invalidate cached data source queries and derived stats so
+        // map rendering and other parts of the app reflect the new config
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.checkWebhookStatus.queryKey({
+              dataSourceId: dataSource.id,
+            }),
           }),
-        });
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.byId.queryKey({
+              dataSourceId: dataSource.id,
+            }),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.listReadable.queryKey(),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: trpc.area.stats.queryKey(),
+          }),
+        ]);
 
         if (redirectToParent) {
           router.push(`/data-sources/${dataSource.id}`);
@@ -111,6 +126,7 @@ export default function ConfigurationForm({
       dateFormat,
       public: isPublic,
       naIsNull,
+      nullIsZero,
     });
   };
 
@@ -191,6 +207,17 @@ export default function ConfigurationForm({
         isHorizontal
       >
         <Switch checked={naIsNull} onCheckedChange={(v) => setNaIsNull(v)} />
+      </FormFieldWrapper>
+
+      <FormFieldWrapper
+        label="Treat empty values as zero"
+        hint="Switch this on if numeric columns in your data source are blank when the value is zero."
+        isHorizontal
+      >
+        <Switch
+          checked={nullIsZero}
+          onCheckedChange={(v) => setNullIsZero(v)}
+        />
       </FormFieldWrapper>
 
       <FormFieldWrapper
