@@ -308,7 +308,7 @@ export default function Legend() {
     const hasValueLabels = Object.keys(valueLabels).length > 0;
 
     if (hasValueLabels) {
-      values = Object.keys(valueLabels)
+      const numericKeys = Object.keys(valueLabels)
         .map((key) => Number(key))
         .filter(
           (v) =>
@@ -317,8 +317,11 @@ export default function Legend() {
             v <= colorScheme.maxValue,
         )
         .toSorted((a, b) => a - b);
-      numTicks = values.length;
-      denom = Math.max(numTicks - 1, 1);
+      if (numericKeys.length) {
+        values = numericKeys;
+        numTicks = values.length;
+        denom = Math.max(numTicks - 1, 1);
+      }
     }
 
     return (
