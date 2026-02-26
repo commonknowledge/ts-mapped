@@ -45,7 +45,6 @@ export const getAreaStats = async ({
   calculationType,
   column,
   secondaryColumn,
-  nullIsZero,
   includeColumns,
   boundingBox = null,
 }: {
@@ -54,7 +53,6 @@ export const getAreaStats = async ({
   calculationType: CalculationType;
   column: string;
   secondaryColumn?: string;
-  nullIsZero?: boolean;
   includeColumns?: string[] | null;
   boundingBox?: BoundingBox | null;
 }): Promise<AreaStats> => {
@@ -110,7 +108,6 @@ export const getAreaStats = async ({
       areaSetCode,
       calculationType,
       column,
-      nullIsZero,
       boundingBox,
     });
     const valueRange = getValueRange(primaryStats.stats);
@@ -128,7 +125,6 @@ export const getAreaStats = async ({
       areaSetCode,
       calculationType,
       column: secondaryColumn,
-      nullIsZero,
       boundingBox,
     });
     const secondaryValueRange = getValueRange(secondaryStats.stats);
@@ -254,14 +250,12 @@ const getColumnValueByArea = async ({
   areaSetCode,
   calculationType,
   column,
-  nullIsZero,
   boundingBox,
 }: {
   dataSource: DataSource;
   areaSetCode: AreaSetCode;
   calculationType: CalculationType;
   column: string;
-  nullIsZero: boolean | undefined;
   boundingBox: BoundingBox | null;
 }) => {
   const columnDef = dataSource.columnDefs.find((c) => c.name === column);
@@ -269,17 +263,23 @@ const getColumnValueByArea = async ({
     throw new Error(`Data source column not found: ${column}`);
   }
 
-  // Coalesce empty values to 0 if set
-  const numberSelect = nullIsZero
+  // Coalesce numeric empty values to 0 if set
+  const numberSelect = dataSource.nullIsZero
     ? sql`(COALESCE(NULLIF(json->>${column}, ''), '0'))::float`
     : sql`(NULLIF(json->>${column}, ''))::float`;
+
+  // Coalesce mode empty values to 0 if the column is numeric and nullIsZero is set
+  const modeSelect =
+    columnDef.type === ColumnType.Number && dataSource.nullIsZero
+      ? sql`MODE () WITHIN GROUP (ORDER BY COALESCE(NULLIF(json->>${column}, ''), '0'))`
+      : sql`MODE () WITHIN GROUP (ORDER BY NULLIF(json->>${column}, ''))`;
 
   // Select is always MODE for ColumnType !== Number
   const isMode =
     calculationType === CalculationType.Mode ||
     columnDef.type !== ColumnType.Number;
   const valueSelect = isMode
-    ? sql`MODE () WITHIN GROUP (ORDER BY json->>${column})`.as("value")
+    ? modeSelect.as("value")
     : db.fn(calculationType, [numberSelect]).as("value");
 
   const query = db

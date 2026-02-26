@@ -55,6 +55,7 @@ export default function ConfigurationForm({
   const [isPublic, setIsPublic] = useState(dataSource.public);
 
   const [naIsNull, setNaIsNull] = useState(dataSource.naIsNull || false);
+  const [nullIsZero, setNullIsZero] = useState(dataSource.nullIsZero || false);
 
   // Form state
   const [loading, setLoading] = useState(false);
@@ -111,6 +112,7 @@ export default function ConfigurationForm({
       dateFormat,
       public: isPublic,
       naIsNull,
+      nullIsZero,
     });
   };
 
@@ -191,6 +193,17 @@ export default function ConfigurationForm({
         isHorizontal
       >
         <Switch checked={naIsNull} onCheckedChange={(v) => setNaIsNull(v)} />
+      </FormFieldWrapper>
+
+      <FormFieldWrapper
+        label="Treat empty values as zero"
+        hint="Switch this on if numeric columns in your data source are blank when the value is zero."
+        isHorizontal
+      >
+        <Switch
+          checked={nullIsZero}
+          onCheckedChange={(v) => setNullIsZero(v)}
+        />
       </FormFieldWrapper>
 
       <FormFieldWrapper
