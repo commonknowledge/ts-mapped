@@ -27,8 +27,8 @@ import type { DataSource } from "@/server/models/DataSource";
 import { ChartSection } from "./ChartSection";
 import { ColumnsSection } from "./ColumnsSection";
 import { DEFAULT_SELECT_VALUE } from "./constants";
-import type { InspectorLayout } from "./constants";
 import { inferFormat } from "./constants";
+import type { InspectorLayout } from "./constants";
 
 export function InspectorSourceConfigPanel({
   dataSource,
@@ -61,6 +61,8 @@ export function InspectorSourceConfigPanel({
   const {
     allColumnsInOrder,
     selectedColumnsInOrder,
+    selectedItemsInOrder,
+    allItemsInOrder,
     availableColumns,
     availableIds,
     columnIds,
@@ -104,14 +106,16 @@ export function InspectorSourceConfigPanel({
         );
         const baseOrder =
           order?.length === allColumnNames.length ? order : allColumnsSorted;
-        const newOrder = [
-          colName,
-          ...baseOrder.filter((c) => c !== colName),
-        ];
+        const newOrder = [colName, ...baseOrder.filter((c) => c !== colName)];
+        const nextColumns = [colName, ...prev.columns];
+        const nextItems = prev.columnItems
+          ? [colName, ...prev.columnItems]
+          : undefined;
         return {
           ...prev,
-          columns: [colName, ...prev.columns],
+          columns: nextColumns,
           columnOrder: newOrder,
+          ...(nextItems && { columnItems: nextItems }),
           columnMetadata: {
             ...prev.columnMetadata,
             [colName]: {
@@ -143,14 +147,13 @@ export function InspectorSourceConfigPanel({
         );
         const baseOrder =
           order?.length === allColumnNames.length ? order : allColumnsSorted;
-        const newOrder = [
-          ...baseOrder.filter((c) => c !== colName),
-          colName,
-        ];
+        const newOrder = [...baseOrder.filter((c) => c !== colName), colName];
+        const nextItems = prev.columnItems?.filter((i) => i !== colName);
         return {
           ...prev,
           columns: nextColumns,
           columnOrder: newOrder,
+          ...(nextItems !== undefined && { columnItems: nextItems }),
           columnMetadata: nextMeta,
           chart:
             prev.chart && nextChartColumnNames.length >= 0
@@ -184,10 +187,12 @@ export function InspectorSourceConfigPanel({
           ...nextColumns,
           ...allColumnsInOrder.filter((c) => !nextColumns.includes(c)),
         ];
+        const nextItems = prev.columnItems?.filter((i) => i !== colName);
         return {
           ...prev,
           columns: nextColumns,
           columnOrder: newColumnOrder,
+          ...(nextItems !== undefined && { columnItems: nextItems }),
           columnMetadata: nextMeta,
           chart:
             prev.chart && nextChartColumnNames.length >= 0
@@ -233,8 +238,8 @@ export function InspectorSourceConfigPanel({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        <div className="grid grid-cols-2 items-end gap-4 border-b pb-6">
-          <div className="space-y-2 min-w-[200px]">
+        <div className="grid grid-cols-5 gap-4 border-b pb-6">
+          <div className="space-y-2 col-span-2 min-w-[200px]">
             <Label className="text-muted-foreground">Display name</Label>
             <Input
               value={displayName}
@@ -247,7 +252,7 @@ export function InspectorSourceConfigPanel({
               className="max-w-sm"
             />
           </div>
-          <div className="space-y-2 min-w-[140px]">
+          <div className="space-y-2 w-full">
             <Label className="text-muted-foreground">Icon</Label>
             <Select
               value={panelIcon ?? DEFAULT_SELECT_VALUE}
@@ -258,7 +263,7 @@ export function InspectorSourceConfigPanel({
                 }))
               }
             >
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-9 w-full truncate">
                 <SelectValue placeholder="Default" />
               </SelectTrigger>
               <SelectContent>
@@ -267,7 +272,7 @@ export function InspectorSourceConfigPanel({
                     key={opt.value || "default"}
                     value={opt.value || DEFAULT_SELECT_VALUE}
                   >
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 ">
                       <opt.Icon className="h-4 w-4 shrink-0" />
                       {opt.label}
                     </span>
@@ -337,6 +342,8 @@ export function InspectorSourceConfigPanel({
           config={config}
           allColumnsInOrder={allColumnsInOrder}
           selectedColumnsInOrder={selectedColumnsInOrder}
+          selectedItemsInOrder={selectedItemsInOrder}
+          allItemsInOrder={allItemsInOrder}
           availableColumns={availableColumns}
           availableIds={availableIds}
           columnIds={columnIds}

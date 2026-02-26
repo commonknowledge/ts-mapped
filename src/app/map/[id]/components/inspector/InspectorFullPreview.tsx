@@ -23,6 +23,7 @@ import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { cn } from "@/shadcn/utils";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
+import { getSelectedColumnsOrdered } from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
 import type { DragEndEvent } from "@dnd-kit/core";
 
@@ -41,7 +42,7 @@ export function InspectorFullPreview({
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { selectedBoundary } = useInspector();
-  const { view, updateView } = useMapViews();
+  const { view, getLatestView, updateView } = useMapViews();
   const boundaryConfigs = view?.inspectorConfig?.boundaries ?? [];
 
   useEffect(() => {
@@ -61,26 +62,29 @@ export function InspectorFullPreview({
         config,
         dataSourceId: config.dataSourceId,
         areaCode: selectedBoundary?.areaCode ?? "",
-        columns: config.columns,
+        columns: getSelectedColumnsOrdered(config),
       })),
     [boundaryConfigs, selectedBoundary?.areaCode],
   );
 
   const reorderBoundaries = useCallback(
     (oldIndex: number, newIndex: number) => {
-      if (!view || oldIndex === newIndex) return;
-      const next = [...boundaryConfigs];
+      if (oldIndex === newIndex) return;
+      const latestView = getLatestView();
+      if (!latestView) return;
+      const boundaries = latestView.inspectorConfig?.boundaries ?? [];
+      const next = [...boundaries];
       const [removed] = next.splice(oldIndex, 1);
       next.splice(newIndex, 0, removed);
       updateView({
-        ...view,
+        ...latestView,
         inspectorConfig: {
-          ...view.inspectorConfig,
+          ...latestView.inspectorConfig,
           boundaries: next,
         },
       });
     },
-    [view, boundaryConfigs, updateView],
+    [getLatestView, updateView],
   );
 
   const handleDragEnd = useCallback(

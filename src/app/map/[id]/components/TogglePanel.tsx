@@ -32,7 +32,7 @@ export default function TogglePanel({
       <div className="flex items-center justify-between relative group">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 rounded mb-2 text-sm font-medium cursor-pointer"
+          className="flex items-center gap-2 rounded  text-sm font-medium cursor-pointer"
         >
           {Icon}
 
@@ -63,7 +63,7 @@ export default function TogglePanel({
         )}
       </div>
 
-      {expanded && <div>{children}</div>}
+      {expanded && <div className="pt-2">{children}</div>}
     </div>
   );
 }

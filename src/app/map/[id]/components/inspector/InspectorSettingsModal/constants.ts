@@ -1,6 +1,7 @@
 import type { InspectorColumnFormat } from "@/server/models/MapView";
 
 export const SELECTED_DROPPABLE_ID = "selected-columns";
+export const AVAILABLE_DROPPABLE_ID = "available-columns";
 /** Sentinel for Select default option (Radix Select.Item cannot have value="") */
 export const DEFAULT_SELECT_VALUE = "__default__";
 

@@ -35,7 +35,7 @@ export function BoundaryDataPanel({
 }: {
   config: Pick<
     InspectorBoundaryConfig,
-    "name" | "dataSourceId" | "icon" | "color" | "chart"
+    "name" | "dataSourceId" | "icon" | "color" | "chart" | "columnItems"
   >;
   dataSourceId: string;
   areaCode: string;
@@ -43,8 +43,9 @@ export function BoundaryDataPanel({
   columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
   columnGroups?: InspectorBoundaryConfig["columnGroups"];
   layout?: InspectorBoundaryConfig["layout"];
-  defaultExpanded: boolean;
+  defaultExpanded?: boolean;
 }) {
+  const expanded = defaultExpanded ?? true;
   const trpc = useTRPC();
   const { selectedBoundary } = useInspector();
   const { getDataSourceById } = useDataSources();
@@ -75,7 +76,7 @@ export function BoundaryDataPanel({
     <TogglePanel
       label={config.name}
       icon={panelIcon}
-      defaultExpanded={defaultExpanded}
+      defaultExpanded={expanded}
       wrapperClassName={getInspectorColorClass(config.color)}
     >
       {isLoading ? (
@@ -97,8 +98,10 @@ export function BoundaryDataPanel({
             columns={columns}
             columnMetadata={columnMetadata}
             columnGroups={columnGroups}
+            columnItems={config.columnItems}
             layout={layout}
             match={data.match}
+            dividerBackgroundClassName={getInspectorColorClass(config.color)}
             hideFromListColumnNames={
               config.chart?.enabled && config.chart?.hideChartColumnsFromList
                 ? getChartColumnNames(
@@ -124,8 +127,10 @@ export function BoundaryDataPanel({
                   columns={columns}
                   columnMetadata={columnMetadata}
                   columnGroups={columnGroups}
+                  columnItems={config.columnItems}
                   layout={layout}
                   match={data.match}
+                  dividerBackgroundClassName={getInspectorColorClass(config.color)}
                 />
               </TogglePanel>
             </li>
@@ -168,23 +173,38 @@ function BoundaryChart({
   );
 }
 
+function isColumnItemDivider(
+  item: unknown,
+): item is { type: "divider"; id: string; label: string } {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    (item as { type?: string }).type === "divider"
+  );
+}
+
 function BoundaryDataProperties({
   json,
   columns,
   columnMetadata,
   columnGroups,
+  columnItems,
   layout,
   match,
   hideFromListColumnNames,
+  dividerBackgroundClassName,
 }: {
   json: Record<string, unknown>;
   columns: string[];
   columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
   columnGroups?: InspectorBoundaryConfig["columnGroups"];
+  columnItems?: InspectorBoundaryConfig["columnItems"];
   layout?: InspectorBoundaryConfig["layout"];
   match: DataRecordMatchType;
   /** When set, these columns are excluded from the list (e.g. already shown in chart) */
   hideFromListColumnNames?: string[];
+  /** Background class for divider labels. Matches panel color. */
+  dividerBackgroundClassName?: string;
 }) {
   const hideSet = useMemo(
     () =>
@@ -195,6 +215,43 @@ function BoundaryDataProperties({
   );
   const entries = useMemo((): PropertyEntry[] => {
     const meta = columnMetadata ?? {};
+    const columnsSet = new Set(columns);
+
+    if (columnItems?.length) {
+      const ordered: PropertyEntry[] = [];
+      let currentGroupLabel: string | undefined;
+      for (const item of columnItems) {
+        if (isColumnItemDivider(item)) {
+          ordered.push({
+            key: `__divider_${item.id}`,
+            label: item.label,
+            isDivider: true,
+          });
+          currentGroupLabel = item.label;
+        } else if (typeof item === "string" && columnsSet.has(item)) {
+          if (hideSet?.has(item)) continue;
+          if (json[item] === undefined) continue;
+          const m = meta[item];
+          const label = m?.displayName ?? item;
+          ordered.push({
+            key: item,
+            label,
+            value: json[item],
+            groupLabel: currentGroupLabel,
+            format: m?.format,
+            scaleMax: m?.scaleMax,
+            barColor: getBarColorForLabel(
+              label,
+              item,
+              ordered.length,
+              m?.barColor,
+            ),
+          });
+        }
+      }
+      return ordered;
+    }
+
     const groups = columnGroups ?? [];
     const keyToGroup = new Map<string, string>();
     groups.forEach((g) => {
@@ -234,7 +291,7 @@ function BoundaryDataProperties({
       });
     });
     return ordered;
-  }, [json, columns, columnMetadata, columnGroups, hideSet]);
+  }, [json, columns, columnMetadata, columnGroups, columnItems, hideSet]);
   return (
     <div className="">
       {match === DataRecordMatchType.Approximate && (
@@ -243,7 +300,11 @@ function BoundaryDataProperties({
         </p>
       )}
       {entries.length > 0 ? (
-        <PropertiesList entries={entries} layout={layout ?? "single"} />
+        <PropertiesList
+          entries={entries}
+          layout={layout ?? "single"}
+          dividerBackgroundClassName={dividerBackgroundClassName}
+        />
       ) : columns.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No columns added. Click the settings icon to add columns from this

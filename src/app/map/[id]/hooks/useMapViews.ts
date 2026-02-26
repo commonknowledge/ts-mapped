@@ -162,31 +162,32 @@ export function useMapViews() {
   }, [mapId, viewId, queryClient, trpc.map.byId]);
 
   const updateView = useCallback(
-    (view: View) => {
+    (updatedView: View) => {
       if (!mapId) return;
 
-      const updatedViews =
-        views?.map((v) => (v.id === view.id ? view : v)) || [];
       const isPublicMap = publicMap?.id;
 
-      setDirtyViewIds((ids) => ids.concat([view.id]));
+      setDirtyViewIds((ids) => ids.concat([updatedView.id]));
 
-      // Synchronously update cache BEFORE calling mutation for instant UI feedback
-      queryClient.setQueryData(trpc.map.byId.queryKey({ mapId }), (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          views: updatedViews.map((v) => ({
-            ...v,
-            mapId,
-            createdAt:
-              old.views.find((ov) => ov.id === v.id)?.createdAt || new Date(),
-          })),
-        };
-      });
+      // Derive updatedViews from the latest cache inside the callback to avoid
+      // stale-closure issues when multiple updates fire before a re-render.
+      const newData = queryClient.setQueryData(
+        trpc.map.byId.queryKey({ mapId }),
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            views: old.views.map((v) =>
+              v.id === updatedView.id
+                ? { ...updatedView, mapId, createdAt: v.createdAt }
+                : v,
+            ),
+          };
+        },
+      );
 
-      if (!isPublicMap) {
-        updateViewMutate({ mapId, views: updatedViews });
+      if (!isPublicMap && newData) {
+        updateViewMutate({ mapId, views: newData.views });
       }
     },
     [
@@ -195,7 +196,6 @@ export function useMapViews() {
       queryClient,
       trpc.map.byId,
       updateViewMutate,
-      views,
       publicMap,
     ],
   );

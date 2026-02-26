@@ -160,23 +160,29 @@ export default function Choropleth() {
           url={`mapbox://${sourceId}`}
         >
           <Layer
-            id={`${sourceId}-hover-overlay`}
+            id={`${sourceId}-hover-outline`}
             beforeId={choroplethTopLayerId}
             source={hoverSourceId}
             source-layer={layerId}
-            type="fill"
+            type="line"
             paint={{
-              "fill-color": "#000000",
-              "fill-opacity": viewConfig.showChoropleth
-                ? [
-                    "case",
-                    ["boolean", ["feature-state", "hover"], false],
-                    // When hovering, apply darkness
-                    0.25,
-                    // Otherwise completely transparent
-                    0,
-                  ]
-                : 0,
+              "line-color": "#1a1a1a",
+              "line-width": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                3,
+                0,
+              ],
+              "line-opacity": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                1,
+                0,
+              ],
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
             }}
           />
         </Source>

@@ -18,6 +18,7 @@ import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
+import { getSelectedColumnsOrdered } from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
 import PropertiesList from "./PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
@@ -91,7 +92,7 @@ export default function InspectorDataTab({
       config,
       dataSourceId: config.dataSourceId,
       areaCode: selectedBoundary?.areaCode ?? "",
-      columns: config.columns,
+      columns: getSelectedColumnsOrdered(config),
     }));
   }, [type, selectedBoundary?.areaCode, boundaryConfigs]);
 

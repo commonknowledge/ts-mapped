@@ -201,6 +201,22 @@ export const inspectorColumnGroupSchema = z.object({
 export type InspectorColumnGroup = z.infer<typeof inspectorColumnGroupSchema>;
 
 /**
+ * Label divider: a visual separator that groups columns. Spans two cols when grid layout is on.
+ */
+export const inspectorLabelDividerSchema = z.object({
+  type: z.literal("divider"),
+  id: z.string(),
+  label: z.string(),
+});
+export type InspectorLabelDivider = z.infer<typeof inspectorLabelDividerSchema>;
+
+export const inspectorColumnItemSchema = z.union([
+  z.string(),
+  inspectorLabelDividerSchema,
+]);
+export type InspectorColumnItem = z.infer<typeof inspectorColumnItemSchema>;
+
+/**
  * Chart data source: which columns to include in the inspector chart
  * - number: columns with Number format
  * - percentage: columns with Percentage format
@@ -255,6 +271,8 @@ export const inspectorBoundaryConfigSchema = z.object({
   columns: z.array(z.string()),
   /** When set, order of "Available" list; full list of column names in desired order. */
   columnOrder: z.array(z.string()).optional().nullable(),
+  /** Ordered list of columns and label dividers. When set, used for display order; columns derived from it. */
+  columnItems: z.array(inspectorColumnItemSchema).optional().nullable(),
   columnMetadata: z
     .record(z.string(), inspectorColumnMetaSchema)
     .optional()

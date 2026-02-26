@@ -6,19 +6,26 @@ export type ColumnFormat = "text" | "number" | "percentage" | "scale";
 export type PropertyEntry = {
   key: string;
   label: string;
-  value: unknown;
+  /** Not used when isDivider is true. */
+  value?: unknown;
   groupLabel?: string;
   format?: ColumnFormat;
   scaleMax?: number;
   /** Bar colour (CSS color) for percentage/scale; same colour used in chart. */
   barColor?: string;
+  /** When true, renders as a label divider row (spans 2 cols when grid layout). */
+  isDivider?: boolean;
 };
 
 function formatNumber(n: number): string {
   if (Number.isInteger(n)) return n.toLocaleString();
   const s = n.toFixed(2);
-  if (s.endsWith("00")) return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  return n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  if (s.endsWith("00"))
+    return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  return n.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 }
 
 function parseNumeric(value: unknown): number | null {
@@ -46,11 +53,16 @@ function PropertyValue({
   const fill = barFill(barColor);
 
   if (format === "number" && num !== null) {
-    return <span className="font-medium tabular-nums">{formatNumber(num)}</span>;
+    return (
+      <span className="font-medium tabular-nums">{formatNumber(num)}</span>
+    );
   }
 
   if (format === "percentage" && num !== null) {
-    const pct = num > 1 ? Math.min(100, Math.max(0, num)) : Math.min(100, Math.max(0, num * 100));
+    const pct =
+      num > 1
+        ? Math.min(100, Math.max(0, num))
+        : Math.min(100, Math.max(0, num * 100));
     return (
       <div className="flex items-center gap-2 min-w-0">
         <div
@@ -95,13 +107,20 @@ export default function PropertiesList({
   properties,
   entries: entriesProp,
   layout = "single",
+  dividerBackgroundClassName,
 }: {
   properties?: Record<string, unknown> | null;
   entries?: PropertyEntry[] | null;
   layout?: "single" | "twoColumn";
+  /** Background class for divider labels (to cover vertical line). Inherits from panel color. */
+  dividerBackgroundClassName?: string;
 }) {
   const entries: PropertyEntry[] = entriesProp
-    ? entriesProp.filter((e) => e.value !== undefined && e.value !== null && String(e.value) !== "")
+    ? entriesProp.filter(
+        (e) =>
+          e.isDivider ||
+          (e.value !== undefined && e.value !== null && String(e.value) !== ""),
+      )
     : properties && Object.keys(properties).length
       ? Object.entries(properties).map(([key, value]) => ({
           key,
@@ -115,7 +134,7 @@ export default function PropertiesList({
   const isTwoColumn = layout === "twoColumn";
   const renderEntry = (e: PropertyEntry) => (
     <div key={e.key}>
-      <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono">
+      <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono ">
         {e.label}
       </dt>
       <dd>
@@ -132,7 +151,9 @@ export default function PropertiesList({
   const byGroup = entries.reduce<{ group?: string; items: PropertyEntry[] }[]>(
     (acc, e) => {
       const last = acc[acc.length - 1];
-      if (e.groupLabel !== undefined) {
+      if (e.isDivider) {
+        acc.push({ group: e.label, items: [] });
+      } else if (e.groupLabel !== undefined) {
         if (last?.group === e.groupLabel) last.items.push(e);
         else acc.push({ group: e.groupLabel, items: [e] });
       } else {
@@ -157,11 +178,16 @@ export default function PropertiesList({
           {block.group && (
             <div
               className={cn(
-                "text-muted-foreground text-xs font-medium uppercase tracking-wide",
-                isTwoColumn ? "col-span-2 mt-2 first:mt-0" : "mt-3 first:mt-0",
+                "text-neutral-500 text-xs font-medium uppercase tracking-wide pt-4 relative z-10",
+                dividerBackgroundClassName ?? "bg-inherit",
+                isTwoColumn
+                  ? "col-span-2 mt-2 first:mt-0 first:border-t-0 first:pt-0"
+                  : "mt-3 first:mt-0 first:border-t-0 first:pt-0",
               )}
             >
-              {block.group}
+              <div className="border-t border-neutral-400 pt-2">
+                {block.group}
+              </div>
             </div>
           )}
           {block.items.map(renderEntry)}
