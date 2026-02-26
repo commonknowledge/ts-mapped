@@ -221,6 +221,7 @@ export const getMaxColumnByArea = async (
         ${caseWhen.end()} AS max_column
       FROM data_record
       WHERE data_source_id = ${dataSourceId}
+        AND geocode_result->'areas'->>${areaSetCode} IS NOT NULL
         AND ${getBoundingBoxSQL(boundingBox)}
         AND ${hasNonNullValueCondition}
         AND ${caseWhen.end()} IS NOT NULL
@@ -289,6 +290,7 @@ const getColumnValueByArea = async ({
       valueSelect,
     ])
     .where("dataRecord.dataSourceId", "=", dataSource.id)
+    .where(sql<boolean>`geocode_result->'areas'->>${areaSetCode} IS NOT NULL`)
     .where(getBoundingBoxSQL(boundingBox))
     .groupBy("areaCode");
 
@@ -310,6 +312,7 @@ export const getRecordCountByArea = async (
         ({ fn }) => fn.countAll().as("value"),
       ])
       .where("dataRecord.dataSourceId", "=", dataSourceId)
+      .where(sql<boolean>`geocode_result->'areas'->>${areaSetCode} IS NOT NULL`)
       .where(getBoundingBoxSQL(boundingBox))
       .groupBy("areaCode");
 

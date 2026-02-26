@@ -16,6 +16,9 @@ export async function setup() {
   const client = await pool.connect();
   try {
     await client.query(sampleAreasSql, []);
+    await client.query(
+      "REFRESH MATERIALIZED VIEW CONCURRENTLY public.area_search",
+    );
   } finally {
     client.release();
   }
