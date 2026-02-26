@@ -70,12 +70,26 @@ export default function ConfigurationForm({
         // Notify parent of autoImport status change
         onAutoImportChange?.(autoImport);
 
-        // Invalidate webhook status to refetch and show/hide errors
-        await queryClient.invalidateQueries({
-          queryKey: trpc.dataSource.checkWebhookStatus.queryKey({
-            dataSourceId: dataSource.id,
+        // Invalidate cached data source queries and derived stats so
+        // map rendering and other parts of the app reflect the new config
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.checkWebhookStatus.queryKey({
+              dataSourceId: dataSource.id,
+            }),
           }),
-        });
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.byId.queryKey({
+              dataSourceId: dataSource.id,
+            }),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: trpc.dataSource.listReadable.queryKey(),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: trpc.area.stats.queryKey(),
+          }),
+        ]);
 
         if (redirectToParent) {
           router.push(`/data-sources/${dataSource.id}`);
