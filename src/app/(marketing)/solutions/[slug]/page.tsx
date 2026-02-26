@@ -14,12 +14,20 @@ import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
+import MuxVideoPlayer from "@/components/marketing/MuxVideoPlayer";
 
-interface SolutionArray {
+interface Feature {
+  _id: string;
   title: string;
   description: string;
   image?: string;
-  status: string;
+  video?: {
+    asset: {
+      playbackId: string;
+      status: string;
+      data: Record<string, unknown>;
+    };
+  };
   button?: {
     text: string;
     url: string;
@@ -39,10 +47,18 @@ const POST_QUERY = `*[_type == "solutions" && slug.current == $slug][0]{
   position,
   publishedAt,
   status,
-  solutionsArray[]{
+  features[]->{
+    _id,
     title,
     description,
     image,
+    video{
+      asset->{
+        playbackId,
+        status,
+        data
+      }
+    },
     button{
       text,
       linkType,
@@ -118,79 +134,105 @@ export default async function SolutionPage({
 
       {/* Content */}
       <Container className="py-10 md:py-20">
-        {solution.solutionsArray && solution.solutionsArray.length > 0 ? (
-          solution.solutionsArray.map(
-            (solution: SolutionArray, index: number) => (
-              <SolutionItemCard
-                key={solution.title}
-                solutionItem={solution}
-                isReversed={index % 2 === 1}
-              />
-            ),
-          )
-        ) : (
-          <div className="text-center py-12">
-            <TypographyH2>No solutions available</TypographyH2>
-            <TypographyP className="mt-2 text-neutral-600">
-              This solution page doesn&apos;t have any content yet.
-            </TypographyP>
-          </div>
-        )}
+        {(() => {
+          const validFeatures = (solution.features?.filter(
+            (f: Feature | null): f is Feature => f !== null && f._id !== undefined
+          ) || []) as Feature[];
+          
+          return validFeatures.length > 0 ? (
+            validFeatures.map(
+              (feature: Feature, index: number) => (
+                <FeatureCard
+                  key={feature._id}
+                  feature={feature}
+                  isReversed={index % 2 === 1}
+                />
+              ),
+            )
+          ) : (
+            <div className="text-center py-12">
+              <TypographyH2>No features available</TypographyH2>
+              <TypographyP className="mt-2 text-neutral-600">
+                This solution doesn&apos;t have any features yet.
+              </TypographyP>
+            </div>
+          );
+        })()}
       </Container>
     </>
   );
 }
 
-function SolutionItemCard({
-  solutionItem,
+function FeatureCard({
+  feature,
   isReversed,
 }: {
-  solutionItem: SolutionArray;
+  feature: Feature;
   isReversed: boolean;
 }) {
+  const playbackId = feature.video?.asset?.playbackId;
+
   const textContent = (
     <div className="col-span-1 space-y-4">
-      <TypographyH2>{solutionItem.title}</TypographyH2>
+      <TypographyH2>{feature.title}</TypographyH2>
       <div className="text-neutral-600">
-        {solutionItem.description?.split("\n").map((paragraph, index) => (
+        {feature.description?.split("\n").map((paragraph, index) => (
           <TypographyP key={index} className="text-base">
             {paragraph}
           </TypographyP>
         ))}
       </div>
-      {solutionItem.button && (
-        <Button className="mt-4" variant="secondary">
-          <Link
-            href={
-              solutionItem.button.linkType === "docs"
-                ? `/docs/${solutionItem.button.docsPage?.slug?.current}`
-                : solutionItem.button.url
-            }
-          >
-            {solutionItem.button.text}
-          </Link>
-        </Button>
-      )}
+      {feature.button && (() => {
+        let href: string | null = null;
+        
+        if (feature.button.linkType === "docs") {
+          if (feature.button.docsPage?.slug?.current) {
+            href = `/docs/${feature.button.docsPage.slug.current}`;
+          }
+        } else {
+          href = feature.button.url || null;
+        }
+        
+        if (!href) return null;
+        
+        return (
+          <Button className="mt-4" variant="secondary">
+            <Link href={href}>
+              {feature.button.text}
+            </Link>
+          </Button>
+        );
+      })()}
     </div>
   );
 
-  const imageContent = (
+  const mediaContent = (
     <div className="col-span-2">
-      {solutionItem.image ? (
+      {playbackId ? (
+        <div className="w-full rounded-lg overflow-hidden">
+          <MuxVideoPlayer
+            playbackId={playbackId}
+            className="w-full h-full"
+            autoplay={true}
+            loop={true}
+            muted={true}
+          />
+        </div>
+      ) : feature.image ? (
         <Image
-          src={urlFor(solutionItem.image).url()}
-          alt={solutionItem.title}
+          src={urlFor(feature.image).url()}
+          alt={feature.title}
           width={1400}
           height={1000}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-lg"
         />
       ) : (
         <Image
           src={"/screenshot-placeholder.jpeg"}
-          alt={solutionItem.title}
+          alt={feature.title}
           width={1400}
           height={1000}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-lg"
         />
       )}
     </div>
@@ -198,9 +240,9 @@ function SolutionItemCard({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-12 items-center">
-      {/* Mobile: Always image first, then text */}
+      {/* Mobile: Always media first, then text */}
       <div className="md:hidden">
-        {imageContent}
+        {mediaContent}
         {textContent}
       </div>
 
@@ -208,13 +250,13 @@ function SolutionItemCard({
       <div className="hidden md:contents">
         {isReversed ? (
           <>
-            {imageContent}
+            {mediaContent}
             {textContent}
           </>
         ) : (
           <>
             {textContent}
-            {imageContent}
+            {mediaContent}
           </>
         )}
       </div>

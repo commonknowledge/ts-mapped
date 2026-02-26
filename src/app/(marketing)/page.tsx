@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Link } from "@/components/Link";
-import HomepageFeatureSectionVideos from "@/components/marketing/HomepageFeatureSectionVideos";
+import HomepageFeatures from "@/components/marketing/HomepageFeatures";
+import HomepageSolutionsSection from "@/components/marketing/HomepageSolutionsSection";
 import { Button } from "@/shadcn/ui/button";
 
 export default function HomePage() {
@@ -46,7 +47,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      <HomepageFeatureSectionVideos />
+      <HomepageFeatures />
+
+      <HomepageSolutionsSection />
     </>
   );
 }
