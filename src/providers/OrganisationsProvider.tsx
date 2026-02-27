@@ -39,7 +39,9 @@ export default function OrganisationsProvider({
   );
 
   const setOrganisationId = useCallback((id: string) => {
-    localStorage.setItem(STORAGE_KEY, id);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, id);
+    }
     setOrganisationIdState(id);
   }, []);
 
