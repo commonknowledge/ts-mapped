@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
 import { getServerSession } from "@/auth";
+import { redirectToLogin } from "@/auth/redirectToLogin";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import { db } from "@/server/services/database";
@@ -20,7 +20,7 @@ export default async function MapPage({
 }) {
   const serverSession = await getServerSession();
   if (!serverSession.currentUser) {
-    return redirect("/");
+    await redirectToLogin();
   }
 
   const { id } = await params;

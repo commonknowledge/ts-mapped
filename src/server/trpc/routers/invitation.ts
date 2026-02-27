@@ -5,6 +5,7 @@ import ensureOrganisationMap from "@/server/commands/ensureOrganisationMap";
 import Invite from "@/server/emails/Invite";
 import {
   createInvitation,
+  findPendingInvitationsByEmail,
   listPendingInvitations,
 } from "@/server/repositories/Invitation";
 import {
@@ -13,7 +14,7 @@ import {
 } from "@/server/repositories/Organisation";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
-import { router, superadminProcedure } from "..";
+import { protectedProcedure, router, superadminProcedure } from "..";
 
 export const invitationRouter = router({
   create: superadminProcedure
@@ -73,4 +74,7 @@ export const invitationRouter = router({
       }
     }),
   list: superadminProcedure.query(() => listPendingInvitations()),
+  listForUser: protectedProcedure.query(async ({ ctx }) => {
+    return findPendingInvitationsByEmail(ctx.user.email);
+  }),
 });

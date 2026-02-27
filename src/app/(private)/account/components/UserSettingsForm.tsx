@@ -65,7 +65,7 @@ export default function UserSettingsForm() {
         {(field) => (
           <div className="space-y-2">
             <AvatarInput
-              name={currentUser?.name || ""}
+              name={currentUser?.name || currentUser?.email || ""}
               src={field.state.value}
               onChange={field.handleChange}
             />
