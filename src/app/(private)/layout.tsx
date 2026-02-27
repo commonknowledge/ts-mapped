@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
 import { getServerSession } from "@/auth";
+import { redirectToLogin } from "@/auth/redirectToLogin";
 import { DesktopOnly } from "@/components/layout/DesktopOnly";
 import SentryFeedbackWidget from "@/components/SentryFeedbackWidget";
 import Sidebar from "@/components/Sidebar";
@@ -15,7 +15,9 @@ export default async function PrivateLayout({
   children: React.ReactNode;
 }>) {
   const serverSession = await getServerSession();
-  if (!serverSession.currentUser) redirect("/");
+  if (!serverSession.currentUser) {
+    await redirectToLogin();
+  }
   return (
     <DesktopOnly>
       <div className="flex h-screen with-feeback-widget">

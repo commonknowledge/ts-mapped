@@ -14,7 +14,7 @@ import { EmailLayout } from "./Layout";
 export default function Invite({ token }: { token: string }) {
   const baseUrl = getAbsoluteUrl();
 
-  const link = `${baseUrl}invite/${token}`;
+  const link = `${baseUrl}invitation/${token}`;
   return (
     <EmailLayout>
       <Preview>Click here to confirm your invite</Preview>

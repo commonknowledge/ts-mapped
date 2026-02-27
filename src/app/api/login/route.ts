@@ -1,8 +1,6 @@
-"use server";
-
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
-import { unstable_rethrow as rethrow } from "next/navigation";
+import { NextResponse } from "next/server";
 import z from "zod";
 import { findUserByEmailAndPassword } from "@/server/repositories/User";
 import logger from "@/server/services/logger";
@@ -12,19 +10,24 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
-export async function login(formData: FormData) {
+export async function POST(request: Request) {
   try {
-    const result = loginSchema.safeParse({
-      email: formData.get("email"),
-      password: formData.get("password"),
-    });
+    const body = await request.json();
+    const result = loginSchema.safeParse(body);
 
     if (result.error) {
-      return "Invalid credentials";
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 400 },
+      );
     }
+
     const user = await findUserByEmailAndPassword(result.data);
     if (!user) {
-      return "Invalid credentials";
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 },
+      );
     }
 
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
@@ -36,10 +39,9 @@ export async function login(formData: FormData) {
     const cookieStore = await cookies();
     cookieStore.set("JWT", token);
 
-    return "";
+    return NextResponse.json({ success: true });
   } catch (error) {
-    rethrow(error);
     logger.warn(`Failed to log in user`, { error });
-    return "Failed to log in";
+    return NextResponse.json({ error: "Failed to log in" }, { status: 500 });
   }
 }

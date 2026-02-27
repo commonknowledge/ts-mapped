@@ -43,6 +43,24 @@ export function findAndUseInvitation(id: string) {
     .executeTakeFirstOrThrow();
 }
 
+export function findPendingInvitationsByEmail(email: string) {
+  return db
+    .selectFrom("invitation")
+    .leftJoin("organisation", "invitation.organisationId", "organisation.id")
+    .where("invitation.email", "=", email)
+    .where("invitation.used", "=", false)
+    .select([
+      "invitation.id",
+      "invitation.email",
+      "invitation.name",
+      "invitation.organisationId",
+      "invitation.createdAt",
+      "organisation.name as organisationName",
+    ])
+    .orderBy("invitation.createdAt", "desc")
+    .execute();
+}
+
 export function updateInvitation(id: string, data: InvitationUpdate) {
   return db
     .updateTable("invitation")

@@ -1,34 +1,50 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { Link } from "@/components/Link";
 import { Button } from "@/shadcn/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shadcn/ui/card";
 import { Input } from "@/shadcn/ui/input";
 import { Separator } from "@/shadcn/ui/separator";
-import { login } from "./actions";
 import type { SyntheticEvent } from "react";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
 
-  const [isPending, startTransition] = useTransition();
-
+  // Don't use a server action here as setting cookies in a server action
+  // causes the full component tree to re-render, which (a) is unnecessary here
+  // and (b) interferes with the client-side redirect post login. The redirect
+  // should be client side as this is the best way to ensure fresh state.
   const onSubmitLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    setIsPending(true);
     const formData = new FormData(e.currentTarget);
-    startTransition(async () => {
-      const error = await login(formData);
-      if (error) {
-        setError(error);
-      } else {
-        // Use a browser-level redirection here to force a full page reload.
-        // This is a good idea after auth changes, as it clears client-side state.
-        window.location.href = "/";
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.get("email"),
+          password: formData.get("password"),
+        }),
+      });
+      const data = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setError(data.error || "Failed to log in");
+        setIsPending(false);
+        return;
       }
-    });
+      window.location.href = redirectTo || "/";
+    } catch {
+      setError("Failed to log in");
+      setIsPending(false);
+    }
   };
 
   return (

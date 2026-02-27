@@ -28,3 +28,13 @@ export async function findOrganisationUser(
     .selectAll()
     .executeTakeFirst();
 }
+
+export function findUsersByOrganisationId(organisationId: string) {
+  return db
+    .selectFrom("organisationUser")
+    .innerJoin("user", "user.id", "organisationUser.userId")
+    .where("organisationUser.organisationId", "=", organisationId)
+    .select(["user.id", "user.email", "user.name", "user.avatarUrl"])
+    .orderBy("user.name asc nulls last")
+    .execute();
+}

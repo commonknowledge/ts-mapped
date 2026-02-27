@@ -64,7 +64,10 @@ const errorLink: TRPCLink<AppRouter> = () => {
             err.data?.code === "UNAUTHORIZED" &&
             typeof window !== "undefined"
           ) {
-            window.location.href = "/";
+            const redirectTo = encodeURIComponent(
+              window.location.pathname + window.location.search,
+            );
+            window.location.href = `/login?redirectTo=${redirectTo}`;
             return;
           }
           observer.error(err);
