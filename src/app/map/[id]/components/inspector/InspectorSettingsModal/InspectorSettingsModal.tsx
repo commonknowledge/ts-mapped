@@ -22,13 +22,15 @@ import { InspectorSourceConfigPanel } from "./InspectorSourceConfigPanel";
 export default function InspectorSettingsModal({
   open,
   onOpenChange,
+  initialDataSourceId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** When provided, pre-select this data source in the left list (used from real inspector cogs). */
+  initialDataSourceId?: string | null;
 }) {
-  const [selectedDataSourceId, setSelectedDataSourceId] = useState<
-    string | null
-  >(null);
+  const [selectedDataSourceId, setSelectedDataSourceId] =
+    useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
   const { data: dataSources, getDataSourceById } = useDataSources();
@@ -78,6 +80,11 @@ export default function InspectorSettingsModal({
     const other = (filteredSources ?? []).filter((ds) => !inIds.has(ds.id));
     return { inspectorOrdered: inInspector, otherSources: other };
   }, [boundaryConfigs, getDataSourceById, filteredSources, matchesSearch]);
+
+  // When opened with an initial data source id, focus that source.
+  if (open && initialDataSourceId && selectedDataSourceId !== initialDataSourceId) {
+    setSelectedDataSourceId(initialDataSourceId);
+  }
 
   const handleRemoveFromInspector = useCallback(
     (configId: string) => {
@@ -132,8 +139,7 @@ export default function InspectorSettingsModal({
       icon: defaultConfig?.icon,
       color: defaultConfig?.color,
     };
-    const newConfig =
-      normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
+    const newConfig = normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
     const prev = view.inspectorConfig?.boundaries ?? [];
     updateView({
       ...view,
@@ -147,11 +153,11 @@ export default function InspectorSettingsModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="h-[85vh] flex flex-col p-0 gap-0 overflow-hidden"
+        className="h-[90vh] flex flex-col p-0 gap-0 overflow-hidden"
         style={{ width: "90vw", maxWidth: "1800px" }}
         onPointerDownOutside={() => setSelectedDataSourceId(null)}
       >
-        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+        <DialogHeader className="flex flex-row gap-10 px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>Inspector settings</DialogTitle>
           <p className="text-sm text-muted-foreground">
             Choose data sources to show in the inspector and configure columns,

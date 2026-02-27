@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import type { InspectorBoundaryConfig } from "@/server/models/MapView";
@@ -53,6 +53,56 @@ export function DefaultInspectorPreview({
     [dataSource.columnDefs],
   );
 
+  const comparisonColumns = useMemo(
+    () =>
+      (config.columns ?? [])
+        .filter(
+          (col) =>
+            config.columnMetadata?.[col]?.format === "numberWithComparison" &&
+            config.columnMetadata?.[col]?.comparisonStat,
+        )
+        .map((col) => ({
+          col,
+          stat:
+            config.columnMetadata?.[col]?.comparisonStat ?? "average",
+        })),
+    [config.columns, config.columnMetadata],
+  );
+
+  const baselineQueries = useQueries({
+    queries: comparisonColumns.map(({ col, stat }) =>
+      trpc.dataRecord.columnStat.queryOptions({
+        dataSourceId: dataSource.id,
+        columnName: col,
+        stat,
+      }),
+    ),
+  });
+
+  const comparisonBaselines = useMemo((): Record<string, number | null> => {
+    const out: Record<string, number | null> = {};
+    comparisonColumns.forEach(({ col }, i) => {
+      out[col] = baselineQueries[i]?.data ?? null;
+    });
+    return out;
+  }, [comparisonColumns, baselineQueries]);
+
+  const comparisonBaselineLoading = useMemo((): Record<string, boolean> => {
+    const out: Record<string, boolean> = {};
+    comparisonColumns.forEach(({ col }, i) => {
+      const q = baselineQueries[i];
+      out[col] = q?.isLoading === true || q?.isFetching === true;
+    });
+    return out;
+  }, [comparisonColumns, baselineQueries]);
+
+  const COMPARISON_STAT_LABEL: Record<string, string> = {
+    average: "Average",
+    median: "Median",
+    min: "Min",
+    max: "Max",
+  };
+
   const entries = useMemo((): PropertyEntry[] => {
     const items = getSelectedItemsOrdered(
       config,
@@ -88,12 +138,25 @@ export function DefaultInspectorPreview({
             m?.barColor,
           ),
           description: m?.description,
+          ...(m?.format === "numberWithComparison" && {
+            comparisonBaseline: comparisonBaselines[item] ?? null,
+            comparisonStat: m.comparisonStat
+              ? COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat
+              : undefined,
+            comparisonBaselineLoading: comparisonBaselineLoading[item] === true,
+          }),
         });
         index += 1;
       }
     }
     return result;
-  }, [config, allColumnNames, sampleRow]);
+  }, [
+    config,
+    allColumnNames,
+    sampleRow,
+    comparisonBaselines,
+    comparisonBaselineLoading,
+  ]);
 
   const dataSourceType = dataSource.config?.type ?? "unknown";
   const panelIcon = config.icon ? (

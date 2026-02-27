@@ -1,7 +1,10 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useMemo } from "react";
 import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import { cn } from "@/shadcn/utils";
@@ -36,10 +39,10 @@ export function DroppableSelectedColumns({
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded border min-h-[360px] max-h-[520px] overflow-y-auto p-2 transition-all duration-150 flex flex-col",
+        "rounded border border-neutral-50 flex-1 min-h-0 overflow-y-auto p-2 transition-all duration-150 flex flex-col",
         isOver
           ? "border-2 border-primary bg-primary/10 ring-2 ring-primary/20"
-          : "border-neutral-200 bg-white",
+          : "bg-neutral-100/80 border border-neutral-200",
       )}
     >
       {isEmpty ? (
@@ -47,105 +50,121 @@ export function DroppableSelectedColumns({
           No columns — tick Available to add
         </p>
       ) : (
-        <SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
-          <div className="flex flex-col gap-1.5 flex-1">
+        <SortableContext
+          items={columnIds}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="flex flex-col gap-4 flex-1">
             {columns.map((col, i) => (
-                <SortableColumnRow
-                  key={columnIds[i]}
-                  id={columnIds[i]}
-                  columnName={col}
-                  displayName={meta[col]?.displayName}
-                  onDisplayNameChange={(value) =>
-                    updateConfig((prev) => ({
-                      ...prev,
-                      columnMetadata: {
-                        ...(prev.columnMetadata ?? {}),
-                        [col]: {
-                          ...(prev.columnMetadata?.[col] ?? {}),
-                          displayName: value || undefined,
-                        },
+              <SortableColumnRow
+                key={columnIds[i]}
+                id={columnIds[i]}
+                columnName={col}
+                displayName={meta[col]?.displayName}
+                onDisplayNameChange={(value) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    columnMetadata: {
+                      ...(prev.columnMetadata ?? {}),
+                      [col]: {
+                        ...(prev.columnMetadata?.[col] ?? {}),
+                        displayName: value || undefined,
                       },
-                    }))
-                  }
-                  description={meta[col]?.description}
-                  onDescriptionChange={(value) =>
-                    updateConfig((prev) => ({
-                      ...prev,
-                      columnMetadata: {
-                        ...(prev.columnMetadata ?? {}),
-                        [col]: {
-                          ...(prev.columnMetadata?.[col] ?? {}),
-                          description: value || undefined,
-                        },
+                    },
+                  }))
+                }
+                description={meta[col]?.description}
+                onDescriptionChange={(value) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    columnMetadata: {
+                      ...(prev.columnMetadata ?? {}),
+                      [col]: {
+                        ...(prev.columnMetadata?.[col] ?? {}),
+                        description: value || undefined,
                       },
-                    }))
-                  }
-                  format={meta[col]?.format ?? "text"}
-                  onFormatChange={(format) =>
-                    updateConfig((prev) => ({
-                      ...prev,
-                      columnMetadata: {
-                        ...(prev.columnMetadata ?? {}),
-                        [col]: {
-                          ...(prev.columnMetadata?.[col] ?? {}),
-                          format,
-                        },
+                    },
+                  }))
+                }
+                format={meta[col]?.format ?? "text"}
+                onFormatChange={(format) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    columnMetadata: {
+                      ...(prev.columnMetadata ?? {}),
+                      [col]: {
+                        ...(prev.columnMetadata?.[col] ?? {}),
+                        format,
                       },
-                    }))
-                  }
-                  scaleMax={meta[col]?.scaleMax ?? 3}
-                  onScaleMaxChange={(scaleMax) =>
-                    updateConfig((prev) => ({
-                      ...prev,
-                      columnMetadata: {
-                        ...(prev.columnMetadata ?? {}),
-                        [col]: {
-                          ...(prev.columnMetadata?.[col] ?? {}),
-                          scaleMax,
-                        },
+                    },
+                  }))
+                }
+                comparisonStat={meta[col]?.comparisonStat}
+                onComparisonStatChange={(comparisonStat) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    columnMetadata: {
+                      ...(prev.columnMetadata ?? {}),
+                      [col]: {
+                        ...(prev.columnMetadata?.[col] ?? {}),
+                        comparisonStat,
                       },
-                    }))
-                  }
-                  barColor={meta[col]?.barColor}
-                  onBarColorChange={(value) =>
-                    updateConfig((prev) => ({
-                      ...prev,
-                      columnMetadata: {
-                        ...(prev.columnMetadata ?? {}),
-                        [col]: {
-                          ...(prev.columnMetadata?.[col] ?? {}),
-                          barColor: value || undefined,
-                        },
+                    },
+                  }))
+                }
+                scaleMax={meta[col]?.scaleMax ?? 3}
+                onScaleMaxChange={(scaleMax) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    columnMetadata: {
+                      ...(prev.columnMetadata ?? {}),
+                      [col]: {
+                        ...(prev.columnMetadata?.[col] ?? {}),
+                        scaleMax,
                       },
-                    }))
-                  }
-                  onRemove={
-                    onRemoveColumn
-                      ? () => onRemoveColumn(col)
-                      : () =>
-                          updateConfig((prev) => {
-                            const nextColumns = prev.columns.filter(
-                              (c) => c !== col,
+                    },
+                  }))
+                }
+                barColor={meta[col]?.barColor}
+                onBarColorChange={(value) =>
+                  updateConfig((prev) => ({
+                    ...prev,
+                    columnMetadata: {
+                      ...(prev.columnMetadata ?? {}),
+                      [col]: {
+                        ...(prev.columnMetadata?.[col] ?? {}),
+                        barColor: value || undefined,
+                      },
+                    },
+                  }))
+                }
+                onRemove={
+                  onRemoveColumn
+                    ? () => onRemoveColumn(col)
+                    : () =>
+                        updateConfig((prev) => {
+                          const nextColumns = prev.columns.filter(
+                            (c) => c !== col,
+                          );
+                          const nextMeta = Object.fromEntries(
+                            Object.entries(prev.columnMetadata ?? {}).filter(
+                              ([k]) => k !== col,
+                            ),
+                          );
+                          const base: Partial<InspectorBoundaryConfig> = {
+                            columns: nextColumns,
+                            columnMetadata: nextMeta,
+                          };
+                          if (prev.columnItems?.length) {
+                            base.columnItems = prev.columnItems.filter(
+                              (i) => i !== col,
                             );
-                            const nextMeta = Object.fromEntries(
-                              Object.entries(prev.columnMetadata ?? {}).filter(
-                                ([k]) => k !== col,
-                              ),
-                            );
-                            const base: Partial<InspectorBoundaryConfig> = {
-                              columns: nextColumns,
-                              columnMetadata: nextMeta,
-                            };
-                            if (prev.columnItems?.length) {
-                              base.columnItems = prev.columnItems.filter(
-                                (i) => i !== col,
-                              );
-                            }
-                            return { ...prev, ...base };
-                          })
-                  }
-                  isDragging={activeId === columnIds[i]}
-                />
+                          }
+                          return { ...prev, ...base };
+                        })
+                }
+                isDragging={activeId === columnIds[i]}
+              />
             ))}
           </div>
         </SortableContext>

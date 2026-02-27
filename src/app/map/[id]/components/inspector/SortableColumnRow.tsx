@@ -23,13 +23,27 @@ import {
   getSmartMatchInfo,
 } from "./inspectorPanelOptions";
 
-import type { InspectorColumnFormat } from "@/server/models/MapView";
+import type {
+  InspectorColumnFormat,
+  InspectorComparisonStat,
+} from "@/server/models/MapView";
 
 const FORMAT_OPTIONS: { value: InspectorColumnFormat; label: string }[] = [
   { value: "text", label: "Text" },
   { value: "number", label: "Number" },
+  { value: "numberWithComparison", label: "Number with comparison" },
   { value: "percentage", label: "Percentage (bar)" },
   { value: "scale", label: "Scale (bars)" },
+];
+
+const COMPARISON_STAT_OPTIONS: {
+  value: InspectorComparisonStat;
+  label: string;
+}[] = [
+  { value: "average", label: "Average" },
+  { value: "median", label: "Median" },
+  { value: "min", label: "Min" },
+  { value: "max", label: "Max" },
 ];
 
 /** Resolve select value: empty/undefined treated as Smart match for backward compat. */
@@ -145,6 +159,8 @@ export function SortableColumnRow({
   onDescriptionChange,
   format = "text",
   onFormatChange,
+  comparisonStat,
+  onComparisonStatChange,
   scaleMax = 3,
   onScaleMaxChange,
   barColor,
@@ -160,6 +176,8 @@ export function SortableColumnRow({
   onDescriptionChange?: (value: string) => void;
   format?: InspectorColumnFormat;
   onFormatChange?: (format: InspectorColumnFormat) => void;
+  comparisonStat?: InspectorComparisonStat;
+  onComparisonStatChange?: (value: InspectorComparisonStat) => void;
   scaleMax?: number;
   onScaleMaxChange?: (value: number) => void;
   barColor?: string;
@@ -206,7 +224,7 @@ export function SortableColumnRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-col gap-2 rounded border border-transparent bg-neutral-50/80 py-1.5 px-2 group",
+        "flex flex-col gap-2 rounded  bg-white py-1.5 px-2 group",
         dragging && "opacity-0 pointer-events-none",
       )}
     >
@@ -221,7 +239,7 @@ export function SortableColumnRow({
           <GripVertical className="w-4 h-4" />
         </button>
         <span
-          className="text-xs font-mono text-muted-foreground flex-1 truncate"
+          className="text-xs font-mono font-medium uppercase text-muted-foreground flex-1 truncate"
           title={columnName}
         >
           {columnName}
@@ -318,6 +336,33 @@ export function SortableColumnRow({
             }}
             onClick={(e) => e.stopPropagation()}
           />
+        </div>
+      )}
+      {format === "numberWithComparison" && onComparisonStatChange && (
+        <div className="space-y-1">
+          <Label className="text-[10px] text-muted-foreground uppercase">
+            Compare to
+          </Label>
+          <Select
+            value={comparisonStat ?? "average"}
+            onValueChange={(v) =>
+              onComparisonStatChange(v as InspectorComparisonStat)
+            }
+          >
+            <SelectTrigger
+              className="h-7 text-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COMPARISON_STAT_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
       {(format === "percentage" || format === "scale") && onBarColorChange && (

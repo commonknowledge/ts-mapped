@@ -69,7 +69,6 @@ export function InspectorSourceConfigPanel({
         await queryClient.invalidateQueries({
           queryKey: trpc.dataSource.listReadable.queryKey(),
         });
-        toast.success("Default inspector settings updated.");
       },
       onError: (err) => {
         toast.error(
@@ -88,7 +87,15 @@ export function InspectorSourceConfigPanel({
     },
     1500,
   );
-  const columns = config?.columns ?? [];
+
+  // Local config so the UI updates immediately; we persist to the cache in the background.
+  const [localConfig, setLocalConfig] =
+    useState<InspectorBoundaryConfig | null>(config);
+  useEffect(() => {
+    setLocalConfig(config);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync only when switching data source
+  }, [config?.id]);
+
   const allColumnNames = useMemo(
     () => dataSource.columnDefs.map((c) => c.name),
     [dataSource.columnDefs],
@@ -101,36 +108,42 @@ export function InspectorSourceConfigPanel({
     allColumnsInOrder,
     selectedColumnsInOrder,
     selectedItemsInOrder,
-    allItemsInOrder,
     availableColumns,
-    availableIds,
     columnIds,
   } = useMemo(
-    () => getColumnOrderState(config, allColumnNames),
-    [config, allColumnNames],
+    () => getColumnOrderState(localConfig ?? config, allColumnNames),
+    [localConfig, config, allColumnNames],
   );
 
   const updateConfig = useCallback(
     (updater: (prev: InspectorBoundaryConfig) => InspectorBoundaryConfig) => {
       if (!config) return;
-      const latestView = getLatestView();
-      if (!latestView?.inspectorConfig?.boundaries) return;
-      const boundaries = latestView.inspectorConfig.boundaries;
-      const index = boundaries.findIndex((c) => c.id === config.id);
-      if (index < 0) return;
-      const updated = updater(boundaries[index]);
+      const prevConfig = localConfig ?? config;
+      const updated = updater(prevConfig);
       const normalized =
         normalizeInspectorBoundaryConfig(updated, allColumnNames) ?? updated;
-      const next = [...boundaries];
-      next[index] = normalized;
-      updateView({
-        ...latestView,
-        inspectorConfig: { ...latestView.inspectorConfig, boundaries: next },
-      });
+      setLocalConfig(normalized);
+      const latestView = getLatestView();
+      if (latestView?.inspectorConfig?.boundaries) {
+        const boundaries = latestView.inspectorConfig.boundaries;
+        const index = boundaries.findIndex((c) => c.id === config.id);
+        if (index >= 0) {
+          const next = [...boundaries];
+          next[index] = normalized;
+          updateView({
+            ...latestView,
+            inspectorConfig: {
+              ...latestView.inspectorConfig,
+              boundaries: next,
+            },
+          });
+        }
+      }
       if (dataSource.isOwner) debouncedSaveAsDefault(normalized);
     },
     [
       config,
+      localConfig,
       dataSource.isOwner,
       debouncedSaveAsDefault,
       getLatestView,
@@ -255,15 +268,17 @@ export function InspectorSourceConfigPanel({
 
   if (!config) return null;
 
-  const columnMetadata = config.columnMetadata ?? {};
-  const layout = (config.layout ?? "single") as InspectorLayout;
-  const panelIcon = config.icon ?? undefined;
-  const panelColor = config.color ?? undefined;
+  const effectiveConfig = localConfig ?? config;
+  const columnMetadata = effectiveConfig.columnMetadata ?? {};
+  const layout = (effectiveConfig.layout ?? "single") as InspectorLayout;
+  const panelIcon = effectiveConfig.icon ?? undefined;
+  const panelColor = effectiveConfig.color ?? undefined;
+  const columns = effectiveConfig.columns ?? [];
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        <div className="grid xl:grid-cols-4 grid-cols-2 gap-4 border-b pb-6">
+      <div className="flex flex-col flex-1 min-h-0 p-6 gap-6 overflow-hidden">
+        <div className="grid xl:grid-cols-4 grid-cols-2 gap-4 border-b pb-6 shrink-0">
           <div className="space-y-2 w-full min-w-0">
             <Label className="text-muted-foreground">Display name</Label>
             <Input
@@ -369,14 +384,13 @@ export function InspectorSourceConfigPanel({
           </div>
         </div>
 
-        <ColumnsSection
-          config={config}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <ColumnsSection
+          config={effectiveConfig}
           allColumnsInOrder={allColumnsInOrder}
           selectedColumnsInOrder={selectedColumnsInOrder}
           selectedItemsInOrder={selectedItemsInOrder}
-          allItemsInOrder={allItemsInOrder}
           availableColumns={availableColumns}
-          availableIds={availableIds}
           columnIds={columnIds}
           columns={columns}
           columnMetadata={columnMetadata}
@@ -385,6 +399,20 @@ export function InspectorSourceConfigPanel({
           handleRemoveColumn={handleRemoveColumn}
           handleRemoveColumnFromRight={handleRemoveColumnFromRight}
         />
+        </div>
+
+        {"defaultInspectorConfigUpdatedAt" in dataSource &&
+          dataSource.defaultInspectorConfigUpdatedAt && (
+            <p className="text-xs text-muted-foreground shrink-0">
+              Default inspector settings last updated{" "}
+              {new Date(
+                dataSource.defaultInspectorConfigUpdatedAt,
+              ).toLocaleString(undefined, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </p>
+          )}
       </div >
     </div >
   );

@@ -94,7 +94,6 @@ export function DefaultInspectorConfigSection({
             dataSourceId: dataSource.id,
           }),
         });
-        toast.success("Default inspector settings saved.");
       },
       onError: (err) => {
         toast.error(
@@ -131,10 +130,12 @@ export function DefaultInspectorConfigSection({
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
+    setIsDirty(false);
     setIsSaving(true);
     try {
       await onSave(toDefaultConfig(localConfig));
-      setIsDirty(false);
+    } catch {
+      setIsDirty(true);
     } finally {
       setIsSaving(false);
     }
@@ -165,9 +166,7 @@ export function DefaultInspectorConfigSection({
     allColumnsInOrder,
     selectedColumnsInOrder,
     selectedItemsInOrder,
-    allItemsInOrder,
     availableColumns,
-    availableIds,
     columnIds,
   } = useMemo(
     () => getColumnOrderState(localConfig, allColumnNames),
@@ -294,6 +293,18 @@ export function DefaultInspectorConfigSection({
             and used when this data source is added to the inspector on a map
             (yours or others’ if shared).
           </p>
+          {"defaultInspectorConfigUpdatedAt" in dataSource &&
+            dataSource.defaultInspectorConfigUpdatedAt && (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Last updated{" "}
+                {new Date(
+                  dataSource.defaultInspectorConfigUpdatedAt,
+                ).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
+            )}
         </div>
         {isDirty && (
           <div className="flex gap-2 mt-3">
@@ -418,9 +429,7 @@ export function DefaultInspectorConfigSection({
           allColumnsInOrder={allColumnsInOrder}
           selectedColumnsInOrder={selectedColumnsInOrder}
           selectedItemsInOrder={selectedItemsInOrder}
-          allItemsInOrder={allItemsInOrder}
           availableColumns={availableColumns}
-          availableIds={availableIds}
           columnIds={columnIds}
           columns={columns}
           columnMetadata={columnMetadata}

@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Minus, X } from "lucide-react";
+import { GripVertical, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
@@ -47,13 +47,13 @@ export function SortableDividerRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 rounded border border-dashed border-neutral-300 bg-neutral-200 py-1.5 px-2 group",
+        "flex items-center gap-2 border-t border-neutral-400 pt-2 mt-2 first:mt-0 first:border-t-0 first:pt-0 group",
         dragging && "opacity-0 pointer-events-none",
       )}
     >
       <button
         type="button"
-        className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-0.5 -ml-0.5"
+        className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-0.5 -ml-0.5 shrink-0"
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
@@ -61,8 +61,8 @@ export function SortableDividerRow({
         <GripVertical className="w-4 h-4" />
       </button>
       <Input
-        className="h-7 flex-1 min-w-0 text-xs font-medium text-muted-foreground placeholder:text-muted-foreground/70"
-        placeholder="Label (e.g. Demographics)"
+        className="h-6 flex-1 min-w-0 text-xs font-medium uppercase tracking-wide text-neutral-500 placeholder:text-neutral-400 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        placeholder="Section label"
         value={localLabel}
         onChange={(e) => {
           const v = e.target.value;
@@ -78,7 +78,7 @@ export function SortableDividerRow({
             e.stopPropagation();
             onRemove();
           }}
-          className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-neutral-100"
+          className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-neutral-100 shrink-0"
           aria-label="Remove divider"
         >
           <X className="w-3.5 h-3.5" />

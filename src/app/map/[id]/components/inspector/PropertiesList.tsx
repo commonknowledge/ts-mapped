@@ -1,10 +1,15 @@
-import { Info } from "lucide-react";
+import { Info, Loader2 } from "lucide-react";
 import { Fragment } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import type { ColumnMetadata } from "@/server/models/DataSource";
 
-export type ColumnFormat = "text" | "number" | "percentage" | "scale";
+export type ColumnFormat =
+  | "text"
+  | "number"
+  | "numberWithComparison"
+  | "percentage"
+  | "scale";
 
 export interface PropertyEntry {
   key: string;
@@ -20,6 +25,12 @@ export interface PropertyEntry {
   isDivider?: boolean;
   /** Optional description for tooltip (e.g. from column metadata). */
   description?: string;
+  /** For format "numberWithComparison": baseline (e.g. average) to compute variance % against. */
+  comparisonBaseline?: number | null;
+  /** For format "numberWithComparison": label of the stat (e.g. "Average") for tooltip. */
+  comparisonStat?: string;
+  /** For format "numberWithComparison": true while baseline is still being fetched. */
+  comparisonBaselineLoading?: boolean;
 }
 
 function formatNumber(n: number): string {
@@ -43,16 +54,27 @@ function barFill(barColor?: string): string {
   return barColor?.trim() ? barColor : "hsl(var(--primary))";
 }
 
+function variancePercent(value: number, baseline: number): number | null {
+  if (baseline === 0) return null;
+  return ((value - baseline) / baseline) * 100;
+}
+
 function PropertyValue({
   value,
   format = "text",
   scaleMax = 3,
   barColor,
+  comparisonBaseline,
+  comparisonStat,
+  comparisonBaselineLoading,
 }: {
   value: unknown;
   format?: ColumnFormat;
   scaleMax?: number;
   barColor?: string;
+  comparisonBaseline?: number | null;
+  comparisonStat?: string;
+  comparisonBaselineLoading?: boolean;
 }) {
   const num = parseNumeric(value);
   const fill = barFill(barColor);
@@ -60,6 +82,78 @@ function PropertyValue({
   if (format === "number" && num !== null) {
     return (
       <span className="font-medium tabular-nums">{formatNumber(num)}</span>
+    );
+  }
+
+  if (
+    (format === "numberWithComparison" || (comparisonStat && num !== null)) &&
+    num !== null
+  ) {
+    const baseline =
+      comparisonBaseline !== undefined && comparisonBaseline !== null
+        ? comparisonBaseline
+        : null;
+    const pct =
+      baseline !== null ? variancePercent(num, baseline) : null;
+    const pctLabel =
+      pct !== null
+        ? pct >= 0
+          ? `+${pct.toFixed(1)}%`
+          : `${pct.toFixed(1)}%`
+        : null;
+    const statAbbrev = comparisonStat
+      ? comparisonStat === "Average"
+        ? "AVG"
+        : comparisonStat === "Median"
+          ? "MED"
+          : comparisonStat === "Min"
+            ? "MIN"
+            : comparisonStat === "Max"
+              ? "MAX"
+              : comparisonStat.toUpperCase().slice(0, 3)
+      : "";
+    const suffix = statAbbrev ? ` ${statAbbrev}` : "";
+    const title =
+      comparisonStat && baseline !== null
+        ? `vs ${comparisonStat}: ${formatNumber(baseline)}`
+        : comparisonStat
+          ? `vs ${comparisonStat} (loading…)`
+          : undefined;
+
+    if (comparisonBaselineLoading) {
+      return (
+        <span
+          className="font-medium tabular-nums inline-flex items-baseline gap-1.5 flex-wrap"
+          title={title}
+        >
+          <span>{formatNumber(num)}</span>
+          <span className="text-xs font-medium text-muted-foreground inline-flex items-center gap-1">
+            <Loader2
+              className="h-3 w-3 animate-spin shrink-0"
+              aria-hidden
+            />
+            <span>{suffix ? suffix.trim() : "…"}</span>
+          </span>
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className="font-medium tabular-nums inline-flex items-baseline gap-1.5 flex-wrap"
+        title={title}
+      >
+        <span>{formatNumber(num)}</span>
+        <span
+          className={cn(
+            "text-xs font-medium text-muted-foreground",
+            pct !== null && pct > 0 && "text-green-700",
+            pct !== null && pct < 0 && "text-red-700",
+          )}
+        >
+          {pctLabel !== null ? `${pctLabel}${suffix}` : `—${suffix}`}
+        </span>
+      </span>
     );
   }
 
@@ -165,6 +259,9 @@ export default function PropertiesList({
           format={e.format}
           scaleMax={e.scaleMax}
           barColor={e.barColor}
+          comparisonBaseline={e.comparisonBaseline}
+          comparisonStat={e.comparisonStat}
+          comparisonBaselineLoading={e.comparisonBaselineLoading}
         />
       </dd>
     </div>

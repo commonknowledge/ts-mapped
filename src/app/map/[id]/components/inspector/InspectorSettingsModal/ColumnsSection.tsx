@@ -10,7 +10,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type {
   InspectorBoundaryConfig,
@@ -28,8 +28,8 @@ import { DroppableSelectedColumns } from "./DroppableSelectedColumns";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { v4 as uuidv4 } from "uuid";
 import {
-  AVAILABLE_DROPPABLE_ID,
   SELECTED_DROPPABLE_ID,
+  SELECTED_LEFT_DROPPABLE_ID,
 } from "./constants";
 
 function isDivider(
@@ -43,9 +43,7 @@ export function ColumnsSection({
   allColumnsInOrder,
   selectedColumnsInOrder,
   selectedItemsInOrder,
-  allItemsInOrder,
   availableColumns,
-  availableIds,
   columnIds,
   columns,
   columnMetadata,
@@ -58,9 +56,7 @@ export function ColumnsSection({
   allColumnsInOrder: string[];
   selectedColumnsInOrder: string[];
   selectedItemsInOrder: InspectorColumnItem[];
-  allItemsInOrder: InspectorColumnItem[];
   availableColumns: string[];
-  availableIds: string[];
   columnIds: string[];
   columns: string[];
   columnMetadata: Record<string, { displayName?: string }>;
@@ -80,8 +76,18 @@ export function ColumnsSection({
     }),
   );
 
-  const isAvailableItem = (s: string) =>
-    s.startsWith("available-") || s.startsWith("divider-");
+  const selectedSectionIds = useMemo(
+    () =>
+      selectedItemsInOrder.map((item, i) =>
+        typeof item === "string"
+          ? `left-selected-${i}-${item}`
+          : `divider-${item.id}`,
+      ),
+    [selectedItemsInOrder],
+  );
+
+  const isLeftSelectedItem = (s: string) =>
+    s.startsWith("left-selected-") || s.startsWith("divider-");
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -90,33 +96,33 @@ export function ColumnsSection({
       const activeStr = String(active.id);
       const overStr = over ? String(over.id) : null;
 
-      if (isAvailableItem(activeStr) && overStr) {
-        const oldIndex = availableIds.indexOf(activeStr);
+      if (isLeftSelectedItem(activeStr) && overStr) {
+        const oldIndex = selectedSectionIds.indexOf(activeStr);
         if (oldIndex === -1) return;
         const newIndex =
-          overStr === AVAILABLE_DROPPABLE_ID
-            ? availableIds.length
-            : availableIds.indexOf(overStr);
-        if (!isAvailableItem(overStr) && overStr !== AVAILABLE_DROPPABLE_ID)
+          overStr === SELECTED_LEFT_DROPPABLE_ID
+            ? selectedSectionIds.length
+            : selectedSectionIds.indexOf(overStr);
+        if (
+          !isLeftSelectedItem(overStr) &&
+          overStr !== SELECTED_LEFT_DROPPABLE_ID
+        )
           return;
-        if (newIndex === -1 && overStr !== AVAILABLE_DROPPABLE_ID) return;
-        const next = [...allItemsInOrder];
+        if (newIndex === -1 && overStr !== SELECTED_LEFT_DROPPABLE_ID) return;
+        const next = [...selectedItemsInOrder];
         const [removed] = next.splice(oldIndex, 1);
         next.splice(newIndex, 0, removed);
-        const nextColumnOrder = next
-          .filter((i): i is string => typeof i === "string")
-          .filter((c) => allColumnsInOrder.includes(c));
-        const nextColumnItems = next.filter(
-          (i) =>
-            (typeof i === "string" && allColumnsInOrder.includes(i)) ||
-            isDivider(i),
-        );
+        const nextColumnOrder = [
+          ...next.filter((i): i is string => typeof i === "string"),
+          ...availableColumns,
+        ];
+        const nextColumnItems = next.some((i) => isDivider(i)) ? next : undefined;
         updateConfig((prev) => ({
           ...prev,
           columnOrder: nextColumnOrder,
-          columnItems: nextColumnItems.some((i) => isDivider(i))
-            ? nextColumnItems
-            : prev.columnItems,
+          ...(nextColumnItems !== undefined && {
+            columnItems: nextColumnItems,
+          }),
         }));
         return;
       }
@@ -158,18 +164,19 @@ export function ColumnsSection({
     },
     [
       columnIds,
-      availableIds,
+      selectedSectionIds,
+      selectedItemsInOrder,
+      availableColumns,
       updateConfig,
       allColumnsInOrder,
-      allItemsInOrder,
       selectedColumnsInOrder,
       columns,
     ],
   );
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-start justify-between gap-4">
+    <div className="flex flex-col gap-3 min-h-0 flex-1">
+      <div className="flex items-start justify-between gap-4 shrink-0">
         <div>
           <Label className="text-muted-foreground">Columns</Label>
           <p className="text-xs text-muted-foreground">
@@ -234,14 +241,16 @@ export function ColumnsSection({
         onDragStart={({ active }) => setActiveId(active.id as string)}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground">
-              Available (tick to add, drag to reorder, add dividers)
+        <div className="grid grid-cols-3 gap-4 flex-1 min-h-0 items-stretch">
+          {/* Available columns */}
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground shrink-0">
+              Available columns
             </p>
             <AvailableListWithDividers
-              allItemsInOrder={allItemsInOrder}
-              selectedColumns={columns}
+              selectedItemsInOrder={selectedItemsInOrder}
+              selectedSectionIds={selectedSectionIds}
+              availableColumns={availableColumns}
               onAddColumn={handleAddColumn}
               onRemoveColumn={handleRemoveColumn}
               onAddDivider={() =>
@@ -250,7 +259,7 @@ export function ColumnsSection({
                   const newDivider = {
                     type: "divider" as const,
                     id: uuidv4(),
-                    label: "New section",
+                    label: "",
                   };
                   return {
                     ...prev,
@@ -274,13 +283,61 @@ export function ColumnsSection({
                   ),
                 }))
               }
-              availableIds={availableIds}
               activeId={activeId}
+              mode="available"
             />
           </div>
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground">
-              Columns to show
+
+          {/* Selected columns */}
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground shrink-0">
+              Selected columns
+            </p>
+            <AvailableListWithDividers
+              selectedItemsInOrder={selectedItemsInOrder}
+              selectedSectionIds={selectedSectionIds}
+              availableColumns={availableColumns}
+              onAddColumn={handleAddColumn}
+              onRemoveColumn={handleRemoveColumn}
+              onAddDivider={() =>
+                updateConfig((prev) => {
+                  const items = prev.columnItems ?? prev.columns.map((c) => c);
+                  const newDivider = {
+                    type: "divider" as const,
+                    id: uuidv4(),
+                    label: "",
+                  };
+                  return {
+                    ...prev,
+                    columnItems: [...items, newDivider],
+                  };
+                })
+              }
+              onDividerLabelChange={(id, label) =>
+                updateConfig((prev) => ({
+                  ...prev,
+                  columnItems: (prev.columnItems ?? []).map((i) =>
+                    isDivider(i) && i.id === id ? { ...i, label } : i,
+                  ),
+                }))
+              }
+              onRemoveDivider={(id) =>
+                updateConfig((prev) => ({
+                  ...prev,
+                  columnItems: (prev.columnItems ?? []).filter(
+                    (i) => !(isDivider(i) && i.id === id),
+                  ),
+                }))
+              }
+              activeId={activeId}
+              mode="selected"
+            />
+          </div>
+
+          {/* Selected column settings */}
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground shrink-0">
+              Selected column settings
             </p>
             <DroppableSelectedColumns
               columns={selectedColumnsInOrder}
@@ -313,15 +370,17 @@ export function ColumnsSection({
                   activeId={String(activeId)}
                   label={
                     (() => {
-                      const item = allItemsInOrder.find(
+                      const item = selectedItemsInOrder.find(
                         (i) =>
                           isDivider(i) && `divider-${i.id}` === String(activeId),
                       );
-                      return (item && isDivider(item) ? item.label : "Label divider") ?? "Label divider";
+                      return (item && isDivider(item) ? item.label : "Section label") ?? "Section label";
                     })()
                   }
                 />
-              ) : activeId && String(activeId).startsWith("available-") ? (
+              ) : activeId &&
+                (String(activeId).startsWith("available-") ||
+                  String(activeId).startsWith("left-selected-")) ? (
                 <AvailableDragPreview activeId={String(activeId)} />
               ) : null}
             </DragOverlay>,

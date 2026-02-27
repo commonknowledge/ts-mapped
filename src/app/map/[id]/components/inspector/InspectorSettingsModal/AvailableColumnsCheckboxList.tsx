@@ -1,6 +1,9 @@
 "use client";
 
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { SortableAvailableRow } from "./SortableAvailableRow";
 
 export function AvailableColumnsCheckboxList({
@@ -19,7 +22,7 @@ export function AvailableColumnsCheckboxList({
   activeId: string | null;
 }) {
   return (
-    <div className="rounded border border-dashed border-neutral-200 bg-neutral-50/50 p-2 min-h-[360px] max-h-[520px] overflow-y-auto space-y-1">
+    <div className="rounded border border-dashed border-neutral-200 bg-neutral-50/50 p-2 min-h-[360px] max-h-[630px] overflow-y-auto space-y-1">
       <SortableContext
         items={availableIds}
         strategy={verticalListSortingStrategy}

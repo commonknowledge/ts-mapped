@@ -32,6 +32,9 @@ export default function InspectorPanel({
 } = {}) {
   const [activeTab, setActiveTab] = useState("data");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsInitialDataSourceId, setSettingsInitialDataSourceId] = useState<
+    string | null
+  >(null);
   const [hoverArea] = useHoverArea();
   const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
@@ -116,6 +119,11 @@ export default function InspectorPanel({
 
   const markerCount = selectedRecords?.length || 0;
 
+  const openInspectorSettingsForDataSource = (dataSourceId: string) => {
+    setSettingsInitialDataSourceId(dataSourceId);
+    setSettingsOpen(true);
+  };
+
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
   };
@@ -197,6 +205,7 @@ export default function InspectorPanel({
         <InspectorSettingsModal
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
+          initialDataSourceId={settingsInitialDataSourceId}
         />
 
         {isDetailsView && (
@@ -248,6 +257,10 @@ export default function InspectorPanel({
                 isDetailsView={isDetailsView}
                 focusedRecord={focusedRecord}
                 type={type}
+                onOpenInspectorSettings={() => setSettingsOpen(true)}
+                onOpenInspectorSettingsForDataSource={
+                  openInspectorSettingsForDataSource
+                }
               />
             </UnderlineTabsContent>
           )}

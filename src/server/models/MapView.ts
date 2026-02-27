@@ -180,14 +180,27 @@ export const inspectorBoundaryTypes = Object.values(
  * - number: formatted number
  * - percentage: 0–100 (or 0–1) shown as progress bar
  * - scale: integer 0..scaleMax-1 (or 1..scaleMax), shown as N thin filled/grey bars
+ * - numberWithComparison: number plus variance % vs a chosen statistic (average, median, etc.)
  */
 export const inspectorColumnFormatSchema = z.enum([
   "text",
   "number",
   "percentage",
   "scale",
+  "numberWithComparison",
 ]);
 export type InspectorColumnFormat = z.infer<typeof inspectorColumnFormatSchema>;
+
+/** Statistic used as baseline for "number with comparison" format. */
+export const inspectorComparisonStatSchema = z.enum([
+  "average",
+  "median",
+  "min",
+  "max",
+]);
+export type InspectorComparisonStat = z.infer<
+  typeof inspectorComparisonStatSchema
+>;
 
 /**
  * Display metadata for a single column (label, format, scale size, bar colour)
@@ -201,6 +214,8 @@ export const inspectorColumnMetaSchema = z.object({
   scaleMax: z.number().int().min(2).max(10).optional(),
   /** Bar colour (CSS color) for percentage/scale bars. Empty = primary. */
   barColor: z.string().optional(),
+  /** For format "numberWithComparison": which statistic to compare against. */
+  comparisonStat: inspectorComparisonStatSchema.optional(),
 });
 export type InspectorColumnMeta = z.infer<typeof inspectorColumnMetaSchema>;
 

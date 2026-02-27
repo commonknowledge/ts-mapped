@@ -8,7 +8,6 @@ import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { AreaSetCodeLabels } from "@/labels";
 import { type DataSource } from "@/server/models/DataSource";
 import {
   type InspectorBoundaryConfig,
@@ -35,6 +34,10 @@ interface InspectorDataTabProps {
   isDetailsView: boolean;
   focusedRecord: SelectedRecord | null;
   type: LayerType | undefined;
+  /** When set, "Add a data source" opens the inspector settings modal instead of the data source picker */
+  onOpenInspectorSettings?: () => void;
+  /** Open inspector settings with a specific data source pre-selected (used by per-datasource cogs). */
+  onOpenInspectorSettingsForDataSource?: (dataSourceId: string) => void;
 }
 
 export default function InspectorDataTab({
@@ -43,6 +46,8 @@ export default function InspectorDataTab({
   isDetailsView,
   focusedRecord,
   type,
+  onOpenInspectorSettings,
+  onOpenInspectorSettingsForDataSource,
 }: InspectorDataTabProps) {
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
@@ -51,9 +56,8 @@ export default function InspectorDataTab({
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
   const initializationAttemptedRef = useRef(false);
-  const { areaToDisplay, primaryLabel, secondaryLabel, columnMetadata } =
-    useDisplayAreaStat(selectedBoundary);
-  const [selectedSecondaryArea] = useSelectedSecondaryArea();
+  useDisplayAreaStat(selectedBoundary);
+  useSelectedSecondaryArea();
 
   const addDataSourceToConfig = useCallback(
     (dataSourceId: string) => {
@@ -119,42 +123,27 @@ export default function InspectorDataTab({
     }));
   }, [isBoundary, selectedBoundary?.code, boundaryConfigs]);
 
-  const boundaryProperties = useMemo(() => {
-    if (!areaToDisplay) {
-      return properties;
-    }
-    const propertiesWithData = { ...properties };
-    if (primaryLabel) {
-      propertiesWithData[primaryLabel] = areaToDisplay.primaryDisplayValue;
-    }
-    if (secondaryLabel) {
-      propertiesWithData[secondaryLabel] = areaToDisplay.secondaryDisplayValue;
-    }
-    if (selectedSecondaryArea) {
-      propertiesWithData[
-        AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
-          "Secondary boundary"
-      ] = selectedSecondaryArea.name;
-    }
-    return propertiesWithData;
-  }, [
-    areaToDisplay,
-    properties,
-    primaryLabel,
-    secondaryLabel,
-    selectedSecondaryArea,
-  ]);
-
   // Initialise boundary inspector config from choropleth data source when empty
   useEffect(() => {
-    if (!view || type !== LayerType.Boundary || initializationAttemptedRef.current) return;
+    if (
+      !view ||
+      type !== LayerType.Boundary ||
+      initializationAttemptedRef.current
+    )
+      return;
     const hasBoundaries = boundaryConfigs.length > 0;
     const hasAreaDataSource = viewConfig.areaDataSourceId;
     if (!hasBoundaries && hasAreaDataSource) {
       initializationAttemptedRef.current = true;
       addDataSourceToConfig(viewConfig.areaDataSourceId);
     }
-  }, [view, type, viewConfig.areaDataSourceId, boundaryConfigs.length, addDataSourceToConfig]);
+  }, [
+    view,
+    type,
+    viewConfig.areaDataSourceId,
+    boundaryConfigs.length,
+    addDataSourceToConfig,
+  ]);
 
   const flyToMarker = () => {
     const map = mapRef?.current;
@@ -169,26 +158,16 @@ export default function InspectorDataTab({
       {isBoundary ? (
         <>
           <InspectorOnMapSection />
-          <PropertiesList
-            properties={boundaryProperties}
-            columnMetadata={columnMetadata}
-          />
           <section className="flex flex-col gap-3">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Data in this area
             </p>
-            {boundaryConfigs.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-neutral-200 py-6 text-center">
-                <p className="mb-3 text-sm text-muted-foreground">
-                  No data sources added yet
-                </p>
-                <DataSourceSelectButton
-                  className="mx-auto"
-                  onSelect={addDataSourceToConfig}
-                  selectButtonText="Add a data source"
-                />
-              </div>
-            ) : (
+            {boundaryConfigs.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No data sources added yet
+              </p>
+            )}
+            {boundaryConfigs.length > 0 && (
               <div className="flex flex-col gap-3">
                 {boundaryData.map((item) => (
                   <BoundaryDataPanel
@@ -201,10 +180,28 @@ export default function InspectorDataTab({
                     columnGroups={item.config.columnGroups}
                     layout={item.config.layout}
                     defaultExpanded={true}
+                    onOpenInspectorSettings={onOpenInspectorSettingsForDataSource}
                   />
                 ))}
               </div>
             )}
+            <div className="rounded-lg border border-dashed border-neutral-200 py-4 text-center">
+              {onOpenInspectorSettings ? (
+                <Button
+                  variant="outline"
+                  className="w-full max-w-[200px] mx-auto justify-center"
+                  onClick={onOpenInspectorSettings}
+                >
+                  Add a data source
+                </Button>
+              ) : (
+                <DataSourceSelectButton
+                  className="mx-auto"
+                  onSelect={addDataSourceToConfig}
+                  selectButtonText="Add a data source"
+                />
+              )}
+            </div>
           </section>
         </>
       ) : (
