@@ -316,7 +316,7 @@ export function ColumnsSection({
                         (i) =>
                           isDivider(i) && `divider-${i.id}` === String(activeId),
                       );
-                      return (item && isDivider(item) ? item.label : "Label divider") ?? "Label divider";
+                      return item && isDivider(item) ? item.label : "Label divider";
                     })()
                   }
                 />
