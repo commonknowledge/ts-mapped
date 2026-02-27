@@ -141,6 +141,8 @@ export function SortableColumnRow({
   columnName,
   displayName,
   onDisplayNameChange,
+  description,
+  onDescriptionChange,
   format = "text",
   onFormatChange,
   scaleMax = 3,
@@ -154,6 +156,8 @@ export function SortableColumnRow({
   columnName: string;
   displayName: string | undefined;
   onDisplayNameChange: (value: string) => void;
+  description?: string;
+  onDescriptionChange?: (value: string) => void;
   format?: InspectorColumnFormat;
   onFormatChange?: (format: InspectorColumnFormat) => void;
   scaleMax?: number;
@@ -166,6 +170,12 @@ export function SortableColumnRow({
   const [localDisplayName, setLocalDisplayName] = useState(displayName ?? "");
   useEffect(() => setLocalDisplayName(displayName ?? ""), [displayName]);
   const debouncedChange = useDebouncedCallback(onDisplayNameChange, 600);
+  const [localDescription, setLocalDescription] = useState(description ?? "");
+  useEffect(() => setLocalDescription(description ?? ""), [description]);
+  const debouncedDescriptionChange = useDebouncedCallback(
+    (v: string) => onDescriptionChange?.(v),
+    600,
+  );
 
   const [localScaleMax, setLocalScaleMax] = useState(String(scaleMax));
   useEffect(() => setLocalScaleMax(String(scaleMax)), [scaleMax]);
@@ -246,6 +256,24 @@ export function SortableColumnRow({
           onClick={(e) => e.stopPropagation()}
         />
       </div>
+      {onDescriptionChange && (
+        <div className="space-y-1">
+          <Label className="text-[10px] text-muted-foreground uppercase">
+            Description (tooltip)
+          </Label>
+          <Input
+            className="h-7 flex-1 min-w-0 text-sm"
+            placeholder="Shown on hover in inspector"
+            value={localDescription}
+            onChange={(e) => {
+              const v = e.target.value;
+              setLocalDescription(v);
+              debouncedDescriptionChange(v);
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
       {onFormatChange && (
         <div className="space-y-1">
           <Label className="text-[10px] text-muted-foreground uppercase">

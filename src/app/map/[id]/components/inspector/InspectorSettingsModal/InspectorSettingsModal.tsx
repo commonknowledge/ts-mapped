@@ -14,7 +14,7 @@ import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { useMapViews } from "../../../hooks/useMapViews";
 import { InspectorBoundaryConfigType } from "@/server/models/MapView";
 import type { DataSource } from "@/server/models/DataSource";
-import { dedupeColumns, dedupeColumnItems } from "../inspectorColumnOrder";
+import { normalizeInspectorBoundaryConfig } from "../inspectorColumnOrder";
 import { DataSourcesList } from "./DataSourcesList";
 import { InspectorFullPreview } from "../InspectorFullPreview";
 import { InspectorSourceConfigPanel } from "./InspectorSourceConfigPanel";
@@ -107,7 +107,7 @@ export default function InspectorSettingsModal({
     () =>
       selectedDataSourceId
         ? ((dataSources ?? []).find((ds) => ds.id === selectedDataSourceId) ??
-            null)
+          null)
         : null,
     [selectedDataSourceId, dataSources],
   );
@@ -115,23 +115,25 @@ export default function InspectorSettingsModal({
   const handleAddToInspector = useCallback(() => {
     if (!view || !selectedDataSourceId) return;
     const ds = (dataSources ?? []).find((d) => d.id === selectedDataSourceId);
-    const defaultConfig = ds?.defaultInspectorConfig;
-    const columns = dedupeColumns(defaultConfig?.columns ?? []);
-    const columnItems = dedupeColumnItems(defaultConfig?.columnItems);
-    const newConfig: InspectorBoundaryConfig = {
+    if (!ds) return;
+    const defaultConfig = ds.defaultInspectorConfig;
+    const allCols = ds.columnDefs.map((c) => c.name);
+    const raw: InspectorBoundaryConfig = {
       id: uuidv4(),
       dataSourceId: selectedDataSourceId,
-      name: defaultConfig?.name ?? ds?.name ?? "Boundary Data",
+      name: defaultConfig?.name ?? ds.name ?? "Boundary Data",
       type: defaultConfig?.type ?? InspectorBoundaryConfigType.Simple,
-      columns,
+      columns: defaultConfig?.columns ?? [],
       columnOrder: defaultConfig?.columnOrder,
-      columnItems,
+      columnItems: defaultConfig?.columnItems,
       columnMetadata: defaultConfig?.columnMetadata,
       columnGroups: defaultConfig?.columnGroups,
       layout: defaultConfig?.layout ?? "single",
       icon: defaultConfig?.icon,
       color: defaultConfig?.color,
     };
+    const newConfig =
+      normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
     const prev = view.inspectorConfig?.boundaries ?? [];
     updateView({
       ...view,
@@ -146,7 +148,7 @@ export default function InspectorSettingsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="h-[85vh] flex flex-col p-0 gap-0 overflow-hidden"
-        style={{ width: "90vw", maxWidth: "1400px" }}
+        style={{ width: "90vw", maxWidth: "1800px" }}
         onPointerDownOutside={() => setSelectedDataSourceId(null)}
       >
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">

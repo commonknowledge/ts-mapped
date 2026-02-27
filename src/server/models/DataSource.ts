@@ -259,6 +259,7 @@ export const dataSourceSchema = z.object({
   defaultInspectorConfig: defaultInspectorBoundaryConfigSchema
     .nullable()
     .optional(),
+  defaultInspectorConfigUpdatedAt: z.coerce.date().nullable().optional(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;

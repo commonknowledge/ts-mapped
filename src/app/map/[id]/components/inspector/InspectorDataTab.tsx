@@ -22,9 +22,8 @@ import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import {
-  dedupeColumns,
-  dedupeColumnItems,
   getSelectedColumnsOrdered,
+  normalizeInspectorBoundaryConfig,
 } from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
 import PropertiesList from "./PropertiesList";
@@ -60,23 +59,25 @@ export default function InspectorDataTab({
     (dataSourceId: string) => {
       if (!view) return;
       const ds = getDataSourceById(dataSourceId);
-      const defaultConfig = ds?.defaultInspectorConfig;
-      const columns = dedupeColumns(defaultConfig?.columns ?? []);
-      const columnItems = dedupeColumnItems(defaultConfig?.columnItems);
-      const newBoundaryConfig: InspectorBoundaryConfig = {
+      if (!ds) return;
+      const defaultConfig = ds.defaultInspectorConfig;
+      const allCols = ds.columnDefs.map((c) => c.name);
+      const raw: InspectorBoundaryConfig = {
         id: uuidv4(),
         dataSourceId,
-        name: defaultConfig?.name ?? ds?.name ?? "Boundary Data",
+        name: defaultConfig?.name ?? ds.name ?? "Boundary Data",
         type: defaultConfig?.type ?? InspectorBoundaryConfigType.Simple,
-        columns,
+        columns: defaultConfig?.columns ?? [],
         columnOrder: defaultConfig?.columnOrder,
-        columnItems,
+        columnItems: defaultConfig?.columnItems,
         columnMetadata: defaultConfig?.columnMetadata,
         columnGroups: defaultConfig?.columnGroups,
         layout: defaultConfig?.layout ?? "single",
         icon: defaultConfig?.icon,
         color: defaultConfig?.color,
       };
+      const newBoundaryConfig =
+        normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
       const prev = view.inspectorConfig?.boundaries || [];
       updateView({
         ...view,

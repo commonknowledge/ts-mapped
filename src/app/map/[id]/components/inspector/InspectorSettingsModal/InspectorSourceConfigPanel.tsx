@@ -1,8 +1,10 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LayoutGrid, LayoutList, PlusIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import { toast } from "sonner";
+import { useTRPC } from "@/services/trpc/react";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import {
@@ -17,16 +19,32 @@ import { useDebouncedCallback } from "../../../hooks/useDebouncedCallback";
 import {
   getAllColumnsSorted,
   getColumnOrderState,
+  normalizeInspectorBoundaryConfig,
 } from "../inspectorColumnOrder";
 import {
   INSPECTOR_COLOR_OPTIONS,
   INSPECTOR_ICON_OPTIONS,
 } from "../inspectorPanelOptions";
-import type { DataSource } from "@/server/models/DataSource";
 import { ColumnsSection } from "./ColumnsSection";
-import { DEFAULT_SELECT_VALUE } from "./constants";
-import { inferFormat } from "./constants";
+import { DEFAULT_SELECT_VALUE, inferFormat } from "./constants";
 import type { InspectorLayout } from "./constants";
+import type { useMapViews } from "../../../hooks/useMapViews";
+import type { DataSource } from "@/server/models/DataSource";
+import type {
+  DefaultInspectorBoundaryConfig,
+  InspectorBoundaryConfig,
+} from "@/server/models/MapView";
+
+export type ReadableDataSource = DataSource & { isOwner?: boolean };
+
+function toDefaultConfig(
+  config: InspectorBoundaryConfig,
+): DefaultInspectorBoundaryConfig {
+  const { id: _unusedId, dataSourceId: _unusedDsId, ...rest } = config;
+  void _unusedId;
+  void _unusedDsId;
+  return rest;
+}
 
 export function InspectorSourceConfigPanel({
   dataSource,
@@ -36,17 +54,40 @@ export function InspectorSourceConfigPanel({
   getLatestView,
   updateView,
 }: {
-  dataSource: DataSource;
+  dataSource: ReadableDataSource;
   config: InspectorBoundaryConfig | null;
   onAddToInspector: () => void;
   isInInspector: boolean;
-  getLatestView: ReturnType<
-    typeof import("../../../hooks/useMapViews").useMapViews
-  >["getLatestView"];
-  updateView: ReturnType<
-    typeof import("../../../hooks/useMapViews").useMapViews
-  >["updateView"];
+  getLatestView: ReturnType<typeof useMapViews>["getLatestView"];
+  updateView: ReturnType<typeof useMapViews>["updateView"];
 }) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { mutateAsync: saveAsDefault } = useMutation(
+    trpc.dataSource.updateConfig.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: trpc.dataSource.listReadable.queryKey(),
+        });
+        toast.success("Default inspector settings updated.");
+      },
+      onError: (err) => {
+        toast.error(
+          err.message ?? "Failed to save as default inspector settings.",
+        );
+      },
+    }),
+  );
+  const debouncedSaveAsDefault = useDebouncedCallback(
+    (cfg: InspectorBoundaryConfig) => {
+      if (!dataSource.isOwner) return;
+      saveAsDefault({
+        dataSourceId: dataSource.id,
+        defaultInspectorConfig: toDefaultConfig(cfg),
+      });
+    },
+    1500,
+  );
   const columns = config?.columns ?? [];
   const allColumnNames = useMemo(
     () => dataSource.columnDefs.map((c) => c.name),
@@ -78,14 +119,24 @@ export function InspectorSourceConfigPanel({
       const index = boundaries.findIndex((c) => c.id === config.id);
       if (index < 0) return;
       const updated = updater(boundaries[index]);
+      const normalized =
+        normalizeInspectorBoundaryConfig(updated, allColumnNames) ?? updated;
       const next = [...boundaries];
-      next[index] = updated;
+      next[index] = normalized;
       updateView({
         ...latestView,
         inspectorConfig: { ...latestView.inspectorConfig, boundaries: next },
       });
+      if (dataSource.isOwner) debouncedSaveAsDefault(normalized);
     },
-    [config, getLatestView, updateView],
+    [
+      config,
+      dataSource.isOwner,
+      debouncedSaveAsDefault,
+      getLatestView,
+      updateView,
+      allColumnNames,
+    ],
   );
 
   const [displayName, setDisplayName] = useState(config?.name ?? "");

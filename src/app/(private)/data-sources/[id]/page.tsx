@@ -23,7 +23,7 @@ export default function DataSourcePage({
     ),
   );
 
-  if (isFetching) {
+  if (isFetching && !dataSource) {
     return (
       <div className="flex justify-center py-8">
         <LoaderPinwheel className="animate-spin" />

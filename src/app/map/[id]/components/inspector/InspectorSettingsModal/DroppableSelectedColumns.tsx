@@ -67,6 +67,19 @@ export function DroppableSelectedColumns({
                       },
                     }))
                   }
+                  description={meta[col]?.description}
+                  onDescriptionChange={(value) =>
+                    updateConfig((prev) => ({
+                      ...prev,
+                      columnMetadata: {
+                        ...(prev.columnMetadata ?? {}),
+                        [col]: {
+                          ...(prev.columnMetadata?.[col] ?? {}),
+                          description: value || undefined,
+                        },
+                      },
+                    }))
+                  }
                   format={meta[col]?.format ?? "text"}
                   onFormatChange={(format) =>
                     updateConfig((prev) => ({

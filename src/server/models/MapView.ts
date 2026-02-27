@@ -194,6 +194,8 @@ export type InspectorColumnFormat = z.infer<typeof inspectorColumnFormatSchema>;
  */
 export const inspectorColumnMetaSchema = z.object({
   displayName: z.string().optional(),
+  /** Shown as tooltip on the column label in the inspector. */
+  description: z.string().optional(),
   format: inspectorColumnFormatSchema.optional(),
   /** For format "scale": max value (e.g. 3 for a 0–2 or 1–3 scale). Number of bars shown. */
   scaleMax: z.number().int().min(2).max(10).optional(),

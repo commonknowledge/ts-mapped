@@ -174,7 +174,9 @@ function BoundaryDataProperties({
     const meta = columnMetadata ?? {};
     const columnsSet = new Set(columns);
 
-    if (columnItems?.length) {
+    // Use columnItems order only when it contains dividers (matches settings panel).
+    // Otherwise use the columns prop order (already from getSelectedColumnsOrdered).
+    if (columnItems?.length && columnItems.some(isColumnItemDivider)) {
       const ordered: PropertyEntry[] = [];
       let currentGroupLabel: string | undefined;
       for (const item of columnItems) {
@@ -202,6 +204,7 @@ function BoundaryDataProperties({
               ordered.length,
               m?.barColor,
             ),
+            description: m?.description,
           });
         }
       }
@@ -232,6 +235,7 @@ function BoundaryDataProperties({
             ordered.length,
             m?.barColor,
           ),
+          description: m?.description,
         });
       });
     });
@@ -247,6 +251,7 @@ function BoundaryDataProperties({
         format: m?.format,
         scaleMax: m?.scaleMax,
         barColor: getBarColorForLabel(label, col, ordered.length, m?.barColor),
+        description: m?.description,
       });
     });
     return ordered;

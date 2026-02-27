@@ -28,8 +28,9 @@ export default function MapWrapper({
 }) {
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
-  const { inspectorContent } = useInspector();
-  const inspectorVisible = Boolean(inspectorContent);
+  useInspector();
+  // Inspector panel is always visible (open by default); reserve space for it
+  const inspectorVisible = true;
   const { boundariesPanelOpen } = useChoropleth();
   const compareGeographiesMode = useCompareGeographiesMode();
   const {

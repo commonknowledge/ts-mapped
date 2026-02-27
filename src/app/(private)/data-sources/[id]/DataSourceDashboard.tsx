@@ -31,7 +31,6 @@ import {
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
-import ColumnMetadataForm from "./components/ColumnMetadataForm";
 import ConfigurationForm from "./components/ConfigurationForm";
 import { DefaultInspectorConfigSection } from "./components/DefaultInspectorConfigSection";
 import type { RouterOutputs } from "@/services/trpc/react";
@@ -41,6 +40,7 @@ export function DataSourceDashboard({
 }: {
   dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
 }) {
+  const [dataSourceTab, setDataSourceTab] = useState("datasource");
   const [importing, setImporting] = useState(isImporting(dataSource));
   const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
@@ -224,13 +224,32 @@ export function DataSourceDashboard({
         </Alert>
       )}
 
-      <Tabs defaultValue="datasource" className="w-full">
+      <Tabs
+        value={dataSourceTab}
+        onValueChange={setDataSourceTab}
+        className="w-full"
+      >
         <TabsList>
-          <TabsTrigger value="datasource">Datasource settings</TabsTrigger>
+          <TabsTrigger value="datasource">
+            Datasource import settings
+          </TabsTrigger>
           <TabsTrigger value="inspector">Inspector settings</TabsTrigger>
         </TabsList>
         <TabsContent value="datasource" className="mt-6">
           <div className="grid grid-cols-2 gap-20 pb-10">
+            <div className="flex flex-col gap-6">
+              <h2 className="font-medium text-xl">Configuration</h2>
+              <ConfigurationForm
+                dataSource={dataSource}
+                onAutoImportChange={setAutoImportEnabled}
+                webhookStatus={webhookStatus}
+              />
+              <Separator />
+              <h2 className="font-medium text-xl">Danger zone</h2>
+              <div>
+                <DeleteDataSourceButton dataSource={dataSource} />
+              </div>
+            </div>
             <div className="flex flex-col gap-6">
               <h2 className="font-medium text-xl">About this data source</h2>
               <DefinitionList
@@ -246,21 +265,6 @@ export function DataSourceDashboard({
                     : mappedInformation
                 }
               />
-              <ColumnMetadataForm dataSource={dataSource} />
-            </div>
-
-            <div className="flex flex-col gap-6">
-              <h2 className="font-medium text-xl">Configuration</h2>
-              <ConfigurationForm
-                dataSource={dataSource}
-                onAutoImportChange={setAutoImportEnabled}
-                webhookStatus={webhookStatus}
-              />
-              <Separator />
-              <h2 className="font-medium text-xl">Danger zone</h2>
-              <div>
-                <DeleteDataSourceButton dataSource={dataSource} />
-              </div>
             </div>
           </div>
         </TabsContent>

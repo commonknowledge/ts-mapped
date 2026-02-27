@@ -139,6 +139,7 @@ export interface DataSource {
   recordCount: number; // integer, NOT NULL, DEFAULT 0
   createdAt: Date; // timestamp, DEFAULT CURRENT_TIMESTAMP, NOT NULL
   defaultInspectorConfig: unknown | null; // jsonb, NULL – default inspector settings for public data sources
+  defaultInspectorConfigUpdatedAt: Date | null; // timestamptz, NULL – when default inspector config was last saved
 
   // FOREIGN KEYS:
   // - organisationId -> organisation.id (CASCADE DELETE, CASCADE UPDATE)

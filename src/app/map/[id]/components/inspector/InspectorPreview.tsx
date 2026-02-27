@@ -41,7 +41,7 @@ export function InspectorPreview({
             <TogglePanel
               key={config.id}
               label={config.name}
-              icon={type ? <DataSourceIcon type={type} className="shrink-0" /> : undefined}
+              icon={type ? <span className="shrink-0"><DataSourceIcon type={type} /></span> : undefined}
               defaultExpanded={true}
             >
               <div className="pl-1 pt-1">

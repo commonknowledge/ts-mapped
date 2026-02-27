@@ -78,8 +78,35 @@ export default function InspectorPanel({
     return activeTab;
   }, [activeTab, hasConfig, hasData, hasMarkers]);
 
-  if (!Boolean(inspectorContent)) {
-    return <></>;
+  const isEmpty = !Boolean(inspectorContent);
+
+  if (isEmpty) {
+    return (
+      <div
+        id="inspector-panel"
+        className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
+        style={{
+          width: "300px",
+          maxHeight: "calc(100% - 80px)",
+          paddingTop: boundaryHoverVisible ? "80px" : "20px",
+          paddingBottom: "20px",
+          transition: "padding-top 0.3s",
+        }}
+      >
+        <div
+          className={cn(
+            "relative z-50 w-full flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+            "min-h-0 p-3",
+          )}
+        >
+          <h1 className="grow text-sm font-semibold mb-2">Inspector</h1>
+          <p className="text-sm text-muted-foreground">
+            Select a marker, area or boundary (via the data visualisation
+            panel) to inspect its data
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const isDetailsView = Boolean(

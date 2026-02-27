@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { getDataSourceType } from "@/components/DataSourceItem";
 import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import type { DataSource } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
@@ -88,6 +87,7 @@ export function DefaultInspectorPreview({
             index,
             m?.barColor,
           ),
+          description: m?.description,
         });
         index += 1;
       }
@@ -95,11 +95,13 @@ export function DefaultInspectorPreview({
     return result;
   }, [config, allColumnNames, sampleRow]);
 
-  const dataSourceType = getDataSourceType(dataSource);
+  const dataSourceType = dataSource.config?.type ?? "unknown";
   const panelIcon = config.icon ? (
     <InspectorPanelIcon iconName={config.icon} className="h-4 w-4 shrink-0" />
   ) : (
-    <DataSourceIcon type={dataSourceType} className="shrink-0" />
+    <span className="shrink-0">
+      <DataSourceIcon type={dataSourceType} />
+    </span>
   );
 
   return (
