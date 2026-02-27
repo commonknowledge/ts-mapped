@@ -1,3 +1,4 @@
+import { sql } from "kysely";
 import { db } from "@/server/services/database";
 import type { NewOrganisationUser } from "@/server/models/OrganisationUser";
 
@@ -35,6 +36,6 @@ export function findUsersByOrganisationId(organisationId: string) {
     .innerJoin("user", "user.id", "organisationUser.userId")
     .where("organisationUser.organisationId", "=", organisationId)
     .select(["user.id", "user.email", "user.name", "user.avatarUrl"])
-    .orderBy("user.name asc nulls last")
+    .orderBy(sql`NULLIF(${sql.ref("user.name")}, '') asc nulls last`)
     .execute();
 }

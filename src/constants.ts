@@ -23,6 +23,8 @@ export const MAX_COLUMN_KEY = "__maxColumn";
 
 export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
 
+export const ORGANISATION_COOKIE_NAME = "MappedOrgId";
+
 // Special sort columns
 export const SORT_BY_LOCATION = "__location";
 // Special sort column to sort by `dataSource.columnRoles.nameColumns`

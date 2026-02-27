@@ -1,20 +1,17 @@
 "use client";
 
 import { createContext, useCallback, useState } from "react";
+import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import type { Organisation } from "@/server/models/Organisation";
 
-const STORAGE_KEY = "mapped:organisationId";
-
 function getInitialOrganisationId(
-  initialOrganisations: Organisation[],
+  organisations: Organisation[],
+  storedOrgId: string | null,
 ): string | null {
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && initialOrganisations.some((org) => org.id === stored)) {
-      return stored;
-    }
+  if (storedOrgId && organisations.some((org) => org.id === storedOrgId)) {
+    return storedOrgId;
   }
-  return initialOrganisations.length ? initialOrganisations[0].id : null;
+  return organisations.length ? organisations[0].id : null;
 }
 
 export const OrganisationsContext = createContext<{
@@ -28,20 +25,19 @@ export const OrganisationsContext = createContext<{
 });
 
 export default function OrganisationsProvider({
-  initialOrganisations,
+  organisations,
+  storedOrgId,
   children,
 }: {
-  initialOrganisations: Organisation[];
+  organisations: Organisation[];
+  storedOrgId: string | null;
   children: React.ReactNode;
 }) {
   const [organisationId, setOrganisationIdState] = useState<string | null>(() =>
-    getInitialOrganisationId(initialOrganisations),
+    getInitialOrganisationId(organisations, storedOrgId),
   );
-
   const setOrganisationId = useCallback((id: string) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, id);
-    }
+    document.cookie = `${ORGANISATION_COOKIE_NAME}=${encodeURIComponent(id)}; path=/; max-age=${60 * 60 * 24 * 365}`;
     setOrganisationIdState(id);
   }, []);
 

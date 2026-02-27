@@ -1,6 +1,8 @@
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { cookies } from "next/headers";
 import { getServerSession } from "@/auth";
+import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import NProgressProvider from "@/providers/NProgressProvider";
 import OrganisationsProvider from "@/providers/OrganisationsProvider";
 import { PostHogProvider } from "@/providers/PostHogProvider";
@@ -59,6 +61,9 @@ export default async function RootLayout({
     );
   }
 
+  const cookieStore = await cookies();
+  const storedOrgId = cookieStore.get(ORGANISATION_COOKIE_NAME)?.value ?? null;
+
   return (
     <html
       lang="en"
@@ -69,7 +74,10 @@ export default async function RootLayout({
           <HydrationBoundary state={dehydrate(queryClient)}>
             <ServerSessionProvider serverSession={serverSession}>
               <PostHogProvider>
-                <OrganisationsProvider initialOrganisations={organisations}>
+                <OrganisationsProvider
+                  organisations={organisations}
+                  storedOrgId={storedOrgId}
+                >
                   <NProgressProvider>
                     <main className="min-h-screen relative z-10">
                       {children}
