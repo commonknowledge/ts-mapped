@@ -385,7 +385,7 @@ export function InspectorSourceConfigPanel({
           handleRemoveColumn={handleRemoveColumn}
           handleRemoveColumnFromRight={handleRemoveColumnFromRight}
         />
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }

@@ -12,25 +12,22 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
-import type {
-  InspectorBoundaryConfig,
-  InspectorColumnItem,
-} from "@/server/models/MapView";
+import { v4 as uuidv4 } from "uuid";
 import { Label } from "@/shadcn/ui/label";
-import { inferFormat } from "./constants";
 import { AvailableListWithDividers } from "./AvailableListWithDividers";
+import { inferFormat } from "./constants";
+import { AVAILABLE_DROPPABLE_ID, SELECTED_DROPPABLE_ID } from "./constants";
 import {
   AvailableDragPreview,
   ColumnDragPreview,
   DividerDragPreview,
 } from "./DragPreviews";
 import { DroppableSelectedColumns } from "./DroppableSelectedColumns";
+import type {
+  InspectorBoundaryConfig,
+  InspectorColumnItem,
+} from "@/server/models/MapView";
 import type { DragEndEvent } from "@dnd-kit/core";
-import { v4 as uuidv4 } from "uuid";
-import {
-  AVAILABLE_DROPPABLE_ID,
-  SELECTED_DROPPABLE_ID,
-} from "./constants";
 
 function isDivider(
   item: InspectorColumnItem,
@@ -39,10 +36,8 @@ function isDivider(
 }
 
 export function ColumnsSection({
-  config,
   allColumnsInOrder,
   selectedColumnsInOrder,
-  selectedItemsInOrder,
   allItemsInOrder,
   availableColumns,
   availableIds,
@@ -217,7 +212,8 @@ export function ColumnsSection({
               updateConfig((prev) => ({
                 ...prev,
                 columns: [],
-                columnItems: prev.columnItems?.filter(isDivider) ?? prev.columnItems,
+                columnItems:
+                  prev.columnItems?.filter(isDivider) ?? prev.columnItems,
               }))
             }
             disabled={columns.length === 0}
@@ -309,16 +305,15 @@ export function ColumnsSection({
                 />
               ) : activeId && String(activeId).startsWith("divider-") ? (
                 <DividerDragPreview
-                  activeId={String(activeId)}
-                  label={
-                    (() => {
-                      const item = allItemsInOrder.find(
-                        (i) =>
-                          isDivider(i) && `divider-${i.id}` === String(activeId),
-                      );
-                      return item && isDivider(item) ? item.label : "Label divider";
-                    })()
-                  }
+                  label={(() => {
+                    const item = allItemsInOrder.find(
+                      (i) =>
+                        isDivider(i) && `divider-${i.id}` === String(activeId),
+                    );
+                    return item && isDivider(item)
+                      ? item.label
+                      : "Label divider";
+                  })()}
                 />
               ) : activeId && String(activeId).startsWith("available-") ? (
                 <AvailableDragPreview activeId={String(activeId)} />

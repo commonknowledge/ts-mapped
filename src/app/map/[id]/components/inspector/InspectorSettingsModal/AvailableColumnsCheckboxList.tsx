@@ -1,6 +1,9 @@
 "use client";
 
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { SortableAvailableRow } from "./SortableAvailableRow";
 
 export function AvailableColumnsCheckboxList({

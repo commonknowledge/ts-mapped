@@ -101,8 +101,8 @@ export default function InspectorPanel({
         >
           <h1 className="grow text-sm font-semibold mb-2">Inspector</h1>
           <p className="text-sm text-muted-foreground">
-            Select a marker, area or boundary (via the data visualisation
-            panel) to inspect its data
+            Select a marker, area or boundary (via the data visualisation panel)
+            to inspect its data
           </p>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import { InspectorBoundaryConfigType } from "@/server/models/MapView";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,12 @@ import {
 import { useDataSources } from "../../../hooks/useDataSources";
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { useMapViews } from "../../../hooks/useMapViews";
-import { InspectorBoundaryConfigType } from "@/server/models/MapView";
-import type { DataSource } from "@/server/models/DataSource";
 import { normalizeInspectorBoundaryConfig } from "../inspectorColumnOrder";
-import { DataSourcesList } from "./DataSourcesList";
 import { InspectorFullPreview } from "../InspectorFullPreview";
+import { DataSourcesList } from "./DataSourcesList";
 import { InspectorSourceConfigPanel } from "./InspectorSourceConfigPanel";
+import type { DataSource } from "@/server/models/DataSource";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 export default function InspectorSettingsModal({
   open,
@@ -34,7 +34,10 @@ export default function InspectorSettingsModal({
   const { data: dataSources, getDataSourceById } = useDataSources();
   const { view, viewConfig, getLatestView, updateView } = useMapViews();
 
-  const boundaryConfigs = view?.inspectorConfig?.boundaries ?? [];
+  const boundaryConfigs = useMemo(
+    () => view?.inspectorConfig?.boundaries ?? [],
+    [view?.inspectorConfig?.boundaries],
+  );
   const onMapId = viewConfig.areaDataSourceId || null;
 
   const filteredSources = useMemo(() => {
@@ -132,8 +135,7 @@ export default function InspectorSettingsModal({
       icon: defaultConfig?.icon,
       color: defaultConfig?.color,
     };
-    const newConfig =
-      normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
+    const newConfig = normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
     const prev = view.inspectorConfig?.boundaries ?? [];
     updateView({
       ...view,

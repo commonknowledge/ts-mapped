@@ -147,14 +147,25 @@ export default function InspectorDataTab({
 
   // Initialise boundary inspector config from choropleth data source when empty
   useEffect(() => {
-    if (!view || type !== LayerType.Boundary || initializationAttemptedRef.current) return;
+    if (
+      !view ||
+      type !== LayerType.Boundary ||
+      initializationAttemptedRef.current
+    )
+      return;
     const hasBoundaries = boundaryConfigs.length > 0;
     const hasAreaDataSource = viewConfig.areaDataSourceId;
     if (!hasBoundaries && hasAreaDataSource) {
       initializationAttemptedRef.current = true;
       addDataSourceToConfig(viewConfig.areaDataSourceId);
     }
-  }, [view, type, viewConfig.areaDataSourceId, boundaryConfigs.length, addDataSourceToConfig]);
+  }, [
+    view,
+    type,
+    viewConfig.areaDataSourceId,
+    boundaryConfigs.length,
+    addDataSourceToConfig,
+  ]);
 
   const flyToMarker = () => {
     const map = mapRef?.current;

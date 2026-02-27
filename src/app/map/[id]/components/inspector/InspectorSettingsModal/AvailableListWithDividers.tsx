@@ -1,13 +1,16 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { cn } from "@/shadcn/utils";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useMemo } from "react";
-import type { InspectorColumnItem } from "@/server/models/MapView";
+import { cn } from "@/shadcn/utils";
+import { AVAILABLE_DROPPABLE_ID } from "./constants";
 import { SortableAvailableRow } from "./SortableAvailableRow";
 import { SortableDividerRow } from "./SortableDividerRow";
-import { AVAILABLE_DROPPABLE_ID } from "./constants";
+import type { InspectorColumnItem } from "@/server/models/MapView";
 
 function isDivider(
   item: InspectorColumnItem,
@@ -73,7 +76,10 @@ export function AvailableListWithDividers({
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-2 pt-0 space-y-1">
-        <SortableContext items={availableIds} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={availableIds}
+          strategy={verticalListSortingStrategy}
+        >
           {visibleWithIndex.map(({ item, index }) =>
             typeof item === "string" ? (
               <SortableAvailableRow

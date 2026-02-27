@@ -222,8 +222,12 @@ describe("importDataSource tests", () => {
 
     expect(columnDefs).toEqual([
       { name: "Code", type: ColumnType.String },
+      { name: "Con %", type: ColumnType.Number },
       { name: "Electorate", type: ColumnType.Number },
+      { name: "Lab %", type: ColumnType.Number },
       { name: "Name", type: ColumnType.String },
+      { name: "Segment", type: ColumnType.Number },
+      { name: "Segment name", type: ColumnType.String },
     ]);
 
     const areaStats = await getAreaStats({
@@ -248,16 +252,20 @@ describe("importDataSource tests", () => {
 
     expect(stats).toEqual([
       {
-        areaCode: "E14001070",
-        value: 71002,
-      },
-      {
         areaCode: "E14001071",
         value: 79169,
       },
       {
         areaCode: "E14001088",
-        value: 72198,
+        value: 72199,
+      },
+      {
+        areaCode: "E14001092",
+        value: 71002,
+      },
+      {
+        areaCode: "E14001225",
+        value: 72481,
       },
     ]);
   });

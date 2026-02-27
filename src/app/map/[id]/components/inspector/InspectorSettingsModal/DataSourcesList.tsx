@@ -1,13 +1,13 @@
 "use client";
 
+import { MapPin, XCircle } from "lucide-react";
 import { useMemo } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
-import { MapPin, XCircle } from "lucide-react";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import type { DataSource } from "@/server/models/DataSource";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 const GROUP_LABEL_USER = "User data";
 const GROUP_LABEL_PUBLIC = "Public data";
@@ -28,10 +28,10 @@ export function DataSourcesList({
 }: {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  inspectorOrdered: Array<{
+  inspectorOrdered: {
     config: InspectorBoundaryConfig;
     dataSource: DataSource;
-  }>;
+  }[];
   otherSources: DataSource[];
   onMapId: string | null;
   selectedDataSourceId: string | null;
@@ -43,7 +43,9 @@ export function DataSourcesList({
       inspectorUser: inspectorOrdered.filter(({ dataSource: ds }) =>
         isUserDataSource(ds),
       ),
-      inspectorPublic: inspectorOrdered.filter(({ dataSource: ds }) => ds.public),
+      inspectorPublic: inspectorOrdered.filter(
+        ({ dataSource: ds }) => ds.public,
+      ),
       otherUser: otherSources.filter(isUserDataSource),
       otherPublic: otherSources.filter((ds) => ds.public),
     }),
@@ -64,9 +66,7 @@ export function DataSourcesList({
         key={ds.id}
         className={cn(
           "rounded-lg border transition-colors flex items-center gap-2",
-          isSelected
-            ? "bg-primary/10 border-primary/30"
-            : "border-transparent",
+          isSelected ? "bg-primary/10 border-primary/30" : "border-transparent",
         )}
       >
         <button

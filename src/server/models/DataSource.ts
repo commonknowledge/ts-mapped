@@ -260,6 +260,7 @@ export const dataSourceSchema = z.object({
     .nullable()
     .optional(),
   defaultInspectorConfigUpdatedAt: z.coerce.date().nullable().optional(),
+  nullIsZero: z.boolean().optional(),
 });
 
 export type DataSource = z.infer<typeof dataSourceSchema>;
