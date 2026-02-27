@@ -32,9 +32,8 @@ export default function InspectorPanel({
 } = {}) {
   const [activeTab, setActiveTab] = useState("data");
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsInitialDataSourceId, setSettingsInitialDataSourceId] = useState<
-    string | null
-  >(null);
+  const [settingsInitialDataSourceId, setSettingsInitialDataSourceId] =
+    useState<string | null>(null);
   const [hoverArea] = useHoverArea();
   const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
@@ -177,7 +176,7 @@ export default function InspectorPanel({
           <h1 className="grow flex gap-2 items-center min-w-0 truncate / text-sm font-semibold">
             {type === LayerType.Boundary && areaToDisplay?.backgroundColor && (
               <span
-                className="w-4 h-4 rounded shrink-0"
+                className="w-4 h-4 rounded shrink-0 border border-neutral-200"
                 style={{ backgroundColor: areaToDisplay.backgroundColor }}
               />
             )}
