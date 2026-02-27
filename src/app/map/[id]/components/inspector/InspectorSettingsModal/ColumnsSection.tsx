@@ -12,25 +12,25 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import type {
-  InspectorBoundaryConfig,
-  InspectorColumnItem,
-} from "@/server/models/MapView";
+import { v4 as uuidv4 } from "uuid";
 import { Label } from "@/shadcn/ui/label";
-import { inferFormat } from "./constants";
 import { AvailableListWithDividers } from "./AvailableListWithDividers";
+import {
+  SELECTED_DROPPABLE_ID,
+  SELECTED_LEFT_DROPPABLE_ID,
+  inferFormat,
+} from "./constants";
 import {
   AvailableDragPreview,
   ColumnDragPreview,
   DividerDragPreview,
 } from "./DragPreviews";
 import { DroppableSelectedColumns } from "./DroppableSelectedColumns";
+import type {
+  InspectorBoundaryConfig,
+  InspectorColumnItem,
+} from "@/server/models/MapView";
 import type { DragEndEvent } from "@dnd-kit/core";
-import { v4 as uuidv4 } from "uuid";
-import {
-  SELECTED_DROPPABLE_ID,
-  SELECTED_LEFT_DROPPABLE_ID,
-} from "./constants";
 
 function isDivider(
   item: InspectorColumnItem,
@@ -39,7 +39,6 @@ function isDivider(
 }
 
 export function ColumnsSection({
-  config,
   allColumnsInOrder,
   selectedColumnsInOrder,
   selectedItemsInOrder,
@@ -170,7 +169,6 @@ export function ColumnsSection({
       updateConfig,
       allColumnsInOrder,
       selectedColumnsInOrder,
-      columns,
     ],
   );
 
@@ -225,7 +223,8 @@ export function ColumnsSection({
               updateConfig((prev) => ({
                 ...prev,
                 columns: [],
-                columnItems: prev.columnItems?.filter(isDivider) ?? prev.columnItems,
+                columnItems:
+                  prev.columnItems?.filter(isDivider) ?? prev.columnItems,
               }))
             }
             disabled={columns.length === 0}
@@ -367,7 +366,6 @@ export function ColumnsSection({
                 />
               ) : activeId && String(activeId).startsWith("divider-") ? (
                 <DividerDragPreview
-                  activeId={String(activeId)}
                   label={
                     (() => {
                       const item = selectedItemsInOrder.find(

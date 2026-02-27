@@ -413,7 +413,7 @@ export function InspectorSourceConfigPanel({
               })}
             </p>
           )}
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }

@@ -18,13 +18,13 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { cn } from "@/shadcn/utils";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import { getSelectedColumnsOrdered } from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 /**
@@ -43,7 +43,10 @@ export function InspectorFullPreview({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { selectedBoundary } = useInspector();
   const { view, getLatestView, updateView } = useMapViews();
-  const boundaryConfigs = view?.inspectorConfig?.boundaries ?? [];
+  const boundaryConfigs = useMemo(
+    () => view?.inspectorConfig?.boundaries ?? [],
+    [view?.inspectorConfig?.boundaries],
+  );
 
   useEffect(() => {
     if (!selectedDataSourceId) return;
@@ -102,7 +105,9 @@ export function InspectorFullPreview({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   return (

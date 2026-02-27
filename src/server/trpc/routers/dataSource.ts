@@ -247,6 +247,7 @@ export const dataSourceRouter = router({
         ...(input.defaultInspectorConfig !== undefined && {
           defaultInspectorConfigUpdatedAt: new Date(),
         }),
+        nullIsZero: input.nullIsZero,
       } as DataSourceUpdate;
 
       logger.info(

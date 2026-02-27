@@ -168,8 +168,6 @@ export default function VisualisationPanel({
       dataSource?.geocodingConfig,
       viewConfig.areaSetGroupCode,
     );
-  const showEmptyZeroSwitch = !isCount && columnOneIsNumber;
-
   const showStyle = !viewConfig.areaDataSecondaryColumn;
   const canSelectColorScale = isCount || columnOneIsNumber;
   const canSelectColorScheme = canSelectColorScale && !isCategorical;
@@ -443,26 +441,6 @@ export default function VisualisationPanel({
               </Select>
             </>
           )}
-
-          {showEmptyZeroSwitch && (
-            <div className="col-span-2 flex items-center gap-2">
-              <Label
-                htmlFor="choropleth-empty-zero-switch"
-                className="text-sm text-muted-foreground font-normal"
-              >
-                Treat empty values as zero
-              </Label>
-
-              <Switch
-                id="choropleth-empty-zero-switch"
-                checked={Boolean(viewConfig.areaDataNullIsZero)}
-                onCheckedChange={(v) =>
-                  updateViewConfig({ areaDataNullIsZero: v })
-                }
-              />
-            </div>
-          )}
-
           {canSelectSecondaryColumn && !viewConfig.areaDataSecondaryColumn && (
             <div className="col-span-2">
               <Button
@@ -558,7 +536,7 @@ export default function VisualisationPanel({
                   }
                 >
                   <SelectTrigger
-                    className="w-full min-w-0"
+                    className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
                     id="color-scale-type-select"
                   >
                     <SelectValue placeholder="Choose color scale...">

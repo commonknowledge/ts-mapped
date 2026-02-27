@@ -58,7 +58,8 @@ export function normalizeInspectorBoundaryConfig(
   return {
     ...config,
     columns: columnsUnique,
-    columnOrder: (config.columnOrder?.length ?? 0) > 0 ? columnOrderUnique : undefined,
+    columnOrder:
+      (config.columnOrder?.length ?? 0) > 0 ? columnOrderUnique : undefined,
     columnItems: columnItems ?? config.columnItems,
   };
 }
@@ -118,15 +119,15 @@ export function getColumnOrderState(
         )
       : selectedColumnsInOrder;
 
-  const availableColumns = allColumnsInOrder.filter((c) => !columns.includes(c));
+  const availableColumns = allColumnsInOrder.filter(
+    (c) => !columns.includes(c),
+  );
 
   const allItemsInOrder: InspectorColumnItem[] =
     columnItems?.length && columnItems.some((i) => isDivider(i))
       ? [
           ...columnItems.filter((i) =>
-            typeof i === "string"
-              ? allColumnNames.includes(i)
-              : true,
+            typeof i === "string" ? allColumnNames.includes(i) : true,
           ),
           ...availableColumns,
         ]
@@ -166,8 +167,7 @@ export function getSelectedColumnsOrdered(
 
   if (columnItems?.length && columnItems.some((i) => isDivider(i))) {
     const fromItems = columnItems.filter(
-      (i): i is string =>
-        typeof i === "string" && columnsSet.has(i),
+      (i): i is string => typeof i === "string" && columnsSet.has(i),
     );
     if (fromItems.length > 0) return fromItems;
   }
@@ -213,4 +213,3 @@ export function getSelectedItemsOrdered(
   const ordered = getSelectedColumnsOrdered(c);
   return ordered.filter((c) => allColumnNames.includes(c));
 }
-

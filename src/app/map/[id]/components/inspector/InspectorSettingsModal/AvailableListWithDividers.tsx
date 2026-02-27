@@ -1,22 +1,16 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { cn } from "@/shadcn/utils";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { InspectorColumnItem } from "@/server/models/MapView";
+import { cn } from "@/shadcn/utils";
 import { AvailableColumnRow } from "./AvailableColumnRow";
 import { SELECTED_LEFT_DROPPABLE_ID } from "./constants";
 import { SortableAvailableRow } from "./SortableAvailableRow";
 import { SortableDividerRow } from "./SortableDividerRow";
-
-function isDivider(
-  item: InspectorColumnItem,
-): item is { type: "divider"; id: string; label: string } {
-  return typeof item === "object" && item !== null && item.type === "divider";
-}
+import type { InspectorColumnItem } from "@/server/models/MapView";
 
 export function AvailableListWithDividers({
   selectedItemsInOrder,

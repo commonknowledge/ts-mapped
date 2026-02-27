@@ -9,7 +9,6 @@ export const createNewViewConfig = (): MapViewConfig => {
   return {
     areaDataSourceId: "",
     areaDataColumn: "",
-    areaDataNullIsZero: true,
     areaSetGroupCode: undefined,
     mapStyleName: MapStyleName.Light,
     showLabels: true,

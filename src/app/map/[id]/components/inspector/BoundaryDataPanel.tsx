@@ -152,13 +152,13 @@ export function BoundaryDataPanel({
         </div>
       ) : recordCount === 1 && data?.records[0] ? (
         <BoundaryDataProperties
-          json={data.records[0].json}
+          json={data?.records[0].json || {}}
           columns={columns}
           columnMetadata={columnMetadata}
           columnGroups={columnGroups}
           columnItems={config.columnItems}
           layout={layout}
-          match={data.match}
+          match={data?.match}
           dividerBackgroundClassName={getInspectorColorClass(config.color)}
           comparisonBaselines={comparisonBaselines}
           comparisonBaselineLoading={comparisonBaselineLoading}
@@ -169,7 +169,7 @@ export function BoundaryDataPanel({
             {recordCount} records in this area
           </p>
           <ul className="space-y-2 list-none pl-0" role="list">
-            {data.records.map((d, i) => (
+            {data?.records.map((d, i) => (
               <li key={d.id} className="min-w-0">
                 <TogglePanel
                   label={buildName(dataSource, d)}
@@ -183,7 +183,7 @@ export function BoundaryDataPanel({
                     columnGroups={columnGroups}
                     columnItems={config.columnItems}
                     layout={layout}
-                    match={data.match}
+                    match={data?.match}
                     dividerBackgroundClassName={getInspectorColorClass(
                       config.color,
                     )}
@@ -239,7 +239,7 @@ function BoundaryDataProperties({
   columnGroups?: InspectorBoundaryConfig["columnGroups"];
   columnItems?: InspectorBoundaryConfig["columnItems"];
   layout?: InspectorBoundaryConfig["layout"];
-  match: DataRecordMatchType;
+  match?: DataRecordMatchType | null | undefined;
   /** Background class for divider labels. Matches panel color. */
   dividerBackgroundClassName?: string;
   /** Baseline values for numberWithComparison columns (column name -> baseline). */

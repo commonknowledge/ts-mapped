@@ -4,10 +4,18 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LayoutGrid, LayoutList } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import type {
-  DefaultInspectorBoundaryConfig,
-  InspectorBoundaryConfig,
-} from "@/server/models/MapView";
+import {
+  getAllColumnsSorted,
+  getColumnOrderState,
+  normalizeInspectorBoundaryConfig,
+} from "@/app/map/[id]/components/inspector/inspectorColumnOrder";
+import {
+  INSPECTOR_COLOR_OPTIONS,
+  INSPECTOR_ICON_OPTIONS,
+} from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
+import { ColumnsSection } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/ColumnsSection";
+import { DEFAULT_SELECT_VALUE } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
+import { inferFormat } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
 import { InspectorBoundaryConfigType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -21,21 +29,13 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { cn } from "@/shadcn/utils";
-import type { DataSource } from "@/server/models/DataSource";
-import { ColumnsSection } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/ColumnsSection";
-import { DEFAULT_SELECT_VALUE } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
-import type { InspectorLayout } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
-import {
-  getAllColumnsSorted,
-  getColumnOrderState,
-  normalizeInspectorBoundaryConfig,
-} from "@/app/map/[id]/components/inspector/inspectorColumnOrder";
-import {
-  INSPECTOR_COLOR_OPTIONS,
-  INSPECTOR_ICON_OPTIONS,
-} from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
-import { inferFormat } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
 import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
+import type { InspectorLayout } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
+import type { DataSource } from "@/server/models/DataSource";
+import type {
+  DefaultInspectorBoundaryConfig,
+  InspectorBoundaryConfig,
+} from "@/server/models/MapView";
 
 const PLACEHOLDER_ID = "__default_inspector_edit__";
 
@@ -75,7 +75,8 @@ function toEditingConfig(
 function toDefaultConfig(
   config: InspectorBoundaryConfig,
 ): DefaultInspectorBoundaryConfig {
-  const { id: _id, dataSourceId: _dsId, ...rest } = config;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, dataSourceId, ...rest } = config;
   return rest;
 }
 
@@ -117,15 +118,17 @@ export function DefaultInspectorConfigSection({
     () => dataSource.columnDefs.map((c) => c.name),
     [dataSource.columnDefs],
   );
-  const [localConfig, setLocalConfig] = useState<InspectorBoundaryConfig>(() => {
-    const raw = toEditingConfig(
-      dataSource.id,
-      dataSource.defaultInspectorConfig,
-      dataSource.name,
-    );
-    const allCols = dataSource.columnDefs.map((c) => c.name);
-    return normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
-  });
+  const [localConfig, setLocalConfig] = useState<InspectorBoundaryConfig>(
+    () => {
+      const raw = toEditingConfig(
+        dataSource.id,
+        dataSource.defaultInspectorConfig,
+        dataSource.name,
+      );
+      const allCols = dataSource.columnDefs.map((c) => c.name);
+      return normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
+    },
+  );
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 

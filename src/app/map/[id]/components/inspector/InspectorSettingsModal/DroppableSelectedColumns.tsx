@@ -6,10 +6,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useMemo } from "react";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 export function DroppableSelectedColumns({
   columns,
@@ -54,7 +54,7 @@ export function DroppableSelectedColumns({
           items={columnIds}
           strategy={verticalListSortingStrategy}
         >
-          <div className="flex flex-col gap-4 flex-1">
+          <div className="flex flex-col gap-1.5 flex-1">
             {columns.map((col, i) => (
               <SortableColumnRow
                 key={columnIds[i]}
