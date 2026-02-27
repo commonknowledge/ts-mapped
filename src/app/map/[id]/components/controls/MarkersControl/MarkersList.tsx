@@ -36,9 +36,10 @@ export default function MarkersList({
   const markerDataSources = useMarkerDataSources();
   const membersDataSource = useMembersDataSource();
 
-  const markerFolders = useMemo(() => {
-    return folders.filter((f) => !f.type || f.type === "placedMarker");
-  }, [folders]);
+  const markerFolders = useMemo(
+    () => folders.filter((f) => !f.type || f.type === "placedMarker"),
+    [folders],
+  );
 
   const {
     activeId,
@@ -57,9 +58,10 @@ export default function MarkersList({
     [activeId, placedMarkers],
   );
 
-  const sortedFolders = useMemo(() => {
-    return sortByPositionAndId(markerFolders);
-  }, [markerFolders]);
+  const sortedFolders = useMemo(
+    () => sortByPositionAndId(markerFolders),
+    [markerFolders],
+  );
 
   const hasMarkers =
     membersDataSource ||
@@ -68,7 +70,7 @@ export default function MarkersList({
     markerFolders.length;
 
   return (
-    <div className="relative pt-2">
+    <div className="relative">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -79,7 +81,9 @@ export default function MarkersList({
         modifiers={[restrictToVerticalAxis]}
       >
         <div
-          className={`${viewConfig.showLocations ? "opacity-100" : "opacity-50"} `}
+          className={`${
+            viewConfig.showLocations ? "opacity-100" : "opacity-50"
+          } `}
         >
           <div className="flex flex-col gap-1">
             {!hasMarkers && (
@@ -126,9 +130,7 @@ export default function MarkersList({
                 <SortableFolderItem
                   key={folder.id}
                   folder={folder}
-                  markers={placedMarkers.filter(
-                    (p) => p.folderId === folder.id,
-                  )}
+                  markers={placedMarkers.filter((p) => p.folderId === folder.id)}
                   activeId={activeId}
                   setKeyboardCapture={setKeyboardCapture}
                 />
@@ -158,3 +160,4 @@ export default function MarkersList({
     </div>
   );
 }
+

@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import ColorPalette from "@/components/ColorPalette";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
-import DataSourceIcon from "@/components/DataSourceIcon";
 import { MarkerDisplayMode } from "@/server/models/Map";
 import { useTRPC } from "@/services/trpc/react";
 import {
@@ -30,14 +29,53 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
+import { DataSourceTypeLabels } from "@/labels";
 import { LayerType } from "@/types";
-import { useDataRecords } from "../../hooks/useDataRecords";
+import { CircleIcon, SquareIcon, UsersIcon } from "lucide-react";
+import DataSourceRecordTypeIcon, {
+  dataSourceRecordTypeLabels,
+} from "@/components/DataSourceRecordTypeIcon";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
 import { useMapViews } from "../../hooks/useMapViews";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
-import type { DataSourceType } from "@/server/models/DataSource";
+import type {
+  DataSourceRecordType,
+  DataSourceType,
+} from "@/server/models/DataSource";
+import LayerIcon from "./LayerIcon";
+
+function getLayerTypeLabel(type: LayerType) {
+  switch (type) {
+    case LayerType.Member:
+      return "Members";
+    case LayerType.Marker:
+      return "Markers";
+    case LayerType.Turf:
+      return "Areas";
+    case LayerType.Boundary:
+      return "Boundaries";
+    default:
+      return "Layer";
+  }
+}
+
+function LayerTypeSubheadingIcon({ type }: { type: LayerType }) {
+  const common = "w-3 h-3";
+  switch (type) {
+    case LayerType.Member:
+      return <UsersIcon className={common} />;
+    case LayerType.Marker:
+      return <CircleIcon className={common} />;
+    case LayerType.Turf:
+      return <SquareIcon className={common} />;
+    case LayerType.Boundary:
+      return <SquareIcon className={common} />;
+    default:
+      return null;
+  }
+}
 
 export default function DataSourceItem({
   dataSource,
@@ -51,6 +89,7 @@ export default function DataSourceItem({
     config: { type: DataSourceType };
     recordCount?: number;
     createdAt?: Date;
+    recordType?: DataSourceRecordType;
   };
   isSelected: boolean;
   handleDataSourceSelect: (id: string) => void;
@@ -71,19 +110,16 @@ export default function DataSourceItem({
   const hasActiveFilter =
     (dataSourceView?.filter?.children?.length ?? 0) > 0 ||
     Boolean(dataSourceView?.search);
-
-  const { data: dataRecordsResult, isFetching: matchedCountLoading } =
-    useDataRecords(hasActiveFilter ? dataSource.id : "", 0);
   const [isRenaming, setIsRenaming] = useState(false);
   const [editName, setEditName] = useState(dataSource.name);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isFocusing = useRef(false);
-
-  const layerColor =
+  const [layerColor, setLayerColor] = useState(
     layerType === LayerType.Member
       ? mapColors.member.color
-      : mapColors.markers.color;
+      : mapColors.markers.color
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isFocusing = useRef(false);
 
   const isVisible = getDataSourceVisibility(dataSource?.id);
 
@@ -177,9 +213,6 @@ export default function DataSourceItem({
     setShowRemoveDialog(false);
   };
 
-  const matchedRecordCount =
-    dataRecordsResult?.count?.matched ?? dataSource.recordCount;
-
   return (
     <>
       <ControlWrapper
@@ -193,68 +226,72 @@ export default function DataSourceItem({
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <button
-              className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
-              style={{ borderColor: isSelected ? currentColor : "transparent" }}
-              onClick={() =>
-                !isRenaming && handleDataSourceSelect(dataSource.id)
-              }
-            >
-              <div className="flex gap-[6px] text-left">
-                <div className="shrink-0 mt-[0.333em]">
-                  <DataSourceIcon type={dataSource.config.type} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  {isRenaming ? (
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="text-sm font-medium border-none outline-none bg-transparent w-full"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSaveRename();
-                        if (e.key === "Escape") {
-                          setEditName(dataSource.name);
-                          setIsRenaming(false);
-                        }
-                      }}
-                      onBlur={() => !isFocusing.current && handleSaveRename()}
-                      ref={inputRef}
-                    />
-                  ) : (
-                    <span className="text-sm font-medium">
-                      {dataSource.name}
-                    </span>
-                  )}
-                  <div className="text-xs text-muted-foreground">
-                    {Boolean(dataSource?.recordCount) ? (
-                      matchedCountLoading ? (
-                        <p>
-                          <span className="animate-pulse">…</span> /{" "}
-                          {dataSource.recordCount} records
-                        </p>
-                      ) : matchedRecordCount !== dataSource.recordCount ? (
-                        <p>
-                          {matchedRecordCount} / {dataSource.recordCount}{" "}
-                          records
-                        </p>
-                      ) : (
-                        <p>{dataSource.recordCount} records</p>
-                      )
+            <div className="flex items-center justify-between">
+              <LayerIcon
+                layerType={layerType}
+                isDataSource={true}
+                layerColor={layerColor}
+                onColorChange={setLayerColor}
+              />
+              <button
+                className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
+                style={{ borderColor: isSelected ? layerColor : "transparent" }}
+                onClick={() =>
+                  !isRenaming && handleDataSourceSelect(dataSource.id)
+                }
+              >
+                <div className="flex gap-[6px] text-left w-full">
+                  <div className="flex-1 min-w-0">
+                    {isRenaming ? (
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="text-sm font-medium border-none outline-none bg-transparent w-full"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSaveRename();
+                          if (e.key === "Escape") {
+                            setEditName(dataSource.name);
+                            setIsRenaming(false);
+                          }
+                        }}
+                        onBlur={() => !isFocusing.current && handleSaveRename()}
+                        ref={inputRef}
+                      />
                     ) : (
-                      <p>No records</p>
-                    )}
-                    {dataSource.createdAt && (
-                      <p>
-                        Created{" "}
-                        {new Date(dataSource?.createdAt).toLocaleDateString()}
-                      </p>
+                      <>
+                        <div className="text-sm font-medium truncate">
+                          {dataSource.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                          {DataSourceTypeLabels[dataSource.config.type]}
+                          {Boolean(dataSource?.recordCount) && (
+                            <>
+                              <span>·</span>
+                              <span>{dataSource.recordCount}</span>
+                            </>
+                          )}
+                          {dataSource.recordType &&
+                          dataSourceRecordTypeLabels[dataSource.recordType] ? (
+                            <span className="inline-flex items-center gap-1">
+                              {
+                                dataSourceRecordTypeLabels[
+                                  dataSource.recordType
+                                ]
+                              }
+                            </span>
+                          ) : (
+                            Boolean(dataSource?.recordCount) && (
+                              <span>records</span>
+                            )
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </ContextMenuTrigger>
           <ContextMenuContentWithFocus
             shouldFocusTarget={isRenaming}
@@ -309,7 +346,7 @@ export default function DataSourceItem({
             >
               <div className="flex items-center gap-2">
                 <div
-                  className="w-4 h-4 rounded-full border border-neutral-300 flex items-center justify-center flex-shrink-0"
+                  className="w-4 h-4 rounded-full border border-neutral-300 flex items-center justify-center shrink-0"
                   style={{ backgroundColor: currentColor }}
                 >
                   <span className="text-[8px] font-semibold text-white leading-none">
@@ -329,7 +366,7 @@ export default function DataSourceItem({
             >
               <div className="flex items-center gap-2">
                 <div
-                  className="w-4 h-4 rounded border border-neutral-300 flex-shrink-0 relative overflow-hidden"
+                  className="w-4 h-4 rounded border border-neutral-300 shrink-0 relative overflow-hidden"
                   style={{
                     background: `radial-gradient(circle, ${currentColor} 0%, ${currentColor}80 30%, ${currentColor}40 60%, ${currentColor}20 100%)`,
                   }}

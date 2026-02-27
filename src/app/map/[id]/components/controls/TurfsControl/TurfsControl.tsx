@@ -98,7 +98,7 @@ export default function AreasControl() {
               <p className="text-xs font-medium mb-2">Area colour</p>
               <div className="flex items-center gap-2">
                 <div
-                  className="w-10 h-10 rounded border border-neutral-300 flex-shrink-0 relative"
+                  className="w-10 h-10 rounded border border-neutral-300 shrink-0 relative"
                   style={{
                     backgroundColor:
                       mapConfig.turfColor ?? mapColors.areas.color,
