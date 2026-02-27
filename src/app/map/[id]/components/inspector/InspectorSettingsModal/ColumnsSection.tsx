@@ -163,7 +163,6 @@ export function ColumnsSection({
       allColumnsInOrder,
       allItemsInOrder,
       selectedColumnsInOrder,
-      columns,
     ],
   );
 
