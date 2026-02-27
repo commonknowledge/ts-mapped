@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Minus, X } from "lucide-react";
+import { GripVertical, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
