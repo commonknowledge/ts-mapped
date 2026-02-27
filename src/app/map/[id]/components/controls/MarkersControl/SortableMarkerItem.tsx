@@ -5,16 +5,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
@@ -61,22 +57,7 @@ export default function SortableMarkerItem({
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [layerColor, setLayerColor] = useState(
-    folderColor || mapColors.markers.color
-  );
 
-  // Update color when folderColor prop changes (e.g., when moved into a folder)
-  useEffect(() => {
-    if (folderColor) {
-      setLayerColor(folderColor);
-    } else if (marker.folderId) {
-      // If marker is in a folder but no folderColor prop, reset to default
-      // This handles the case when marker is moved out of a folder
-      setLayerColor(mapColors.markers.color);
-    }
-  }, [folderColor, marker.folderId]);
-
-  // Get current color (defaults to marker color)
   const currentColor =
     mapConfig.placedMarkerColors?.[marker.id] ?? mapColors.markers.color;
 
@@ -173,8 +154,8 @@ export default function SortableMarkerItem({
                   <LayerIcon
                     layerType={LayerType.Marker}
                     isDataSource={false}
-                    layerColor={layerColor}
-                    onColorChange={setLayerColor}
+                    layerColor={currentColor}
+                    onColorChange={handleColorChange}
                   />
                   <button
                     className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
@@ -215,24 +196,6 @@ export default function SortableMarkerItem({
                     </>
                   )}
                 </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuSub>
-                  <ContextMenuSubTrigger>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded border border-neutral-300"
-                        style={{ backgroundColor: currentColor }}
-                      />
-                      <span>Color</span>
-                    </div>
-                  </ContextMenuSubTrigger>
-                  <ContextMenuSubContent className="w-auto p-2">
-                    <ColorPalette
-                      selectedColor={currentColor}
-                      onColorSelect={handleColorChange}
-                    />
-                  </ContextMenuSubContent>
-                </ContextMenuSub>
                 <ContextMenuSeparator />
                 <ContextMenuItem
                   variant="destructive"

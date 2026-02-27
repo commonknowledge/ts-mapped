@@ -7,7 +7,6 @@ import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
-import { Button } from "@/shadcn/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -15,7 +14,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-import { Input } from "@/shadcn/ui/input";
 import { LayerType } from "@/types";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useShowControls } from "../../../hooks/useMapControls";
@@ -25,6 +23,7 @@ import { useTurfState } from "../../../hooks/useTurfState";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import LayerIcon from "../LayerIcon";
 import type { Turf } from "@/server/models/Turf";
 
 export default function SortableTurfItem({
@@ -138,7 +137,6 @@ export default function SortableTurfItem({
           layerType={LayerType.Turf}
           isVisible={isVisible}
           onVisibilityToggle={() => setTurfVisibility(turf.id, !isVisible)}
-          color={currentColor}
         >
           {isEditing ? (
             <ControlEditForm
@@ -149,17 +147,32 @@ export default function SortableTurfItem({
           ) : (
             <ContextMenu>
               <ContextMenuTrigger asChild>
-                <button
-                  className="flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
-                  onClick={() => handleFlyTo(turf)}
+                <div
+                  className="flex items-center justify-between w-full min-h-full"
                   onContextMenu={(e) => {
                     if (isCurrentlyDragging) {
                       e.preventDefault();
                     }
                   }}
                 >
-                  {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
-                </button>
+                  <LayerIcon
+                    layerType={LayerType.Turf}
+                    isDataSource={false}
+                    layerColor={currentColor}
+                    onColorChange={handleColorChange}
+                  />
+                  <button
+                    className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                    onClick={() => handleFlyTo(turf)}
+                  >
+                    <div className="text-sm font-medium truncate">
+                      {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      Area
+                    </div>
+                  </button>
+                </div>
               </ContextMenuTrigger>
               <ContextMenuContent>
                 <ContextMenuItem onClick={onEdit}>
@@ -181,43 +194,6 @@ export default function SortableTurfItem({
                     </>
                   )}
                 </ContextMenuItem>
-                <ContextMenuSeparator />
-                <div className="px-2 py-1.5">
-                  <p className="text-xs font-medium text-muted-foreground mb-1.5">
-                    Area colour
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0 relative"
-                      style={{ backgroundColor: currentColor }}
-                    >
-                      <input
-                        type="color"
-                        value={currentColor}
-                        onChange={(e) => handleColorChange(e.target.value)}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        title="Choose area colour"
-                      />
-                    </div>
-                    <Input
-                      type="text"
-                      value={currentColor}
-                      onChange={(e) => handleColorChange(e.target.value)}
-                      className="h-6 w-24 text-xs"
-                      placeholder={mapColors.areas.color}
-                    />
-                  </div>
-                  {turf.color && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2 w-full text-xs h-7"
-                      onClick={() => updateTurf({ ...turf, color: null })}
-                    >
-                      Reset to default
-                    </Button>
-                  )}
-                </div>
                 <ContextMenuSeparator />
                 <ContextMenuItem
                   variant="destructive"

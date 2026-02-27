@@ -9,14 +9,11 @@ import {
   CornerDownRightIcon,
   EyeIcon,
   EyeOffIcon,
-  Folder as FolderClosed,
-  FolderOpen,
   PencilIcon,
   TrashIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
-import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
@@ -38,6 +35,7 @@ import { useTurfState } from "../../../hooks/useTurfState";
 import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import LayerIcon from "../LayerIcon";
 import SortableMarkerItem from "../MarkersControl/SortableMarkerItem";
 import SortableTurfItem from "../TurfsControl/SortableTurfItem";
 import type { Folder } from "@/server/models/Folder";
@@ -199,30 +197,39 @@ export default function SortableFolderItem({
         ) : (
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <button
-                ref={isDraggingMarker ? setHeaderNodeRef : null}
-                onClick={() => onClickFolder()}
-                className={cn(
-                  "flex items-center gap-1 / w-full min-h-full p-1 rounded / transition-colors hover:bg-neutral-100 / text-left cursor-pointer",
-                  isHeaderOver ? "bg-blue-50" : "",
-                )}
+              <div
+                className="flex items-center gap-2 w-full min-h-full"
                 onContextMenu={(e) => {
-                  // Prevent context menu during drag
                   if (isCurrentlyDragging) {
                     e.preventDefault();
                   }
                 }}
               >
-                {isExpanded ? (
-                  <FolderOpen className="w-4 h-4 text-muted-foreground shrink-0" />
-                ) : (
-                  <FolderClosed className="w-4 h-4 text-muted-foreground shrink-0" />
-                )}
-                <span className="text-xs text-muted-foreground transition-transform duration-30 rounded-full bg-neutral-50 px-1">
-                  {sortedItems.length}
-                </span>
-                {folder.name}
-              </button>
+                <LayerIcon
+                  layerType={isTurfFolder ? LayerType.Turf : LayerType.Marker}
+                  isDataSource={false}
+                  layerColor={currentFolderColor}
+                  onColorChange={handleFolderColorChange}
+                  isFolder
+                  isFolderExpanded={isExpanded}
+                />
+                <button
+                  ref={isDraggingMarker ? setHeaderNodeRef : null}
+                  onClick={() => onClickFolder()}
+                  className={cn(
+                    "flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer",
+                    isHeaderOver ? "bg-blue-50" : "",
+                  )}
+                >
+                  <div className="text-sm font-medium truncate">
+                    {folder.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {sortedItems.length}{" "}
+                    {isTurfFolder ? "areas" : "locations"}
+                  </div>
+                </button>
+              </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
               <ContextMenuItem onClick={onEdit}>
@@ -242,24 +249,6 @@ export default function SortableFolderItem({
                   </>
                 )}
               </ContextMenuItem>
-              <ContextMenuSeparator />
-              <ContextMenuSub>
-                <ContextMenuSubTrigger>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded border border-neutral-300"
-                      style={{ backgroundColor: currentFolderColor }}
-                    />
-                    <span>Color</span>
-                  </div>
-                </ContextMenuSubTrigger>
-                <ContextMenuSubContent className="w-auto p-2">
-                  <ColorPalette
-                    selectedColor={currentFolderColor}
-                    onColorSelect={handleFolderColorChange}
-                  />
-                </ContextMenuSubContent>
-              </ContextMenuSub>
               <ContextMenuSeparator />
               <ContextMenuItem
                 variant="destructive"

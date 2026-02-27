@@ -226,16 +226,15 @@ export default function DataSourceItem({
       >
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <LayerIcon
                 layerType={layerType}
                 isDataSource={true}
-                layerColor={layerColor}
-                onColorChange={setLayerColor}
+                layerColor={currentColor}
+                onColorChange={handleColorChange}
               />
               <button
-                className="flex w-full items-center justify-between gap-2 min-h-full cursor-pointer hover:bg-neutral-100 border-2 rounded"
-                style={{ borderColor: isSelected ? layerColor : "transparent" }}
+                className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
                 onClick={() =>
                   !isRenaming && handleDataSourceSelect(dataSource.id)
                 }

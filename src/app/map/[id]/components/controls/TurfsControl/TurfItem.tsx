@@ -41,7 +41,11 @@ export default function TurfItem({ turf }: { turf: Turf }) {
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [layerColor, setLayerColor] = useState(mapColors.areas.color);
+
+  const currentColor = turf.color ?? mapColors.areas.color;
+  const handleColorChange = (color: string) => {
+    updateTurf({ ...turf, color });
+  };
 
   const handleFlyTo = (turf: Turf) => {
     const map = mapRef?.current;
@@ -115,8 +119,8 @@ export default function TurfItem({ turf }: { turf: Turf }) {
                 <LayerIcon
                   layerType={LayerType.Turf}
                   isDataSource={false}
-                  layerColor={layerColor}
-                  onColorChange={setLayerColor}
+                  layerColor={currentColor}
+                  onColorChange={handleColorChange}
                 />
                 <button
                   className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"

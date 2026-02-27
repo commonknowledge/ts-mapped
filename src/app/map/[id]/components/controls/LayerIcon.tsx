@@ -1,7 +1,7 @@
 "use client";
 
 import { Folder, FolderOpen, Square } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { MarkerCollectionIcon, MarkerIndividualIcon } from "../Icons";
 import { LayerType } from "@/types";
@@ -27,13 +27,14 @@ const COLOR_PALETTE = [
   "#00BCD4", // Cyan
 ];
 
-// Icon type definitions
+// Icon type definitions (area = turf/areas on the map)
 type IconType =
   | "folder"
   | "folder-open"
   | "marker-collection"
   | "marker-individual"
-  | "turf";
+  | "turf"
+  | "area";
 
 // Icon component props
 interface IconProps {
@@ -43,7 +44,7 @@ interface IconProps {
 }
 
 // Icon renderer function type
-type IconRenderer = (props: IconProps) => JSX.Element;
+type IconRenderer = (props: IconProps) => React.ReactElement;
 
 // Icon type mapping - shows all available icon types
 const getIconRenderer = (iconType: IconType, color: string): IconRenderer => {
@@ -77,6 +78,7 @@ const getIconRenderer = (iconType: IconType, color: string): IconRenderer => {
     case "marker-individual":
       return ({ className, style }) => <MarkerIndividualIcon color={color} />;
     case "turf":
+    case "area":
       return ({ className, style }) => (
         <Square
           className={className}
@@ -99,7 +101,7 @@ const getIconType = (
     return isFolderExpanded ? "folder-open" : "folder";
   }
   if (layerType === LayerType.Turf) {
-    return "turf";
+    return "area";
   }
   return isDataSource ? "marker-collection" : "marker-individual";
 };
@@ -146,7 +148,7 @@ export default function LayerIcon({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
-          className="w-8 h-8 border border-neutral-200 rounded-sm flex items-center justify-center shrink-0 mr-1 hover:border-neutral-300 transition-colors cursor-pointer relative"
+          className="w-8 h-8 min-w-8 min-h-8 border border-neutral-200 rounded-sm flex items-center justify-center shrink-0 mr-2 hover:border-neutral-300 transition-colors cursor-pointer relative"
           onClick={(e) => {
             e.stopPropagation();
           }}

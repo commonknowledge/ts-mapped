@@ -16,9 +16,9 @@ import {
   PencilIcon,
   TrashIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { sortByPositionAndId } from "@/app/map/[id]/utils";
+import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { mapColors } from "../../../styles";
@@ -102,20 +102,9 @@ export default function SortableFolderItem({
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(folder.name);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [layerColor, setLayerColor] = useState(
-    folderColor || mapColors.markers.color
-  );
 
-  // Sync layerColor with folderColor prop changes
-  useEffect(() => {
-    if (folderColor) {
-      setLayerColor(folderColor);
-    }
-  }, [folderColor]);
-
-  // Notify parent when color changes
+  const currentColor = folderColor ?? mapColors.markers.color;
   const handleColorChange = (color: string) => {
-    setLayerColor(color);
     onFolderColorChange?.(color);
   };
 
@@ -184,11 +173,11 @@ export default function SortableFolderItem({
         ) : (
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <LayerIcon
                   layerType={LayerType.Marker}
                   isDataSource={false}
-                  layerColor={layerColor}
+                  layerColor={currentColor}
                   onColorChange={handleColorChange}
                   isFolder={true}
                   isFolderExpanded={isExpanded}
@@ -276,7 +265,7 @@ export default function SortableFolderItem({
                       marker={marker}
                       activeId={activeId}
                       setKeyboardCapture={setKeyboardCapture}
-                      folderColor={layerColor}
+                      folderColor={folderColor}
                     />
                   </li>
                 ))}
