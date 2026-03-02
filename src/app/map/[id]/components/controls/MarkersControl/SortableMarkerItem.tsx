@@ -30,12 +30,10 @@ export default function SortableMarkerItem({
   marker,
   activeId,
   setKeyboardCapture,
-  folderColor,
 }: {
   marker: PlacedMarker;
   activeId: string | null;
   setKeyboardCapture: (captured: boolean) => void;
-  folderColor?: string;
 }) {
   const {
     attributes,
@@ -167,7 +165,9 @@ export default function SortableMarkerItem({
                       }
                     }}
                   >
-                    <div className="text-sm font-medium truncate">{marker.label}</div>
+                    <div className="text-sm font-medium truncate">
+                      {marker.label}
+                    </div>
                     <div className="text-xs text-muted-foreground truncate">
                       Individual marker
                     </div>

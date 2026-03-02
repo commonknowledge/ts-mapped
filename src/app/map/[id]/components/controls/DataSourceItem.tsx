@@ -2,10 +2,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import ColorPalette from "@/components/ColorPalette";
 import ContextMenuContentWithFocus from "@/components/ContextMenuContentWithFocus";
+import { dataSourceRecordTypeLabels } from "@/components/DataSourceRecordTypeIcon";
+import { DataSourceTypeLabels } from "@/labels";
 import { MarkerDisplayMode } from "@/server/models/Map";
 import { useTRPC } from "@/services/trpc/react";
 import {
@@ -29,57 +31,19 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
-import { DataSourceTypeLabels } from "@/labels";
 import { LayerType } from "@/types";
-import { CircleIcon, SquareIcon, UsersIcon } from "lucide-react";
-import DataSourceRecordTypeIcon, {
-  dataSourceRecordTypeLabels,
-} from "@/components/DataSourceRecordTypeIcon";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
-import { useMapViews } from "../../hooks/useMapViews";
 import { mapColors } from "../../styles";
 import ControlWrapper from "./ControlWrapper";
+import LayerIcon from "./LayerIcon";
 import type {
   DataSourceRecordType,
   DataSourceType,
 } from "@/server/models/DataSource";
-import LayerIcon from "./LayerIcon";
-
-function getLayerTypeLabel(type: LayerType) {
-  switch (type) {
-    case LayerType.Member:
-      return "Members";
-    case LayerType.Marker:
-      return "Markers";
-    case LayerType.Turf:
-      return "Areas";
-    case LayerType.Boundary:
-      return "Boundaries";
-    default:
-      return "Layer";
-  }
-}
-
-function LayerTypeSubheadingIcon({ type }: { type: LayerType }) {
-  const common = "w-3 h-3";
-  switch (type) {
-    case LayerType.Member:
-      return <UsersIcon className={common} />;
-    case LayerType.Marker:
-      return <CircleIcon className={common} />;
-    case LayerType.Turf:
-      return <SquareIcon className={common} />;
-    case LayerType.Boundary:
-      return <SquareIcon className={common} />;
-    default:
-      return null;
-  }
-}
 
 export default function DataSourceItem({
   dataSource,
-  isSelected,
   handleDataSourceSelect,
   layerType,
 }: {
@@ -91,32 +55,21 @@ export default function DataSourceItem({
     createdAt?: Date;
     recordType?: DataSourceRecordType;
   };
-  isSelected: boolean;
   handleDataSourceSelect: (id: string) => void;
   layerType: LayerType;
 }) {
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
-  const { view } = useMapViews();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const dataSourceView = useMemo(
-    () =>
-      view?.dataSourceViews.find((dsv) => dsv.dataSourceId === dataSource.id),
-    [dataSource.id, view?.dataSourceViews],
-  );
-
-  const hasActiveFilter =
-    (dataSourceView?.filter?.children?.length ?? 0) > 0 ||
-    Boolean(dataSourceView?.search);
   const [isRenaming, setIsRenaming] = useState(false);
   const [editName, setEditName] = useState(dataSource.name);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-  const [layerColor, setLayerColor] = useState(
+  const [layerColor] = useState(
     layerType === LayerType.Member
       ? mapColors.member.color
-      : mapColors.markers.color
+      : mapColors.markers.color,
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const isFocusing = useRef(false);

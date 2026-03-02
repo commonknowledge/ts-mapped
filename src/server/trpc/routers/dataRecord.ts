@@ -164,9 +164,7 @@ export const dataRecordRouter = router({
         stat: z.enum(["average", "median", "min", "max"]),
       }),
     )
-    .query(
-      async ({
-        input: { dataSourceId, columnName, stat },
-      }) => findColumnStat(dataSourceId, columnName, stat),
+    .query(async ({ input: { dataSourceId, columnName, stat } }) =>
+      findColumnStat(dataSourceId, columnName, stat),
     ),
 });

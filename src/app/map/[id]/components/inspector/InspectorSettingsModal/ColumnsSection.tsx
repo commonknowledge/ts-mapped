@@ -115,7 +115,9 @@ export function ColumnsSection({
           ...next.filter((i): i is string => typeof i === "string"),
           ...availableColumns,
         ];
-        const nextColumnItems = next.some((i) => isDivider(i)) ? next : undefined;
+        const nextColumnItems = next.some((i) => isDivider(i))
+          ? next
+          : undefined;
         updateConfig((prev) => ({
           ...prev,
           columnOrder: nextColumnOrder,
@@ -366,15 +368,17 @@ export function ColumnsSection({
                 />
               ) : activeId && String(activeId).startsWith("divider-") ? (
                 <DividerDragPreview
-                  label={
-                    (() => {
-                      const item = selectedItemsInOrder.find(
-                        (i) =>
-                          isDivider(i) && `divider-${i.id}` === String(activeId),
-                      );
-                      return (item && isDivider(item) ? item.label : "Section label") ?? "Section label";
-                    })()
-                  }
+                  label={(() => {
+                    const item = selectedItemsInOrder.find(
+                      (i) =>
+                        isDivider(i) && `divider-${i.id}` === String(activeId),
+                    );
+                    return (
+                      (item && isDivider(item)
+                        ? item.label
+                        : "Section label") ?? "Section label"
+                    );
+                  })()}
                 />
               ) : activeId &&
                 (String(activeId).startsWith("available-") ||

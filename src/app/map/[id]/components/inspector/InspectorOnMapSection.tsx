@@ -1,10 +1,10 @@
 import { LayoutDashboardIcon } from "lucide-react";
 import { CalculationType } from "@/server/models/MapView";
-import { getBoundaryDatasetName } from "./helpers";
 import { useAreaStats } from "../../data";
 import { useChoroplethDataSource } from "../../hooks/useDataSources";
 import { useInspector } from "../../hooks/useInspector";
 import { useMapViews } from "../../hooks/useMapViews";
+import { getBoundaryDatasetName } from "./helpers";
 
 /**
  * Single "Data used for visualisation" block: compact boundary metadata

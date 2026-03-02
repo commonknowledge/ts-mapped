@@ -1,11 +1,11 @@
 "use client";
 
+import TogglePanel from "@/app/map/[id]/components/TogglePanel";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
-import TogglePanel from "@/app/map/[id]/components/TogglePanel";
 import { cn } from "@/shadcn/utils";
 import type { DataSourceWithImportInfo } from "@/components/DataSourceItem";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 export function InspectorPreview({
   boundaryConfigs,
@@ -32,7 +32,9 @@ export function InspectorPreview({
         Data in this area
       </p>
       {boundaryConfigs.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-2">No data sources added</p>
+        <p className="text-xs text-muted-foreground py-2">
+          No data sources added
+        </p>
       ) : (
         boundaryConfigs.map((config) => {
           const ds = getDataSourceById(config.dataSourceId);
@@ -41,12 +43,20 @@ export function InspectorPreview({
             <TogglePanel
               key={config.id}
               label={config.name}
-              icon={type ? <span className="shrink-0"><DataSourceIcon type={type} /></span> : undefined}
+              icon={
+                type ? (
+                  <span className="shrink-0">
+                    <DataSourceIcon type={type} />
+                  </span>
+                ) : undefined
+              }
               defaultExpanded={true}
             >
               <div className="pl-1 pt-1">
                 {config.columns.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No columns selected</p>
+                  <p className="text-xs text-muted-foreground">
+                    No columns selected
+                  </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
                     {config.columns.join(", ")}

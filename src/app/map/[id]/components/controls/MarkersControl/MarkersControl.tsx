@@ -22,8 +22,8 @@ import { LayerType } from "@/types";
 import { MarkerCollectionIcon, MarkerIndividualIcon } from "../../Icons";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
-import MarkersList from "./MarkersList";
 import DataSourceSelectionModal from "./DataSourceSelectionModal";
+import MarkersList from "./MarkersList";
 
 export default function MarkersControl() {
   const { mapConfig, updateMapConfig } = useMapConfig();
@@ -130,8 +130,8 @@ export default function MarkersControl() {
         setExpanded={setExpanded}
         enableVisibilityToggle={Boolean(
           placedMarkers.length > 0 ||
-            markerDataSources.length > 0 ||
-            membersDataSource,
+          markerDataSources.length > 0 ||
+          membersDataSource,
         )}
       >
         {loading && <LoaderPinwheel className="animate-spin" size={16} />}
@@ -163,4 +163,3 @@ export default function MarkersControl() {
     </LayerControlWrapper>
   );
 }
-

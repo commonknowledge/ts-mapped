@@ -93,8 +93,7 @@ function PropertyValue({
       comparisonBaseline !== undefined && comparisonBaseline !== null
         ? comparisonBaseline
         : null;
-    const pct =
-      baseline !== null ? variancePercent(num, baseline) : null;
+    const pct = baseline !== null ? variancePercent(num, baseline) : null;
     const pctLabel =
       pct !== null
         ? pct >= 0
@@ -128,10 +127,7 @@ function PropertyValue({
         >
           <span>{formatNumber(num)}</span>
           <span className="text-xs font-medium text-muted-foreground inline-flex items-center gap-1">
-            <Loader2
-              className="h-3 w-3 animate-spin shrink-0"
-              aria-hidden
-            />
+            <Loader2 className="h-3 w-3 animate-spin shrink-0" aria-hidden />
             <span>{suffix ? suffix.trim() : "…"}</span>
           </span>
         </span>

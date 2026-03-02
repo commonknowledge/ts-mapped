@@ -3,9 +3,8 @@
 import { Folder, FolderOpen, Square } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
-import { MarkerCollectionIcon, MarkerIndividualIcon } from "../Icons";
 import { LayerType } from "@/types";
-import type { ComponentType } from "react";
+import { MarkerCollectionIcon, MarkerIndividualIcon } from "../Icons";
 
 // Color palette - 16 colors in a 4x4 grid
 const COLOR_PALETTE = [
@@ -37,20 +36,23 @@ type IconType =
   | "area";
 
 // Icon component props
-interface IconProps {
+interface RenderedIconProps {
   color: string;
   className?: string;
+  iconType: IconType;
   style?: React.CSSProperties;
 }
 
-// Icon renderer function type
-type IconRenderer = (props: IconProps) => React.ReactElement;
-
 // Icon type mapping - shows all available icon types
-const getIconRenderer = (iconType: IconType, color: string): IconRenderer => {
+function RenderedIcon({
+  color,
+  className,
+  iconType,
+  style,
+}: RenderedIconProps) {
   switch (iconType) {
     case "folder":
-      return ({ className, style }) => (
+      return (
         <Folder
           className={className}
           style={{
@@ -62,7 +64,7 @@ const getIconRenderer = (iconType: IconType, color: string): IconRenderer => {
         />
       );
     case "folder-open":
-      return ({ className, style }) => (
+      return (
         <FolderOpen
           className={className}
           style={{
@@ -74,28 +76,28 @@ const getIconRenderer = (iconType: IconType, color: string): IconRenderer => {
         />
       );
     case "marker-collection":
-      return ({ className, style }) => <MarkerCollectionIcon color={color} />;
+      return <MarkerCollectionIcon color={color} />;
     case "marker-individual":
-      return ({ className, style }) => <MarkerIndividualIcon color={color} />;
+      return <MarkerIndividualIcon color={color} />;
     case "turf":
     case "area":
-      return ({ className, style }) => (
+      return (
         <Square
           className={className}
           style={{ fill: color, color: color, fillOpacity: 0.3, ...style }}
         />
       );
     default:
-      return ({ className, style }) => <MarkerIndividualIcon color={color} />;
+      return <MarkerIndividualIcon color={color} />;
   }
-};
+}
 
 // Determine icon type based on props
 const getIconType = (
   layerType: LayerType,
   isDataSource: boolean,
   isFolder: boolean,
-  isFolderExpanded: boolean
+  isFolderExpanded: boolean,
 ): IconType => {
   if (isFolder) {
     return isFolderExpanded ? "folder-open" : "folder";
@@ -140,9 +142,8 @@ export default function LayerIcon({
     layerType,
     isDataSource,
     isFolder,
-    isFolderExpanded
+    isFolderExpanded,
   );
-  const renderIcon = getIconRenderer(iconType, currentColor);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -153,10 +154,11 @@ export default function LayerIcon({
             e.stopPropagation();
           }}
         >
-          {renderIcon({
-            color: currentColor,
-            className: "w-5 h-5 absolute",
-          })}
+          <RenderedIcon
+            className="w-5 h-5 absolute"
+            color={currentColor}
+            iconType={iconType}
+          />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -180,13 +182,11 @@ export default function LayerIcon({
                 }
               `}
             >
-              {getIconRenderer(
-                iconType,
-                color
-              )({
-                color: color,
-                className: "w-4 h-4 absolute",
-              })}
+              <RenderedIcon
+                className="w-5 h-5 absolute"
+                color={color}
+                iconType={iconType}
+              />
             </button>
           ))}
         </div>

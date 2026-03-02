@@ -20,9 +20,6 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
@@ -225,8 +222,7 @@ export default function SortableFolderItem({
                     {folder.name}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {sortedItems.length}{" "}
-                    {isTurfFolder ? "areas" : "locations"}
+                    {sortedItems.length} {isTurfFolder ? "areas" : "locations"}
                   </div>
                 </button>
               </div>

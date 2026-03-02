@@ -1,10 +1,9 @@
 "use client";
 
-import { Boxes, Check, Database, PlusIcon, Users } from "lucide-react";
-import { useMemo } from "react";
+import { Boxes, Check, Database, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { MarkerCollectionIcon } from "@/app/map/[id]/components/Icons";
-import { mapColors } from "@/app/map/[id]/styles";
 import { Link } from "@/components/Link";
 import { DataSourceRecordType } from "@/server/models/DataSource";
 import { Button } from "@/shadcn/ui/button";
@@ -108,7 +107,9 @@ export default function DataSourceSelectionModal({
                   <MarkerCollectionIcon color="#6b7280" />
                   Member data sources
                 </h2>
-                <div className="text-xs text-muted-foreground">Single select</div>
+                <div className="text-xs text-muted-foreground">
+                  Single select
+                </div>
               </div>
 
               <div className="divide-y rounded-md border border-neutral-200 bg-white">
@@ -162,7 +163,9 @@ export default function DataSourceSelectionModal({
                   <MarkerCollectionIcon color="#6b7280" />
                   Markers from data sources
                 </h2>
-                <div className="text-xs text-muted-foreground">Multi select</div>
+                <div className="text-xs text-muted-foreground">
+                  Multi select
+                </div>
               </div>
 
               {groupedOtherDataSources.length === 0 ? (
@@ -185,7 +188,10 @@ export default function DataSourceSelectionModal({
                             <button
                               key={dataSource.id}
                               onClick={() =>
-                                onSelectMarkerDataSource(dataSource.id, isSelected)
+                                onSelectMarkerDataSource(
+                                  dataSource.id,
+                                  isSelected,
+                                )
                               }
                               className={cn(
                                 "w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-neutral-50 transition-colors",

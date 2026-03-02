@@ -267,17 +267,12 @@ function BoundaryDataProperties({
         groupLabel: opts.groupLabel,
         format: m?.format,
         scaleMax: m?.scaleMax,
-        barColor: getBarColorForLabel(
-          label,
-          col,
-          ordered.length,
-          m?.barColor,
-        ),
+        barColor: getBarColorForLabel(label, col, ordered.length, m?.barColor),
         description: m?.description,
         ...(m?.format === "numberWithComparison" && {
           comparisonBaseline: baselines[col] ?? null,
           comparisonStat: m.comparisonStat
-            ? COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat
+            ? (COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat)
             : undefined,
           comparisonBaselineLoading: loading[col] === true,
         }),
@@ -323,7 +318,7 @@ function BoundaryDataProperties({
             ...(m?.format === "numberWithComparison" && {
               comparisonBaseline: baselines[item] ?? null,
               comparisonStat: m.comparisonStat
-                ? COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat
+                ? (COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat)
                 : undefined,
               comparisonBaselineLoading: loading[item] === true,
             }),

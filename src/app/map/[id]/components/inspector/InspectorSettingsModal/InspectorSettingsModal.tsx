@@ -29,8 +29,9 @@ export default function InspectorSettingsModal({
   /** When provided, pre-select this data source in the left list (used from real inspector cogs). */
   initialDataSourceId?: string | null;
 }) {
-  const [selectedDataSourceId, setSelectedDataSourceId] =
-    useState<string | null>(null);
+  const [selectedDataSourceId, setSelectedDataSourceId] = useState<
+    string | null
+  >(null);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
   const { data: dataSources, getDataSourceById } = useDataSources();
@@ -85,7 +86,11 @@ export default function InspectorSettingsModal({
   }, [boundaryConfigs, getDataSourceById, filteredSources, matchesSearch]);
 
   // When opened with an initial data source id, focus that source.
-  if (open && initialDataSourceId && selectedDataSourceId !== initialDataSourceId) {
+  if (
+    open &&
+    initialDataSourceId &&
+    selectedDataSourceId !== initialDataSourceId
+  ) {
     setSelectedDataSourceId(initialDataSourceId);
   }
 

@@ -2,19 +2,21 @@
 
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import DataSourceIcon from "@/components/DataSourceIcon";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
-import type { DataSource } from "@/server/models/DataSource";
-import { useTRPC } from "@/services/trpc/react";
-import TogglePanel from "@/app/map/[id]/components/TogglePanel";
-import {
-  getInspectorColorClass,
-  InspectorPanelIcon,
-} from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
-import PropertiesList, { type PropertyEntry } from "@/app/map/[id]/components/inspector/PropertiesList";
-import { getBarColorForLabel } from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
 import { getSelectedItemsOrdered } from "@/app/map/[id]/components/inspector/inspectorColumnOrder";
+import {
+  InspectorPanelIcon,
+  getInspectorColorClass,
+} from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
+import { getBarColorForLabel } from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
+import PropertiesList, {
+  type PropertyEntry,
+} from "@/app/map/[id]/components/inspector/PropertiesList";
+import TogglePanel from "@/app/map/[id]/components/TogglePanel";
+import DataSourceIcon from "@/components/DataSourceIcon";
+import { useTRPC } from "@/services/trpc/react";
 import { cn } from "@/shadcn/utils";
+import type { DataSource } from "@/server/models/DataSource";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 function isDivider(
   item: unknown,
@@ -25,6 +27,13 @@ function isDivider(
     (item as { type?: string }).type === "divider"
   );
 }
+
+const COMPARISON_STAT_LABEL: Record<string, string> = {
+  average: "Average",
+  median: "Median",
+  min: "Min",
+  max: "Max",
+};
 
 /**
  * Reduced inspector preview for the default inspector settings section.
@@ -46,7 +55,9 @@ export function DefaultInspectorPreview({
       page: 0,
     }),
   );
-  const sampleRow = listData?.records?.[0]?.json as Record<string, unknown> | undefined;
+  const sampleRow = listData?.records?.[0]?.json as
+    | Record<string, unknown>
+    | undefined;
 
   const allColumnNames = useMemo(
     () => dataSource.columnDefs.map((c) => c.name),
@@ -63,8 +74,7 @@ export function DefaultInspectorPreview({
         )
         .map((col) => ({
           col,
-          stat:
-            config.columnMetadata?.[col]?.comparisonStat ?? "average",
+          stat: config.columnMetadata?.[col]?.comparisonStat ?? "average",
         })),
     [config.columns, config.columnMetadata],
   );
@@ -96,18 +106,8 @@ export function DefaultInspectorPreview({
     return out;
   }, [comparisonColumns, baselineQueries]);
 
-  const COMPARISON_STAT_LABEL: Record<string, string> = {
-    average: "Average",
-    median: "Median",
-    min: "Min",
-    max: "Max",
-  };
-
   const entries = useMemo((): PropertyEntry[] => {
-    const items = getSelectedItemsOrdered(
-      config,
-      allColumnNames,
-    );
+    const items = getSelectedItemsOrdered(config, allColumnNames);
     const meta = config.columnMetadata ?? {};
     const result: PropertyEntry[] = [];
     let index = 0;
@@ -141,7 +141,7 @@ export function DefaultInspectorPreview({
           ...(m?.format === "numberWithComparison" && {
             comparisonBaseline: comparisonBaselines[item] ?? null,
             comparisonStat: m.comparisonStat
-              ? COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat
+              ? (COMPARISON_STAT_LABEL[m.comparisonStat] ?? m.comparisonStat)
               : undefined,
             comparisonBaselineLoading: comparisonBaselineLoading[item] === true,
           }),

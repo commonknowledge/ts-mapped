@@ -180,7 +180,9 @@ export default function InspectorDataTab({
                     columnGroups={item.config.columnGroups}
                     layout={item.config.layout}
                     defaultExpanded={true}
-                    onOpenInspectorSettings={onOpenInspectorSettingsForDataSource}
+                    onOpenInspectorSettings={
+                      onOpenInspectorSettingsForDataSource
+                    }
                   />
                 ))}
               </div>

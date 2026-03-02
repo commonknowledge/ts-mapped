@@ -32,7 +32,7 @@ export default function MarkersList({
   const { viewConfig } = useMapViews();
   const { data: folders = [] } = useFoldersQuery();
   const { data: placedMarkers = [] } = usePlacedMarkersQuery();
-  const { selectedDataSourceId, handleDataSourceSelect } = useTable();
+  const { handleDataSourceSelect } = useTable();
   const markerDataSources = useMarkerDataSources();
   const membersDataSource = useMembersDataSource();
 
@@ -99,7 +99,6 @@ export default function MarkersList({
                 <DataSourceControl
                   key={membersDataSource.id}
                   dataSource={membersDataSource}
-                  isSelected={membersDataSource.id === selectedDataSourceId}
                   handleDataSourceSelect={handleDataSourceSelect}
                   layerType={LayerType.Member}
                 />
@@ -113,7 +112,6 @@ export default function MarkersList({
                   <DataSourceControl
                     key={dataSource.id}
                     dataSource={dataSource}
-                    isSelected={dataSource.id === selectedDataSourceId}
                     handleDataSourceSelect={handleDataSourceSelect}
                     layerType={LayerType.Marker}
                   />
@@ -130,7 +128,9 @@ export default function MarkersList({
                 <SortableFolderItem
                   key={folder.id}
                   folder={folder}
-                  markers={placedMarkers.filter((p) => p.folderId === folder.id)}
+                  markers={placedMarkers.filter(
+                    (p) => p.folderId === folder.id,
+                  )}
                   activeId={activeId}
                   setKeyboardCapture={setKeyboardCapture}
                 />
@@ -160,4 +160,3 @@ export default function MarkersList({
     </div>
   );
 }
-

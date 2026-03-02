@@ -386,19 +386,19 @@ export function InspectorSourceConfigPanel({
 
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <ColumnsSection
-          config={effectiveConfig}
-          allColumnsInOrder={allColumnsInOrder}
-          selectedColumnsInOrder={selectedColumnsInOrder}
-          selectedItemsInOrder={selectedItemsInOrder}
-          availableColumns={availableColumns}
-          columnIds={columnIds}
-          columns={columns}
-          columnMetadata={columnMetadata}
-          updateConfig={updateConfig}
-          handleAddColumn={handleAddColumn}
-          handleRemoveColumn={handleRemoveColumn}
-          handleRemoveColumnFromRight={handleRemoveColumnFromRight}
-        />
+            config={effectiveConfig}
+            allColumnsInOrder={allColumnsInOrder}
+            selectedColumnsInOrder={selectedColumnsInOrder}
+            selectedItemsInOrder={selectedItemsInOrder}
+            availableColumns={availableColumns}
+            columnIds={columnIds}
+            columns={columns}
+            columnMetadata={columnMetadata}
+            updateConfig={updateConfig}
+            handleAddColumn={handleAddColumn}
+            handleRemoveColumn={handleRemoveColumn}
+            handleRemoveColumnFromRight={handleRemoveColumnFromRight}
+          />
         </div>
 
         {"defaultInspectorConfigUpdatedAt" in dataSource &&

@@ -165,7 +165,7 @@ export default function UserDataSourcesList({
                       isDisabled && "pointer-events-none opacity-60",
                       isSelected
                         ? "bg-blue-100 border-blue-200"
-                        : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                        : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100",
                     )}
                   >
                     {option.value === "all" ? null : (
