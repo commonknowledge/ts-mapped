@@ -88,8 +88,37 @@ describe("dataRecord router tests", () => {
         },
         json: {
           Code: "E14001088",
-          Electorate: 72198,
+          "Con %": 3,
+          Electorate: 72199,
+          "Lab %": 12,
           Name: "Bexhill and Battle",
+          Segment: 2,
+          "Segment name": "Weird",
+        },
+      },
+      {
+        geocodeResult: {
+          areas: {
+            UKR18: "E15000008",
+            WMC24: "E14001202",
+          },
+          centralPoint: {
+            lat: 51.180963153,
+            lng: 1.289727356,
+          },
+          samplePoint: {
+            lat: 51.182319321,
+            lng: 1.276725214,
+          },
+        },
+        json: {
+          Code: "E14001202",
+          "Con %": 5,
+          Electorate: "",
+          "Lab %": 10,
+          Name: "Dover and Deal",
+          Segment: 1,
+          "Segment name": "Normal",
         },
       },
       {
@@ -109,8 +138,12 @@ describe("dataRecord router tests", () => {
         },
         json: {
           Code: "E14001071",
+          "Con %": 15,
           Electorate: 79169,
+          "Lab %": 11,
           Name: "Aylesbury",
+          Segment: 1,
+          "Segment name": "Normal",
         },
       },
     ]);
@@ -150,8 +183,12 @@ describe("dataRecord router tests", () => {
         },
         json: {
           Code: "E14001088",
-          Electorate: 72198,
+          "Con %": 3,
+          Electorate: 72199,
+          "Lab %": 12,
           Name: "Bexhill and Battle",
+          Segment: 2,
+          "Segment name": "Weird",
         },
       },
     ]);
@@ -191,8 +228,12 @@ describe("dataRecord router tests", () => {
         },
         json: {
           Code: "E14001088",
-          Electorate: 72198,
+          "Con %": 3,
+          Electorate: 72199,
+          "Lab %": 12,
           Name: "Bexhill and Battle",
+          Segment: 2,
+          "Segment name": "Weird",
         },
       },
     ]);
@@ -232,8 +273,12 @@ describe("dataRecord router tests", () => {
         },
         json: {
           Code: "E14001088",
-          Electorate: 72198,
+          "Con %": 3,
+          Electorate: 72199,
+          "Lab %": 12,
           Name: "Bexhill and Battle",
+          Segment: 2,
+          "Segment name": "Weird",
         },
       },
     ]);

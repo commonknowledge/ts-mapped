@@ -334,7 +334,8 @@ export const dataSourceRouter = router({
       // needed for automatic syncing. We attempt to repair but always proceed with import.
       try {
         const adaptor = getDataSourceAdaptor(ctx.dataSource);
-        const shouldHaveWebhook = ctx.dataSource.autoEnrich || ctx.dataSource.autoImport;
+        const shouldHaveWebhook =
+          ctx.dataSource.autoEnrich || ctx.dataSource.autoImport;
         if (
           shouldHaveWebhook &&
           adaptor &&
