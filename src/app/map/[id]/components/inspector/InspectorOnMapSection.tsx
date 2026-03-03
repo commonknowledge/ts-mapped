@@ -1,7 +1,6 @@
 import { LayoutDashboardIcon } from "lucide-react";
-import { CalculationType } from "@/server/models/MapView";
 import { useAreaStats } from "../../data";
-import { useChoroplethDataSource } from "../../hooks/useDataSources";
+import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
 import { useInspector } from "../../hooks/useInspector";
 import { useMapViews } from "../../hooks/useMapViews";
 import { getBoundaryDatasetName } from "./helpers";
@@ -14,28 +13,18 @@ import { getBoundaryDatasetName } from "./helpers";
 export default function InspectorOnMapSection() {
   const { viewConfig } = useMapViews();
   const { selectedBoundary } = useInspector();
-  const choroplethDataSource = useChoroplethDataSource();
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
 
-  if (!selectedBoundary?.code) {
+  const hasChoropleth = Boolean(viewConfig.areaDataSourceId);
+  const isSameAreaSet =
+    areaStats?.areaSetCode === selectedBoundary?.areaSetCode;
+  const displayAreaStat = useDisplayAreaStat(selectedBoundary);
+
+  if (!selectedBoundary?.code || !isSameAreaSet) {
     return null;
   }
 
-  const hasChoropleth = Boolean(viewConfig.areaDataSourceId);
-  const isSameAreaSet = areaStats?.areaSetCode === selectedBoundary.areaSetCode;
-  const stat =
-    hasChoropleth && areaStats && isSameAreaSet
-      ? areaStats.stats.find(
-          (s: { areaCode: string }) => s.areaCode === selectedBoundary.code,
-        )
-      : null;
-
-  const label =
-    areaStats?.calculationType === CalculationType.Count
-      ? `${choroplethDataSource?.name ?? "Data"} count`
-      : viewConfig.areaDataColumn || "Value";
-  const hasSecondary = Boolean(viewConfig.areaDataSecondaryColumn);
   const boundarySetName = getBoundaryDatasetName(
     selectedBoundary?.sourceLayerId,
   );
@@ -59,25 +48,23 @@ export default function InspectorOnMapSection() {
           ) : null}
         </p>
         {hasChoropleth && areaStats ? (
-          stat ? (
+          displayAreaStat ? (
             <div className="flex flex-col gap-1">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="text-xs text-muted-foreground">{label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {displayAreaStat.primaryLabel}
+                </span>
                 <span className="font-mono text-sm font-medium tabular-nums">
-                  {typeof stat.primary === "number"
-                    ? stat.primary.toLocaleString()
-                    : String(stat.primary ?? "—")}
+                  {displayAreaStat.areaToDisplay?.primaryDisplayValue}
                 </span>
               </div>
-              {hasSecondary && (
+              {displayAreaStat.secondaryLabel && (
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-xs text-muted-foreground">
-                    {viewConfig.areaDataSecondaryColumn}
+                    {displayAreaStat.secondaryLabel}
                   </span>
                   <span className="font-mono text-sm tabular-nums text-muted-foreground">
-                    {typeof stat.secondary === "number"
-                      ? stat.secondary.toLocaleString()
-                      : String(stat.secondary ?? "—")}
+                    {displayAreaStat.areaToDisplay?.secondaryDisplayValue}
                   </span>
                 </div>
               )}
