@@ -1,4 +1,5 @@
 import z from "zod";
+import { hexColorSchema } from "./shared";
 import type { Generated, Insertable, Updateable } from "kysely";
 
 export const folderSchema = z.object({
@@ -9,6 +10,7 @@ export const folderSchema = z.object({
   mapId: z.string(),
   hideMarkers: z.boolean().nullish(),
   type: z.enum(["placedMarker", "turf"]).default("placedMarker"),
+  color: hexColorSchema.nullish(),
 });
 
 export type Folder = z.infer<typeof folderSchema>;

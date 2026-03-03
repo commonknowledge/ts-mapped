@@ -50,21 +50,19 @@ export default function SortableMarkerItem({
     setPlacedMarkerVisibility,
   } = usePlacedMarkerState();
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
-  const { mapConfig, updateMapConfig } = useMapConfig();
+  const { mapConfig } = useMapConfig();
   const mapRef = useMapRef();
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const currentColor =
-    mapConfig.placedMarkerColors?.[marker.id] ?? mapColors.markers.color;
+    marker.color || mapConfig.placedMarkerColor || mapColors.markers.color;
 
   const handleColorChange = (color: string) => {
-    updateMapConfig({
-      placedMarkerColors: {
-        ...mapConfig.placedMarkerColors,
-        [marker.id]: color,
-      },
+    updatePlacedMarker({
+      ...marker,
+      color,
     });
   };
 

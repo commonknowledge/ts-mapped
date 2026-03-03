@@ -11,11 +11,9 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { useFolderMutations } from "@/app/map/[id]/hooks/useFolders";
-import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { usePlacedMarkerMutations } from "@/app/map/[id]/hooks/usePlacedMarkers";
 import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
-import { mapColors } from "@/app/map/[id]/styles";
 import {
   compareByPositionAndId,
   getNewFirstPosition,
@@ -45,7 +43,6 @@ function useSortableList({ folders }: DragHandlerDeps) {
   const { updatePlacedMarker } = usePlacedMarkerMutations();
   const { updateTurf } = useTurfMutations();
   const { updateFolder } = useFolderMutations();
-  const { mapConfig, updateMapConfig } = useMapConfig();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [keyboardCapture, setKeyboardCapture] = useState(false);
 
@@ -106,32 +103,19 @@ function useSortableList({ folders }: DragHandlerDeps) {
       if ("polygon" in item) {
         let turfColor = item.color;
         if (item.folderId) {
-          turfColor =
-            mapConfig.folderColors?.[item.folderId] ?? mapColors.areas.color;
+          turfColor = folders.find((f) => f.id === item.folderId)?.color;
         }
         updateTurf({ ...item, color: turfColor });
         return;
       }
-      updatePlacedMarker(item);
 
+      let markerColor = item.color;
       if (item.folderId) {
-        const folderColor =
-          mapConfig.folderColors?.[item.folderId] || mapColors.markers.color;
-        updateMapConfig({
-          placedMarkerColors: {
-            ...(mapConfig.placedMarkerColors ?? {}),
-            [item.id]: folderColor,
-          },
-        });
+        markerColor = folders.find((f) => f.id === item.folderId)?.color;
       }
+      updatePlacedMarker({ ...item, color: markerColor });
     },
-    [
-      mapConfig.folderColors,
-      mapConfig.placedMarkerColors,
-      updateMapConfig,
-      updatePlacedMarker,
-      updateTurf,
-    ],
+    [folders, updatePlacedMarker, updateTurf],
   );
 
   // Update cache only (for optimistic updates during drag) - NO mutation
@@ -161,6 +145,7 @@ function useSortableList({ folders }: DragHandlerDeps) {
       const fullMarker = {
         ...item,
         mapId,
+        color: item.color ?? null,
         folderId: item.folderId ?? null,
       };
 

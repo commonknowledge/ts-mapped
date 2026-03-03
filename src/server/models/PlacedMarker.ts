@@ -1,5 +1,5 @@
 import z from "zod";
-import { pointSchema } from "./shared";
+import { hexColorSchema, pointSchema } from "./shared";
 import type { Generated, Insertable, Updateable } from "kysely";
 
 export const placedMarkerSchema = z.object({
@@ -10,6 +10,7 @@ export const placedMarkerSchema = z.object({
   point: pointSchema,
   folderId: z.string().nullish(),
   position: z.number(),
+  color: hexColorSchema.nullish(),
 });
 
 export type PlacedMarker = z.infer<typeof placedMarkerSchema>;

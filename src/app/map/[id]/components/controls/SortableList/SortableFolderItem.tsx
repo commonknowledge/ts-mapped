@@ -25,8 +25,10 @@ import {
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
 import { useFolderMutations } from "../../../hooks/useFolders";
-import { useMapConfig } from "../../../hooks/useMapConfig";
-import { usePlacedMarkerState } from "../../../hooks/usePlacedMarkers";
+import {
+  usePlacedMarkerMutations,
+  usePlacedMarkerState,
+} from "../../../hooks/usePlacedMarkers";
 import { useTurfMutations } from "../../../hooks/useTurfMutations";
 import { useTurfState } from "../../../hooks/useTurfState";
 import { mapColors } from "../../../styles";
@@ -84,9 +86,10 @@ export default function SortableFolderItem({
     usePlacedMarkerState();
   const { getTurfVisibility, setTurfVisibility } = useTurfState();
   const { updateTurf: updateTurfMutation } = useTurfMutations();
+  const { updatePlacedMarker: updatePlacedMarkerMutation } =
+    usePlacedMarkerMutations();
 
   const { updateFolder, deleteFolder } = useFolderMutations();
-  const { mapConfig, updateMapConfig } = useMapConfig();
 
   const isTurfFolder = folder.type === "turf";
 
@@ -94,30 +97,19 @@ export default function SortableFolderItem({
   const defaultFolderColor = isTurfFolder
     ? mapColors.areas.color
     : mapColors.markers.color;
-  const currentFolderColor =
-    mapConfig.folderColors?.[folder.id] ?? defaultFolderColor;
+  const currentFolderColor = folder.color ?? defaultFolderColor;
 
   const handleFolderColorChange = (color: string) => {
-    const updatedFolderColors = {
-      ...mapConfig.folderColors,
-      [folder.id]: color,
-    };
-
+    updateFolder({ ...folder, color });
     if (isTurfFolder) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       turfs.forEach(({ mapId, ...rest }) => {
         updateTurfMutation({ ...rest, color });
       });
-      updateMapConfig({ folderColors: updatedFolderColors });
     } else {
       // Update folder color and all marker colors in one operation
-      const updatedMarkerColors = { ...mapConfig.placedMarkerColors };
       markers.forEach((marker) => {
-        updatedMarkerColors[marker.id] = color;
-      });
-      updateMapConfig({
-        folderColors: updatedFolderColors,
-        placedMarkerColors: updatedMarkerColors,
+        updatePlacedMarkerMutation({ ...marker, color });
       });
     }
   };

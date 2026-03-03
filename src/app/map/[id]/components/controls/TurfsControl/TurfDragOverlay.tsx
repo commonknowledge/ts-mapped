@@ -1,12 +1,14 @@
 import { mapColors } from "@/app/map/[id]/styles";
+import { useFoldersQuery } from "../../../hooks/useFolders";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import type { Turf } from "@/server/models/Turf";
 
 export default function TurfDragOverlay({ turf }: { turf: Turf }) {
   const { mapConfig } = useMapConfig();
+  const { data: folders = [] } = useFoldersQuery();
   const activeColor =
     turf.color ??
-    (turf.folderId ? mapConfig.folderColors?.[turf.folderId] : null) ??
+    folders.find((f) => f.id === turf.folderId)?.color ??
     mapConfig.turfColor ??
     mapColors.areas.color;
 

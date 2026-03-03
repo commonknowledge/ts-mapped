@@ -1,5 +1,7 @@
 import z from "zod";
 
+export const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
+
 export const pointSchema = z.object({
   lat: z.number(),
   lng: z.number(),

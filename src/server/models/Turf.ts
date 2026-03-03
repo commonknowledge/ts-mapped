@@ -1,4 +1,5 @@
 import z from "zod";
+import { hexColorSchema } from "./shared";
 import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export const polygonSchema = z.object({
@@ -30,7 +31,7 @@ export const turfSchema = z.object({
   polygon: polygonOrMultiPolygonSchema,
   mapId: z.string(),
   createdAt: z.date(),
-  color: z.string().nullish(),
+  color: hexColorSchema.nullish(),
   folderId: z.string().nullish(),
   position: z.number(),
 });

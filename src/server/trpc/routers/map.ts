@@ -127,8 +127,7 @@ export const mapRouter = router({
         membersDataSourceId: mapConfig.membersDataSourceId,
         markerDisplayModes: mapConfig.markerDisplayModes,
         markerColors: mapConfig.markerColors,
-        placedMarkerColors: mapConfig.placedMarkerColors,
-        folderColors: mapConfig.folderColors,
+        placedMarkerColor: mapConfig.placedMarkerColor,
         turfColor: mapConfig.turfColor,
       } as z.infer<typeof mapConfigSchema>;
 

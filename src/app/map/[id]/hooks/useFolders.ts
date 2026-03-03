@@ -121,6 +121,7 @@ export function useFolderMutations() {
               ...newFolder,
               hideMarkers: newFolder.hideMarkers ?? false,
               position: newPosition,
+              color: newFolder.color,
               mapId,
             },
           ],
@@ -144,7 +145,12 @@ export function useFolderMutations() {
           folders:
             old.folders?.map((f) =>
               f.id === folder.id
-                ? { ...folder, hideMarkers: folder.hideMarkers ?? false, mapId }
+                ? {
+                    ...folder,
+                    hideMarkers: folder.hideMarkers ?? false,
+                    color: folder.color,
+                    mapId,
+                  }
                 : f,
             ) || [],
         };

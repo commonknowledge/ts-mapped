@@ -1,4 +1,5 @@
 import z from "zod";
+import { hexColorSchema } from "./shared";
 import type { ColumnType, Generated, Insertable, Updateable } from "kysely";
 
 export enum MarkerDisplayMode {
@@ -6,16 +7,13 @@ export enum MarkerDisplayMode {
   Heatmap = "heatmap",
 }
 
-const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
-
 export const mapConfigSchema = z.object({
   markerDataSourceIds: z.array(z.string()),
   membersDataSourceId: z.string().nullish(),
   markerDisplayModes: z.record(z.nativeEnum(MarkerDisplayMode)).optional(),
   markerColors: z.record(hexColorSchema).optional(),
-  placedMarkerColors: z.record(hexColorSchema).optional(),
-  folderColors: z.record(hexColorSchema).optional(),
-  turfColor: hexColorSchema.optional(),
+  placedMarkerColor: hexColorSchema.nullish(),
+  turfColor: hexColorSchema.nullish(),
 });
 
 export type MapConfig = z.infer<typeof mapConfigSchema>;

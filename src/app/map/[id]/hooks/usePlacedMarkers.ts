@@ -135,6 +135,7 @@ export function usePlacedMarkerMutations() {
               ...newMarker,
               position: newPosition,
               mapId,
+              color: newMarker.color,
               folderId: newMarker.folderId ?? null,
             },
           ],
@@ -157,6 +158,7 @@ export function usePlacedMarkerMutations() {
       const fullMarker = {
         ...placedMarker,
         mapId,
+        color: placedMarker.color,
         folderId: placedMarker.folderId ?? null,
       };
 
