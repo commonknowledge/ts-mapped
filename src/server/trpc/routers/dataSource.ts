@@ -160,6 +160,9 @@ export const dataSourceRouter = router({
     }),
 
   checkWebhookStatus: dataSourceOwnerProcedure.query(async ({ ctx }) => {
+    if (!ctx.dataSource.autoEnrich && !ctx.dataSource.autoImport) {
+      return { hasWebhook: false, hasErrors: false, error: null };
+    }
     try {
       const adaptor = getDataSourceAdaptor(ctx.dataSource);
       if (
@@ -331,7 +334,9 @@ export const dataSourceRouter = router({
       // needed for automatic syncing. We attempt to repair but always proceed with import.
       try {
         const adaptor = getDataSourceAdaptor(ctx.dataSource);
+        const shouldHaveWebhook = ctx.dataSource.autoEnrich || ctx.dataSource.autoImport;
         if (
+          shouldHaveWebhook &&
           adaptor &&
           "hasWebhookErrors" in adaptor &&
           "repairWebhook" in adaptor
