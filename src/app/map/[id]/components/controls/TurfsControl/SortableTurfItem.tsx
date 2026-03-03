@@ -6,15 +6,20 @@ import * as turfLib from "@turf/turf";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useFoldersQuery } from "../../../hooks/useFolders";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useShowControls } from "../../../hooks/useMapControls";
 import { useMapRef } from "../../../hooks/useMapCore";
@@ -48,6 +53,7 @@ export default function SortableTurfItem({
   const showControls = useShowControls();
   const { getTurfVisibility, setTurfVisibility } = useTurfState();
   const { updateTurf, deleteTurf } = useTurfMutations();
+  const { data: folders = [] } = useFoldersQuery();
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
@@ -63,8 +69,13 @@ export default function SortableTurfItem({
     opacity: isCurrentlyDragging ? 0.3 : 1,
   };
 
-  const currentColor =
-    turf.color ?? mapConfig.turfColor ?? mapColors.areas.color;
+  let currentColor = turf.color ?? mapConfig.turfColor ?? mapColors.areas.color;
+
+  // Show the color the turf will be on drop
+  if (isCurrentlyDragging) {
+    currentColor =
+      folders.find((f) => f.id === turf.folderId)?.color || currentColor;
+  }
 
   const handleColorChange = (color: string) => {
     updateTurf({ ...turf, color });
@@ -165,12 +176,10 @@ export default function SortableTurfItem({
                     className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
                     onClick={() => handleFlyTo(turf)}
                   >
-                    <div className="text-sm font-medium truncate">
+                    <div className="text-sm font-medium">
                       {turf.label || `Area: ${turf.area?.toFixed(2)}m²`}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      Area
-                    </div>
+                    <div className="text-xs text-muted-foreground">Area</div>
                   </button>
                 </div>
               </ContextMenuTrigger>
@@ -194,6 +203,24 @@ export default function SortableTurfItem({
                     </>
                   )}
                 </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded border border-neutral-300"
+                        style={{ backgroundColor: currentColor }}
+                      />
+                      <span>Color</span>
+                    </div>
+                  </ContextMenuSubTrigger>
+                  <ContextMenuSubContent className="w-auto p-2">
+                    <ColorPalette
+                      selectedColor={currentColor}
+                      onColorSelect={handleColorChange}
+                    />
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
                 <ContextMenuSeparator />
                 <ContextMenuItem
                   variant="destructive"

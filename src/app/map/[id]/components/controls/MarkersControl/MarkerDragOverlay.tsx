@@ -11,10 +11,10 @@ export default function MarkerDragOverlay({
   const { mapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const activeColor =
-    marker.color ??
     folders.find((f) => f.id === marker.folderId)?.color ??
-    mapConfig.turfColor ??
-    mapColors.areas.color;
+    marker.color ??
+    mapConfig.placedMarkerColor ??
+    mapColors.markers.color;
 
   return (
     <div className="relative flex items-center gap-1 p-0.5 bg-white border border-blue-300 rounded shadow-lg pointer-events-none">

@@ -2,29 +2,10 @@
 
 import { Folder, FolderOpen, Square } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { DEFAULT_COLOR_PALETTE } from "@/components/ColorPalette";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { LayerType } from "@/types";
 import { MarkerCollectionIcon, MarkerIndividualIcon } from "../Icons";
-
-// Color palette - 16 colors in a 4x4 grid
-const COLOR_PALETTE = [
-  "#678DE3", // Blue
-  "#FF6B6B", // Red
-  "#4DAB37", // Green
-  "#9B59B6", // Purple
-  "#F39C12", // Orange
-  "#1ABC9C", // Teal
-  "#E74C3C", // Dark Red
-  "#3498DB", // Light Blue
-  "#2ECC71", // Light Green
-  "#E67E22", // Dark Orange
-  "#16A085", // Dark Teal
-  "#8E44AD", // Dark Purple
-  "#F1C40F", // Yellow
-  "#34495E", // Dark Blue
-  "#E91E63", // Pink
-  "#00BCD4", // Cyan
-];
 
 // Icon type definitions (area = turf/areas on the map)
 type IconType =
@@ -167,7 +148,7 @@ export default function LayerIcon({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="grid grid-cols-4 gap-1">
-          {COLOR_PALETTE.map((color) => (
+          {DEFAULT_COLOR_PALETTE.map((color) => (
             <button
               key={color}
               onClick={() => handleColorSelect(color)}

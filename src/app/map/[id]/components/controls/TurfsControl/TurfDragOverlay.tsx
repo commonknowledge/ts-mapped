@@ -7,8 +7,8 @@ export default function TurfDragOverlay({ turf }: { turf: Turf }) {
   const { mapConfig } = useMapConfig();
   const { data: folders = [] } = useFoldersQuery();
   const activeColor =
-    turf.color ??
     folders.find((f) => f.id === turf.folderId)?.color ??
+    turf.color ??
     mapConfig.turfColor ??
     mapColors.areas.color;
 

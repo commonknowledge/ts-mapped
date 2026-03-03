@@ -11,9 +11,9 @@ import {
   useFolderMutations,
   useFoldersQuery,
 } from "@/app/map/[id]/hooks/useFolders";
+import ColorPalette from "@/components/ColorPalette";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
 import { Button } from "@/shadcn/ui/button";
-import { Input } from "@/shadcn/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { LayerType } from "@/types";
 import { useMapConfig } from "../../../hooks/useMapConfig";
@@ -57,6 +57,7 @@ export default function AreasControl() {
       name: `New Folder ${turfFolders.length + 1}`,
       notes: "",
       type: "turf" as const,
+      color: mapColors.areas.color,
     };
     insertFolder(newFolder);
   };
@@ -95,35 +96,11 @@ export default function AreasControl() {
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-3" align="start">
-              <p className="text-xs font-medium mb-2">Area colour</p>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-10 h-10 rounded border border-neutral-300 shrink-0 relative"
-                  style={{
-                    backgroundColor:
-                      mapConfig.turfColor ?? mapColors.areas.color,
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={mapConfig.turfColor ?? mapColors.areas.color}
-                    onChange={(e) =>
-                      updateMapConfig({ turfColor: e.target.value })
-                    }
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    title="Choose area colour"
-                  />
-                </div>
-                <Input
-                  type="text"
-                  value={mapConfig.turfColor ?? mapColors.areas.color}
-                  onChange={(e) =>
-                    updateMapConfig({ turfColor: e.target.value })
-                  }
-                  className="flex-1 w-28"
-                  placeholder={mapColors.areas.color}
-                />
-              </div>
+              <p className="text-xs font-medium px-2">Area colour</p>
+              <ColorPalette
+                selectedColor={mapConfig.turfColor ?? mapColors.areas.color}
+                onColorSelect={(color) => updateMapConfig({ turfColor: color })}
+              />
               {mapConfig.turfColor && (
                 <Button
                   variant="outline"

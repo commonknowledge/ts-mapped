@@ -5,15 +5,20 @@ import { CSS } from "@dnd-kit/utilities";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
+import { useFoldersQuery } from "../../../hooks/useFolders";
 import { useMapConfig } from "../../../hooks/useMapConfig";
 import { useMapRef } from "../../../hooks/useMapCore";
 import {
@@ -51,12 +56,13 @@ export default function SortableMarkerItem({
   } = usePlacedMarkerState();
   const { updatePlacedMarker, deletePlacedMarker } = usePlacedMarkerMutations();
   const { mapConfig } = useMapConfig();
+  const { data: folders = [] } = useFoldersQuery();
   const mapRef = useMapRef();
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const currentColor =
+  let currentColor =
     marker.color || mapConfig.placedMarkerColor || mapColors.markers.color;
 
   const handleColorChange = (color: string) => {
@@ -69,6 +75,12 @@ export default function SortableMarkerItem({
   // Check if this marker is the one being dragged (even outside its container)
   const isCurrentlyDragging = isDragging || activeId === `item-${marker.id}`;
   const isVisible = getPlacedMarkerVisibility(marker.id);
+
+  // Show the color the marker will be on drop
+  if (isCurrentlyDragging) {
+    currentColor =
+      folders.find((f) => f.id === marker.folderId)?.color || currentColor;
+  }
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -163,10 +175,8 @@ export default function SortableMarkerItem({
                       }
                     }}
                   >
-                    <div className="text-sm font-medium truncate">
-                      {marker.label}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-sm font-medium">{marker.label}</div>
+                    <div className="text-xs text-muted-foreground">
                       Individual marker
                     </div>
                   </button>
@@ -194,6 +204,24 @@ export default function SortableMarkerItem({
                     </>
                   )}
                 </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded border border-neutral-300"
+                        style={{ backgroundColor: currentColor }}
+                      />
+                      <span>Color</span>
+                    </div>
+                  </ContextMenuSubTrigger>
+                  <ContextMenuSubContent className="w-auto p-2">
+                    <ColorPalette
+                      selectedColor={currentColor}
+                      onColorSelect={handleColorChange}
+                    />
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
                 <ContextMenuSeparator />
                 <ContextMenuItem
                   variant="destructive"

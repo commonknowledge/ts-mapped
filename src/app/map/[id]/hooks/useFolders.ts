@@ -38,6 +38,13 @@ export function useFolderMutations() {
 
         return { previousData };
       },
+      onSuccess: () => {
+        if (mapId) {
+          queryClient.invalidateQueries({
+            queryKey: trpc.map.byId.queryKey({ mapId }),
+          });
+        }
+      },
       onError: (_err, _variables, context) => {
         // Rollback on error
         if (mapId && context?.previousData) {

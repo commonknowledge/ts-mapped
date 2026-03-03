@@ -1,4 +1,10 @@
-import { FolderPlusIcon, LoaderPinwheel, PlusIcon, Search } from "lucide-react";
+import {
+  FolderPlusIcon,
+  LoaderPinwheel,
+  PlusIcon,
+  Search,
+  SettingsIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -17,8 +23,12 @@ import {
   usePlacedMarkerMutations,
   usePlacedMarkersQuery,
 } from "@/app/map/[id]/hooks/usePlacedMarkers";
+import ColorPalette from "@/components/ColorPalette";
 import IconButtonWithTooltip from "@/components/IconButtonWithTooltip";
+import { Button } from "@/shadcn/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { LayerType } from "@/types";
+import { mapColors } from "../../../styles";
 import { MarkerCollectionIcon, MarkerIndividualIcon } from "../../Icons";
 import LayerControlWrapper from "../LayerControlWrapper";
 import LayerHeader from "../LayerHeader";
@@ -44,25 +54,18 @@ export default function MarkersControl() {
       name: `New Folder ${folders.length + 1}`,
       notes: "",
       type: "placedMarker" as const,
+      color: mapColors.markers.color,
     };
     insertFolder(newFolder);
   };
 
   const handleManualSearch = () => {
     setTimeout(() => {
-      const geocoderInput = document.querySelector(
-        'mapbox-search-box [class$="--Input"]',
-      ) as HTMLInputElement | null;
-      if (geocoderInput) {
-        geocoderInput.focus();
-        geocoderInput.addEventListener(
-          "blur",
-          (e) => {
-            e.preventDefault();
-            geocoderInput.focus();
-          },
-          { once: true },
-        );
+      const searchButton = document.querySelector(
+        "#search-box button",
+      ) as HTMLButtonElement | null;
+      if (searchButton) {
+        searchButton.click();
       }
     }, 200);
   };
@@ -134,6 +137,38 @@ export default function MarkersControl() {
           membersDataSource,
         )}
       >
+        <Popover>
+          <PopoverTrigger asChild>
+            <div>
+              <IconButtonWithTooltip tooltip="Marker colour">
+                <SettingsIcon size={16} />
+              </IconButtonWithTooltip>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-3" align="start">
+            <p className="text-xs font-medium px-2">Marker colour</p>
+            <ColorPalette
+              selectedColor={
+                mapConfig.placedMarkerColor ?? mapColors.markers.color
+              }
+              onColorSelect={(color) =>
+                updateMapConfig({ placedMarkerColor: color })
+              }
+            />
+            {mapConfig.placedMarkerColor && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full text-xs"
+                onClick={() =>
+                  updateMapConfig({ placedMarkerColor: undefined })
+                }
+              >
+                Reset to default
+              </Button>
+            )}
+          </PopoverContent>
+        </Popover>
         {loading && <LoaderPinwheel className="animate-spin" size={16} />}
         <IconButtonWithTooltip
           align="start"

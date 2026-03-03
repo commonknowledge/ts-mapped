@@ -1,13 +1,14 @@
 "use client";
 
 import { CheckIcon } from "lucide-react";
+import { mapColors } from "@/app/map/[id]/styles";
 import { cn } from "@/shadcn/utils";
 
 /** Same palette as layer panel colour picker; export for reuse (e.g. inspector) */
 export const COLOR_PALETTE_DATA = [
-  { hex: "#FF6B6B", name: "Red" },
+  { hex: mapColors.markers.color, name: "Red" },
   { hex: "#678DE3", name: "Blue" },
-  { hex: "#4DAB37", name: "Green" },
+  { hex: mapColors.areas.color, name: "Emerald" },
   { hex: "#FFA500", name: "Orange" },
   { hex: "#9B59B6", name: "Purple" },
   { hex: "#1ABC9C", name: "Turquoise" },
@@ -15,7 +16,7 @@ export const COLOR_PALETTE_DATA = [
   { hex: "#34495E", name: "Dark Blue Grey" },
   { hex: "#E74C3C", name: "Dark Red" },
   { hex: "#3498DB", name: "Light Blue" },
-  { hex: "#2ECC71", name: "Emerald" },
+  { hex: "#4DAB37", name: "Green" },
   { hex: "#8E44AD", name: "Dark Purple" },
 ] as const;
 

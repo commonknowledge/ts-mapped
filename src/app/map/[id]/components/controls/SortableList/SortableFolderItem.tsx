@@ -14,12 +14,16 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { sortByPositionAndId } from "@/app/map/[id]/utils/position";
+import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { cn } from "@/shadcn/utils";
@@ -238,6 +242,24 @@ export default function SortableFolderItem({
                 )}
               </ContextMenuItem>
               <ContextMenuSeparator />
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded border border-neutral-300"
+                      style={{ backgroundColor: currentFolderColor }}
+                    />
+                    <span>Color</span>
+                  </div>
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent className="w-auto p-2">
+                  <ColorPalette
+                    selectedColor={currentFolderColor}
+                    onColorSelect={handleFolderColorChange}
+                  />
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+              <ContextMenuSeparator />
               <ContextMenuItem
                 variant="destructive"
                 onClick={() => setShowDeleteDialog(true)}
@@ -262,7 +284,7 @@ export default function SortableFolderItem({
                   <li key={item.id} className="flex items-center gap-1 w-full">
                     <CornerDownRightIcon
                       size={16}
-                      className="text-neutral-400"
+                      className="text-neutral-400 shrink-0"
                     />
                     {"polygon" in item ? (
                       <SortableTurfItem
