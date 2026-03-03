@@ -2,7 +2,7 @@ import { Info, Loader2 } from "lucide-react";
 import { Fragment } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
-import type { ColumnMetadata } from "@/server/models/DataSource";
+import type { InspectorColumnMeta } from "@/server/models/MapView";
 
 export type ColumnFormat =
   | "text"
@@ -206,7 +206,7 @@ export default function PropertiesList({
   dividerBackgroundClassName,
 }: {
   properties?: Record<string, unknown> | null;
-  columnMetadata?: ColumnMetadata[];
+  columnMetadata?: Record<string, InspectorColumnMeta> | null;
   entries?: PropertyEntry[] | null;
   layout?: "single" | "twoColumn";
   /** Background class for divider labels (to cover vertical line). Inherits from panel color. */
@@ -223,7 +223,7 @@ export default function PropertiesList({
           key,
           label: key,
           value,
-          description: columnMetadata?.find((c) => c.name === key)?.description,
+          description: columnMetadata?.[key]?.description,
         }))
       : [];
 

@@ -15,9 +15,12 @@ import { getChoroplethDataKey } from "./Choropleth/utils";
 import type { NumericColorScheme } from "../colors";
 
 export default function Legend() {
-  const { viewConfig, updateViewConfig } = useMapViews();
+  const { view, viewConfig, updateViewConfig } = useMapViews();
   const dataSource = useChoroplethDataSource();
   const { setBoundariesPanelOpen } = useChoropleth();
+  const inspectorConfig = view?.inspectorConfig?.dataSources?.find(
+    (ds) => ds.dataSourceId === dataSource?.id,
+  );
 
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery?.data;
@@ -59,9 +62,8 @@ export default function Legend() {
       return <p>Count</p>;
     }
 
-    const primaryDescription = dataSource?.columnMetadata.find(
-      (c) => c.name === viewConfig.areaDataColumn,
-    )?.description;
+    const primaryDescription =
+      inspectorConfig?.columnMetadata?.[viewConfig.areaDataColumn]?.description;
 
     const primaryLabel = (
       <div>
@@ -87,9 +89,9 @@ export default function Legend() {
       return primaryLabel;
     }
 
-    const secondaryDescription = dataSource?.columnMetadata.find(
-      (c) => c.name === viewConfig.areaDataSecondaryColumn,
-    )?.description;
+    const secondaryDescription =
+      inspectorConfig?.columnMetadata?.[viewConfig.areaDataSecondaryColumn]
+        ?.description;
 
     const secondaryLabel = (
       <div>
@@ -146,9 +148,8 @@ export default function Legend() {
       );
 
       const valueLabels =
-        dataSource?.columnMetadata.find(
-          (c) => c.name === viewConfig.areaDataColumn,
-        )?.valueLabels || {};
+        inspectorConfig?.columnMetadata?.[viewConfig.areaDataColumn]
+          ?.valueLabels || {};
 
       return (
         <div className="flex flex-col gap-1.5 w-full py-1">
@@ -301,9 +302,8 @@ export default function Legend() {
     });
 
     const valueLabels =
-      dataSource?.columnMetadata.find(
-        (c) => c.name === viewConfig.areaDataColumn,
-      )?.valueLabels || {};
+      inspectorConfig?.columnMetadata?.[viewConfig.areaDataColumn]
+        ?.valueLabels || {};
 
     const hasValueLabels = Object.keys(valueLabels).length > 0;
 

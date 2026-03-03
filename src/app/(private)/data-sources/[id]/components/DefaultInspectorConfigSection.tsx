@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   getAllColumnsSorted,
   getColumnOrderState,
-  normalizeInspectorBoundaryConfig,
+  normalizeInspectorDataSourceConfig,
 } from "@/app/map/[id]/components/inspector/inspectorColumnOrder";
 import {
   INSPECTOR_COLOR_OPTIONS,
@@ -16,7 +16,6 @@ import {
 import { ColumnsSection } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/ColumnsSection";
 import { DEFAULT_SELECT_VALUE } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
 import { inferFormat } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
-import { InspectorBoundaryConfigType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
@@ -33,23 +32,22 @@ import { DefaultInspectorPreview } from "./DefaultInspectorPreview";
 import type { InspectorLayout } from "@/app/map/[id]/components/inspector/InspectorSettingsModal/constants";
 import type { DataSource } from "@/server/models/DataSource";
 import type {
-  DefaultInspectorBoundaryConfig,
-  InspectorBoundaryConfig,
+  DefaultInspectorDataSourceConfig,
+  InspectorDataSourceConfig,
 } from "@/server/models/MapView";
 
 const PLACEHOLDER_ID = "__default_inspector_edit__";
 
 function toEditingConfig(
   dataSourceId: string,
-  defaultConfig: DefaultInspectorBoundaryConfig | null | undefined,
+  defaultConfig: DefaultInspectorDataSourceConfig | null | undefined,
   dataSourceName: string,
-): InspectorBoundaryConfig {
+): InspectorDataSourceConfig {
   if (!defaultConfig) {
     return {
       id: PLACEHOLDER_ID,
       dataSourceId,
       name: dataSourceName,
-      type: InspectorBoundaryConfigType.Simple,
       columns: [],
       columnMetadata: undefined,
       columnGroups: undefined,
@@ -60,7 +58,6 @@ function toEditingConfig(
     id: PLACEHOLDER_ID,
     dataSourceId,
     name: defaultConfig.name,
-    type: defaultConfig.type,
     columns: defaultConfig.columns ?? [],
     columnOrder: defaultConfig.columnOrder,
     columnItems: defaultConfig.columnItems,
@@ -73,8 +70,8 @@ function toEditingConfig(
 }
 
 function toDefaultConfig(
-  config: InspectorBoundaryConfig,
-): DefaultInspectorBoundaryConfig {
+  config: InspectorDataSourceConfig,
+): DefaultInspectorDataSourceConfig {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, dataSourceId, ...rest } = config;
   return rest;
@@ -105,7 +102,7 @@ export function DefaultInspectorConfigSection({
   );
 
   const onSave = useCallback(
-    async (config: DefaultInspectorBoundaryConfig) => {
+    async (config: DefaultInspectorDataSourceConfig) => {
       await saveDefaultConfig({
         dataSourceId: dataSource.id,
         defaultInspectorConfig: config,
@@ -118,7 +115,7 @@ export function DefaultInspectorConfigSection({
     () => dataSource.columnDefs.map((c) => c.name),
     [dataSource.columnDefs],
   );
-  const [localConfig, setLocalConfig] = useState<InspectorBoundaryConfig>(
+  const [localConfig, setLocalConfig] = useState<InspectorDataSourceConfig>(
     () => {
       const raw = toEditingConfig(
         dataSource.id,
@@ -126,7 +123,7 @@ export function DefaultInspectorConfigSection({
         dataSource.name,
       );
       const allCols = dataSource.columnDefs.map((c) => c.name);
-      return normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
+      return normalizeInspectorDataSourceConfig(raw, allCols) ?? raw;
     },
   );
   const [isDirty, setIsDirty] = useState(false);
@@ -151,7 +148,7 @@ export function DefaultInspectorConfigSection({
       dataSource.name,
     );
     setLocalConfig(
-      normalizeInspectorBoundaryConfig(raw, allColumnNames) ?? raw,
+      normalizeInspectorDataSourceConfig(raw, allColumnNames) ?? raw,
     );
     setIsDirty(false);
   }, [
@@ -177,10 +174,12 @@ export function DefaultInspectorConfigSection({
   );
 
   const updateConfig = useCallback(
-    (updater: (prev: InspectorBoundaryConfig) => InspectorBoundaryConfig) => {
+    (
+      updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
+    ) => {
       setLocalConfig((prev) => {
         const next = updater(prev);
-        return normalizeInspectorBoundaryConfig(next, allColumnNames) ?? next;
+        return normalizeInspectorDataSourceConfig(next, allColumnNames) ?? next;
       });
       setIsDirty(true);
     },

@@ -24,7 +24,7 @@ import { cn } from "@/shadcn/utils";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import { getSelectedColumnsOrdered } from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { InspectorDataSourceConfig } from "@/server/models/MapView";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 /**
@@ -43,9 +43,9 @@ export function InspectorFullPreview({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { selectedBoundary } = useInspector();
   const { view, getLatestView, updateView } = useMapViews();
-  const boundaryConfigs = useMemo(
-    () => view?.inspectorConfig?.boundaries ?? [],
-    [view?.inspectorConfig?.boundaries],
+  const dataSourceConfigs = useMemo(
+    () => view?.inspectorConfig?.dataSources ?? [],
+    [view?.inspectorConfig?.dataSources],
   );
 
   useEffect(() => {
@@ -61,29 +61,29 @@ export function InspectorFullPreview({
 
   const boundaryData = useMemo(
     () =>
-      boundaryConfigs.map((config) => ({
+      dataSourceConfigs.map((config) => ({
         config,
         dataSourceId: config.dataSourceId,
         areaCode: selectedBoundary?.code ?? "",
         columns: getSelectedColumnsOrdered(config),
       })),
-    [boundaryConfigs, selectedBoundary?.code],
+    [dataSourceConfigs, selectedBoundary?.code],
   );
 
-  const reorderBoundaries = useCallback(
+  const reorderDataSources = useCallback(
     (oldIndex: number, newIndex: number) => {
       if (oldIndex === newIndex) return;
       const latestView = getLatestView();
       if (!latestView) return;
-      const boundaries = latestView.inspectorConfig?.boundaries ?? [];
-      const next = [...boundaries];
+      const dataSources = latestView.inspectorConfig?.dataSources ?? [];
+      const next = [...dataSources];
       const [removed] = next.splice(oldIndex, 1);
       next.splice(newIndex, 0, removed);
       updateView({
         ...latestView,
         inspectorConfig: {
           ...latestView.inspectorConfig,
-          boundaries: next,
+          dataSources: next,
         },
       });
     },
@@ -94,13 +94,13 @@ export function InspectorFullPreview({
     (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
-      const ids = boundaryConfigs.map((c) => c.id);
+      const ids = dataSourceConfigs.map((c) => c.id);
       const oldIndex = ids.indexOf(active.id as string);
       const newIndex = ids.indexOf(over.id as string);
       if (oldIndex === -1 || newIndex === -1) return;
-      reorderBoundaries(oldIndex, newIndex);
+      reorderDataSources(oldIndex, newIndex);
     },
-    [boundaryConfigs, reorderBoundaries],
+    [dataSourceConfigs, reorderDataSources],
   );
 
   const sensors = useSensors(
@@ -132,7 +132,7 @@ export function InspectorFullPreview({
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Data in this area — drag to reorder
           </p>
-          {boundaryConfigs.length === 0 ? (
+          {dataSourceConfigs.length === 0 ? (
             <div className="rounded-lg border border-dashed border-neutral-200 py-6 text-center">
               <p className="text-sm text-muted-foreground">
                 No data sources added yet
@@ -146,7 +146,7 @@ export function InspectorFullPreview({
               modifiers={[restrictToVerticalAxis]}
             >
               <SortableContext
-                items={boundaryConfigs.map((c) => c.id)}
+                items={dataSourceConfigs.map((c) => c.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="flex flex-col gap-3">
@@ -167,7 +167,7 @@ function SortableBoundaryPanel({
   item,
 }: {
   item: {
-    config: InspectorBoundaryConfig;
+    config: InspectorDataSourceConfig;
     dataSourceId: string;
     areaCode: string;
     columns: string[];

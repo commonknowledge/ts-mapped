@@ -7,7 +7,7 @@ import { getDataSourceType } from "@/components/DataSourceItem";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import type { DataSource } from "@/server/models/DataSource";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { InspectorDataSourceConfig } from "@/server/models/MapView";
 
 const GROUP_LABEL_USER = "User data";
 const GROUP_LABEL_PUBLIC = "Public data";
@@ -29,7 +29,7 @@ export function DataSourcesList({
   searchQuery: string;
   onSearchChange: (value: string) => void;
   inspectorOrdered: {
-    config: InspectorBoundaryConfig;
+    config: InspectorDataSourceConfig;
     dataSource: DataSource;
   }[];
   otherSources: DataSource[];
@@ -56,7 +56,7 @@ export function DataSourcesList({
     config,
     dataSource: ds,
   }: {
-    config: InspectorBoundaryConfig;
+    config: InspectorDataSourceConfig;
     dataSource: DataSource;
   }) => {
     const isOnMap = ds.id === onMapId;

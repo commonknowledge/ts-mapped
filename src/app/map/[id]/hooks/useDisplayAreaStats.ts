@@ -25,8 +25,11 @@ export const useDisplayAreaStats = <
 ) => {
   const areaStatsQuery = useAreaStats();
   const areaStats = areaStatsQuery.data;
-  const { viewConfig } = useMapViews();
+  const { view, viewConfig } = useMapViews();
   const choroplethDataSource = useChoroplethDataSource();
+  const inspectorConfig = view?.inspectorConfig?.dataSources?.find(
+    (ds) => ds.dataSourceId === choroplethDataSource?.id,
+  );
 
   const fillColor = useFillColor({
     areaStats,
@@ -70,16 +73,18 @@ export const useDisplayAreaStats = <
         primaryDisplayValue: getDisplayValue(
           areaStat?.primary,
           areaStats?.primary,
-          choroplethDataSource?.columnMetadata.find(
-            (c) => c.name === areaStats?.primary?.column,
-          )?.valueLabels,
+          areaStats?.primary?.column
+            ? inspectorConfig?.columnMetadata?.[areaStats.primary.column]
+                .valueLabels
+            : {},
         ),
         secondaryDisplayValue: getDisplayValue(
           areaStat?.secondary,
           areaStats?.secondary,
-          choroplethDataSource?.columnMetadata.find(
-            (c) => c.name === areaStats?.secondary?.column,
-          )?.valueLabels,
+          areaStats?.secondary?.column
+            ? inspectorConfig?.columnMetadata?.[areaStats.secondary.column]
+                .valueLabels
+            : {},
         ),
         backgroundColor: toRGBA(colorResult),
       };
@@ -89,7 +94,7 @@ export const useDisplayAreaStats = <
     areaStats,
     result,
     fillColorExpression,
-    choroplethDataSource?.columnMetadata,
+    inspectorConfig?.columnMetadata,
   ]);
 
   const primaryLabel = areaStats
@@ -102,7 +107,7 @@ export const useDisplayAreaStats = <
     areasToDisplay,
     primaryLabel,
     secondaryLabel: viewConfig.areaDataSecondaryColumn,
-    columnMetadata: choroplethDataSource?.columnMetadata,
+    columnMetadata: inspectorConfig?.columnMetadata,
   };
 };
 

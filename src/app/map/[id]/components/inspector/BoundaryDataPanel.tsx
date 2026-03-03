@@ -17,7 +17,7 @@ import {
 } from "./inspectorPanelOptions";
 import PropertiesList, { type PropertyEntry } from "./PropertiesList";
 
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { InspectorDataSourceConfig } from "@/server/models/MapView";
 
 export function BoundaryDataPanel({
   config,
@@ -31,15 +31,15 @@ export function BoundaryDataPanel({
   onOpenInspectorSettings,
 }: {
   config: Pick<
-    InspectorBoundaryConfig,
+    InspectorDataSourceConfig,
     "name" | "dataSourceId" | "icon" | "color" | "columnItems"
   >;
   dataSourceId: string;
   areaCode: string;
   columns: string[];
-  columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
-  columnGroups?: InspectorBoundaryConfig["columnGroups"];
-  layout?: InspectorBoundaryConfig["layout"];
+  columnMetadata?: InspectorDataSourceConfig["columnMetadata"];
+  columnGroups?: InspectorDataSourceConfig["columnGroups"];
+  layout?: InspectorDataSourceConfig["layout"];
   defaultExpanded?: boolean;
   onOpenInspectorSettings?: (dataSourceId: string) => void;
 }) {
@@ -235,10 +235,10 @@ function BoundaryDataProperties({
 }: {
   json: Record<string, unknown>;
   columns: string[];
-  columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
-  columnGroups?: InspectorBoundaryConfig["columnGroups"];
-  columnItems?: InspectorBoundaryConfig["columnItems"];
-  layout?: InspectorBoundaryConfig["layout"];
+  columnMetadata?: InspectorDataSourceConfig["columnMetadata"];
+  columnGroups?: InspectorDataSourceConfig["columnGroups"];
+  columnItems?: InspectorDataSourceConfig["columnItems"];
+  layout?: InspectorDataSourceConfig["layout"];
   match?: DataRecordMatchType | null | undefined;
   /** Background class for divider labels. Matches panel color. */
   dividerBackgroundClassName?: string;

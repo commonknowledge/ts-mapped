@@ -22,7 +22,6 @@ test("server data source serializer", async () => {
       url: "https://example.com/superjson.csv",
     },
     columnDefs: [],
-    columnMetadata: [],
     columnRoles: { nameColumns: [] },
     enrichments: [],
     geocodingConfig: {

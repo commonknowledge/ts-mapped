@@ -218,7 +218,6 @@ export const dataSourceRouter = router({
         autoImport: false,
         public: false,
         columnDefs,
-        columnMetadata: [],
         columnRoles: { nameColumns: [] },
         geocodingConfig: { type: GeocodingType.None },
         enrichments: [],
@@ -237,7 +236,6 @@ export const dataSourceRouter = router({
       const update = {
         name: input.name,
         columnRoles: input.columnRoles,
-        columnMetadata: input.columnMetadata,
         enrichments: input.enrichments,
         geocodingConfig: input.geocodingConfig,
         dateFormat: input.dateFormat,

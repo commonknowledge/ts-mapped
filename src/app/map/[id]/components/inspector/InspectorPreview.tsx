@@ -5,7 +5,7 @@ import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
 import { cn } from "@/shadcn/utils";
 import type { DataSourceWithImportInfo } from "@/components/DataSourceItem";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { InspectorDataSourceConfig } from "@/server/models/MapView";
 
 export function InspectorPreview({
   boundaryConfigs,
@@ -13,7 +13,7 @@ export function InspectorPreview({
   getDataSourceById,
   className,
 }: {
-  boundaryConfigs: InspectorBoundaryConfig[];
+  boundaryConfigs: InspectorDataSourceConfig[];
   onMapDataSourceName: string | null;
   getDataSourceById: (id: string) => DataSourceWithImportInfo | null;
   className?: string;

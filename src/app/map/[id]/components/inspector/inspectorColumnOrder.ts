@@ -1,8 +1,8 @@
 "use client";
 
 import type {
-  InspectorBoundaryConfig,
   InspectorColumnItem,
+  InspectorDataSourceConfig,
 } from "@/server/models/MapView";
 
 function isDivider(
@@ -16,10 +16,10 @@ function isDivider(
  * never contain duplicate column names. Call after load and after every update
  * so the rest of the code can assume unique columns.
  */
-export function normalizeInspectorBoundaryConfig(
-  config: InspectorBoundaryConfig | null,
+export function normalizeInspectorDataSourceConfig(
+  config: InspectorDataSourceConfig | null,
   allColumnNames: string[],
-): InspectorBoundaryConfig | null {
+): InspectorDataSourceConfig | null {
   if (!config) return null;
   const validSet = new Set(allColumnNames);
 
@@ -77,7 +77,7 @@ export function getAllColumnsSorted(allColumnNames: string[]): string[] {
 }
 
 export function getColumnOrderState(
-  config: InspectorBoundaryConfig | null,
+  config: InspectorDataSourceConfig | null,
   allColumnNames: string[],
 ): {
   allColumnsInOrder: string[];
@@ -90,7 +90,7 @@ export function getColumnOrderState(
   columnIds: string[];
 } {
   const normalized = config
-    ? normalizeInspectorBoundaryConfig(config, allColumnNames)
+    ? normalizeInspectorDataSourceConfig(config, allColumnNames)
     : null;
   const columns = normalized?.columns ?? [];
   const columnOrder = normalized?.columnOrder;
@@ -158,7 +158,7 @@ export function getColumnOrderState(
  */
 export function getSelectedColumnsOrdered(
   config: Pick<
-    InspectorBoundaryConfig,
+    InspectorDataSourceConfig,
     "columns" | "columnOrder" | "columnItems"
   >,
 ): string[] {
@@ -188,14 +188,14 @@ export function getSelectedColumnsOrdered(
  */
 export function getSelectedItemsOrdered(
   config: Pick<
-    InspectorBoundaryConfig,
+    InspectorDataSourceConfig,
     "columns" | "columnOrder" | "columnItems"
   >,
   allColumnNames: string[],
 ): InspectorColumnItem[] {
   const normalized = config
-    ? normalizeInspectorBoundaryConfig(
-        config as InspectorBoundaryConfig,
+    ? normalizeInspectorDataSourceConfig(
+        config as InspectorDataSourceConfig,
         allColumnNames,
       )
     : null;

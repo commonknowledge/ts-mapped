@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { cn } from "@/shadcn/utils";
 import { SortableColumnRow } from "../SortableColumnRow";
 import { SELECTED_DROPPABLE_ID } from "./constants";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { InspectorDataSourceConfig } from "@/server/models/MapView";
 
 export function DroppableSelectedColumns({
   columns,
@@ -19,9 +19,9 @@ export function DroppableSelectedColumns({
   activeId,
 }: {
   columns: string[];
-  columnMetadata?: InspectorBoundaryConfig["columnMetadata"];
+  columnMetadata?: InspectorDataSourceConfig["columnMetadata"];
   updateConfig: (
-    updater: (prev: InspectorBoundaryConfig) => InspectorBoundaryConfig,
+    updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
   ) => void;
   onRemoveColumn?: (columnName: string) => void;
   activeId: string | null;
@@ -151,7 +151,7 @@ export function DroppableSelectedColumns({
                               ([k]) => k !== col,
                             ),
                           );
-                          const base: Partial<InspectorBoundaryConfig> = {
+                          const base: Partial<InspectorDataSourceConfig> = {
                             columns: nextColumns,
                             columnMetadata: nextMeta,
                           };

@@ -9,10 +9,7 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { type DataSource } from "@/server/models/DataSource";
-import {
-  type InspectorBoundaryConfig,
-  InspectorBoundaryConfigType,
-} from "@/server/models/MapView";
+import { type InspectorDataSourceConfig } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
@@ -22,7 +19,7 @@ import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import {
   getSelectedColumnsOrdered,
-  normalizeInspectorBoundaryConfig,
+  normalizeInspectorDataSourceConfig,
 } from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
 import PropertiesList from "./PropertiesList";
@@ -66,11 +63,10 @@ export default function InspectorDataTab({
       if (!ds) return;
       const defaultConfig = ds.defaultInspectorConfig;
       const allCols = ds.columnDefs.map((c) => c.name);
-      const raw: InspectorBoundaryConfig = {
+      const raw: InspectorDataSourceConfig = {
         id: uuidv4(),
         dataSourceId,
         name: defaultConfig?.name ?? ds.name ?? "Boundary Data",
-        type: defaultConfig?.type ?? InspectorBoundaryConfigType.Simple,
         columns: defaultConfig?.columns ?? [],
         columnOrder: defaultConfig?.columnOrder,
         columnItems: defaultConfig?.columnItems,
@@ -81,13 +77,13 @@ export default function InspectorDataTab({
         color: defaultConfig?.color,
       };
       const newBoundaryConfig =
-        normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
-      const prev = view.inspectorConfig?.boundaries || [];
+        normalizeInspectorDataSourceConfig(raw, allCols) ?? raw;
+      const prev = view.inspectorConfig?.dataSources || [];
       updateView({
         ...view,
         inspectorConfig: {
           ...view.inspectorConfig,
-          boundaries: [...prev, newBoundaryConfig],
+          dataSources: [...prev, newBoundaryConfig],
         },
       });
     },
@@ -106,22 +102,22 @@ export default function InspectorDataTab({
     ),
   );
 
-  const boundaryConfigs = useMemo(
-    () => view?.inspectorConfig?.boundaries || [],
-    [view?.inspectorConfig?.boundaries],
+  const dataSourceConfigs = useMemo(
+    () => view?.inspectorConfig?.dataSources || [],
+    [view?.inspectorConfig?.dataSources],
   );
 
   const isBoundary = type === LayerType.Boundary;
 
   const boundaryData = useMemo(() => {
     if (!isBoundary) return [];
-    return boundaryConfigs.map((config) => ({
+    return dataSourceConfigs.map((config) => ({
       config,
       dataSourceId: config.dataSourceId,
       areaCode: selectedBoundary?.code ?? "",
       columns: getSelectedColumnsOrdered(config),
     }));
-  }, [isBoundary, selectedBoundary?.code, boundaryConfigs]);
+  }, [isBoundary, selectedBoundary?.code, dataSourceConfigs]);
 
   // Initialise boundary inspector config from choropleth data source when empty
   useEffect(() => {
@@ -131,9 +127,9 @@ export default function InspectorDataTab({
       initializationAttemptedRef.current
     )
       return;
-    const hasBoundaries = boundaryConfigs.length > 0;
+    const hasDataSourceConfigs = dataSourceConfigs.length > 0;
     const hasAreaDataSource = viewConfig.areaDataSourceId;
-    if (!hasBoundaries && hasAreaDataSource) {
+    if (!hasDataSourceConfigs && hasAreaDataSource) {
       initializationAttemptedRef.current = true;
       addDataSourceToConfig(viewConfig.areaDataSourceId);
     }
@@ -141,8 +137,8 @@ export default function InspectorDataTab({
     view,
     type,
     viewConfig.areaDataSourceId,
-    boundaryConfigs.length,
     addDataSourceToConfig,
+    dataSourceConfigs.length,
   ]);
 
   const flyToMarker = () => {
@@ -162,12 +158,12 @@ export default function InspectorDataTab({
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Data in this area
             </p>
-            {boundaryConfigs.length === 0 && (
+            {dataSourceConfigs.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 No data sources added yet
               </p>
             )}
-            {boundaryConfigs.length > 0 && (
+            {dataSourceConfigs.length > 0 && (
               <div className="flex flex-col gap-3">
                 {boundaryData.map((item) => (
                   <BoundaryDataPanel
@@ -247,7 +243,12 @@ export default function InspectorDataTab({
             return (
               <PropertiesList
                 properties={mergedProperties}
-                columnMetadata={dataSource?.columnMetadata}
+                columnMetadata={
+                  dataSourceConfigs.find(
+                    (c) => c.dataSourceId === dataSource?.id,
+                  )?.columnMetadata ||
+                  dataSource?.defaultInspectorConfig?.columnMetadata
+                }
               />
             );
           })()}

@@ -19,7 +19,7 @@ import { useDebouncedCallback } from "../../../hooks/useDebouncedCallback";
 import {
   getAllColumnsSorted,
   getColumnOrderState,
-  normalizeInspectorBoundaryConfig,
+  normalizeInspectorDataSourceConfig,
 } from "../inspectorColumnOrder";
 import {
   INSPECTOR_COLOR_OPTIONS,
@@ -31,15 +31,15 @@ import type { InspectorLayout } from "./constants";
 import type { useMapViews } from "../../../hooks/useMapViews";
 import type { DataSource } from "@/server/models/DataSource";
 import type {
-  DefaultInspectorBoundaryConfig,
-  InspectorBoundaryConfig,
+  DefaultInspectorDataSourceConfig,
+  InspectorDataSourceConfig,
 } from "@/server/models/MapView";
 
 export type ReadableDataSource = DataSource & { isOwner?: boolean };
 
 function toDefaultConfig(
-  config: InspectorBoundaryConfig,
-): DefaultInspectorBoundaryConfig {
+  config: InspectorDataSourceConfig,
+): DefaultInspectorDataSourceConfig {
   const { id: _unusedId, dataSourceId: _unusedDsId, ...rest } = config;
   void _unusedId;
   void _unusedDsId;
@@ -55,7 +55,7 @@ export function InspectorSourceConfigPanel({
   updateView,
 }: {
   dataSource: ReadableDataSource;
-  config: InspectorBoundaryConfig | null;
+  config: InspectorDataSourceConfig | null;
   onAddToInspector: () => void;
   isInInspector: boolean;
   getLatestView: ReturnType<typeof useMapViews>["getLatestView"];
@@ -78,7 +78,7 @@ export function InspectorSourceConfigPanel({
     }),
   );
   const debouncedSaveAsDefault = useDebouncedCallback(
-    (cfg: InspectorBoundaryConfig) => {
+    (cfg: InspectorDataSourceConfig) => {
       if (!dataSource.isOwner) return;
       saveAsDefault({
         dataSourceId: dataSource.id,
@@ -90,7 +90,7 @@ export function InspectorSourceConfigPanel({
 
   // Local config so the UI updates immediately; we persist to the cache in the background.
   const [localConfig, setLocalConfig] =
-    useState<InspectorBoundaryConfig | null>(config);
+    useState<InspectorDataSourceConfig | null>(config);
   useEffect(() => {
     setLocalConfig(config);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync only when switching data source
@@ -116,25 +116,27 @@ export function InspectorSourceConfigPanel({
   );
 
   const updateConfig = useCallback(
-    (updater: (prev: InspectorBoundaryConfig) => InspectorBoundaryConfig) => {
+    (
+      updater: (prev: InspectorDataSourceConfig) => InspectorDataSourceConfig,
+    ) => {
       if (!config) return;
       const prevConfig = localConfig ?? config;
       const updated = updater(prevConfig);
       const normalized =
-        normalizeInspectorBoundaryConfig(updated, allColumnNames) ?? updated;
+        normalizeInspectorDataSourceConfig(updated, allColumnNames) ?? updated;
       setLocalConfig(normalized);
       const latestView = getLatestView();
-      if (latestView?.inspectorConfig?.boundaries) {
-        const boundaries = latestView.inspectorConfig.boundaries;
-        const index = boundaries.findIndex((c) => c.id === config.id);
+      if (latestView?.inspectorConfig?.dataSources) {
+        const dataSources = latestView.inspectorConfig.dataSources;
+        const index = dataSources.findIndex((c) => c.id === config.id);
         if (index >= 0) {
-          const next = [...boundaries];
+          const next = [...dataSources];
           next[index] = normalized;
           updateView({
             ...latestView,
             inspectorConfig: {
               ...latestView.inspectorConfig,
-              boundaries: next,
+              dataSources: next,
             },
           });
         }

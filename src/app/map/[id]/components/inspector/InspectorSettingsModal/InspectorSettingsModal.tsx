@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { InspectorBoundaryConfigType } from "@/server/models/MapView";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +11,12 @@ import {
 import { useDataSources } from "../../../hooks/useDataSources";
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { useMapViews } from "../../../hooks/useMapViews";
-import { normalizeInspectorBoundaryConfig } from "../inspectorColumnOrder";
+import { normalizeInspectorDataSourceConfig } from "../inspectorColumnOrder";
 import { InspectorFullPreview } from "../InspectorFullPreview";
 import { DataSourcesList } from "./DataSourcesList";
 import { InspectorSourceConfigPanel } from "./InspectorSourceConfigPanel";
 import type { DataSource } from "@/server/models/DataSource";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { InspectorDataSourceConfig } from "@/server/models/MapView";
 
 export default function InspectorSettingsModal({
   open,
@@ -37,9 +36,9 @@ export default function InspectorSettingsModal({
   const { data: dataSources, getDataSourceById } = useDataSources();
   const { view, viewConfig, getLatestView, updateView } = useMapViews();
 
-  const boundaryConfigs = useMemo(
-    () => view?.inspectorConfig?.boundaries ?? [],
-    [view?.inspectorConfig?.boundaries],
+  const dataSourceConfigs = useMemo(
+    () => view?.inspectorConfig?.dataSources ?? [],
+    [view?.inspectorConfig?.dataSources],
   );
   const onMapId = viewConfig.areaDataSourceId || null;
 
@@ -67,7 +66,7 @@ export default function InspectorSettingsModal({
   );
 
   const { inspectorOrdered, otherSources } = useMemo(() => {
-    const inInspector = boundaryConfigs
+    const inInspector = dataSourceConfigs
       .map((config) => ({
         config,
         dataSource: getDataSourceById(config.dataSourceId),
@@ -76,14 +75,14 @@ export default function InspectorSettingsModal({
         (
           x,
         ): x is {
-          config: InspectorBoundaryConfig;
+          config: InspectorDataSourceConfig;
           dataSource: NonNullable<ReturnType<typeof getDataSourceById>>;
         } => x.dataSource != null && matchesSearch(x.dataSource),
       );
     const inIds = new Set(inInspector.map((x) => x.dataSource.id));
     const other = (filteredSources ?? []).filter((ds) => !inIds.has(ds.id));
     return { inspectorOrdered: inInspector, otherSources: other };
-  }, [boundaryConfigs, getDataSourceById, filteredSources, matchesSearch]);
+  }, [dataSourceConfigs, getDataSourceById, filteredSources, matchesSearch]);
 
   // When opened with an initial data source id, focus that source.
   if (
@@ -97,26 +96,26 @@ export default function InspectorSettingsModal({
   const handleRemoveFromInspector = useCallback(
     (configId: string) => {
       if (!view) return;
-      const next = boundaryConfigs.filter((c) => c.id !== configId);
+      const next = dataSourceConfigs.filter((c) => c.id !== configId);
       updateView({
         ...view,
         inspectorConfig: {
           ...view.inspectorConfig,
-          boundaries: next,
+          dataSources: next,
         },
       });
     },
-    [view, boundaryConfigs, updateView],
+    [view, dataSourceConfigs, updateView],
   );
 
   const selectedConfig = useMemo(
     () =>
       selectedDataSourceId
-        ? (boundaryConfigs.find(
+        ? (dataSourceConfigs.find(
             (c) => c.dataSourceId === selectedDataSourceId,
           ) ?? null)
         : null,
-    [selectedDataSourceId, boundaryConfigs],
+    [selectedDataSourceId, dataSourceConfigs],
   );
   const selectedDataSource = useMemo(
     () =>
@@ -133,11 +132,10 @@ export default function InspectorSettingsModal({
     if (!ds) return;
     const defaultConfig = ds.defaultInspectorConfig;
     const allCols = ds.columnDefs.map((c) => c.name);
-    const raw: InspectorBoundaryConfig = {
+    const raw: InspectorDataSourceConfig = {
       id: uuidv4(),
       dataSourceId: selectedDataSourceId,
       name: defaultConfig?.name ?? ds.name ?? "Boundary Data",
-      type: defaultConfig?.type ?? InspectorBoundaryConfigType.Simple,
       columns: defaultConfig?.columns ?? [],
       columnOrder: defaultConfig?.columnOrder,
       columnItems: defaultConfig?.columnItems,
@@ -147,13 +145,13 @@ export default function InspectorSettingsModal({
       icon: defaultConfig?.icon,
       color: defaultConfig?.color,
     };
-    const newConfig = normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
-    const prev = view.inspectorConfig?.boundaries ?? [];
+    const newConfig = normalizeInspectorDataSourceConfig(raw, allCols) ?? raw;
+    const prev = view.inspectorConfig?.dataSources ?? [];
     updateView({
       ...view,
       inspectorConfig: {
         ...view.inspectorConfig,
-        boundaries: [...prev, newConfig],
+        dataSources: [...prev, newConfig],
       },
     });
   }, [view, selectedDataSourceId, dataSources, updateView]);

@@ -163,17 +163,6 @@ export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 // for different aspects (boundaries, markers, members, etc.)
 
 /**
- * Types of inspector boundary configurations
- * - simple: Basic display of selected columns from data sources
- */
-export enum InspectorBoundaryConfigType {
-  Simple = "simple",
-}
-export const inspectorBoundaryTypes = Object.values(
-  InspectorBoundaryConfigType,
-);
-
-/**
  * How to display a column value in the inspector
  * - text: plain string
  * - number: formatted number
@@ -215,6 +204,8 @@ export const inspectorColumnMetaSchema = z.object({
   barColor: z.string().optional(),
   /** For format "numberWithComparison": which statistic to compare against. */
   comparisonStat: inspectorComparisonStatSchema.optional(),
+  /** To replace values with more human-friendly labels (e.g. 0 => No, 1 => Yes) */
+  valueLabels: z.record(z.string()).optional(),
 });
 export type InspectorColumnMeta = z.infer<typeof inspectorColumnMetaSchema>;
 
@@ -257,11 +248,10 @@ export type InspectorColumnItem = z.infer<typeof inspectorColumnItemSchema>;
  * - color: optional Tailwind color name for panel background (e.g. "blue" -> bg-blue-50)
  * - columnOrder: optional display order for all columns (used for Available list order; when set, reorderable)
  */
-export const inspectorBoundaryConfigSchema = z.object({
+export const inspectorDataSourceConfigSchema = z.object({
   id: z.string(),
   dataSourceId: z.string(),
   name: z.string(),
-  type: z.nativeEnum(InspectorBoundaryConfigType),
   columns: z.array(z.string()),
   /** When set, order of "Available" list; full list of column names in desired order. */
   columnOrder: z.array(z.string()).optional().nullable(),
@@ -277,8 +267,8 @@ export const inspectorBoundaryConfigSchema = z.object({
   color: z.string().optional().nullable(),
 });
 
-export type InspectorBoundaryConfig = z.infer<
-  typeof inspectorBoundaryConfigSchema
+export type InspectorDataSourceConfig = z.infer<
+  typeof inspectorDataSourceConfigSchema
 >;
 
 /**
@@ -286,13 +276,13 @@ export type InspectorBoundaryConfig = z.infer<
  * When someone adds this data source to the inspector, these settings are applied.
  * Omits id and dataSourceId (set when adding to a view).
  */
-export const defaultInspectorBoundaryConfigSchema =
-  inspectorBoundaryConfigSchema.omit({
+export const defaultInspectorDataSourceConfigSchema =
+  inspectorDataSourceConfigSchema.omit({
     id: true,
     dataSourceId: true,
   });
-export type DefaultInspectorBoundaryConfig = z.infer<
-  typeof defaultInspectorBoundaryConfigSchema
+export type DefaultInspectorDataSourceConfig = z.infer<
+  typeof defaultInspectorDataSourceConfigSchema
 >;
 
 /**
@@ -300,7 +290,7 @@ export type DefaultInspectorBoundaryConfig = z.infer<
  * Organized by aspect (boundaries, markers, members, etc.)
  */
 export const inspectorConfigSchema = z.object({
-  boundaries: z.array(inspectorBoundaryConfigSchema).optional(),
+  dataSources: z.array(inspectorDataSourceConfigSchema).optional(),
   // Future: markers, members, etc.
 });
 
