@@ -15,6 +15,8 @@ import {
 import type { GeocodeResult, Point } from "../models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
 
+const POSTCODE_REGEX = /[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}/i;
+
 interface MappingDataRecord {
   externalId: string;
   json: Record<string, unknown>;
@@ -79,33 +81,7 @@ const geocodeRecordByPostcode = async (
   if (!postcode) {
     throw new Error("Missing postcode in row");
   }
-  const postcodesResponse = await fetch(
-    `https://api.postcodes.io/postcodes/${postcode}`,
-  );
-  if (!postcodesResponse.ok) {
-    const text = (await postcodesResponse.text()) || "Unknown error";
-    throw new Error(
-      `Failed postcodes.io request: ${postcodesResponse.status}, ${text}`,
-    );
-  }
-  const postcodesData = await postcodesResponse.json();
-  if (
-    !postcodesData ||
-    !(typeof postcodesData === "object") ||
-    !("result" in postcodesData) ||
-    !postcodesData.result ||
-    !(typeof postcodesData.result === "object") ||
-    !("postcode" in postcodesData.result) ||
-    !("latitude" in postcodesData.result) ||
-    !("longitude" in postcodesData.result) ||
-    !postcodesData.result.postcode ||
-    !postcodesData.result.latitude ||
-    !postcodesData.result.longitude
-  ) {
-    throw new Error(
-      `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`,
-    );
-  }
+  const postcodesData = await postcodesIOLookup(postcode);
 
   const samplePoint = {
     lat: Number(postcodesData.result.latitude),
@@ -157,8 +133,6 @@ const geocodeRecordByArea = async (
     }
     area = await findAreaByCode(dataRecordArea, areaSetCode);
   } else {
-    // TODO: Better fuzzy matching logic
-    dataRecordArea = dataRecordArea.replace(/green party$/i, "").trim();
     area = await findAreaByName(dataRecordArea, areaSetCode);
   }
   if (!area) {
@@ -202,45 +176,67 @@ const geocodeRecordByAddress = async (
   const address = addressColumns
     .map((c) => dataRecordJson[c] || "")
     .filter(Boolean)
-    .join(", ");
+    .join(", ")
+    .trim();
   if (!address) {
     throw new Error("Missing address in row");
   }
-  const geocodeUrl = new URL(
-    "https://api.mapbox.com/search/geocode/v6/forward",
-  );
-  geocodeUrl.searchParams.set("q", address);
-  geocodeUrl.searchParams.set("country", "GB");
-  geocodeUrl.searchParams.set(
-    "access_token",
-    process.env.MAPBOX_SECRET_TOKEN || "",
-  );
-
-  const response = await fetch(geocodeUrl);
-  if (!response.ok) {
-    throw new Error(`Geocode request failed: ${response.status}`);
-  }
-  const results = (await response.json()) as {
-    features?: { id: string; geometry: GeoJSONPoint }[];
-  };
-  if (!results.features?.length) {
-    throw new Error(`Geocode request returned no features`);
+  let point: Point | null = null;
+  const areas: Partial<Record<AreaSetCode, string>> = {};
+  if (POSTCODE_REGEX.test(address)) {
+    try {
+      const lookup = await postcodeLookup(address);
+      areas[AreaSetCode.PC] = lookup.code;
+      point = lookup.point;
+    } catch (error) {
+      logger.warn(
+        "Postcodes.io lookup failed, falling back to address geocoder",
+        { error },
+      );
+    }
   }
 
-  const feature = results.features[0];
-  const point = {
-    lng: feature.geometry.coordinates[0],
-    lat: feature.geometry.coordinates[1],
-  };
+  if (!point) {
+    const geocodeUrl = new URL(
+      "https://api.mapbox.com/search/geocode/v6/forward",
+    );
+    geocodeUrl.searchParams.set("q", address);
+    geocodeUrl.searchParams.set("country", "GB");
+    geocodeUrl.searchParams.set(
+      "access_token",
+      process.env.MAPBOX_SECRET_TOKEN || "",
+    );
+
+    const response = await fetch(geocodeUrl);
+    if (!response.ok) {
+      throw new Error(`Geocode request failed: ${response.status}`);
+    }
+    const results = (await response.json()) as {
+      features?: { id: string; geometry: GeoJSONPoint }[];
+    };
+    if (!results.features?.length) {
+      throw new Error(`Geocode request returned no features`);
+    }
+
+    const feature = results.features[0];
+    point = {
+      lng: feature.geometry.coordinates[0],
+      lat: feature.geometry.coordinates[1],
+    };
+  }
 
   const geocodeResult: GeocodeResult = {
-    areas: {},
+    areas,
     centralPoint: point,
     samplePoint: point,
   };
 
   const mappedAreas = await findAreasByPoint({
-    point: JSON.stringify(feature.geometry),
+    point: JSON.stringify({
+      type: "Point",
+      coordinates: [point.lng, point.lat],
+    }),
+    excludeAreaSetCode: AreaSetCode.PC in areas ? AreaSetCode.PC : null,
   });
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
@@ -292,11 +288,78 @@ const geocodeRecordByCoordinates = async (
   return geocodeResult;
 };
 
-const geojsonPointToPoint = (geojson: string): Point | null => {
+const geojsonPointToPoint = (geojson: string | undefined): Point | null => {
   if (!geojson) {
     return null;
   }
   const [lng, lat] = (JSON.parse(geojson) as { coordinates: [number, number] })
     .coordinates;
   return { lng, lat };
+};
+
+interface PostcodesIOResult {
+  postcode: string;
+  latitude: number;
+  longitude: number;
+}
+
+const postcodeLookup = async (
+  postcode: string,
+): Promise<{ code: string; point: Point }> => {
+  const areaCode = postcode.replace(/\s+/g, "").toUpperCase();
+  const area = await findAreaByCode(areaCode, AreaSetCode.PC);
+  const point = geojsonPointToPoint(area?.samplePoint);
+  if (area && point) {
+    return { code: area.code, point };
+  }
+  const postcodeData = await postcodesIOLookup(postcode);
+  return {
+    code: postcodeData.result.postcode,
+    point: {
+      lat: postcodeData.result.latitude,
+      lng: postcodeData.result.longitude,
+    },
+  };
+};
+
+const postcodesIOLookup = async (
+  postcode: string,
+): Promise<{ result: PostcodesIOResult }> => {
+  const postcodesResponse = await fetch(
+    `https://api.postcodes.io/postcodes/${postcode}`,
+  );
+  if (!postcodesResponse.ok) {
+    const text = (await postcodesResponse.text()) || "Unknown error";
+    throw new Error(
+      `Failed postcodes.io request: ${postcodesResponse.status}, ${text}`,
+    );
+  }
+  const postcodesData = await postcodesResponse.json();
+  if (
+    !postcodesData ||
+    !(typeof postcodesData === "object") ||
+    !("result" in postcodesData) ||
+    !postcodesData.result ||
+    !(typeof postcodesData.result === "object") ||
+    !("postcode" in postcodesData.result) ||
+    !("latitude" in postcodesData.result) ||
+    !("longitude" in postcodesData.result) ||
+    !postcodesData.result.postcode ||
+    !postcodesData.result.latitude ||
+    !postcodesData.result.longitude ||
+    !(typeof postcodesData.result.postcode === "string") ||
+    !(typeof postcodesData.result.latitude === "number") ||
+    !(typeof postcodesData.result.longitude === "number")
+  ) {
+    throw new Error(
+      `Bad postcodes.io response: ${JSON.stringify(postcodesData)}`,
+    );
+  }
+  return {
+    result: {
+      postcode: postcodesData.result.postcode,
+      latitude: postcodesData.result.latitude,
+      longitude: postcodesData.result.longitude,
+    },
+  };
 };
