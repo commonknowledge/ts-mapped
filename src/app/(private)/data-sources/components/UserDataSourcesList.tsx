@@ -1,7 +1,9 @@
 "use client";
 
-import { Boxes, Database, PlusIcon, Users, UsersIcon } from "lucide-react";
+import { Boxes, Database, PlusIcon, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { MarkerCollectionIcon } from "@/app/map/[id]/components/Icons";
+import { mapColors } from "@/app/map/[id]/styles";
 import { DataSourceItem } from "@/components/DataSourceItem";
 import DataSourceRecordTypeIcon, {
   dataSourceRecordTypeColors,
@@ -116,8 +118,8 @@ export default function UserDataSourcesList({
 
         {/* Member Collections Section */}
         <div>
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <UsersIcon className="w-4 h-4 text-neutral-500" />
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <MarkerCollectionIcon color={mapColors.member.color} />
             Member data sources
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 ">
@@ -142,7 +144,8 @@ export default function UserDataSourcesList({
         {/* Other Data Sources Section */}
         <div>
           <div className="flex items-center mb-6 gap-4">
-            <h2 className="text-lg font-medium flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <MarkerCollectionIcon color={mapColors.dataSource.color} />
               Other data sources
             </h2>
             <div className="flex gap-2 flex-wrap">

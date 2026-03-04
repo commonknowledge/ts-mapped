@@ -1,10 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
+import { useSetAtom, useAtomValue } from "jotai";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import {
+  inspectorSettingsModalOpenAtom,
+  inspectorSettingsInitialDataSourceIdAtom,
+} from "@/app/map/[id]/atoms/inspectorAtoms";
 import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
@@ -14,7 +19,6 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import InspectorConfigTab from "./InspectorConfigTab";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
@@ -31,6 +35,14 @@ export default function InspectorPanel({
   boundariesPanelOpen?: boolean;
 } = {}) {
   const [activeTab, setActiveTab] = useState("data");
+  const settingsOpen = useAtomValue(inspectorSettingsModalOpenAtom);
+  const settingsInitialDataSourceId = useAtomValue(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
+  const setSettingsOpen = useSetAtom(inspectorSettingsModalOpenAtom);
+  const setSettingsInitialDataSourceId = useSetAtom(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
   const [hoverArea] = useHoverArea();
   const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
@@ -77,8 +89,35 @@ export default function InspectorPanel({
     return activeTab;
   }, [activeTab, hasConfig, hasData, hasMarkers]);
 
-  if (!Boolean(inspectorContent)) {
-    return <></>;
+  const isEmpty = !Boolean(inspectorContent);
+
+  if (isEmpty) {
+    return (
+      <div
+        id="inspector-panel"
+        className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
+        style={{
+          width: "300px",
+          maxHeight: "calc(100% - 80px)",
+          paddingTop: boundaryHoverVisible ? "80px" : "20px",
+          paddingBottom: "20px",
+          transition: "padding-top 0.3s",
+        }}
+      >
+        <div
+          className={cn(
+            "relative z-50 w-full flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+            "min-h-0 p-3",
+          )}
+        >
+          <h1 className="grow text-sm font-semibold mb-2">Inspector</h1>
+          <p className="text-sm text-muted-foreground">
+            Select a marker, area or boundary to inspect its data, or open a
+            data source from the Visualisation Data layer to configure the inspector.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const isDetailsView = Boolean(
@@ -87,6 +126,11 @@ export default function InspectorPanel({
   );
 
   const markerCount = selectedRecords?.length || 0;
+
+  const openInspectorSettingsForDataSource = (dataSourceId: string) => {
+    setSettingsInitialDataSourceId(dataSourceId);
+    setSettingsOpen(true);
+  };
 
   const onCloseDetailsView = () => {
     setFocusedRecord(null);
@@ -124,8 +168,7 @@ export default function InspectorPanel({
       id="inspector-panel"
       className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
       style={{
-        minWidth: safeActiveTab === "config" ? "400px" : "250px",
-        maxWidth: "450px",
+        width: "300px",
         maxHeight: "calc(100% - 80px)",
         paddingTop: boundaryHoverVisible ? "80px" : "20px",
         paddingBottom: "20px",
@@ -139,22 +182,36 @@ export default function InspectorPanel({
         )}
       >
         <div className="flex justify-between items-center gap-4 p-3">
-          <h1 className="grow flex gap-2 items-center / text-sm font-semibold">
+          <h1 className="grow flex gap-2 items-center min-w-0 truncate / text-sm font-semibold">
             {type === LayerType.Boundary && areaToDisplay?.backgroundColor && (
               <span
-                className="w-4 h-4 rounded shrink-0"
+                className="w-4 h-4 rounded shrink-0 border border-neutral-200"
                 style={{ backgroundColor: areaToDisplay.backgroundColor }}
               />
             )}
             {inspectorContent?.name as string}
           </h1>
-          <button
-            className="cursor-pointer"
-            aria-label="Close inspector panel"
-            onClick={() => resetInspector()}
-          >
-            <XIcon size={16} />
-          </button>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                setSettingsInitialDataSourceId(dataSource?.id ?? null);
+                setSettingsOpen(true);
+              }}
+              aria-label="Visualisation data settings"
+            >
+              <SettingsIcon className="w-4 h-4" />
+            </Button>
+            <button
+              className="cursor-pointer p-1 rounded hover:bg-neutral-100"
+              aria-label="Close inspector panel"
+              onClick={() => resetInspector()}
+            >
+              <XIcon size={16} />
+            </button>
+          </div>
         </div>
 
         {isDetailsView && (
@@ -196,11 +253,6 @@ export default function InspectorPanel({
             <UnderlineTabsTrigger value="notes" className="hidden">
               Notes 0
             </UnderlineTabsTrigger>
-            {hasConfig && (
-              <UnderlineTabsTrigger value="config" className="px-2">
-                <SettingsIcon size={16} />
-              </UnderlineTabsTrigger>
-            )}
           </UnderlineTabsList>
 
           {hasData && (
@@ -211,6 +263,10 @@ export default function InspectorPanel({
                 isDetailsView={isDetailsView}
                 focusedRecord={focusedRecord}
                 type={type}
+                onOpenInspectorSettings={() => setSettingsOpen(true)}
+                onOpenInspectorSettingsForDataSource={
+                  openInspectorSettingsForDataSource
+                }
               />
             </UnderlineTabsContent>
           )}
@@ -224,12 +280,6 @@ export default function InspectorPanel({
           <UnderlineTabsContent value="notes" className="overflow-auto p-3">
             <InspectorNotesTab />
           </UnderlineTabsContent>
-
-          {hasConfig && (
-            <UnderlineTabsContent value="config" className="overflow-auto p-3">
-              <InspectorConfigTab />
-            </UnderlineTabsContent>
-          )}
         </UnderlineTabs>
         {type === LayerType.Boundary && (
           <div className="border-t p-3">

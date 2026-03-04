@@ -1,16 +1,13 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { cn } from "@/shadcn/utils";
-import { LayerType } from "@/types";
-import { mapColors } from "../../styles";
+import type { LayerType } from "@/types";
 import type { ReactNode } from "react";
 
 export default function ControlWrapper({
   children,
-  layerType,
   name,
   isVisible,
   onVisibilityToggle,
-  color,
 }: {
   children: ReactNode;
   name: string;
@@ -19,23 +16,6 @@ export default function ControlWrapper({
   layerType?: LayerType;
   color?: string;
 }) {
-  const getLayerColor = () => {
-    // Use custom color if provided, otherwise use default layer color
-    if (color) {
-      return color;
-    }
-    switch (layerType) {
-      case LayerType.Member:
-        return mapColors.member.color;
-      case LayerType.Marker:
-        return mapColors.markers.color;
-      case LayerType.Turf:
-        return mapColors.areas.color;
-      default:
-        return "var(--color-neutral-200)";
-    }
-  };
-
   return (
     <div
       className={cn(
@@ -43,13 +23,7 @@ export default function ControlWrapper({
         isVisible ? "opacity-100" : "opacity-70",
       )}
     >
-      <div
-        className="absolute top-0 left-0 h-full w-1 shrink-0 rounded-xs"
-        style={{ background: getLayerColor() }}
-      ></div>
-
-      <div className="grow pl-3">{children}</div>
-
+      <div className="grow">{children}</div>
       <button
         className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-100 hover:bg-neutral-200 text-neutral-500 rounded p-1.5 flex items-center justify-center cursor-pointer"
         aria-label={`Toggle ${name} visibility`}

@@ -5,16 +5,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
 import { LayerType } from "@/types";
@@ -27,6 +23,7 @@ import {
 import { mapColors } from "../../../styles";
 import ControlEditForm from "../ControlEditForm";
 import ControlWrapper from "../ControlWrapper";
+import LayerIcon from "../LayerIcon";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 
 export default function SortableMarkerItem({
@@ -59,7 +56,6 @@ export default function SortableMarkerItem({
   const [editText, setEditText] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Get current color (defaults to marker color)
   const currentColor =
     mapConfig.placedMarkerColors?.[marker.id] ?? mapColors.markers.color;
 
@@ -152,18 +148,31 @@ export default function SortableMarkerItem({
           ) : (
             <ContextMenu>
               <ContextMenuTrigger asChild>
-                <button
-                  className="flex items-center gap-2 w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
-                  onClick={() => flyToMarker()}
-                  onContextMenu={(e) => {
-                    // Prevent context menu during drag
-                    if (isCurrentlyDragging) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  {marker.label}
-                </button>
+                <div className="flex items-center justify-between">
+                  <LayerIcon
+                    layerType={LayerType.Marker}
+                    isDataSource={false}
+                    layerColor={currentColor}
+                    onColorChange={handleColorChange}
+                  />
+                  <button
+                    className="flex flex-col items-start w-full min-h-full p-1 rounded transition-colors hover:bg-neutral-100 text-left cursor-pointer"
+                    onClick={() => flyToMarker()}
+                    onContextMenu={(e) => {
+                      // Prevent context menu during drag
+                      if (isCurrentlyDragging) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    <div className="text-sm font-medium truncate">
+                      {marker.label}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      Individual marker
+                    </div>
+                  </button>
+                </div>
               </ContextMenuTrigger>
               <ContextMenuContent>
                 <ContextMenuItem onClick={onEdit}>
@@ -187,24 +196,6 @@ export default function SortableMarkerItem({
                     </>
                   )}
                 </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuSub>
-                  <ContextMenuSubTrigger>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded border border-neutral-300"
-                        style={{ backgroundColor: currentColor }}
-                      />
-                      <span>Color</span>
-                    </div>
-                  </ContextMenuSubTrigger>
-                  <ContextMenuSubContent className="w-auto p-2">
-                    <ColorPalette
-                      selectedColor={currentColor}
-                      onColorSelect={handleColorChange}
-                    />
-                  </ContextMenuSubContent>
-                </ContextMenuSub>
                 <ContextMenuSeparator />
                 <ContextMenuItem
                   variant="destructive"

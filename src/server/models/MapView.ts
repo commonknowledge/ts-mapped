@@ -174,11 +174,88 @@ export const inspectorBoundaryTypes = Object.values(
 );
 
 /**
+ * How to display a column value in the inspector
+ * - text: plain string
+ * - number: formatted number
+ * - percentage: 0–100 (or 0–1) shown as progress bar
+ * - scale: integer 0..scaleMax-1 (or 1..scaleMax), shown as N thin filled/grey bars
+ * - numberWithComparison: number plus variance % vs a chosen statistic (average, median, etc.)
+ */
+export const inspectorColumnFormatSchema = z.enum([
+  "text",
+  "number",
+  "percentage",
+  "scale",
+  "numberWithComparison",
+]);
+export type InspectorColumnFormat = z.infer<typeof inspectorColumnFormatSchema>;
+
+/** Statistic used as baseline for "number with comparison" format. */
+export const inspectorComparisonStatSchema = z.enum([
+  "average",
+  "median",
+  "min",
+  "max",
+]);
+export type InspectorComparisonStat = z.infer<
+  typeof inspectorComparisonStatSchema
+>;
+
+/**
+ * Display metadata for a single column (label, format, scale size, bar colour)
+ */
+export const inspectorColumnMetaSchema = z.object({
+  displayName: z.string().optional(),
+  /** Shown as tooltip on the column label in the inspector. */
+  description: z.string().optional(),
+  format: inspectorColumnFormatSchema.optional(),
+  /** For format "scale": max value (e.g. 3 for a 0–2 or 1–3 scale). Number of bars shown. */
+  scaleMax: z.number().int().min(2).max(10).optional(),
+  /** Bar colour (CSS color) for percentage/scale bars. Empty = primary. */
+  barColor: z.string().optional(),
+  /** For format "numberWithComparison": which statistic to compare against. */
+  comparisonStat: inspectorComparisonStatSchema.optional(),
+});
+export type InspectorColumnMeta = z.infer<typeof inspectorColumnMetaSchema>;
+
+/**
+ * A group of columns shown under one heading in the inspector
+ */
+export const inspectorColumnGroupSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  columnNames: z.array(z.string()),
+});
+export type InspectorColumnGroup = z.infer<typeof inspectorColumnGroupSchema>;
+
+/**
+ * Label divider: a visual separator that groups columns. Spans two cols when grid layout is on.
+ */
+export const inspectorLabelDividerSchema = z.object({
+  type: z.literal("divider"),
+  id: z.string(),
+  label: z.string(),
+});
+export type InspectorLabelDivider = z.infer<typeof inspectorLabelDividerSchema>;
+
+export const inspectorColumnItemSchema = z.union([
+  z.string(),
+  inspectorLabelDividerSchema,
+]);
+export type InspectorColumnItem = z.infer<typeof inspectorColumnItemSchema>;
+
+/**
  * Configuration for a single boundary data source in the inspector
  * - dataSourceId: Reference to the data source
  * - name: User-friendly name for this inspector config
  * - type: The type of inspector display (currently only "simple")
- * - columns: Array of column names to display from this data source
+ * - columns: Ordered array of column names to display
+ * - columnMetadata: Optional display names per column
+ * - columnGroups: Optional groups for visual grouping (columns appear under group label)
+ * - layout: "single" (one column) or "twoColumn" (Airtable-style grid)
+ * - icon: optional Lucide icon name for custom panel icon
+ * - color: optional Tailwind color name for panel background (e.g. "blue" -> bg-blue-50)
+ * - columnOrder: optional display order for all columns (used for Available list order; when set, reorderable)
  */
 export const inspectorBoundaryConfigSchema = z.object({
   id: z.string(),
@@ -186,10 +263,36 @@ export const inspectorBoundaryConfigSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(InspectorBoundaryConfigType),
   columns: z.array(z.string()),
+  /** When set, order of "Available" list; full list of column names in desired order. */
+  columnOrder: z.array(z.string()).optional().nullable(),
+  /** Ordered list of columns and label dividers. When set, used for display order; columns derived from it. */
+  columnItems: z.array(inspectorColumnItemSchema).optional().nullable(),
+  columnMetadata: z
+    .record(z.string(), inspectorColumnMetaSchema)
+    .optional()
+    .nullable(),
+  columnGroups: z.array(inspectorColumnGroupSchema).optional().nullable(),
+  layout: z.enum(["single", "twoColumn"]).optional().nullable(),
+  icon: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
 });
 
 export type InspectorBoundaryConfig = z.infer<
   typeof inspectorBoundaryConfigSchema
+>;
+
+/**
+ * Template for default inspector settings stored on a data source.
+ * When someone adds this data source to the inspector, these settings are applied.
+ * Omits id and dataSourceId (set when adding to a view).
+ */
+export const defaultInspectorBoundaryConfigSchema =
+  inspectorBoundaryConfigSchema.omit({
+    id: true,
+    dataSourceId: true,
+  });
+export type DefaultInspectorBoundaryConfig = z.infer<
+  typeof defaultInspectorBoundaryConfigSchema
 >;
 
 /**

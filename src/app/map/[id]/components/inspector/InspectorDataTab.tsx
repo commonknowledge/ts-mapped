@@ -1,20 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { MapPinIcon, TableIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
-import { AreaSetCodeLabels } from "@/labels";
 import { type DataSource } from "@/server/models/DataSource";
+import {
+  type InspectorBoundaryConfig,
+  InspectorBoundaryConfigType,
+} from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
 import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
+import DataSourceSelectButton from "../DataSourceSelectButton";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
+import {
+  getSelectedColumnsOrdered,
+  normalizeInspectorBoundaryConfig,
+} from "./inspectorColumnOrder";
+import InspectorOnMapSection from "./InspectorOnMapSection";
 import PropertiesList from "./PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 
@@ -24,6 +34,10 @@ interface InspectorDataTabProps {
   isDetailsView: boolean;
   focusedRecord: SelectedRecord | null;
   type: LayerType | undefined;
+  /** When set, "Add a data source" opens the inspector settings modal instead of the data source picker */
+  onOpenInspectorSettings?: () => void;
+  /** Open inspector settings with a specific data source pre-selected (used by per-datasource cogs). */
+  onOpenInspectorSettingsForDataSource?: (dataSourceId: string) => void;
 }
 
 export default function InspectorDataTab({
@@ -32,16 +46,53 @@ export default function InspectorDataTab({
   isDetailsView,
   focusedRecord,
   type,
+  onOpenInspectorSettings,
+  onOpenInspectorSettingsForDataSource,
 }: InspectorDataTabProps) {
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
   const trpc = useTRPC();
-  const { view } = useMapViews();
+  const { view, viewConfig, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
-  const { areaToDisplay, primaryLabel, secondaryLabel, columnMetadata } =
-    useDisplayAreaStat(selectedBoundary);
-  const [selectedSecondaryArea] = useSelectedSecondaryArea();
+  const initializationAttemptedRef = useRef(false);
+  useDisplayAreaStat(selectedBoundary);
+  useSelectedSecondaryArea();
+
+  const addDataSourceToConfig = useCallback(
+    (dataSourceId: string) => {
+      if (!view) return;
+      const ds = getDataSourceById(dataSourceId);
+      if (!ds) return;
+      const defaultConfig = ds.defaultInspectorConfig;
+      const allCols = ds.columnDefs.map((c) => c.name);
+      const raw: InspectorBoundaryConfig = {
+        id: uuidv4(),
+        dataSourceId,
+        name: defaultConfig?.name ?? ds.name ?? "Boundary Data",
+        type: defaultConfig?.type ?? InspectorBoundaryConfigType.Simple,
+        columns: defaultConfig?.columns ?? [],
+        columnOrder: defaultConfig?.columnOrder,
+        columnItems: defaultConfig?.columnItems,
+        columnMetadata: defaultConfig?.columnMetadata,
+        columnGroups: defaultConfig?.columnGroups,
+        layout: defaultConfig?.layout ?? "single",
+        icon: defaultConfig?.icon,
+        color: defaultConfig?.color,
+      };
+      const newBoundaryConfig =
+        normalizeInspectorBoundaryConfig(raw, allCols) ?? raw;
+      const prev = view.inspectorConfig?.boundaries || [];
+      updateView({
+        ...view,
+        inspectorConfig: {
+          ...view.inspectorConfig,
+          boundaries: [...prev, newBoundaryConfig],
+        },
+      });
+    },
+    [getDataSourceById, updateView, view],
+  );
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
     trpc.dataRecord.byId.queryOptions(
@@ -63,46 +114,35 @@ export default function InspectorDataTab({
   const isBoundary = type === LayerType.Boundary;
 
   const boundaryData = useMemo(() => {
-    if (!isBoundary || !selectedBoundary) return [];
+    if (!isBoundary) return [];
+    return boundaryConfigs.map((config) => ({
+      config,
+      dataSourceId: config.dataSourceId,
+      areaCode: selectedBoundary?.code ?? "",
+      columns: getSelectedColumnsOrdered(config),
+    }));
+  }, [isBoundary, selectedBoundary?.code, boundaryConfigs]);
 
-    return boundaryConfigs.map((config) => {
-      const ds = getDataSourceById(config.dataSourceId);
-
-      return {
-        config,
-        dataSource: ds,
-        dataSourceId: config.dataSourceId,
-        areaCode: selectedBoundary.code,
-        areaSetCode: selectedBoundary.areaSetCode,
-        columns: config.columns,
-      };
-    });
-  }, [isBoundary, selectedBoundary, boundaryConfigs, getDataSourceById]);
-
-  const boundaryProperties = useMemo(() => {
-    if (!areaToDisplay) {
-      return properties;
+  // Initialise boundary inspector config from choropleth data source when empty
+  useEffect(() => {
+    if (
+      !view ||
+      type !== LayerType.Boundary ||
+      initializationAttemptedRef.current
+    )
+      return;
+    const hasBoundaries = boundaryConfigs.length > 0;
+    const hasAreaDataSource = viewConfig.areaDataSourceId;
+    if (!hasBoundaries && hasAreaDataSource) {
+      initializationAttemptedRef.current = true;
+      addDataSourceToConfig(viewConfig.areaDataSourceId);
     }
-    const propertiesWithData = { ...properties };
-    if (primaryLabel) {
-      propertiesWithData[primaryLabel] = areaToDisplay.primaryDisplayValue;
-    }
-    if (secondaryLabel) {
-      propertiesWithData[secondaryLabel] = areaToDisplay.secondaryDisplayValue;
-    }
-    if (selectedSecondaryArea) {
-      propertiesWithData[
-        AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
-          "Secondary boundary"
-      ] = selectedSecondaryArea.name;
-    }
-    return propertiesWithData;
   }, [
-    areaToDisplay,
-    properties,
-    primaryLabel,
-    secondaryLabel,
-    selectedSecondaryArea,
+    view,
+    type,
+    viewConfig.areaDataSourceId,
+    boundaryConfigs.length,
+    addDataSourceToConfig,
   ]);
 
   const flyToMarker = () => {
@@ -117,24 +157,56 @@ export default function InspectorDataTab({
     <div className="flex flex-col gap-4">
       {isBoundary ? (
         <>
-          <PropertiesList
-            properties={boundaryProperties}
-            columnMetadata={columnMetadata}
-          />
-          {boundaryData.length > 0 &&
-            boundaryData.map((item, index) => (
-              <BoundaryDataPanel
-                key={item.config.id}
-                config={item.config}
-                dataSourceId={item.dataSourceId}
-                areaCode={item.areaCode}
-                columns={item.columns}
-                defaultExpanded={index === 0}
-              />
-            ))}
+          <InspectorOnMapSection />
+          <section className="flex flex-col gap-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Data in this area
+            </p>
+            {boundaryConfigs.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No data sources added yet
+              </p>
+            )}
+            {boundaryConfigs.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {boundaryData.map((item) => (
+                  <BoundaryDataPanel
+                    key={item.config.id}
+                    config={item.config}
+                    dataSourceId={item.dataSourceId}
+                    areaCode={item.areaCode}
+                    columns={item.columns}
+                    columnMetadata={item.config.columnMetadata}
+                    columnGroups={item.config.columnGroups}
+                    layout={item.config.layout}
+                    defaultExpanded={true}
+                    onOpenInspectorSettings={
+                      onOpenInspectorSettingsForDataSource
+                    }
+                  />
+                ))}
+              </div>
+            )}
+            <div className="rounded-lg border border-dashed border-neutral-200 py-4 text-center">
+              {onOpenInspectorSettings ? (
+                <Button
+                  variant="outline"
+                  className="w-full max-w-[200px] mx-auto justify-center"
+                  onClick={onOpenInspectorSettings}
+                >
+                  Add a data source
+                </Button>
+              ) : (
+                <DataSourceSelectButton
+                  className="mx-auto"
+                  onSelect={addDataSourceToConfig}
+                  selectButtonText="Add a data source"
+                />
+              )}
+            </div>
+          </section>
         </>
       ) : (
-        // Show default data source and properties
         <>
           {dataSource && (
             <div className="bg-muted py-1 px-2 rounded">

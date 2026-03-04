@@ -7,7 +7,7 @@ import { useShowControlsAtom } from "../../hooks/useMapControls";
 import { useMapViews } from "../../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 
-import BoundariesControl from "./BoundariesControl/BoundariesControl";
+import DataControl from "./DataControl/DataControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
 
@@ -64,13 +64,17 @@ export default function PrivateMapControls() {
             className="flex-1 overflow-y-auto / flex flex-col"
             style={{ width: `${CONTROL_PANEL_WIDTH}px` }}
           >
-            {viewConfig.mapType !== MapType.Hex && (
-              <>
-                <MarkersControl />
-                <TurfsControl />
-              </>
-            )}
-            <BoundariesControl />
+            <div
+              className={`border-b border-neutral-200 ${
+                viewConfig.mapType === MapType.Hex
+                  ? "opacity-50 pointer-events-none select-none"
+                  : ""
+              }`}
+            >
+              <MarkersControl />
+              <TurfsControl />
+            </div>
+            <DataControl />
           </div>
         </div>
       </div>

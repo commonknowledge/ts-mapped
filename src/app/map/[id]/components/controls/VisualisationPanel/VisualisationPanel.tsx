@@ -441,6 +441,31 @@ export default function VisualisationPanel({
               </Select>
             </>
           )}
+          {canSelectSecondaryColumn && !viewConfig.areaDataSecondaryColumn && (
+            <div className="col-span-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full h-8 text-xs font-normal text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  const ds = dataSources?.find(
+                    (d) => d.id === viewConfig.areaDataSourceId,
+                  );
+                  const firstNumeric = ds?.columnDefs
+                    .filter((c) => c.type === ColumnType.Number)
+                    .find((c) => c.name !== viewConfig.areaDataColumn);
+                  if (firstNumeric) {
+                    updateViewConfig({
+                      areaDataSecondaryColumn: firstNumeric.name,
+                    });
+                  }
+                }}
+              >
+                Compare with another column
+              </Button>
+            </div>
+          )}
         </div>
         {!viewConfig.areaDataSourceId && (
           <div className="flex items-center gap-2">
@@ -764,94 +789,6 @@ export default function VisualisationPanel({
               />
             </div>
           </div>
-
-          {/* Bivariate visualization button at the bottom */}
-          {canSelectSecondaryColumn && !viewConfig.areaDataSecondaryColumn && (
-            <div className="col-span-2 mt-6">
-              <div
-                role="button"
-                tabIndex={0}
-                className="w-full border border-neutral-200 rounded-md bg-white hover:bg-neutral-50 cursor-pointer transition-colors p-2"
-                onClick={() => {
-                  // Find the first available numeric column
-                  const dataSource = dataSources?.find(
-                    (ds) => ds.id === viewConfig.areaDataSourceId,
-                  );
-                  const firstNumericColumn = dataSource?.columnDefs
-                    .filter((col) => col.type === ColumnType.Number)
-                    .find((col) => col.name !== viewConfig.areaDataColumn);
-                  if (firstNumericColumn) {
-                    updateViewConfig({
-                      areaDataSecondaryColumn: firstNumericColumn.name,
-                    });
-                  } else {
-                    updateViewConfig({
-                      areaDataSecondaryColumn: undefined,
-                    });
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    // Find the first available numeric column
-                    const dataSource = dataSources?.find(
-                      (ds) => ds.id === viewConfig.areaDataSourceId,
-                    );
-                    const firstNumericColumn = dataSource?.columnDefs
-                      .filter((col) => col.type === ColumnType.Number)
-                      .find((col) => col.name !== viewConfig.areaDataColumn);
-                    if (firstNumericColumn) {
-                      updateViewConfig({
-                        areaDataSecondaryColumn: firstNumericColumn.name,
-                      });
-                    } else {
-                      updateViewConfig({
-                        areaDataSecondaryColumn: undefined,
-                      });
-                    }
-                  }
-                }}
-              >
-                <div className="flex items-center justify-between gap-4 w-full">
-                  <div className="flex flex-col items-start gap-1 min-w-0">
-                    <span className="text-sm font-medium break-words">
-                      Create bivariate visualization
-                    </span>
-                    <span className="text-xs break-words">
-                      Using a second column
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="text-[10px] text-muted-foreground">
-                      Column 1
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="grid grid-cols-3 gap-0.5 border border-neutral-300 rounded p-1.5 bg-white shadow-sm">
-                        {[
-                          ["#e8e8e8", "#ace4e4", "#5ac8c8"],
-                          ["#dfb0d6", "#a5add3", "#5698b9"],
-                          ["#be64ac", "#8c62aa", "#3b4994"],
-                        ]
-                          .reverse()
-                          .map((row, i) =>
-                            row.map((color, j) => (
-                              <div
-                                key={`${i}-${j}`}
-                                className="w-4 h-4 rounded-sm border border-neutral-200"
-                                style={{ backgroundColor: color }}
-                              />
-                            )),
-                          )}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        Column 2 →
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 

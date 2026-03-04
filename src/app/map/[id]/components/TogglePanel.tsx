@@ -11,37 +11,39 @@ interface TogglePanelProps {
   headerRight?: React.ReactNode;
   rightIconButton?: LucideIcon;
   onRightIconButtonClick?: () => void;
+  /** Optional class for the outer wrapper (e.g. panel background colour) */
+  wrapperClassName?: string;
 }
 
 export default function TogglePanel({
   label,
   icon: Icon,
-  defaultExpanded = false,
+  defaultExpanded = true,
   children,
   headerRight,
   rightIconButton: RightIconButton,
   onRightIconButtonClick,
+  wrapperClassName,
 }: TogglePanelProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <div>
-      <div className="flex items-center justify-between relative">
+    <div className={cn("rounded-lg p-2", wrapperClassName ?? "bg-neutral-100")}>
+      <div className="flex items-center justify-between relative group">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 hover:bg-neutral-100 rounded px-1 py-2 -mx-1 / text-sm font-medium cursor-pointer"
+          className="flex items-center gap-2 rounded  text-sm font-medium cursor-pointer"
         >
-          <ChevronDown
-            size={16}
-            className={cn(
-              "transition-transform",
-              expanded ? "rotate-0" : "-rotate-90",
-            )}
-          />
-
           {Icon}
 
           {label}
+          <ChevronDown
+            size={16}
+            className={cn(
+              "transition group-hover:opacity-100 opacity-0 ",
+              expanded ? "rotate-0" : "-rotate-90",
+            )}
+          />
         </button>
 
         {headerRight && (
@@ -61,7 +63,7 @@ export default function TogglePanel({
         )}
       </div>
 
-      {expanded && <div>{children}</div>}
+      {expanded && <div className="pt-2">{children}</div>}
     </div>
   );
 }

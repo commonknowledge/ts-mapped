@@ -9,6 +9,7 @@ import {
 } from "@/server/repositories/Area";
 import {
   countDataRecordsForDataSource,
+  findColumnStat,
   findDataRecordById,
   findDataRecordsByDataSource,
   findDataRecordsByDataSourceAndAreaCode,
@@ -155,5 +156,15 @@ export const dataRecordRouter = router({
         );
         return { records, count };
       },
+    ),
+  columnStat: dataSourceReadProcedure
+    .input(
+      z.object({
+        columnName: z.string(),
+        stat: z.enum(["average", "median", "min", "max"]),
+      }),
+    )
+    .query(async ({ input: { dataSourceId, columnName, stat } }) =>
+      findColumnStat(dataSourceId, columnName, stat),
     ),
 });

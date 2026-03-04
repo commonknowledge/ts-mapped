@@ -12,9 +12,10 @@ import { type Kysely, sql } from "kysely";
  */
 
 export async function up(db: Kysely<any>): Promise<void> {
+  // Use Geometry (not MultiPolygon) so rows with Point geography don't fail
   await sql`
     ALTER TABLE area 
-    ADD COLUMN geom geometry(MultiPolygon, 4326) NOT NULL
+    ADD COLUMN geom geometry(Geometry, 4326) NOT NULL
     GENERATED ALWAYS AS (geography::geometry) STORED
   `.execute(db);
 

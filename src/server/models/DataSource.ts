@@ -1,5 +1,6 @@
 import z from "zod";
 import { AreaSetCode } from "./AreaSet";
+import { defaultInspectorBoundaryConfigSchema } from "./MapView";
 import type {
   Generated,
   Insertable,
@@ -255,6 +256,10 @@ export const dataSourceSchema = z.object({
   createdAt: z.date(),
   dateFormat: z.string(),
   naIsNull: z.boolean().optional(),
+  defaultInspectorConfig: defaultInspectorBoundaryConfigSchema
+    .nullable()
+    .optional(),
+  defaultInspectorConfigUpdatedAt: z.coerce.date().nullable().optional(),
   nullIsZero: z.boolean().optional(),
 });
 

@@ -41,12 +41,12 @@ export const dataSourceRouter = router({
     const organisations = ctx.user
       ? await findOrganisationsByUserId(ctx.user.id)
       : [];
+    const organisationIds = organisations.map((o) => o.id);
     const dataSources = await db
       .selectFrom("dataSource")
       .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
       .where((eb) => {
         const filter = [eb("public", "=", true)];
-        const organisationIds = organisations.map((o) => o.id);
         if (organisationIds.length > 0) {
           filter.push(eb("organisation.id", "in", organisationIds));
         }
@@ -55,7 +55,11 @@ export const dataSourceRouter = router({
       .selectAll("dataSource")
       .execute();
 
-    return addImportInfo(dataSources);
+    const withImportInfo = await addImportInfo(dataSources);
+    return withImportInfo.map((ds) => ({
+      ...ds,
+      isOwner: organisationIds.includes(ds.organisationId),
+    }));
   }),
   byOrganisation: organisationProcedure.query(async ({ ctx }) => {
     const dataSources = await db
@@ -242,6 +246,10 @@ export const dataSourceRouter = router({
         dateFormat: input.dateFormat,
         public: input.public,
         naIsNull: input.naIsNull,
+        defaultInspectorConfig: input.defaultInspectorConfig,
+        ...(input.defaultInspectorConfig !== undefined && {
+          defaultInspectorConfigUpdatedAt: new Date(),
+        }),
         nullIsZero: input.nullIsZero,
       } as DataSourceUpdate;
 

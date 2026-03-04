@@ -382,3 +382,64 @@ export const deleteByDataSourceId = async (dataSourceId: string) =>
     .deleteFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .execute();
+
+export type ColumnStatType = "average" | "median" | "min" | "max";
+
+/**
+ * Returns the requested numeric stat for a JSON column across all records of a data source.
+ * Only considers rows where (json->>column)::float IS NOT NULL.
+ */
+export async function findColumnStat(
+  dataSourceId: string,
+  columnName: string,
+  stat: ColumnStatType,
+): Promise<number | null> {
+  const escaped = columnName.replace(/'/g, "''");
+  const numExpr = sql`(NULLIF(trim(json->>${sql.raw(`'${escaped}'`)}), ''))::float`;
+
+  function toNum(val: unknown): number | null {
+    const n = Number(val);
+    return Number.isNaN(n) ? null : n;
+  }
+
+  if (stat === "median") {
+    const row = await sql<{ value: unknown }>`
+      SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY (NULLIF(trim(json->>${sql.raw(`'${escaped}'`)}), ''))::float) AS value
+      FROM data_record
+      WHERE data_source_id = ${dataSourceId}
+        AND (NULLIF(trim(json->>${sql.raw(`'${escaped}'`)}), ''))::float IS NOT NULL
+    `.execute(db);
+    return toNum(row.rows[0]?.value);
+  }
+
+  const whereNotNull = sql<boolean>`${numExpr} IS NOT NULL`;
+
+  if (stat === "average") {
+    const row = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .where(whereNotNull)
+      .select(sql<number | null>`AVG(${numExpr})`.as("value"))
+      .executeTakeFirst();
+    return toNum(row?.value);
+  }
+  if (stat === "min") {
+    const row = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .where(whereNotNull)
+      .select(sql<number | null>`MIN(${numExpr})`.as("value"))
+      .executeTakeFirst();
+    return toNum(row?.value);
+  }
+  if (stat === "max") {
+    const row = await db
+      .selectFrom("dataRecord")
+      .where("dataSourceId", "=", dataSourceId)
+      .where(whereNotNull)
+      .select(sql<number | null>`MAX(${numExpr})`.as("value"))
+      .executeTakeFirst();
+    return toNum(row?.value);
+  }
+  return null;
+}

@@ -87,7 +87,7 @@ function DataSourceSelectButtonModalTrigger({
           setIsModalOpen(true);
         }}
         className={cn(
-          "group-hover:bg-neutral-100 transition-colors cursor-pointer rounded-lg",
+          "w-full group-hover:bg-neutral-100 transition-colors cursor-pointer rounded-lg",
           className,
         )}
       >
