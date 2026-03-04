@@ -30,15 +30,20 @@ import type { DragEndEvent } from "@dnd-kit/core";
 /**
  * Renders a full preview of the inspector Data tab for boundaries:
  * On the map section + Data in this area with all BoundaryDataPanels expanded.
- * Panels can be reordered by dragging; order is synced to the list.
- * When selectedDataSourceId is set, the preview scrolls so that panel is visible.
+ * Panels can be reordered by dragging; when selectedDataSourceId is set, that
+ * panel's columns can be reordered via a sortable list.
  */
 export function InspectorFullPreview({
   className,
   selectedDataSourceId,
+  onReorderColumns,
 }: {
   className?: string;
   selectedDataSourceId?: string | null;
+  onReorderColumns?: (
+    dataSourceId: string,
+    orderedColumnNames: string[],
+  ) => void;
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { selectedBoundary } = useInspector();
@@ -58,6 +63,23 @@ export function InspectorFullPreview({
     );
     el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [selectedDataSourceId]);
+
+  const selectedBoundaryConfig = useMemo(
+    () =>
+      selectedDataSourceId
+        ? boundaryConfigs.find(
+            (c) => c.dataSourceId === selectedDataSourceId,
+          ) ?? null
+        : null,
+    [boundaryConfigs, selectedDataSourceId],
+  );
+  const selectedColumns = useMemo(
+    () =>
+      selectedBoundaryConfig
+        ? getSelectedColumnsOrdered(selectedBoundaryConfig)
+        : [],
+    [selectedBoundaryConfig],
+  );
 
   const boundaryData = useMemo(
     () =>
@@ -90,7 +112,7 @@ export function InspectorFullPreview({
     [getLatestView, updateView],
   );
 
-  const handleDragEnd = useCallback(
+  const handlePanelDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
@@ -101,6 +123,22 @@ export function InspectorFullPreview({
       reorderBoundaries(oldIndex, newIndex);
     },
     [boundaryConfigs, reorderBoundaries],
+  );
+
+  const handleColumnDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || !selectedBoundaryConfig || !onReorderColumns) return;
+      const columnIds = selectedColumns.map((_, i) => `col-${i}`);
+      const oldIndex = columnIds.indexOf(active.id as string);
+      const newIndex = columnIds.indexOf(over.id as string);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const next = [...selectedColumns];
+      const [removed] = next.splice(oldIndex, 1);
+      next.splice(newIndex, 0, removed);
+      onReorderColumns(selectedBoundaryConfig.dataSourceId, next);
+    },
+    [selectedBoundaryConfig, selectedColumns, onReorderColumns],
   );
 
   const sensors = useSensors(
@@ -130,7 +168,7 @@ export function InspectorFullPreview({
         <InspectorOnMapSection />
         <section className="flex flex-col gap-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Data in this area — drag to reorder
+            Data in this area
           </p>
           {boundaryConfigs.length === 0 ? (
             <div className="rounded-lg border border-dashed border-neutral-200 py-6 text-center">
@@ -139,26 +177,108 @@ export function InspectorFullPreview({
               </p>
             </div>
           ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-              modifiers={[restrictToVerticalAxis]}
-            >
-              <SortableContext
-                items={boundaryConfigs.map((c) => c.id)}
-                strategy={verticalListSortingStrategy}
+            <>
+              {selectedBoundaryConfig &&
+                selectedColumns.length > 0 &&
+                onReorderColumns && (
+                  <div className="rounded-lg border border-neutral-200 bg-neutral-50/80 p-2.5 space-y-2">
+                    <p className="text-[11px] font-medium text-muted-foreground">
+                      Column order for {selectedBoundaryConfig.name} — drag to reorder
+                    </p>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleColumnDragEnd}
+                      modifiers={[restrictToVerticalAxis]}
+                    >
+                      <SortableContext
+                        items={selectedColumns.map((_, i) => `col-${i}`)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="flex flex-col gap-1">
+                          {selectedColumns.map((col, i) => (
+                            <SortableColumnChip
+                              key={`${col}-${i}`}
+                              id={`col-${i}`}
+                              label={
+                                selectedBoundaryConfig.columnMetadata?.[col]
+                                  ?.displayName ?? col
+                              }
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  </div>
+                )}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handlePanelDragEnd}
+                modifiers={[restrictToVerticalAxis]}
               >
-                <div className="flex flex-col gap-3">
-                  {boundaryData.map((item) => (
-                    <SortableBoundaryPanel key={item.config.id} item={item} />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
+                <SortableContext
+                  items={boundaryConfigs.map((c) => c.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="flex flex-col gap-3">
+                    <p className="text-[11px] font-medium text-muted-foreground">
+                      Panels — drag to reorder
+                    </p>
+                    {boundaryData.map((item) => (
+                      <SortableBoundaryPanel key={item.config.id} item={item} />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </>
           )}
         </section>
       </div>
+    </div>
+  );
+}
+
+function SortableColumnChip({
+  id,
+  label,
+}: {
+  id: string;
+  label: string;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-2 rounded-md border border-neutral-200 bg-white pl-1.5 pr-2 py-1.5 text-xs shadow-sm",
+        isDragging && "opacity-60 z-10 ring-1 ring-primary",
+      )}
+    >
+      <button
+        type="button"
+        className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+        {...attributes}
+        {...listeners}
+        aria-label="Drag to reorder column"
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </button>
+      <span className="truncate flex-1 min-w-0" title={label}>
+        {label}
+      </span>
     </div>
   );
 }

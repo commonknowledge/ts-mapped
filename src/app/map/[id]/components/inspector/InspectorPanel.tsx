@@ -1,10 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
 import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
+import { useSetAtom, useAtomValue } from "jotai";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import {
+  inspectorSettingsModalOpenAtom,
+  inspectorSettingsInitialDataSourceIdAtom,
+} from "@/app/map/[id]/atoms/inspectorAtoms";
 import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
@@ -17,7 +22,6 @@ import { LayerType } from "@/types";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
-import InspectorSettingsModal from "./InspectorSettingsModal";
 import {
   UnderlineTabs,
   UnderlineTabsContent,
@@ -31,9 +35,14 @@ export default function InspectorPanel({
   boundariesPanelOpen?: boolean;
 } = {}) {
   const [activeTab, setActiveTab] = useState("data");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsInitialDataSourceId, setSettingsInitialDataSourceId] =
-    useState<string | null>(null);
+  const settingsOpen = useAtomValue(inspectorSettingsModalOpenAtom);
+  const settingsInitialDataSourceId = useAtomValue(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
+  const setSettingsOpen = useSetAtom(inspectorSettingsModalOpenAtom);
+  const setSettingsInitialDataSourceId = useSetAtom(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
   const [hoverArea] = useHoverArea();
   const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
@@ -103,8 +112,8 @@ export default function InspectorPanel({
         >
           <h1 className="grow text-sm font-semibold mb-2">Inspector</h1>
           <p className="text-sm text-muted-foreground">
-            Select a marker, area or boundary (via the data visualisation panel)
-            to inspect its data
+            Select a marker, area or boundary to inspect its data, or open a
+            data source from the Visualisation Data layer to configure the inspector.
           </p>
         </div>
       </div>
@@ -187,8 +196,11 @@ export default function InspectorPanel({
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Inspector settings"
+              onClick={() => {
+                setSettingsInitialDataSourceId(dataSource?.id ?? null);
+                setSettingsOpen(true);
+              }}
+              aria-label="Visualisation data settings"
             >
               <SettingsIcon className="w-4 h-4" />
             </Button>
@@ -201,11 +213,6 @@ export default function InspectorPanel({
             </button>
           </div>
         </div>
-        <InspectorSettingsModal
-          open={settingsOpen}
-          onOpenChange={setSettingsOpen}
-          initialDataSourceId={settingsInitialDataSourceId}
-        />
 
         {isDetailsView && (
           <div className="px-4 pb-2">

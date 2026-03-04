@@ -11,3 +11,10 @@ export const focusedRecordAtom = atom<SelectedRecord | null>(null);
 export const selectedTurfAtom = atom<SelectedTurf | null>(null);
 export const selectedBoundaryAtom = atom<SelectedBoundary | null>(null);
 export const inspectorContentAtom = atom<InspectorContent | null>(null);
+
+/** When true, InspectorSettingsModal should be open. Used by layers panel Data section. */
+export const inspectorSettingsModalOpenAtom = atom<boolean>(false);
+/** When set, InspectorSettingsModal opens with this data source pre-selected. */
+export const inspectorSettingsInitialDataSourceIdAtom = atom<string | null>(
+  null,
+);

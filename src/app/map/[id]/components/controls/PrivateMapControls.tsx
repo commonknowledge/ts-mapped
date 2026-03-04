@@ -7,7 +7,7 @@ import { useShowControlsAtom } from "../../hooks/useMapControls";
 import { useMapViews } from "../../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH } from "../../styles";
 
-import BoundariesControl from "./BoundariesControl/BoundariesControl";
+import DataControl from "./DataControl/DataControl";
 import MarkersControl from "./MarkersControl/MarkersControl";
 import TurfsControl from "./TurfsControl/TurfsControl";
 
@@ -74,7 +74,7 @@ export default function PrivateMapControls() {
               <MarkersControl />
               <TurfsControl />
             </div>
-            <BoundariesControl />
+            <DataControl />
           </div>
         </div>
       </div>

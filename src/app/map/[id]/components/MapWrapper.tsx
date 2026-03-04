@@ -1,6 +1,11 @@
+import { useAtomValue, useSetAtom } from "jotai";
 import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MapType } from "@/server/models/MapView";
+import {
+  inspectorSettingsModalOpenAtom,
+  inspectorSettingsInitialDataSourceIdAtom,
+} from "../atoms/inspectorAtoms";
 import { useChoropleth } from "../hooks/useChoropleth";
 import { useInspector } from "../hooks/useInspector";
 import {
@@ -12,6 +17,8 @@ import { useMapViews } from "../hooks/useMapViews";
 import { CONTROL_PANEL_WIDTH, mapColors } from "../styles";
 import BoundaryHoverInfo from "./BoundaryHoverInfo";
 import InspectorPanel from "./inspector/InspectorPanel";
+import InspectorSettingsModal from "./inspector/InspectorSettingsModal";
+import LegendMapWidget from "./controls/LegendMapWidget";
 import MapMarkerAndAreaControls from "./MapMarkerAndAreaControls";
 import MapStyleSelector from "./MapStyleSelector";
 import ZoomControl from "./ZoomControl";
@@ -29,6 +36,18 @@ export default function MapWrapper({
   const showControls = useShowControls();
   const { viewConfig } = useMapViews();
   useInspector();
+  const settingsOpen = useAtomValue(inspectorSettingsModalOpenAtom);
+  const settingsInitialDataSourceId = useAtomValue(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
+  const setSettingsOpen = useSetAtom(inspectorSettingsModalOpenAtom);
+  const setSettingsInitialDataSourceId = useSetAtom(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
+  const handleInspectorSettingsOpenChange = (open: boolean) => {
+    setSettingsOpen(open);
+    if (!open) setSettingsInitialDataSourceId(null);
+  };
   // Inspector panel is always visible (open by default); reserve space for it
   const inspectorVisible = true;
   const { boundariesPanelOpen } = useChoropleth();
@@ -90,6 +109,8 @@ export default function MapWrapper({
     <div className="map-wrapper / absolute top-0 right-0 h-full w-full">
       {children}
 
+      <LegendMapWidget />
+
       <div
         className={`absolute top-5 z-10 transition-all duration-300 hidden md:block pointer-events-none ${
           boundariesPanelOpen ? "right-4" : "left-8"
@@ -116,6 +137,12 @@ export default function MapWrapper({
       <div className="map-zoom-controls / absolute bottom-8 right-8 z-10 transition-transform duration-300 hidden md:block">
         <ZoomControl />
       </div>
+
+      <InspectorSettingsModal
+        open={settingsOpen}
+        onOpenChange={handleInspectorSettingsOpenChange}
+        initialDataSourceId={settingsInitialDataSourceId}
+      />
 
       {!hideDrawControls && (
         <>
