@@ -147,9 +147,17 @@ export async function searchAreas(query: string) {
   const words = trimmedQuery.split(/\s+/).filter((word) => word.length > 0);
 
   // Query the materialized view for fast trigram-based searching
+  // Join to area table to order by geometric area size (largest first)
   let queryBuilder = dbRead
     .selectFrom("areaSearch")
-    .select(["id", "code", "name", "areaSetCode", "areaSetName"])
+    .innerJoin("area", "areaSearch.id", "area.id")
+    .select([
+      "areaSearch.id",
+      "areaSearch.code",
+      "areaSearch.name",
+      "areaSetCode",
+      "areaSetName",
+    ])
     .where("areaSetCode", "!=", AreaSetCode.PC)
     .limit(10);
 
@@ -160,5 +168,5 @@ export async function searchAreas(query: string) {
     );
   }
 
-  return queryBuilder.execute();
+  return queryBuilder.orderBy(sql`ST_Area(geom)`, "desc").execute();
 }

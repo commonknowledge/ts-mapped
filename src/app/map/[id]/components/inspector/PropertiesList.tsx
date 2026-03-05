@@ -19,12 +19,12 @@ export default function PropertiesList({
 
   return (
     <dl className="flex flex-col gap-3">
-      {properties.map(({ label, description, value }) => {
+      {properties.map(({ label, description, value }, i) => {
         if (value === null || value === undefined)
           return <Fragment key={label}></Fragment>;
 
         return (
-          <div key={label}>
+          <div key={`${label}-${i}`}>
             <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-1">
               {label}
               {description ? (

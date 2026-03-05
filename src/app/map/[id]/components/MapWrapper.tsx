@@ -91,7 +91,7 @@ export default function MapWrapper({
 
       <div
         className={`absolute top-5 z-10 transition-all duration-300 hidden md:block pointer-events-none ${
-          boundariesPanelOpen ? "right-4" : "left-8"
+          boundariesPanelOpen ? "left-[50%]" : "left-8"
         }`}
         style={{
           ...positionLeft,
@@ -99,7 +99,7 @@ export default function MapWrapper({
             ? `calc(100% - ${CONTROL_PANEL_WIDTH}px - ${inspectorVisible ? "280px" : "32px"} - 64px)`
             : `calc(100% - ${inspectorVisible ? "280px" : "32px"} - 64px)`,
           transition: "max-width 0.3s, transform 0.3s",
-          ...(boundariesPanelOpen && { transform: "none" }),
+          ...(boundariesPanelOpen && { transform: "translateX(-50%)" }),
         }}
       >
         <BoundaryHoverInfo />
