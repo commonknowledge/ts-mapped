@@ -2,11 +2,12 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
-import { MapIcon, MapPinIcon } from "lucide-react";
+import { MapIcon, MapPinIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useTRPC } from "@/services/trpc/react";
+import { Button } from "@/shadcn/ui/button";
 import {
   CommandDialog,
   CommandEmpty,
@@ -17,7 +18,6 @@ import {
 } from "@/shadcn/ui/command";
 import { useMapRef } from "../hooks/useMapCore";
 import { usePlacedMarkerState } from "../hooks/usePlacedMarkers";
-import styles from "./SearchBox.module.css";
 import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Point } from "geojson";
 
@@ -215,20 +215,17 @@ export function SearchBox() {
     }
   };
 
+  const isLoading = loading || areaSearchFetching;
+
   return (
     <>
-      <div className={styles["search-box"]}>
-        <button
-          onClick={() => setOpen(true)}
-          className="flex h-10 w-full items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-        >
-          <MapPinIcon className="h-4 w-4" />
-          <span>Search location...</span>
-          <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-            {isMac ? <span className="text-xs">⌘</span> : "Ctrl+"}K
-          </kbd>
-        </button>
-      </div>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        <SearchIcon className="h-4 w-4" />
+        <span>Search</span>
+        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+          {isMac ? <span className="text-xs">⌘</span> : "Ctrl+"}K
+        </kbd>
+      </Button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
@@ -238,47 +235,49 @@ export function SearchBox() {
         />
         <CommandList>
           <CommandEmpty>
-            {loading || areaSearchFetching
-              ? "Searching..."
-              : "No results found."}
+            {isLoading ? "Searching..." : "No results found."}
           </CommandEmpty>
-          {areaResults.length > 0 && (
-            <CommandGroup heading="Areas">
-              {areaResults.map((area) => (
-                <CommandItem
-                  key={`area-${area.id}`}
-                  value={`${area.name} ${area.code} ${area.areaSetName}`}
-                  onSelect={() => handleSelectArea(area)}
-                >
-                  <MapIcon className="mr-2 h-4 w-4" />
-                  <div className="flex flex-col">
-                    <span className="font-medium">{area.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {area.areaSetName} • {area.code}
-                    </span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {mapboxResults.length > 0 && (
-            <CommandGroup heading="Locations">
-              {mapboxResults.map((feature) => (
-                <CommandItem
-                  key={feature.id}
-                  value={feature.place_name}
-                  onSelect={() => handleSelectMapbox(feature)}
-                >
-                  <MapPinIcon className="mr-2 h-4 w-4" />
-                  <div className="flex flex-col">
-                    <span className="font-medium">{feature.text}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {feature.place_name}
-                    </span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
+          {!isLoading && (
+            <>
+              {areaResults.length > 0 && (
+                <CommandGroup heading="Areas">
+                  {areaResults.map((area) => (
+                    <CommandItem
+                      key={`area-${area.id}`}
+                      value={`${area.name} ${area.code} ${area.areaSetName}`}
+                      onSelect={() => handleSelectArea(area)}
+                    >
+                      <MapIcon className="mr-2 h-4 w-4" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{area.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {area.areaSetName} • {area.code}
+                        </span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+              {mapboxResults.length > 0 && (
+                <CommandGroup heading="Addresses">
+                  {mapboxResults.map((feature) => (
+                    <CommandItem
+                      key={feature.id}
+                      value={feature.place_name}
+                      onSelect={() => handleSelectMapbox(feature)}
+                    >
+                      <MapPinIcon className="mr-2 h-4 w-4" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{feature.text}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {feature.place_name}
+                        </span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </>
           )}
         </CommandList>
       </CommandDialog>

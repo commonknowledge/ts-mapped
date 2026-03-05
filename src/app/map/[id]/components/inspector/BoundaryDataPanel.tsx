@@ -11,6 +11,7 @@ import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
 import { getDisplayValue } from "../../utils/stats";
 import PropertiesList from "./PropertiesList";
+import type { PropertiesListItem } from "./PropertiesList";
 import type { ColumnDef, ColumnMetadata } from "@/server/models/DataSource";
 
 export function BoundaryDataPanel({
@@ -109,19 +110,22 @@ function BoundaryDataProperties({
   match: DataRecordMatchType;
 }) {
   const filteredProperties = useMemo(() => {
-    const filtered: Record<string, unknown> = {};
+    const filtered: PropertiesListItem[] = [];
     columns.forEach((columnName) => {
       if (json[columnName] !== undefined) {
-        const valueLabels = columnMetadata?.find(
-          (c) => c.name === columnName,
-        )?.valueLabels;
-        filtered[columnName] = getDisplayValue(
-          json[columnName],
-          {
-            columnType: columnDefs?.find((cd) => cd.name === columnName)?.type,
-          },
-          valueLabels,
-        );
+        const metadata = columnMetadata?.find((c) => c.name === columnName);
+        filtered.push({
+          label: columnName,
+          description: metadata?.description,
+          value: getDisplayValue(
+            json[columnName],
+            {
+              columnType: columnDefs?.find((cd) => cd.name === columnName)
+                ?.type,
+            },
+            metadata?.valueLabels,
+          ),
+        });
       }
     });
     return filtered;
@@ -133,11 +137,8 @@ function BoundaryDataProperties({
           Approximate boundary match
         </p>
       )}
-      {Object.keys(filteredProperties).length > 0 ? (
-        <PropertiesList
-          properties={filteredProperties}
-          columnMetadata={columnMetadata}
-        />
+      {filteredProperties.length > 0 ? (
+        <PropertiesList properties={filteredProperties} />
       ) : (
         <p className="text-sm">No data available</p>
       )}

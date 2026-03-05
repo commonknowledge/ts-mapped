@@ -2,7 +2,6 @@
 
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
-import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
@@ -12,7 +11,9 @@ import {
   selectedRecordsAtom,
   selectedTurfAtom,
 } from "../atoms/inspectorAtoms";
+import type { PropertiesListItem } from "../components/inspector/PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
+import type { DataSource } from "@/server/models/DataSource";
 
 export function useInspector() {
   const { getDataSourceById } = useDataSources();
@@ -46,7 +47,12 @@ export function useInspector() {
     [selectedRecords, _setSelectedRecords, _setFocusedRecord],
   );
 
-  const inspectorContent = useMemo(() => {
+  const inspectorContent: {
+    type: LayerType;
+    name: string;
+    properties: PropertiesListItem[];
+    dataSource?: DataSource | null | undefined;
+  } | null = useMemo(() => {
     // if no selected marker / member to inspect
     if (!focusedRecord) {
       // check if area selected
@@ -54,19 +60,16 @@ export function useInspector() {
         return {
           type: LayerType.Turf,
           name: selectedTurf.name || "Area",
-          properties: null,
+          properties: [],
           dataSource: null,
         };
       } else if (selectedBoundary?.name) {
         return {
           type: LayerType.Boundary,
           name: selectedBoundary.name,
-          properties: {
-            ["Boundary code"]: selectedBoundary?.code,
-            ["Boundary set"]: getBoundaryDatasetName(
-              selectedBoundary?.sourceLayerId,
-            ),
-          },
+          properties: [
+            { label: "Boundary code", value: selectedBoundary?.code },
+          ],
         };
       }
       return null;
@@ -78,7 +81,7 @@ export function useInspector() {
       return {
         type: LayerType.Cluster,
         name: "Cluster",
-        properties: null,
+        properties: [],
         dataSource,
       };
     }
@@ -91,7 +94,7 @@ export function useInspector() {
     return {
       type,
       name: focusedRecord.name,
-      properties: null,
+      properties: [],
       dataSource,
     };
   }, [

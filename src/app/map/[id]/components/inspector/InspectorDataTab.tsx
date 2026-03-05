@@ -16,11 +16,12 @@ import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import PropertiesList from "./PropertiesList";
+import type { PropertiesListItem } from "./PropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 
 interface InspectorDataTabProps {
   dataSource: DataSource | null | undefined;
-  properties: Record<string, unknown> | null | undefined;
+  properties: PropertiesListItem[];
   isDetailsView: boolean;
   focusedRecord: SelectedRecord | null;
   type: LayerType | undefined;
@@ -39,8 +40,14 @@ export default function InspectorDataTab({
   const { view } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
-  const { areaToDisplay, primaryLabel, secondaryLabel, columnMetadata } =
-    useDisplayAreaStat(selectedBoundary);
+  const {
+    areaToDisplay,
+    primaryLabel,
+    secondaryLabel,
+    primaryDescription,
+    secondaryDescription,
+  } = useDisplayAreaStat(selectedBoundary);
+
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
   const { data: recordData, isFetching: recordLoading } = useQuery(
@@ -83,26 +90,38 @@ export default function InspectorDataTab({
     if (!areaToDisplay) {
       return properties;
     }
-    const propertiesWithData = { ...properties };
+    const boundaryProperties = [...properties];
     if (primaryLabel) {
-      propertiesWithData[primaryLabel] = areaToDisplay.primaryDisplayValue;
+      boundaryProperties.push({
+        label: primaryLabel,
+        description: primaryDescription,
+        value: areaToDisplay.primaryDisplayValue,
+      });
     }
     if (secondaryLabel) {
-      propertiesWithData[secondaryLabel] = areaToDisplay.secondaryDisplayValue;
+      boundaryProperties.push({
+        label: secondaryLabel,
+        description: secondaryDescription,
+        value: areaToDisplay.secondaryDisplayValue,
+      });
     }
     if (selectedSecondaryArea) {
-      propertiesWithData[
-        AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
-          "Secondary boundary"
-      ] = selectedSecondaryArea.name;
+      boundaryProperties.push({
+        label:
+          AreaSetCodeLabels[selectedSecondaryArea.areaSetCode] ||
+          "Secondary boundary",
+        value: selectedSecondaryArea.name,
+      });
     }
-    return propertiesWithData;
+    return boundaryProperties;
   }, [
     areaToDisplay,
     properties,
     primaryLabel,
     secondaryLabel,
     selectedSecondaryArea,
+    primaryDescription,
+    secondaryDescription,
   ]);
 
   const flyToMarker = () => {
@@ -117,10 +136,7 @@ export default function InspectorDataTab({
     <div className="flex flex-col gap-4">
       {isBoundary ? (
         <>
-          <PropertiesList
-            properties={boundaryProperties}
-            columnMetadata={columnMetadata}
-          />
+          <PropertiesList properties={boundaryProperties} />
           {boundaryData.length > 0 &&
             boundaryData.map((item, index) => (
               <BoundaryDataPanel
@@ -156,10 +172,16 @@ export default function InspectorDataTab({
               return <span>Loading...</span>;
             }
 
-            const mergedProperties = {
-              ...(properties ?? {}),
-              ...(recordData?.json ?? {}),
-            };
+            const mergedProperties = [...properties];
+            for (const key of Object.keys(recordData?.json || {})) {
+              mergedProperties.push({
+                label: key,
+                value: recordData?.json[key],
+                description: dataSource?.columnMetadata.find(
+                  (c) => c.name === key,
+                )?.description,
+              });
+            }
 
             const hasProperties =
               mergedProperties && Object.keys(mergedProperties).length > 0;
@@ -172,12 +194,7 @@ export default function InspectorDataTab({
               );
             }
 
-            return (
-              <PropertiesList
-                properties={mergedProperties}
-                columnMetadata={dataSource?.columnMetadata}
-              />
-            );
+            return <PropertiesList properties={mergedProperties} />;
           })()}
         </>
       )}

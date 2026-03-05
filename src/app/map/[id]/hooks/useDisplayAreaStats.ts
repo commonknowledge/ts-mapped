@@ -47,6 +47,14 @@ export const useDisplayAreaStats = <
     );
   }
 
+  const columnMetadata = choroplethDataSource?.columnMetadata.find(
+    (c) => c.name === areaStats?.primary?.column,
+  );
+
+  const secondaryColumnMetadata = choroplethDataSource?.columnMetadata.find(
+    (c) => c.name === areaStats?.secondary?.column,
+  );
+
   const areasToDisplay = useMemo((): (T & DisplayAreaStat)[] => {
     return areas.map((area) => {
       const areaStat = areaStats?.stats.find(
@@ -70,17 +78,14 @@ export const useDisplayAreaStats = <
         primaryDisplayValue: getDisplayValue(
           areaStat?.primary,
           areaStats?.primary,
-          choroplethDataSource?.columnMetadata.find(
-            (c) => c.name === areaStats?.primary?.column,
-          )?.valueLabels,
+          columnMetadata?.valueLabels,
         ),
         secondaryDisplayValue: getDisplayValue(
           areaStat?.secondary,
           areaStats?.secondary,
-          choroplethDataSource?.columnMetadata.find(
-            (c) => c.name === areaStats?.secondary?.column,
-          )?.valueLabels,
+          secondaryColumnMetadata?.valueLabels,
         ),
+
         backgroundColor: toRGBA(colorResult),
       };
     });
@@ -89,7 +94,8 @@ export const useDisplayAreaStats = <
     areaStats,
     result,
     fillColorExpression,
-    choroplethDataSource?.columnMetadata,
+    columnMetadata,
+    secondaryColumnMetadata,
   ]);
 
   const primaryLabel = areaStats
@@ -101,8 +107,13 @@ export const useDisplayAreaStats = <
   return {
     areasToDisplay,
     primaryLabel,
+    primaryDescription: choroplethDataSource?.columnMetadata.find(
+      (c) => c.name === areaStats?.primary?.column,
+    )?.description,
     secondaryLabel: viewConfig.areaDataSecondaryColumn,
-    columnMetadata: choroplethDataSource?.columnMetadata,
+    secondaryDescription: choroplethDataSource?.columnMetadata.find(
+      (c) => c.name === areaStats?.secondary?.column,
+    )?.description,
   };
 };
 
@@ -111,13 +122,19 @@ export const useDisplayAreaStat = <
 >(
   area: T | null | undefined,
 ) => {
-  const { areasToDisplay, primaryLabel, secondaryLabel, columnMetadata } =
-    useDisplayAreaStats(area ? [area] : []);
+  const {
+    areasToDisplay,
+    primaryLabel,
+    secondaryLabel,
+    primaryDescription,
+    secondaryDescription,
+  } = useDisplayAreaStats(area ? [area] : []);
   return {
     areaToDisplay: areasToDisplay.length ? areasToDisplay[0] : null,
     primaryLabel,
     secondaryLabel,
-    columnMetadata,
+    primaryDescription,
+    secondaryDescription,
   };
 };
 
