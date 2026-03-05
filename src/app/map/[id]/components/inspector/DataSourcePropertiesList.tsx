@@ -37,7 +37,7 @@ export default function DataSourcePropertiesList({
     return filtered;
   }, [columns, dataSource, json]);
 
-  if (!columns || !columns.length) {
+  if (!properties.length) {
     return <p className="text-sm">No data available</p>;
   }
 

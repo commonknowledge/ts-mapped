@@ -47,7 +47,6 @@ export default function InspectorDataTab({
   const { selectedBoundary } = useInspector();
   const areaStat = useRawAreaStat(selectedBoundary);
   const choroplethDataSource = useChoroplethDataSource();
-  const recordDataSource = getDataSourceById(focusedRecord?.dataSourceId);
 
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
@@ -169,7 +168,7 @@ export default function InspectorDataTab({
                 {recordData?.json && (
                   <DataSourcePropertiesList
                     json={recordData?.json}
-                    dataSource={recordDataSource}
+                    dataSource={dataSource}
                   />
                 )}
               </>
