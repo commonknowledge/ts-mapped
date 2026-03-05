@@ -20,7 +20,8 @@ export default function PropertiesList({
   return (
     <dl className="flex flex-col gap-3">
       {properties.map(({ label, description, value }) => {
-        if (!value) return <Fragment key={label}></Fragment>;
+        if (value === null || value === undefined)
+          return <Fragment key={label}></Fragment>;
 
         return (
           <div key={label}>

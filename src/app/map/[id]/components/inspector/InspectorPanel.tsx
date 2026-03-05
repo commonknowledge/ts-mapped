@@ -152,7 +152,7 @@ export default function InspectorPanel({
               {inspectorContent?.name as string}
             </h1>
             {areaToDisplay && (
-              <h2>{AreaSetCodeLabels[areaToDisplay.areaSetCode]}</h2>
+              <h2 className="text-muted-foreground text-xs uppercase font-mono">{AreaSetCodeLabels[areaToDisplay.areaSetCode]}</h2>
             )}
           </div>
           <button
