@@ -1,16 +1,18 @@
-import { InfoIcon, PencilIcon } from "lucide-react";
+import { InfoIcon, Settings2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
-import useEditColumnMetadataAtom from "../hooks/useEditColumnMetadataAtom";
+import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
 import type { DataSource } from "@/server/models/DataSource";
 
 function ColumnMetadataIcons({
   dataSource,
   column,
+  iconColorClass = "text-black",
 }: {
   dataSource?: DataSource | null | undefined;
   column: string;
+  iconColorClass?: string;
 }) {
-  const [, setEditColumnMetadata] = useEditColumnMetadataAtom();
+  const [, setEditColumnMetadata] = useEditColumnMetadata();
 
   if (!dataSource) {
     return null;
@@ -26,12 +28,12 @@ function ColumnMetadataIcons({
         <Tooltip>
           <TooltipTrigger asChild>
             <InfoIcon
-              className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
+              className={`h-3.5 w-3.5 shrink-0 cursor-help ${iconColorClass} inline-block ml-1`}
               aria-label="Column description"
               tabIndex={0}
             />
           </TooltipTrigger>
-          <TooltipContent side="top">
+          <TooltipContent side="top" className="max-w-64">
             <p>{description}</p>
           </TooltipContent>
         </Tooltip>
@@ -39,7 +41,8 @@ function ColumnMetadataIcons({
       <button
         type="button"
         className="inline-flex items-center ml-1 p-0.5 -m-0.5 border-0 bg-transparent cursor-pointer align-middle rounded hover:bg-neutral-200 focus-visible:bg-neutral-200 focus-visible:outline-none transition-colors"
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           setEditColumnMetadata({
             dataSourceId: dataSource.id,
             column,
@@ -47,7 +50,7 @@ function ColumnMetadataIcons({
         }}
         aria-label="Edit column"
       >
-        <PencilIcon className="h-3.5 w-3.5 shrink-0 text-black" />
+        <Settings2Icon className={`h-3.5 w-3.5 shrink-0 ${iconColorClass}`} />
       </button>
     </>
   );

@@ -46,9 +46,13 @@ export default function DataSourcePropertiesList({
       {properties.map(({ column, value }, i) => {
         return (
           <div key={`${column}-${i}`}>
-            <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-1">
+            <dt className="mb-[2px] / text-muted-foreground text-xs uppercase font-mono flex items-center gap-0.5">
               {column}
-              <ColumnMetadataIcons column={column} dataSource={dataSource} />
+              <ColumnMetadataIcons
+                column={column}
+                dataSource={dataSource}
+                iconColorClass="text-muted-foreground"
+              />
             </dt>
             <dd className="font-medium">{String(value)}</dd>
           </div>

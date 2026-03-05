@@ -19,6 +19,7 @@ import { useMapQuery } from "../hooks/useMapQuery";
 import { CONTROL_PANEL_WIDTH } from "../styles";
 import PrivateMapControls from "./controls/PrivateMapControls";
 import VisualisationPanel from "./controls/VisualisationPanel/VisualisationPanel";
+import EditColumnMetadataModal from "./EditColumnMetadataModal";
 import Loading from "./Loading";
 import Map from "./Map";
 import PrivateMapNavbar from "./PrivateMapNavbar";
@@ -100,6 +101,7 @@ export default function PrivateMap() {
         </div>
         {loading && <Loading />}
       </div>
+      <EditColumnMetadataModal />
     </div>
   );
 }
