@@ -184,7 +184,10 @@ export default function InspectorPanel({
           onValueChange={setActiveTab}
           className="flex flex-col min-h-0"
         >
-          <UnderlineTabsList className="w-full flex gap-6 border-t px-3">
+          <UnderlineTabsList
+            value={safeActiveTab}
+            className="w-full flex gap-6 border-t px-3"
+          >
             {hasData && (
               <UnderlineTabsTrigger value="data">Data</UnderlineTabsTrigger>
             )}
@@ -207,7 +210,7 @@ export default function InspectorPanel({
             <UnderlineTabsContent value="data" className="overflow-auto p-3">
               <InspectorDataTab
                 dataSource={dataSource}
-                properties={properties}
+                properties={properties || []}
                 isDetailsView={isDetailsView}
                 focusedRecord={focusedRecord}
                 type={type}

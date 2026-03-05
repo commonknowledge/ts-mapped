@@ -16,8 +16,9 @@ function UnderlineTabs({
 
 function UnderlineTabsList({
   className,
+  value,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}: React.ComponentProps<typeof TabsPrimitive.List> & { value: string }) {
   const [underlineStyle, setUnderlineStyle] = React.useState({
     left: 0,
     width: 0,
@@ -67,7 +68,7 @@ function UnderlineTabsList({
       resizeObserver.disconnect();
       window.removeEventListener("resize", updateUnderline);
     };
-  }, [updateUnderline]);
+  }, [updateUnderline, value]);
 
   return (
     <TabsPrimitive.List
