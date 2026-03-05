@@ -9,6 +9,7 @@ import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
 import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
+import { AreaSetCodeLabels } from "@/labels";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
@@ -139,15 +140,21 @@ export default function InspectorPanel({
         )}
       >
         <div className="flex justify-between items-center gap-4 p-3">
-          <h1 className="grow flex gap-2 items-center / text-sm font-semibold">
-            {type === LayerType.Boundary && areaToDisplay?.backgroundColor && (
-              <span
-                className="w-4 h-4 rounded shrink-0"
-                style={{ backgroundColor: areaToDisplay.backgroundColor }}
-              />
+          <div className="flex flex-col gap-2">
+            <h1 className="grow flex gap-2 items-center / text-sm font-semibold">
+              {type === LayerType.Boundary &&
+                areaToDisplay?.backgroundColor && (
+                  <span
+                    className="w-4 h-4 rounded shrink-0"
+                    style={{ backgroundColor: areaToDisplay.backgroundColor }}
+                  />
+                )}
+              {inspectorContent?.name as string}
+            </h1>
+            {areaToDisplay && (
+              <h2>{AreaSetCodeLabels[areaToDisplay.areaSetCode]}</h2>
             )}
-            {inspectorContent?.name as string}
-          </h1>
+          </div>
           <button
             className="cursor-pointer"
             aria-label="Close inspector panel"

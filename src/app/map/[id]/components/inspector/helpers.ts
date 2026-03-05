@@ -1,8 +1,5 @@
 import * as turf from "@turf/turf";
-import { AreaSetCodeLabels } from "@/labels";
-import { CHOROPLETH_LAYER_CONFIGS } from "../Choropleth/configs";
 import type { SelectedTurf } from "@/app/map/[id]/types/inspector";
-import type { AreaSetCode } from "@/server/models/AreaSet";
 import type { Folder } from "@/server/models/Folder";
 import type { PlacedMarker } from "@/server/models/PlacedMarker";
 import type { MarkerFeature } from "@/types";
@@ -93,30 +90,4 @@ export const groupPlacedMarkersByFolder = (
       placedMarkers: markers,
     };
   });
-};
-
-function findAreaSetCodeByLayerId(layerId: string): AreaSetCode | null {
-  for (const [, items] of Object.entries(CHOROPLETH_LAYER_CONFIGS)) {
-    const found = items.find((item) => item.mapbox?.layerId === layerId);
-    if (found) {
-      return found.areaSetCode;
-    }
-  }
-  return null;
-}
-
-export const getBoundaryDatasetName = (
-  sourceLayerId: string | null | undefined,
-) => {
-  if (!sourceLayerId) {
-    return "";
-  }
-
-  const configName = findAreaSetCodeByLayerId(sourceLayerId);
-
-  if (!configName) {
-    return "Boundary Data";
-  }
-
-  return AreaSetCodeLabels?.[configName] ?? "Boundary Data";
 };

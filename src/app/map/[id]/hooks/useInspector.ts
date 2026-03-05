@@ -2,7 +2,6 @@
 
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
-import { getBoundaryDatasetName } from "@/app/map/[id]/components/inspector/helpers";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { LayerType } from "@/types";
@@ -70,10 +69,6 @@ export function useInspector() {
           name: selectedBoundary.name,
           properties: [
             { label: "Boundary code", value: selectedBoundary?.code },
-            {
-              label: "Boundary set",
-              value: getBoundaryDatasetName(selectedBoundary?.sourceLayerId),
-            },
           ],
         };
       }

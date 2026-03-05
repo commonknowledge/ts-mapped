@@ -194,11 +194,6 @@ export default function InspectorDataTab({
               );
             }
 
-            const propertyDescriptions: Record<string, string> = {};
-            for (const metadata of dataSource?.columnMetadata || []) {
-              propertyDescriptions[metadata.name] = metadata.description;
-            }
-
             return <PropertiesList properties={mergedProperties} />;
           })()}
         </>

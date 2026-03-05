@@ -51,6 +51,10 @@ export const useDisplayAreaStats = <
     (c) => c.name === areaStats?.primary?.column,
   );
 
+  const secondaryColumnMetadata = choroplethDataSource?.columnMetadata.find(
+    (c) => c.name === areaStats?.secondary?.column,
+  );
+
   const areasToDisplay = useMemo((): (T & DisplayAreaStat)[] => {
     return areas.map((area) => {
       const areaStat = areaStats?.stats.find(
@@ -79,13 +83,20 @@ export const useDisplayAreaStats = <
         secondaryDisplayValue: getDisplayValue(
           areaStat?.secondary,
           areaStats?.secondary,
-          columnMetadata?.valueLabels,
+          secondaryColumnMetadata?.valueLabels,
         ),
 
         backgroundColor: toRGBA(colorResult),
       };
     });
-  }, [areas, areaStats, result, fillColorExpression, columnMetadata]);
+  }, [
+    areas,
+    areaStats,
+    result,
+    fillColorExpression,
+    columnMetadata,
+    secondaryColumnMetadata,
+  ]);
 
   const primaryLabel = areaStats
     ? areaStats.calculationType === CalculationType.Count
