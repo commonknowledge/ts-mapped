@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import TogglePanel from "@/app/map/[id]/components/TogglePanel";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import DataSourceIcon from "@/components/DataSourceIcon";
@@ -9,10 +8,8 @@ import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
-import { getDisplayValue } from "../../utils/stats";
-import PropertiesList from "./PropertiesList";
-import type { PropertiesListItem } from "./PropertiesList";
-import type { ColumnDef, ColumnMetadata } from "@/server/models/DataSource";
+import DataSourcePropertiesList from "./DataSourcePropertiesList";
+import type { DataSource } from "@/server/models/DataSource";
 
 export function BoundaryDataPanel({
   config,
@@ -64,8 +61,7 @@ export function BoundaryDataPanel({
         <BoundaryDataProperties
           json={data.records[0].json}
           columns={columns}
-          columnDefs={dataSource?.columnDefs}
-          columnMetadata={dataSource?.columnMetadata}
+          dataSource={dataSource}
           match={data.match}
         />
       ) : data?.records.length ? (
@@ -79,8 +75,7 @@ export function BoundaryDataPanel({
                 <BoundaryDataProperties
                   json={d.json}
                   columns={columns}
-                  columnDefs={dataSource?.columnDefs}
-                  columnMetadata={dataSource?.columnMetadata}
+                  dataSource={dataSource}
                   match={data.match}
                 />
               </TogglePanel>
@@ -99,37 +94,14 @@ export function BoundaryDataPanel({
 function BoundaryDataProperties({
   json,
   columns,
-  columnDefs,
-  columnMetadata,
+  dataSource,
   match,
 }: {
   json: Record<string, unknown>;
   columns: string[];
-  columnDefs?: ColumnDef[];
-  columnMetadata?: ColumnMetadata[];
+  dataSource: DataSource | null | undefined;
   match: DataRecordMatchType;
 }) {
-  const filteredProperties = useMemo(() => {
-    const filtered: PropertiesListItem[] = [];
-    columns.forEach((columnName) => {
-      if (json[columnName] !== undefined) {
-        const metadata = columnMetadata?.find((c) => c.name === columnName);
-        filtered.push({
-          label: columnName,
-          description: metadata?.description,
-          value: getDisplayValue(
-            json[columnName],
-            {
-              columnType: columnDefs?.find((cd) => cd.name === columnName)
-                ?.type,
-            },
-            metadata?.valueLabels,
-          ),
-        });
-      }
-    });
-    return filtered;
-  }, [columnDefs, columns, json, columnMetadata]);
   return (
     <div className="ml-6">
       {match === DataRecordMatchType.Approximate && (
@@ -137,11 +109,11 @@ function BoundaryDataProperties({
           Approximate boundary match
         </p>
       )}
-      {filteredProperties.length > 0 ? (
-        <PropertiesList properties={filteredProperties} />
-      ) : (
-        <p className="text-sm">No data available</p>
-      )}
+      <DataSourcePropertiesList
+        onlyColumns={columns}
+        dataSource={dataSource}
+        json={json}
+      />
     </div>
   );
 }

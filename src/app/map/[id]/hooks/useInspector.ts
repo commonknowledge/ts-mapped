@@ -11,7 +11,7 @@ import {
   selectedRecordsAtom,
   selectedTurfAtom,
 } from "../atoms/inspectorAtoms";
-import type { PropertiesListItem } from "../components/inspector/PropertiesList";
+import type { PropertiesListItem } from "../components/inspector/SimplePropertiesList";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 import type { DataSource } from "@/server/models/DataSource";
 

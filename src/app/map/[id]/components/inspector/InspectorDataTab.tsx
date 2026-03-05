@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { MapPinIcon, TableIcon } from "lucide-react";
 import { useMemo } from "react";
-import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import {
+  useChoroplethDataSource,
+  useDataSources,
+} from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -12,11 +15,13 @@ import { type DataSource } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { LayerType } from "@/types";
-import { useDisplayAreaStat } from "../../hooks/useDisplayAreaStats";
+import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
-import PropertiesList from "./PropertiesList";
-import type { PropertiesListItem } from "./PropertiesList";
+import DataSourcePropertiesList from "./DataSourcePropertiesList";
+import SimplePropertiesList from "./SimplePropertiesList";
+import type { PropertiesListItem } from "./SimplePropertiesList";
+import type { RawAreaStat } from "../../hooks/useRawAreaStats";
 import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 
 interface InspectorDataTabProps {
@@ -40,13 +45,9 @@ export default function InspectorDataTab({
   const { view } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
-  const {
-    areaToDisplay,
-    primaryLabel,
-    secondaryLabel,
-    primaryDescription,
-    secondaryDescription,
-  } = useDisplayAreaStat(selectedBoundary);
+  const areaStat = useRawAreaStat(selectedBoundary);
+  const choroplethDataSource = useChoroplethDataSource();
+  const recordDataSource = getDataSourceById(focusedRecord?.id);
 
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
@@ -87,24 +88,7 @@ export default function InspectorDataTab({
   }, [isBoundary, selectedBoundary, boundaryConfigs, getDataSourceById]);
 
   const boundaryProperties = useMemo(() => {
-    if (!areaToDisplay) {
-      return properties;
-    }
     const boundaryProperties = [...properties];
-    if (primaryLabel) {
-      boundaryProperties.push({
-        label: primaryLabel,
-        description: primaryDescription,
-        value: areaToDisplay.primaryDisplayValue,
-      });
-    }
-    if (secondaryLabel) {
-      boundaryProperties.push({
-        label: secondaryLabel,
-        description: secondaryDescription,
-        value: areaToDisplay.secondaryDisplayValue,
-      });
-    }
     if (selectedSecondaryArea) {
       boundaryProperties.push({
         label:
@@ -114,15 +98,7 @@ export default function InspectorDataTab({
       });
     }
     return boundaryProperties;
-  }, [
-    areaToDisplay,
-    properties,
-    primaryLabel,
-    secondaryLabel,
-    selectedSecondaryArea,
-    primaryDescription,
-    secondaryDescription,
-  ]);
+  }, [properties, selectedSecondaryArea]);
 
   const flyToMarker = () => {
     const map = mapRef?.current;
@@ -136,7 +112,11 @@ export default function InspectorDataTab({
     <div className="flex flex-col gap-4">
       {isBoundary ? (
         <>
-          <PropertiesList properties={boundaryProperties} />
+          <SimplePropertiesList properties={boundaryProperties} />
+          <DataSourcePropertiesList
+            dataSource={choroplethDataSource}
+            json={getAreaStatJson(areaStat)}
+          />
           {boundaryData.length > 0 &&
             boundaryData.map((item, index) => (
               <BoundaryDataPanel
@@ -172,19 +152,8 @@ export default function InspectorDataTab({
               return <span>Loading...</span>;
             }
 
-            const mergedProperties = [...properties];
-            for (const key of Object.keys(recordData?.json || {})) {
-              mergedProperties.push({
-                label: key,
-                value: recordData?.json[key],
-                description: dataSource?.columnMetadata.find(
-                  (c) => c.name === key,
-                )?.description,
-              });
-            }
-
             const hasProperties =
-              mergedProperties && Object.keys(mergedProperties).length > 0;
+              properties.length || Object.keys(recordData?.json || {}).length;
 
             if (!hasProperties) {
               return (
@@ -194,7 +163,17 @@ export default function InspectorDataTab({
               );
             }
 
-            return <PropertiesList properties={mergedProperties} />;
+            return (
+              <>
+                <SimplePropertiesList properties={properties} />
+                {recordData?.json && (
+                  <DataSourcePropertiesList
+                    json={recordData?.json}
+                    dataSource={recordDataSource}
+                  />
+                )}
+              </>
+            );
           })()}
         </>
       )}
@@ -221,3 +200,17 @@ export default function InspectorDataTab({
     </div>
   );
 }
+
+const getAreaStatJson = (areaStat: RawAreaStat | null) => {
+  const json: Record<string, unknown> = {};
+  if (!areaStat) {
+    return json;
+  }
+  if (areaStat.primaryColumn) {
+    json[areaStat.primaryColumn] = areaStat.primary;
+  }
+  if (areaStat.secondaryColumn) {
+    json[areaStat.secondaryColumn] = areaStat.secondary;
+  }
+  return json;
+};

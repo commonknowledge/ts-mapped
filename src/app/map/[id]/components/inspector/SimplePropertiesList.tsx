@@ -8,7 +8,7 @@ export interface PropertiesListItem {
   value: unknown;
 }
 
-export default function PropertiesList({
+export default function SimplePropertiesList({
   properties,
 }: {
   properties: PropertiesListItem[];
@@ -20,8 +20,9 @@ export default function PropertiesList({
   return (
     <dl className="flex flex-col gap-3">
       {properties.map(({ label, description, value }, i) => {
-        if (value === null || value === undefined)
-          return <Fragment key={label}></Fragment>;
+        if (value === null || value === undefined) {
+          return <Fragment key={`${label}-${i}`} />;
+        }
 
         return (
           <div key={`${label}-${i}`}>
