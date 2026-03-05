@@ -1,14 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { useTRPC } from "@/services/trpc/react";
 
 export function useDataSources() {
   const trpc = useTRPC();
-  const query = useQuery(trpc.dataSource.listReadable.queryOptions());
+  const { organisationId } = useContext(OrganisationsContext);
+  const query = useQuery(
+    trpc.dataSource.listReadable.queryOptions({
+      organisationId: organisationId ?? undefined,
+    }),
+  );
 
   const getDataSourceById = useCallback(
     (id: string | null | undefined) => {

@@ -1,14 +1,23 @@
 import { useMemo } from "react";
+import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { getDisplayValue } from "../../utils/stats";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
-import type { DataSource } from "@/server/models/DataSource";
+import type { ColumnMetadata, ColumnType } from "@/server/models/DataSource";
 
 export default function DataSourcePropertiesList({
   dataSource,
   json,
   onlyColumns,
 }: {
-  dataSource: DataSource | null | undefined;
+  dataSource:
+    | {
+        columnMetadata: ColumnMetadata[];
+        columnMetadataOverride?: ColumnMetadata[] | null;
+        columnDefs?: { name: string; type: ColumnType }[];
+        id: string;
+      }
+    | null
+    | undefined;
   json: Record<string, unknown>;
   onlyColumns?: string[] | null | undefined;
 }) {
@@ -17,8 +26,10 @@ export default function DataSourcePropertiesList({
     const filtered: { column: string; value: string }[] = [];
     columns.forEach((columnName) => {
       if (json[columnName] !== undefined) {
-        const metadata = dataSource?.columnMetadata?.find(
-          (c) => c.name === columnName,
+        const metadata = resolveColumnMetadataEntry(
+          dataSource?.columnMetadata ?? [],
+          dataSource?.columnMetadataOverride,
+          columnName,
         );
         filtered.push({
           column: columnName,

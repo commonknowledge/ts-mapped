@@ -1,6 +1,7 @@
 import { expression } from "mapbox-gl/dist/style-spec/index.cjs";
 import { useMemo } from "react";
 import { CalculationType } from "@/server/models/MapView";
+import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { useFillColor } from "../colors";
 import { DEFAULT_FILL_COLOR } from "../constants";
 import { useAreaStats } from "../data";
@@ -47,11 +48,20 @@ export const useDisplayAreaStats = <
     );
   }
 
-  const columnMetadata = choroplethDataSource?.columnMetadata.find(
+  const resolvedMetadata = useMemo(
+    () =>
+      resolveColumnMetadata(
+        choroplethDataSource?.columnMetadata ?? [],
+        choroplethDataSource?.columnMetadataOverride,
+      ),
+    [choroplethDataSource],
+  );
+
+  const columnMetadata = resolvedMetadata.find(
     (c) => c.name === areaStats?.primary?.column,
   );
 
-  const secondaryColumnMetadata = choroplethDataSource?.columnMetadata.find(
+  const secondaryColumnMetadata = resolvedMetadata.find(
     (c) => c.name === areaStats?.secondary?.column,
   );
 
@@ -107,11 +117,11 @@ export const useDisplayAreaStats = <
   return {
     areasToDisplay,
     primaryLabel,
-    primaryDescription: choroplethDataSource?.columnMetadata.find(
+    primaryDescription: resolvedMetadata.find(
       (c) => c.name === areaStats?.primary?.column,
     )?.description,
     secondaryLabel: viewConfig.areaDataSecondaryColumn,
-    secondaryDescription: choroplethDataSource?.columnMetadata.find(
+    secondaryDescription: resolvedMetadata.find(
       (c) => c.name === areaStats?.secondary?.column,
     )?.description,
   };

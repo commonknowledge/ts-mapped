@@ -6,9 +6,14 @@ import {
   ColumnType,
   EnrichmentSourceType,
   GeocodingType,
+  columnMetadataSchema,
   dataSourceSchema,
 } from "@/server/models/DataSource";
 import { dataSourceViewSchema } from "@/server/models/MapView";
+import {
+  findColumnMetadataOverridesByOrg,
+  upsertColumnMetadataOverride,
+} from "@/server/repositories/ColumnMetadataOverride";
 import {
   applyFilterAndSearch,
   findDataRecordsByDataSource,
@@ -30,6 +35,7 @@ import {
   dataSourceOwnerProcedure,
   dataSourceReadProcedure,
   organisationProcedure,
+  protectedProcedure,
   publicProcedure,
   router,
 } from "../index";
@@ -37,26 +43,49 @@ import type { DataSourceEvent } from "@/server/events";
 import type { DataSource, DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
-  listReadable: publicProcedure.query(async ({ ctx }) => {
-    const organisations = ctx.user
-      ? await findOrganisationsByUserId(ctx.user.id)
-      : [];
-    const dataSources = await db
-      .selectFrom("dataSource")
-      .leftJoin("organisation", "dataSource.organisationId", "organisation.id")
-      .where((eb) => {
-        const filter = [eb("public", "=", true)];
-        const organisationIds = organisations.map((o) => o.id);
-        if (organisationIds.length > 0) {
-          filter.push(eb("organisation.id", "in", organisationIds));
-        }
-        return eb.or(filter);
-      })
-      .selectAll("dataSource")
-      .execute();
+  listReadable: publicProcedure
+    .input(z.object({ organisationId: z.string().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      const organisations = ctx.user
+        ? await findOrganisationsByUserId(ctx.user.id)
+        : [];
+      const dataSources = await db
+        .selectFrom("dataSource")
+        .leftJoin(
+          "organisation",
+          "dataSource.organisationId",
+          "organisation.id",
+        )
+        .where((eb) => {
+          const filter = [eb("public", "=", true)];
+          const organisationIds = organisations.map((o) => o.id);
+          if (organisationIds.length > 0) {
+            filter.push(eb("organisation.id", "in", organisationIds));
+          }
+          return eb.or(filter);
+        })
+        .selectAll("dataSource")
+        .execute();
 
-    return addImportInfo(dataSources);
-  }),
+      const orgId = input?.organisationId;
+      const overrides =
+        orgId && dataSources.length
+          ? await findColumnMetadataOverridesByOrg(
+              orgId,
+              dataSources.map((ds) => ds.id),
+            )
+          : [];
+
+      const overrideMap = new Map(
+        overrides.map((o) => [o.dataSourceId, o.columnMetadata]),
+      );
+
+      const withImportInfo = await addImportInfo(dataSources);
+      return withImportInfo.map((ds) => ({
+        ...ds,
+        columnMetadataOverride: overrideMap.get(ds.id) ?? null,
+      }));
+    }),
   byOrganisation: organisationProcedure.query(async ({ ctx }) => {
     const dataSources = await db
       .selectFrom("dataSource")
@@ -381,6 +410,32 @@ export const dataSourceRouter = router({
     await deleteDataSource(ctx.dataSource.id);
     return true;
   }),
+
+  getColumnMetadataOverride: protectedProcedure
+    .input(z.object({ organisationId: z.string(), dataSourceId: z.string() }))
+    .query(async ({ input }) => {
+      const overrides = await findColumnMetadataOverridesByOrg(
+        input.organisationId,
+        [input.dataSourceId],
+      );
+      return overrides[0]?.columnMetadata ?? null;
+    }),
+
+  updateColumnMetadataOverride: organisationProcedure
+    .input(
+      z.object({
+        dataSourceId: z.string(),
+        columnMetadata: z.array(columnMetadataSchema),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await upsertColumnMetadataOverride(
+        ctx.organisation.id,
+        input.dataSourceId,
+        input.columnMetadata,
+      );
+      return true;
+    }),
 
   events: dataSourceOwnerProcedure.subscription(async function* ({
     ctx,

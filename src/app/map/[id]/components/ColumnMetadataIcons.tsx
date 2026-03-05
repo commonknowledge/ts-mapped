@@ -1,14 +1,22 @@
 import { InfoIcon, Settings2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
+import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
-import type { DataSource } from "@/server/models/DataSource";
+import type { ColumnMetadata } from "@/server/models/DataSource";
 
 function ColumnMetadataIcons({
   dataSource,
   column,
   iconColorClass = "text-black",
 }: {
-  dataSource?: DataSource | null | undefined;
+  dataSource?:
+    | {
+        id: string;
+        columnMetadata: ColumnMetadata[];
+        columnMetadataOverride?: ColumnMetadata[] | null;
+      }
+    | null
+    | undefined;
   column: string;
   iconColorClass?: string;
 }) {
@@ -18,8 +26,10 @@ function ColumnMetadataIcons({
     return null;
   }
 
-  const description = dataSource?.columnMetadata.find(
-    (c) => c.name === column,
+  const description = resolveColumnMetadataEntry(
+    dataSource.columnMetadata,
+    dataSource.columnMetadataOverride,
+    column,
   )?.description;
 
   return (
