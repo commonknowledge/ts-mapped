@@ -12,7 +12,7 @@ export function useDataSources() {
   const { organisationId } = useContext(OrganisationsContext);
   const query = useQuery(
     trpc.dataSource.listReadable.queryOptions({
-      organisationId: organisationId ?? undefined,
+      activeOrganisationId: organisationId ?? undefined,
     }),
   );
 

@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { recordFilterSchema, recordSortSchema } from "@/server/models/MapView";
+import { pointSchema } from "@/server/models/shared";
 import {
   findAreaByCode,
   findAreasByPoint,
@@ -14,6 +15,7 @@ import {
   findDataRecordsByDataSourceAndAreaCode,
   findPageForDataRecord,
 } from "@/server/repositories/DataRecord";
+import { geojsonPointToPoint } from "@/server/utils/geo";
 import { DataRecordMatchType } from "@/types";
 import { dataSourceReadProcedure, router } from "../index";
 
@@ -111,7 +113,7 @@ export const dataRecordRouter = router({
       if (!dataSourceArea) {
         dataSourceArea = (
           await findAreasByPoint({
-            point: inputArea.samplePoint,
+            point: geojsonPointToPoint(inputArea.samplePoint),
             includeAreaSetCode: dataSourceAreaSetCode,
           })
         )[0];
@@ -125,6 +127,32 @@ export const dataRecordRouter = router({
         input.dataSourceId,
         dataSourceArea.areaSetCode,
         dataSourceArea.code,
+      );
+      return { records, match };
+    }),
+  byPoint: dataSourceReadProcedure
+    .input(
+      z.object({
+        point: pointSchema,
+      }),
+    )
+    .query(async ({ input, ctx: { dataSource } }) => {
+      const match = DataRecordMatchType.ContainedBy;
+      const geocodingConfig = dataSource.geocodingConfig;
+      if (!("areaSetCode" in geocodingConfig)) {
+        return { records: [], match };
+      }
+      const areas = await findAreasByPoint({
+        point: input.point,
+        includeAreaSetCode: geocodingConfig.areaSetCode,
+      });
+      if (!areas.length) {
+        return { records: [], match };
+      }
+      const records = await findDataRecordsByDataSourceAndAreaCode(
+        input.dataSourceId,
+        areas[0].areaSetCode,
+        areas[0].code,
       );
       return { records, match };
     }),

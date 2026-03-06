@@ -1,52 +1,46 @@
 import { useQuery } from "@tanstack/react-query";
-import { MapPinIcon, TableIcon } from "lucide-react";
-import { useMemo } from "react";
-import {
-  useChoroplethDataSource,
-  useDataSources,
-} from "@/app/map/[id]/hooks/useDataSources";
+import { MapPinIcon, PlusIcon, TableIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { AreaSetCodeLabels } from "@/labels";
-import { type DataSource } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shadcn/ui/dialog";
 import { LayerType } from "@/types";
 import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import DataSourcePropertiesList from "./DataSourcePropertiesList";
+import InspectorConfigTab from "./InspectorConfigTab";
 import SimplePropertiesList from "./SimplePropertiesList";
-import type { PropertiesListItem } from "./SimplePropertiesList";
 import type { RawAreaStat } from "../../hooks/useRawAreaStats";
-import type { SelectedRecord } from "@/app/map/[id]/types/inspector";
 
 interface InspectorDataTabProps {
-  dataSource: DataSource | null | undefined;
-  properties: PropertiesListItem[];
   isDetailsView: boolean;
-  focusedRecord: SelectedRecord | null;
-  type: LayerType | undefined;
 }
 
 export default function InspectorDataTab({
-  dataSource,
-  properties,
   isDetailsView,
-  focusedRecord,
-  type,
 }: InspectorDataTabProps) {
   const mapRef = useMapRef();
   const { setSelectedDataSourceId } = useTable();
   const trpc = useTRPC();
   const { view } = useMapViews();
-  const { getDataSourceById } = useDataSources();
-  const { selectedBoundary } = useInspector();
+  const { selectedBoundary, focusedRecord, inspectorContent } = useInspector();
+  const { dataSource, properties = [], type } = inspectorContent || {};
   const areaStat = useRawAreaStat(selectedBoundary);
   const choroplethDataSource = useChoroplethDataSource();
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
   const [selectedSecondaryArea] = useSelectedSecondaryArea();
 
@@ -68,23 +62,6 @@ export default function InspectorDataTab({
   );
 
   const isBoundary = type === LayerType.Boundary;
-
-  const boundaryData = useMemo(() => {
-    if (!isBoundary || !selectedBoundary) return [];
-
-    return boundaryConfigs.map((config) => {
-      const ds = getDataSourceById(config.dataSourceId);
-
-      return {
-        config,
-        dataSource: ds,
-        dataSourceId: config.dataSourceId,
-        areaCode: selectedBoundary.code,
-        areaSetCode: selectedBoundary.areaSetCode,
-        columns: config.columns,
-      };
-    });
-  }, [isBoundary, selectedBoundary, boundaryConfigs, getDataSourceById]);
 
   const boundaryProperties = useMemo(() => {
     const boundaryProperties = [...properties];
@@ -116,17 +93,6 @@ export default function InspectorDataTab({
             dataSource={choroplethDataSource}
             json={getAreaStatJson(areaStat)}
           />
-          {boundaryData.length > 0 &&
-            boundaryData.map((item, index) => (
-              <BoundaryDataPanel
-                key={item.config.id}
-                config={item.config}
-                dataSourceId={item.dataSourceId}
-                areaCode={item.areaCode}
-                columns={item.columns}
-                defaultExpanded={index === 0}
-              />
-            ))}
         </>
       ) : (
         // Show default data source and properties
@@ -152,7 +118,9 @@ export default function InspectorDataTab({
             }
 
             const hasProperties =
-              properties.length || Object.keys(recordData?.json || {}).length;
+              properties.length ||
+              Object.keys(recordData?.json || {}).length ||
+              boundaryConfigs.length;
 
             if (!hasProperties) {
               return (
@@ -176,6 +144,32 @@ export default function InspectorDataTab({
           })()}
         </>
       )}
+
+      {boundaryConfigs.map((config, index) => (
+        <BoundaryDataPanel
+          key={config.id}
+          config={config}
+          selectedBoundary={selectedBoundary}
+          markerPoint={focusedRecord?.geocodePoint}
+          defaultExpanded={index === 0}
+        />
+      ))}
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => setConfigDialogOpen(true)}
+      >
+        <PlusIcon />
+        Add data
+      </Button>
+      <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Data display configuration</DialogTitle>
+          </DialogHeader>
+          <InspectorConfigTab />
+        </DialogContent>
+      </Dialog>
 
       {(isDetailsView || dataSource) && (
         <div className="flex flex-col gap-3 border-t pt-4">
