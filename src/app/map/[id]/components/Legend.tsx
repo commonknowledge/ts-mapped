@@ -1,17 +1,18 @@
-import { ChevronRight, Eye, EyeOff, Info, LoaderPinwheel } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, LoaderPinwheel } from "lucide-react";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useChoroplethDataSource } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScaleType } from "@/server/models/MapView";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
+import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
 import BivariateLegend from "./BivariateLagend";
 import { getChoroplethDataKey } from "./Choropleth/utils";
+import ColumnMetadataIcons from "./ColumnMetadataIcons";
 import type { NumericColorScheme } from "../colors";
 
 export default function Legend() {
@@ -59,27 +60,13 @@ export default function Legend() {
       return <p>Count</p>;
     }
 
-    const primaryDescription = dataSource?.columnMetadata.find(
-      (c) => c.name === viewConfig.areaDataColumn,
-    )?.description;
-
     const primaryLabel = (
       <div>
         {viewConfig.areaDataColumn}
-        {primaryDescription && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info
-                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
-                aria-label="Column description"
-                tabIndex={0}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p>{primaryDescription}</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
+        <ColumnMetadataIcons
+          dataSource={dataSource}
+          column={viewConfig.areaDataColumn}
+        />
       </div>
     );
 
@@ -87,27 +74,13 @@ export default function Legend() {
       return primaryLabel;
     }
 
-    const secondaryDescription = dataSource?.columnMetadata.find(
-      (c) => c.name === viewConfig.areaDataSecondaryColumn,
-    )?.description;
-
     const secondaryLabel = (
       <div>
         {viewConfig.areaDataSecondaryColumn}
-        {secondaryDescription && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info
-                className="h-3.5 w-3.5 shrink-0 cursor-help text-black inline-block ml-1"
-                aria-label="Secondary column description"
-                tabIndex={0}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p>{secondaryDescription}</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
+        <ColumnMetadataIcons
+          dataSource={dataSource}
+          column={viewConfig.areaDataSecondaryColumn}
+        />
       </div>
     );
 
@@ -146,8 +119,10 @@ export default function Legend() {
       );
 
       const valueLabels =
-        dataSource?.columnMetadata.find(
-          (c) => c.name === viewConfig.areaDataColumn,
+        resolveColumnMetadataEntry(
+          dataSource?.columnMetadata ?? [],
+          dataSource?.columnMetadataOverride,
+          viewConfig.areaDataColumn,
         )?.valueLabels || {};
 
       return (
@@ -179,13 +154,6 @@ export default function Legend() {
                 </div>
               );
             })}
-          <div className="flex items-center gap-2 text-xs">
-            <div
-              className="w-3 h-3 flex-shrink-0 border border-neutral-300"
-              style={{ backgroundColor: colorScheme.colorMap.__default }}
-            />
-            <span>Other</span>
-          </div>
         </div>
       );
     }
@@ -301,8 +269,10 @@ export default function Legend() {
     });
 
     const valueLabels =
-      dataSource?.columnMetadata.find(
-        (c) => c.name === viewConfig.areaDataColumn,
+      resolveColumnMetadataEntry(
+        dataSource?.columnMetadata ?? [],
+        dataSource?.columnMetadataOverride,
+        viewConfig.areaDataColumn,
       )?.valueLabels || {};
 
     const hasValueLabels = Object.keys(valueLabels).length > 0;

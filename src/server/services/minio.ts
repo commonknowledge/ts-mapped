@@ -21,7 +21,7 @@ export const uploadFile = async (
       `ts-mapped/${filename}`,
       `https://${process.env.MINIO_DOMAIN}`,
     ).toString();
-    logger.info(`Uploaded file ${filename}: ${url}`);
+    logger.info(`Uploaded file to MinIO ${filename}: ${url}`);
     return url;
   } catch (error) {
     logger.error(`Could not upload file to MinIO ${filename}`, { error });

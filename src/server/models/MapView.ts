@@ -163,17 +163,6 @@ export type MapViewConfig = z.infer<typeof mapViewConfigSchema>;
 // for different aspects (boundaries, markers, members, etc.)
 
 /**
- * Types of inspector boundary configurations
- * - simple: Basic display of selected columns from data sources
- */
-export enum InspectorBoundaryConfigType {
-  Simple = "simple",
-}
-export const inspectorBoundaryTypes = Object.values(
-  InspectorBoundaryConfigType,
-);
-
-/**
  * Configuration for a single boundary data source in the inspector
  * - dataSourceId: Reference to the data source
  * - name: User-friendly name for this inspector config
@@ -184,7 +173,6 @@ export const inspectorBoundaryConfigSchema = z.object({
   id: z.string(),
   dataSourceId: z.string(),
   name: z.string(),
-  type: z.nativeEnum(InspectorBoundaryConfigType),
   columns: z.array(z.string()),
 });
 

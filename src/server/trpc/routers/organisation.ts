@@ -118,7 +118,7 @@ export const organisationRouter = router({
         }
 
         logger.info(
-          `Created invitation for ${email} to org ${ctx.organisation.id} (existing user: ${!!existingUser})`,
+          `Created invitation for ${email} to org ${ctx.organisation.id} (existing user: ${Boolean(existingUser)})`,
         );
       } catch (error) {
         logger.error("Could not create invitation", { error });

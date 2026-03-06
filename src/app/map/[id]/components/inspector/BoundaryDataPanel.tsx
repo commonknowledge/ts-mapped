@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import TogglePanel from "@/app/map/[id]/components/TogglePanel";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -9,44 +7,56 @@ import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
-import { getDisplayValue } from "../../utils/stats";
-import PropertiesList from "./PropertiesList";
-import type { PropertiesListItem } from "./PropertiesList";
-import type { ColumnDef, ColumnMetadata } from "@/server/models/DataSource";
+import DataSourcePropertiesList from "./DataSourcePropertiesList";
+import type { SelectedBoundary } from "../../types/inspector";
+import type { DataSource } from "@/server/models/DataSource";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { Point } from "@/server/models/shared";
 
 export function BoundaryDataPanel({
   config,
-  dataSourceId,
-  areaCode,
-  columns,
+  selectedBoundary,
+  markerPoint,
   defaultExpanded,
 }: {
-  config: { name: string; dataSourceId: string };
-  dataSourceId: string;
-  areaCode: string;
-  columns: string[];
+  config: InspectorBoundaryConfig;
+  selectedBoundary?: SelectedBoundary | null | undefined;
+  markerPoint?: Point | null | undefined;
   defaultExpanded: boolean;
 }) {
   const trpc = useTRPC();
-  const { selectedBoundary } = useInspector();
   const { getDataSourceById } = useDataSources();
-  const dataSource = getDataSourceById(dataSourceId);
+  const dataSource = getDataSourceById(config.dataSourceId);
 
   const dataSourceType = dataSource ? getDataSourceType(dataSource) : null;
 
-  const { data, isLoading } = useQuery(
+  const { data: boundaryData, isLoading: isLoadingBoundary } = useQuery(
     trpc.dataRecord.byAreaCode.queryOptions(
       {
-        dataSourceId,
-        areaCode,
-        areaSetCode:
-          (selectedBoundary?.areaSetCode as AreaSetCode) || AreaSetCode.WMC24,
+        dataSourceId: config.dataSourceId,
+        areaCode: selectedBoundary?.code || "",
+        areaSetCode: selectedBoundary?.areaSetCode ?? AreaSetCode.WMC24,
       },
       {
-        enabled: Boolean(selectedBoundary?.areaSetCode && dataSourceId),
+        enabled: Boolean(selectedBoundary),
       },
     ),
   );
+
+  const { data: pointData, isLoading: isLoadingPoint } = useQuery(
+    trpc.dataRecord.byPoint.queryOptions(
+      {
+        dataSourceId: config.dataSourceId,
+        point: markerPoint || { lat: 0, lng: 0 },
+      },
+      {
+        enabled: Boolean(markerPoint),
+      },
+    ),
+  );
+
+  const isLoading = isLoadingBoundary || isLoadingPoint;
+  const data = boundaryData || pointData;
 
   return (
     <TogglePanel
@@ -63,9 +73,8 @@ export function BoundaryDataPanel({
       ) : data?.records.length === 1 ? (
         <BoundaryDataProperties
           json={data.records[0].json}
-          columns={columns}
-          columnDefs={dataSource?.columnDefs}
-          columnMetadata={dataSource?.columnMetadata}
+          columns={config.columns}
+          dataSource={dataSource}
           match={data.match}
         />
       ) : data?.records.length ? (
@@ -78,9 +87,8 @@ export function BoundaryDataPanel({
               >
                 <BoundaryDataProperties
                   json={d.json}
-                  columns={columns}
-                  columnDefs={dataSource?.columnDefs}
-                  columnMetadata={dataSource?.columnMetadata}
+                  columns={config.columns}
+                  dataSource={dataSource}
                   match={data.match}
                 />
               </TogglePanel>
@@ -99,37 +107,14 @@ export function BoundaryDataPanel({
 function BoundaryDataProperties({
   json,
   columns,
-  columnDefs,
-  columnMetadata,
+  dataSource,
   match,
 }: {
   json: Record<string, unknown>;
   columns: string[];
-  columnDefs?: ColumnDef[];
-  columnMetadata?: ColumnMetadata[];
+  dataSource: DataSource | null | undefined;
   match: DataRecordMatchType;
 }) {
-  const filteredProperties = useMemo(() => {
-    const filtered: PropertiesListItem[] = [];
-    columns.forEach((columnName) => {
-      if (json[columnName] !== undefined) {
-        const metadata = columnMetadata?.find((c) => c.name === columnName);
-        filtered.push({
-          label: columnName,
-          description: metadata?.description,
-          value: getDisplayValue(
-            json[columnName],
-            {
-              columnType: columnDefs?.find((cd) => cd.name === columnName)
-                ?.type,
-            },
-            metadata?.valueLabels,
-          ),
-        });
-      }
-    });
-    return filtered;
-  }, [columnDefs, columns, json, columnMetadata]);
   return (
     <div className="ml-6">
       {match === DataRecordMatchType.Approximate && (
@@ -137,11 +122,11 @@ function BoundaryDataProperties({
           Approximate boundary match
         </p>
       )}
-      {filteredProperties.length > 0 ? (
-        <PropertiesList properties={filteredProperties} />
-      ) : (
-        <p className="text-sm">No data available</p>
-      )}
+      <DataSourcePropertiesList
+        onlyColumns={columns}
+        dataSource={dataSource}
+        json={json}
+      />
     </div>
   );
 }

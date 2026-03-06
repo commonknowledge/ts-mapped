@@ -22,7 +22,7 @@ import { getChoroplethDataKey } from "./components/Choropleth/utils";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
 import type { CombinedAreaStats } from "./data";
 import type { MapViewConfig } from "@/server/models/MapView";
-import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
+import type { ScaleSequential } from "d3-scale";
 import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
 // Simple RGB interpolation helper (white to target color)
@@ -183,25 +183,12 @@ const getColorScheme = ({
     const distinctValues = Array.from(new Set(values.map(String)))
       .sort()
       .slice(0, 50);
-    const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
-    const colorMap: Record<string, string> = {};
-    distinctValues.forEach((v) => {
-      const categoryColorsKey = getCategoryColorsKey(
-        areaStats.dataSourceId,
-        areaStats.primary?.column,
-        v,
-      );
-      // Use custom color if provided, otherwise use default
-      // Try the color set specifically for this column, if exists
-      // Fallback to the color set for this value
-      // Fallback again to D3 color generation
-      colorMap[v] =
-        viewConfig.categoryColors?.[categoryColorsKey] ??
-        viewConfig.categoryColors?.[v] ??
-        getCategoricalColor(v, colorScale);
-    });
-    colorMap.__default =
-      viewConfig.categoryColors?.__default ?? DEFAULT_FILL_COLOR;
+    const colorMap: Record<string, string> = makeColorMap(
+      distinctValues,
+      viewConfig,
+      areaStats.dataSourceId,
+      areaStats.primary?.column,
+    );
     return {
       colorSchemeType: "categoric",
       colorMap,
@@ -254,11 +241,27 @@ const getColorScheme = ({
   };
 };
 
-const getCategoricalColor = (
-  key: string,
-  colorScale: ScaleOrdinal<string, string, never>,
+export const makeColorMap = (
+  values: string[],
+  viewConfig: MapViewConfig,
+  dataSourceId: string | undefined,
+  column: string | undefined,
 ) => {
-  return PARTY_COLORS[key.toLowerCase()] ?? colorScale(key);
+  const colorMap: Record<string, string> = {};
+  const colorScale = scaleOrdinal(schemeCategory10).domain(values);
+  values.forEach((v) => {
+    const categoryColorsKey = getCategoryColorsKey(dataSourceId, column, v);
+    // Use custom color if provided, otherwise use default
+    // Try the color set specifically for this column, if exists
+    // Fallback to the color set for this value
+    // Fallback again to D3 color generation
+    const defaultColor = PARTY_COLORS[v.toLowerCase()] ?? colorScale(v);
+    colorMap[v] =
+      viewConfig.categoryColors?.[categoryColorsKey] ??
+      viewConfig.categoryColors?.[v] ??
+      defaultColor;
+  });
+  return colorMap;
 };
 
 export const useFillColor = ({
@@ -292,7 +295,7 @@ export const useFillColor = ({
         ordinalColorStops.push(key);
         ordinalColorStops.push(colorScheme.colorMap[key]);
       }
-      ordinalColorStops.push(colorScheme.colorMap.__default);
+      ordinalColorStops.push(DEFAULT_FILL_COLOR);
       return [
         "match",
         ["to-string", ["feature-state", "value"]],

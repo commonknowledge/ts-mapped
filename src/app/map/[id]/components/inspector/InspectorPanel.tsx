@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import * as turf from "@turf/turf";
-import { ArrowLeftIcon, SettingsIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, PlusIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-
 import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
 import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
 import { AreaSetCodeLabels } from "@/labels";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -15,7 +13,6 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { cn } from "@/shadcn/utils";
 import { LayerType } from "@/types";
-import InspectorConfigTab from "./InspectorConfigTab";
 import InspectorDataTab from "./InspectorDataTab";
 import InspectorMarkersTab from "./InspectorMarkersTab";
 import InspectorNotesTab from "./InspectorNotesTab";
@@ -26,25 +23,18 @@ import {
   UnderlineTabsTrigger,
 } from "./UnderlineTabs";
 
-export default function InspectorPanel({
-  boundariesPanelOpen = false,
-}: {
-  boundariesPanelOpen?: boolean;
-} = {}) {
+export default function InspectorPanel() {
   const [activeTab, setActiveTab] = useState("data");
-  const [hoverArea] = useHoverArea();
-  const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
   const {
     inspectorContent,
     resetInspector,
     selectedBoundary,
     selectedTurf,
-    focusedRecord,
     setFocusedRecord,
     selectedRecords,
   } = useInspector();
-  const { dataSource, properties, type } = inspectorContent ?? {};
+  const { type } = inspectorContent ?? {};
 
   const trpc = useTRPC();
   const { insertTurf, loading: savingTurf } = useTurfMutations();
@@ -63,7 +53,6 @@ export default function InspectorPanel({
 
   const hasData = type !== LayerType.Cluster && type !== LayerType.Turf;
   const hasMarkers = type !== LayerType.Marker && type !== LayerType.Member;
-  const hasConfig = type === LayerType.Boundary;
 
   const safeActiveTab = useMemo(() => {
     if (activeTab === "data" && !hasData) {
@@ -72,14 +61,38 @@ export default function InspectorPanel({
     if (activeTab === "markers" && !hasMarkers) {
       return "data";
     }
-    if (activeTab === "config" && !hasConfig) {
-      return hasMarkers ? "markers" : "data";
-    }
     return activeTab;
-  }, [activeTab, hasConfig, hasData, hasMarkers]);
+  }, [activeTab, hasData, hasMarkers]);
 
-  if (!Boolean(inspectorContent)) {
-    return <></>;
+  if (!inspectorContent) {
+    return (
+      <div
+        id="inspector-panel"
+        className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
+        style={{
+          minWidth: "250px",
+          maxWidth: "450px",
+          maxHeight: "calc(100% - 80px)",
+          paddingTop: "20px",
+          paddingBottom: "20px",
+          transition: "padding-top 0.3s",
+        }}
+      >
+        <div
+          className={cn(
+            "relative z-50 w-full flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+            "min-h-0",
+          )}
+        >
+          <div className="p-3">
+            <h1 className="text-sm font-semibold">Inspector</h1>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Select an area or marker on the map to see more details here.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const isDetailsView = Boolean(
@@ -125,10 +138,10 @@ export default function InspectorPanel({
       id="inspector-panel"
       className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
       style={{
-        minWidth: safeActiveTab === "config" ? "400px" : "250px",
+        minWidth: "250px",
         maxWidth: "450px",
         maxHeight: "calc(100% - 80px)",
-        paddingTop: boundaryHoverVisible ? "80px" : "20px",
+        paddingTop: "20px",
         paddingBottom: "20px",
         transition: "padding-top 0.3s",
       }}
@@ -208,22 +221,11 @@ export default function InspectorPanel({
             <UnderlineTabsTrigger value="notes" className="hidden">
               Notes 0
             </UnderlineTabsTrigger>
-            {hasConfig && (
-              <UnderlineTabsTrigger value="config" className="px-2">
-                <SettingsIcon size={16} />
-              </UnderlineTabsTrigger>
-            )}
           </UnderlineTabsList>
 
           {hasData && (
             <UnderlineTabsContent value="data" className="overflow-auto p-3">
-              <InspectorDataTab
-                dataSource={dataSource}
-                properties={properties || []}
-                isDetailsView={isDetailsView}
-                focusedRecord={focusedRecord}
-                type={type}
-              />
+              <InspectorDataTab isDetailsView={isDetailsView} />
             </UnderlineTabsContent>
           )}
 
@@ -236,21 +238,15 @@ export default function InspectorPanel({
           <UnderlineTabsContent value="notes" className="overflow-auto p-3">
             <InspectorNotesTab />
           </UnderlineTabsContent>
-
-          {hasConfig && (
-            <UnderlineTabsContent value="config" className="overflow-auto p-3">
-              <InspectorConfigTab />
-            </UnderlineTabsContent>
-          )}
         </UnderlineTabs>
         {type === LayerType.Boundary && (
           <div className="border-t p-3">
             <Button
-              variant="outline"
               className="w-full"
               onClick={handleAddToMyAreas}
               disabled={savingTurf || !areaData}
             >
+              <PlusIcon />
               Add to areas
             </Button>
           </div>
