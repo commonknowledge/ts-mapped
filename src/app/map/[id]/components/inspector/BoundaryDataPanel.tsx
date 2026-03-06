@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import TogglePanel from "@/app/map/[id]/components/TogglePanel";
-import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -9,41 +8,56 @@ import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
 import DataSourcePropertiesList from "./DataSourcePropertiesList";
+import type { SelectedBoundary } from "../../types/inspector";
 import type { DataSource } from "@/server/models/DataSource";
+import type { InspectorBoundaryConfig } from "@/server/models/MapView";
+import type { Point } from "@/server/models/shared";
 
 export function BoundaryDataPanel({
   config,
-  dataSourceId,
-  areaCode,
-  columns,
+  selectedBoundary,
+  markerPoint,
   defaultExpanded,
 }: {
-  config: { name: string; dataSourceId: string };
-  dataSourceId: string;
-  areaCode: string;
-  columns: string[];
+  config: InspectorBoundaryConfig;
+  selectedBoundary?: SelectedBoundary | null | undefined;
+  markerPoint?: Point | null | undefined;
   defaultExpanded: boolean;
 }) {
   const trpc = useTRPC();
-  const { selectedBoundary } = useInspector();
   const { getDataSourceById } = useDataSources();
-  const dataSource = getDataSourceById(dataSourceId);
+  const dataSource = getDataSourceById(config.dataSourceId);
 
   const dataSourceType = dataSource ? getDataSourceType(dataSource) : null;
 
-  const { data, isLoading } = useQuery(
+  const { data: boundaryData, isLoading: isLoadingBoundary } = useQuery(
     trpc.dataRecord.byAreaCode.queryOptions(
       {
-        dataSourceId,
-        areaCode,
+        dataSourceId: config.dataSourceId,
+        areaCode: selectedBoundary?.code || "",
         areaSetCode:
           (selectedBoundary?.areaSetCode as AreaSetCode) || AreaSetCode.WMC24,
       },
       {
-        enabled: Boolean(selectedBoundary?.areaSetCode && dataSourceId),
+        enabled: Boolean(selectedBoundary),
       },
     ),
   );
+
+  const { data: pointData, isLoading: isLoadingPoint } = useQuery(
+    trpc.dataRecord.byPoint.queryOptions(
+      {
+        dataSourceId: config.dataSourceId,
+        point: markerPoint || { lat: 0, lng: 0 },
+      },
+      {
+        enabled: Boolean(markerPoint),
+      },
+    ),
+  );
+
+  const isLoading = isLoadingBoundary || isLoadingPoint;
+  const data = boundaryData || pointData;
 
   return (
     <TogglePanel
@@ -60,7 +74,7 @@ export function BoundaryDataPanel({
       ) : data?.records.length === 1 ? (
         <BoundaryDataProperties
           json={data.records[0].json}
-          columns={columns}
+          columns={config.columns}
           dataSource={dataSource}
           match={data.match}
         />
@@ -74,7 +88,7 @@ export function BoundaryDataPanel({
               >
                 <BoundaryDataProperties
                   json={d.json}
-                  columns={columns}
+                  columns={config.columns}
                   dataSource={dataSource}
                   match={data.match}
                 />
