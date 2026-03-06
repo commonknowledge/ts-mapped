@@ -35,8 +35,7 @@ export function BoundaryDataPanel({
       {
         dataSourceId: config.dataSourceId,
         areaCode: selectedBoundary?.code || "",
-        areaSetCode:
-          (selectedBoundary?.areaSetCode as AreaSetCode) || AreaSetCode.WMC24,
+        areaSetCode: selectedBoundary?.areaSetCode ?? AreaSetCode.WMC24,
       },
       {
         enabled: Boolean(selectedBoundary),
