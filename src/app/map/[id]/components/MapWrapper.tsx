@@ -118,7 +118,7 @@ export default function MapWrapper({
 
       {!hideDrawControls && (
         <>
-          <InspectorPanel boundariesPanelOpen={boundariesPanelOpen} />
+          <InspectorPanel />
 
           {viewConfig.mapType !== MapType.Hex && (
             <div

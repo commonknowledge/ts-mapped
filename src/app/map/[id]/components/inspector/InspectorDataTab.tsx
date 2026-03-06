@@ -21,7 +21,7 @@ import { useRawAreaStat } from "../../hooks/useRawAreaStats";
 import { useSelectedSecondaryArea } from "../../hooks/useSelectedSecondaryArea";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import DataSourcePropertiesList from "./DataSourcePropertiesList";
-import InspectorConfigTab from "./InspectorConfigTab";
+import InspectorDataConfig from "./InspectorDataConfig";
 import SimplePropertiesList from "./SimplePropertiesList";
 import type { RawAreaStat } from "../../hooks/useRawAreaStats";
 
@@ -167,7 +167,7 @@ export default function InspectorDataTab({
           <DialogHeader>
             <DialogTitle>Data display configuration</DialogTitle>
           </DialogHeader>
-          <InspectorConfigTab />
+          <InspectorDataConfig />
         </DialogContent>
       </Dialog>
 

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import { useHoverArea } from "@/app/map/[id]/hooks/useMapHover";
 import { useTurfMutations } from "@/app/map/[id]/hooks/useTurfMutations";
 import { AreaSetCodeLabels } from "@/labels";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -24,14 +23,8 @@ import {
   UnderlineTabsTrigger,
 } from "./UnderlineTabs";
 
-export default function InspectorPanel({
-  boundariesPanelOpen = false,
-}: {
-  boundariesPanelOpen?: boolean;
-} = {}) {
+export default function InspectorPanel() {
   const [activeTab, setActiveTab] = useState("data");
-  const [hoverArea] = useHoverArea();
-  const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
   const {
     inspectorContent,
@@ -71,8 +64,35 @@ export default function InspectorPanel({
     return activeTab;
   }, [activeTab, hasData, hasMarkers]);
 
-  if (!Boolean(inspectorContent)) {
-    return <></>;
+  if (!inspectorContent) {
+    return (
+      <div
+        id="inspector-panel"
+        className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
+        style={{
+          minWidth: "250px",
+          maxWidth: "450px",
+          maxHeight: "calc(100% - 80px)",
+          paddingTop: "20px",
+          paddingBottom: "20px",
+          transition: "padding-top 0.3s",
+        }}
+      >
+        <div
+          className={cn(
+            "relative z-50 w-full flex flex-col / rounded shadow-lg bg-white / text-sm font-sans",
+            "min-h-0",
+          )}
+        >
+          <div className="p-3">
+            <h1 className="text-sm font-semibold">Inspector</h1>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Select an area or marker on the map to see more details here.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const isDetailsView = Boolean(
@@ -121,7 +141,7 @@ export default function InspectorPanel({
         minWidth: "250px",
         maxWidth: "450px",
         maxHeight: "calc(100% - 80px)",
-        paddingTop: boundaryHoverVisible ? "80px" : "20px",
+        paddingTop: "20px",
         paddingBottom: "20px",
         transition: "padding-top 0.3s",
       }}

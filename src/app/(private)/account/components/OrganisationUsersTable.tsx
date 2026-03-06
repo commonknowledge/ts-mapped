@@ -29,7 +29,7 @@ export default function OrganisationUsersTable() {
   const { data: users, isLoading } = useQuery(
     trpc.organisation.listUsers.queryOptions(
       { organisationId: currentOrganisation?.id ?? "" },
-      { enabled: !!currentOrganisation },
+      { enabled: Boolean(currentOrganisation) },
     ),
   );
 
