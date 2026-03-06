@@ -229,8 +229,6 @@ export function useMapClickEffect({
                 },
               },
             ]);
-            if (markerFeatures[0].layer?.source === "search-pins") {
-            }
           }
 
           map.flyTo({
