@@ -186,7 +186,7 @@ const getColorScheme = ({
     const colorMap: Record<string, string> = makeColorMap(
       distinctValues,
       viewConfig,
-      viewConfig.areaDataSourceId,
+      areaStats.dataSourceId,
       areaStats.primary?.column,
     );
     return {
