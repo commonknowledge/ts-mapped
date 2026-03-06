@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { db, dbRead } from "@/server/services/database";
+import type { Point } from "../models/shared";
 import type { Area } from "@/server/models/Area";
 import type { Database } from "@/server/services/database";
 import type { SelectQueryBuilder } from "kysely";
@@ -80,10 +81,17 @@ export async function findAreasByPoint({
   excludeAreaSetCode,
   includeAreaSetCode,
 }: {
-  point: string;
+  point: Point | null;
   excludeAreaSetCode?: AreaSetCode | null | undefined;
   includeAreaSetCode?: AreaSetCode | null | undefined;
 }): Promise<AreaWithAreaSetCode[]> {
+  if (!point) {
+    return [];
+  }
+  const pointGeoJSON = JSON.stringify({
+    type: "Point",
+    coordinates: [point.lng, point.lat],
+  });
   // Use the read replica for this expensive read query
   let query = dbRead
     .selectFrom("area")
@@ -95,7 +103,7 @@ export async function findAreasByPoint({
     query = query.where("areaSet.code", "=", includeAreaSetCode);
   }
   return query
-    .where(sql<boolean>`ST_Covers(geom, ST_GeomFromGeoJson(${point}))`)
+    .where(sql<boolean>`ST_Covers(geom, ST_GeomFromGeoJson(${pointGeoJSON}))`)
     .select([
       "area.id",
       "area.code",

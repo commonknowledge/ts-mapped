@@ -1,9 +1,6 @@
 import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
-import {
-  type InspectorBoundaryConfig,
-  InspectorBoundaryConfigType,
-} from "@/server/models/MapView";
+import { type InspectorBoundaryConfig } from "@/server/models/MapView";
 import { useDataSources } from "../../hooks/useDataSources";
 import { useMapViews } from "../../hooks/useMapViews";
 import DataSourceSelectButton from "../DataSourceSelectButton";
@@ -27,7 +24,6 @@ export default function InspectorConfigTab() {
         id: uuidv4(),
         dataSourceId,
         name: dataSource?.name || "Boundary Data",
-        type: InspectorBoundaryConfigType.Simple,
         columns: [],
       };
 
