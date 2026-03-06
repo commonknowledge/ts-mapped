@@ -11,10 +11,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import {
-  getCategoryColorsKey,
-  getDefaultCategoricalColor,
-} from "@/app/map/[id]/colors";
+import { getCategoryColorsKey, makeColorMap } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
@@ -40,6 +37,7 @@ import {
 } from "@/shadcn/ui/table";
 import { Textarea } from "@/shadcn/ui/textarea";
 import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
+import { DEFAULT_FILL_COLOR } from "../constants";
 import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
 
 export default function EditColumnMetadataModal() {
@@ -158,17 +156,17 @@ export default function EditColumnMetadataModal() {
     [mergedValues],
   );
 
+  const colorMap = useMemo(
+    () => makeColorMap(sortedValues, viewConfig, dataSource?.id, columnName),
+    [columnName, dataSource, sortedValues, viewConfig],
+  );
+
   // Resolve the display color for a given value
   const getColorForValue = useCallback(
     (value: string) => {
-      const key = getCategoryColorsKey(dataSource?.id, columnName, value);
-      return (
-        viewConfig.categoryColors?.[key] ??
-        viewConfig.categoryColors?.[value] ??
-        getDefaultCategoricalColor(value, sortedValues)
-      );
+      return colorMap[value] ?? DEFAULT_FILL_COLOR;
     },
-    [viewConfig.categoryColors, dataSource?.id, columnName, sortedValues],
+    [colorMap],
   );
 
   const isColorSet = useCallback(
