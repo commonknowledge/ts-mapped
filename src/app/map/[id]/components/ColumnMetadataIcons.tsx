@@ -44,7 +44,7 @@ function ColumnMetadataIcons({
             />
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-64">
-            <p>{description}</p>
+            <p className="whitespace-pre-line">{description}</p>
           </TooltipContent>
         </Tooltip>
       )}

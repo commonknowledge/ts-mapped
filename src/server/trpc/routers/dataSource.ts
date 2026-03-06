@@ -35,7 +35,6 @@ import {
   dataSourceOwnerProcedure,
   dataSourceReadProcedure,
   organisationProcedure,
-  protectedProcedure,
   publicProcedure,
   router,
 } from "../index";
@@ -49,6 +48,15 @@ export const dataSourceRouter = router({
       const organisations = ctx.user
         ? await findOrganisationsByUserId(ctx.user.id)
         : [];
+      if (
+        input?.organisationId &&
+        !organisations.find((o) => o.id === input?.organisationId)
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Invalid organisation ID.",
+        });
+      }
       const dataSources = await db
         .selectFrom("dataSource")
         .leftJoin(
@@ -410,16 +418,6 @@ export const dataSourceRouter = router({
     await deleteDataSource(ctx.dataSource.id);
     return true;
   }),
-
-  getColumnMetadataOverride: protectedProcedure
-    .input(z.object({ organisationId: z.string(), dataSourceId: z.string() }))
-    .query(async ({ input }) => {
-      const overrides = await findColumnMetadataOverridesByOrg(
-        input.organisationId,
-        [input.dataSourceId],
-      );
-      return overrides[0]?.columnMetadata ?? null;
-    }),
 
   updateColumnMetadataOverride: organisationProcedure
     .input(

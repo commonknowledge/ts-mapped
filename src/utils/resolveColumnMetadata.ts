@@ -16,8 +16,6 @@ export function resolveColumnMetadata(
 
   const overrideMap = new Map(overrideMetadata.map((m) => [m.name, m]));
 
-  console.log("resolving", baseMetadata, overrideMetadata);
-
   return baseMetadata.map((base) => {
     const override = overrideMap.get(base.name);
     if (!override) return base;

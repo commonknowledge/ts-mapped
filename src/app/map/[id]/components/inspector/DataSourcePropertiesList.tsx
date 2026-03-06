@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
+import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { getDisplayValue } from "../../utils/stats";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
 import type { ColumnMetadata, ColumnType } from "@/server/models/DataSource";
@@ -22,15 +22,15 @@ export default function DataSourcePropertiesList({
   onlyColumns?: string[] | null | undefined;
 }) {
   const columns = onlyColumns || Object.keys(json);
+  const metadata = resolveColumnMetadata(
+    dataSource?.columnMetadata || [],
+    dataSource?.columnMetadataOverride,
+  );
   const properties = useMemo(() => {
     const filtered: { column: string; value: string }[] = [];
     columns.forEach((columnName) => {
       if (json[columnName] !== undefined) {
-        const metadata = resolveColumnMetadataEntry(
-          dataSource?.columnMetadata ?? [],
-          dataSource?.columnMetadataOverride,
-          columnName,
-        );
+        const columnMetadata = metadata.find((m) => m.name === columnName);
         filtered.push({
           column: columnName,
           value: getDisplayValue(
@@ -40,13 +40,13 @@ export default function DataSourcePropertiesList({
                 (cd) => cd.name === columnName,
               )?.type,
             },
-            metadata?.valueLabels,
+            columnMetadata?.valueLabels,
           ),
         });
       }
     });
     return filtered;
-  }, [columns, dataSource, json]);
+  }, [columns, dataSource?.columnDefs, json, metadata]);
 
   if (!properties.length) {
     return <p className="text-sm">No data available</p>;
