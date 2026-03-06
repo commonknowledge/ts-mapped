@@ -22,7 +22,7 @@ import { getChoroplethDataKey } from "./components/Choropleth/utils";
 import { DEFAULT_FILL_COLOR, PARTY_COLORS } from "./constants";
 import type { CombinedAreaStats } from "./data";
 import type { MapViewConfig } from "@/server/models/MapView";
-import type { ScaleOrdinal, ScaleSequential } from "d3-scale";
+import type { ScaleSequential } from "d3-scale";
 import type { DataDrivenPropertyValueSpecification } from "mapbox-gl";
 
 // Simple RGB interpolation helper (white to target color)
@@ -183,7 +183,6 @@ const getColorScheme = ({
     const distinctValues = Array.from(new Set(values.map(String)))
       .sort()
       .slice(0, 50);
-    const colorScale = scaleOrdinal(schemeCategory10).domain(distinctValues);
     const colorMap: Record<string, string> = {};
     distinctValues.forEach((v) => {
       const categoryColorsKey = getCategoryColorsKey(
@@ -198,10 +197,8 @@ const getColorScheme = ({
       colorMap[v] =
         viewConfig.categoryColors?.[categoryColorsKey] ??
         viewConfig.categoryColors?.[v] ??
-        getCategoricalColor(v, colorScale);
+        getDefaultCategoricalColor(v, distinctValues);
     });
-    colorMap.__default =
-      viewConfig.categoryColors?.__default ?? DEFAULT_FILL_COLOR;
     return {
       colorSchemeType: "categoric",
       colorMap,
@@ -254,11 +251,17 @@ const getColorScheme = ({
   };
 };
 
-const getCategoricalColor = (
-  key: string,
-  colorScale: ScaleOrdinal<string, string, never>,
+/**
+ * Returns the default categorical color for a value, given the full set of
+ * distinct values used to seed the D3 ordinal scale. This is the shared
+ * fallback used when no user-defined categoryColor override exists.
+ */
+export const getDefaultCategoricalColor = (
+  value: string,
+  allValues: string[],
 ) => {
-  return PARTY_COLORS[key.toLowerCase()] ?? colorScale(key);
+  const colorScale = scaleOrdinal(schemeCategory10).domain(allValues);
+  return PARTY_COLORS[value.toLowerCase()] ?? colorScale(value);
 };
 
 export const useFillColor = ({
@@ -292,7 +295,7 @@ export const useFillColor = ({
         ordinalColorStops.push(key);
         ordinalColorStops.push(colorScheme.colorMap[key]);
       }
-      ordinalColorStops.push(colorScheme.colorMap.__default);
+      ordinalColorStops.push(DEFAULT_FILL_COLOR);
       return [
         "match",
         ["to-string", ["feature-state", "value"]],

@@ -43,14 +43,14 @@ import type { DataSource, DataSourceUpdate } from "@/server/models/DataSource";
 
 export const dataSourceRouter = router({
   listReadable: publicProcedure
-    .input(z.object({ organisationId: z.string().optional() }).optional())
+    .input(z.object({ activeOrganisationId: z.string().optional() }).optional())
     .query(async ({ ctx, input }) => {
       const organisations = ctx.user
         ? await findOrganisationsByUserId(ctx.user.id)
         : [];
       if (
-        input?.organisationId &&
-        !organisations.find((o) => o.id === input?.organisationId)
+        input?.activeOrganisationId &&
+        !organisations.find((o) => o.id === input?.activeOrganisationId)
       ) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -75,7 +75,7 @@ export const dataSourceRouter = router({
         .selectAll("dataSource")
         .execute();
 
-      const orgId = input?.organisationId;
+      const orgId = input?.activeOrganisationId;
       const overrides =
         orgId && dataSources.length
           ? await findColumnMetadataOverridesByOrg(

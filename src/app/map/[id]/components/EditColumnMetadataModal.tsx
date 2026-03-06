@@ -1,19 +1,30 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Save } from "lucide-react";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
+import {
+  getCategoryColorsKey,
+  getDefaultCategoricalColor,
+} from "@/app/map/[id]/colors";
+import { useAreaStats } from "@/app/map/[id]/data";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
+import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { type ColumnMetadata, ColumnType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
-import { Button } from "@/shadcn/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
@@ -38,8 +49,31 @@ export default function EditColumnMetadataModal() {
   const trpc = useTRPC();
   const client = useQueryClient();
 
+  const { viewConfig, updateViewConfig } = useMapViews();
+
   const dataSource = getDataSourceById(editColumnMetadata?.dataSourceId);
   const columnName = editColumnMetadata?.column ?? "";
+
+  // Debounce timers for color changes
+  const debounceTimers = useRef<Record<string, NodeJS.Timeout | null>>({});
+  const metadataSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedRef = useRef({
+    description: "",
+    valueLabels: {} as Record<string, string>,
+  });
+
+  // Cleanup debounce timers on unmount
+  useEffect(() => {
+    const timers = debounceTimers.current;
+    return () => {
+      Object.values(timers).forEach((timer) => {
+        if (timer) clearTimeout(timer);
+      });
+      if (metadataSaveTimer.current) {
+        clearTimeout(metadataSaveTimer.current);
+      }
+    };
+  }, []);
 
   // Whether the user's current org owns this data source
   const isOwner = Boolean(
@@ -65,13 +99,14 @@ export default function EditColumnMetadataModal() {
   const [draftValueLabels, setDraftValueLabels] = useState<
     Record<string, string>
   >({});
-  const [saving, setSaving] = useState(false);
-
   // Reset draft state when the dialog opens for a new column
   useEffect(() => {
     if (editColumnMetadata) {
-      setDraftDescription(existingMeta?.description ?? "");
-      setDraftValueLabels(existingMeta?.valueLabels ?? {});
+      const desc = existingMeta?.description ?? "";
+      const labels = existingMeta?.valueLabels ?? {};
+      setDraftDescription(desc);
+      setDraftValueLabels(labels);
+      lastSavedRef.current = { description: desc, valueLabels: labels };
     }
   }, [editColumnMetadata, existingMeta]);
 
@@ -82,15 +117,124 @@ export default function EditColumnMetadataModal() {
     ),
   );
 
+  // If this column is currently being visualised, merge in area stats categories
+  const areaStatsQuery = useAreaStats();
+  const areaStats = areaStatsQuery?.data;
+
+  const isVisualisedColumn =
+    editColumnMetadata?.dataSourceId === viewConfig.areaDataSourceId &&
+    editColumnMetadata?.column === viewConfig.areaDataColumn;
+
+  const areaStatsValues = useMemo(() => {
+    if (!isVisualisedColumn || !areaStats?.stats.length) return [];
+    return Array.from(
+      new Set(
+        areaStats.stats
+          .map((s) => String(s.primary))
+          .filter((v) => v && v !== "null" && v !== "undefined"),
+      ),
+    );
+  }, [isVisualisedColumn, areaStats]);
+
+  // Merge unique column values with area stats categories
+  // null means too many values (>50); undefined means still loading
+  const mergedValues = useMemo((): string[] | null | undefined => {
+    // If the query returned null, there are too many values
+    if (columnValues === null) return null;
+    // If the query is still loading and we have no area stats values, show loading
+    if (columnValues === undefined && areaStatsValues.length === 0)
+      return undefined;
+    const merged = Array.from(
+      new Set([...(columnValues ?? []), ...areaStatsValues]),
+    );
+    // Enforce the 50-value cap
+    if (merged.length > 50) return null;
+    return merged;
+  }, [columnValues, areaStatsValues]);
+
+  // Sorted distinct values for the D3 ordinal scale domain
+  const sortedValues = useMemo(
+    () => [...(mergedValues ?? [])].sort(),
+    [mergedValues],
+  );
+
+  // Resolve the display color for a given value
+  const getColorForValue = useCallback(
+    (value: string) => {
+      const key = getCategoryColorsKey(dataSource?.id, columnName, value);
+      return (
+        viewConfig.categoryColors?.[key] ??
+        viewConfig.categoryColors?.[value] ??
+        getDefaultCategoricalColor(value, sortedValues)
+      );
+    },
+    [viewConfig.categoryColors, dataSource?.id, columnName, sortedValues],
+  );
+
+  const isColorSet = useCallback(
+    (value: string) => {
+      const key = getCategoryColorsKey(dataSource?.id, columnName, value);
+      return Boolean(
+        viewConfig.categoryColors?.[key] ?? viewConfig.categoryColors?.[value],
+      );
+    },
+    [viewConfig.categoryColors, dataSource?.id, columnName],
+  );
+
+  const handleColorChange = useCallback(
+    (value: string, color: string) => {
+      const key = getCategoryColorsKey(dataSource?.id, columnName, value);
+      const currentColors = viewConfig.categoryColors || {};
+      updateViewConfig({
+        categoryColors: {
+          ...currentColors,
+          [value]: color,
+          [key]: color,
+        },
+      });
+    },
+    [dataSource?.id, columnName, updateViewConfig, viewConfig.categoryColors],
+  );
+
+  const handleColorChangeDebounced = useCallback(
+    (value: string, color: string) => {
+      if (debounceTimers.current[value]) {
+        clearTimeout(debounceTimers.current[value]);
+      }
+      debounceTimers.current[value] = setTimeout(() => {
+        handleColorChange(value, color);
+        debounceTimers.current[value] = null;
+      }, 300);
+    },
+    [handleColorChange],
+  );
+
+  const handleResetColor = useCallback(
+    (value: string) => {
+      if (debounceTimers.current[value]) {
+        clearTimeout(debounceTimers.current[value]);
+        debounceTimers.current[value] = null;
+      }
+      const key = getCategoryColorsKey(dataSource?.id, columnName, value);
+      const currentColors = viewConfig.categoryColors || {};
+      const nextColors = Object.fromEntries(
+        Object.entries(currentColors).filter(([k]) => k !== value && k !== key),
+      );
+      updateViewConfig({
+        categoryColors:
+          Object.keys(nextColors).length > 0 ? nextColors : undefined,
+      });
+    },
+    [dataSource?.id, columnName, updateViewConfig, viewConfig.categoryColors],
+  );
+
   // Mutation for owners: update the data source directly
   const { mutate: updateDataSourceConfig } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
       onSuccess: (_data, variables) => {
-        setSaving(false);
-        toast.success("Column metadata saved.");
         client.setQueryData(
           trpc.dataSource.listReadable.queryKey({
-            organisationId: organisationId ?? undefined,
+            activeOrganisationId: organisationId ?? undefined,
           }),
           (old) =>
             old?.map((ds) =>
@@ -103,10 +247,8 @@ export default function EditColumnMetadataModal() {
                 : ds,
             ),
         );
-        setEditColumnMetadata(null);
       },
       onError: (error) => {
-        setSaving(false);
         toast.error(error.message || "Could not save column metadata.");
       },
     }),
@@ -116,11 +258,9 @@ export default function EditColumnMetadataModal() {
   const { mutate: updateOverride } = useMutation(
     trpc.dataSource.updateColumnMetadataOverride.mutationOptions({
       onSuccess: (_data, variables) => {
-        setSaving(false);
-        toast.success("Column metadata saved.");
         client.setQueryData(
           trpc.dataSource.listReadable.queryKey({
-            organisationId: organisationId ?? undefined,
+            activeOrganisationId: organisationId ?? undefined,
           }),
           (old) =>
             old?.map((ds) =>
@@ -129,23 +269,16 @@ export default function EditColumnMetadataModal() {
                 : ds,
             ),
         );
-        setEditColumnMetadata(null);
       },
       onError: (error) => {
-        setSaving(false);
         toast.error(error.message || "Could not save column metadata.");
       },
     }),
   );
 
-  const handleClose = useCallback(() => {
-    setEditColumnMetadata(null);
-  }, [setEditColumnMetadata]);
-
-  const handleSave = useCallback(() => {
+  const saveMetadata = useCallback(() => {
     if (!dataSource) return;
 
-    // Build the full metadata array from the source we're updating
     const sourceMetadata = isOwner
       ? dataSource.columnMetadata
       : (dataSource.columnMetadataOverride ?? []);
@@ -167,7 +300,10 @@ export default function EditColumnMetadataModal() {
         : m,
     );
 
-    setSaving(true);
+    lastSavedRef.current = {
+      description: draftDescription,
+      valueLabels: { ...draftValueLabels },
+    };
 
     if (isOwner) {
       updateDataSourceConfig({
@@ -192,6 +328,54 @@ export default function EditColumnMetadataModal() {
     updateOverride,
   ]);
 
+  // Auto-save description and value labels when they change
+  useEffect(() => {
+    if (!dataSource || !editColumnMetadata) return;
+    const { description: lastDesc, valueLabels: lastLabels } =
+      lastSavedRef.current;
+    if (
+      draftDescription === lastDesc &&
+      JSON.stringify(draftValueLabels) === JSON.stringify(lastLabels)
+    ) {
+      return;
+    }
+    if (metadataSaveTimer.current) {
+      clearTimeout(metadataSaveTimer.current);
+    }
+    metadataSaveTimer.current = setTimeout(() => {
+      saveMetadata();
+      metadataSaveTimer.current = null;
+    }, 500);
+    return () => {
+      if (metadataSaveTimer.current) {
+        clearTimeout(metadataSaveTimer.current);
+      }
+    };
+  }, [
+    draftDescription,
+    draftValueLabels,
+    dataSource,
+    editColumnMetadata,
+    saveMetadata,
+  ]);
+
+  const handleClose = useCallback(() => {
+    // Flush any pending metadata save
+    if (metadataSaveTimer.current) {
+      clearTimeout(metadataSaveTimer.current);
+      metadataSaveTimer.current = null;
+    }
+    const { description: lastDesc, valueLabels: lastLabels } =
+      lastSavedRef.current;
+    if (
+      draftDescription !== lastDesc ||
+      JSON.stringify(draftValueLabels) !== JSON.stringify(lastLabels)
+    ) {
+      saveMetadata();
+    }
+    setEditColumnMetadata(null);
+  }, [setEditColumnMetadata, draftDescription, draftValueLabels, saveMetadata]);
+
   const isOpen = editColumnMetadata !== null;
 
   return (
@@ -203,48 +387,57 @@ export default function EditColumnMetadataModal() {
     >
       {isOpen && (
         <DialogContent>
-          <form
-            className="flex flex-col"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSave();
-            }}
-          >
+          <div className="flex flex-col">
             <DialogHeader>
               <DialogTitle>
-                Metadata for <span className="font-mono">{columnName}</span>
+                {editColumnMetadata?.valueLabelsOnly ? (
+                  <>
+                    Display values for{" "}
+                    <span className="font-mono">{columnName}</span>
+                  </>
+                ) : (
+                  <>
+                    Metadata for <span className="font-mono">{columnName}</span>
+                  </>
+                )}
               </DialogTitle>
               <DialogDescription>
-                Configure a description and value labels for this column.
+                {editColumnMetadata?.valueLabelsOnly
+                  ? "Configure display labels and colors for each value."
+                  : "Configure description and display values for this column."}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-2">
+              {!editColumnMetadata?.valueLabelsOnly && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={draftDescription}
+                    onChange={(e) => setDraftDescription(e.target.value)}
+                    placeholder="Column description"
+                  />
+                </div>
+              )}
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={draftDescription}
-                  onChange={(e) => setDraftDescription(e.target.value)}
-                  placeholder="Column description"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Value labels</label>
+                {!editColumnMetadata?.valueLabelsOnly && (
+                  <label className="text-sm font-medium">Display values</label>
+                )}
                 {(() => {
-                  if (columnValues === undefined) {
+                  if (mergedValues === undefined) {
                     return (
                       <p className="text-sm text-muted-foreground">
                         Loading values…
                       </p>
                     );
                   }
-                  if (columnValues === null) {
+                  if (mergedValues === null) {
                     return (
                       <p className="text-sm text-muted-foreground">
                         Too many unique values to configure labels.
                       </p>
                     );
                   }
-                  if (columnValues.length === 0) {
+                  if (mergedValues.length === 0) {
                     return (
                       <p className="text-sm text-muted-foreground">
                         No values found.
@@ -256,12 +449,13 @@ export default function EditColumnMetadataModal() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="w-1/2">Value</TableHead>
-                            <TableHead className="w-1/2">Label</TableHead>
+                            <TableHead>Value</TableHead>
+                            <TableHead>Label</TableHead>
+                            <TableHead className="w-16">Color</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {columnValues
+                          {mergedValues
                             .toSorted((a, b) => {
                               if (columnType === ColumnType.Number) {
                                 const numA = Number(a);
@@ -296,6 +490,41 @@ export default function EditColumnMetadataModal() {
                                     className="h-8 text-sm"
                                   />
                                 </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-1">
+                                    <label className="relative cursor-pointer">
+                                      <div
+                                        className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0"
+                                        style={{
+                                          backgroundColor:
+                                            getColorForValue(value),
+                                        }}
+                                      />
+                                      <input
+                                        type="color"
+                                        value={getColorForValue(value)}
+                                        onChange={(e) =>
+                                          handleColorChangeDebounced(
+                                            value,
+                                            e.target.value,
+                                          )
+                                        }
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        title={`Change color for ${value || "(blank)"}`}
+                                      />
+                                    </label>
+                                    {isColorSet(value) && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleResetColor(value)}
+                                        className="h-5 w-5 flex items-center justify-center rounded hover:bg-neutral-100"
+                                        title="Reset to default color"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </TableCell>
                               </TableRow>
                             ))}
                         </TableBody>
@@ -305,16 +534,7 @@ export default function EditColumnMetadataModal() {
                 })()}
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" variant="secondary" disabled={saving}>
-                <Save className="h-4 w-4" />
-                {saving ? "Saving..." : "Save"}
-              </Button>
-            </DialogFooter>
-          </form>
+          </div>
         </DialogContent>
       )}
     </Dialog>
