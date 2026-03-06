@@ -161,11 +161,11 @@ export async function getUniqueColumnValues(id: string, column: string) {
     FROM data_record
     WHERE data_source_id = ${id}
     AND json->>${column} IS NOT NULL
-    LIMIT 11
+    LIMIT 51
   `.execute(db);
   const values = result.rows.map((row) => row.value);
   // Don't let users configure value labels when there are too many unique values
-  if (values.length > 10) {
+  if (values.length > 50) {
     return null;
   }
   return values;

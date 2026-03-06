@@ -1,25 +1,40 @@
 import { useMemo } from "react";
+import { resolveColumnMetadata } from "@/utils/resolveColumnMetadata";
 import { getDisplayValue } from "../../utils/stats";
 import ColumnMetadataIcons from "../ColumnMetadataIcons";
-import type { DataSource } from "@/server/models/DataSource";
+import type { ColumnMetadata, ColumnType } from "@/server/models/DataSource";
 
 export default function DataSourcePropertiesList({
   dataSource,
   json,
   onlyColumns,
 }: {
-  dataSource: DataSource | null | undefined;
+  dataSource:
+    | {
+        columnMetadata: ColumnMetadata[];
+        columnMetadataOverride?: ColumnMetadata[] | null;
+        columnDefs?: { name: string; type: ColumnType }[];
+        id: string;
+      }
+    | null
+    | undefined;
   json: Record<string, unknown>;
   onlyColumns?: string[] | null | undefined;
 }) {
   const columns = onlyColumns || Object.keys(json);
+  const metadata = useMemo(
+    () =>
+      resolveColumnMetadata(
+        dataSource?.columnMetadata || [],
+        dataSource?.columnMetadataOverride,
+      ),
+    [dataSource?.columnMetadata, dataSource?.columnMetadataOverride],
+  );
   const properties = useMemo(() => {
     const filtered: { column: string; value: string }[] = [];
     columns.forEach((columnName) => {
       if (json[columnName] !== undefined) {
-        const metadata = dataSource?.columnMetadata?.find(
-          (c) => c.name === columnName,
-        );
+        const columnMetadata = metadata.find((m) => m.name === columnName);
         filtered.push({
           column: columnName,
           value: getDisplayValue(
@@ -29,13 +44,13 @@ export default function DataSourcePropertiesList({
                 (cd) => cd.name === columnName,
               )?.type,
             },
-            metadata?.valueLabels,
+            columnMetadata?.valueLabels,
           ),
         });
       }
     });
     return filtered;
-  }, [columns, dataSource, json]);
+  }, [columns, dataSource?.columnDefs, json, metadata]);
 
   if (!properties.length) {
     return <p className="text-sm">No data available</p>;

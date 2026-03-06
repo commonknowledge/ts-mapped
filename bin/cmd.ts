@@ -20,6 +20,7 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
 import { getPubSub } from "@/server/services/pubsub";
+import { boss } from "@/server/services/queue";
 import { getClient as getRedisClient } from "@/server/services/redis";
 import { stopPublicTunnel } from "@/server/services/urls";
 import { runWorker } from "@/server/services/worker";
@@ -204,6 +205,7 @@ program
 program.hook("postAction", async () => {
   if (!keepAlive) {
     logger.info("Done.");
+    await boss.stop();
     await db.destroy();
     await getPubSub().quit();
     await getRedisClient().quit();

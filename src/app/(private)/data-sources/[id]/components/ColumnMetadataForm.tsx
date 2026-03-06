@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Save } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { type ColumnMetadata, ColumnType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -24,7 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
-import type { ColumnMetadata } from "@/server/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSource = NonNullable<RouterOutputs["dataSource"]["byId"]>;
@@ -226,31 +226,46 @@ export default function ColumnMetadataForm({
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {columnValues.toSorted().map((value) => (
-                            <TableRow key={value}>
-                              <TableCell className="font-mono text-sm text-muted-foreground whitespace-normal">
-                                {value || "(blank)"}
-                              </TableCell>
-                              <TableCell>
-                                <Input
-                                  value={draftValueLabels[value] ?? ""}
-                                  onChange={(e) => {
-                                    const label = e.target.value;
-                                    setDraftValueLabels((prev) => {
-                                      if (label) {
-                                        return { ...prev, [value]: label };
-                                      }
-                                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                                      const { [value]: _removed, ...rest } =
-                                        prev;
-                                      return rest;
-                                    });
-                                  }}
-                                  className="h-8 text-sm"
-                                />
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {columnValues
+                            .toSorted((a, b) => {
+                              const columnType = dataSource.columnDefs.find(
+                                (col) => col.name === editingCol?.name,
+                              )?.type;
+                              if (columnType === ColumnType.Number) {
+                                const numA = Number(a);
+                                const numB = Number(b);
+                                if (isNaN(numA) || isNaN(numB)) {
+                                  return a.localeCompare(b);
+                                }
+                                return numA - numB;
+                              }
+                              return a.localeCompare(b);
+                            })
+                            .map((value) => (
+                              <TableRow key={value}>
+                                <TableCell className="font-mono text-sm text-muted-foreground whitespace-normal">
+                                  {value || "(blank)"}
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={draftValueLabels[value] ?? ""}
+                                    onChange={(e) => {
+                                      const label = e.target.value;
+                                      setDraftValueLabels((prev) => {
+                                        if (label) {
+                                          return { ...prev, [value]: label };
+                                        }
+                                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                        const { [value]: _removed, ...rest } =
+                                          prev;
+                                        return rest;
+                                      });
+                                    }}
+                                    className="h-8 text-sm"
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))}
                         </TableBody>
                       </Table>
                     </ScrollArea>

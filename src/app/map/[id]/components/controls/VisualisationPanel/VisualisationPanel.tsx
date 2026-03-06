@@ -38,12 +38,12 @@ import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
+import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
 import {
   dataRecordsWillAggregate,
   getValidAreaSetGroupCodes,
 } from "../../Choropleth/areas";
 import DataSourceSelectButton from "../../DataSourceSelectButton";
-import CategoryColorEditor from "./CategoryColorEditor";
 import SteppedColorEditor from "./SteppedColorEditor";
 import type { AreaSetGroupCode } from "@/server/models/AreaSet";
 import type { DataSource } from "@/server/models/DataSource";
@@ -129,6 +129,29 @@ function IncludeColumnsModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function SetCategoryColorsButton() {
+  const { viewConfig } = useMapViews();
+  const [, setEditColumnMetadata] = useEditColumnMetadata();
+
+  return (
+    <Button
+      variant="outline"
+      className="w-full justify-start"
+      onClick={() => {
+        if (viewConfig.areaDataSourceId && viewConfig.areaDataColumn) {
+          setEditColumnMetadata({
+            dataSourceId: viewConfig.areaDataSourceId,
+            column: viewConfig.areaDataColumn,
+            valueLabelsOnly: true,
+          });
+        }
+      }}
+    >
+      Set category colors
+    </Button>
   );
 }
 
@@ -719,7 +742,7 @@ export default function VisualisationPanel({
                   Category colors
                 </Label>
                 <div>
-                  <CategoryColorEditor />
+                  <SetCategoryColorsButton />
                 </div>
               </>
             )}

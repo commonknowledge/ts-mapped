@@ -6,6 +6,7 @@ import { MAX_COLUMN_KEY } from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
 import { CalculationType, ColorScaleType } from "@/server/models/MapView";
 import { cn } from "@/shadcn/utils";
+import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { formatNumber } from "@/utils/text";
 import { calculateStepColor, useColorScheme } from "../colors";
 import { useAreaStats } from "../data";
@@ -118,8 +119,10 @@ export default function Legend() {
       );
 
       const valueLabels =
-        dataSource?.columnMetadata.find(
-          (c) => c.name === viewConfig.areaDataColumn,
+        resolveColumnMetadataEntry(
+          dataSource?.columnMetadata ?? [],
+          dataSource?.columnMetadataOverride,
+          viewConfig.areaDataColumn,
         )?.valueLabels || {};
 
       return (
@@ -151,13 +154,6 @@ export default function Legend() {
                 </div>
               );
             })}
-          <div className="flex items-center gap-2 text-xs">
-            <div
-              className="w-3 h-3 flex-shrink-0 border border-neutral-300"
-              style={{ backgroundColor: colorScheme.colorMap.__default }}
-            />
-            <span>Other</span>
-          </div>
         </div>
       );
     }
@@ -273,8 +269,10 @@ export default function Legend() {
     });
 
     const valueLabels =
-      dataSource?.columnMetadata.find(
-        (c) => c.name === viewConfig.areaDataColumn,
+      resolveColumnMetadataEntry(
+        dataSource?.columnMetadata ?? [],
+        dataSource?.columnMetadataOverride,
+        viewConfig.areaDataColumn,
       )?.valueLabels || {};
 
     const hasValueLabels = Object.keys(valueLabels).length > 0;

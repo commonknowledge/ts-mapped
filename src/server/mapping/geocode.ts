@@ -12,6 +12,7 @@ import {
   type GeocodingConfig,
   GeocodingType,
 } from "../models/DataSource";
+import { geojsonPointToPoint } from "../utils/geo";
 import type { GeocodeResult, Point } from "../models/shared";
 import type { Point as GeoJSONPoint } from "geojson";
 
@@ -99,10 +100,7 @@ const geocodeRecordByPostcode = async (
   };
 
   const mappedAreas = await findAreasByPoint({
-    point: JSON.stringify({
-      type: "Point",
-      coordinates: [samplePoint.lng, samplePoint.lat],
-    }),
+    point: samplePoint,
     excludeAreaSetCode: geocodingConfig.areaSetCode,
   });
   for (const area of mappedAreas) {
@@ -149,7 +147,7 @@ const geocodeRecordByArea = async (
   };
 
   const mappedAreas = await findAreasByPoint({
-    point: area.samplePoint,
+    point: geocodeResult.samplePoint,
     excludeAreaSetCode: geocodingConfig.areaSetCode,
   });
   for (const area of mappedAreas) {
@@ -232,10 +230,7 @@ const geocodeRecordByAddress = async (
   };
 
   const mappedAreas = await findAreasByPoint({
-    point: JSON.stringify({
-      type: "Point",
-      coordinates: [point.lng, point.lat],
-    }),
+    point,
     excludeAreaSetCode: AreaSetCode.PC in areas ? AreaSetCode.PC : null,
   });
   for (const area of mappedAreas) {
@@ -276,25 +271,13 @@ const geocodeRecordByCoordinates = async (
   };
 
   const mappedAreas = await findAreasByPoint({
-    point: JSON.stringify({
-      type: "Point",
-      coordinates: [lng, lat],
-    }),
+    point,
   });
   for (const area of mappedAreas) {
     geocodeResult.areas[area.areaSetCode] = area.code;
   }
 
   return geocodeResult;
-};
-
-const geojsonPointToPoint = (geojson: string | undefined): Point | null => {
-  if (!geojson) {
-    return null;
-  }
-  const [lng, lat] = (JSON.parse(geojson) as { coordinates: [number, number] })
-    .coordinates;
-  return { lng, lat };
 };
 
 interface PostcodesIOResult {

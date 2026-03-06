@@ -2,22 +2,11 @@ import { Database, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { getDataSourceType } from "@/components/DataSourceItem";
-import {
-  type InspectorBoundaryConfig,
-  InspectorBoundaryConfigType,
-  inspectorBoundaryTypes,
-} from "@/server/models/MapView";
+import { type InspectorBoundaryConfig } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { MultiSelect } from "@/shadcn/ui/multi-select";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shadcn/ui/select";
 import { useDataSources } from "../../hooks/useDataSources";
 import DataSourceSelectButton from "../DataSourceSelectButton";
 import TogglePanel from "../TogglePanel";
@@ -70,13 +59,6 @@ export function BoundaryConfigItem({
     onUpdate({
       ...boundaryConfig,
       name: newName,
-    });
-  };
-
-  const handleTypeChange = (newType: InspectorBoundaryConfigType) => {
-    onUpdate({
-      ...boundaryConfig,
-      type: newType,
     });
   };
 
@@ -139,35 +121,6 @@ export function BoundaryConfigItem({
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. Main Data"
             />
-          </div>
-
-          {/* Type field */}
-          <div className="space-y-2">
-            <Label
-              htmlFor={`config-type-${index}`}
-              className="text-muted-foreground"
-            >
-              Type
-            </Label>
-            <Select
-              defaultValue={
-                boundaryConfig.type || InspectorBoundaryConfigType.Simple
-              }
-              onValueChange={(value) =>
-                handleTypeChange(value as InspectorBoundaryConfigType)
-              }
-            >
-              <SelectTrigger id={`config-type-${index}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {inspectorBoundaryTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Columns field */}
