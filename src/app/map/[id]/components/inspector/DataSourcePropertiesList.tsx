@@ -22,9 +22,13 @@ export default function DataSourcePropertiesList({
   onlyColumns?: string[] | null | undefined;
 }) {
   const columns = onlyColumns || Object.keys(json);
-  const metadata = resolveColumnMetadata(
-    dataSource?.columnMetadata || [],
-    dataSource?.columnMetadataOverride,
+  const metadata = useMemo(
+    () =>
+      resolveColumnMetadata(
+        dataSource?.columnMetadata || [],
+        dataSource?.columnMetadataOverride,
+      ),
+    [dataSource?.columnMetadata, dataSource?.columnMetadataOverride],
   );
   const properties = useMemo(() => {
     const filtered: { column: string; value: string }[] = [];
