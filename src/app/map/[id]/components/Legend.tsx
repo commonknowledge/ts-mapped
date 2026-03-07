@@ -285,6 +285,7 @@ export default function Legend() {
 
     if (hasValueLabels) {
       const numericKeys = Object.keys(valueLabels)
+        .filter((key) => key !== "")
         .map((key) => Number(key))
         .filter(
           (v) =>
