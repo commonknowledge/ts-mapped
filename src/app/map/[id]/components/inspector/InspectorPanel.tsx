@@ -87,7 +87,7 @@ export default function InspectorPanel() {
           <div className="p-3">
             <h1 className="text-sm font-semibold">Inspector</h1>
             <p className="mt-2 text-xs text-muted-foreground">
-              Select an area or marker on the map to see more details here.
+              Click an area or marker on the map to see more details.
             </p>
           </div>
         </div>
