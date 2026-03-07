@@ -98,8 +98,6 @@ export function useMapHoverEffect({
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === "c" || e.key === "C") {
-        // Skip if modifier keys are held (e.g. Cmd+C / Ctrl+C for copy)
-        if (e.metaKey || e.ctrlKey || e.altKey) return;
         const tag = (e.target as HTMLElement)?.tagName;
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
         setCompareGeographiesMode(false);
