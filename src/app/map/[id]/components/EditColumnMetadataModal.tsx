@@ -556,7 +556,7 @@ const fieldsToDescription = (fields: EditColumnMetadataFields): string => {
   const labels: Record<keyof EditColumnMetadataFields, string> = {
     description: "description",
     valueLabels: "display values",
-    categoryColors: "colours",
+    categoryColors: "colors",
   };
   const parts = Object.keys(fields).map(
     (f) => labels[f as keyof EditColumnMetadataFields],
