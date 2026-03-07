@@ -419,131 +419,137 @@ export default function EditColumnMetadataModal() {
                   />
                 </div>
               )}
-              <div className="flex flex-col gap-1.5">
-                {showTable && (
+              {showTable && (
+                <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-medium">Display values</label>
-                )}
-                {(() => {
-                  if (mergedValues === undefined) {
+                  {(() => {
+                    if (mergedValues === undefined) {
+                      return (
+                        <p className="text-sm text-muted-foreground">
+                          Loading values…
+                        </p>
+                      );
+                    }
+                    if (mergedValues === null) {
+                      return (
+                        <p className="text-sm text-muted-foreground">
+                          Too many unique values to configure labels.
+                        </p>
+                      );
+                    }
+                    if (mergedValues.length === 0) {
+                      return (
+                        <p className="text-sm text-muted-foreground">
+                          No values found.
+                        </p>
+                      );
+                    }
                     return (
-                      <p className="text-sm text-muted-foreground">
-                        Loading values…
-                      </p>
-                    );
-                  }
-                  if (mergedValues === null) {
-                    return (
-                      <p className="text-sm text-muted-foreground">
-                        Too many unique values to configure labels.
-                      </p>
-                    );
-                  }
-                  if (mergedValues.length === 0) {
-                    return (
-                      <p className="text-sm text-muted-foreground">
-                        No values found.
-                      </p>
-                    );
-                  }
-                  return (
-                    <ScrollArea className="max-h-64 rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Value</TableHead>
-                            {editColumnMetadata.fields.valueLabels && (
-                              <TableHead>Label</TableHead>
-                            )}
-                            {editColumnMetadata.fields.categoryColors && (
-                              <TableHead className="w-16">Color</TableHead>
-                            )}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {mergedValues
-                            .toSorted((a, b) => {
-                              if (columnType === ColumnType.Number) {
-                                const numA = Number(a);
-                                const numB = Number(b);
-                                if (isNaN(numA) || isNaN(numB)) {
-                                  return a.localeCompare(b);
+                      <ScrollArea className="max-h-64 rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Value</TableHead>
+                              {editColumnMetadata.fields.valueLabels && (
+                                <TableHead>Label</TableHead>
+                              )}
+                              {editColumnMetadata.fields.categoryColors && (
+                                <TableHead className="w-16">Color</TableHead>
+                              )}
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {mergedValues
+                              .toSorted((a, b) => {
+                                if (columnType === ColumnType.Number) {
+                                  const numA = Number(a);
+                                  const numB = Number(b);
+                                  if (isNaN(numA) || isNaN(numB)) {
+                                    return a.localeCompare(b);
+                                  }
+                                  return numA - numB;
                                 }
-                                return numA - numB;
-                              }
-                              return a.localeCompare(b);
-                            })
-                            .map((value) => (
-                              <TableRow key={value}>
-                                <TableCell className="font-mono text-sm text-muted-foreground whitespace-normal">
-                                  {value || "(blank)"}
-                                </TableCell>
-                                {editColumnMetadata.fields.valueLabels && (
-                                  <TableCell>
-                                    <Input
-                                      value={draftValueLabels[value] ?? ""}
-                                      onChange={(e) => {
-                                        const label = e.target.value;
-                                        setDraftValueLabels((prev) => {
-                                          if (label) {
-                                            return { ...prev, [value]: label };
-                                          }
-                                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                                          const { [value]: _removed, ...rest } =
-                                            prev;
-                                          return rest;
-                                        });
-                                      }}
-                                      className="h-8 text-sm"
-                                    />
+                                return a.localeCompare(b);
+                              })
+                              .map((value) => (
+                                <TableRow key={value}>
+                                  <TableCell className="font-mono text-sm text-muted-foreground whitespace-normal">
+                                    {value || "(blank)"}
                                   </TableCell>
-                                )}
-                                {editColumnMetadata.fields.categoryColors && (
-                                  <TableCell>
-                                    <div className="flex items-center gap-1">
-                                      <label className="relative cursor-pointer">
-                                        <div
-                                          className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0"
-                                          style={{
-                                            backgroundColor:
-                                              getColorForValue(value),
-                                          }}
-                                        />
-                                        <input
-                                          type="color"
-                                          value={getColorForValue(value)}
-                                          onChange={(e) =>
-                                            handleColorChangeDebounced(
-                                              value,
-                                              e.target.value,
-                                            )
-                                          }
-                                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                          title={`Change color for ${value || "(blank)"}`}
-                                        />
-                                      </label>
-                                      {isColorSet(value) && (
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            handleResetColor(value)
-                                          }
-                                          className="h-5 w-5 flex items-center justify-center rounded hover:bg-neutral-100"
-                                          title="Reset to default color"
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                )}
-                              </TableRow>
-                            ))}
-                        </TableBody>
-                      </Table>
-                    </ScrollArea>
-                  );
-                })()}
-              </div>
+                                  {editColumnMetadata.fields.valueLabels && (
+                                    <TableCell>
+                                      <Input
+                                        value={draftValueLabels[value] ?? ""}
+                                        onChange={(e) => {
+                                          const label = e.target.value;
+                                          setDraftValueLabels((prev) => {
+                                            if (label) {
+                                              return {
+                                                ...prev,
+                                                [value]: label,
+                                              };
+                                            }
+
+                                            const {
+                                              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                              [value]: _removed,
+                                              ...rest
+                                            } = prev;
+                                            return rest;
+                                          });
+                                        }}
+                                        className="h-8 text-sm"
+                                      />
+                                    </TableCell>
+                                  )}
+                                  {editColumnMetadata.fields.categoryColors && (
+                                    <TableCell>
+                                      <div className="flex items-center gap-1">
+                                        <label className="relative cursor-pointer">
+                                          <div
+                                            className="w-6 h-6 rounded border border-neutral-300 flex-shrink-0"
+                                            style={{
+                                              backgroundColor:
+                                                getColorForValue(value),
+                                            }}
+                                          />
+                                          <input
+                                            type="color"
+                                            value={getColorForValue(value)}
+                                            onChange={(e) =>
+                                              handleColorChangeDebounced(
+                                                value,
+                                                e.target.value,
+                                              )
+                                            }
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            title={`Change color for ${value || "(blank)"}`}
+                                          />
+                                        </label>
+                                        {isColorSet(value) && (
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              handleResetColor(value)
+                                            }
+                                            className="h-5 w-5 flex items-center justify-center rounded hover:bg-neutral-100"
+                                            title="Reset to default color"
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  )}
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
@@ -556,11 +562,10 @@ const fieldsToDescription = (fields: EditColumnMetadataFields): string => {
   const labels: Record<keyof EditColumnMetadataFields, string> = {
     description: "description",
     valueLabels: "display values",
-    categoryColors: "colours",
+    categoryColors: "colors",
   };
-  const parts = Object.keys(fields).map(
-    (f) => labels[f as keyof EditColumnMetadataFields],
-  );
+  const keys = Object.keys(fields) as (keyof EditColumnMetadataFields)[];
+  const parts = keys.filter((f) => fields[f]).map((f) => labels[f]);
   if (!parts.length) {
     return "Configure this column.";
   }
