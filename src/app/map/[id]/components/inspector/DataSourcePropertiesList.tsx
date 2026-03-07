@@ -67,6 +67,7 @@ export default function DataSourcePropertiesList({
                 column={column}
                 dataSource={dataSource}
                 iconColorClass="text-muted-foreground"
+                fields={{ description: true, valueLabels: true }}
               />
             </dt>
             <dd className="font-medium">{String(value)}</dd>

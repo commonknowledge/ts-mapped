@@ -83,6 +83,8 @@ export function useMapHoverEffect({
 
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "c" || e.key === "C") && !e.repeat) {
+        // Skip if modifier keys are held (e.g. Cmd+C / Ctrl+C for copy)
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
         // Skip if the user is typing in an input, select, or textarea
         const tag = (e.target as HTMLElement)?.tagName;
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
