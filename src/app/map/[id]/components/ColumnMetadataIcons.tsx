@@ -2,11 +2,13 @@ import { InfoIcon, Settings2Icon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { useEditColumnMetadata } from "../hooks/useEditColumnMetadata";
+import type { EditColumnMetadataFields } from "../atoms/editColumnMetadataAtom";
 import type { ColumnMetadata } from "@/server/models/DataSource";
 
 function ColumnMetadataIcons({
   dataSource,
   column,
+  fields,
   iconColorClass = "text-black",
 }: {
   dataSource?:
@@ -17,6 +19,7 @@ function ColumnMetadataIcons({
       }
     | null
     | undefined;
+  fields: EditColumnMetadataFields;
   column: string;
   iconColorClass?: string;
 }) {
@@ -56,6 +59,7 @@ function ColumnMetadataIcons({
           setEditColumnMetadata({
             dataSourceId: dataSource.id,
             column,
+            fields,
           });
         }}
         aria-label="Edit column"

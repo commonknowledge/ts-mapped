@@ -145,7 +145,10 @@ function SetCategoryColorsButton() {
           setEditColumnMetadata({
             dataSourceId: viewConfig.areaDataSourceId,
             column: viewConfig.areaDataColumn,
-            valueLabelsOnly: true,
+            fields: {
+              valueLabels: true,
+              categoryColors: true,
+            },
           });
         }
       }}

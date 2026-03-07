@@ -66,6 +66,11 @@ export default function Legend() {
         <ColumnMetadataIcons
           dataSource={dataSource}
           column={viewConfig.areaDataColumn}
+          fields={{
+            description: true,
+            valueLabels: true,
+            categoryColors: colorScheme?.colorSchemeType === "categoric",
+          }}
         />
       </div>
     );
@@ -80,6 +85,7 @@ export default function Legend() {
         <ColumnMetadataIcons
           dataSource={dataSource}
           column={viewConfig.areaDataSecondaryColumn}
+          fields={{ description: true, valueLabels: true }}
         />
       </div>
     );

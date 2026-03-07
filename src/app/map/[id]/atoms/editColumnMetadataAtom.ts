@@ -1,7 +1,13 @@
 import { atom } from "jotai";
 
+export interface EditColumnMetadataFields {
+  description?: boolean;
+  valueLabels?: boolean;
+  categoryColors?: boolean;
+}
+
 export const editColumnMetadataAtom = atom<{
   dataSourceId: string;
   column: string;
-  valueLabelsOnly?: boolean;
+  fields: EditColumnMetadataFields;
 } | null>(null);
