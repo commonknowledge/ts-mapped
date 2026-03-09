@@ -1,12 +1,24 @@
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import CustomSelect from "@/components/forms/CustomSelect";
-import { AreaSetCodeLabels, GeocodingTypeLabels } from "@/labels";
+import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
+import {
+  AreaSetCodeLabels,
+  AreaSetCodeYears,
+  GeocodingTypeLabels,
+} from "@/labels";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import {
   AreaGeocodingType,
   type GeocodingConfig,
   GeocodingType,
 } from "@/server/models/DataSource";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shadcn/ui/select";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 /**
@@ -86,6 +98,7 @@ export function GeocodingConfigFields({
       .filter((type) => type !== AreaSetCode.PC)
       .map((type) => ({
         label: AreaSetCodeLabels[type],
+        years: AreaSetCodeYears[type],
         value: type,
       })) || [];
 
@@ -171,15 +184,37 @@ export function GeocodingConfigFields({
             options={locationColumnOptions}
             onValueChange={(column) => onChange({ column })}
           />
-          <CustomSelect
-            id="config-area-type"
-            label="Area type"
-            value={areaSetCode}
-            options={areaTypeOptions}
-            onValueChange={(areaSetCode) =>
-              onChange({ areaSetCode } as { areaSetCode: AreaSetCode })
-            }
-          />
+          <FormFieldWrapper id="config-area-type" label="Boundary type">
+            <Select
+              value={areaSetCode}
+              onValueChange={(areaSetCode) =>
+                onChange({ areaSetCode } as { areaSetCode: AreaSetCode })
+              }
+            >
+              <SelectTrigger className="w-full" id="config-area-type">
+                <SelectValue placeholder="Select a boundary type">
+                  {areaSetCode
+                    ? AreaSetCodeLabels[areaSetCode]
+                    : "Select a boundary type"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="w-full">
+                {areaTypeOptions.map(({ label, years, value }) => (
+                  <SelectItem key={value} value={value}>
+                    <div className="flex flex-col">
+                      <span className="">{label}</span>
+                      <span
+                        className="text-sm text-muted-foreground"
+                        dangerouslySetInnerHTML={{
+                          __html: years,
+                        }}
+                      />
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormFieldWrapper>
         </>
       )}
     </>

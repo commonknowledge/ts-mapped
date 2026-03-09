@@ -18,21 +18,40 @@ import type z from "zod";
 
 export const AreaSetCodeLabels: Record<AreaSetCode, string> = {
   PC: "UK Postcode",
-  WMC24: "Westminster Constituency (2024)",
-  LAD25: "Local Authority District (2025)",
-  W25: "Ward (2025)",
-  LSOA21: "Lower Super Output Area (2021)",
-  MSOA21: "Middle Super Output Area (2021)",
-  OA21: "Census Output Area (2021)",
-  CTYUA24: "County (2024)",
-  CAUTH25: "Combined Authority (2025)",
-  UKR18: "UK Region (2018)",
-  UKC24: "UK Country (2024)",
-  SPC22: "Scottish Parliament Constituency (2022)",
-  SENC22: "Senedd Constituency (2022)",
-  SOA22: "Scottish Output Area (2022)",
-  SDZ22: "Scottish Data Zone (2022)",
-  SIZ22: "Scottish Intermediate Zone (2022)",
+  WMC24: "Westminster Constituency",
+  LAD25: "Local Authority District",
+  W25: "Ward",
+  LSOA21: "Lower Super Output Area",
+  MSOA21: "Middle Super Output Area",
+  OA21: "Census Output Area",
+  CTYUA24: "County",
+  CAUTH25: "Combined Authority",
+  UKR18: "UK Region",
+  UKC24: "UK Country",
+  SPC22: "Scottish Parliament Constituency",
+  SENC22: "Senedd Constituency",
+  SOA22: "Scottish Output Area",
+  SDZ22: "Scottish Data Zone",
+  SIZ22: "Scottish Intermediate Zone",
+};
+
+export const AreaSetCodeYears: Record<AreaSetCode, string> = {
+  PC: "",
+  WMC24: "2024 &mdash; present",
+  LAD25: "2025 &mdash; present",
+  W25: "2025 &mdash; present",
+  LSOA21: "2021 &mdash; present",
+  MSOA21: "2021 &mdash; present",
+  OA21: "2021 &mdash; present",
+  CTYUA24: "2024 &mdash; present",
+  CAUTH25: "2025 &mdash; present",
+  UKR18: "2018 &mdash; present",
+  UKC24: "2024 &mdash; present",
+  SPC22: "2022 &mdash; present",
+  SENC22: "2022 &mdash; present",
+  SOA22: "2022 &mdash; present",
+  SDZ22: "2022 &mdash; present",
+  SIZ22: "2022 &mdash; present",
 };
 
 export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
@@ -48,6 +67,21 @@ export const AreaSetGroupCodeLabels: Record<AreaSetGroupCode, string> = {
   SPC22: "Scottish Parliament Constituency",
   SENC22: "Senedd Constituency",
   SOA22: "Scottish Inter. Zone ➔ Data Zone ➔ Output Area",
+};
+
+export const AreaSetGroupCodeYears: Record<AreaSetGroupCode, string> = {
+  WMC24: "2024 &mdash; present",
+  LAD25: "2025 &mdash; present",
+  W25: "2025 &mdash; present",
+  LSOA21: "2021 &mdash; present",
+  MSOA21: "2021 &mdash; present",
+  CTYUA24: "2024 &mdash; present",
+  CAUTH25: "2025 &mdash; present",
+  UKR18: "2018 &mdash; present",
+  UKC24: "2024 &mdash; present",
+  SPC22: "2022 &mdash; present",
+  SENC22: "2022 &mdash; present",
+  SOA22: "2022 &mdash; present",
 };
 
 export const FilterTypeLabels: Record<

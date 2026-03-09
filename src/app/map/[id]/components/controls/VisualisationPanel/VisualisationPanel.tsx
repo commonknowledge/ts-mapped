@@ -7,7 +7,7 @@ import {
 } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { DEFAULT_CUSTOM_COLOR, MAX_COLUMN_KEY, NULL_UUID } from "@/constants";
-import { AreaSetGroupCodeLabels } from "@/labels";
+import { AreaSetGroupCodeLabels, AreaSetGroupCodeYears } from "@/labels";
 import { ColumnType } from "@/server/models/DataSource";
 import {
   CalculationType,
@@ -288,14 +288,29 @@ export default function VisualisationPanel({
               className={cn("w-full min-w-0", SELECT_TO_BUTTON_CLASSES)}
               id="choropleth-boundary-select"
             >
-              <SelectValue placeholder="Choose boundaries..." />
+              <SelectValue placeholder="Choose boundaries...">
+                {viewConfig.areaSetGroupCode
+                  ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
+                  : "No locality"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={NULL_UUID}>No locality</SelectItem>
               {getValidAreaSetGroupCodes(dataSource?.geocodingConfig).map(
                 (code) => (
                   <SelectItem key={code} value={code}>
-                    {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                    <div className="flex flex-col">
+                      <span className="">
+                        {AreaSetGroupCodeLabels[code as AreaSetGroupCode]}
+                      </span>
+                      <span
+                        className="text-sm text-muted-foreground"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            AreaSetGroupCodeYears[code as AreaSetGroupCode],
+                        }}
+                      />
+                    </div>
                   </SelectItem>
                 ),
               )}

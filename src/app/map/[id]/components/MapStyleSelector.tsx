@@ -6,7 +6,12 @@ import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { NULL_UUID } from "@/constants";
-import { AreaSetCodeLabels, AreaSetGroupCodeLabels } from "@/labels";
+import {
+  AreaSetCodeLabels,
+  AreaSetCodeYears,
+  AreaSetGroupCodeLabels,
+  AreaSetGroupCodeYears,
+} from "@/labels";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import { type MapStyleName, MapType, mapTypes } from "@/server/models/MapView";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
@@ -34,6 +39,17 @@ export default memo(function MapStyleSelector() {
     dataSource?.geocodingConfig,
   );
   const { setBoundariesPanelOpen } = useChoropleth();
+  const sortedAreaSetGroupCodes = Object.values(AreaSetGroupCode).toSorted(
+    (a, b) => {
+      if (validAreaSetGroups.includes(a) && !validAreaSetGroups.includes(b)) {
+        return -1;
+      }
+      if (!validAreaSetGroups.includes(a) && validAreaSetGroups.includes(b)) {
+        return 1;
+      }
+      return 0;
+    },
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -190,14 +206,35 @@ export default memo(function MapStyleSelector() {
                     }}
                   >
                     <SelectTrigger className="w-full min-w-0">
-                      <SelectValue placeholder="Choose boundaries..." />
+                      <SelectValue placeholder="Choose boundaries...">
+                        {viewConfig.areaSetGroupCode
+                          ? AreaSetGroupCodeLabels[viewConfig.areaSetGroupCode]
+                          : "No locality"}
+                      </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-128">
                       <SelectItem value={NULL_UUID}>No locality</SelectItem>
-                      {Object.values(AreaSetGroupCode).map((code) =>
+                      {sortedAreaSetGroupCodes.map((code) =>
                         validAreaSetGroups.includes(code) ? (
                           <SelectItem key={code} value={code}>
-                            {AreaSetGroupCodeLabels[code]}
+                            <div className="flex flex-col">
+                              <span className="">
+                                {
+                                  AreaSetGroupCodeLabels[
+                                    code as AreaSetGroupCode
+                                  ]
+                                }
+                              </span>
+                              <span
+                                className="text-sm text-muted-foreground"
+                                dangerouslySetInnerHTML={{
+                                  __html:
+                                    AreaSetGroupCodeYears[
+                                      code as AreaSetGroupCode
+                                    ],
+                                }}
+                              />
+                            </div>
                           </SelectItem>
                         ) : (
                           <Tooltip key={code}>
@@ -206,7 +243,24 @@ export default memo(function MapStyleSelector() {
                                 className="text-muted-foreground hover:text-muted-foreground focus:text-muted-foreground"
                                 value={code}
                               >
-                                {AreaSetGroupCodeLabels[code]}
+                                <div className="flex flex-col">
+                                  <span className="">
+                                    {
+                                      AreaSetGroupCodeLabels[
+                                        code as AreaSetGroupCode
+                                      ]
+                                    }
+                                  </span>
+                                  <span
+                                    className="text-sm text-muted-foreground"
+                                    dangerouslySetInnerHTML={{
+                                      __html:
+                                        AreaSetGroupCodeYears[
+                                          code as AreaSetGroupCode
+                                        ],
+                                    }}
+                                  />
+                                </div>
                               </SelectItem>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -232,15 +286,27 @@ export default memo(function MapStyleSelector() {
                     }}
                   >
                     <SelectTrigger className="w-full min-w-0">
-                      <SelectValue placeholder="Choose secondary boundaries..." />
+                      <SelectValue placeholder="Choose secondary boundaries...">
+                        {viewConfig.secondaryAreaSetCode
+                          ? AreaSetCodeLabels[viewConfig.secondaryAreaSetCode]
+                          : "No secondary boundaries"}
+                      </SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-128">
                       <SelectItem value={NULL_UUID}>
                         No secondary boundaries
                       </SelectItem>
                       {CHOROPLETH_AREA_SET_CODES.map((code) => (
                         <SelectItem key={code} value={code}>
-                          {AreaSetCodeLabels[code]}
+                          <div className="flex flex-col">
+                            <span className="">{AreaSetCodeLabels[code]}</span>
+                            <span
+                              className="text-sm text-muted-foreground"
+                              dangerouslySetInnerHTML={{
+                                __html: AreaSetCodeYears[code],
+                              }}
+                            />
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
