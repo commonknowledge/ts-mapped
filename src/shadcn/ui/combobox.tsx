@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, InfoIcon } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/shadcn/ui/button";
@@ -14,10 +14,12 @@ import {
 } from "@/shadcn/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shadcn/ui/popover";
 import { cn } from "@/shadcn/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 export interface ComboboxOption {
   value: string;
   label: string;
+  hint?: string;
 }
 
 interface ComboboxProps {
@@ -110,7 +112,27 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                               : "opacity-0",
                           )}
                         />
-                        {option.label}
+                        {option.hint ? (
+                          <>
+                            {option.label}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <InfoIcon
+                                  className={`h-3.5 w-3.5 cursor-help text-muted-foreground inline-block`}
+                                  aria-label="Column description"
+                                  tabIndex={0}
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-64">
+                                <p className="whitespace-pre-line">
+                                  {option.hint}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </>
+                        ) : (
+                          option.label
+                        )}
                       </CommandItem>
                     ))
                   : null}

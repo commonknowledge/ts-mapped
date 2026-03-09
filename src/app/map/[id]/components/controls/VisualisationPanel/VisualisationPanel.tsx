@@ -37,6 +37,7 @@ import {
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
 import { cn } from "@/shadcn/utils";
+import { resolveColumnMetadataEntry } from "@/utils/resolveColumnMetadata";
 import { CHOROPLETH_COLOR_SCHEMES } from "../../../colors";
 import { useEditColumnMetadata } from "../../../hooks/useEditColumnMetadata";
 import {
@@ -374,6 +375,11 @@ export default function VisualisationPanel({
                     ?.columnDefs.map((col) => ({
                       value: col.name,
                       label: `${col.name} (${col.type})`,
+                      hint: resolveColumnMetadataEntry(
+                        dataSource?.columnMetadata || [],
+                        dataSource?.columnMetadataOverride,
+                        col.name,
+                      )?.description,
                     })) || []),
                 ]}
                 value={viewConfig.areaDataColumn || NULL_UUID}
@@ -410,6 +416,11 @@ export default function VisualisationPanel({
                       .map((col) => ({
                         value: col.name,
                         label: `${col.name} (${col.type})`,
+                        hint: resolveColumnMetadataEntry(
+                          dataSource?.columnMetadata || [],
+                          dataSource?.columnMetadataOverride,
+                          col.name,
+                        )?.description,
                       })) || []),
                   ]}
                   value={viewConfig.areaDataSecondaryColumn || NULL_UUID}
