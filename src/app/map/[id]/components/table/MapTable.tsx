@@ -22,6 +22,7 @@ import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import SyncToCrmModal from "./SyncToCrmModal";
 import type { DataSourceView } from "@/server/models/MapView";
+import { Tag } from "lucide-react";
 
 interface DataRecord {
   id: string;
@@ -265,7 +266,8 @@ export default function MapTable() {
       variant="outline"
       onClick={() => setSyncModalOpen(true)}
     >
-      Tag records in {DataSourceTypeLabels[dataSource.config.type]}
+      <Tag className="w-4 h-4" />
+      Tag visible records in {DataSourceTypeLabels[dataSource.config.type]}
     </Button>
   ) : null;
 

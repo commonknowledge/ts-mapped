@@ -20,9 +20,11 @@ import {
 import { buildTagName } from "@/utils/tagName";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSourceType } from "@/server/models/DataSource";
+import { Tag } from "lucide-react";
 
-const PREVIEW_ROW_COUNT = 5;
-const PREVIEW_COLUMN_COUNT = 3;
+const PREVIEW_ROW_COUNT = 10;
+const PREVIEW_COLUMN_COUNT = 10;
+
 
 interface SyncToCrmModalProps {
   open: boolean;
@@ -50,7 +52,11 @@ export default function SyncToCrmModal({
     [mapName, viewName],
   );
 
-  const previewColumns = columns.slice(0, PREVIEW_COLUMN_COUNT);
+  const previewColumns = [
+    columns[0],
+    { name: tagColumnName, isTagColumn: true as const },
+    ...columns.slice(1, PREVIEW_COLUMN_COUNT),
+  ];
   const previewRecords = records.slice(0, PREVIEW_ROW_COUNT);
 
   const handleConfirm = () => {
@@ -61,8 +67,9 @@ export default function SyncToCrmModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>
-            Tag records in {DataSourceTypeLabels[dataSourceType]}
+          <DialogTitle className="flex items-center gap-2">
+            <Tag className="w-4 h-4" />
+            Tag visible records in {DataSourceTypeLabels[dataSourceType]}
           </DialogTitle>
           <DialogDescription>
             This will add a new column to your data source with a boolean value
@@ -76,7 +83,7 @@ export default function SyncToCrmModal({
         <div className="space-y-3 overflow-y-auto min-h-0">
           <div>
             <p className="text-sm font-medium mb-1">New column name</p>
-            <code className="text-sm bg-muted px-2 py-1 rounded">
+            <code className="text-xs bg-muted px-2 py-1 rounded">
               {tagColumnName}
             </code>
           </div>
@@ -88,13 +95,14 @@ export default function SyncToCrmModal({
                 <TableHeader className="bg-neutral-100">
                   <TableRow>
                     {previewColumns.map((col) => (
-                      <TableHead key={col.name} className="text-xs">
-                        {col.name}
+                      <TableHead
+                        key={col.name}
+                        className={`text-xs min-w-[200px] max-w-[250px] ${"isTagColumn" in col ? "bg-blue-50 font-semibold" : ""
+                          }`}
+                      >
+                        <span className="text-wrap">{col.name}</span>
                       </TableHead>
                     ))}
-                    <TableHead className="text-xs bg-blue-50 font-semibold">
-                      {tagColumnName}
-                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -104,26 +112,30 @@ export default function SyncToCrmModal({
                         {previewColumns.map((col) => (
                           <TableCell
                             key={col.name}
-                            className="text-xs truncate max-w-[150px]"
+                            className={`text-xs truncate max-w-[150px] ${"isTagColumn" in col
+                              ? "bg-blue-50 font-medium"
+                              : ""
+                              }`}
                           >
-                            {renderPreviewCell(record.json[col.name])}
+                            {"isTagColumn" in col
+                              ? "true"
+                              : renderPreviewCell(record.json[col.name])}
                           </TableCell>
                         ))}
-                        <TableCell className="text-xs bg-blue-50 font-medium">
-                          true
-                        </TableCell>
                       </TableRow>
                     ))
+
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={previewColumns.length + 1}
+                        colSpan={previewColumns.length}
                         className="text-xs text-center text-muted-foreground py-4"
                       >
                         No records to preview.
                       </TableCell>
                     </TableRow>
                   )}
+
                 </TableBody>
               </Table>
             </div>
