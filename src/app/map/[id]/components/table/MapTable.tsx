@@ -319,7 +319,7 @@ export default function MapTable() {
     setPendingTagColumnName(columnName);
     setMatchedRecordIds(new Set(recordIds));
     setSyncModalOpen(false);
-    tagRecords({ dataSourceId: dataSource.id, viewId: view.id });
+    tagRecords({ dataSourceId: dataSource.id, viewId: view.id, columnName });
   };
 
   return (
