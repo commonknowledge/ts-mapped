@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import { Textarea } from "@/shadcn/ui/textarea";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 type DataSource = NonNullable<RouterOutputs["dataSource"]["byId"]>;
@@ -186,7 +187,7 @@ export default function ColumnMetadataForm({
             <div className="flex flex-col gap-4 py-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Description</label>
-                <Input
+                <Textarea
                   value={draftDescription}
                   onChange={(e) => setDraftDescription(e.target.value)}
                   placeholder="Column description"
