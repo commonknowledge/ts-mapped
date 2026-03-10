@@ -253,9 +253,7 @@ export default function MapTable() {
     [pendingTagDisplayName],
   );
 
-  const newTagName = useMemo(() => {
-    return buildTagName(map?.name || "", view?.name || "");
-  }, [map?.name, view?.name]);
+  const newTagName = buildTagName(map?.name || "", view?.name || "");
 
   if (!dataSource || !view) {
     return null;
@@ -324,19 +322,33 @@ export default function MapTable() {
 
   const handleSyncConfirm = () => {
     const recordIds = (dataRecordsResult?.records || []).map((r) => r.id);
-    setPendingTag({
-      dataSourceId: dataSource.id,
-      columnName: newTagName,
-      matchedRecordIds: recordIds,
-    });
-    setPendingTagColumnName(newTagName);
-    setMatchedRecordIds(new Set(recordIds));
+
+    // Close the modal immediately, but only mark the tag as pending once the
+    // server confirms success. This avoids leaving the UI stuck in a syncing
+    // state (and persisting it to localStorage) if the mutation fails.
     setSyncModalOpen(false);
-    tagRecords({
-      dataSourceId: dataSource.id,
-      viewId: view.id,
-      columnName: newTagName,
-    });
+
+    tagRecords(
+      {
+        dataSourceId: dataSource.id,
+        viewId: view.id,
+        columnName: newTagName,
+      },
+      {
+        onSuccess: () => {
+          setPendingTag({
+            dataSourceId: dataSource.id,
+            columnName: newTagName,
+            matchedRecordIds: recordIds,
+          });
+          setPendingTagColumnName(newTagName);
+          setMatchedRecordIds(new Set(recordIds));
+        },
+        onError: () => {
+          toast.error("Failed to sync tags to CRM. Please try again.");
+        },
+      },
+    );
   };
 
   return (

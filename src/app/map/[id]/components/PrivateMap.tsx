@@ -45,8 +45,14 @@ export default function PrivateMap() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const onImportComplete = useCallback(() => {
+    // Refresh readable data sources after an import
     queryClient.invalidateQueries({
       queryKey: trpc.dataSource.listReadable.queryKey(),
+    });
+
+    // Also refresh data records so table values (e.g. tag columns) stay in sync
+    queryClient.invalidateQueries({
+      queryKey: trpc.dataRecord.list.queryKey(),
     });
   }, [queryClient, trpc]);
 
