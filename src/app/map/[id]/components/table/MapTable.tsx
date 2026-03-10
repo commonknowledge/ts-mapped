@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { Tag } from "lucide-react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
@@ -10,13 +11,17 @@ import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { ColumnType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
-import { useMapRef } from "../../hooks/useMapCore";
+import { useMapId, useMapRef } from "../../hooks/useMapCore";
+import { useMapQuery } from "../../hooks/useMapQuery";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
+import SyncToCrmModal from "./SyncToCrmModal";
 import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {
@@ -26,12 +31,48 @@ interface DataRecord {
   json: Record<string, unknown>;
 }
 
+const PENDING_TAG_KEY = "mapped:pendingTagColumn";
+
+interface PendingTag {
+  dataSourceId: string;
+  columnName: string;
+  matchedRecordIds: string[];
+}
+
+function getPendingTag(dataSourceId: string): PendingTag | null {
+  try {
+    const raw = localStorage.getItem(PENDING_TAG_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PendingTag;
+    return parsed.dataSourceId === dataSourceId ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function setPendingTag(tag: PendingTag) {
+  localStorage.setItem(PENDING_TAG_KEY, JSON.stringify(tag));
+}
+
+function clearPendingTag() {
+  localStorage.removeItem(PENDING_TAG_KEY);
+}
+
 export default function MapTable() {
   const mapRef = useMapRef();
+  const mapId = useMapId();
+  const { data: map } = useMapQuery(mapId);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { focusedRecord, setFocusedRecord } = useInspector();
   const [lookingUpPage, setLookingUpPage] = useState(false);
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [pendingTagColumnName, setPendingTagColumnName] = useState<
+    string | null
+  >(null);
+  const [matchedRecordIds, setMatchedRecordIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const {
     selectedDataSourceId,
@@ -139,10 +180,77 @@ export default function MapTable() {
   ]);
 
   const dataSource = getDataSourceById(selectedDataSourceId);
+
+  const { organisationId } = useContext(OrganisationsContext);
+  const isOwner = Boolean(
+    organisationId &&
+    dataSource &&
+    dataSource.organisationId === organisationId,
+  );
+
   const enableSyncToCRM =
     useFeatureFlagEnabled("sync-to-crm") &&
+    isOwner &&
     dataSource &&
     DataSourceFeatures[dataSource.config.type].syncToCrm;
+
+  useEffect(() => {
+    if (!selectedDataSourceId) return;
+    const stored = getPendingTag(selectedDataSourceId);
+    if (!stored) {
+      setPendingTagColumnName(null);
+      setMatchedRecordIds(new Set());
+      return;
+    }
+    const realColumnExists = dataSource?.columnDefs.some(
+      (c) => c.name === stored.columnName,
+    );
+    if (realColumnExists) {
+      clearPendingTag();
+      setPendingTagColumnName(null);
+      setMatchedRecordIds(new Set());
+    } else {
+      setPendingTagColumnName(stored.columnName);
+      setMatchedRecordIds(new Set(stored.matchedRecordIds));
+    }
+  }, [selectedDataSourceId, dataSource?.columnDefs]);
+
+  const pendingTagDisplayName = pendingTagColumnName
+    ? `${pendingTagColumnName} (Syncing...)`
+    : null;
+
+  const columnsWithTag = useMemo(() => {
+    const cols = [...(dataSource?.columnDefs || [])];
+    if (pendingTagDisplayName) {
+      cols.push({ name: pendingTagDisplayName, type: ColumnType.Boolean });
+    }
+    return cols.toSorted((a, b) => {
+      const aIsMapped = a.name.startsWith("Mapped");
+      const bIsMapped = b.name.startsWith("Mapped");
+      if (aIsMapped === bIsMapped) return 0;
+      return aIsMapped ? 1 : -1;
+    });
+  }, [dataSource?.columnDefs, pendingTagDisplayName]);
+
+  const dataWithTag = useMemo(() => {
+    const records = dataRecordsResult?.records || [];
+    if (!pendingTagDisplayName) return records;
+    return records.map((record) => ({
+      ...record,
+      json: {
+        ...record.json,
+        [pendingTagDisplayName]: matchedRecordIds.has(record.id)
+          ? true
+          : undefined,
+      },
+    }));
+  }, [dataRecordsResult?.records, pendingTagDisplayName, matchedRecordIds]);
+
+  const highlightedColumns = useMemo(
+    () =>
+      pendingTagDisplayName ? new Set([pendingTagDisplayName]) : undefined,
+    [pendingTagDisplayName],
+  );
 
   if (!dataSource || !view) {
     return null;
@@ -202,13 +310,44 @@ export default function MapTable() {
       key="sync-to-crm"
       type="button"
       variant="outline"
-      onClick={() =>
-        tagRecords({ dataSourceId: dataSource.id, viewId: view.id })
-      }
+      onClick={() => setSyncModalOpen(true)}
     >
-      Tag records in {DataSourceTypeLabels[dataSource.config.type]}
+      <Tag className="w-4 h-4" />
+      Tag visible records in {DataSourceTypeLabels[dataSource.config.type]}
     </Button>
   ) : null;
+
+  const handleSyncConfirm = (newTagName: string) => {
+    if (!newTagName) {
+      return;
+    }
+
+    const recordIds = (dataRecordsResult?.records || []).map((r) => r.id);
+
+    // Close the modal immediately, but only mark the tag as pending once the
+    // server confirms success. This avoids leaving the UI stuck in a syncing
+    // state (and persisting it to localStorage) if the mutation fails.
+    setSyncModalOpen(false);
+
+    tagRecords(
+      {
+        dataSourceId: dataSource.id,
+        viewId: view.id,
+        columnName: newTagName,
+      },
+      {
+        onSuccess: () => {
+          setPendingTag({
+            dataSourceId: dataSource.id,
+            columnName: newTagName,
+            matchedRecordIds: recordIds,
+          });
+          setPendingTagColumnName(newTagName);
+          setMatchedRecordIds(new Set(recordIds));
+        },
+      },
+    );
+  };
 
   return (
     <div className="h-full">
@@ -216,8 +355,8 @@ export default function MapTable() {
         title={dataSource.name}
         buttons={[syncToCRMButton]}
         loading={dataRecordsLoading || lookingUpPage}
-        columns={dataSource.columnDefs}
-        data={dataRecordsResult?.records || []}
+        columns={columnsWithTag}
+        data={dataWithTag}
         recordCount={dataRecordsResult?.count}
         filter={filter}
         search={dataSourceView?.search}
@@ -229,7 +368,20 @@ export default function MapTable() {
         onRowClick={handleRowClick}
         selectedRecordId={focusedRecord?.id}
         onClose={() => handleDataSourceSelect("")}
+        highlightedColumns={highlightedColumns}
       />
+      {enableSyncToCRM && (
+        <SyncToCrmModal
+          open={syncModalOpen}
+          onOpenChange={setSyncModalOpen}
+          onConfirm={handleSyncConfirm}
+          dataSourceType={dataSource.config.type}
+          columns={dataSource.columnDefs}
+          mapName={map?.name || ""}
+          viewName={view.name}
+          records={dataRecordsResult?.records || []}
+        />
+      )}
     </div>
   );
 }
