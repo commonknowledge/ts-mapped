@@ -229,6 +229,7 @@ export default function VisualisationPanel({
           <Database className="w-4 h-4 text-muted-foreground" /> Data source
         </Label>
         <DataSourceSelectButton
+          className="w-full"
           dataSource={dataSource}
           onClickRemove={() =>
             updateViewConfig({
