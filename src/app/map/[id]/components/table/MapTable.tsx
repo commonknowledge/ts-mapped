@@ -243,6 +243,10 @@ export default function MapTable() {
     [pendingTagDisplayName],
   );
 
+  const newTagName = useMemo(() => {
+    return buildTagName(map?.name || "", view?.name || "");
+  }, [map?.name, view?.name]);
+
   if (!dataSource || !view) {
     return null;
   }
@@ -309,17 +313,20 @@ export default function MapTable() {
   ) : null;
 
   const handleSyncConfirm = () => {
-    const columnName = buildTagName(map?.name || "", view.name);
     const recordIds = (dataRecordsResult?.records || []).map((r) => r.id);
     setPendingTag({
       dataSourceId: dataSource.id,
-      columnName,
+      columnName: newTagName,
       matchedRecordIds: recordIds,
     });
-    setPendingTagColumnName(columnName);
+    setPendingTagColumnName(newTagName);
     setMatchedRecordIds(new Set(recordIds));
     setSyncModalOpen(false);
-    tagRecords({ dataSourceId: dataSource.id, viewId: view.id, columnName });
+    tagRecords({
+      dataSourceId: dataSource.id,
+      viewId: view.id,
+      columnName: newTagName,
+    });
   };
 
   return (
@@ -351,6 +358,7 @@ export default function MapTable() {
           dataSourceType={dataSource.config.type}
           mapName={map?.name || ""}
           viewName={view.name}
+          tagName={newTagName}
           columns={dataSource.columnDefs}
           records={dataRecordsResult?.records || []}
         />

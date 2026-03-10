@@ -1,5 +1,4 @@
 import { Tag } from "lucide-react";
-import { useMemo } from "react";
 import { DataSourceTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -18,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
-import { buildTagName } from "@/utils/tagName";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSourceType } from "@/server/models/DataSource";
 
@@ -32,6 +30,7 @@ interface SyncToCrmModalProps {
   dataSourceType: DataSourceType;
   mapName: string;
   viewName: string;
+  tagName: string;
   columns: ColumnDef[];
   records: { json: Record<string, unknown> }[];
 }
@@ -41,19 +40,13 @@ export default function SyncToCrmModal({
   onOpenChange,
   onConfirm,
   dataSourceType,
-  mapName,
-  viewName,
+  tagName,
   columns,
   records,
 }: SyncToCrmModalProps) {
-  const tagColumnName = useMemo(
-    () => buildTagName(mapName, viewName),
-    [mapName, viewName],
-  );
-
   const previewColumns = [
     columns[0],
-    { name: tagColumnName, isTagColumn: true as const },
+    { name: tagName, isTagColumn: true as const },
     ...columns.slice(1, PREVIEW_COLUMN_COUNT),
   ];
   const previewRecords = records.slice(0, PREVIEW_ROW_COUNT);
@@ -83,7 +76,7 @@ export default function SyncToCrmModal({
           <div>
             <p className="text-sm font-medium mb-1">New column name</p>
             <code className="text-xs bg-muted px-2 py-1 rounded">
-              {tagColumnName}
+              {tagName}
             </code>
           </div>
 

@@ -569,7 +569,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     const fieldName = taggedRecords[0].tag.name;
 
     const existingFields = await this.getFields();
-    logger.info(
+    logger.debug(
       `Airtable tagRecords: field="${fieldName}", existingFields=${JSON.stringify(existingFields)}`,
     );
     if (!existingFields.includes(fieldName)) {
@@ -591,7 +591,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         };
       });
 
-      logger.info(
+      logger.debug(
         `Airtable PATCH ${batch.length} records for field "${fieldName}"`,
       );
       const response = await fetch(url, {
@@ -609,7 +609,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
           `Bad update records response: ${response.status}, ${responseText}`,
         );
       }
-      logger.info(`Airtable PATCH response: ${response.status}`);
+      logger.debug(`Airtable PATCH response: ${response.status}`);
     }
   }
 }
