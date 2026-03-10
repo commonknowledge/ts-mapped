@@ -51,11 +51,14 @@ export default function SyncToCrmModal({
     [mapName, viewName],
   );
 
-  const previewColumns = [
-    columns[0],
-    { name: tagColumnName, isTagColumn: true as const },
-    ...columns.slice(1, PREVIEW_COLUMN_COUNT),
-  ];
+  const previewColumns =
+    columns.length > 0
+      ? [
+          columns[0],
+          { name: tagColumnName, isTagColumn: true as const },
+          ...columns.slice(1, PREVIEW_COLUMN_COUNT),
+        ]
+      : [{ name: tagColumnName, isTagColumn: true as const }];
   const previewRecords = records.slice(0, PREVIEW_ROW_COUNT);
 
   const handleConfirm = () => {
