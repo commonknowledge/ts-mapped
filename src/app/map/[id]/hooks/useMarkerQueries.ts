@@ -34,6 +34,7 @@ export function useMarkerQueries() {
       const filter = JSON.stringify(dsv?.filter || null);
       const search = dsv?.search || "";
       return {
+        enabled: Boolean(view), // Prevent duplicate marker query while view is loading
         queryKey: ["markers", dataSourceId, filter, search],
         queryFn: async () => {
           const params = new URLSearchParams();
