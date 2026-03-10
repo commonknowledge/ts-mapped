@@ -243,9 +243,7 @@ export default function MapTable() {
     [pendingTagDisplayName],
   );
 
-  const newTagName = useMemo(() => {
-    return buildTagName(map?.name || "", view?.name || "");
-  }, [map?.name, view?.name]);
+  const newTagName = buildTagName(map?.name || "", view?.name || "");
 
   if (!dataSource || !view) {
     return null;
