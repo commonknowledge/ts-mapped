@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
@@ -10,13 +10,17 @@ import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
+import { ColumnType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
-import { useMapRef } from "../../hooks/useMapCore";
+import { buildTagName } from "@/utils/tagName";
+import { useMapId, useMapRef } from "../../hooks/useMapCore";
+import { useMapQuery } from "../../hooks/useMapQuery";
 import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
+import SyncToCrmModal from "./SyncToCrmModal";
 import type { DataSourceView } from "@/server/models/MapView";
 
 interface DataRecord {
@@ -26,12 +30,48 @@ interface DataRecord {
   json: Record<string, unknown>;
 }
 
+const PENDING_TAG_KEY = "mapped:pendingTagColumn";
+
+interface PendingTag {
+  dataSourceId: string;
+  columnName: string;
+  matchedRecordIds: string[];
+}
+
+function getPendingTag(dataSourceId: string): PendingTag | null {
+  try {
+    const raw = localStorage.getItem(PENDING_TAG_KEY);
+    if (!raw) return null;
+    const parsed: PendingTag = JSON.parse(raw);
+    return parsed.dataSourceId === dataSourceId ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function setPendingTag(tag: PendingTag) {
+  localStorage.setItem(PENDING_TAG_KEY, JSON.stringify(tag));
+}
+
+function clearPendingTag() {
+  localStorage.removeItem(PENDING_TAG_KEY);
+}
+
 export default function MapTable() {
   const mapRef = useMapRef();
+  const mapId = useMapId();
+  const { data: map } = useMapQuery(mapId);
   const { view, updateView } = useMapViews();
   const { getDataSourceById } = useDataSources();
   const { focusedRecord, setFocusedRecord } = useInspector();
   const [lookingUpPage, setLookingUpPage] = useState(false);
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [pendingTagColumnName, setPendingTagColumnName] = useState<
+    string | null
+  >(null);
+  const [matchedRecordIds, setMatchedRecordIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const {
     selectedDataSourceId,
@@ -144,6 +184,27 @@ export default function MapTable() {
     dataSource &&
     DataSourceFeatures[dataSource.config.type].syncToCrm;
 
+  useEffect(() => {
+    if (!selectedDataSourceId) return;
+    const stored = getPendingTag(selectedDataSourceId);
+    if (!stored) {
+      setPendingTagColumnName(null);
+      setMatchedRecordIds(new Set());
+      return;
+    }
+    const realColumnExists = dataSource?.columnDefs.some(
+      (c) => c.name === stored.columnName,
+    );
+    if (realColumnExists) {
+      clearPendingTag();
+      setPendingTagColumnName(null);
+      setMatchedRecordIds(new Set());
+    } else {
+      setPendingTagColumnName(stored.columnName);
+      setMatchedRecordIds(new Set(stored.matchedRecordIds));
+    }
+  }, [selectedDataSourceId, dataSource?.columnDefs]);
+
   if (!dataSource || !view) {
     return null;
   }
@@ -202,13 +263,57 @@ export default function MapTable() {
       key="sync-to-crm"
       type="button"
       variant="outline"
-      onClick={() =>
-        tagRecords({ dataSourceId: dataSource.id, viewId: view.id })
-      }
+      onClick={() => setSyncModalOpen(true)}
     >
       Tag records in {DataSourceTypeLabels[dataSource.config.type]}
     </Button>
   ) : null;
+
+  const handleSyncConfirm = () => {
+    const columnName = buildTagName(map?.name || "", view.name);
+    const recordIds = (dataRecordsResult?.records || []).map((r) => r.id);
+    setPendingTag({
+      dataSourceId: dataSource.id,
+      columnName,
+      matchedRecordIds: recordIds,
+    });
+    setPendingTagColumnName(columnName);
+    setMatchedRecordIds(new Set(recordIds));
+    setSyncModalOpen(false);
+    tagRecords({ dataSourceId: dataSource.id, viewId: view.id });
+  };
+
+  const pendingTagDisplayName = pendingTagColumnName
+    ? `${pendingTagColumnName} (Syncing...)`
+    : null;
+
+  const columnsWithTag = useMemo(() => {
+    if (!pendingTagDisplayName) return dataSource.columnDefs;
+    return [
+      ...dataSource.columnDefs,
+      { name: pendingTagDisplayName, type: ColumnType.Boolean },
+    ];
+  }, [dataSource.columnDefs, pendingTagDisplayName]);
+
+  const dataWithTag = useMemo(() => {
+    const records = dataRecordsResult?.records || [];
+    if (!pendingTagDisplayName) return records;
+    return records.map((record) => ({
+      ...record,
+      json: {
+        ...record.json,
+        [pendingTagDisplayName]: matchedRecordIds.has(record.id)
+          ? true
+          : undefined,
+      },
+    }));
+  }, [dataRecordsResult?.records, pendingTagDisplayName, matchedRecordIds]);
+
+  const highlightedColumns = useMemo(
+    () =>
+      pendingTagDisplayName ? new Set([pendingTagDisplayName]) : undefined,
+    [pendingTagDisplayName],
+  );
 
   return (
     <div className="h-full">
@@ -216,8 +321,8 @@ export default function MapTable() {
         title={dataSource.name}
         buttons={[syncToCRMButton]}
         loading={dataRecordsLoading || lookingUpPage}
-        columns={dataSource.columnDefs}
-        data={dataRecordsResult?.records || []}
+        columns={columnsWithTag}
+        data={dataWithTag}
         recordCount={dataRecordsResult?.count}
         filter={filter}
         search={dataSourceView?.search}
@@ -229,7 +334,20 @@ export default function MapTable() {
         onRowClick={handleRowClick}
         selectedRecordId={focusedRecord?.id}
         onClose={() => handleDataSourceSelect("")}
+        highlightedColumns={highlightedColumns}
       />
+      {enableSyncToCRM && (
+        <SyncToCrmModal
+          open={syncModalOpen}
+          onOpenChange={setSyncModalOpen}
+          onConfirm={handleSyncConfirm}
+          dataSourceType={dataSource.config.type}
+          mapName={map?.name || ""}
+          viewName={view.name}
+          columns={dataSource.columnDefs}
+          records={dataRecordsResult?.records || []}
+        />
+      )}
     </div>
   );
 }

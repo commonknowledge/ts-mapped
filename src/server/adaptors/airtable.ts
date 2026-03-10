@@ -113,7 +113,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     } = {
       name,
       type: "singleLineText",
-      description: "Mapped-managed field",
+      description: "Managed by Mapped",
     };
 
     switch (type) {
@@ -141,12 +141,17 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       body: JSON.stringify(body),
     });
 
+    const responseText = await response.text();
     if (!response.ok) {
-      const responseText = await response.text();
       throw Error(
         `Bad create field response: ${response.status}, ${responseText}`,
       );
     }
+
+    logger.info(`Created Airtable field "${name}" (${type})`, {
+      status: response.status,
+      response: responseText,
+    });
 
     this.cachedFieldNames?.push(name);
   }
@@ -564,8 +569,12 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     const fieldName = taggedRecords[0].tag.name;
 
     const existingFields = await this.getFields();
+    logger.info(`Airtable tagRecords: field="${fieldName}", existingFields=${JSON.stringify(existingFields)}`);
     if (!existingFields.includes(fieldName)) {
+      logger.info(`Creating new Airtable field: "${fieldName}"`);
       await this.createField(fieldName, ColumnType.Boolean);
+    } else {
+      logger.info(`Airtable field "${fieldName}" already exists, skipping creation`);
     }
 
     for (const batch of batches) {
@@ -578,6 +587,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         };
       });
 
+      logger.info(`Airtable PATCH ${batch.length} records for field "${fieldName}"`);
       const response = await fetch(url, {
         method: "PATCH",
         headers: {
@@ -593,6 +603,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
           `Bad update records response: ${response.status}, ${responseText}`,
         );
       }
+      logger.info(`Airtable PATCH response: ${response.status}`);
     }
   }
 }

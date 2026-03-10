@@ -59,6 +59,7 @@ interface DataTableProps {
   filter?: ReactNode;
   search?: string;
   setSearch?: (search: string) => void;
+  highlightedColumns?: Set<string>;
 }
 
 export function DataTable({
@@ -82,6 +83,7 @@ export function DataTable({
   filter,
   search,
   setSearch,
+  highlightedColumns,
 }: DataTableProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
@@ -215,7 +217,14 @@ export function DataTable({
                   .filter((c) => !hiddenColumns.includes(c.name))
                   .map((column) => {
                     return (
-                      <TableHead key={column.name}>
+                      <TableHead
+                        key={column.name}
+                        className={
+                          highlightedColumns?.has(column.name)
+                            ? "bg-blue-50"
+                            : undefined
+                        }
+                      >
                         <div className="flex items-center">
                           <div
                             onClick={() => onClickSort(column.name)}
@@ -251,7 +260,11 @@ export function DataTable({
                       .map((column) => (
                         <TableCell
                           key={column.name}
-                          className="whitespace-normal"
+                          className={
+                            highlightedColumns?.has(column.name)
+                              ? "whitespace-normal bg-blue-50"
+                              : "whitespace-normal"
+                          }
                         >
                           {renderCell(row.json[column.name])}
                         </TableCell>

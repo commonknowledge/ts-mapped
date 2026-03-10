@@ -10,7 +10,9 @@ import { findDataSourceById } from "@/server/repositories/DataSource";
 import { findMapViewById } from "@/server/repositories/MapView";
 import logger from "@/server/services/logger";
 import { sendEmail } from "@/server/services/mailer";
+import { enqueue } from "@/server/services/queue";
 import { batchAsync } from "@/server/utils";
+import { buildTagName } from "@/utils/tagName";
 import { findMapById } from "../repositories/Map";
 import type { TaggedRecord } from "@/types";
 
@@ -102,7 +104,7 @@ const tagDataSource = async (args: object | null): Promise<boolean> => {
           externalId: record.externalId,
           json: record.json,
           tag: {
-            name: `Mapped View: ${map.name} / ${view.name}`,
+            name: buildTagName(map.name, view.name),
             present: Boolean(record.mappedMatched),
           },
         };
@@ -135,6 +137,11 @@ const tagDataSource = async (args: object | null): Promise<boolean> => {
     } catch (error) {
       logger.error("Failed to send tagging success email", { error });
     }
+
+    await enqueue("importDataSource", dataSourceId, { dataSourceId });
+    logger.info(
+      `Enqueued re-import for data source ${dataSourceId} after tagging`,
+    );
 
     return true;
   } catch (error) {
