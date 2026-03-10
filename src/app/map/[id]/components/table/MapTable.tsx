@@ -345,9 +345,6 @@ export default function MapTable() {
           setPendingTagColumnName(newTagName);
           setMatchedRecordIds(new Set(recordIds));
         },
-        onError: () => {
-          toast.error("Failed to sync tags to CRM. Please try again.");
-        },
       },
     );
   };
