@@ -143,13 +143,25 @@ export default function EditColumnMetadataModal() {
     // If the query is still loading and we have no area stats values, show loading
     if (columnValues === undefined && areaStatsValues.length === 0)
       return undefined;
-    const merged = Array.from(
+    let merged = Array.from(
       new Set([...(columnValues ?? []), ...areaStatsValues]),
     );
+    // If nullIsZero is true, combine blank/undefined/0 into just "0"
+    if (dataSource?.nullIsZero && columnType === ColumnType.Number) {
+      const blankValues = new Set(["", "null", "undefined"]);
+      const hasBlankOrZero =
+        merged.some((v) => blankValues.has(v)) || merged.includes("0");
+      if (hasBlankOrZero) {
+        merged = merged.filter((v) => !blankValues.has(v));
+        if (!merged.includes("0")) {
+          merged.push("0");
+        }
+      }
+    }
     // Enforce the 50-value cap
     if (merged.length > 50) return null;
     return merged;
-  }, [columnValues, areaStatsValues]);
+  }, [columnValues, areaStatsValues, dataSource?.nullIsZero, columnType]);
 
   // Sorted distinct values for the D3 ordinal scale domain
   const sortedValues = useMemo(

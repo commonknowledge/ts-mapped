@@ -61,12 +61,34 @@ export default function ColumnMetadataForm({
   const client = useQueryClient();
   const trpc = useTRPC();
   const editingCol = editingIndex !== null ? metadata[editingIndex] : null;
-  const { data: columnValues } = useQuery(
+  const { data: rawColumnValues } = useQuery(
     trpc.dataSource.uniqueColumnValues.queryOptions(
       { dataSourceId: dataSource.id, column: editingCol?.name ?? "" },
       { enabled: editingCol !== null },
     ),
   );
+
+  const editingColumnType = dataSource.columnDefs.find(
+    (col) => col.name === editingCol?.name,
+  )?.type;
+
+  // If nullIsZero is true for a numeric column, combine "", "null" and "undefined" into "0"
+  const columnValues = useMemo(() => {
+    if (rawColumnValues == null) return rawColumnValues;
+    if (!dataSource.nullIsZero || editingColumnType !== ColumnType.Number) {
+      return rawColumnValues;
+    }
+    const blankValues = new Set(["", "null", "undefined"]);
+    const hasBlankOrZero =
+      rawColumnValues.some((v) => blankValues.has(v)) ||
+      rawColumnValues.includes("0");
+    if (!hasBlankOrZero) return rawColumnValues;
+    const filtered = rawColumnValues.filter((v) => !blankValues.has(v));
+    if (!filtered.includes("0")) {
+      filtered.push("0");
+    }
+    return filtered;
+  }, [rawColumnValues, dataSource.nullIsZero, editingColumnType]);
   const { mutate: updateDataSourceConfig } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
       onSuccess: () => {
