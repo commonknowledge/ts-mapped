@@ -19,12 +19,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
+import { mapColors } from "@/app/map/[id]/styles";
+import { InspectorBoundaryConfigType } from "@/server/models/MapView";
 import { cn } from "@/shadcn/utils";
 import { BoundaryDataPanel } from "./BoundaryDataPanel";
 import { getSelectedColumnsOrdered } from "./inspectorColumnOrder";
 import InspectorOnMapSection from "./InspectorOnMapSection";
 import type { DragEndEvent } from "@dnd-kit/core";
+import type { DataSource } from "@/server/models/DataSource";
 import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 /**
@@ -36,6 +40,7 @@ export function InspectorFullPreview({
   className,
   selectedDataSourceId,
   onReorderColumns,
+  previewDataSource,
 }: {
   className?: string;
   selectedDataSourceId?: string | null;
@@ -43,14 +48,28 @@ export function InspectorFullPreview({
     dataSourceId: string,
     orderedColumnNames: string[],
   ) => void;
+  /** When set, renders an extra preview panel for a data source not yet on the map. */
+  previewDataSource?: DataSource | null;
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { selectedBoundary } = useInspector();
   const { view, getLatestView, updateView } = useMapViews();
+  const { mapConfig } = useMapConfig();
   const boundaryConfigs = useMemo(
     () => view?.inspectorConfig?.boundaries ?? [],
     [view?.inspectorConfig?.boundaries],
   );
+
+  const markerLayerColors = useMemo(() => {
+    const out: Record<string, string> = {};
+    if (mapConfig.membersDataSourceId) {
+      out[mapConfig.membersDataSourceId] = mapColors.member.color;
+    }
+    mapConfig.markerDataSourceIds.forEach((id) => {
+      out[id] = mapConfig.markerColors?.[id] ?? mapColors.markers.color;
+    });
+    return out;
+  }, [mapConfig.membersDataSourceId, mapConfig.markerDataSourceIds, mapConfig.markerColors]);
 
   useEffect(() => {
     if (!selectedDataSourceId) return;
@@ -70,9 +89,46 @@ export function InspectorFullPreview({
         dataSourceId: config.dataSourceId,
         areaCode: selectedBoundary?.code ?? "",
         columns: getSelectedColumnsOrdered(config),
+        markerLayerColor: markerLayerColors[config.dataSourceId],
       })),
-    [boundaryConfigs, selectedBoundary?.code],
+    [boundaryConfigs, selectedBoundary?.code, markerLayerColors],
   );
+
+  const previewConfig = useMemo((): {
+    config: InspectorBoundaryConfig;
+    dataSourceId: string;
+    areaCode: string;
+    columns: string[];
+  } | null => {
+    if (!previewDataSource) return null;
+    const alreadyConfigured = boundaryConfigs.some(
+      (c) => c.dataSourceId === previewDataSource.id,
+    );
+    if (alreadyConfigured) return null;
+    const cfg = previewDataSource.defaultInspectorConfig;
+    const allCols = previewDataSource.columnDefs.map((c) => c.name);
+    const columns = cfg?.columns?.length ? cfg.columns : allCols;
+    const config: InspectorBoundaryConfig = {
+      id: `preview-${previewDataSource.id}`,
+      dataSourceId: previewDataSource.id,
+      name: cfg?.name ?? previewDataSource.name ?? "Preview",
+      type: cfg?.type ?? InspectorBoundaryConfigType.Simple,
+      columns,
+      columnOrder: cfg?.columnOrder ?? columns,
+      columnItems: cfg?.columnItems,
+      columnMetadata: cfg?.columnMetadata,
+      columnGroups: cfg?.columnGroups,
+      layout: cfg?.layout ?? "single",
+      icon: cfg?.icon,
+      color: cfg?.color,
+    };
+    return {
+      config,
+      dataSourceId: previewDataSource.id,
+      areaCode: selectedBoundary?.code ?? "",
+      columns: getSelectedColumnsOrdered(config),
+    };
+  }, [previewDataSource, boundaryConfigs, selectedBoundary?.code]);
 
   const reorderBoundaries = useCallback(
     (oldIndex: number, newIndex: number) => {
@@ -124,7 +180,7 @@ export function InspectorFullPreview({
       <div className="shrink-0 px-3 py-2 border-b border-neutral-200">
         <p className="text-xs font-semibold text-muted-foreground">Preview</p>
         <p className="text-sm font-medium truncate">
-          {selectedBoundary?.name ?? "Boundary"}
+          {selectedBoundary?.name ?? "Sample record"}
         </p>
       </div>
       <div
@@ -136,7 +192,7 @@ export function InspectorFullPreview({
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Data in this area
           </p>
-          {boundaryConfigs.length === 0 ? (
+          {boundaryConfigs.length === 0 && !previewConfig ? (
             <div className="rounded-lg border border-dashed border-neutral-200 py-6 text-center">
               <p className="text-sm text-muted-foreground">
                 No data sources added yet
@@ -144,30 +200,48 @@ export function InspectorFullPreview({
             </div>
           ) : (
             <>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handlePanelDragEnd}
-                modifiers={[restrictToVerticalAxis]}
-              >
-                <SortableContext
-                  items={boundaryConfigs.map((c) => c.id)}
-                  strategy={verticalListSortingStrategy}
+              {boundaryConfigs.length > 0 && (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handlePanelDragEnd}
+                  modifiers={[restrictToVerticalAxis]}
                 >
-                  <div className="flex flex-col gap-3">
-                    <p className="text-[11px] font-medium text-muted-foreground">
-                      Panels — drag to reorder
-                    </p>
-                    {boundaryData.map((item) => (
-                      <SortableBoundaryPanel
-                        key={item.config.id}
-                        item={item}
-                        selectedDataSourceId={selectedDataSourceId}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
+                  <SortableContext
+                    items={boundaryConfigs.map((c) => c.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="flex flex-col gap-3">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Panels — drag to reorder
+                      </p>
+                      {boundaryData.map((item) => (
+                        <SortableBoundaryPanel
+                          key={item.config.id}
+                          item={item}
+                          selectedDataSourceId={selectedDataSourceId}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              )}
+              {previewConfig && (
+                <div className="rounded-lg border-2 border-dashed border-neutral-300">
+                  <BoundaryDataPanel
+                    config={previewConfig.config}
+                    dataSourceId={previewConfig.dataSourceId}
+                    areaCode={previewConfig.areaCode}
+                    columns={previewConfig.columns}
+                    columnMetadata={previewConfig.config.columnMetadata}
+                    columnGroups={previewConfig.config.columnGroups}
+                    layout={previewConfig.config.layout}
+                    defaultExpanded={false}
+                    expanded
+                    previewMode
+                  />
+                </div>
+              )}
             </>
           )}
         </section>
@@ -185,6 +259,7 @@ function SortableBoundaryPanel({
     dataSourceId: string;
     areaCode: string;
     columns: string[];
+    markerLayerColor?: string;
   };
   selectedDataSourceId?: string | null;
 }) {
@@ -230,6 +305,8 @@ function SortableBoundaryPanel({
           layout={item.config.layout}
           defaultExpanded={false}
           expanded={isSelected}
+          previewMode
+          markerLayerColor={item.markerLayerColor}
         />
       </div>
     </div>

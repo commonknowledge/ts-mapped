@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  inspectorSettingsInitialDataSourceIdAtom,
+  inspectorSettingsModalOpenAtom,
+} from "@/app/map/[id]/atoms/inspectorAtoms";
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
@@ -139,6 +144,10 @@ export default function MapTable() {
   ]);
 
   const dataSource = getDataSourceById(selectedDataSourceId);
+  const setSettingsOpen = useSetAtom(inspectorSettingsModalOpenAtom);
+  const setSettingsInitialDataSourceId = useSetAtom(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
   const enableSyncToCRM =
     useFeatureFlagEnabled("sync-to-crm") &&
     dataSource &&
@@ -147,6 +156,11 @@ export default function MapTable() {
   if (!dataSource || !view) {
     return null;
   }
+
+  const openInspectorSettings = () => {
+    setSettingsInitialDataSourceId(dataSource.id);
+    setSettingsOpen(true);
+  };
 
   const handleRowClick = (row: DataRecord) => {
     if (!row.geocodePoint) return;
@@ -210,11 +224,22 @@ export default function MapTable() {
     </Button>
   ) : null;
 
+  const inspectorSettingsButton = (
+    <Button
+      key="inspector-settings"
+      type="button"
+      variant="outline"
+      onClick={openInspectorSettings}
+    >
+      Inspector settings
+    </Button>
+  );
+
   return (
     <div className="h-full">
       <DataTable
         title={dataSource.name}
-        buttons={[syncToCRMButton]}
+        buttons={[inspectorSettingsButton, syncToCRMButton]}
         loading={dataRecordsLoading || lookingUpPage}
         columns={dataSource.columnDefs}
         data={dataRecordsResult?.records || []}

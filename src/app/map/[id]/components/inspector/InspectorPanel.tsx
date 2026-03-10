@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   inspectorSettingsModalOpenAtom,
   inspectorSettingsInitialDataSourceIdAtom,
+  inspectorSettingsInitialTabAtom,
 } from "@/app/map/[id]/atoms/inspectorAtoms";
 import { useDisplayAreaStat } from "@/app/map/[id]/hooks/useDisplayAreaStats";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
@@ -43,6 +44,7 @@ export default function InspectorPanel({
   const setSettingsInitialDataSourceId = useSetAtom(
     inspectorSettingsInitialDataSourceIdAtom,
   );
+  const setSettingsInitialTab = useSetAtom(inspectorSettingsInitialTabAtom);
   const [hoverArea] = useHoverArea();
   const boundaryHoverVisible = boundariesPanelOpen && !!hoverArea;
 
@@ -128,6 +130,7 @@ export default function InspectorPanel({
   const markerCount = selectedRecords?.length || 0;
 
   const openInspectorSettingsForDataSource = (dataSourceId: string) => {
+    setSettingsInitialTab("inspector");
     setSettingsInitialDataSourceId(dataSourceId);
     setSettingsOpen(true);
   };
@@ -197,10 +200,11 @@ export default function InspectorPanel({
               size="icon"
               className="h-8 w-8"
               onClick={() => {
+                setSettingsInitialTab("inspector");
                 setSettingsInitialDataSourceId(dataSource?.id ?? null);
                 setSettingsOpen(true);
               }}
-              aria-label="Visualisation data settings"
+              aria-label="Data settings"
             >
               <SettingsIcon className="w-4 h-4" />
             </Button>
@@ -263,7 +267,10 @@ export default function InspectorPanel({
                 isDetailsView={isDetailsView}
                 focusedRecord={focusedRecord}
                 type={type}
-                onOpenInspectorSettings={() => setSettingsOpen(true)}
+                onOpenInspectorSettings={() => {
+                  setSettingsInitialTab("inspector");
+                  setSettingsOpen(true);
+                }}
                 onOpenInspectorSettingsForDataSource={
                   openInspectorSettingsForDataSource
                 }

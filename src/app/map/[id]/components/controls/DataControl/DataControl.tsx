@@ -5,54 +5,35 @@ import { useSetAtom } from "jotai";
 import { useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import {
   inspectorSettingsModalOpenAtom,
   inspectorSettingsInitialDataSourceIdAtom,
+  inspectorSettingsInitialTabAtom,
 } from "@/app/map/[id]/atoms/inspectorAtoms";
-import { dataSourceRecordTypeLabels } from "@/components/DataSourceRecordTypeIcon";
+import { DataSourceInspectorIcon } from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
 import { DataSourceTypeLabels } from "@/labels";
-import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import LayerControlWrapper from "../LayerControlWrapper";
-import type {
-  DataSourceRecordType,
-  DataSourceType,
-} from "@/server/models/DataSource";
+import type { DataSource } from "@/server/models/DataSource";
 
-function useMapDataSources() {
+function useMapDataSources(): DataSource[] {
   const { viewConfig } = useMapViews();
-  const { mapConfig } = useMapConfig();
   const { getDataSourceById } = useDataSources();
 
-  const ids = new Set<string>();
-  if (viewConfig.areaDataSourceId) ids.add(viewConfig.areaDataSourceId);
-  mapConfig.markerDataSourceIds.forEach((id) => ids.add(id));
-  if (mapConfig.membersDataSourceId) ids.add(mapConfig.membersDataSourceId);
-
-  return Array.from(ids)
-    .map((id) => getDataSourceById(id))
-    .filter((ds): ds is NonNullable<typeof ds> => ds != null);
+  if (!viewConfig.areaDataSourceId) return [];
+  const ds = getDataSourceById(viewConfig.areaDataSourceId);
+  return ds ? [ds] : [];
 }
 
 function DataSourceRow({
   dataSource,
   onClick,
 }: {
-  dataSource: {
-    id: string;
-    name: string;
-    config: { type: DataSourceType };
-    recordCount?: number;
-    recordType?: DataSourceRecordType;
-  };
+  dataSource: DataSource;
   onClick: () => void;
 }) {
   const subtitle = [
     DataSourceTypeLabels[dataSource.config.type],
     dataSource.recordCount != null ? String(dataSource.recordCount) : null,
-    dataSource.recordType && dataSourceRecordTypeLabels[dataSource.recordType]
-      ? dataSourceRecordTypeLabels[dataSource.recordType]
-      : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -63,15 +44,10 @@ function DataSourceRow({
       onClick={onClick}
       className="flex items-center gap-2 w-full text-left px-4 py-2.5 rounded-md border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors"
     >
-      {dataSource.recordType != null ? (
-        <DataSourceRecordTypeIcon
-          type={dataSource.recordType}
-          withBackground={false}
-          className="w-4 h-4 shrink-0 text-muted-foreground"
-        />
-      ) : (
-        <Database className="w-4 h-4 shrink-0 text-muted-foreground" />
-      )}
+      <DataSourceInspectorIcon
+        dataSource={dataSource}
+        className="w-4 h-4 shrink-0 text-muted-foreground"
+      />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate">{dataSource.name}</div>
         <div className="text-xs text-muted-foreground truncate">{subtitle}</div>
@@ -87,9 +63,11 @@ export default function DataControl() {
   const setInitialDataSourceId = useSetAtom(
     inspectorSettingsInitialDataSourceIdAtom,
   );
+  const setInitialTab = useSetAtom(inspectorSettingsInitialTabAtom);
   const mapDataSources = useMapDataSources();
 
-  const openInspectorSettings = (dataSourceId: string | null) => {
+  const openDataSettings = (dataSourceId: string | null, tab: "general" | "inspector" = "general") => {
+    setInitialTab(tab);
     setInitialDataSourceId(dataSourceId);
     setModalOpen(true);
   };
@@ -112,9 +90,9 @@ export default function DataControl() {
         </div>
         <button
           type="button"
-          onClick={() => openInspectorSettings(null)}
+          onClick={() => openDataSettings(null)}
           className="p-2 rounded hover:bg-neutral-100 shrink-0"
-          aria-label="Visualisation data settings"
+          aria-label="Add data source"
         >
           <Plus size={16} />
         </button>
@@ -130,7 +108,7 @@ export default function DataControl() {
               <DataSourceRow
                 key={ds.id}
                 dataSource={ds}
-                onClick={() => openInspectorSettings(ds.id)}
+                onClick={() => openDataSettings(ds.id)}
               />
             ))
           )}

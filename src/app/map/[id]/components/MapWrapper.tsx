@@ -5,6 +5,7 @@ import { MapType } from "@/server/models/MapView";
 import {
   inspectorSettingsModalOpenAtom,
   inspectorSettingsInitialDataSourceIdAtom,
+  inspectorSettingsInitialTabAtom,
 } from "../atoms/inspectorAtoms";
 import { useChoropleth } from "../hooks/useChoropleth";
 import { useInspector } from "../hooks/useInspector";
@@ -40,6 +41,7 @@ export default function MapWrapper({
   const settingsInitialDataSourceId = useAtomValue(
     inspectorSettingsInitialDataSourceIdAtom,
   );
+  const settingsInitialTab = useAtomValue(inspectorSettingsInitialTabAtom);
   const setSettingsOpen = useSetAtom(inspectorSettingsModalOpenAtom);
   const setSettingsInitialDataSourceId = useSetAtom(
     inspectorSettingsInitialDataSourceIdAtom,
@@ -142,6 +144,7 @@ export default function MapWrapper({
         open={settingsOpen}
         onOpenChange={handleInspectorSettingsOpenChange}
         initialDataSourceId={settingsInitialDataSourceId}
+        initialTab={settingsInitialTab}
       />
 
       {!hideDrawControls && (

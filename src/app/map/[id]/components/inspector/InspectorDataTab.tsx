@@ -7,6 +7,8 @@ import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
+import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
+import { mapColors } from "@/app/map/[id]/styles";
 import DataSourceIcon from "@/components/DataSourceIcon";
 import { type DataSource } from "@/server/models/DataSource";
 import {
@@ -53,6 +55,7 @@ export default function InspectorDataTab({
   const { setSelectedDataSourceId } = useTable();
   const trpc = useTRPC();
   const { view, viewConfig, updateView } = useMapViews();
+  const { mapConfig } = useMapConfig();
   const { getDataSourceById } = useDataSources();
   const { selectedBoundary } = useInspector();
   const initializationAttemptedRef = useRef(false);
@@ -111,6 +114,21 @@ export default function InspectorDataTab({
     [view?.inspectorConfig?.boundaries],
   );
 
+  const markerLayerColors = useMemo(() => {
+    const out: Record<string, string> = {};
+    if (mapConfig.membersDataSourceId) {
+      out[mapConfig.membersDataSourceId] = mapColors.member.color;
+    }
+    mapConfig.markerDataSourceIds.forEach((id) => {
+      out[id] = mapConfig.markerColors?.[id] ?? mapColors.markers.color;
+    });
+    return out;
+  }, [
+    mapConfig.membersDataSourceId,
+    mapConfig.markerDataSourceIds,
+    mapConfig.markerColors,
+  ]);
+
   const isBoundary = type === LayerType.Boundary;
 
   const boundaryData = useMemo(() => {
@@ -120,8 +138,9 @@ export default function InspectorDataTab({
       dataSourceId: config.dataSourceId,
       areaCode: selectedBoundary?.code ?? "",
       columns: getSelectedColumnsOrdered(config),
+      markerLayerColor: markerLayerColors[config.dataSourceId],
     }));
-  }, [isBoundary, selectedBoundary?.code, boundaryConfigs]);
+  }, [isBoundary, selectedBoundary?.code, boundaryConfigs, markerLayerColors]);
 
   // Initialise boundary inspector config from choropleth data source when empty
   useEffect(() => {
@@ -183,6 +202,7 @@ export default function InspectorDataTab({
                     onOpenInspectorSettings={
                       onOpenInspectorSettingsForDataSource
                     }
+                    markerLayerColor={item.markerLayerColor}
                   />
                 ))}
               </div>

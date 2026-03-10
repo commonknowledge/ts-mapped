@@ -1,5 +1,11 @@
-import { PanelLeft } from "lucide-react";
+import { PanelLeft, Settings } from "lucide-react";
+import { useSetAtom } from "jotai";
 
+import {
+  inspectorSettingsModalOpenAtom,
+  inspectorSettingsInitialDataSourceIdAtom,
+  inspectorSettingsInitialTabAtom,
+} from "@/app/map/[id]/atoms/inspectorAtoms";
 import { useChoropleth } from "@/app/map/[id]/hooks/useChoropleth";
 import { MapType } from "@/server/models/MapView";
 import { Button } from "@/shadcn/ui/button";
@@ -15,6 +21,17 @@ export default function PrivateMapControls() {
   const [showControls, setShowControls] = useShowControlsAtom();
   const { setBoundariesPanelOpen } = useChoropleth();
   const { viewConfig } = useMapViews();
+  const setSettingsOpen = useSetAtom(inspectorSettingsModalOpenAtom);
+  const setInitialDataSourceId = useSetAtom(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
+  const setInitialTab = useSetAtom(inspectorSettingsInitialTabAtom);
+
+  const openDataSettings = () => {
+    setInitialTab("general");
+    setInitialDataSourceId(null);
+    setSettingsOpen(true);
+  };
 
   const onToggleControls = () => {
     setShowControls(!showControls);
@@ -49,14 +66,25 @@ export default function PrivateMapControls() {
           {/* Header */}
           <div className="flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-1 pr-1">
             <p className="text-sm font-semibold">Layers</p>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onToggleControls()}
-            >
-              <PanelLeft className="w-4 h-4" />
-              <span className="sr-only">Toggle controls</span>
-            </Button>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={openDataSettings}
+                aria-label="Data settings"
+                title="Data settings"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onToggleControls()}
+              >
+                <PanelLeft className="w-4 h-4" />
+                <span className="sr-only">Toggle controls</span>
+              </Button>
+            </div>
           </div>
 
           {/* Content */}

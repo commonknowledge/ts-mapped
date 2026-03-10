@@ -132,21 +132,15 @@ function IncludeColumnsModal({
   );
 }
 
-export default function VisualisationPanel({
-  positionLeft,
-}: {
-  positionLeft: number;
-}) {
+/** Choropleth settings form; use in VisualisationPanel or inside LegendMapWidget when expanded. */
+export function ChoroplethSettingsForm({ onClose }: { onClose: () => void }) {
   const { viewConfig, updateViewConfig } = useMapViews();
-  const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
   const { data: dataSources, getDataSourceById } = useDataSources();
   const dataSource = useChoroplethDataSource();
 
   const [invalidDataSourceId, setInvalidDataSourceId] = useState<string | null>(
     null,
   );
-
-  if (!boundariesPanelOpen) return null;
 
   const isCount = viewConfig.calculationType === CalculationType.Count;
 
@@ -174,21 +168,13 @@ export default function VisualisationPanel({
   const canSetCategoryColors = isCategorical;
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
-        "absolute top-0 h-full z-100",
-      )}
-      style={{
-        left: positionLeft,
-      }}
-    >
+    <div className="flex flex-col gap-4 p-3 overflow-y-auto">
       <div className="flex justify-between items-start gap-6 / text-sm">
         <h3 className="mt-2 font-medium">Create visualisation</h3>
         <button
           aria-label="Close visualisation panel"
           className="text-muted-foreground hover:text-primary cursor-pointer"
-          onClick={() => setBoundariesPanelOpen(false)}
+          onClick={onClose}
         >
           <X size={20} />
         </button>
@@ -839,6 +825,26 @@ export default function VisualisationPanel({
           </Select>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+export default function VisualisationPanel({
+  positionLeft,
+}: {
+  positionLeft: number;
+}) {
+  const { boundariesPanelOpen, setBoundariesPanelOpen } = useChoropleth();
+  if (!boundariesPanelOpen) return null;
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-4 p-3 bg-neutral-50 w-80 overflow-y-auto border-r border-neutral-200",
+        "absolute top-0 h-full z-100",
+      )}
+      style={{ left: positionLeft }}
+    >
+      <ChoroplethSettingsForm onClose={() => setBoundariesPanelOpen(false)} />
     </div>
   );
 }

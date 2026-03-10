@@ -2,15 +2,15 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { List, Settings as SettingsIcon } from "lucide-react";
 import { useMemo } from "react";
 import TogglePanel from "@/app/map/[id]/components/TogglePanel";
+import { MarkerCollectionIcon } from "@/app/map/[id]/components/Icons";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
-import DataSourceIcon from "@/components/DataSourceIcon";
-import { getDataSourceType } from "@/components/DataSourceItem";
 import { AreaSetCode } from "@/server/models/AreaSet";
 import { useTRPC } from "@/services/trpc/react";
 import { DataRecordMatchType } from "@/types";
 import { buildName } from "@/utils/dataRecord";
 import { useDataSources } from "../../hooks/useDataSources";
 import {
+  DataSourceInspectorIcon,
   InspectorPanelIcon,
   getBarColorForLabel,
   getInspectorColorClass,
@@ -30,6 +30,8 @@ export function BoundaryDataPanel({
   defaultExpanded,
   expanded: controlledExpanded,
   onOpenInspectorSettings,
+  previewMode,
+  markerLayerColor,
 }: {
   config: Pick<
     InspectorBoundaryConfig,
@@ -45,20 +47,32 @@ export function BoundaryDataPanel({
   /** When provided, controls the expanded state externally. */
   expanded?: boolean;
   onOpenInspectorSettings?: (dataSourceId: string) => void;
+  /** When true, falls back to first records from the data source if no boundary is selected. */
+  previewMode?: boolean;
+  /** When set (marker/member layer), show MarkerCollectionIcon with this color to match the layer panel. */
+  markerLayerColor?: string | null;
 }) {
   const trpc = useTRPC();
   const { selectedBoundary } = useInspector();
   const { getDataSourceById } = useDataSources();
   const dataSource = getDataSourceById(dataSourceId);
 
-  const dataSourceType = dataSource ? getDataSourceType(dataSource) : null;
-  const panelIcon = config.icon ? (
+  const panelIcon = markerLayerColor ? (
+    <span className="h-4 w-4 shrink-0 flex items-center justify-center">
+      <MarkerCollectionIcon color={markerLayerColor} />
+    </span>
+  ) : config.icon ? (
     <InspectorPanelIcon iconName={config.icon} className="h-4 w-4 shrink-0" />
-  ) : dataSourceType ? (
-    <DataSourceIcon type={dataSourceType} />
+  ) : dataSource ? (
+    <DataSourceInspectorIcon
+      dataSource={dataSource}
+      className="h-4 w-4 shrink-0"
+    />
   ) : undefined;
 
-  const { data, isLoading } = useQuery(
+  const hasBoundary = Boolean(selectedBoundary?.areaSetCode);
+
+  const { data: boundaryData, isLoading: boundaryLoading } = useQuery(
     trpc.dataRecord.byAreaCode.queryOptions(
       {
         dataSourceId,
@@ -67,10 +81,24 @@ export function BoundaryDataPanel({
           (selectedBoundary?.areaSetCode as AreaSetCode) || AreaSetCode.WMC24,
       },
       {
-        enabled: Boolean(selectedBoundary?.areaSetCode && dataSourceId),
+        enabled: hasBoundary && Boolean(dataSourceId),
       },
     ),
   );
+
+  const { data: listData, isLoading: listLoading } = useQuery(
+    trpc.dataRecord.list.queryOptions(
+      { dataSourceId, page: 0 },
+      { enabled: previewMode === true && !hasBoundary && Boolean(dataSourceId) },
+    ),
+  );
+
+  const data = hasBoundary
+    ? boundaryData
+    : previewMode && listData
+      ? { records: listData.records.slice(0, 1), match: DataRecordMatchType.Exact }
+      : undefined;
+  const isLoading = hasBoundary ? boundaryLoading : previewMode ? listLoading : false;
 
   const meta = useMemo(() => columnMetadata ?? {}, [columnMetadata]);
   const comparisonColumns = useMemo(

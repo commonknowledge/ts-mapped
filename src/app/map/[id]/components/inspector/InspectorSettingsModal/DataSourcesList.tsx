@@ -1,107 +1,115 @@
 "use client";
 
-import { Library, MapPin, XCircle } from "lucide-react";
-import { useMemo } from "react";
-import DataSourceIcon from "@/components/DataSourceIcon";
-import { getDataSourceType } from "@/components/DataSourceItem";
+import { Library, XCircle } from "lucide-react";
+import { useMemo, useState } from "react";
+import { MarkerCollectionIcon } from "@/app/map/[id]/components/Icons";
+import { DataSourceInspectorIcon } from "@/app/map/[id]/components/inspector/inspectorPanelOptions";
+import { mapColors } from "@/app/map/[id]/styles";
+import { DataSourceTypeLabels } from "@/labels";
 import { Input } from "@/shadcn/ui/input";
 import { cn } from "@/shadcn/utils";
 import type { DataSource } from "@/server/models/DataSource";
-import type { InspectorBoundaryConfig } from "@/server/models/MapView";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-interface InspectorEntry {
-  config: InspectorBoundaryConfig;
-  dataSource: DataSource;
-}
-
 interface DataSourcesListProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  inspectorOrdered: InspectorEntry[];
-  otherSources: DataSource[];
-  onMapId: string | null;
+  markerSources: DataSource[];
+  visualisationSources: DataSource[];
+  librarySources: DataSource[];
   selectedDataSourceId: string | null;
   onSelectDataSource: (id: string) => void;
-  onRemoveFromInspector: (configId: string) => void;
+  onRemoveFromMap: (dataSourceId: string) => void;
+  /** For map sources that are marker/member layers: show MarkerCollectionIcon with this color. Key = dataSourceId. */
+  markerLayerColors: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------
 // Shared pieces
 // ---------------------------------------------------------------------------
 
-function OnMapBadge() {
+function DsIcon({
+  ds,
+  markerColor,
+}: {
+  ds: DataSource;
+  markerColor?: string | null;
+}) {
+  if (markerColor) {
+    return (
+      <span className="w-4 h-4 shrink-0 flex items-center justify-center text-muted-foreground">
+        <MarkerCollectionIcon color={markerColor} />
+      </span>
+    );
+  }
   return (
-    <span
-      className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-800 shrink-0"
-      title="Used for map colour"
-    >
-      <MapPin className="w-2.5 h-2.5" />
-      On map
-    </span>
+    <DataSourceInspectorIcon
+      dataSource={ds}
+      className="w-4 h-4 shrink-0 text-muted-foreground"
+    />
   );
 }
 
-function DsIcon({ ds }: { ds: DataSource }) {
-  return (
-    <span className="shrink-0">
-      <DataSourceIcon
-        type={getDataSourceType(
-          ds as Parameters<typeof getDataSourceType>[0],
-        )}
-      />
-    </span>
-  );
+function dsSubtitle(ds: DataSource) {
+  return [
+    DataSourceTypeLabels[ds.config.type],
+    ds.recordCount != null ? String(ds.recordCount) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 // ---------------------------------------------------------------------------
 // Item renderers
 // ---------------------------------------------------------------------------
 
-function InspectorItem({
-  entry,
-  isOnMap,
+function MapSourceItem({
+  ds,
   isSelected,
   onSelect,
-  onRemove,
+  onRemoveFromMap,
+  markerColor,
 }: {
-  entry: InspectorEntry;
-  isOnMap: boolean;
+  ds: DataSource;
   isSelected: boolean;
   onSelect: () => void;
-  onRemove: () => void;
+  onRemoveFromMap: (dataSourceId: string) => void;
+  markerColor?: string | null;
 }) {
-  const { dataSource: ds } = entry;
   return (
     <div
       className={cn(
-        "rounded-lg border transition-colors flex items-center gap-2",
-        isSelected ? "bg-primary/10 border-primary/30" : "border-transparent",
+        "rounded-md border transition-colors flex items-center gap-0",
+        isSelected
+          ? "bg-primary/10 border-primary/30"
+          : "border-neutral-200 bg-white hover:bg-neutral-50",
       )}
     >
       <button
         type="button"
         onClick={onSelect}
-        className="flex-1 min-w-0 text-left rounded-lg p-2.5 flex items-center gap-2 hover:bg-neutral-50"
+        className="flex-1 min-w-0 text-left px-3 py-2.5 flex items-center gap-2"
       >
-        <DsIcon ds={ds} />
-        <span className="flex-1 min-w-0 truncate text-sm font-medium">
-          {ds.name}
-        </span>
-        {isOnMap && <OnMapBadge />}
+        <DsIcon ds={ds} markerColor={markerColor} />
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium truncate">{ds.name}</div>
+          <div className="text-xs text-muted-foreground truncate">
+            {dsSubtitle(ds)}
+          </div>
+        </div>
       </button>
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          onRemove();
+          onRemoveFromMap(ds.id);
         }}
-        className="shrink-0 p-1.5 rounded text-muted-foreground hover:bg-neutral-100 hover:text-foreground"
-        title="Remove from inspector"
-        aria-label="Remove from inspector"
+        className="shrink-0 p-1.5 mr-1 rounded text-muted-foreground hover:bg-neutral-100 hover:text-destructive"
+        title="Remove from map"
+        aria-label="Remove from map"
       >
         <XCircle className="w-4 h-4" />
       </button>
@@ -111,12 +119,10 @@ function InspectorItem({
 
 function LibraryItem({
   ds,
-  isOnMap,
   isSelected,
   onSelect,
 }: {
   ds: DataSource;
-  isOnMap: boolean;
   isSelected: boolean;
   onSelect: () => void;
 }) {
@@ -125,56 +131,68 @@ function LibraryItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        "w-full text-left rounded-lg p-2.5 flex items-center gap-2 border transition-colors",
-        isSelected
-          ? "bg-primary/10 border-primary/30"
-          : "hover:bg-neutral-50 border-transparent",
+        "w-full text-left rounded-md px-3 py-1.5 flex items-center gap-2 transition-colors",
+        isSelected ? "bg-primary/10" : "hover:bg-neutral-50",
       )}
     >
       <DsIcon ds={ds} />
-      <span className="flex-1 min-w-0 truncate text-sm font-medium">
-        {ds.name}
-      </span>
-      <div className="flex shrink-0 gap-1 items-center">
-        {isSelected && (
-          <Library
-            className="w-3.5 h-3.5 text-muted-foreground"
-            title="From library"
-          />
-        )}
-        {isOnMap && <OnMapBadge />}
-      </div>
+      <span className="flex-1 min-w-0 truncate text-sm">{ds.name}</span>
     </button>
   );
 }
 
-function LibraryGroup({
-  label,
-  items,
-  onMapId,
+function LibraryTabs({
+  libraryUser,
+  libraryMovement,
   selectedDataSourceId,
   onSelectDataSource,
-  className,
 }: {
-  label: string;
-  items: DataSource[];
-  onMapId: string | null;
+  libraryUser: DataSource[];
+  libraryMovement: DataSource[];
   selectedDataSourceId: string | null;
   onSelectDataSource: (id: string) => void;
-  className?: string;
 }) {
-  if (items.length === 0) return null;
+  const defaultTab = libraryUser.length > 0 ? "user" : "movement";
+  const [tab, setTab] = useState<"user" | "movement">(defaultTab);
+  const items = tab === "user" ? libraryUser : libraryMovement;
+
   return (
-    <div className={className}>
-      <p className="text-[11px] font-medium text-muted-foreground px-2 mb-1">
-        {label}
-      </p>
+    <div className="mt-1">
+      <div className="flex gap-1 px-1 mb-1.5">
+        {libraryUser.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setTab("user")}
+            className={cn(
+              "px-2 py-1 rounded text-[11px] font-medium transition-colors",
+              tab === "user"
+                ? "bg-neutral-200 text-foreground"
+                : "text-muted-foreground hover:bg-neutral-100",
+            )}
+          >
+            User data
+          </button>
+        )}
+        {libraryMovement.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setTab("movement")}
+            className={cn(
+              "px-2 py-1 rounded text-[11px] font-medium transition-colors",
+              tab === "movement"
+                ? "bg-neutral-200 text-foreground"
+                : "text-muted-foreground hover:bg-neutral-100",
+            )}
+          >
+            Movement data
+          </button>
+        )}
+      </div>
       <div className="space-y-0.5">
         {items.map((ds) => (
           <LibraryItem
             key={ds.id}
             ds={ds}
-            isOnMap={ds.id === onMapId}
             isSelected={ds.id === selectedDataSourceId}
             onSelect={() => onSelectDataSource(ds.id)}
           />
@@ -191,23 +209,25 @@ function LibraryGroup({
 export function DataSourcesList({
   searchQuery,
   onSearchChange,
-  inspectorOrdered,
-  otherSources,
-  onMapId,
+  markerSources,
+  visualisationSources,
+  librarySources,
   selectedDataSourceId,
   onSelectDataSource,
-  onRemoveFromInspector,
+  onRemoveFromMap,
+  markerLayerColors,
 }: DataSourcesListProps) {
-  const { otherUser, otherPublic } = useMemo(
+  const { libraryUser, libraryMovement } = useMemo(
     () => ({
-      otherUser: otherSources.filter((ds) => !ds.public),
-      otherPublic: otherSources.filter((ds) => ds.public),
+      libraryUser: librarySources.filter((ds) => !ds.public),
+      libraryMovement: librarySources.filter((ds) => ds.public),
     }),
-    [otherSources],
+    [librarySources],
   );
 
-  const hasInspector = inspectorOrdered.length > 0;
-  const hasOther = otherUser.length > 0 || otherPublic.length > 0;
+  const hasMarkers = markerSources.length > 0;
+  const hasVisualisation = visualisationSources.length > 0;
+  const hasLibrary = libraryUser.length > 0 || libraryMovement.length > 0;
 
   return (
     <div className="w-72 shrink-0 border-r flex flex-col">
@@ -221,55 +241,74 @@ export function DataSourcesList({
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
-        {/* On this map */}
-        {hasInspector && (
-          <section className="pb-2 border-b border-neutral-200">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground px-2 py-1.5">
-              On this map
-            </h3>
-            <div className="space-y-0.5">
-              {inspectorOrdered.map((entry) => (
-                <InspectorItem
-                  key={entry.dataSource.id}
-                  entry={entry}
-                  isOnMap={entry.dataSource.id === onMapId}
-                  isSelected={entry.dataSource.id === selectedDataSourceId}
-                  onSelect={() => onSelectDataSource(entry.dataSource.id)}
-                  onRemove={() => onRemoveFromInspector(entry.config.id)}
+        {/* Markers */}
+        <section className="pb-2">
+          <h3 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground px-2 py-1.5">
+            Markers
+          </h3>
+          {hasMarkers ? (
+            <div className="space-y-1.5">
+              {markerSources.map((ds) => (
+                <MapSourceItem
+                  key={ds.id}
+                  ds={ds}
+                  isSelected={ds.id === selectedDataSourceId}
+                  onSelect={() => onSelectDataSource(ds.id)}
+                  onRemoveFromMap={onRemoveFromMap}
+                  markerColor={markerLayerColors[ds.id]}
                 />
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="text-xs text-muted-foreground px-2 py-1">
+              No marker layers added yet.
+            </p>
+          )}
+        </section>
+
+        {/* Visualisation data */}
+        <section className="pt-2 border-t border-neutral-200 mb-6">
+          <h3 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground px-2 py-1.5">
+            Visualisation data
+          </h3>
+          {hasVisualisation ? (
+            <div className="space-y-1.5">
+              {visualisationSources.map((ds) => (
+                <MapSourceItem
+                  key={ds.id}
+                  ds={ds}
+                  isSelected={ds.id === selectedDataSourceId}
+                  onSelect={() => onSelectDataSource(ds.id)}
+                  onRemoveFromMap={onRemoveFromMap}
+                  markerColor={markerLayerColors[ds.id]}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground px-2 py-1">
+              No visualisation data added yet.
+            </p>
+          )}
+        </section>
 
         {/* Library */}
-        {hasOther && (
-          <section className={cn("pt-2", hasInspector && "mt-2")}>
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground px-2 py-1.5 flex items-center gap-1.5">
+        {hasLibrary && (
+          <section className="pt-2 border-t border-neutral-200">
+            <h3 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground px-2 py-1.5 flex items-center gap-1.5">
               <Library className="w-3.5 h-3.5" />
-              Library
+              Add data from Library
             </h3>
-            <LibraryGroup
-              label="User data"
-              items={otherUser}
-              onMapId={onMapId}
+            <LibraryTabs
+              libraryUser={libraryUser}
+              libraryMovement={libraryMovement}
               selectedDataSourceId={selectedDataSourceId}
               onSelectDataSource={onSelectDataSource}
-              className="mt-1"
-            />
-            <LibraryGroup
-              label="Public data"
-              items={otherPublic}
-              onMapId={onMapId}
-              selectedDataSourceId={selectedDataSourceId}
-              onSelectDataSource={onSelectDataSource}
-              className={cn(otherUser.length > 0 && "mt-3")}
             />
           </section>
         )}
 
         {/* Empty state */}
-        {!hasInspector && !hasOther && (
+        {!hasMarkers && !hasVisualisation && !hasLibrary && (
           <p className="text-sm text-muted-foreground p-2">
             No data sources match.
           </p>

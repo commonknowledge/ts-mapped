@@ -18,3 +18,7 @@ export const inspectorSettingsModalOpenAtom = atom<boolean>(false);
 export const inspectorSettingsInitialDataSourceIdAtom = atom<string | null>(
   null,
 );
+/** Which tab to show when opening: "general" (layer/column options) or "inspector". Set by opener (layers vs inspector panel). */
+export const inspectorSettingsInitialTabAtom = atom<"general" | "inspector">(
+  "general",
+);

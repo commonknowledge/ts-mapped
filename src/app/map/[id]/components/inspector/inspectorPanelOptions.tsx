@@ -262,6 +262,19 @@ export function InspectorPanelIcon({
   return Icon ? React.createElement(Icon, { className }) : null;
 }
 
+/** Universal data-source icon derived from defaultInspectorConfig.icon, falling back to Database. */
+export function DataSourceInspectorIcon({
+  dataSource,
+  className,
+}: {
+  dataSource: { defaultInspectorConfig?: { icon?: string | null } | null };
+  className?: string;
+}) {
+  const iconName = dataSource.defaultInspectorConfig?.icon;
+  const Icon = iconName ? getInspectorIcon(iconName) : null;
+  return React.createElement(Icon ?? Database, { className });
+}
+
 /** Map layer-panel colour names to Tailwind bg classes (same order as ColorPalette) */
 const LAYER_COLOR_NAME_TO_BG: Record<string, string> = {
   Red: "bg-red-50",

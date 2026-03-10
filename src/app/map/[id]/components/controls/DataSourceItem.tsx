@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, PencilIcon, Settings as SettingsIcon, TrashIcon } from "lucide-react";
+import { useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import ColorPalette from "@/components/ColorPalette";
@@ -31,6 +32,10 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/shadcn/ui/context-menu";
+import {
+  inspectorSettingsInitialDataSourceIdAtom,
+  inspectorSettingsModalOpenAtom,
+} from "@/app/map/[id]/atoms/inspectorAtoms";
 import { LayerType } from "@/types";
 import { useLayers } from "../../hooks/useLayers";
 import { useMapConfig } from "../../hooks/useMapConfig";
@@ -58,6 +63,10 @@ export default function DataSourceItem({
   handleDataSourceSelect: (id: string) => void;
   layerType: LayerType;
 }) {
+  const setSettingsOpen = useSetAtom(inspectorSettingsModalOpenAtom);
+  const setSettingsInitialDataSourceId = useSetAtom(
+    inspectorSettingsInitialDataSourceIdAtom,
+  );
   const { setDataSourceVisibility, getDataSourceVisibility } = useLayers();
   const { mapConfig, updateMapConfig } = useMapConfig();
   const trpc = useTRPC();
@@ -166,6 +175,11 @@ export default function DataSourceItem({
     setShowRemoveDialog(false);
   };
 
+  const openInspectorSettings = () => {
+    setSettingsInitialDataSourceId(dataSource.id);
+    setSettingsOpen(true);
+  };
+
   return (
     <>
       <ControlWrapper
@@ -267,6 +281,10 @@ export default function DataSourceItem({
                   Show
                 </>
               )}
+            </ContextMenuItem>
+            <ContextMenuItem onClick={openInspectorSettings}>
+              <SettingsIcon size={12} />
+              Inspector settings
             </ContextMenuItem>
             <ContextMenuSeparator />
             <ContextMenuSub>

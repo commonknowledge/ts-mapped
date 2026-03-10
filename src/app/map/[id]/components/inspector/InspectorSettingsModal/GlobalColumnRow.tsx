@@ -203,10 +203,10 @@ export function GlobalColumnRow({
   const hasCustomSettings =
     (displayName ?? "") !== "" ||
     (description ?? "") !== "" ||
-    format !== "text" ||
     (format === "scale" && scaleMax !== 3) ||
     (format === "numberWithComparison" && comparisonStat !== undefined) ||
-    ((format === "percentage" || format === "scale") && (barColor ?? "") !== "");
+    ((format === "percentage" || format === "scale") && (barColor ?? "") !== "") ||
+    format !== "text";
 
   return (
     <div
