@@ -13,12 +13,16 @@ export const mapViewRouter = router({
   tagRecordsWithViewName: dataSourceOwnerProcedure
     .input(z.object({ viewId: z.string(), columnName: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await enqueue("tagDataSource", ctx.dataSource.id, {
-        dataSourceId: ctx.dataSource.id,
-        viewId: input.viewId,
-        columnName: input.columnName,
-        userEmail: ctx.user.email,
-      });
+      await enqueue(
+        "tagDataSource",
+        `${ctx.dataSource.id}-${input.viewId}-${input.columnName}`,
+        {
+          dataSourceId: ctx.dataSource.id,
+          viewId: input.viewId,
+          columnName: input.columnName,
+          userEmail: ctx.user.email,
+        },
+      );
       return true;
     }),
 });

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tag } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useDataRecords } from "@/app/map/[id]/hooks/useDataRecords";
@@ -11,6 +11,7 @@ import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { DataSourceFeatures } from "@/features";
 import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
+import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { ColumnType } from "@/server/models/DataSource";
 import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
@@ -180,8 +181,17 @@ export default function MapTable() {
   ]);
 
   const dataSource = getDataSourceById(selectedDataSourceId);
+
+  const { organisationId } = useContext(OrganisationsContext);
+  const isOwner = Boolean(
+    organisationId &&
+    dataSource &&
+    dataSource.organisationId === organisationId,
+  );
+
   const enableSyncToCRM =
     useFeatureFlagEnabled("sync-to-crm") &&
+    isOwner &&
     dataSource &&
     DataSourceFeatures[dataSource.config.type].syncToCrm;
 
