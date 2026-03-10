@@ -17,7 +17,6 @@ import { FilterType } from "@/server/models/MapView";
 import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { buildName } from "@/utils/dataRecord";
-import { buildTagName } from "@/utils/tagName";
 import { useMapId, useMapRef } from "../../hooks/useMapCore";
 import { useMapQuery } from "../../hooks/useMapQuery";
 import { DataTable } from "./DataTable";
@@ -253,8 +252,6 @@ export default function MapTable() {
     [pendingTagDisplayName],
   );
 
-  const newTagName = buildTagName(map?.name || "", view?.name || "");
-
   if (!dataSource || !view) {
     return null;
   }
@@ -320,7 +317,11 @@ export default function MapTable() {
     </Button>
   ) : null;
 
-  const handleSyncConfirm = () => {
+  const handleSyncConfirm = (newTagName: string) => {
+    if (!newTagName) {
+      return;
+    }
+
     const recordIds = (dataRecordsResult?.records || []).map((r) => r.id);
 
     // Close the modal immediately, but only mark the tag as pending once the
@@ -378,10 +379,9 @@ export default function MapTable() {
           onOpenChange={setSyncModalOpen}
           onConfirm={handleSyncConfirm}
           dataSourceType={dataSource.config.type}
+          columns={dataSource.columnDefs}
           mapName={map?.name || ""}
           viewName={view.name}
-          tagName={newTagName}
-          columns={dataSource.columnDefs}
           records={dataRecordsResult?.records || []}
         />
       )}

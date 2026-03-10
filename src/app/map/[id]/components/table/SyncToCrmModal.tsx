@@ -1,4 +1,5 @@
 import { Tag } from "lucide-react";
+import { useMemo } from "react";
 import { DataSourceTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -17,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
+import { buildTagName } from "@/utils/tagName";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSourceType } from "@/server/models/DataSource";
 
@@ -26,12 +28,11 @@ const PREVIEW_COLUMN_COUNT = 10;
 interface SyncToCrmModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (tagName: string) => void;
   dataSourceType: DataSourceType;
+  columns: ColumnDef[];
   mapName: string;
   viewName: string;
-  tagName: string;
-  columns: ColumnDef[];
   records: { json: Record<string, unknown> }[];
 }
 
@@ -40,10 +41,15 @@ export default function SyncToCrmModal({
   onOpenChange,
   onConfirm,
   dataSourceType,
-  tagName,
   columns,
+  mapName,
+  viewName,
   records,
 }: SyncToCrmModalProps) {
+  const tagName = useMemo(() => {
+    return open ? buildTagName(mapName, viewName) : "";
+  }, [mapName, viewName, open]);
+
   const previewColumns =
     columns.length > 0
       ? [
@@ -55,7 +61,7 @@ export default function SyncToCrmModal({
   const previewRecords = records.slice(0, PREVIEW_ROW_COUNT);
 
   const handleConfirm = () => {
-    onConfirm();
+    onConfirm(tagName);
   };
 
   return (
