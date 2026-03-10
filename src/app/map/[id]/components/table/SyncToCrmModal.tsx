@@ -1,3 +1,4 @@
+import { Tag } from "lucide-react";
 import { useMemo } from "react";
 import { DataSourceTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
@@ -20,11 +21,9 @@ import {
 import { buildTagName } from "@/utils/tagName";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSourceType } from "@/server/models/DataSource";
-import { Tag } from "lucide-react";
 
 const PREVIEW_ROW_COUNT = 10;
 const PREVIEW_COLUMN_COUNT = 10;
-
 
 interface SyncToCrmModalProps {
   open: boolean;
@@ -97,8 +96,9 @@ export default function SyncToCrmModal({
                     {previewColumns.map((col) => (
                       <TableHead
                         key={col.name}
-                        className={`text-xs min-w-[200px] max-w-[250px] ${"isTagColumn" in col ? "bg-blue-50 font-semibold" : ""
-                          }`}
+                        className={`text-xs min-w-[200px] max-w-[250px] ${
+                          "isTagColumn" in col ? "bg-blue-50 font-semibold" : ""
+                        }`}
                       >
                         <span className="text-wrap">{col.name}</span>
                       </TableHead>
@@ -112,10 +112,11 @@ export default function SyncToCrmModal({
                         {previewColumns.map((col) => (
                           <TableCell
                             key={col.name}
-                            className={`text-xs truncate max-w-[150px] ${"isTagColumn" in col
-                              ? "bg-blue-50 font-medium"
-                              : ""
-                              }`}
+                            className={`text-xs truncate max-w-[150px] ${
+                              "isTagColumn" in col
+                                ? "bg-blue-50 font-medium"
+                                : ""
+                            }`}
                           >
                             {"isTagColumn" in col
                               ? "true"
@@ -124,7 +125,6 @@ export default function SyncToCrmModal({
                         ))}
                       </TableRow>
                     ))
-
                   ) : (
                     <TableRow>
                       <TableCell
@@ -135,7 +135,6 @@ export default function SyncToCrmModal({
                       </TableCell>
                     </TableRow>
                   )}
-
                 </TableBody>
               </Table>
             </div>

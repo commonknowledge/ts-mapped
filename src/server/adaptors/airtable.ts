@@ -569,12 +569,16 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     const fieldName = taggedRecords[0].tag.name;
 
     const existingFields = await this.getFields();
-    logger.info(`Airtable tagRecords: field="${fieldName}", existingFields=${JSON.stringify(existingFields)}`);
+    logger.info(
+      `Airtable tagRecords: field="${fieldName}", existingFields=${JSON.stringify(existingFields)}`,
+    );
     if (!existingFields.includes(fieldName)) {
       logger.info(`Creating new Airtable field: "${fieldName}"`);
       await this.createField(fieldName, ColumnType.Boolean);
     } else {
-      logger.info(`Airtable field "${fieldName}" already exists, skipping creation`);
+      logger.info(
+        `Airtable field "${fieldName}" already exists, skipping creation`,
+      );
     }
 
     for (const batch of batches) {
@@ -587,7 +591,9 @@ export class AirtableAdaptor implements DataSourceAdaptor {
         };
       });
 
-      logger.info(`Airtable PATCH ${batch.length} records for field "${fieldName}"`);
+      logger.info(
+        `Airtable PATCH ${batch.length} records for field "${fieldName}"`,
+      );
       const response = await fetch(url, {
         method: "PATCH",
         headers: {

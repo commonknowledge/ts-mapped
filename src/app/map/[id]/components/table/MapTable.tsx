@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Tag } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -22,7 +23,6 @@ import { DataTable } from "./DataTable";
 import MapTableFilter from "./MapTableFilter";
 import SyncToCrmModal from "./SyncToCrmModal";
 import type { DataSourceView } from "@/server/models/MapView";
-import { Tag } from "lucide-react";
 
 interface DataRecord {
   id: string;
@@ -206,6 +206,43 @@ export default function MapTable() {
     }
   }, [selectedDataSourceId, dataSource?.columnDefs]);
 
+  const pendingTagDisplayName = pendingTagColumnName
+    ? `${pendingTagColumnName} (Syncing...)`
+    : null;
+
+  const columnsWithTag = useMemo(() => {
+    const cols = [...(dataSource?.columnDefs || [])];
+    if (pendingTagDisplayName) {
+      cols.push({ name: pendingTagDisplayName, type: ColumnType.Boolean });
+    }
+    return cols.toSorted((a, b) => {
+      const aIsMapped = a.name.startsWith("Mapped");
+      const bIsMapped = b.name.startsWith("Mapped");
+      if (aIsMapped === bIsMapped) return 0;
+      return aIsMapped ? 1 : -1;
+    });
+  }, [dataSource?.columnDefs, pendingTagDisplayName]);
+
+  const dataWithTag = useMemo(() => {
+    const records = dataRecordsResult?.records || [];
+    if (!pendingTagDisplayName) return records;
+    return records.map((record) => ({
+      ...record,
+      json: {
+        ...record.json,
+        [pendingTagDisplayName]: matchedRecordIds.has(record.id)
+          ? true
+          : undefined,
+      },
+    }));
+  }, [dataRecordsResult?.records, pendingTagDisplayName, matchedRecordIds]);
+
+  const highlightedColumns = useMemo(
+    () =>
+      pendingTagDisplayName ? new Set([pendingTagDisplayName]) : undefined,
+    [pendingTagDisplayName],
+  );
+
   if (!dataSource || !view) {
     return null;
   }
@@ -284,38 +321,6 @@ export default function MapTable() {
     setSyncModalOpen(false);
     tagRecords({ dataSourceId: dataSource.id, viewId: view.id });
   };
-
-  const pendingTagDisplayName = pendingTagColumnName
-    ? `${pendingTagColumnName} (Syncing...)`
-    : null;
-
-  const columnsWithTag = useMemo(() => {
-    if (!pendingTagDisplayName) return dataSource.columnDefs;
-    return [
-      ...dataSource.columnDefs,
-      { name: pendingTagDisplayName, type: ColumnType.Boolean },
-    ];
-  }, [dataSource.columnDefs, pendingTagDisplayName]);
-
-  const dataWithTag = useMemo(() => {
-    const records = dataRecordsResult?.records || [];
-    if (!pendingTagDisplayName) return records;
-    return records.map((record) => ({
-      ...record,
-      json: {
-        ...record.json,
-        [pendingTagDisplayName]: matchedRecordIds.has(record.id)
-          ? true
-          : undefined,
-      },
-    }));
-  }, [dataRecordsResult?.records, pendingTagDisplayName, matchedRecordIds]);
-
-  const highlightedColumns = useMemo(
-    () =>
-      pendingTagDisplayName ? new Set([pendingTagDisplayName]) : undefined,
-    [pendingTagDisplayName],
-  );
 
   return (
     <div className="h-full">
