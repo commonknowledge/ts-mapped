@@ -68,7 +68,7 @@ export default function InspectorPanel() {
     return (
       <div
         id="inspector-panel"
-        className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
+        className={cn("absolute top-0 right-4 / flex flex-col gap-6")}
         style={{
           minWidth: "250px",
           maxWidth: "450px",
@@ -136,7 +136,7 @@ export default function InspectorPanel() {
   return (
     <div
       id="inspector-panel"
-      className={cn("absolute top-0 bottom-0 right-4 / flex flex-col gap-6")}
+      className={cn("absolute top-0 right-4 / flex flex-col gap-6")}
       style={{
         minWidth: "250px",
         maxWidth: "450px",
