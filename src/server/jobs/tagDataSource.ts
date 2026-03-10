@@ -139,10 +139,17 @@ const tagDataSource = async (args: object | null): Promise<boolean> => {
       logger.error("Failed to send tagging success email", { error });
     }
 
-    await enqueue("importDataSource", dataSourceId, { dataSourceId });
-    logger.info(
-      `Enqueued re-import for data source ${dataSourceId} after tagging`,
-    );
+    try {
+      await enqueue("importDataSource", dataSourceId, { dataSourceId });
+      logger.info(
+        `Enqueued re-import for data source ${dataSourceId} after tagging`,
+      );
+    } catch (error) {
+      logger.error(
+        "Failed to enqueue re-import for data source after tagging",
+        { dataSourceId, error },
+      );
+    }
 
     return true;
   } catch (error) {
