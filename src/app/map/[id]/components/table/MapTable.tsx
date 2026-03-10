@@ -43,7 +43,7 @@ function getPendingTag(dataSourceId: string): PendingTag | null {
   try {
     const raw = localStorage.getItem(PENDING_TAG_KEY);
     if (!raw) return null;
-    const parsed: PendingTag = JSON.parse(raw);
+    const parsed = JSON.parse(raw) as PendingTag;
     return parsed.dataSourceId === dataSourceId ? parsed : null;
   } catch {
     return null;
