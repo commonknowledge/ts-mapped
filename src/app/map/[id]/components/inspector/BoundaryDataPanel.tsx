@@ -28,6 +28,7 @@ export function BoundaryDataPanel({
   columnGroups,
   layout,
   defaultExpanded,
+  expanded: controlledExpanded,
   onOpenInspectorSettings,
 }: {
   config: Pick<
@@ -41,9 +42,10 @@ export function BoundaryDataPanel({
   columnGroups?: InspectorBoundaryConfig["columnGroups"];
   layout?: InspectorBoundaryConfig["layout"];
   defaultExpanded?: boolean;
+  /** When provided, controls the expanded state externally. */
+  expanded?: boolean;
   onOpenInspectorSettings?: (dataSourceId: string) => void;
 }) {
-  const expanded = defaultExpanded ?? true;
   const trpc = useTRPC();
   const { selectedBoundary } = useInspector();
   const { getDataSourceById } = useDataSources();
@@ -120,7 +122,8 @@ export function BoundaryDataPanel({
     <TogglePanel
       label={config.name}
       icon={panelIcon}
-      defaultExpanded={expanded}
+      defaultExpanded={defaultExpanded ?? true}
+      expanded={controlledExpanded}
       wrapperClassName={getInspectorColorClass(config.color)}
       headerRight={
         <div className="flex items-center gap-1.5">

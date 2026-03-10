@@ -158,6 +158,7 @@ export function GlobalColumnRow({
   barColor,
   onBarColorChange,
   isExpanded: initialExpanded = false,
+  alwaysExpanded = false,
   showInInspector = true,
   onShowInInspectorChange,
 }: {
@@ -175,6 +176,8 @@ export function GlobalColumnRow({
   barColor?: string;
   onBarColorChange?: (value: string) => void;
   isExpanded?: boolean;
+  /** When true, show form fields always (no accordion). */
+  alwaysExpanded?: boolean;
   showInInspector?: boolean;
   onShowInInspectorChange?: (show: boolean) => void;
 }) {
@@ -206,54 +209,78 @@ export function GlobalColumnRow({
     ((format === "percentage" || format === "scale") && (barColor ?? "") !== "");
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setExpanded((e) => !e)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-neutral-50 transition-colors"
-      >
-        {onShowInInspectorChange != null && (
-          <div
-            className="shrink-0 flex items-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Checkbox
-              checked={showInInspector}
-              onCheckedChange={(checked) =>
-                onShowInInspectorChange(checked === true)
-              }
+    <div
+      className={
+        alwaysExpanded ? "" : "rounded-lg border border-neutral-200 bg-white overflow-hidden"
+      }
+    >
+      {!alwaysExpanded && (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setExpanded((e) => !e)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setExpanded((prev) => !prev);
+            }
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-neutral-50 transition-colors cursor-pointer"
+        >
+          {onShowInInspectorChange != null && (
+            <div
+              className="shrink-0 flex items-center"
               onClick={(e) => e.stopPropagation()}
-              aria-label={`Show ${columnName} in inspector`}
-            />
-          </div>
-        )}
-        <span
-          className={cn(
-            "text-xs font-mono font-medium truncate flex-1",
-            hasCustomSettings ? "text-foreground" : "text-muted-foreground",
+            >
+              <Checkbox
+                checked={showInInspector}
+                onCheckedChange={(checked) =>
+                  onShowInInspectorChange(checked === true)
+                }
+                onClick={(e) => e.stopPropagation()}
+                aria-label={`Show ${columnName} in inspector`}
+              />
+            </div>
           )}
-          title={columnName}
-        >
-          {columnName}
-        </span>
-        {hasCustomSettings && (
-          <span className="text-[10px] uppercase text-primary font-medium shrink-0">
-            Custom
+          <span
+            className={cn(
+              "text-xs font-mono font-medium truncate flex-1",
+              hasCustomSettings ? "text-foreground" : "text-muted-foreground",
+            )}
+            title={columnName}
+          >
+            {columnName}
           </span>
-        )}
-        <span
-          className={cn(
-            "shrink-0 text-muted-foreground transition-transform",
-            expanded && "rotate-180",
+          {hasCustomSettings && (
+            <span className="text-[10px] uppercase text-primary font-medium shrink-0">
+              Custom
+            </span>
           )}
-          aria-hidden
+          <span
+            className={cn(
+              "shrink-0 text-muted-foreground transition-transform",
+              expanded && "rotate-180",
+            )}
+            aria-hidden
+          >
+            ▼
+          </span>
+        </div>
+      )}
+      {(alwaysExpanded || expanded) && (
+        <div
+          className={cn(
+            "px-3 pb-3 space-y-3",
+            !alwaysExpanded && "pt-0 border-t border-neutral-100",
+            alwaysExpanded && "pt-3",
+          )}
         >
-          ▼
-        </span>
-      </button>
-      {expanded && (
-        <div className="px-3 pb-3 pt-0 space-y-3 border-t border-neutral-100">
-          <div className="space-y-1 pt-3">
+          {alwaysExpanded && (
+            <p className="text-xs font-mono font-medium text-muted-foreground">
+              {columnName}
+            </p>
+          )}
+          <div className={cn("space-y-1", !alwaysExpanded && "pt-3")}>
             <Label className="text-[10px] text-muted-foreground uppercase">
               Display name
             </Label>

@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/shadcn/utils";
 import type { LucideIcon } from "lucide-react";
 
@@ -7,11 +7,12 @@ interface TogglePanelProps {
   label: string;
   icon?: React.ReactNode;
   defaultExpanded?: boolean;
+  /** When provided, controls the expanded state externally (overrides internal toggle). */
+  expanded?: boolean;
   children?: React.ReactNode;
   headerRight?: React.ReactNode;
   rightIconButton?: LucideIcon;
   onRightIconButtonClick?: () => void;
-  /** Optional class for the outer wrapper (e.g. panel background colour) */
   wrapperClassName?: string;
 }
 
@@ -19,19 +20,28 @@ export default function TogglePanel({
   label,
   icon: Icon,
   defaultExpanded = true,
+  expanded: controlledExpanded,
   children,
   headerRight,
   rightIconButton: RightIconButton,
   onRightIconButtonClick,
   wrapperClassName,
 }: TogglePanelProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [internalExpanded, setInternalExpanded] = useState(controlledExpanded ?? defaultExpanded);
+
+  useEffect(() => {
+    if (controlledExpanded !== undefined) {
+      setInternalExpanded(controlledExpanded);
+    }
+  }, [controlledExpanded]);
+
+  const expanded = internalExpanded;
 
   return (
     <div className={cn("rounded-lg p-2", wrapperClassName ?? "bg-neutral-100")}>
       <div className="flex items-center justify-between relative group">
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => setInternalExpanded(!expanded)}
           className="flex items-center gap-2 rounded  text-sm font-medium cursor-pointer"
         >
           {Icon}
