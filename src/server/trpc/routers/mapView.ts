@@ -1,6 +1,7 @@
 import z from "zod";
 import { deleteMapView } from "@/server/repositories/MapView";
 import { enqueue } from "@/server/services/queue";
+import { TAG_MAX_LENGTH, TAG_PREFIX } from "@/utils/tagName";
 import { dataSourceOwnerProcedure, mapWriteProcedure, router } from "../index";
 
 export const mapViewRouter = router({
@@ -11,7 +12,20 @@ export const mapViewRouter = router({
       return true;
     }),
   tagRecordsWithViewName: dataSourceOwnerProcedure
-    .input(z.object({ viewId: z.string(), columnName: z.string() }))
+    .input(
+      z.object({
+        viewId: z.string(),
+        columnName: z
+          .string()
+          .max(
+            TAG_MAX_LENGTH,
+            `Tag name must not exceed ${TAG_MAX_LENGTH} characters`,
+          )
+          .refine((name) => name.startsWith(TAG_PREFIX), {
+            message: `Tag name must start with "${TAG_PREFIX}"`,
+          }),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       await enqueue(
         "tagDataSource",

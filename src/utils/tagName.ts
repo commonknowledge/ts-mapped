@@ -24,10 +24,13 @@ function formatTagDate(date: Date): string {
   return `${dd} ${mon} ${yy} - ${h12}:${mm}${period}`;
 }
 
+export const TAG_PREFIX = "Mapped: ";
+export const TAG_MAX_LENGTH = 32;
+
 export function buildTagName(
   mapName: string,
   viewName: string,
   date = new Date(),
 ): string {
-  return `Mapped: ${mapName}/${viewName} (${formatTagDate(date)})`;
+  return `${TAG_PREFIX}${mapName}/${viewName} (${formatTagDate(date)})`;
 }

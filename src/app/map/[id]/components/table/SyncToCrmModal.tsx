@@ -1,5 +1,5 @@
 import { Tag } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DataSourceTypeLabels } from "@/labels";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shadcn/ui/dialog";
+import { Input } from "@/shadcn/ui/input";
+import { Label } from "@/shadcn/ui/label";
 import {
   Table,
   TableBody,
@@ -18,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shadcn/ui/table";
-import { buildTagName } from "@/utils/tagName";
+import { TAG_MAX_LENGTH, TAG_PREFIX, buildTagName } from "@/utils/tagName";
 import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSourceType } from "@/server/models/DataSource";
 
@@ -46,9 +48,21 @@ export default function SyncToCrmModal({
   viewName,
   records,
 }: SyncToCrmModalProps) {
-  const tagName = useMemo(() => {
+  const defaultTagName = useMemo(() => {
     return open ? buildTagName(mapName, viewName) : "";
   }, [mapName, viewName, open]);
+
+  const [tagSuffix, setTagSuffix] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setTagSuffix(defaultTagName.slice(TAG_PREFIX.length));
+    }
+  }, [open, defaultTagName]);
+
+  const tagName = `${TAG_PREFIX}${tagSuffix}`;
+  const suffixTrimmed = tagSuffix.trim();
+  const isValid = suffixTrimmed.length > 0 && tagName.length <= TAG_MAX_LENGTH;
 
   const previewColumns =
     columns.length > 0
@@ -83,10 +97,27 @@ export default function SyncToCrmModal({
 
         <div className="space-y-3 overflow-y-auto min-h-0">
           <div>
-            <p className="text-sm font-medium mb-1">New column name</p>
-            <code className="text-xs bg-muted px-2 py-1 rounded">
-              {tagName}
-            </code>
+            <Label htmlFor="tag-name" className="text-sm font-medium mb-1">
+              New column name
+            </Label>
+            <div className="flex items-center gap-0">
+              <span className="text-sm bg-muted border border-r-0 rounded-l-md px-2 py-1.5 text-muted-foreground select-none whitespace-nowrap">
+                {TAG_PREFIX}
+              </span>
+              <Input
+                id="tag-name"
+                className="rounded-l-none text-sm h-auto py-1.5"
+                value={tagSuffix}
+                onChange={(e) => setTagSuffix(e.target.value)}
+                maxLength={TAG_MAX_LENGTH - TAG_PREFIX.length}
+                placeholder="Enter a tag name"
+              />
+            </div>
+            {tagSuffix.length > 0 && !isValid && (
+              <p className="text-xs text-destructive mt-1">
+                Tag name must not exceed {TAG_MAX_LENGTH} characters.
+              </p>
+            )}
           </div>
 
           <div>
@@ -153,7 +184,9 @@ export default function SyncToCrmModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm}>Tag records</Button>
+          <Button onClick={handleConfirm} disabled={!isValid}>
+            Tag records
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
