@@ -40,6 +40,32 @@ export interface APIGeocodeResult {
 }
 
 // ============================================================================
+// DATA SOURCES API TYPES - GET /api/rest/data-sources
+// ============================================================================
+
+/**
+ * Organisation information for a data source
+ */
+export interface APIDataSourceOrganisation {
+  id: string;
+  name: string;
+}
+
+/**
+ * A readable data source available to the authenticated user
+ */
+export interface APIDataSourceListItem {
+  id: string;
+  name: string;
+  organisation: APIDataSourceOrganisation;
+}
+
+/**
+ * Response from GET /api/rest/data-sources
+ */
+export type APIDataSourceListResponse = APIDataSourceListItem[];
+
+// ============================================================================
 // GEOJSON API TYPES - GET /api/rest/data-sources/:dataSourceId/geojson
 // ============================================================================
 

@@ -596,6 +596,27 @@ console.log(`Found ${nearby.features.length} locations within 5km`);
 
 ## API Endpoint Reference
 
+**Endpoint:** `GET /api/rest/data-sources`
+
+**Authentication:** Basic Auth (email:password)
+
+**Response:** `APIDataSourceListResponse`
+
+Returns all data sources the authenticated user can access across their organisations:
+
+```ts
+[
+  {
+    id: "data-source-id",
+    name: "Data Source Name",
+    organisation: {
+      id: "organisation-id",
+      name: "Organisation Name",
+    },
+  },
+];
+```
+
 **Endpoint:** `GET /api/rest/data-sources/{dataSourceId}/geojson`
 
 **Authentication:** Basic Auth (email:password)
