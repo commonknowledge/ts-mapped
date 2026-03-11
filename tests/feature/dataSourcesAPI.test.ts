@@ -15,7 +15,9 @@ import { db } from "@/server/services/database";
 
 describe("Data sources REST API", () => {
   const testPassword = "testPassword123";
+  const colonPassword = "test:password:123";
   let testUser: Awaited<ReturnType<typeof upsertUser>>;
+  let testUserWithColonPassword: Awaited<ReturnType<typeof upsertUser>>;
   let organisationOne: Awaited<ReturnType<typeof upsertOrganisation>>;
   let organisationTwo: Awaited<ReturnType<typeof upsertOrganisation>>;
   let organisationThree: Awaited<ReturnType<typeof upsertOrganisation>>;
@@ -28,6 +30,12 @@ describe("Data sources REST API", () => {
       email: `test-data-sources-${uuidv4()}@example.com`,
       password: testPassword,
       name: "Test User",
+      avatarUrl: null,
+    });
+    testUserWithColonPassword = await upsertUser({
+      email: `test-data-sources-colon-${uuidv4()}@example.com`,
+      password: colonPassword,
+      name: "Test User Colon Password",
       avatarUrl: null,
     });
 
@@ -46,6 +54,10 @@ describe("Data sources REST API", () => {
       .values([
         { organisationId: organisationOne.id, userId: testUser.id },
         { organisationId: organisationTwo.id, userId: testUser.id },
+        {
+          organisationId: organisationOne.id,
+          userId: testUserWithColonPassword.id,
+        },
       ])
       .execute();
 
@@ -147,6 +159,44 @@ describe("Data sources REST API", () => {
     );
     expect(body.find((item) => item.id === dataSourceThree.id)).toBeUndefined();
   });
+
+  it("should accept case-insensitive basic auth scheme with extra spaces", async () => {
+    const response = await GET(
+      createNextRequest({
+        url: endpointUrl(),
+        credentials: { email: testUser.email, password: testPassword },
+        scheme: "basic",
+        spacing: "  ",
+      }),
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it("should authenticate when password contains colons", async () => {
+    const response = await GET(
+      createNextRequest({
+        url: endpointUrl(),
+        credentials: {
+          email: testUserWithColonPassword.email,
+          password: colonPassword,
+        },
+      }),
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it("should reject invalid credentials when password contains colons", async () => {
+    const response = await GET(
+      createNextRequest({
+        url: endpointUrl(),
+        credentials: {
+          email: testUserWithColonPassword.email,
+          password: `${colonPassword}-invalid`,
+        },
+      }),
+    );
+    expect(response.status).toBe(401);
+  });
 });
 
 const endpointUrl = () => "http://localhost:3000/api/rest/data-sources";
@@ -154,9 +204,13 @@ const endpointUrl = () => "http://localhost:3000/api/rest/data-sources";
 const createNextRequest = ({
   url,
   credentials,
+  scheme = "Basic",
+  spacing = " ",
 }: {
   url: string;
   credentials?: { email: string; password: string } | null | undefined;
+  scheme?: string;
+  spacing?: string;
 }) => {
   const authorization = credentials
     ? Buffer.from(`${credentials.email}:${credentials.password}`).toString(
@@ -164,6 +218,8 @@ const createNextRequest = ({
       )
     : "";
   return new NextRequest(url, {
-    headers: authorization ? { Authorization: `Basic ${authorization}` } : {},
+    headers: authorization
+      ? { Authorization: `${scheme}${spacing}${authorization}` }
+      : {},
   });
 };

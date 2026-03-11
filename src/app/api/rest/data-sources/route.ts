@@ -14,7 +14,8 @@ import type { NextRequest } from "next/server";
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Basic ")) {
+  const basicMatch = authHeader?.match(/^Basic\s+(.+)$/i);
+  if (!basicMatch) {
     return new NextResponse(
       JSON.stringify({ error: "Missing or invalid Authorization header" }),
       {
@@ -27,11 +28,28 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const base64Credentials = authHeader.split(" ")[1];
+  const base64Credentials = basicMatch[1]?.trim();
+  if (!base64Credentials) {
+    return new NextResponse(
+      JSON.stringify({ error: "Missing or invalid Authorization header" }),
+      {
+        status: 401,
+        headers: {
+          "WWW-Authenticate": 'Basic realm="Data Source API"',
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  }
+
   const credentials = Buffer.from(base64Credentials, "base64").toString(
     "utf-8",
   );
-  const [email, password] = credentials.split(":");
+  const separatorIndex = credentials.indexOf(":");
+  const email =
+    separatorIndex >= 0 ? credentials.slice(0, separatorIndex) : undefined;
+  const password =
+    separatorIndex >= 0 ? credentials.slice(separatorIndex + 1) : undefined;
 
   if (!email || !password) {
     return new NextResponse(

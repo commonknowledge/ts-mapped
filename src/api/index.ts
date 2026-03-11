@@ -44,7 +44,7 @@ export interface APIGeocodeResult {
 // ============================================================================
 
 /**
- * Organization information for a data source
+ * Organisation information for a data source
  */
 export interface APIDataSourceOrganisation {
   id: string;
