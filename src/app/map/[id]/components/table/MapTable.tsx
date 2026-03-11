@@ -297,6 +297,8 @@ export default function MapTable() {
 
   const filter = (
     <MapTableFilter
+      search={dataSourceView?.search}
+      setSearch={(s) => updateDataSourceView({ search: s })}
       filter={dataSourceView?.filter || { type: FilterType.MULTI }}
       setFilter={(filter) => {
         setTablePage(0);
@@ -359,8 +361,6 @@ export default function MapTable() {
         data={dataWithTag}
         recordCount={dataRecordsResult?.count}
         filter={filter}
-        search={dataSourceView?.search}
-        setSearch={(s) => updateDataSourceView({ search: s })}
         pageIndex={tablePage}
         setPageIndex={setTablePage}
         sort={dataSourceView?.sort || []}

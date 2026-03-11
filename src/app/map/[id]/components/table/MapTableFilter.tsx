@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ListFilter, XIcon } from "lucide-react";
+import { ListFilter, Search, XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
@@ -45,20 +45,34 @@ import type { Turf } from "@/server/models/Turf";
 interface TableFilterProps {
   filter: RecordFilterInput;
   setFilter: (f: RecordFilterInput) => void;
+  search?: string;
+  setSearch?: (search: string) => void;
 }
 
 export default function MapTableFilter({
   filter,
   setFilter,
+  search,
+  setSearch,
 }: TableFilterProps) {
   return (
     <div>
-      <MultiFilter filter={filter} setFilter={setFilter} />
+      <MultiFilter
+        filter={filter}
+        setFilter={setFilter}
+        search={search}
+        setSearch={setSearch}
+      />
     </div>
   );
 }
 
-function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
+function MultiFilter({
+  filter,
+  setFilter: _setFilter,
+  search,
+  setSearch,
+}: TableFilterProps) {
   const { mapConfig } = useMapConfig();
   const { viewConfig, updateViewConfig } = useMapViews();
   const { data: turfs = [] } = useTurfsQuery();
@@ -181,6 +195,21 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
       <div className="flex gap-2 items-center flex-wrap">
         {/* Filter chips */}
         <ul className="flex gap-2 items-center text-sm flex-wrap">
+          {setSearch && (
+            <li className="flex items-center border rounded-md pl-2">
+              <SearchChip search={search} setSearch={setSearch} />
+              {search && (
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="px-2 border-l rounded-none text-muted-foreground h-7"
+                >
+                  <XIcon className="w-2 h-2" />
+                </Button>
+              )}
+            </li>
+          )}
           {children.map((child, i) => (
             <li key={i} className="flex items-center border rounded-md pl-2 ">
               <ChildFilter
@@ -226,7 +255,7 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
             ) : null}
 
             {/* Show filtered markers toggle */}
-            {children.length > 0 ? (
+            {children.length > 0 || search ? (
               <div className="flex items-center gap-1.5">
                 <Switch
                   id="hide-filtered-markers"
@@ -246,6 +275,61 @@ function MultiFilter({ filter, setFilter: _setFilter }: TableFilterProps) {
           </div>
         </ul>
       </div>
+    </div>
+  );
+}
+
+// Search chip that looks like the other filter chips
+function SearchChip({
+  search,
+  setSearch,
+}: {
+  search?: string;
+  setSearch: (search: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [localSearch, setLocalSearch] = useState(search ?? "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setLocalSearch(search ?? "");
+  }, [search]);
+
+  const onSearchChange = useCallback(
+    (value: string) => {
+      setLocalSearch(value);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        setSearch(value);
+      }, 300);
+    },
+    [setSearch],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!search) {
+      inputRef.current?.focus();
+    }
+  }, [search]);
+
+  return (
+    <div className="flex items-center gap-1">
+      <Search className="w-3 h-3 text-muted-foreground" />
+      <Input
+        ref={inputRef}
+        type="text"
+        placeholder="Search"
+        value={localSearch}
+        onChange={(e) => onSearchChange(e.target.value)}
+        style={{ width: `${Math.max(5, localSearch.length + 1)}ch` }}
+        className="min-w-20 h-7 p-2 text-sm border-0 rounded-none bg-transparent font-medium"
+      />
     </div>
   );
 }
