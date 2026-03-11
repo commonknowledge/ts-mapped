@@ -1,7 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
+import {
+  EyeIcon,
+  EyeOffIcon,
+  FilterIcon,
+  PencilIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import ColorPalette from "@/components/ColorPalette";
@@ -235,7 +241,8 @@ export default function DataSourceItem({
                           {dataSource.recordCount} records
                         </p>
                       ) : matchedRecordCount !== dataSource.recordCount ? (
-                        <p>
+                        <p className="inline-flex items-center gap-1">
+                          <FilterIcon size={10} className="shrink-0" />
                           {matchedRecordCount} / {dataSource.recordCount}{" "}
                           records
                         </p>
