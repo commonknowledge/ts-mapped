@@ -8,6 +8,7 @@ import removeDevWebhooks from "@/server/commands/removeDevWebhooks";
 import Invite from "@/server/emails/Invite";
 import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataSource from "@/server/jobs/importDataSource";
+import refreshWebhooks from "@/server/jobs/refreshWebhooks";
 import { createInvitation } from "@/server/repositories/Invitation";
 import {
   findOrganisationByName,
@@ -183,6 +184,13 @@ program
       batchSize: Number(options.batchSize) || 100,
       batchIntervalMillis: Number(options.batchInterval) || 0,
     });
+  });
+
+program
+  .command("refreshWebhooks")
+  .description("Refresh webhooks")
+  .action(async () => {
+    await refreshWebhooks(null);
   });
 
 program
