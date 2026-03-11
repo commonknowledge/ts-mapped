@@ -1,4 +1,4 @@
-import PgBoss from "pg-boss";
+import { PgBoss } from "pg-boss";
 import logger from "./logger";
 
 export const DEFAULT_QUEUE = process.env.DEFAULT_QUEUE_NAME || "default";
@@ -13,7 +13,7 @@ export const ensureQueue = async (queue: string) => {
     startedQueues = {};
   }
   if (!startedQueues[queue]) {
-    await boss.createQueue(queue, { name: queue, policy: "stately" });
+    await boss.createQueue(queue, { policy: "stately" });
     startedQueues[queue] = true;
   }
 };
@@ -28,7 +28,7 @@ export const enqueue = async (
   const jobId = await boss.send(
     queue,
     { task, args },
-    { expireInHours: 8, singletonKey: `${task}-${key}` },
+    { expireInSeconds: 8 * 60 * 60, singletonKey: `${task}-${key}` },
   );
   if (jobId) {
     logger.info(`Enqueued job ${jobId}: ${task}, ${JSON.stringify(args)}`);

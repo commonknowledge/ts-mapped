@@ -90,7 +90,7 @@
     "nodemailer": "^7.0.5",
     "nprogress": "^0.2.0",
     "pg": "^8.14.0",
-    "pg-boss": "^10.1.6",
+    "pg-boss": "^12.14.0",
     "pg-cursor": "^2.15.0",
     "postcss": "^8.5.3",
     "posthog-js": "^1.266.0",
@@ -151,9 +151,9 @@
     "vitest": "^3.2.4"
   },
   "optionalDependencies": {
-    "@img/sharp-linux-x64": "^0.34.1",
     "@floating-ui/core": "^1.7.3",
     "@floating-ui/dom": "^1.7.4",
+    "@img/sharp-linux-x64": "^0.34.1",
     "@ngrok/ngrok-linux-x64-gnu": "^1.5",
     "@rollup/rollup-linux-x64-gnu": "^4.44",
     "lightningcss-linux-x64-gnu": "^1.30.1"
