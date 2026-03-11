@@ -8,11 +8,10 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Search,
   Settings2,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DATA_RECORDS_PAGE_SIZE } from "@/constants";
 import { Button } from "@/shadcn/ui/button";
 import {
@@ -21,7 +20,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
-import { Input } from "@/shadcn/ui/input";
+
 import {
   Table,
   TableBody,
@@ -57,8 +56,6 @@ interface DataTableProps {
 
   onClose?: () => void;
   filter?: ReactNode;
-  search?: string;
-  setSearch?: (search: string) => void;
   highlightedColumns?: Set<string>;
 }
 
@@ -81,8 +78,6 @@ export function DataTable({
   onClose,
 
   filter,
-  search,
-  setSearch,
   highlightedColumns,
 }: DataTableProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -197,7 +192,6 @@ export function DataTable({
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <SearchBar search={search} setSearch={setSearch} />
           {onClose && (
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4 text-muted-foreground" />
@@ -332,98 +326,6 @@ export function DataTable({
           </Table>
         </div>
       </div>
-    </div>
-  );
-}
-
-function SearchBar({
-  search,
-  setSearch,
-}: {
-  search?: string;
-  setSearch?: (search: string) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [localSearch, setLocalSearch] = useState(search ?? "");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setLocalSearch(search ?? "");
-  }, [search]);
-
-  const onSearchChange = useCallback(
-    (value: string) => {
-      setLocalSearch(value);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        setSearch?.(value);
-      }, 300);
-    },
-    [setSearch],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      inputRef.current?.focus();
-    }
-  }, [isOpen]);
-
-  const flush = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setSearch?.(localSearch);
-    setIsOpen(false);
-  }, [localSearch, setSearch]);
-
-  const cancel = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setLocalSearch(search ?? "");
-    setSearch?.(search ?? "");
-    setIsOpen(false);
-  }, [search, setSearch]);
-
-  if (!isOpen) {
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setIsOpen(true)}
-        className="text-xs"
-      >
-        <Search className="w-4 h-4 text-muted-foreground" />
-      </Button>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="relative">
-        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          ref={inputRef}
-          placeholder="Search..."
-          value={localSearch}
-          onChange={(event) => onSearchChange(event.target.value)}
-          className="pl-8 w-48 text-sm"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              flush();
-            }
-          }}
-        />
-      </div>
-      <Button size="sm" onClick={flush} className="text-xs">
-        Search
-      </Button>
-      <Button variant="ghost" size="sm" onClick={cancel} className="text-xs">
-        Cancel
-      </Button>
     </div>
   );
 }
