@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { getBooleanEnvVar } from "./env";
 
 export async function register() {
   // Sentry
@@ -41,11 +42,3 @@ export async function register() {
 }
 
 export const onRequestError = Sentry.captureRequestError;
-
-const getBooleanEnvVar = (varName: string): boolean => {
-  const v = process.env[varName];
-  if (!v) {
-    return false;
-  }
-  return v !== "0" && v.toLowerCase() !== "false";
-};

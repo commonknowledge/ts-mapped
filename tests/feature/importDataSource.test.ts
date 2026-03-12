@@ -1,6 +1,8 @@
+import { v4 as uuidv4 } from "uuid";
 import { afterAll, describe, expect, test } from "vitest";
 import importDataSource from "@/server/jobs/importDataSource";
 import { AreaSetCode } from "@/server/models/AreaSet";
+
 import {
   ColumnType,
   DataSourceRecordType,
@@ -82,11 +84,23 @@ describe("importDataSource tests", () => {
     ).toEqual([
       {
         externalId: "1",
-        geocodePoint: { lat: 51.156594417, lng: 0.259700363 },
+        geocodePoint: {
+          lat: 51.156668,
+          lng: 0.259711,
+        },
         geocodeResult: {
-          areas: { PC: "TN40PP", UKR18: "E15000008" },
-          centralPoint: { lat: 51.156594417, lng: 0.259700363 },
-          samplePoint: { lat: 51.15655915, lng: 0.25967437 },
+          areas: {
+            PC: "TN40PP",
+            UKR18: "E15000008",
+          },
+          centralPoint: {
+            lat: 51.156668,
+            lng: 0.259711,
+          },
+          samplePoint: {
+            lat: 51.156668,
+            lng: 0.259711,
+          },
         },
         json: {
           Name: "John",
@@ -95,11 +109,23 @@ describe("importDataSource tests", () => {
       },
       {
         externalId: "2",
-        geocodePoint: { lat: 51.559292453, lng: -0.120000759 },
+        geocodePoint: {
+          lat: 51.559325,
+          lng: -0.11994,
+        },
         geocodeResult: {
-          areas: { PC: "N76AS", UKR18: "E15000007" },
-          centralPoint: { lat: 51.559292453, lng: -0.120000759 },
-          samplePoint: { lat: 51.5592981, lng: -0.119958004 },
+          areas: {
+            PC: "N76AS",
+            UKR18: "E15000007",
+          },
+          centralPoint: {
+            lat: 51.559325,
+            lng: -0.11994,
+          },
+          samplePoint: {
+            lat: 51.559325,
+            lng: -0.11994,
+          },
         },
         json: {
           Name: "Paul",
@@ -108,11 +134,23 @@ describe("importDataSource tests", () => {
       },
       {
         externalId: "3",
-        geocodePoint: { lat: 55.870966132, lng: -4.299308293 },
+        geocodePoint: {
+          lat: 55.870795,
+          lng: -4.299351,
+        },
         geocodeResult: {
-          areas: { PC: "G115RD", UKR18: "S15000001" },
-          centralPoint: { lat: 55.870966132, lng: -4.299308293 },
-          samplePoint: { lat: 55.8709776, lng: -4.299245212 },
+          areas: {
+            PC: "G115RD",
+            UKR18: "S15000001",
+          },
+          centralPoint: {
+            lat: 55.870795,
+            lng: -4.299351,
+          },
+          samplePoint: {
+            lat: 55.870795,
+            lng: -4.299351,
+          },
         },
         json: {
           Name: "George",
@@ -196,7 +234,7 @@ describe("importDataSource tests", () => {
       recordType: DataSourceRecordType.Data,
       config: {
         type: DataSourceType.CSV,
-        url: "file://tests/resources/stats.csv",
+        url: `file://tests/resources/stats.csv?${uuidv4()}`,
       },
       columnDefs: [],
       columnMetadata: [],

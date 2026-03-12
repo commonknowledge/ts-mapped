@@ -86,7 +86,7 @@ describe("dataSource router tests", () => {
       await expect(
         dataSourceRouter.listReadable({
           ctx: { user: null },
-          getRawInput: async () => ({ organisationId: org.id }),
+          getRawInput: async () => ({ activeOrganisationId: org.id }),
           path: "",
           type: "query",
           signal: undefined,
@@ -96,7 +96,7 @@ describe("dataSource router tests", () => {
       try {
         await dataSourceRouter.listReadable({
           ctx: { user: null },
-          getRawInput: async () => ({ organisationId: org.id }),
+          getRawInput: async () => ({ activeOrganisationId: org.id }),
           path: "",
           type: "query",
           signal: undefined,
@@ -151,7 +151,7 @@ describe("dataSource router tests", () => {
 
       const result = await dataSourceRouter.listReadable({
         ctx: { user },
-        getRawInput: async () => ({ organisationId: org.id }),
+        getRawInput: async () => ({ activeOrganisationId: org.id }),
         path: "",
         type: "query",
         signal: undefined,
@@ -171,7 +171,7 @@ describe("dataSource router tests", () => {
       await expect(
         dataSourceRouter.listReadable({
           ctx: { user },
-          getRawInput: async () => ({ organisationId: otherOrg.id }),
+          getRawInput: async () => ({ activeOrganisationId: otherOrg.id }),
           path: "",
           type: "query",
           signal: undefined,
@@ -181,7 +181,7 @@ describe("dataSource router tests", () => {
       try {
         await dataSourceRouter.listReadable({
           ctx: { user },
-          getRawInput: async () => ({ organisationId: otherOrg.id }),
+          getRawInput: async () => ({ activeOrganisationId: otherOrg.id }),
           path: "",
           type: "query",
           signal: undefined,

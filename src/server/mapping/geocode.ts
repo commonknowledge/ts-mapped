@@ -1,3 +1,4 @@
+import { getBooleanEnvVar } from "@/env";
 import {
   findAreaByCode,
   findAreaByName,
@@ -64,7 +65,9 @@ const geocodeRecordByPostcode = async (
   geocodingConfig: AreaGeocodingConfig,
 ) => {
   try {
-    return await geocodeRecordByArea(dataRecord, geocodingConfig);
+    if (getBooleanEnvVar("ENABLE_DATABASE_POSTCODE_LOOKUP")) {
+      return await geocodeRecordByArea(dataRecord, geocodingConfig);
+    }
   } catch (error) {
     logger.warn(
       "Postcode lookup in database failed, attempting fallback to postcodes.io API",
@@ -290,10 +293,12 @@ const postcodeLookup = async (
   postcode: string,
 ): Promise<{ code: string; point: Point }> => {
   const areaCode = postcode.replace(/\s+/g, "").toUpperCase();
-  const area = await findAreaByCode(areaCode, AreaSetCode.PC);
-  const point = geojsonPointToPoint(area?.samplePoint);
-  if (area && point) {
-    return { code: area.code, point };
+  if (getBooleanEnvVar("ENABLE_DATABASE_POSTCODE_LOOKUP")) {
+    const area = await findAreaByCode(areaCode, AreaSetCode.PC);
+    const point = geojsonPointToPoint(area?.samplePoint);
+    if (area && point) {
+      return { code: area.code, point };
+    }
   }
   const postcodeData = await postcodesIOLookup(postcode);
   return {
