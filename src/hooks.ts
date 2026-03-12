@@ -8,7 +8,10 @@ export const useCurrentUser = () => {
   return { currentUser, setCurrentUser };
 };
 
-export const useFeatureFlagEnabled = (feature: string) => {
+export const useFeatureFlagEnabled = (
+  feature: string,
+  user: { featureFlags: string[] } | null,
+) => {
   const featureFlagsStr = process.env.NEXT_PUBLIC_FEATURE_FLAGS;
   if (!featureFlagsStr) {
     return process.env.NODE_ENV === "development";
@@ -17,5 +20,5 @@ export const useFeatureFlagEnabled = (feature: string) => {
     string,
     boolean
   >;
-  return Boolean(featureFlags[feature]);
+  return Boolean(featureFlags[feature]) || user?.featureFlags.includes(feature);
 };
