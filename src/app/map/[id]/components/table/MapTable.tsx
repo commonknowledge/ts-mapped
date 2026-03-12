@@ -189,7 +189,6 @@ export default function MapTable() {
   );
 
   const { currentUser } = useCurrentUser();
-
   const enableSyncToCRM =
     useFeatureFlagEnabled("sync-to-crm", currentUser) &&
     isOwner &&
