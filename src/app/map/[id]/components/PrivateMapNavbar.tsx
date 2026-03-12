@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
 import { Link } from "@/components/Link";
-import { useFeatureFlagEnabled } from "@/hooks";
+import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { useTRPC } from "@/services/trpc/react";
 import { uploadFile } from "@/services/uploads";
 import { Button } from "@/shadcn/ui/button";
@@ -38,7 +38,8 @@ export default function PrivateMapNavbar() {
   const { isUpdating: configUpdating } = useMapConfig();
   const { view } = useMapViews();
 
-  const showPublishButton = useFeatureFlagEnabled("public-maps");
+  const { currentUser } = useCurrentUser();
+  const showPublishButton = useFeatureFlagEnabled("public-maps", currentUser);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(map?.name || "");
   const [loading, setLoading] = useState(false);

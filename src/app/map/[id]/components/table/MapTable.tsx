@@ -9,7 +9,7 @@ import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
 import { DataSourceFeatures } from "@/features";
-import { useFeatureFlagEnabled } from "@/hooks";
+import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
 import { OrganisationsContext } from "@/providers/OrganisationsProvider";
 import { ColumnType } from "@/server/models/DataSource";
@@ -188,8 +188,10 @@ export default function MapTable() {
     dataSource.organisationId === organisationId,
   );
 
+  const { currentUser } = useCurrentUser();
+  
   const enableSyncToCRM =
-    useFeatureFlagEnabled("sync-to-crm") &&
+    useFeatureFlagEnabled("sync-to-crm", currentUser) &&
     isOwner &&
     dataSource &&
     DataSourceFeatures[dataSource.config.type].syncToCrm;

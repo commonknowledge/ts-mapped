@@ -16,6 +16,10 @@ export default function Filters() {
   const { filterFields } = useContext(PublicFiltersContext);
   const label = "Services offered"; // TODO: make label dynamic
 
+  if (!filterFields.length) {
+    return null;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

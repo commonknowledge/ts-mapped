@@ -20,12 +20,13 @@ import { cn } from "@/shadcn/utils";
 export default function Sidebar() {
   const slug = usePathname();
 
+  const { currentUser } = useCurrentUser();
   const [mounted, setMounted] = useState(false);
-  const showPublicMaps = useFeatureFlagEnabled("public-maps");
+  const showPublicMaps = useFeatureFlagEnabled("public-maps", currentUser);
   const showMovementDataLibrary = useFeatureFlagEnabled(
     "movement-data-library",
+    currentUser
   );
-  const { currentUser } = useCurrentUser();
 
   useEffect(() => setMounted(true), []);
 
