@@ -22,7 +22,14 @@ export const useFeatureFlagEnabled = (
   >;
   const featureFlag = featureFlags[feature];
   if (Array.isArray(featureFlag)) {
-    return user ? featureFlag.includes(user.email) : false;
+    if (!user) {
+      return false;
+    }
+    const normalizedFeatureFlag = featureFlag.map((email) =>
+      email.trim().toLowerCase(),
+    );
+    const normalizedUserEmail = user.email.trim().toLowerCase();
+    return normalizedFeatureFlag.includes(normalizedUserEmail);
   }
   return Boolean(featureFlag);
 };
