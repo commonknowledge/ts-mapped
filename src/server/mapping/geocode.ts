@@ -1,3 +1,4 @@
+import { getBooleanEnvVar } from "@/env";
 import {
   findAreaByCode,
   findAreaByName,
@@ -64,7 +65,9 @@ const geocodeRecordByPostcode = async (
   geocodingConfig: AreaGeocodingConfig,
 ) => {
   try {
-    return await geocodeRecordByArea(dataRecord, geocodingConfig);
+    if (getBooleanEnvVar("ENABLE_DATABASE_POSTCODE_LOOKUP")) {
+      return await geocodeRecordByArea(dataRecord, geocodingConfig);
+    }
   } catch (error) {
     logger.warn(
       "Postcode lookup in database failed, attempting fallback to postcodes.io API",
