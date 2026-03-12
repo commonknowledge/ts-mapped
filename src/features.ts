@@ -18,7 +18,7 @@ export const DataSourceFeatures: Record<
   [DataSourceType.Airtable]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: false,
+    enrichment: true,
     syncToCrm: true,
   },
   [DataSourceType.CSV]: {

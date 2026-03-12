@@ -3,10 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { LoaderPinwheel } from "lucide-react";
 import { use } from "react";
-import { DataSourceFeatures } from "@/features";
 import { useTRPC } from "@/services/trpc/react";
 import { DataSourceDashboard } from "./DataSourceDashboard";
-import { DataSourceEnrichmentDashboard } from "./DataSourceEnrichmentDashboard";
 
 export default function DataSourcePage({
   params,
@@ -39,13 +37,5 @@ export default function DataSourcePage({
     );
   }
 
-  const features = DataSourceFeatures[dataSource.config.type];
-  return (
-    <>
-      <DataSourceDashboard dataSource={dataSource} />
-      {features.enrichment && (
-        <DataSourceEnrichmentDashboard dataSource={dataSource} />
-      )}
-    </>
-  );
+  return <DataSourceDashboard dataSource={dataSource} />;
 }

@@ -1,18 +1,13 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { LoaderPinwheel } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useState } from "react";
-import DataListRow from "@/components/DataListRow";
-import { Link } from "@/components/Link";
-import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
-import { EnrichmentSourceType, JobStatus } from "@/server/models/DataSource";
+import { toast } from "sonner";
+import { JobStatus } from "@/server/models/DataSource";
 import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
-import { Label } from "@/shadcn/ui/label";
-import { Separator } from "@/shadcn/ui/separator";
-import type { AreaSetCode } from "@/server/models/AreaSet";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,
@@ -20,7 +15,6 @@ export function DataSourceEnrichmentDashboard({
   dataSource: RouterOutputs["dataSource"]["byId"];
 }) {
   const [enriching, setEnriching] = useState(isEnriching(dataSource));
-  const [enrichmentError, setEnrichmentError] = useState("");
   const [lastEnriched, setLastEnriched] = useState(
     dataSource.enrichmentInfo?.lastCompleted || null,
   );
@@ -31,9 +25,18 @@ export function DataSourceEnrichmentDashboard({
     trpc.dataSource.enqueueEnrichJob.mutationOptions({
       onError: (error) => {
         console.error(`Could not schedule enrichment job: ${error}`);
-        setEnrichmentError("Could not schedule enrichment job.");
+        const errorMessage =
+          error.message || "Could not schedule enrichment job.";
         setEnriching(false);
+        toast.error(errorMessage);
       },
+    }),
+  );
+
+  const { data, isLoading } = useQuery(
+    trpc.dataRecord.list.queryOptions({
+      dataSourceId: dataSource.id,
+      page: 0,
     }),
   );
 
@@ -45,9 +48,12 @@ export function DataSourceEnrichmentDashboard({
           if (dataSourceEvent.event === "EnrichmentStarted") {
             setEnriching(true);
           }
+          if (dataSourceEvent.event === "RecordsEnriched") {
+            setEnrichmentCount(dataSourceEvent.count);
+          }
           if (dataSourceEvent.event === "EnrichmentFailed") {
             setEnriching(false);
-            setEnrichmentError("Failed to enrich this data source.");
+            toast.error("Failed to enrich this data source.");
           }
           if (dataSourceEvent.event === "EnrichmentComplete") {
             setEnriching(false);
@@ -58,126 +64,80 @@ export function DataSourceEnrichmentDashboard({
     ),
   );
 
-  const onClickEnrichRecords = async () => {
+  const onClickEnrichRecords = () => {
     setEnriching(true);
-    setEnrichmentError("");
     setEnrichmentCount(0);
     enqueueEnrichDataSourceJob({ dataSourceId: dataSource.id });
   };
 
   const displayEnrichmentProgress = enrichmentCount > 0 || enriching;
 
-  return (
-    <div className="p-4 mx-auto max-w-5xl w-full">
-      <div className="grid grid-cols-2 gap-12 mb-8">
-        <div className="border-r border-border/50 pr-4">
-          <h1 className="text-3xl font-medium tracking-tight">Enrichment</h1>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            {displayEnrichmentProgress && (
-              <>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Enrichment count:
-                </p>
-                <p className="text-4xl">
-                  {enriching ? (
-                    <span className="flex items-center gap-2">
-                      <LoaderPinwheel className="animate-spin" />
-                      {enrichmentCount}
-                    </span>
-                  ) : (
-                    enrichmentCount
-                  )}
-                </p>
-              </>
-            )}
-          </div>
-          <div className="flex flex-col items-end gap-2 ">
-            <Button
-              type="button"
-              onClick={onClickEnrichRecords}
-              disabled={enriching}
-              size="lg"
-            >
-              {enriching ? "Enriching" : "Enrich"} records
-            </Button>
-            {enrichmentError && (
-              <div>
-                <span className="text-xs text-red-500">{enrichmentError}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      <Separator className="my-4" />
-      {lastEnriched && (
-        <>
-          <DataListRow
-            label="Last enriched"
-            value={new Date(lastEnriched).toLocaleString()}
-          />
-          <Separator className="my-4" />
-        </>
-      )}
+  const columns = dataSource.columnDefs ?? [];
+  const records = data?.records.slice(0, 10) ?? [];
 
-      <div className="flex flex-col ">
-        <div className="mb-4 flex justify-between">
-          <Label className="text-xl">Enrichment configuration</Label>
-          <Button asChild={true}>
-            <Link href={`/data-sources/${dataSource.id}/enrichment`}>Edit</Link>
-          </Button>
+  return (
+    <div className="p-4 mx-auto w-full overflow-x-auto">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-muted-foreground">
+          {displayEnrichmentProgress && (
+            <p>Enrichment count: {enrichmentCount}</p>
+          )}
+          {lastEnriched && (
+            <p>Last enriched: {new Date(lastEnriched).toLocaleString()}</p>
+          )}
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          {dataSource.enrichments.map((enrichment, i) => (
-            <div className="mb-4" key={i}>
-              <Label className="text-lg">
-                +&nbsp;
-                {
-                  EnrichmentSourceTypeLabels[
-                    enrichment.sourceType as EnrichmentSourceType
-                  ]
-                }
-              </Label>
-              {enrichment.sourceType === EnrichmentSourceType.Area && (
-                <>
-                  <DataListRow
-                    label="Area type"
-                    value={
-                      AreaSetCodeLabels[enrichment.areaSetCode as AreaSetCode]
-                    }
-                    border
-                  />
-                  <DataListRow
-                    label="Area info"
-                    value={`Area ${enrichment.areaProperty}`}
-                    border
-                  />
-                </>
-              )}
-              {enrichment.sourceType === EnrichmentSourceType.DataSource && (
-                <>
-                  <DataListRow
-                    label="Data source"
-                    value={
-                      dataSource.enrichmentDataSources?.find(
-                        (dataSource) =>
-                          dataSource.id === enrichment.dataSourceId,
-                      )?.name || "Unknown"
-                    }
-                    border
-                  />
-                  <DataListRow
-                    label="Data source column"
-                    value={enrichment.dataSourceColumn || ""}
-                    border
-                  />
-                </>
-              )}
-            </div>
-          ))}
-        </div>
+        <Button
+          type="button"
+          onClick={onClickEnrichRecords}
+          disabled={enriching}
+        >
+          <RefreshCw className={enriching ? "animate-spin" : ""} />
+          {enriching ? "Enriching…" : "Enrich records"}
+        </Button>
       </div>
+
+      {isLoading ? (
+        <p className="text-muted-foreground text-sm">Loading records…</p>
+      ) : (
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              {columns.map((col) => (
+                <th
+                  key={col.name}
+                  className="border border-gray-200 bg-gray-50 px-3 py-1.5 text-left font-medium text-gray-600 whitespace-nowrap"
+                >
+                  {col.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {records.map((record) => (
+              <tr key={record.id} className="even:bg-gray-50/50">
+                {columns.map((col) => (
+                  <td
+                    key={col.name}
+                    className="border border-gray-200 px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate"
+                  >
+                    {formatCell(record.json[col.name])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            {records.length === 0 && (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="border border-gray-200 px-3 py-4 text-center text-muted-foreground"
+                >
+                  No records
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -190,3 +150,9 @@ const isEnriching = (dataSource: RouterOutputs["dataSource"]["byId"]) => {
     ),
   );
 };
+
+function formatCell(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
