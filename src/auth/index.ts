@@ -4,13 +4,13 @@ import logger from "@/server/services/logger";
 import { decodeJWT } from "./jwt";
 import type { ServerSession } from "@/authTypes";
 
-let featureFlagsByUserEmail: Record<string, string[]> = {};
+let featureFlagEmailAllowlists: Record<string, string[]> = {};
 try {
-  featureFlagsByUserEmail = JSON.parse(
-    process.env.FEATURE_FLAGS_FOR_USER_EMAIL || "{}",
+  featureFlagEmailAllowlists = JSON.parse(
+    process.env.FEATURE_FLAG_EMAIL_ALLOWLISTS || "{}",
   ) as Record<string, string[]>;
 } catch (error) {
-  logger.error("Failed to parse FEATURE_FLAGS_FOR_USER_EMAIL env var", {
+  logger.error("Failed to parse FEATURE_FLAG_EMAIL_ALLOWLISTS env var", {
     error,
   });
 }
@@ -29,8 +29,8 @@ export const getServerSession = cache(async (): Promise<ServerSession> => {
         id: user.id,
         email: user.email,
         name: user.name,
-        featureFlags: Object.keys(featureFlagsByUserEmail).filter((f) =>
-          featureFlagsByUserEmail[f].includes(user.email),
+        featureFlags: Object.keys(featureFlagEmailAllowlists).filter((f) =>
+          featureFlagEmailAllowlists[f].includes(user.email),
         ),
         avatarUrl: user.avatarUrl,
       },
