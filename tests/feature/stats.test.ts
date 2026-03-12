@@ -1,7 +1,9 @@
+import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { MAX_COLUMN_KEY } from "@/constants";
 import importDataSource from "@/server/jobs/importDataSource";
 import { AreaSetCode } from "@/server/models/AreaSet";
+
 import {
   ColumnType,
   DataSourceRecordType,
@@ -32,7 +34,7 @@ describe("getAreaStats tests", () => {
       recordType: DataSourceRecordType.Data,
       config: {
         type: DataSourceType.CSV,
-        url: "file://tests/resources/stats.csv",
+        url: `file://tests/resources/stats.csv?${uuidv4()}`,
       },
       columnDefs: [],
       columnMetadata: [],
