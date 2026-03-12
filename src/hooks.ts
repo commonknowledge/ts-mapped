@@ -10,7 +10,7 @@ export const useCurrentUser = () => {
 
 export const useFeatureFlagEnabled = (
   feature: string,
-  user: { email: string } | null,
+  user: { featureFlags: string[] } | null,
 ) => {
   const featureFlagsStr = process.env.NEXT_PUBLIC_FEATURE_FLAGS;
   if (!featureFlagsStr) {
@@ -18,11 +18,7 @@ export const useFeatureFlagEnabled = (
   }
   const featureFlags = JSON.parse(featureFlagsStr || "{}") as Record<
     string,
-    string[] | boolean
+    boolean
   >;
-  const featureFlag = featureFlags[feature];
-  if (Array.isArray(featureFlag)) {
-    return user ? featureFlag.includes(user.email) : false;
-  }
-  return Boolean(featureFlag);
+  return Boolean(featureFlags[feature]) || user?.featureFlags.includes(feature);
 };

@@ -25,7 +25,7 @@ export default function Sidebar() {
   const showPublicMaps = useFeatureFlagEnabled("public-maps", currentUser);
   const showMovementDataLibrary = useFeatureFlagEnabled(
     "movement-data-library",
-    currentUser
+    currentUser,
   );
 
   useEffect(() => setMounted(true), []);
