@@ -4,7 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as turfLib from "@turf/turf";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { Button } from "@/shadcn/ui/button";
@@ -52,7 +52,13 @@ export default function SortableTurfItem({
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
+  const [prevTurfLabel, setPrevTurfLabel] = useState(turf.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  if (turf.label !== prevTurfLabel) {
+    setPrevTurfLabel(turf.label);
+    setEditText(turf.label);
+  }
   const { mapConfig } = useMapConfig();
 
   // Check if this turf is the one being dragged
@@ -97,11 +103,6 @@ export default function SortableTurfItem({
   };
 
   const isVisible = getTurfVisibility(turf.id);
-
-  // Update editText when turf.label changes
-  useEffect(() => {
-    setEditText(turf.label);
-  }, [turf.label]);
 
   const onEdit = () => {
     setEditText(turf.label);

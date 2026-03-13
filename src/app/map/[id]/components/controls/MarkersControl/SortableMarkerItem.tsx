@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import ColorPalette from "@/components/ColorPalette";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
@@ -57,7 +57,13 @@ export default function SortableMarkerItem({
   const mapRef = useMapRef();
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
+  const [prevMarkerLabel, setPrevMarkerLabel] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  if (marker.label !== prevMarkerLabel) {
+    setPrevMarkerLabel(marker.label);
+    setEditText(marker.label);
+  }
 
   // Get current color (defaults to marker color)
   const currentColor =
@@ -95,11 +101,6 @@ export default function SortableMarkerItem({
       zoom: 12,
     });
   };
-
-  // Update editText when marker.label changes
-  useEffect(() => {
-    setEditText(marker.label);
-  }, [marker.label]);
 
   const onEdit = () => {
     setEditText(marker.label);

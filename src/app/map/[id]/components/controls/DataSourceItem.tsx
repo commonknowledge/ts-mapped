@@ -82,7 +82,13 @@ export default function DataSourceItem({
     useDataRecords(hasActiveFilter ? dataSource.id : "", 0);
   const [isRenaming, setIsRenaming] = useState(false);
   const [editName, setEditName] = useState(dataSource.name);
+  const [prevDataSourceName, setPrevDataSourceName] = useState(dataSource.name);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+
+  if (dataSource.name !== prevDataSourceName) {
+    setPrevDataSourceName(dataSource.name);
+    setEditName(dataSource.name);
+  }
   const inputRef = useRef<HTMLInputElement>(null);
   const isFocusing = useRef(false);
 
@@ -131,11 +137,6 @@ export default function DataSourceItem({
       }, 500);
     }
   }, [isRenaming]);
-
-  // Update editName when dataSource.name changes
-  useEffect(() => {
-    setEditName(dataSource.name);
-  }, [dataSource.name]);
 
   // Update name mutation
   const { mutate: updateName } = useMutation(

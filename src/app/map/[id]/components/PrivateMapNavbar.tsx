@@ -42,17 +42,18 @@ export default function PrivateMapNavbar() {
   const showPublishButton = useFeatureFlagEnabled("public-maps", currentUser);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(map?.name || "");
+  const [prevMapName, setPrevMapName] = useState(map?.name);
   const [loading, setLoading] = useState(false);
+
+  if (map?.name !== prevMapName) {
+    setPrevMapName(map?.name);
+    setEditedName(map?.name || "");
+  }
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // keep edited name in sync with cache map name
-    setEditedName(map?.name || "");
-  }, [map?.name]);
 
   const { mutate: updateMap, isPending } = useMutation(
     trpc.map.update.mutationOptions({
