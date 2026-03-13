@@ -1,5 +1,6 @@
 import { describe, expect, inject, test } from "vitest";
 import { vi } from "vitest";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { AirtableAdaptor } from "@/server/adaptors/airtable";
 import { ColumnType } from "@/server/models/DataSource";
 import { getPublicUrl } from "@/server/services/urls";
@@ -278,8 +279,21 @@ describe("Airtable adaptor tests", () => {
       credentials.airtable.tableId,
     );
 
-    expect(() => adaptor.deleteColumn("AnyField")).toThrow(
+    expect(() => adaptor.deleteColumn("Mapped: AnyField")).toThrow(
       "Airtable does not support deleting fields.",
+    );
+  });
+
+  test("deleteColumn rejects non-enrichment columns", async () => {
+    const adaptor = new AirtableAdaptor(
+      "test-data-source",
+      credentials.airtable.apiKey,
+      credentials.airtable.baseId,
+      credentials.airtable.tableId,
+    );
+
+    expect(() => adaptor.deleteColumn("NotPrefixed")).toThrow(
+      `Refusing to delete column "NotPrefixed": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
     );
   });
 }, 10000);

@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { getDataSourceAdaptor } from "@/server/adaptors";
+import { getEnrichedColumn } from "@/server/mapping/enrich";
 import {
   ColumnType,
   EnrichmentSourceType,
@@ -17,6 +18,7 @@ import {
 import {
   applyFilterAndSearch,
   findDataRecordsByDataSource,
+  findDataRecordsByIds,
 } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
@@ -31,6 +33,7 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
+import { enrichmentColumnName } from "@/utils/dataRecord";
 import {
   dataSourceOwnerProcedure,
   dataSourceReadProcedure,
@@ -135,6 +138,46 @@ export const dataSourceRouter = router({
       recordCount: Number(recordCount?.count) || 0,
     };
   }),
+
+  enrichmentPreview: dataSourceOwnerProcedure
+    .input(z.object({ dataRecordIds: z.array(z.string()).min(1).max(50) }))
+    .query(async ({ ctx, input }) => {
+      const { dataSource } = ctx;
+      const existingColumnNames = new Set(
+        (dataSource.columnDefs ?? []).map((col) => col.name),
+      );
+      const newEnrichments = dataSource.enrichments.filter(
+        (e) => !existingColumnNames.has(enrichmentColumnName(e.name)),
+      );
+      if (newEnrichments.length === 0) {
+        return {};
+      }
+
+      const records = await findDataRecordsByIds(
+        input.dataRecordIds,
+        dataSource.id,
+      );
+
+      const result: Record<string, Record<string, unknown>> = {};
+      for (const record of records) {
+        if (!record.geocodeResult) {
+          result[record.id] = {};
+          continue;
+        }
+        const enrichedValues: Record<string, unknown> = {};
+        for (const enrichment of newEnrichments) {
+          const colName = enrichmentColumnName(enrichment.name);
+          const col = await getEnrichedColumn(
+            { externalId: record.externalId, json: record.json },
+            record.geocodeResult,
+            enrichment,
+          );
+          enrichedValues[colName] = col?.value ?? null;
+        }
+        result[record.id] = enrichedValues;
+      }
+      return result;
+    }),
 
   byIdWithRecords: dataSourceReadProcedure
     .input(
@@ -344,18 +387,16 @@ export const dataSourceRouter = router({
       // If enrichments were removed, enqueue a job to clean up the columns
       if (input.enrichments !== undefined) {
         const oldNames = new Set(
-          (ctx.dataSource.enrichments ?? []).map((e) => `Mapped: ${e.name}`),
+          (ctx.dataSource.enrichments ?? []).map((e) => e.name),
         );
-        const newNames = new Set(
-          input.enrichments.map((e) => `Mapped: ${e.name}`),
-        );
+        const newNames = new Set(input.enrichments.map((e) => e.name));
         const removedColumnNames = [...oldNames].filter(
           (name) => !newNames.has(name),
         );
         if (removedColumnNames.length > 0) {
           await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
             dataSourceId: ctx.dataSource.id,
-            columnNames: removedColumnNames,
+            externalColumnNames: removedColumnNames.map(enrichmentColumnName),
           });
         }
       }
@@ -363,7 +404,6 @@ export const dataSourceRouter = router({
       // Only trigger import if config fields changed (not just name)
       const configFieldsChanged =
         input.columnRoles !== undefined ||
-        input.enrichments !== undefined ||
         input.geocodingConfig !== undefined ||
         input.dateFormat !== undefined;
 

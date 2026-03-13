@@ -1,5 +1,8 @@
 import z from "zod";
-import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
+import {
+  DATA_RECORDS_JOB_BATCH_SIZE,
+  ENRICHMENT_COLUMN_PREFIX,
+} from "@/constants";
 import logger from "@/server/services/logger";
 import type { DataSourceAdaptor } from "./abstract";
 import type { EnrichedRecord } from "../models/DataRecord";
@@ -369,8 +372,12 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   deleteColumn(columnName: string): Promise<void> {
+    if (!columnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+      throw new Error(
+        `Refusing to delete column "${columnName}": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+      );
+    }
     throw new Error("Action Network does not support deleting fields.");
   }
 

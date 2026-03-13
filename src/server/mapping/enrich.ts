@@ -4,6 +4,7 @@ import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
+import { enrichmentColumnName } from "@/utils/dataRecord";
 import { geocodeRecord } from "./geocode";
 import type { EnrichedRecord } from "../models/DataRecord";
 import type { GeocodeResult } from "../models/shared";
@@ -37,7 +38,7 @@ export const enrichRecord = async (
     if (enrichedColumn) {
       enrichedColumns.push({
         def: {
-          name: `Mapped: ${enrichment.name}`,
+          name: enrichmentColumnName(enrichment.name),
           type: enrichedColumn.def.type,
         },
         value: enrichedColumn.value,
@@ -51,7 +52,7 @@ export const enrichRecord = async (
   return { externalRecord: record, columns: enrichedColumns };
 };
 
-const getEnrichedColumn = async (
+export const getEnrichedColumn = async (
   record: ExternalRecord,
   recordGeocodeResult: GeocodeResult,
   enrichment: Enrichment,

@@ -36,7 +36,7 @@ const boundaryTypeOptions = Object.entries(AreaSetCodeLabels)
   .filter(([code]) => code !== AreaSetCode.PC)
   .map(([code, label]) => ({ value: code, label }));
 
-export default function AddColumnDialog({
+export default function EnrichmentColumnDialog({
   dataSource,
 }: {
   dataSource: RouterOutputs["dataSource"]["byId"];
@@ -105,13 +105,13 @@ export default function AddColumnDialog({
   // Compute a suggested default name
   const suggestedName = useMemo(() => {
     if (columnType === "geographic" && areaSetCode) {
-      return AreaSetCodeLabels[areaSetCode as AreaSetCode] ?? areaSetCode;
+      return `${AreaSetCodeLabels[areaSetCode as AreaSetCode] ?? areaSetCode} ${areaProperty}`;
     }
     if (columnType === "data" && selectedColumn) {
       return selectedColumn;
     }
     return "";
-  }, [columnType, areaSetCode, selectedColumn]);
+  }, [columnType, areaSetCode, selectedColumn, areaProperty]);
 
   // Auto-populate name when core fields become complete (unless user manually edited)
   useEffect(() => {
@@ -122,15 +122,22 @@ export default function AddColumnDialog({
 
   const { mutate: updateConfig, isPending } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         toast.success("Column added successfully");
         resetForm();
         setDialogOpen(false);
-        queryClient.invalidateQueries({
-          queryKey: trpc.dataSource.byId.queryKey({
+        queryClient.setQueryData(
+          trpc.dataSource.byId.queryKey({
             dataSourceId: dataSource.id,
           }),
-        });
+          (old) =>
+            old
+              ? {
+                  ...old,
+                  enrichments: variables.enrichments ?? old.enrichments,
+                }
+              : old,
+        );
       },
       onError: (error) => {
         toast.error("Failed to add column", {

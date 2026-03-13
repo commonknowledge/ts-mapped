@@ -1,4 +1,5 @@
 import { describe, expect, inject, test } from "vitest";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { MailchimpAdaptor } from "@/server/adaptors/mailchimp";
 import { ColumnType } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
@@ -232,7 +233,7 @@ describe("Mailchimp adaptor tests", () => {
     // Generate a unique merge field tag using current date (max 10 chars)
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
-    const fieldTag = `T${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const fieldName = `Mapped: T${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
     const testValue = "test-value-" + Date.now();
     const enrichedRecords = [
@@ -240,7 +241,7 @@ describe("Mailchimp adaptor tests", () => {
         externalRecord: all[0],
         columns: [
           {
-            def: { name: fieldTag, type: ColumnType.String },
+            def: { name: fieldName, type: ColumnType.String },
             value: testValue,
           },
         ],
@@ -249,6 +250,13 @@ describe("Mailchimp adaptor tests", () => {
 
     // updateRecords will auto-create the merge field if it doesn't exist
     await adaptor.updateRecords(enrichedRecords);
+
+    // Look up the tag that Mailchimp assigned to this field
+    adaptor["cachedMergeFields"] = null;
+    let mergeFields = await adaptor.getMergeFields();
+    const field = mergeFields.find((f) => f.name === fieldName);
+    expect(field).toBeDefined();
+    const fieldTag = field!.tag;
 
     // Wait for Mailchimp batch processing to complete
     while (true) {
@@ -266,19 +274,13 @@ describe("Mailchimp adaptor tests", () => {
       }
     }
 
-    // Verify the merge field was created
-    adaptor["cachedMergeFields"] = null;
-    let mergeFields = await adaptor.getMergeFields();
-    const field = mergeFields.find((f) => f.tag === fieldTag);
-    expect(field).toBeDefined();
-
     // Delete the merge field using deleteColumn
-    await adaptor.deleteColumn(fieldTag);
+    await adaptor.deleteColumn(fieldName);
 
     // Verify the merge field is gone
     adaptor["cachedMergeFields"] = null;
     mergeFields = await adaptor.getMergeFields();
-    expect(mergeFields.find((f) => f.tag === fieldTag)).toBeUndefined();
+    expect(mergeFields.find((f) => f.name === fieldName)).toBeUndefined();
   });
 
   test("batch size limits are respected", async () => {
@@ -416,7 +418,19 @@ describe("Mailchimp adaptor tests", () => {
     );
 
     await expect(
-      adaptor.deleteColumn("NonExistentField_" + Date.now()),
+      adaptor.deleteColumn("Mapped: NonExistent_" + Date.now()),
     ).resolves.not.toThrow();
+  });
+
+  test("deleteColumn rejects non-enrichment columns", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    await expect(adaptor.deleteColumn("NotPrefixed")).rejects.toThrow(
+      `Refusing to delete column "NotPrefixed": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+    );
   });
 }, 30000);

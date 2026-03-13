@@ -1,4 +1,5 @@
 import { expect, inject, test } from "vitest";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { ActionNetworkAdaptor } from "@/server/adaptors/actionnetwork";
 import { ColumnType } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
@@ -247,7 +248,15 @@ test("fetchByExternalId respects batch size limit", async () => {
 test("deleteColumn throws not supported error", () => {
   const adaptor = new ActionNetworkAdaptor(credentials.actionnetwork.apiKey);
 
-  expect(() => adaptor.deleteColumn("AnyField")).toThrow(
+  expect(() => adaptor.deleteColumn("Mapped: AnyField")).toThrow(
     "Action Network does not support deleting fields.",
+  );
+});
+
+test("deleteColumn rejects non-enrichment columns", () => {
+  const adaptor = new ActionNetworkAdaptor(credentials.actionnetwork.apiKey);
+
+  expect(() => adaptor.deleteColumn("NotPrefixed")).toThrow(
+    `Refusing to delete column "NotPrefixed": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
   );
 });

@@ -16,6 +16,8 @@ export const DEFAULT_CUSTOM_COLOR = "#3b82f6";
 
 export const DEV_NEXT_PUBLIC_BASE_URL = "https://localhost:3000";
 
+export const ENRICHMENT_COLUMN_PREFIX = "Mapped: ";
+
 // Different database derived column name because underscores get mangled by camelCase translation
 export const MARKER_MATCHED_COLUMN = "mappedMatched";
 

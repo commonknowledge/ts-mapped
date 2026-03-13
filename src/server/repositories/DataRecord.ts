@@ -201,6 +201,15 @@ export function findDataRecordById(id: string) {
     .executeTakeFirst();
 }
 
+export function findDataRecordsByIds(ids: string[], dataSourceId: string) {
+  return db
+    .selectFrom("dataRecord")
+    .where("id", "in", ids)
+    .where("dataSourceId", "=", dataSourceId)
+    .selectAll()
+    .execute();
+}
+
 export async function findDataRecordsByDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,

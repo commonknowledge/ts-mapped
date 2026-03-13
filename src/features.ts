@@ -21,7 +21,7 @@ export const DataSourceFeatures: Record<
     autoEnrich: true,
     autoImport: true,
     columnDeletion: false,
-    enrichment: true,
+    enrichment: false,
     syncToCrm: true,
   },
   [DataSourceType.CSV]: {
@@ -35,7 +35,7 @@ export const DataSourceFeatures: Record<
     autoEnrich: true,
     autoImport: true,
     columnDeletion: true,
-    enrichment: false,
+    enrichment: true,
     syncToCrm: true,
   },
   [DataSourceType.Mailchimp]: {

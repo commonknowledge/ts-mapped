@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DataSourceFeatures } from "@/features";
 import {
@@ -22,8 +22,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shadcn/ui/alert-dialog";
+import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
-import AddColumnDialog from "./AddColumnDialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shadcn/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shadcn/ui/tooltip";
+import { enrichmentColumnName } from "@/utils/dataRecord";
+import EnrichmentColumnDialog from "../components/EnrichmentColumnDialog";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,
@@ -58,20 +70,24 @@ export function DataSourceEnrichmentDashboard({
 
   const { mutate: updateConfig } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         toast.success("Column removed successfully");
         setDeleteEnrichment(null);
         queryClient.invalidateQueries({
-          queryKey: trpc.dataSource.byId.queryKey({
+          queryKey: trpc.dataSource.enrichmentPreview.queryKey(),
+        })
+        queryClient.setQueryData(
+          trpc.dataSource.byId.queryKey({
             dataSourceId: dataSource.id,
           }),
-        });
-        queryClient.invalidateQueries({
-          queryKey: trpc.dataRecord.list.queryKey({
-            dataSourceId: dataSource.id,
-            page: 0,
-          }),
-        });
+          (old) =>
+            old
+              ? {
+                  ...old,
+                  enrichments: variables.enrichments ?? old.enrichments,
+                }
+              : old,
+        );
       },
       onError: (error) => {
         toast.error("Failed to remove column", {
@@ -86,6 +102,42 @@ export function DataSourceEnrichmentDashboard({
       dataSourceId: dataSource.id,
       page: 0,
     }),
+  );
+
+  const records = useMemo(() => data?.records.slice(0, 10) ?? [], [data]);
+
+  const existingColumns = dataSource.columnDefs ?? [];
+  const existingColumnNames = new Set(existingColumns.map((col) => col.name));
+  const enrichments = dataSource.enrichments ?? [];
+
+  const newEnrichmentColumns = enrichments
+    .map((e, i) => ({
+      name: enrichmentColumnName(e.name),
+      type: ColumnType.String,
+      enrichmentIndex: i,
+      enrichment: e,
+    }))
+    .filter((col) => !existingColumnNames.has(col.name));
+
+  const newEnrichmentColumnNames = new Set(
+    newEnrichmentColumns.map((col) => col.name),
+  );
+
+  const previewRecordIds = useMemo(
+    () => records.map((r) => r.id),
+    [records],
+  );
+
+  const { data: previewData } = useQuery(
+    trpc.dataSource.enrichmentPreview.queryOptions(
+      {
+        dataSourceId: dataSource.id,
+        dataRecordIds: previewRecordIds,
+      },
+      {
+        enabled: newEnrichmentColumns.length > 0 && previewRecordIds.length > 0,
+      },
+    ),
   );
 
   useSubscription(
@@ -106,6 +158,12 @@ export function DataSourceEnrichmentDashboard({
           if (dataSourceEvent.event === "EnrichmentComplete") {
             setEnriching(false);
             setLastEnriched(dataSourceEvent.at);
+            queryClient.invalidateQueries({
+              queryKey: trpc.dataRecord.list.queryKey({
+                dataSourceId: dataSource.id,
+                page: 0,
+              }),
+            });
           }
         },
       },
@@ -120,15 +178,11 @@ export function DataSourceEnrichmentDashboard({
 
   const displayEnrichmentProgress = enrichmentCount > 0 || enriching;
 
-  const existingColumns = dataSource.columnDefs ?? [];
-  const existingColumnNames = new Set(existingColumns.map((col) => col.name));
-  const enrichments = dataSource.enrichments ?? [];
-
   // Map enrichment column names to their enrichment info so we can
   // decorate columns that already exist in columnDefs after import.
   const enrichmentByColumnName = new Map(
     enrichments.map((e, i) => [
-      `Mapped: ${e.name}`,
+      enrichmentColumnName(e.name),
       { enrichmentIndex: i, enrichment: e },
     ]),
   );
@@ -138,22 +192,12 @@ export function DataSourceEnrichmentDashboard({
     return info ? { ...col, ...info } : col;
   });
 
-  const newEnrichmentColumns = enrichments
-    .map((e, i) => ({
-      name: `Mapped: ${e.name}`,
-      type: ColumnType.String,
-      enrichmentIndex: i,
-      enrichment: e,
-    }))
-    .filter((col) => !existingColumnNames.has(col.name));
-
   const columns: {
     name: string;
     type: ColumnType;
     enrichmentIndex?: number;
     enrichment?: Enrichment;
   }[] = [...decoratedExisting, ...newEnrichmentColumns];
-  const records = data?.records.slice(0, 10) ?? [];
 
   const handleDeleteEnrichment = () => {
     if (!deleteEnrichment) return;
@@ -175,7 +219,7 @@ export function DataSourceEnrichmentDashboard({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <AddColumnDialog dataSource={dataSource} />
+          <EnrichmentColumnDialog dataSource={dataSource} />
           <Button
             type="button"
             onClick={onClickEnrichRecords}
@@ -196,13 +240,42 @@ export function DataSourceEnrichmentDashboard({
               {columns.map((col) => {
                 const enrichmentIndex = col.enrichmentIndex;
                 const enrichment = col.enrichment;
+                const isPreview = newEnrichmentColumnNames.has(col.name);
                 return (
                   <th
                     key={col.name}
-                    className="border border-gray-200 bg-gray-50 px-3 py-1.5 text-left font-medium text-gray-600 whitespace-nowrap"
+                    className={`border border-gray-200 px-3 py-1.5 text-left font-medium whitespace-nowrap ${
+                      isPreview
+                        ? "bg-amber-50 text-amber-700 border-l-2 border-l-amber-300"
+                        : "bg-gray-50 text-gray-600"
+                    }`}
                   >
                     <span className="flex items-center gap-1.5">
                       {col.name}
+                      {isPreview && (
+                        <Popover>
+                          <PopoverTrigger asChild={true}>
+                            <button type="button">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1 py-0 border-amber-300 text-amber-600 cursor-help"
+                              >
+                                Preview
+                              </Badge>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-56 text-sm"
+                            side="bottom"
+                          >
+                            <p>
+                              Click{" "}
+                              <strong>&quot;Enrich records&quot;</strong> to
+                              save this column to all records.
+                            </p>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                       {enrichment != null && enrichmentIndex != null && (
                         <button
                           type="button"
@@ -227,14 +300,48 @@ export function DataSourceEnrichmentDashboard({
           <tbody>
             {records.map((record) => (
               <tr key={record.id} className="even:bg-gray-50/50">
-                {columns.map((col) => (
-                  <td
-                    key={col.name}
-                    className="border border-gray-200 px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate"
-                  >
-                    {formatCell(record.json[col.name])}
-                  </td>
-                ))}
+                {columns.map((col) => {
+                  const isPreview = newEnrichmentColumnNames.has(col.name);
+                  const persistedValue = record.json[col.name];
+                  const hasPersisted =
+                    persistedValue !== undefined && persistedValue !== null;
+                  const previewValue =
+                    isPreview && !hasPersisted
+                      ? previewData?.[record.id]?.[col.name]
+                      : undefined;
+                  const showPreview = isPreview && !hasPersisted;
+                  const displayValue = hasPersisted
+                    ? persistedValue
+                    : previewValue;
+
+                  const missingGeocode = !record.geocodePoint;
+
+                  const cell = (
+                    <td
+                      key={col.name}
+                      className={`border border-gray-200 px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate ${
+                        showPreview
+                          ? "italic text-muted-foreground border-l-2 border-l-amber-300 bg-amber-50/40"
+                          : ""
+                      }`}
+                    >
+                      {formatCell(displayValue)}
+                    </td>
+                  );
+
+                  if (missingGeocode) {
+                    return (
+                      <Tooltip key={col.name}>
+                        <TooltipTrigger asChild={true}>{cell}</TooltipTrigger>
+                        <TooltipContent>
+                          Record has no geocode result
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  }
+
+                  return cell;
+                })}
               </tr>
             ))}
             {records.length === 0 && (

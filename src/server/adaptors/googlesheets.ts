@@ -1,4 +1,7 @@
-import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
+import {
+  DATA_RECORDS_JOB_BATCH_SIZE,
+  ENRICHMENT_COLUMN_PREFIX,
+} from "@/constants";
 import { updateDataSource } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
@@ -726,6 +729,12 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
   }
 
   async deleteColumn(columnName: string): Promise<void> {
+    if (!columnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+      throw new Error(
+        `Refusing to delete column "${columnName}": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+      );
+    }
+
     const headers = await this.getHeaders();
 
     const headerIndex = headers.findIndex((h) => h === columnName);
