@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from "uuid";
 import { createCaller } from "@/services/trpc/server";
 import MapJotaiProvider from "../../../providers/MapJotaiProvider";
 import PublicMap from "./components/PublicMap";
-import PublicFiltersProvider from "./providers/PublicFiltersProvider";
 import PublicMapProvider from "./providers/PublicMapProvider";
 import type { Metadata } from "next";
 
@@ -75,9 +74,7 @@ export default async function PublicMapAdminPage({
   return (
     <MapJotaiProvider mapId={publicMap.mapId} viewId={publicMap.viewId}>
       <PublicMapProvider publicMap={publicMap} editable={!isPublicRoute}>
-        <PublicFiltersProvider>
-          <PublicMap />
-        </PublicFiltersProvider>
+        <PublicMap />
       </PublicMapProvider>
     </MapJotaiProvider>
   );

@@ -1,9 +1,13 @@
 "use client";
 
-import { useContext } from "react";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { cn } from "@/shadcn/utils";
-import { PublicMapContext } from "../context/PublicMapContext";
+import {
+  useColorScheme,
+  useEditable,
+  usePublicMapValue,
+  useSetSearchLocation,
+} from "../hooks/usePublicMap";
 import DataRecordSidebar from "./DataRecordSidebar";
 import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 import PublicMapDescriptionDialog from "./PublicMapDescriptionDialog";
@@ -11,8 +15,10 @@ import PublicMapGeocoder from "./PublicMapGeocoder";
 import { PublicMapListings } from "./PublicMapListings";
 
 export default function PublicMapSidebar() {
-  const { publicMap, editable, setSearchLocation, colorScheme } =
-    useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const editable = useEditable();
+  const setSearchLocation = useSetSearchLocation();
+  const colorScheme = useColorScheme();
 
   // Convert string colorScheme to actual color scheme object
   const activeColorScheme =

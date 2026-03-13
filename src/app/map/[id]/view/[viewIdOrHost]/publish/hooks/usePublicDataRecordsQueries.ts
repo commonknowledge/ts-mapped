@@ -1,13 +1,13 @@
 import { useQueries } from "@tanstack/react-query";
-import { useContext } from "react";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { SORT_BY_LOCATION, SORT_BY_NAME_COLUMNS } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { usePublicMapValue, useSearchLocation } from "./usePublicMap";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function usePublicDataRecordsQueries() {
-  const { publicMap, searchLocation } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const searchLocation = useSearchLocation();
   const { view } = useMapViews();
   const trpc = useTRPC();
 

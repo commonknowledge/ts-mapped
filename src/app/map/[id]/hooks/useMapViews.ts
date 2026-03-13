@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { AreaSetGroupCode } from "@/server/models/AreaSet";
 import {
@@ -14,7 +14,7 @@ import { useTRPC } from "@/services/trpc/react";
 import { dirtyViewIdsAtom, viewIdAtom } from "../atoms/mapStateAtoms";
 import { createNewViewConfig } from "../utils/mapView";
 import { getNewLastPosition } from "../utils/position";
-import { PublicMapContext } from "../view/[viewIdOrHost]/publish/context/PublicMapContext";
+import { usePublicMapValue } from "../view/[viewIdOrHost]/publish/hooks/usePublicMap";
 import { useMapId } from "./useMapCore";
 import { useMapQuery } from "./useMapQuery";
 import type { View } from "../types";
@@ -27,7 +27,7 @@ export function useMapViews() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { data: mapData } = useMapQuery(mapId);
-  const { publicMap } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
 
   // Get views directly from cache
   const views = mapData?.views;

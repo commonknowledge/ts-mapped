@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 
-import { useContext } from "react";
 import Loading from "@/app/map/[id]/components/Loading";
 import Map from "@/app/map/[id]/components/Map";
 import { useAreaStats } from "@/app/map/[id]/data";
@@ -11,7 +10,7 @@ import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import { useMarkerQueries } from "@/app/map/[id]/hooks/useMarkerQueries";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { useEditable } from "../hooks/usePublicMap";
 import EditorNavbar from "./editable/EditorNavbar";
 import PublishPublicMapSidebar from "./editable/PublishPublicMapSidebar";
 import PublicMapSidebar from "./PublicMapSidebar";
@@ -19,7 +18,7 @@ import PublicMapTopBarMobile from "./PublicMapTopBarMobile";
 
 export default function PublicMap() {
   const mapId = useMapId();
-  const { editable } = useContext(PublicMapContext);
+  const editable = useEditable();
   const areaStatsQuery = useAreaStats();
   const { setLastLoadedSourceId } = useChoropleth();
   const markerQueries = useMarkerQueries();

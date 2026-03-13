@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Database, Settings } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
@@ -16,8 +16,13 @@ import { useTRPC } from "@/services/trpc/react";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
 import { cn } from "@/shadcn/utils";
-import { PublicMapContext } from "../../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../../hooks/usePublicDataRecordsQueries";
+import {
+  useActivePublishTab,
+  useActiveTabId,
+  usePublicMapValue,
+  useSetActivePublishTab,
+} from "../../hooks/usePublicMap";
 import { buildPublicMapName } from "../../utils";
 import EditorDataSettings from "./EditorDataSettings";
 import EditorInfoSettings from "./EditorInfoSettings";
@@ -25,8 +30,10 @@ import EditorPublishSettings from "./EditorPublishSettings";
 import type { FormEvent } from "react";
 
 export default function PublishPublicMapSidebar() {
-  const { publicMap, activeTabId, activePublishTab, setActivePublishTab } =
-    useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const activeTabId = useActiveTabId();
+  const activePublishTab = useActivePublishTab();
+  const setActivePublishTab = useSetActivePublishTab();
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const { setSelectedRecords } = useInspector();
   const [hideSidebar] = useState(false);

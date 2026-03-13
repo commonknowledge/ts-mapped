@@ -1,14 +1,18 @@
 "use client";
 
-import { useContext } from "react";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
-import { PublicMapContext } from "../context/PublicMapContext";
+import {
+  useColorScheme,
+  usePublicMapValue,
+  useSetSearchLocation,
+} from "../hooks/usePublicMap";
 import PublicMapDescriptionDialog from "./PublicMapDescriptionDialog";
 import PublicMapGeocoder from "./PublicMapGeocoder";
 
 export default function PublicMapTopBarMobile() {
-  const { publicMap, setSearchLocation, colorScheme } =
-    useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const setSearchLocation = useSetSearchLocation();
+  const colorScheme = useColorScheme();
 
   // Convert string colorScheme to actual color scheme object
   const activeColorScheme =

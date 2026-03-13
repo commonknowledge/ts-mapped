@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Check, X } from "lucide-react";
-import { Fragment, useContext, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
@@ -12,8 +12,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { parseDate } from "@/utils/dataRecord";
 import { TRANS_FRIENDLY_HOST } from "../const";
-import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
+import { useColorScheme, usePublicMapValue } from "../hooks/usePublicMap";
 import {
   buildPublicMapName,
   groupRecords,
@@ -25,7 +25,8 @@ import EditablePublicMapProperty from "./editable/EditablePublicMapProperty";
 export default function DataRecordSidebar() {
   const isMobile = useIsMobile();
   const { selectedRecords, setFocusedRecord, resetInspector } = useInspector();
-  const { publicMap, colorScheme } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const colorScheme = useColorScheme();
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const [groupIndex, setGroupIndex] = useState(0);
   const [childIndex, setChildIndex] = useState(0);

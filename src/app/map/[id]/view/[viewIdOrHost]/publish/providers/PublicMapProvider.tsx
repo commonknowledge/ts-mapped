@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSetAtom } from "jotai";
+import { useHydrateAtoms } from "jotai/utils";
+import { useEffect } from "react";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapConfig } from "@/app/map/[id]/hooks/useMapConfig";
 import { getDataSourceIds } from "@/app/map/[id]/utils/map";
+import {
+  activeTabIdAtom,
+  editableAtom,
+  publicMapAtom,
+} from "../atoms/publicMapAtoms";
 import { createDataSourceConfig } from "../components/DataSourcesSelect";
-import { PublicMapContext } from "../context/PublicMapContext";
-import type {
-  PublicMap,
-  PublicMapColumn,
-  PublicMapDataSourceConfig,
-} from "@/server/models/PublicMap";
-import type { Point } from "@/server/models/shared";
 import type { RouterOutputs } from "@/services/trpc/react";
 import type { ReactNode } from "react";
 
@@ -24,98 +24,30 @@ export default function PublicMapProvider({
   editable?: boolean;
   children: ReactNode;
 }) {
-  const { publicMap, setPublicMap, activeTabId, setActiveTabId } =
-    usePublicMapAndActiveTab(initialPublicMap, editable);
-  const [searchLocation, setSearchLocation] = useState<Point | null>(null);
+  useHydrateAtoms([
+    [publicMapAtom, initialPublicMap],
+    [editableAtom, editable],
+    [
+      activeTabIdAtom,
+      initialPublicMap.dataSourceConfigs?.[0]?.dataSourceId || null,
+    ],
+  ] as const);
 
-  const [activePublishTab, setActivePublishTab] = useState<string>("settings");
+  useAutoPopulateDataSources(initialPublicMap, editable);
 
-  const updatePublicMap = (updates: Partial<PublicMap>) => {
-    if (publicMap) {
-      setPublicMap({ ...publicMap, ...updates });
-    }
-  };
-
-  const colorScheme = publicMap?.colorScheme || "red";
-
-  const updateDataSourceConfig = (
-    dataSourceId: string,
-    updates: Partial<PublicMapDataSourceConfig>,
-  ) => {
-    if (publicMap) {
-      setPublicMap({
-        ...publicMap,
-        dataSourceConfigs: publicMap.dataSourceConfigs.map((dsc) => {
-          if (dsc.dataSourceId === dataSourceId) {
-            return { ...dsc, ...updates };
-          }
-          return dsc;
-        }),
-      });
-    }
-  };
-
-  const updateAdditionalColumn = (
-    dataSourceId: string,
-    columnIndex: number,
-    updates: Partial<PublicMapColumn>,
-  ) => {
-    if (publicMap) {
-      setPublicMap({
-        ...publicMap,
-        dataSourceConfigs: publicMap.dataSourceConfigs.map((dsc) => {
-          if (dsc.dataSourceId === dataSourceId) {
-            return {
-              ...dsc,
-              additionalColumns: dsc.additionalColumns.map((c, i) => {
-                if (i === columnIndex) {
-                  return { ...c, ...updates };
-                }
-                return c;
-              }),
-            };
-          }
-          return dsc;
-        }),
-      });
-    }
-  };
-
-  return (
-    <PublicMapContext
-      value={{
-        publicMap,
-        editable,
-        searchLocation,
-        setSearchLocation,
-        updatePublicMap,
-        updateDataSourceConfig,
-        updateAdditionalColumn,
-        activeTabId,
-        setActiveTabId,
-        activePublishTab,
-        setActivePublishTab,
-        colorScheme,
-      }}
-    >
-      {children}
-    </PublicMapContext>
-  );
+  return children;
 }
 
 // When loading an editable public map with no data sources,
 // update the public map to show all available data sources
-const usePublicMapAndActiveTab = (
+function useAutoPopulateDataSources(
   initialPublicMap: NonNullable<RouterOutputs["publicMap"]["getPublished"]>,
   editable: boolean,
-) => {
+) {
   const { mapConfig } = useMapConfig();
   const { getDataSourceById } = useDataSources();
-
-  const [publicMap, setPublicMap] = useState(initialPublicMap);
-  const [activeTabId, setActiveTabId] = useState<string | null>(
-    publicMap?.dataSourceConfigs?.[0]?.dataSourceId || null,
-  );
+  const setPublicMap = useSetAtom(publicMapAtom);
+  const setActiveTabId = useSetAtom(activeTabIdAtom);
 
   useEffect(() => {
     if (!editable || initialPublicMap.dataSourceConfigs.length) {
@@ -128,7 +60,7 @@ const usePublicMapAndActiveTab = (
 
     const dataSourceConfigs = dataSources.map(createDataSourceConfig);
 
-    setPublicMap((prev) => ({ ...prev, dataSourceConfigs }));
+    setPublicMap((prev) => (prev ? { ...prev, dataSourceConfigs } : prev));
     if (dataSourceConfigs.length) {
       setActiveTabId(dataSourceConfigs[0].dataSourceId);
     }
@@ -137,7 +69,7 @@ const usePublicMapAndActiveTab = (
     getDataSourceById,
     initialPublicMap.dataSourceConfigs.length,
     mapConfig,
+    setPublicMap,
+    setActiveTabId,
   ]);
-
-  return { publicMap, setPublicMap, activeTabId, setActiveTabId };
-};
+}

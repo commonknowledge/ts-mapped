@@ -1,11 +1,14 @@
 "use client";
 
 import { CircleX } from "lucide-react";
-import { Fragment, useContext } from "react";
+import { Fragment } from "react";
 import { Badge } from "@/shadcn/ui/badge";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
 import { getActiveFilters } from "../filtersHelpers";
+import {
+  usePublicFilters,
+  useSetPublicFilters,
+} from "../hooks/usePublicFilters";
+import { useActiveTabId } from "../hooks/usePublicMap";
 import type { PublicFiltersFormValue } from "@/types";
 
 function FiltersListBadge({
@@ -32,8 +35,9 @@ function FiltersListBadge({
 }
 
 export default function FiltersList() {
-  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
-  const { activeTabId } = useContext(PublicMapContext);
+  const publicFilters = usePublicFilters();
+  const setPublicFilters = useSetPublicFilters();
+  const activeTabId = useActiveTabId();
   const activeFilters = getActiveFilters(
     activeTabId ? publicFilters[activeTabId] : undefined,
   );
