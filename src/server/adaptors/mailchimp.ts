@@ -483,7 +483,59 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     }
   }
 
+  private async ensureMergeFieldsExist(
+    enrichedRecords: EnrichedRecord[],
+  ): Promise<void> {
+    // Collect all unique merge field names from the enriched records
+    const fieldNames = new Set<string>();
+    for (const record of enrichedRecords) {
+      for (const column of record.columns) {
+        const fieldName = column.def.name;
+        if (!fieldName.startsWith("address_")) {
+          fieldNames.add(fieldName);
+        }
+      }
+    }
+
+    if (fieldNames.size === 0) return;
+
+    const existingFields = await this.getMergeFields();
+    const existingTags = new Set(existingFields.map((f) => f.tag));
+
+    for (const fieldName of fieldNames) {
+      if (existingTags.has(fieldName)) continue;
+
+      const url = `${this.getListUrl()}/merge-fields`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          tag: fieldName,
+          name: fieldName,
+          type: "text",
+        }),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw Error(
+          `Bad create merge field response: ${response.status}, ${responseText}`,
+        );
+      }
+
+      logger.info(
+        `Created Mailchimp merge field "${fieldName}" for data source ${this.dataSourceId}`,
+      );
+    }
+
+    // Invalidate cache since we may have created new fields
+    this.cachedMergeFields = null;
+  }
+
   async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
+    // Ensure all required merge fields exist before updating records
+    await this.ensureMergeFieldsExist(enrichedRecords);
+
     // Mailchimp allows batch operations with up to 500 operations
     const batches = batch(enrichedRecords, 500);
 

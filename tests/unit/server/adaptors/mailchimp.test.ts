@@ -229,37 +229,60 @@ describe("Mailchimp adaptor tests", () => {
       throw new Error("No members in Mailchimp list");
     }
 
+    // Generate a unique merge field tag using current date (max 10 chars)
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const fieldTag = `T${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
     const testValue = "test-value-" + Date.now();
     const enrichedRecords = [
       {
         externalRecord: all[0],
         columns: [
           {
-            def: { name: "MPD_V3_TST", type: ColumnType.String },
+            def: { name: fieldTag, type: ColumnType.String },
             value: testValue,
           },
         ],
       },
     ];
 
-    await adaptor.updateRecords(enrichedRecords);
+    try {
+      // updateRecords will auto-create the merge field if it doesn't exist
+      await adaptor.updateRecords(enrichedRecords);
 
-    // Wait a moment for Mailchimp batch processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Wait for Mailchimp batch processing to complete
+      while (true) {
+        const updatedRecords = await adaptor.fetchByExternalId([
+          all[0].externalId,
+        ]);
+        expect(updatedRecords.length).toBe(1);
 
-    while (true) {
-      // Fetch the updated record
-      const updatedRecords = await adaptor.fetchByExternalId([
-        all[0].externalId,
-      ]);
-      expect(updatedRecords.length).toBe(1);
-
-      try {
-        expect(updatedRecords[0].json.MPD_V3_TST).toBe(testValue);
-        break;
-      } catch {
-        logger.warn("Mailchimp member not updated yet, sleeping for 5 seconds");
-        await sleep(5000);
+        try {
+          expect(updatedRecords[0].json[fieldTag]).toBe(testValue);
+          break;
+        } catch {
+          logger.warn(
+            "Mailchimp member not updated yet, sleeping for 5 seconds",
+          );
+          await sleep(5000);
+        }
+      }
+    } finally {
+      // Clean up: delete the created merge field
+      adaptor["cachedMergeFields"] = null;
+      const mergeFields = await adaptor.getMergeFields();
+      const field = mergeFields.find((f) => f.tag === fieldTag);
+      if (field) {
+        const serverPrefix =
+          credentials.mailchimp.apiKey.split("-")[1] || "us1";
+        const url = `https://${serverPrefix}.api.mailchimp.com/3.0/lists/${credentials.mailchimp.listId}/merge-fields/${field.merge_id}`;
+        await fetch(url, {
+          method: "DELETE",
+          headers: {
+            Authorization: `apikey ${credentials.mailchimp.apiKey}`,
+          },
+        });
       }
     }
   });
