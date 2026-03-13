@@ -1,3 +1,5 @@
+export const TRANS_FRIENDLY_HOST = "trans-friendly-gp.mapped.tools";
+
 export const ALLOWED_FILTERS = [
   {
     name: "Referral to a GIC",

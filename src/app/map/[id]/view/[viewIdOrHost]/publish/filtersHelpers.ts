@@ -18,6 +18,7 @@ export const filterRecords = (
   allRecords: NonNullable<
     RouterOutputs["dataSource"]["byIdWithRecords"]
   >["records"],
+  useUnknownValues = true,
 ): NonNullable<RouterOutputs["dataSource"]["byIdWithRecords"]>["records"] => {
   if (!activeFilters?.length || !allRecords?.length) {
     return [];
@@ -26,7 +27,7 @@ export const filterRecords = (
   return allRecords.filter((record) => {
     return activeFilters.every((filter) => {
       if (filter.type === PublicMapColumnType.Boolean) {
-        return toBooleanOrUnknown(record.json[filter.name]);
+        return toBooleanOrUnknown(record.json[filter.name], useUnknownValues);
       }
 
       if (filter.type === PublicMapColumnType.String && filter.value) {

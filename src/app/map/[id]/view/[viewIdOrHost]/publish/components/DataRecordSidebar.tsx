@@ -11,6 +11,7 @@ import { Separator } from "@/shadcn/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { cn } from "@/shadcn/utils";
 import { parseDate } from "@/utils/dataRecord";
+import { TRANS_FRIENDLY_HOST } from "../const";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
 import {
@@ -238,6 +239,7 @@ export default function DataRecordSidebar() {
                 dataSourceConfig={dataSourceConfig}
                 sourceColumns={columnConfig.sourceColumns}
                 json={selectedRecordDetails.json}
+                useUnknownValues={publicMap?.host === TRANS_FRIENDLY_HOST}
               />
             ) : columnConfig.type === PublicMapColumnType.CommaSeparatedList ? (
               <div className="flex flex-col gap-1">
@@ -305,6 +307,7 @@ function CheckList({
   dataSourceConfig,
   sourceColumns,
   json,
+  useUnknownValues = true,
 }: {
   dataSourceConfig:
     | {
@@ -315,12 +318,13 @@ function CheckList({
     | undefined;
   sourceColumns: string[];
   json: Record<string, unknown>;
+  useUnknownValues?: boolean;
 }) {
   return (
     <>
       {sourceColumns.map((column) => (
         <div key={column} className="flex items-center gap-2">
-          {toBooleanOrUnknown(json[column]) === null ? (
+          {toBooleanOrUnknown(json[column], useUnknownValues) === null ? (
             dataSourceConfig?.unknownTooltip ? (
               <Tooltip>
                 <TooltipTrigger>
@@ -333,7 +337,7 @@ function CheckList({
             ) : (
               <div className="w-4 h-5 text-center font-semibold">?</div>
             )
-          ) : toBooleanOrUnknown(json[column]) ? (
+          ) : toBooleanOrUnknown(json[column], useUnknownValues) ? (
             dataSourceConfig?.positiveTooltip ? (
               <Tooltip>
                 <TooltipTrigger>

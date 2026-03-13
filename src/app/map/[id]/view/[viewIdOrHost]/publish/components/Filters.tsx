@@ -9,12 +9,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
+import { TRANS_FRIENDLY_HOST } from "../const";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
+import { PublicMapContext } from "../context/PublicMapContext";
 import FiltersForm from "./FiltersForm";
 
 export default function Filters() {
   const { filterFields } = useContext(PublicFiltersContext);
-  const label = "Services offered"; // TODO: make label dynamic
+  const { publicMap } = useContext(PublicMapContext);
+  const label =
+    publicMap?.host === TRANS_FRIENDLY_HOST ? "Services offered" : "Filters";
 
   if (!filterFields.length) {
     return null;
