@@ -16,7 +16,7 @@ function getInitialOrganisationId(
   return organisations.length ? organisations[0].id : null;
 }
 
-export default function OrganisationHydrator({
+export default function OrganisationProvider({
   organisations,
   storedOrgId,
   children,

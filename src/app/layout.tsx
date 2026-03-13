@@ -4,9 +4,9 @@ import { cookies } from "next/headers";
 import { getServerSession } from "@/auth";
 import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import NProgressProvider from "@/providers/NProgressProvider";
-import OrganisationHydrator from "@/providers/OrganisationHydrator";
+import OrganisationProvider from "@/providers/OrganisationProvider";
 import { PostHogProvider } from "@/providers/PostHogProvider";
-import ServerSessionProvider from "@/providers/ServerSessionProvider";
+import SessionProvider from "@/providers/SessionProvider";
 import { TRPCReactProvider } from "@/services/trpc/react";
 import { createCaller, getQueryClient, trpc } from "@/services/trpc/server";
 import { Toaster } from "@/shadcn/ui/sonner";
@@ -72,9 +72,9 @@ export default async function RootLayout({
       <body className={ibmPlexSans.className + " antialiased"}>
         <TRPCReactProvider>
           <HydrationBoundary state={dehydrate(queryClient)}>
-            <ServerSessionProvider serverSession={serverSession}>
+            <SessionProvider serverSession={serverSession}>
               <PostHogProvider>
-                <OrganisationHydrator
+                <OrganisationProvider
                   organisations={organisations}
                   storedOrgId={storedOrgId}
                 >
@@ -84,9 +84,9 @@ export default async function RootLayout({
                     </main>
                     <Toaster position="top-center" />
                   </NProgressProvider>
-                </OrganisationHydrator>
+                </OrganisationProvider>
               </PostHogProvider>
-            </ServerSessionProvider>
+            </SessionProvider>
           </HydrationBoundary>
         </TRPCReactProvider>
       </body>

@@ -1,10 +1,13 @@
 "use client";
 
-import { useContext } from "react";
-import { ServerSessionContext } from "./providers/ServerSessionProvider";
+import {
+  useCurrentUser as useCurrentUserAtom,
+  useSetCurrentUser,
+} from "@/atoms/sessionAtoms";
 
 export const useCurrentUser = () => {
-  const { currentUser, setCurrentUser } = useContext(ServerSessionContext);
+  const currentUser = useCurrentUserAtom();
+  const setCurrentUser = useSetCurrentUser();
   return { currentUser, setCurrentUser };
 };
 
