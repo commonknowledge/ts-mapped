@@ -1,12 +1,19 @@
 "use client";
 
-import { useContext } from "react";
 import { Button } from "@/shadcn/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import { cn } from "@/shadcn/utils";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
 import { getActiveFilters } from "../filtersHelpers";
+import {
+  useFilteredRecords,
+  usePublicFilters,
+  useSetPublicFilters,
+} from "../hooks/usePublicFilters";
+import {
+  useActiveTabId,
+  usePublicMapValue,
+  useSetActiveTabId,
+} from "../hooks/usePublicMap";
 import DataRecordsList from "./DataRecordsList";
 import DataSourcesSelect from "./DataSourcesSelect";
 import Filters from "./Filters";
@@ -31,9 +38,11 @@ export default function DataSourceTabs({
   editable,
   dataRecordsQueries,
 }: DataSourceTabsProps) {
-  const { publicMap, activeTabId, setActiveTabId } =
-    useContext(PublicMapContext);
-  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
+  const publicMap = usePublicMapValue();
+  const activeTabId = useActiveTabId();
+  const setActiveTabId = useSetActiveTabId();
+  const publicFilters = usePublicFilters();
+  const setPublicFilters = useSetPublicFilters();
 
   if (!publicMap || publicMap.dataSourceConfigs.length === 0) {
     return null;
@@ -126,9 +135,10 @@ function SingleDataSourceContent({
   editable,
   colorScheme,
 }: SingleDataSourceContentProps) {
-  const { publicFilters, setPublicFilters, filteredRecords } =
-    useContext(PublicFiltersContext);
-  const { publicMap } = useContext(PublicMapContext);
+  const filteredRecords = useFilteredRecords();
+  const publicFilters = usePublicFilters();
+  const setPublicFilters = useSetPublicFilters();
+  const publicMap = usePublicMapValue();
 
   const dataSourceId = dataRecordsQuery.data?.id;
   const activeFilters = getActiveFilters(

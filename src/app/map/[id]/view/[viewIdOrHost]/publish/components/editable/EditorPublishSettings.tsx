@@ -1,17 +1,20 @@
-import { useContext } from "react";
 import { Link } from "@/components/Link";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
 import { Separator } from "@/shadcn/ui/separator";
 import { Switch } from "@/shadcn/ui/switch";
-import { PublicMapContext } from "../../context/PublicMapContext";
+import {
+  usePublicMapValue,
+  useUpdatePublicMap,
+} from "../../hooks/usePublicMap";
 
 export default function EditorPublishSettings({
   publishedHost,
 }: {
   publishedHost: string;
 }) {
-  const { publicMap, updatePublicMap } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const updatePublicMap = useUpdatePublicMap();
 
   if (!publicMap) {
     return null;

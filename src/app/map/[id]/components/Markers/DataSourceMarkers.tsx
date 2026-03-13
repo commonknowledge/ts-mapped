@@ -1,11 +1,17 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { Source } from "react-map-gl/mapbox";
 
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import { MarkerDisplayMode } from "@/server/models/Map";
 import { mapColors } from "../../styles";
-import { PublicFiltersContext } from "../../view/[viewIdOrHost]/publish/context/PublicFiltersContext";
-import { PublicMapContext } from "../../view/[viewIdOrHost]/publish/context/PublicMapContext";
+import {
+  useFilteredRecords,
+  usePublicFilters,
+} from "../../view/[viewIdOrHost]/publish/hooks/usePublicFilters";
+import {
+  useColorScheme,
+  usePublicMapValue,
+} from "../../view/[viewIdOrHost]/publish/hooks/usePublicMap";
 import { ClustersLayer } from "./ClustersLayer";
 import { HeatmapLayer } from "./HeatmapLayer";
 import { MARKER_CLIENT_EXCLUDED_KEY } from "./utils";
@@ -26,16 +32,10 @@ export function DataSourceMarkers({
   };
   hideFilteredMarkers?: boolean;
 }) {
-  const { filteredRecords, publicFilters } = useContext(
-    PublicFiltersContext,
-  ) || {
-    filteredRecords: [],
-    publicFilters: {},
-  };
-  const { publicMap, colorScheme } = useContext(PublicMapContext) || {
-    publicMap: null,
-    colorScheme: null,
-  };
+  const filteredRecords = useFilteredRecords();
+  const publicFilters = usePublicFilters();
+  const publicMap = usePublicMapValue();
+  const colorScheme = useColorScheme();
 
   const displayMode =
     mapConfig.markerDisplayModes?.[dataSourceMarkers.dataSourceId] ??

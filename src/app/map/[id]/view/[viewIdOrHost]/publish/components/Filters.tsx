@@ -1,7 +1,6 @@
 "use client";
 
 import { ListFilter } from "lucide-react";
-import { useContext } from "react";
 import { Button } from "@/shadcn/ui/button";
 import {
   DropdownMenu,
@@ -10,13 +9,13 @@ import {
   DropdownMenuTrigger,
 } from "@/shadcn/ui/dropdown-menu";
 import { TRANS_FRIENDLY_HOST } from "../const";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { useFilterFields } from "../hooks/usePublicFilters";
+import { usePublicMapValue } from "../hooks/usePublicMap";
 import FiltersForm from "./FiltersForm";
 
 export default function Filters() {
-  const { filterFields } = useContext(PublicFiltersContext);
-  const { publicMap } = useContext(PublicMapContext);
+  const filterFields = useFilterFields();
+  const publicMap = usePublicMapValue();
   const label =
     publicMap?.host === TRANS_FRIENDLY_HOST ? "Services offered" : "Filters";
 

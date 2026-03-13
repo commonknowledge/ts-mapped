@@ -1,7 +1,13 @@
 import { Pencil } from "lucide-react";
-import { useContext, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "@/shadcn/ui/input";
-import { PublicMapContext } from "../../context/PublicMapContext";
+import {
+  useEditable,
+  usePublicMapValue,
+  useUpdateAdditionalColumn,
+  useUpdateDataSourceConfig,
+  useUpdatePublicMap,
+} from "../../hooks/usePublicMap";
 import type { FormEvent, ReactNode } from "react";
 
 export default function EditablePublicMapProperty({
@@ -24,13 +30,11 @@ export default function EditablePublicMapProperty({
   placeholder: string;
   children: ReactNode;
 }) {
-  const {
-    publicMap,
-    updatePublicMap,
-    updateDataSourceConfig,
-    updateAdditionalColumn,
-    editable,
-  } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const updatePublicMap = useUpdatePublicMap();
+  const updateDataSourceConfig = useUpdateDataSourceConfig();
+  const updateAdditionalColumn = useUpdateAdditionalColumn();
+  const editable = useEditable();
   const inputRef = useRef<HTMLInputElement>(null);
 
   let initialValue = "";

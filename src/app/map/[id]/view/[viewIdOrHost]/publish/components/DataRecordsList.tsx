@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  memo,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapRef } from "@/app/map/[id]/hooks/useMapCore";
 import { cn } from "@/shadcn/utils";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
+import { useFilteredRecords } from "../hooks/usePublicFilters";
+import { usePublicMapValue } from "../hooks/usePublicMap";
 import { buildPublicMapName, groupRecords } from "../utils";
 import type { RecordGroup } from "../utils";
 import type { PublicMapColorScheme } from "@/app/map/[id]/styles";
@@ -35,10 +28,10 @@ export default function DataRecordsList({
   dataRecordsQuery,
   colorScheme,
 }: DataRecordsListProps) {
-  const { publicMap } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
   const { setSelectedRecords, focusedRecord } = useInspector();
   const mapRef = useMapRef();
-  const { filteredRecords } = useContext(PublicFiltersContext);
+  const filteredRecords = useFilteredRecords();
   const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {

@@ -1,27 +1,27 @@
-"use client";
-
-import { useContext, useMemo, useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useMemo } from "react";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
+import { publicFiltersAtom } from "../atoms/publicFiltersAtoms";
 import { ALLOWED_FILTERS, TRANS_FRIENDLY_HOST } from "../const";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
 import { filterRecords, getActiveFilters } from "../filtersHelpers";
-import { usePublicDataRecordsQueries } from "../hooks/usePublicDataRecordsQueries";
-import type { FilterField, PublicFiltersFormValue } from "@/types";
-import type { ReactNode } from "react";
+import { usePublicDataRecordsQueries } from "./usePublicDataRecordsQueries";
+import { useActiveTabId, usePublicMapValue } from "./usePublicMap";
+import type { FilterField } from "@/types";
 
-export default function PublicFiltersProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const { publicMap, activeTabId } = useContext(PublicMapContext);
+export function usePublicFilters() {
+  return useAtomValue(publicFiltersAtom);
+}
+
+export function useSetPublicFilters() {
+  return useSetAtom(publicFiltersAtom);
+}
+
+export function useFilterFields() {
+  const publicMap = usePublicMapValue();
+  const activeTabId = useActiveTabId();
   const dataRecordsQueries = usePublicDataRecordsQueries();
-  const [publicFilters, setPublicFilters] = useState<
-    Record<string, PublicFiltersFormValue[]>
-  >({});
 
-  const filterFields = useMemo(() => {
+  return useMemo(() => {
     if (!publicMap) {
       return [];
     }
@@ -92,8 +92,15 @@ export default function PublicFiltersProvider({
 
     return fields;
   }, [publicMap, activeTabId, dataRecordsQueries]);
+}
 
-  const filteredRecords = useMemo(() => {
+export function useFilteredRecords() {
+  const publicMap = usePublicMapValue();
+  const activeTabId = useActiveTabId();
+  const dataRecordsQueries = usePublicDataRecordsQueries();
+  const publicFilters = usePublicFilters();
+
+  return useMemo(() => {
     if (!publicMap) {
       return [];
     }
@@ -113,23 +120,8 @@ export default function PublicFiltersProvider({
     );
 
     const useUnknownValues = publicMap.host === TRANS_FRIENDLY_HOST;
-    const filteredRecords = activeFilters?.length
+    return activeFilters?.length
       ? filterRecords(activeFilters, allRecords, useUnknownValues)
       : allRecords;
-
-    return filteredRecords;
   }, [activeTabId, dataRecordsQueries, publicFilters, publicMap]);
-
-  return (
-    <PublicFiltersContext
-      value={{
-        filterFields,
-        publicFilters,
-        setPublicFilters,
-        filteredRecords,
-      }}
-    >
-      {children}
-    </PublicFiltersContext>
-  );
 }

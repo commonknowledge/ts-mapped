@@ -1,6 +1,5 @@
 import { Lock } from "lucide-react";
 
-import { useContext } from "react";
 import { useMapId } from "@/app/map/[id]/hooks/useMapCore";
 import { useMapQuery } from "@/app/map/[id]/hooks/useMapQuery";
 import Navbar from "@/components/layout/Navbar";
@@ -12,12 +11,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/shadcn/ui/breadcrumb";
-import { PublicMapContext } from "../../context/PublicMapContext";
+import { usePublicMapValue } from "../../hooks/usePublicMap";
 
 export default function EditorNavbar() {
   const mapId = useMapId();
   const { data: map } = useMapQuery(mapId);
-  const { publicMap } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
 
   return (
     <Navbar>

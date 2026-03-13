@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
@@ -7,15 +7,19 @@ import { Button } from "@/shadcn/ui/button";
 import { Checkbox } from "@/shadcn/ui/checkbox";
 import { Input } from "@/shadcn/ui/input";
 import { Label } from "@/shadcn/ui/label";
-import { PublicFiltersContext } from "../context/PublicFiltersContext";
-import { PublicMapContext } from "../context/PublicMapContext";
+import {
+  usePublicFilters,
+  useSetPublicFilters,
+} from "../hooks/usePublicFilters";
+import { useActiveTabId } from "../hooks/usePublicMap";
 import { toBoolean } from "../utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 export default function FiltersForm({ fields }: { fields: FilterField[] }) {
   const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
-  const { publicFilters, setPublicFilters } = useContext(PublicFiltersContext);
-  const { activeTabId } = useContext(PublicMapContext);
+  const publicFilters = usePublicFilters();
+  const setPublicFilters = useSetPublicFilters();
+  const activeTabId = useActiveTabId();
   const { setSelectedRecords } = useInspector();
 
   // setting default values

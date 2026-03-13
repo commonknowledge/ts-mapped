@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { useContext } from "react";
 import { publicMapColorSchemes } from "@/app/map/[id]/styles";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import RichTextEditor from "@/components/forms/RichTextEditor";
@@ -13,10 +12,14 @@ import {
   SelectValue,
 } from "@/shadcn/ui/select";
 import { Textarea } from "@/shadcn/ui/textarea";
-import { PublicMapContext } from "../../context/PublicMapContext";
+import {
+  usePublicMapValue,
+  useUpdatePublicMap,
+} from "../../hooks/usePublicMap";
 
 export default function EditorInfoSettings() {
-  const { publicMap, updatePublicMap } = useContext(PublicMapContext);
+  const publicMap = usePublicMapValue();
+  const updatePublicMap = useUpdatePublicMap();
 
   const updateImage = async (imageFile: File | null) => {
     const imageUrl = await uploadFile(imageFile);
