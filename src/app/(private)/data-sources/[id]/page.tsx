@@ -14,14 +14,14 @@ export default function DataSourcePage({
   const { id } = use(params);
 
   const trpc = useTRPC();
-  const { data: dataSource, isFetching } = useQuery(
+  const { data: dataSource, isPending } = useQuery(
     trpc.dataSource.byId.queryOptions(
       { dataSourceId: id },
       { refetchOnMount: "always" },
     ),
   );
 
-  if (isFetching) {
+  if (isPending) {
     return (
       <div className="flex justify-center py-8">
         <LoaderPinwheel className="animate-spin" />

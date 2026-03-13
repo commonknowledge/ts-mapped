@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { HelpCircle, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
@@ -25,16 +25,7 @@ import {
 } from "@/shadcn/ui/alert-dialog";
 import { Badge } from "@/shadcn/ui/badge";
 import { Button } from "@/shadcn/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shadcn/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/shadcn/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shadcn/ui/tooltip";
 import { enrichmentColumnName } from "@/utils/dataRecord";
 import EnrichmentColumnDialog from "../components/EnrichmentColumnDialog";
 
@@ -68,32 +59,17 @@ export function DataSourceEnrichmentDashboard({
 
   const { mutate: deleteEnrichmentColumns } = useMutation(
     trpc.dataSource.deleteEnrichmentColumns.mutationOptions({
-      onSuccess: (_data, variables) => {
+      onSuccess: () => {
         toast.success("Column removed successfully");
         setDeleteColumn(null);
         queryClient.invalidateQueries({
           queryKey: trpc.dataSource.enrichmentPreview.queryKey(),
         });
-        queryClient.setQueryData(
-          trpc.dataSource.byId.queryKey({
+        queryClient.invalidateQueries({
+          queryKey: trpc.dataSource.byId.queryKey({
             dataSourceId: dataSource.id,
           }),
-          (old) => {
-            if (!old) return old;
-            const externalColumnNamesToRemove = new Set(
-              variables.externalColumnNames,
-            );
-            return {
-              ...old,
-              enrichments: (old.enrichments ?? []).filter(
-                (e) =>
-                  !externalColumnNamesToRemove.has(
-                    enrichmentColumnName(e.name),
-                  ),
-              ),
-            };
-          },
-        );
+        });
       },
       onError: (error) => {
         toast.error("Failed to remove column", {
@@ -129,12 +105,9 @@ export function DataSourceEnrichmentDashboard({
     newEnrichmentColumns.map((col) => col.name),
   );
 
-  const previewRecordIds = useMemo(
-    () => records.map((r) => r.id),
-    [records],
-  );
+  const previewRecordIds = useMemo(() => records.map((r) => r.id), [records]);
 
-  const { data: previewData } = useQuery(
+  const { data: previewData, isFetching: isPreviewFetching } = useQuery(
     trpc.dataSource.enrichmentPreview.queryOptions(
       {
         dataSourceId: dataSource.id,
@@ -168,6 +141,11 @@ export function DataSourceEnrichmentDashboard({
               queryKey: trpc.dataRecord.list.queryKey({
                 dataSourceId: dataSource.id,
                 page: 0,
+              }),
+            });
+            queryClient.invalidateQueries({
+              queryKey: trpc.dataSource.byId.queryKey({
+                dataSourceId: dataSource.id,
               }),
             });
           }
@@ -214,7 +192,7 @@ export function DataSourceEnrichmentDashboard({
   };
 
   return (
-    <div className="p-4 mx-auto w-full overflow-x-auto">
+    <div className="p-4 mx-auto w-full">
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm text-muted-foreground">
           {displayEnrichmentProgress && (
@@ -240,121 +218,122 @@ export function DataSourceEnrichmentDashboard({
       {isLoading ? (
         <p className="text-muted-foreground text-sm">Loading records…</p>
       ) : (
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr>
-              {columns.map((col) => {
-                const isPreview = newEnrichmentColumnNames.has(col.name);
-                return (
-                  <th
-                    key={col.name}
-                    className={`border border-gray-200 px-3 py-1.5 text-left font-medium whitespace-nowrap ${
-                      isPreview
-                        ? "bg-amber-50 text-amber-700 border-l-2 border-l-amber-300"
-                        : "bg-gray-50 text-gray-600"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      {col.name}
-                      {isPreview && (
-                        <Popover>
-                          <PopoverTrigger asChild={true}>
-                            <button type="button">
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] px-1 py-0 border-amber-300 text-amber-600 cursor-help"
-                              >
-                                Preview
-                              </Badge>
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="w-56 text-sm"
-                            side="bottom"
-                          >
-                            <p>
-                              Click{" "}
-                              <strong>&quot;Enrich records&quot;</strong> to
-                              save this column to all records.
-                            </p>
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                      {col.name.startsWith(ENRICHMENT_COLUMN_PREFIX) && (
-                        <button
-                          type="button"
-                          onClick={() => setDeleteColumn(col.name)}
-                          className="text-gray-400 hover:text-destructive transition-colors"
-                          title="Remove enrichment column"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </span>
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((record) => (
-              <tr key={record.id} className="even:bg-gray-50/50">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
                 {columns.map((col) => {
                   const isPreview = newEnrichmentColumnNames.has(col.name);
-                  const persistedValue = record.json[col.name];
-                  const hasPersisted =
-                    persistedValue !== undefined && persistedValue !== null;
-                  const previewValue =
-                    isPreview && !hasPersisted
-                      ? previewData?.[record.id]?.[col.name]
-                      : undefined;
-                  const showPreview = isPreview && !hasPersisted;
-                  const displayValue = hasPersisted
-                    ? persistedValue
-                    : previewValue;
-
-                  const missingGeocode = !record.geocodePoint;
-
-                  const cell = (
-                    <td
+                  return (
+                    <th
                       key={col.name}
-                      className={`border border-gray-200 px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate ${
-                        showPreview
-                          ? "italic text-muted-foreground border-l-2 border-l-amber-300 bg-amber-50/40"
-                          : ""
+                      className={`border border-gray-200 px-3 py-1.5 text-left font-medium whitespace-nowrap ${
+                        isPreview
+                          ? "bg-amber-50 text-amber-700 border-l-2 border-l-amber-300"
+                          : "bg-gray-50 text-gray-600"
                       }`}
                     >
-                      {formatCell(displayValue)}
-                    </td>
+                      <span className="flex items-center gap-1.5">
+                        {col.name}
+                        {isPreview && (
+                          <Tooltip>
+                            <TooltipTrigger asChild={true}>
+                              <span className="inline-flex items-center gap-1">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] px-1 py-0 border-amber-300 text-amber-600"
+                                >
+                                  Preview
+                                </Badge>
+                                <HelpCircle className="h-3.5 w-3.5 text-amber-500" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-56">
+                              Click <strong>&quot;Enrich records&quot;</strong>{" "}
+                              to save this column to all records.
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                        {col.name.startsWith(ENRICHMENT_COLUMN_PREFIX) && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleteColumn(col.name)}
+                            className="text-gray-400 hover:text-destructive transition-colors"
+                            title="Remove enrichment column"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </span>
+                    </th>
                   );
-
-                  if (missingGeocode) {
-                    return (
-                      <Tooltip key={col.name}>
-                        <TooltipTrigger asChild={true}>{cell}</TooltipTrigger>
-                        <TooltipContent>
-                          Record has no geocode result
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  }
-
-                  return cell;
                 })}
               </tr>
-            ))}
-            {records.length === 0 && (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="border border-gray-200 px-3 py-4 text-center text-muted-foreground"
-                >
-                  No records
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {records.map((record) => (
+                <tr key={record.id} className="even:bg-gray-50/50">
+                  {columns.map((col) => {
+                    const isPreview = newEnrichmentColumnNames.has(col.name);
+                    const persistedValue = record.json[col.name];
+                    const hasPersisted =
+                      persistedValue !== undefined && persistedValue !== null;
+                    const previewValue =
+                      isPreview && !hasPersisted
+                        ? previewData?.[record.id]?.[col.name]
+                        : undefined;
+                    const showPreview = isPreview && !hasPersisted;
+                    const displayValue = hasPersisted
+                      ? persistedValue
+                      : previewValue;
+
+                    const missingGeocode = !record.geocodePoint;
+
+                    const cell = (
+                      <td
+                        key={col.name}
+                        className={`border border-gray-200 px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate ${
+                          showPreview
+                            ? "italic text-muted-foreground border-l-2 border-l-amber-300 bg-amber-50/40"
+                            : ""
+                        }`}
+                      >
+                        {showPreview && isPreviewFetching && !displayValue ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
+                        ) : (
+                          formatCell(displayValue)
+                        )}
+                      </td>
+                    );
+
+                    if (missingGeocode) {
+                      return (
+                        <Tooltip key={col.name}>
+                          <TooltipTrigger asChild={true}>{cell}</TooltipTrigger>
+                          <TooltipContent>
+                            Record has no geocode result
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    }
+
+                    return cell;
+                  })}
+                </tr>
+              ))}
+              {records.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="border border-gray-200 px-3 py-4 text-center text-muted-foreground"
+                  >
+                    No records
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <AlertDialog
@@ -370,12 +349,15 @@ export function DataSourceEnrichmentDashboard({
               This will remove the &quot;{deleteColumn}&quot; column and its
               data from all records.
             </AlertDialogDescription>
-            {!DataSourceFeatures[dataSource.config.type].columnDeletion && (
-              <p className="text-sm text-amber-600 mt-2">
-                ⚠️ This data source does not support automatic column deletion.
-                You will need to manually remove the column from your source.
-              </p>
-            )}
+            {deleteColumn &&
+              !DataSourceFeatures[dataSource.config.type].columnDeletion &&
+              existingColumnNames.has(deleteColumn) && (
+                <p className="text-sm text-amber-600 mt-2">
+                  ⚠️ This data source does not support automatic column
+                  deletion. You will need to manually remove the column from
+                  your source.
+                </p>
+              )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

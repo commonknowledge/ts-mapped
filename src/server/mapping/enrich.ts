@@ -2,7 +2,10 @@ import { ColumnType } from "@/server/models/DataSource";
 import { findAreaByCode } from "@/server/repositories/Area";
 import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/DataRecord";
-import { findDataSourceById } from "@/server/repositories/DataSource";
+import {
+  findDataSourceById,
+  updateDataSource,
+} from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { enrichmentColumnName } from "@/utils/dataRecord";
 import { geocodeRecord } from "./geocode";
@@ -12,6 +15,7 @@ import type {
   AreaEnrichment,
   DataSource,
   DataSourceEnrichment,
+  DataSourceUpdate,
   Enrichment,
 } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
@@ -163,4 +167,40 @@ const getDataSourceEnrichedColumn = async (
     },
     value: matchedRecord.json[dataSourceColumn],
   };
+};
+
+/**
+ * Synchronously removes enrichment columns from a data source's metadata:
+ * - Filters matching entries out of `enrichments`
+ * - Filters matching entries out of `columnDefs`
+ *
+ * The expensive work (stripping values from data_record.json and deleting
+ * columns from the external source) is left to the background job.
+ */
+export const removeEnrichmentColumnsFromDataSource = async (
+  dataSourceId: string,
+  externalColumnNames: string[],
+) => {
+  if (externalColumnNames.length === 0) return;
+
+  const dataSource = await findDataSourceById(dataSourceId);
+  if (!dataSource) return;
+
+  const namesToRemove = new Set(externalColumnNames);
+
+  const remainingEnrichments = (dataSource.enrichments ?? []).filter(
+    (e) => !namesToRemove.has(enrichmentColumnName(e.name)),
+  );
+  const remainingColumnDefs = (dataSource.columnDefs ?? []).filter(
+    (col) => !namesToRemove.has(col.name),
+  );
+
+  await updateDataSource(dataSourceId, {
+    enrichments: remainingEnrichments,
+    columnDefs: remainingColumnDefs,
+  } as DataSourceUpdate);
+
+  logger.info(
+    `Removed enrichment column metadata [${externalColumnNames.join(", ")}] from data source ${dataSourceId}`,
+  );
 };

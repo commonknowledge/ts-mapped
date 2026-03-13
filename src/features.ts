@@ -14,14 +14,14 @@ export const DataSourceFeatures: Record<
     autoEnrich: true,
     autoImport: true,
     columnDeletion: false,
-    enrichment: false,
+    enrichment: true,
     syncToCrm: true,
   },
   [DataSourceType.Airtable]: {
     autoEnrich: true,
     autoImport: true,
     columnDeletion: false,
-    enrichment: false,
+    enrichment: true,
     syncToCrm: true,
   },
   [DataSourceType.CSV]: {
@@ -42,7 +42,7 @@ export const DataSourceFeatures: Record<
     autoEnrich: true,
     autoImport: true,
     columnDeletion: true,
-    enrichment: false,
+    enrichment: true,
     syncToCrm: true,
   },
 };

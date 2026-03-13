@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
 import { AreaSetCodeLabels } from "@/labels";
 import { AreaSetCode } from "@/server/models/AreaSet";
@@ -55,7 +56,7 @@ export default function EnrichmentColumnDialog({
 
   // Data fields
   const [selectedDataSourceId, setSelectedDataSourceId] = useState("");
-  const [selectedColumn, setSelectedColumn] = useState("");
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
 
   const { data: dataSources } = useQuery(
     trpc.dataSource.listReadable.queryOptions(undefined, {
@@ -66,7 +67,11 @@ export default function EnrichmentColumnDialog({
   const dataSourceOptions = useMemo(
     () =>
       (dataSources ?? [])
-        .filter((ds) => "areaSetCode" in ds.geocodingConfig)
+        .filter(
+          (ds) =>
+            "areaSetCode" in ds.geocodingConfig &&
+            ds.geocodingConfig.areaSetCode !== AreaSetCode.PC,
+        )
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((ds) => ({
           value: ds.id,
@@ -91,7 +96,7 @@ export default function EnrichmentColumnDialog({
       return areaSetCode !== "" && areaProperty !== "";
     }
     if (columnType === "data") {
-      return selectedDataSourceId !== "" && selectedColumn !== "";
+      return selectedDataSourceId !== "" && selectedColumns.length > 0;
     }
     return false;
   }, [
@@ -99,7 +104,7 @@ export default function EnrichmentColumnDialog({
     areaSetCode,
     areaProperty,
     selectedDataSourceId,
-    selectedColumn,
+    selectedColumns,
   ]);
 
   // Compute a suggested default name
@@ -107,11 +112,11 @@ export default function EnrichmentColumnDialog({
     if (columnType === "geographic" && areaSetCode) {
       return `${AreaSetCodeLabels[areaSetCode as AreaSetCode] ?? areaSetCode} ${areaProperty}`;
     }
-    if (columnType === "data" && selectedColumn) {
-      return selectedColumn;
+    if (columnType === "data" && selectedColumns.length === 1) {
+      return selectedColumns[0];
     }
     return "";
-  }, [columnType, areaSetCode, selectedColumn, areaProperty]);
+  }, [columnType, areaSetCode, selectedColumns, areaProperty]);
 
   // Auto-populate name when core fields become complete (unless user manually edited)
   useEffect(() => {
@@ -122,22 +127,18 @@ export default function EnrichmentColumnDialog({
 
   const { mutate: updateConfig, isPending } = useMutation(
     trpc.dataSource.updateConfig.mutationOptions({
-      onSuccess: (_data, variables) => {
+      onSuccess: () => {
         toast.success("Column added successfully");
         resetForm();
         setDialogOpen(false);
-        queryClient.setQueryData(
-          trpc.dataSource.byId.queryKey({
+        queryClient.invalidateQueries({
+          queryKey: trpc.dataSource.enrichmentPreview.queryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: trpc.dataSource.byId.queryKey({
             dataSourceId: dataSource.id,
           }),
-          (old) =>
-            old
-              ? {
-                  ...old,
-                  enrichments: variables.enrichments ?? old.enrichments,
-                }
-              : old,
-        );
+        });
       },
       onError: (error) => {
         toast.error("Failed to add column", {
@@ -154,42 +155,47 @@ export default function EnrichmentColumnDialog({
     setAreaSetCode("");
     setAreaProperty("");
     setSelectedDataSourceId("");
-    setSelectedColumn("");
+    setSelectedColumns([]);
   };
 
-  const newEnrichment = useMemo(() => {
+  const newEnrichments = useMemo(() => {
     if (columnType === "geographic") {
-      return enrichmentSchema.safeParse({
+      const result = enrichmentSchema.safeParse({
         name,
         sourceType: EnrichmentSourceType.Area,
         areaSetCode,
         areaProperty,
       });
+      return result.success ? [result.data] : null;
     }
     if (columnType === "data") {
-      return enrichmentSchema.safeParse({
-        name,
-        sourceType: EnrichmentSourceType.DataSource,
-        dataSourceId: selectedDataSourceId,
-        dataSourceColumn: selectedColumn,
-      });
+      const enrichments = selectedColumns.map((col) =>
+        enrichmentSchema.safeParse({
+          name: selectedColumns.length === 1 ? name : col,
+          sourceType: EnrichmentSourceType.DataSource,
+          dataSourceId: selectedDataSourceId,
+          dataSourceColumn: col,
+        }),
+      );
+      if (!enrichments.every((r) => r.success)) return null;
+      return enrichments.map((r) => r.data);
     }
-    return { success: false as const, error: null, data: undefined };
+    return null;
   }, [
     columnType,
     name,
     areaSetCode,
     areaProperty,
     selectedDataSourceId,
-    selectedColumn,
+    selectedColumns,
   ]);
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newEnrichment.success || !newEnrichment.data) return;
+    if (!newEnrichments) return;
     updateConfig({
       dataSourceId: dataSource.id,
-      enrichments: [...dataSource.enrichments, newEnrichment.data],
+      enrichments: [...dataSource.enrichments, ...newEnrichments],
     });
   };
 
@@ -223,7 +229,7 @@ export default function EnrichmentColumnDialog({
                 setAreaSetCode("");
                 setAreaProperty("");
                 setSelectedDataSourceId("");
-                setSelectedColumn("");
+                setSelectedColumns([]);
                 setName("");
                 setNameManuallyEdited(false);
               }}
@@ -281,7 +287,7 @@ export default function EnrichmentColumnDialog({
                   value={selectedDataSourceId}
                   onValueChange={(value) => {
                     setSelectedDataSourceId(value);
-                    setSelectedColumn("");
+                    setSelectedColumns([]);
                   }}
                   placeholder="Select a data source"
                   searchPlaceholder="Search data sources…"
@@ -289,37 +295,42 @@ export default function EnrichmentColumnDialog({
                 />
               </FormFieldWrapper>
 
-              <FormFieldWrapper id="data-column" label="Column">
-                <Combobox
-                  options={columnOptions}
-                  value={selectedColumn}
-                  onValueChange={setSelectedColumn}
-                  placeholder="Select a column"
-                  searchPlaceholder="Search columns…"
-                  emptyMessage="No columns found."
-                />
-              </FormFieldWrapper>
+              <CustomMultiSelect
+                id="data-columns"
+                label="Columns"
+                allOptions={columnOptions.map((o) => o.value)}
+                selectedOptions={selectedColumns}
+                onChange={(value) => {
+                  setSelectedColumns((prev) =>
+                    prev.includes(value)
+                      ? prev.filter((v) => v !== value)
+                      : [...prev, value],
+                  );
+                }}
+                placeholder="Select columns"
+              />
             </>
           )}
 
-          {coreFieldsComplete && (
-            <FormFieldWrapper id="column-name" label="Column name">
-              <Input
-                id="column-name"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setNameManuallyEdited(true);
-                }}
-                placeholder="Enter column name"
-                required
-              />
-            </FormFieldWrapper>
-          )}
+          {coreFieldsComplete &&
+            (columnType === "geographic" || selectedColumns.length === 1) && (
+              <FormFieldWrapper id="column-name" label="Column name">
+                <Input
+                  id="column-name"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setNameManuallyEdited(true);
+                  }}
+                  placeholder="Enter column name"
+                  required
+                />
+              </FormFieldWrapper>
+            )}
 
           <Button
             type="submit"
-            disabled={!newEnrichment.success || isPending}
+            disabled={!newEnrichments || isPending}
             className="mt-2"
           >
             {isPending ? "Adding…" : "Add column"}

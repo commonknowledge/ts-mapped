@@ -3,7 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import { getEnrichedColumn } from "@/server/mapping/enrich";
+import {
+  getEnrichedColumn,
+  removeEnrichmentColumnsFromDataSource,
+} from "@/server/mapping/enrich";
 import {
   ColumnType,
   EnrichmentSourceType,
@@ -385,7 +388,7 @@ export const dataSourceRouter = router({
         `Updated ${ctx.dataSource.config.type} data source config: ${ctx.dataSource.id}`,
       );
 
-      // If enrichments were removed, enqueue a job to clean up the columns
+      // If enrichments were removed, clean up column metadata and enqueue background job
       if (input.enrichments !== undefined) {
         const oldNames = new Set(
           (ctx.dataSource.enrichments ?? []).map((e) => e.name),
@@ -395,9 +398,15 @@ export const dataSourceRouter = router({
           (name) => !newNames.has(name),
         );
         if (removedNames.length > 0) {
+          const externalColumnNames = removedNames.map(enrichmentColumnName);
+          // Synchronously remove columnDefs (enrichments already updated above)
+          await removeEnrichmentColumnsFromDataSource(
+            ctx.dataSource.id,
+            externalColumnNames,
+          );
           await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
             dataSourceId: ctx.dataSource.id,
-            externalColumnNames: removedNames.map(enrichmentColumnName),
+            externalColumnNames,
           });
         }
       }
@@ -429,18 +438,13 @@ export const dataSourceRouter = router({
         }
       }
 
-      // Remove matching enrichments from config
-      const enrichments = ctx.dataSource.enrichments ?? [];
-      const externalColumnNamesToRemove = new Set(input.externalColumnNames);
-      const remainingEnrichments = enrichments.filter(
-        (e) => !externalColumnNamesToRemove.has(enrichmentColumnName(e.name)),
+      // Synchronously remove enrichment metadata (enrichments + columnDefs)
+      await removeEnrichmentColumnsFromDataSource(
+        ctx.dataSource.id,
+        input.externalColumnNames,
       );
-      if (remainingEnrichments.length !== enrichments.length) {
-        await updateDataSource(ctx.dataSource.id, {
-          enrichments: remainingEnrichments,
-        } as DataSourceUpdate);
-      }
 
+      // Enqueue background job for expensive cleanup (external source + record JSON)
       if (input.externalColumnNames.length > 0) {
         await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
           dataSourceId: ctx.dataSource.id,

@@ -256,7 +256,7 @@ describe("Mailchimp adaptor tests", () => {
     let mergeFields = await adaptor.getMergeFields();
     const field = mergeFields.find((f) => f.name === fieldName);
     expect(field).toBeDefined();
-    const fieldTag = field!.tag;
+    const fieldTag = field?.tag || "";
 
     // Wait for Mailchimp batch processing to complete
     while (true) {
