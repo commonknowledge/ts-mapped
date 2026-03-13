@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { getEnrichedColumn } from "@/server/mapping/enrich";
 import {
@@ -390,13 +391,13 @@ export const dataSourceRouter = router({
           (ctx.dataSource.enrichments ?? []).map((e) => e.name),
         );
         const newNames = new Set(input.enrichments.map((e) => e.name));
-        const removedColumnNames = [...oldNames].filter(
+        const removedNames = [...oldNames].filter(
           (name) => !newNames.has(name),
         );
-        if (removedColumnNames.length > 0) {
+        if (removedNames.length > 0) {
           await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
             dataSourceId: ctx.dataSource.id,
-            externalColumnNames: removedColumnNames.map(enrichmentColumnName),
+            externalColumnNames: removedNames.map(enrichmentColumnName),
           });
         }
       }
@@ -410,6 +411,40 @@ export const dataSourceRouter = router({
       if (configFieldsChanged) {
         await enqueue("importDataSource", ctx.dataSource.id, {
           dataSourceId: ctx.dataSource.id,
+        });
+      }
+
+      return true;
+    }),
+
+  deleteEnrichmentColumns: dataSourceOwnerProcedure
+    .input(z.object({ externalColumnNames: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      for (const externalColumnName of input.externalColumnNames) {
+        if (!externalColumnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Column "${externalColumnName}" is not an enrichment column`,
+          });
+        }
+      }
+
+      // Remove matching enrichments from config
+      const enrichments = ctx.dataSource.enrichments ?? [];
+      const externalColumnNamesToRemove = new Set(input.externalColumnNames);
+      const remainingEnrichments = enrichments.filter(
+        (e) => !externalColumnNamesToRemove.has(enrichmentColumnName(e.name)),
+      );
+      if (remainingEnrichments.length !== enrichments.length) {
+        await updateDataSource(ctx.dataSource.id, {
+          enrichments: remainingEnrichments,
+        } as DataSourceUpdate);
+      }
+
+      if (input.externalColumnNames.length > 0) {
+        await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
+          dataSourceId: ctx.dataSource.id,
+          externalColumnNames: input.externalColumnNames,
         });
       }
 

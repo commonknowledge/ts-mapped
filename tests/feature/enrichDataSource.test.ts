@@ -161,7 +161,7 @@ describe("enrichDataSource tests", () => {
     // 9. Run removeEnrichmentColumns to clean up
     const removeResult = await removeEnrichmentColumns({
       dataSourceId: dataSource.id,
-      columnNames: [enrichmentColumnName],
+      externalColumnNames: [enrichmentColumnName],
     });
     expect(removeResult).toBe(true);
 
@@ -282,7 +282,7 @@ describe("enrichDataRecords tests", () => {
     // 11. Run removeEnrichmentColumns to clean up
     const removeResult = await removeEnrichmentColumns({
       dataSourceId: dataSource.id,
-      columnNames: [enrichmentColumnName],
+      externalColumnNames: [enrichmentColumnName],
     });
     expect(removeResult).toBe(true);
 

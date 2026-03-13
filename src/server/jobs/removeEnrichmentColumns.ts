@@ -36,15 +36,15 @@ const removeEnrichmentColumns = async (
   // 1. Remove the columns from the external data source via the adaptor
   const adaptor = getDataSourceAdaptor(dataSource);
   if (adaptor) {
-    for (const columnName of externalColumnNames) {
+    for (const externalColumnName of externalColumnNames) {
       try {
-        await adaptor.deleteColumn(columnName);
+        await adaptor.deleteColumn(externalColumnName);
         logger.info(
-          `Removed column "${columnName}" from external source for ${dataSourceId}`,
+          `Removed column "${externalColumnName}" from external source for ${dataSourceId}`,
         );
       } catch (error) {
         logger.error(
-          `Failed to remove column "${columnName}" from external source for ${dataSourceId}`,
+          `Failed to remove column "${externalColumnName}" from external source for ${dataSourceId}`,
           { error },
         );
       }
@@ -52,19 +52,19 @@ const removeEnrichmentColumns = async (
   }
 
   // 2. Remove the columns from data_record.json for all records
-  for (const columnName of externalColumnNames) {
+  for (const externalColumnName of externalColumnNames) {
     try {
       await sql`
         UPDATE data_record
-        SET json = json - ${columnName}
+        SET json = json - ${externalColumnName}
         WHERE data_source_id = ${dataSourceId}
       `.execute(db);
       logger.info(
-        `Removed "${columnName}" from data_record.json for data source ${dataSourceId}`,
+        `Removed "${externalColumnName}" from data_record.json for data source ${dataSourceId}`,
       );
     } catch (error) {
       logger.error(
-        `Failed to remove "${columnName}" from data_record.json for data source ${dataSourceId}`,
+        `Failed to remove "${externalColumnName}" from data_record.json for data source ${dataSourceId}`,
         { error },
       );
     }

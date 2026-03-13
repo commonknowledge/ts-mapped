@@ -103,13 +103,18 @@ export async function findAreasByPoint({
     query = query.where("areaSet.code", "=", includeAreaSetCode);
   }
   return query
-    .where(sql<boolean>`ST_Covers(geom, ST_GeomFromGeoJson(${pointGeoJSON}))`)
+    .where(
+      sql<boolean>`ST_DWithin(geom, ST_GeomFromGeoJson(${pointGeoJSON}), 0.01)`,
+    )
     .select([
       "area.id",
       "area.code",
       "area.name",
       "areaSet.code as areaSetCode",
     ])
+    .distinctOn("areaSet.code")
+    .orderBy("areaSet.code")
+    .orderBy(sql`ST_Distance(geom, ST_GeomFromGeoJson(${pointGeoJSON}))`)
     .execute();
 }
 

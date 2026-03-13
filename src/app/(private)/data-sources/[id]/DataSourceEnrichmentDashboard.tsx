@@ -5,6 +5,7 @@ import { useSubscription } from "@trpc/tanstack-react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { DataSourceFeatures } from "@/features";
 import {
   ColumnType,
@@ -48,10 +49,7 @@ export function DataSourceEnrichmentDashboard({
   );
   const [enrichmentCount, setEnrichmentCount] = useState(0);
 
-  const [deleteEnrichment, setDeleteEnrichment] = useState<{
-    index: number;
-    enrichment: Enrichment;
-  } | null>(null);
+  const [deleteColumn, setDeleteColumn] = useState<string | null>(null);
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -68,25 +66,33 @@ export function DataSourceEnrichmentDashboard({
     }),
   );
 
-  const { mutate: updateConfig } = useMutation(
-    trpc.dataSource.updateConfig.mutationOptions({
+  const { mutate: deleteEnrichmentColumns } = useMutation(
+    trpc.dataSource.deleteEnrichmentColumns.mutationOptions({
       onSuccess: (_data, variables) => {
         toast.success("Column removed successfully");
-        setDeleteEnrichment(null);
+        setDeleteColumn(null);
         queryClient.invalidateQueries({
           queryKey: trpc.dataSource.enrichmentPreview.queryKey(),
-        })
+        });
         queryClient.setQueryData(
           trpc.dataSource.byId.queryKey({
             dataSourceId: dataSource.id,
           }),
-          (old) =>
-            old
-              ? {
-                  ...old,
-                  enrichments: variables.enrichments ?? old.enrichments,
-                }
-              : old,
+          (old) => {
+            if (!old) return old;
+            const externalColumnNamesToRemove = new Set(
+              variables.externalColumnNames,
+            );
+            return {
+              ...old,
+              enrichments: (old.enrichments ?? []).filter(
+                (e) =>
+                  !externalColumnNamesToRemove.has(
+                    enrichmentColumnName(e.name),
+                  ),
+              ),
+            };
+          },
         );
       },
       onError: (error) => {
@@ -199,11 +205,11 @@ export function DataSourceEnrichmentDashboard({
     enrichment?: Enrichment;
   }[] = [...decoratedExisting, ...newEnrichmentColumns];
 
-  const handleDeleteEnrichment = () => {
-    if (!deleteEnrichment) return;
-    updateConfig({
+  const handleDeleteColumn = () => {
+    if (!deleteColumn) return;
+    deleteEnrichmentColumns({
       dataSourceId: dataSource.id,
-      enrichments: enrichments.filter((_, i) => i !== deleteEnrichment.index),
+      externalColumnNames: [deleteColumn],
     });
   };
 
@@ -238,8 +244,6 @@ export function DataSourceEnrichmentDashboard({
           <thead>
             <tr>
               {columns.map((col) => {
-                const enrichmentIndex = col.enrichmentIndex;
-                const enrichment = col.enrichment;
                 const isPreview = newEnrichmentColumnNames.has(col.name);
                 return (
                   <th
@@ -276,15 +280,10 @@ export function DataSourceEnrichmentDashboard({
                           </PopoverContent>
                         </Popover>
                       )}
-                      {enrichment != null && enrichmentIndex != null && (
+                      {col.name.startsWith(ENRICHMENT_COLUMN_PREFIX) && (
                         <button
                           type="button"
-                          onClick={() =>
-                            setDeleteEnrichment({
-                              index: enrichmentIndex,
-                              enrichment,
-                            })
-                          }
+                          onClick={() => setDeleteColumn(col.name)}
                           className="text-gray-400 hover:text-destructive transition-colors"
                           title="Remove enrichment column"
                         >
@@ -359,17 +358,16 @@ export function DataSourceEnrichmentDashboard({
       )}
 
       <AlertDialog
-        open={deleteEnrichment !== null}
+        open={deleteColumn !== null}
         onOpenChange={(open) => {
-          if (!open) setDeleteEnrichment(null);
+          if (!open) setDeleteColumn(null);
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove enrichment column?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the &quot;Mapped:{" "}
-              {deleteEnrichment?.enrichment.name}&quot; column and its enriched
+              This will remove the &quot;{deleteColumn}&quot; column and its
               data from all records.
             </AlertDialogDescription>
             {!DataSourceFeatures[dataSource.config.type].columnDeletion && (
@@ -382,7 +380,7 @@ export function DataSourceEnrichmentDashboard({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteEnrichment}
+              onClick={handleDeleteColumn}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
               Remove column
