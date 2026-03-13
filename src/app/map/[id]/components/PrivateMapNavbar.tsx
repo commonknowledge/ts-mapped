@@ -42,13 +42,7 @@ export default function PrivateMapNavbar() {
   const showPublishButton = useFeatureFlagEnabled("public-maps", currentUser);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(map?.name || "");
-  const [prevMapName, setPrevMapName] = useState(map?.name);
   const [loading, setLoading] = useState(false);
-
-  if (map?.name !== prevMapName) {
-    setPrevMapName(map?.name);
-    setEditedName(map?.name || "");
-  }
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -212,7 +206,12 @@ export default function PrivateMapNavbar() {
             </div>
             {mapId && (
               <PrivateMapNavbarControls
-                setIsEditingName={setIsEditingName}
+                setIsEditingName={(isEditing) => {
+                  if (isEditing) {
+                    setEditedName(map?.name || "");
+                  }
+                  setIsEditingName(isEditing);
+                }}
                 mapId={mapId}
               />
             )}

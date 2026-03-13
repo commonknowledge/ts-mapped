@@ -30,14 +30,12 @@ export default function DataRecordSidebar() {
   const dataRecordsQueries = usePublicDataRecordsQueries();
   const [groupIndex, setGroupIndex] = useState(0);
   const [childIndex, setChildIndex] = useState(0);
-  const [prevSelectedRecords, setPrevSelectedRecords] =
-    useState(selectedRecords);
 
-  if (selectedRecords !== prevSelectedRecords) {
-    setPrevSelectedRecords(selectedRecords);
+  // Reset indices when selectedRecords changes
+  useEffect(() => {
     setGroupIndex(0);
     setChildIndex(0);
-  }
+  }, [selectedRecords]);
 
   const activeColorScheme =
     publicMapColorSchemes[colorScheme] || publicMapColorSchemes.red;

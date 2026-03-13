@@ -52,13 +52,7 @@ export default function SortableTurfItem({
 
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(turf.label);
-  const [prevTurfLabel, setPrevTurfLabel] = useState(turf.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  if (turf.label !== prevTurfLabel) {
-    setPrevTurfLabel(turf.label);
-    setEditText(turf.label);
-  }
   const { mapConfig } = useMapConfig();
 
   // Check if this turf is the one being dragged

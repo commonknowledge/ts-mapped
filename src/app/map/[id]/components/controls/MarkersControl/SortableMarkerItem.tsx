@@ -57,13 +57,7 @@ export default function SortableMarkerItem({
   const mapRef = useMapRef();
   const [isEditing, setEditing] = useState(false);
   const [editText, setEditText] = useState(marker.label);
-  const [prevMarkerLabel, setPrevMarkerLabel] = useState(marker.label);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  if (marker.label !== prevMarkerLabel) {
-    setPrevMarkerLabel(marker.label);
-    setEditText(marker.label);
-  }
 
   // Get current color (defaults to marker color)
   const currentColor =
