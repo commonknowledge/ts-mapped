@@ -43,8 +43,12 @@ export const toBoolean = (val: unknown): boolean => {
   return Boolean(val);
 };
 
-export const toBooleanOrUnknown = (val: unknown): boolean | null => {
+export const toBooleanOrUnknown = (
+  val: unknown,
+  useUnknownValues = true,
+): boolean | null => {
   if (
+    useUnknownValues &&
     UNKNOWN_VALUES.some((v) =>
       String(val).toLowerCase().startsWith(v.toLowerCase()),
     )

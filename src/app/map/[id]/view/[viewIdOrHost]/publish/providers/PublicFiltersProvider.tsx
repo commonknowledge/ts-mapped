@@ -2,7 +2,7 @@
 
 import { useContext, useMemo, useState } from "react";
 import { PublicMapColumnType } from "@/server/models/PublicMap";
-import { ALLOWED_FILTERS } from "../const";
+import { ALLOWED_FILTERS, TRANS_FRIENDLY_HOST } from "../const";
 import { PublicFiltersContext } from "../context/PublicFiltersContext";
 import { PublicMapContext } from "../context/PublicMapContext";
 import { filterRecords, getActiveFilters } from "../filtersHelpers";
@@ -79,16 +79,18 @@ export default function PublicFiltersProvider({
       return col;
     });
 
-    const allowedFields = ALLOWED_FILTERS.map((allowed) => {
-      const field = fields.find((f) => f.name === allowed.name);
+    if (publicMap.host === TRANS_FRIENDLY_HOST) {
+      return ALLOWED_FILTERS.map((allowed) => {
+        const field = fields.find((f) => f.name === allowed.name);
 
-      return {
-        ...(field as FilterField),
-        label: allowed.label,
-      };
-    }).filter((f) => Boolean(f?.name));
+        return {
+          ...(field as FilterField),
+          label: allowed.label,
+        };
+      }).filter((f) => Boolean(f?.name));
+    }
 
-    return allowedFields;
+    return fields;
   }, [publicMap, activeTabId, dataRecordsQueries]);
 
   const filteredRecords = useMemo(() => {
@@ -110,8 +112,9 @@ export default function PublicFiltersProvider({
       dataSourceId ? publicFilters[dataSourceId] : undefined,
     );
 
+    const useUnknownValues = publicMap.host === TRANS_FRIENDLY_HOST;
     const filteredRecords = activeFilters?.length
-      ? filterRecords(activeFilters, allRecords)
+      ? filterRecords(activeFilters, allRecords, useUnknownValues)
       : allRecords;
 
     return filteredRecords;
