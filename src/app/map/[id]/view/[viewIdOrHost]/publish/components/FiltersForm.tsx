@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import CustomMultiSelect from "@/components/forms/CustomMultiSelect";
 import FormFieldWrapper from "@/components/forms/FormFieldWrapper";
@@ -16,52 +16,49 @@ import { toBoolean } from "../utils";
 import type { FilterField, PublicFiltersFormValue } from "@/types";
 
 export default function FiltersForm({ fields }: { fields: FilterField[] }) {
-  const [values, setValues] = useState<PublicFiltersFormValue[]>([]);
   const publicFilters = usePublicFilters();
   const setPublicFilters = useSetPublicFilters();
   const activeTabId = useActiveTabId();
   const { setSelectedRecords } = useInspector();
 
-  // setting default values
-  useEffect(() => {
-    if (
-      publicFilters &&
-      activeTabId &&
-      publicFilters[activeTabId] &&
-      publicFilters[activeTabId].length
-    ) {
-      setValues(publicFilters[activeTabId]);
-      return;
+  const defaultValues = useMemo(
+    () =>
+      fields.map((field) => {
+        if (field.type === PublicMapColumnType.CommaSeparatedList) {
+          return {
+            name: field.name,
+            type: field.type,
+            selectedOptions: [] as string[],
+          };
+        }
+        return { name: field.name, type: field.type, value: "" };
+      }),
+    [fields],
+  );
+
+  const values = useMemo(() => {
+    if (activeTabId && publicFilters[activeTabId]?.length) {
+      return publicFilters[activeTabId];
     }
+    return defaultValues;
+  }, [activeTabId, publicFilters, defaultValues]);
 
-    const defaultEmptyValues = fields.map((field) => {
-      if (field.type === PublicMapColumnType.CommaSeparatedList) {
-        return {
-          name: field.name,
-          type: field.type,
-          selectedOptions: [],
-        };
-      }
-
-      return {
-        name: field.name,
-        type: field.type,
-        value: "",
-      };
-    });
-    setValues(defaultEmptyValues);
-  }, [activeTabId, fields, publicFilters]);
-
-  // update filters on values change
-  useEffect(() => {
-    if (activeTabId && values.length > 0) {
-      setPublicFilters((prev) => ({ ...prev, [activeTabId]: values }));
+  const updateValues = useCallback(
+    (updater: (prev: PublicFiltersFormValue[]) => PublicFiltersFormValue[]) => {
+      if (!activeTabId) return;
+      setPublicFilters((prev) => {
+        const current = prev[activeTabId]?.length
+          ? prev[activeTabId]
+          : defaultValues;
+        return { ...prev, [activeTabId]: updater(current) };
+      });
       setSelectedRecords([]);
-    }
-  }, [values, activeTabId, setPublicFilters, setSelectedRecords]);
+    },
+    [activeTabId, setPublicFilters, setSelectedRecords, defaultValues],
+  );
 
   const handleChange = (name: string, value: string) => {
-    setValues((prev) =>
+    updateValues((prev) =>
       prev.map((v) => (v.name === name ? { ...v, value } : v)),
     );
   };
@@ -71,7 +68,7 @@ export default function FiltersForm({ fields }: { fields: FilterField[] }) {
     option: string,
     checked: boolean,
   ) => {
-    setValues((prev) =>
+    updateValues((prev) =>
       prev.map((v) => {
         if (v.name !== fieldName) return v;
 
