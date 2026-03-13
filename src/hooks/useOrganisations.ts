@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getDefaultStore } from "jotai";
-import { useAtomValue, useSetAtom } from "jotai/react";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { organisationIdAtom } from "@/atoms/organisationAtoms";
+import {
+  useOrganisationId,
+  useSetOrganisationId,
+} from "@/atoms/organisationAtoms";
 import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import type { Organisation } from "@/server/models/Organisation";
@@ -11,12 +12,8 @@ import type { Organisation } from "@/server/models/Organisation";
 export function useOrganisations() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const organisationId = useAtomValue(organisationIdAtom, {
-    store: getDefaultStore(),
-  });
-  const setAtom = useSetAtom(organisationIdAtom, {
-    store: getDefaultStore(),
-  });
+  const organisationId = useOrganisationId();
+  const setAtom = useSetOrganisationId();
   const setOrganisationId = useCallback(
     (id: string) => {
       document.cookie = `${ORGANISATION_COOKIE_NAME}=${encodeURIComponent(id)}; path=/; max-age=${60 * 60 * 24 * 365}`;

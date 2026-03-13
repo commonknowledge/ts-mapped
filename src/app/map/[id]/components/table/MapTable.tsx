@@ -1,6 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getDefaultStore } from "jotai";
-import { useAtomValue } from "jotai/react";
 import { Tag } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -10,7 +8,7 @@ import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useInspector } from "@/app/map/[id]/hooks/useInspector";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { useTable } from "@/app/map/[id]/hooks/useTable";
-import { organisationIdAtom } from "@/atoms/organisationAtoms";
+import { useOrganisationId } from "@/atoms/organisationAtoms";
 import { DataSourceFeatures } from "@/features";
 import { useCurrentUser, useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceTypeLabels } from "@/labels";
@@ -183,9 +181,7 @@ export default function MapTable() {
 
   const dataSource = getDataSourceById(selectedDataSourceId);
 
-  const organisationId = useAtomValue(organisationIdAtom, {
-    store: getDefaultStore(),
-  });
+  const organisationId = useOrganisationId();
   const isOwner = Boolean(
     organisationId &&
     dataSource &&
