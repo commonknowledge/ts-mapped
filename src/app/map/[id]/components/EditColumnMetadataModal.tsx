@@ -1,21 +1,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getDefaultStore } from "jotai";
+import { useAtomValue } from "jotai/react";
 import { X } from "lucide-react";
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getCategoryColorsKey, makeColorMap } from "@/app/map/[id]/colors";
 import { useAreaStats } from "@/app/map/[id]/data";
 import { useDataSources } from "@/app/map/[id]/hooks/useDataSources";
 import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import { organisationIdAtom } from "@/atoms/organisationAtoms";
 import { type ColumnMetadata, ColumnType } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
 import {
@@ -44,7 +39,9 @@ import type { EditColumnMetadataFields } from "../atoms/editColumnMetadataAtom";
 export default function EditColumnMetadataModal() {
   const [editColumnMetadata, setEditColumnMetadata] = useEditColumnMetadata();
   const { getDataSourceById } = useDataSources();
-  const { organisationId } = useContext(OrganisationsContext);
+  const organisationId = useAtomValue(organisationIdAtom, {
+    store: getDefaultStore(),
+  });
   const trpc = useTRPC();
   const client = useQueryClient();
 

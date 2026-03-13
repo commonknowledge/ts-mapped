@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getServerSession } from "@/auth";
 import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import NProgressProvider from "@/providers/NProgressProvider";
-import OrganisationsProvider from "@/providers/OrganisationsProvider";
+import OrganisationHydrator from "@/providers/OrganisationHydrator";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import ServerSessionProvider from "@/providers/ServerSessionProvider";
 import { TRPCReactProvider } from "@/services/trpc/react";
@@ -74,7 +74,7 @@ export default async function RootLayout({
           <HydrationBoundary state={dehydrate(queryClient)}>
             <ServerSessionProvider serverSession={serverSession}>
               <PostHogProvider>
-                <OrganisationsProvider
+                <OrganisationHydrator
                   organisations={organisations}
                   storedOrgId={storedOrgId}
                 >
@@ -84,7 +84,7 @@ export default async function RootLayout({
                     </main>
                     <Toaster position="top-center" />
                   </NProgressProvider>
-                </OrganisationsProvider>
+                </OrganisationHydrator>
               </PostHogProvider>
             </ServerSessionProvider>
           </HydrationBoundary>
