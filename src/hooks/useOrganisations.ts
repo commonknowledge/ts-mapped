@@ -1,15 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useContext } from "react";
+import { useCallback } from "react";
 import { toast } from "sonner";
-import { OrganisationsContext } from "@/providers/OrganisationsProvider";
+import {
+  useOrganisationId,
+  useSetOrganisationId,
+} from "@/atoms/organisationAtoms";
+import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import type { Organisation } from "@/server/models/Organisation";
 
 export function useOrganisations() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { organisationId, setOrganisationId } =
-    useContext(OrganisationsContext);
+  const organisationId = useOrganisationId();
+  const setAtom = useSetOrganisationId();
+  const setOrganisationId = useCallback(
+    (id: string) => {
+      document.cookie = `${ORGANISATION_COOKIE_NAME}=${encodeURIComponent(id)}; path=/; max-age=${60 * 60 * 24 * 365}`;
+      setAtom(id);
+    },
+    [setAtom],
+  );
 
   const { data: organisations } = useQuery(
     trpc.organisation.list.queryOptions(),
