@@ -9,11 +9,11 @@ import { useMapViews } from "@/app/map/[id]/hooks/useMapViews";
 import { organisationIdAtom } from "@/atoms/organisationAtoms";
 import { useTRPC } from "@/services/trpc/react";
 
-const store = getDefaultStore();
-
 export function useDataSources() {
   const trpc = useTRPC();
-  const organisationId = useAtomValue(organisationIdAtom, { store });
+  const organisationId = useAtomValue(organisationIdAtom, {
+    store: getDefaultStore(),
+  });
   const query = useQuery(
     trpc.dataSource.listReadable.queryOptions({
       activeOrganisationId: organisationId ?? undefined,

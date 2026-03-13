@@ -34,5 +34,5 @@ export default function OrganisationHydrator({
     ],
     { store: getDefaultStore() },
   );
-  return children;
+  return <>{children}</>;
 }

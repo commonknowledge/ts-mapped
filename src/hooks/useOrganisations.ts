@@ -8,13 +8,15 @@ import { ORGANISATION_COOKIE_NAME } from "@/constants";
 import { useTRPC } from "@/services/trpc/react";
 import type { Organisation } from "@/server/models/Organisation";
 
-const store = getDefaultStore();
-
 export function useOrganisations() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const organisationId = useAtomValue(organisationIdAtom, { store });
-  const setAtom = useSetAtom(organisationIdAtom, { store });
+  const organisationId = useAtomValue(organisationIdAtom, {
+    store: getDefaultStore(),
+  });
+  const setAtom = useSetAtom(organisationIdAtom, {
+    store: getDefaultStore(),
+  });
   const setOrganisationId = useCallback(
     (id: string) => {
       document.cookie = `${ORGANISATION_COOKIE_NAME}=${encodeURIComponent(id)}; path=/; max-age=${60 * 60 * 24 * 365}`;
