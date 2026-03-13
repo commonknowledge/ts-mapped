@@ -243,3 +243,11 @@ test("fetchByExternalId respects batch size limit", async () => {
     "Cannot fetch more than 100 records at once.",
   );
 });
+
+test("deleteColumn throws not supported error", () => {
+  const adaptor = new ActionNetworkAdaptor(credentials.actionnetwork.apiKey);
+
+  expect(() => adaptor.deleteColumn("AnyField")).toThrow(
+    "Action Network does not support deleting fields.",
+  );
+});

@@ -65,7 +65,7 @@ export default function AddColumnDialog({
 
   const dataSourceOptions = useMemo(
     () =>
-        (dataSources ?? [])
+      (dataSources ?? [])
         .filter((ds) => "areaSetCode" in ds.geocodingConfig)
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((ds) => ({

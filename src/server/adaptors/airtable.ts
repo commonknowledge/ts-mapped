@@ -9,7 +9,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface Webhook {
@@ -611,6 +611,11 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       }
       logger.debug(`Airtable PATCH response: ${response.status}`);
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  deleteColumn(column: string): Promise<void> {
+    throw new Error("Airtable does not support deleting fields.");
   }
 }
 

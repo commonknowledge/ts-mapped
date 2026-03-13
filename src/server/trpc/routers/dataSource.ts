@@ -341,6 +341,25 @@ export const dataSourceRouter = router({
         `Updated ${ctx.dataSource.config.type} data source config: ${ctx.dataSource.id}`,
       );
 
+      // If enrichments were removed, enqueue a job to clean up the columns
+      if (input.enrichments !== undefined) {
+        const oldNames = new Set(
+          (ctx.dataSource.enrichments ?? []).map((e) => `Mapped: ${e.name}`),
+        );
+        const newNames = new Set(
+          input.enrichments.map((e) => `Mapped: ${e.name}`),
+        );
+        const removedColumnNames = [...oldNames].filter(
+          (name) => !newNames.has(name),
+        );
+        if (removedColumnNames.length > 0) {
+          await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
+            dataSourceId: ctx.dataSource.id,
+            columnNames: removedColumnNames,
+          });
+        }
+      }
+
       // Only trigger import if config fields changed (not just name)
       const configFieldsChanged =
         input.columnRoles !== undefined ||

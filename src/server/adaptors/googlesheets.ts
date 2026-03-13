@@ -6,8 +6,8 @@ import { batch } from "@/server/utils";
 import { DataSourceType } from "../models/DataSource";
 import { enqueue } from "../services/queue";
 import type { DataSourceAdaptor } from "./abstract";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { googleOAuthCredentialsSchema } from "../models/DataSource";
-import type { EnrichedRecord } from "@/server/mapping/enrich";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 import type z from "zod";
 
@@ -725,7 +725,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     }
   }
 
-  async deleteColumn(columnName: string, rowCount: number): Promise<void> {
+  async deleteColumn(columnName: string): Promise<void> {
     const headers = await this.getHeaders();
 
     const headerIndex = headers.findIndex((h) => h === columnName);
@@ -733,6 +733,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
       return;
     }
 
+    const rowCount = (await this.getRecordCount()) ?? 0;
     const headerLetter = indexToLetter(headerIndex);
 
     const headerRange = `${encodeURIComponent(this.sheetName)}!${headerLetter}:${headerLetter}`;
@@ -741,7 +742,7 @@ export class GoogleSheetsAdaptor implements DataSourceAdaptor {
     const headerResponse = await this.makeGoogleSheetsRequest(headerUrl, {
       method: "PUT",
       body: JSON.stringify({
-        values: Array.from({ length: rowCount }).fill([""]),
+        values: Array.from({ length: rowCount + 1 }).fill([""]),
       }),
     });
 

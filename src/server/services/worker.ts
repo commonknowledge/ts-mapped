@@ -3,6 +3,7 @@ import enrichDataSource from "@/server/jobs/enrichDataSource";
 import importDataRecords from "@/server/jobs/importDataRecords";
 import importDataSource from "@/server/jobs/importDataSource";
 import refreshWebhooks from "@/server/jobs/refreshWebhooks";
+import removeEnrichmentColumns from "@/server/jobs/removeEnrichmentColumns";
 import tagDataSource from "@/server/jobs/tagDataSource";
 import logger from "./logger";
 import { DEFAULT_QUEUE, boss, ensureQueue } from "./queue";
@@ -14,6 +15,7 @@ const taskHandlers: Record<string, (args: object | null) => Promise<boolean>> =
     importDataSource,
     importDataRecords,
     refreshWebhooks,
+    removeEnrichmentColumns,
     tagDataSource,
   };
 

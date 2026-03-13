@@ -211,7 +211,7 @@ describe("Mailchimp adaptor tests", () => {
     expect(ngrokWebhooks.length).toBe(0);
   });
 
-  test("updateRecords updates member merge fields", async () => {
+  test("updateRecords creates merge field and deleteColumn removes it", async () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
@@ -247,44 +247,38 @@ describe("Mailchimp adaptor tests", () => {
       },
     ];
 
-    try {
-      // updateRecords will auto-create the merge field if it doesn't exist
-      await adaptor.updateRecords(enrichedRecords);
+    // updateRecords will auto-create the merge field if it doesn't exist
+    await adaptor.updateRecords(enrichedRecords);
 
-      // Wait for Mailchimp batch processing to complete
-      while (true) {
-        const updatedRecords = await adaptor.fetchByExternalId([
-          all[0].externalId,
-        ]);
-        expect(updatedRecords.length).toBe(1);
+    // Wait for Mailchimp batch processing to complete
+    while (true) {
+      const updatedRecords = await adaptor.fetchByExternalId([
+        all[0].externalId,
+      ]);
+      expect(updatedRecords.length).toBe(1);
 
-        try {
-          expect(updatedRecords[0].json[fieldTag]).toBe(testValue);
-          break;
-        } catch {
-          logger.warn(
-            "Mailchimp member not updated yet, sleeping for 5 seconds",
-          );
-          await sleep(5000);
-        }
-      }
-    } finally {
-      // Clean up: delete the created merge field
-      adaptor["cachedMergeFields"] = null;
-      const mergeFields = await adaptor.getMergeFields();
-      const field = mergeFields.find((f) => f.tag === fieldTag);
-      if (field) {
-        const serverPrefix =
-          credentials.mailchimp.apiKey.split("-")[1] || "us1";
-        const url = `https://${serverPrefix}.api.mailchimp.com/3.0/lists/${credentials.mailchimp.listId}/merge-fields/${field.merge_id}`;
-        await fetch(url, {
-          method: "DELETE",
-          headers: {
-            Authorization: `apikey ${credentials.mailchimp.apiKey}`,
-          },
-        });
+      try {
+        expect(updatedRecords[0].json[fieldTag]).toBe(testValue);
+        break;
+      } catch {
+        logger.warn("Mailchimp member not updated yet, sleeping for 5 seconds");
+        await sleep(5000);
       }
     }
+
+    // Verify the merge field was created
+    adaptor["cachedMergeFields"] = null;
+    let mergeFields = await adaptor.getMergeFields();
+    const field = mergeFields.find((f) => f.tag === fieldTag);
+    expect(field).toBeDefined();
+
+    // Delete the merge field using deleteColumn
+    await adaptor.deleteColumn(fieldTag);
+
+    // Verify the merge field is gone
+    adaptor["cachedMergeFields"] = null;
+    mergeFields = await adaptor.getMergeFields();
+    expect(mergeFields.find((f) => f.tag === fieldTag)).toBeUndefined();
   });
 
   test("batch size limits are respected", async () => {
@@ -412,5 +406,17 @@ describe("Mailchimp adaptor tests", () => {
         await sleep(5000);
       }
     }
+  });
+
+  test("deleteColumn does not throw for non-existent field", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    await expect(
+      adaptor.deleteColumn("NonExistentField_" + Date.now()),
+    ).resolves.not.toThrow();
   });
 }, 30000);

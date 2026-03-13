@@ -22,6 +22,17 @@ declare module "vitest" {
         apiKey: string;
         listId: string;
       };
+      enrichment: {
+        googlesheets: {
+          spreadsheetId: string;
+          sheetName: string;
+          oAuthCredentials: {
+            access_token: string;
+            refresh_token: string;
+            expiry_date: number;
+          };
+        };
+      };
       ngrokToken: string;
     };
   }

@@ -5,8 +5,8 @@ import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/Dat
 import { findDataSourceById } from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { geocodeRecord } from "./geocode";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { GeocodeResult } from "../models/shared";
-import type { ColumnDef } from "@/server/models/DataSource";
 import type {
   AreaEnrichment,
   DataSource,
@@ -14,14 +14,6 @@ import type {
   Enrichment,
 } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
-
-export interface EnrichedRecord {
-  externalRecord: ExternalRecord;
-  columns: {
-    def: ColumnDef;
-    value: unknown;
-  }[];
-}
 
 export const enrichRecord = async (
   record: ExternalRecord,
@@ -45,7 +37,7 @@ export const enrichRecord = async (
     if (enrichedColumn) {
       enrichedColumns.push({
         def: {
-          name: `Mapped: ${enrichedColumn.def.name}`,
+          name: `Mapped: ${enrichment.name}`,
           type: enrichedColumn.def.type,
         },
         value: enrichedColumn.value,

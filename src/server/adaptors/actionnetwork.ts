@@ -2,7 +2,7 @@ import z from "zod";
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import logger from "@/server/services/logger";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 const ActionNetworkWebhookPayload = z.array(
@@ -367,6 +367,11 @@ export class ActionNetworkAdaptor implements DataSourceAdaptor {
         );
       }
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  deleteColumn(columnName: string): Promise<void> {
+    throw new Error("Action Network does not support deleting fields.");
   }
 
   private extractIdFromRecord(input: unknown): string | null {

@@ -1,6 +1,7 @@
 import DataListRow from "@/components/DataListRow";
 import { AreaSetCodeLabels, EnrichmentSourceTypeLabels } from "@/labels";
 import { EnrichmentSourceType } from "@/server/models/DataSource";
+import { Input } from "@/shadcn/ui/input";
 import {
   Select,
   SelectContent,
@@ -13,7 +14,7 @@ import type { AreaPropertyType, Enrichment } from "@/server/models/DataSource";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 // Extend the type with a placeholder for new enrichments
-export type NewEnrichment = Enrichment | { sourceType: "" };
+export type NewEnrichment = Enrichment | { sourceType: ""; name?: string };
 
 export default function EnrichmentFields({
   enrichment,
@@ -141,6 +142,14 @@ export default function EnrichmentFields({
           </DataListRow>
         </>
       )}
+      <DataListRow label="Column name">
+        <Input
+          className="w-[360px]"
+          value={("name" in enrichment && enrichment.name) || ""}
+          onChange={(e) => onChange({ name: e.target.value })}
+          placeholder="Enter a column name"
+        />
+      </DataListRow>
     </>
   );
 }

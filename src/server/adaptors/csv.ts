@@ -115,4 +115,8 @@ export class CSVAdaptor implements DataSourceAdaptor {
   tagRecords(): Promise<void> {
     throw new Error("CSVs are not updatable.");
   }
+
+  deleteColumn(): Promise<void> {
+    throw new Error("CSVs are not updatable.");
+  }
 }

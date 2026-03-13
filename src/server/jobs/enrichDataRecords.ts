@@ -1,10 +1,15 @@
 import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
-import { findDataSourceById } from "@/server/repositories/DataSource";
+import { updateDataRecordJsonWithEnrichment } from "@/server/repositories/DataRecord";
+import {
+  findDataSourceById,
+  updateColumnDefsWithEnrichment,
+} from "@/server/repositories/DataSource";
 import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { batchAsync } from "../utils";
 import { enrichBatch } from "./enrichDataSource";
+import type { ColumnDef } from "@/server/models/DataSource";
 
 const enrichDataRecords = async (args: object | null): Promise<boolean> => {
   if (!args || !("dataSourceId" in args)) {
@@ -45,6 +50,7 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
   }
 
   const batches = batchAsync(dataRecords, DATA_RECORDS_JOB_BATCH_SIZE);
+  const allEnrichedColumnDefs = new Map<string, ColumnDef>();
 
   for await (const batch of batches) {
     try {
@@ -54,6 +60,13 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
 
       const enrichedRecords = await enrichBatch(records, dataSource);
       await adaptor.updateRecords(enrichedRecords);
+      await updateDataRecordJsonWithEnrichment(enrichedRecords, dataSourceId);
+
+      for (const record of enrichedRecords) {
+        for (const col of record.columns) {
+          allEnrichedColumnDefs.set(col.def.name, col.def);
+        }
+      }
 
       await db
         .updateTable("dataRecord")
@@ -77,6 +90,11 @@ const enrichDataRecords = async (args: object | null): Promise<boolean> => {
       return false;
     }
   }
+
+  await updateColumnDefsWithEnrichment(
+    dataSourceId,
+    Array.from(allEnrichedColumnDefs.values()),
+  );
 
   return true;
 };

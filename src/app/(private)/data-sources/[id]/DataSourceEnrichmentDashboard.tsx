@@ -1,13 +1,29 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { JobStatus } from "@/server/models/DataSource";
+import { DataSourceFeatures } from "@/features";
+import {
+  ColumnType,
+  type Enrichment,
+  JobStatus,
+} from "@/server/models/DataSource";
 import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shadcn/ui/alert-dialog";
 import { Button } from "@/shadcn/ui/button";
+import AddColumnDialog from "./AddColumnDialog";
 
 export function DataSourceEnrichmentDashboard({
   dataSource,
@@ -20,7 +36,14 @@ export function DataSourceEnrichmentDashboard({
   );
   const [enrichmentCount, setEnrichmentCount] = useState(0);
 
+  const [deleteEnrichment, setDeleteEnrichment] = useState<{
+    index: number;
+    enrichment: Enrichment;
+  } | null>(null);
+
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const { mutate: enqueueEnrichDataSourceJob } = useMutation(
     trpc.dataSource.enqueueEnrichJob.mutationOptions({
       onError: (error) => {
@@ -29,6 +52,31 @@ export function DataSourceEnrichmentDashboard({
           error.message || "Could not schedule enrichment job.";
         setEnriching(false);
         toast.error(errorMessage);
+      },
+    }),
+  );
+
+  const { mutate: updateConfig } = useMutation(
+    trpc.dataSource.updateConfig.mutationOptions({
+      onSuccess: () => {
+        toast.success("Column removed successfully");
+        setDeleteEnrichment(null);
+        queryClient.invalidateQueries({
+          queryKey: trpc.dataSource.byId.queryKey({
+            dataSourceId: dataSource.id,
+          }),
+        });
+        queryClient.invalidateQueries({
+          queryKey: trpc.dataRecord.list.queryKey({
+            dataSourceId: dataSource.id,
+            page: 0,
+          }),
+        });
+      },
+      onError: (error) => {
+        toast.error("Failed to remove column", {
+          description: error.message,
+        });
       },
     }),
   );
@@ -72,8 +120,48 @@ export function DataSourceEnrichmentDashboard({
 
   const displayEnrichmentProgress = enrichmentCount > 0 || enriching;
 
-  const columns = dataSource.columnDefs ?? [];
+  const existingColumns = dataSource.columnDefs ?? [];
+  const existingColumnNames = new Set(existingColumns.map((col) => col.name));
+  const enrichments = dataSource.enrichments ?? [];
+
+  // Map enrichment column names to their enrichment info so we can
+  // decorate columns that already exist in columnDefs after import.
+  const enrichmentByColumnName = new Map(
+    enrichments.map((e, i) => [
+      `Mapped: ${e.name}`,
+      { enrichmentIndex: i, enrichment: e },
+    ]),
+  );
+
+  const decoratedExisting = existingColumns.map((col) => {
+    const info = enrichmentByColumnName.get(col.name);
+    return info ? { ...col, ...info } : col;
+  });
+
+  const newEnrichmentColumns = enrichments
+    .map((e, i) => ({
+      name: `Mapped: ${e.name}`,
+      type: ColumnType.String,
+      enrichmentIndex: i,
+      enrichment: e,
+    }))
+    .filter((col) => !existingColumnNames.has(col.name));
+
+  const columns: {
+    name: string;
+    type: ColumnType;
+    enrichmentIndex?: number;
+    enrichment?: Enrichment;
+  }[] = [...decoratedExisting, ...newEnrichmentColumns];
   const records = data?.records.slice(0, 10) ?? [];
+
+  const handleDeleteEnrichment = () => {
+    if (!deleteEnrichment) return;
+    updateConfig({
+      dataSourceId: dataSource.id,
+      enrichments: enrichments.filter((_, i) => i !== deleteEnrichment.index),
+    });
+  };
 
   return (
     <div className="p-4 mx-auto w-full overflow-x-auto">
@@ -86,14 +174,17 @@ export function DataSourceEnrichmentDashboard({
             <p>Last enriched: {new Date(lastEnriched).toLocaleString()}</p>
           )}
         </div>
-        <Button
-          type="button"
-          onClick={onClickEnrichRecords}
-          disabled={enriching}
-        >
-          <RefreshCw className={enriching ? "animate-spin" : ""} />
-          {enriching ? "Enriching…" : "Enrich records"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <AddColumnDialog dataSource={dataSource} />
+          <Button
+            type="button"
+            onClick={onClickEnrichRecords}
+            disabled={enriching}
+          >
+            <RefreshCw className={enriching ? "animate-spin" : ""} />
+            {enriching ? "Enriching…" : "Enrich records"}
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -102,14 +193,35 @@ export function DataSourceEnrichmentDashboard({
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              {columns.map((col) => (
-                <th
-                  key={col.name}
-                  className="border border-gray-200 bg-gray-50 px-3 py-1.5 text-left font-medium text-gray-600 whitespace-nowrap"
-                >
-                  {col.name}
-                </th>
-              ))}
+              {columns.map((col) => {
+                const enrichmentIndex = col.enrichmentIndex;
+                const enrichment = col.enrichment;
+                return (
+                  <th
+                    key={col.name}
+                    className="border border-gray-200 bg-gray-50 px-3 py-1.5 text-left font-medium text-gray-600 whitespace-nowrap"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      {col.name}
+                      {enrichment != null && enrichmentIndex != null && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDeleteEnrichment({
+                              index: enrichmentIndex,
+                              enrichment,
+                            })
+                          }
+                          className="text-gray-400 hover:text-destructive transition-colors"
+                          title="Remove enrichment column"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </span>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -138,6 +250,39 @@ export function DataSourceEnrichmentDashboard({
           </tbody>
         </table>
       )}
+
+      <AlertDialog
+        open={deleteEnrichment !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteEnrichment(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove enrichment column?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the &quot;Mapped:{" "}
+              {deleteEnrichment?.enrichment.name}&quot; column and its enriched
+              data from all records.
+            </AlertDialogDescription>
+            {!DataSourceFeatures[dataSource.config.type].columnDeletion && (
+              <p className="text-sm text-amber-600 mt-2">
+                ⚠️ This data source does not support automatic column deletion.
+                You will need to manually remove the column from your source.
+              </p>
+            )}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteEnrichment}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Remove column
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

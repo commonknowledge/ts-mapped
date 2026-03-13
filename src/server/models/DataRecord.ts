@@ -1,7 +1,17 @@
 import z from "zod";
 import { geocodeResultSchema, pointSchema } from "./shared";
+import type { ColumnDef } from "./DataSource";
+import type { ExternalRecord } from "@/types";
 import type { Generated, Insertable, Updateable } from "kysely";
 import type { ColumnType } from "kysely";
+
+export interface EnrichedRecord {
+  externalRecord: ExternalRecord;
+  columns: {
+    def: ColumnDef;
+    value: unknown;
+  }[];
+}
 
 export const dataRecordSchema = z.object({
   id: z.string(),

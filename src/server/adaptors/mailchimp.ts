@@ -5,7 +5,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface MergeField {
@@ -546,29 +546,12 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         for (const column of record.columns) {
           const fieldName = column.def.name;
 
-          // Handle ADDRESS fields specially - reconstruct the address object
+          // Don't overwrite address fields
           if (fieldName.startsWith("address_")) {
-            // We'll handle address fields in a separate pass
             continue;
           }
 
           mergeFields[fieldName] = column.value;
-        }
-
-        // Reconstruct ADDRESS merge field if we have address components
-        const addressFields = record.columns.filter((col) =>
-          col.def.name.startsWith("address_"),
-        );
-
-        if (addressFields.length > 0) {
-          const address: Record<string, unknown> = {};
-          for (const addressField of addressFields) {
-            const addressKey = addressField.def.name.replace("address_", "");
-            address[addressKey] = addressField.value;
-          }
-          if (Object.keys(address).length > 0) {
-            mergeFields["ADDRESS"] = address;
-          }
         }
 
         return {
@@ -608,5 +591,34 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       // You might want to implement polling to check batch status
       // For now, we'll just log the batch ID
     }
+  }
+
+  async deleteColumn(columnName: string): Promise<void> {
+    const mergeFields = await this.getMergeFields();
+    const field = mergeFields.find(
+      (f) => f.name === columnName || f.tag === columnName,
+    );
+    if (!field) {
+      logger.info(
+        `Mailchimp merge field "${columnName}" not found, skipping deletion`,
+      );
+      return;
+    }
+
+    const url = `${this.getListUrl()}/merge-fields/${field.merge_id}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw Error(
+        `Bad delete merge field response: ${response.status}, ${responseText}`,
+      );
+    }
+
+    // Invalidate cached merge fields
+    this.cachedMergeFields = null;
   }
 }

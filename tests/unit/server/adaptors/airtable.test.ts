@@ -269,4 +269,17 @@ describe("Airtable adaptor tests", () => {
 
     expect(updatedRecords[0].json["My View"]).toBeFalsy();
   });
+
+  test("deleteColumn throws not supported error", async () => {
+    const adaptor = new AirtableAdaptor(
+      "test-data-source",
+      credentials.airtable.apiKey,
+      credentials.airtable.baseId,
+      credentials.airtable.tableId,
+    );
+
+    expect(() => adaptor.deleteColumn("AnyField")).toThrow(
+      "Airtable does not support deleting fields.",
+    );
+  });
 }, 10000);
