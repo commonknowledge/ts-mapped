@@ -104,15 +104,15 @@ export interface PublicMapColorScheme {
 export const publicMapColorSchemes: Record<string, PublicMapColorScheme> = {
   red: {
     primary: "#FF6B6B",
-    primaryMuted: "#FF6B6B10",
+    primaryMuted: "#FFF6F6",
   },
   blue: {
     primary: "#678DE3",
-    primaryMuted: "#678DE310",
+    primaryMuted: "#F5F8FD",
   },
   green: {
     primary: "#4DAB37",
-    primaryMuted: "#4DAB3710",
+    primaryMuted: "#F4FAF2",
   },
   ["trans-pride"]: {
     primary: "#92C7DC",
