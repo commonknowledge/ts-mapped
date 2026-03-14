@@ -116,7 +116,7 @@ export const dataSourceReadProcedure = publicProcedure
       throw new TRPCError({
         code: ctx.user ? "NOT_FOUND" : "UNAUTHORIZED",
         message: ctx.user
-          ? "Organisation not found"
+          ? "Data source not found"
           : "You must be logged in to perform this action.",
       });
     }
