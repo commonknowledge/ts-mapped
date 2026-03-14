@@ -13,12 +13,14 @@ import {
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useCurrentUser } from "@/atoms/sessionAtoms";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import DefinitionList from "@/components/DefinitionList";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { Link } from "@/components/Link";
 import { DataSourceFeatures } from "@/features";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceConfigLabels } from "@/labels";
 import { JobStatus } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
@@ -46,7 +48,11 @@ export function DataSourceDashboard({
   const [lastImported, setLastImported] = useState(
     dataSource.importInfo?.lastCompleted || null,
   );
+
+  const currentUser = useCurrentUser();
   const features = DataSourceFeatures[dataSource.config.type];
+  const showEnrichment =
+    useFeatureFlagEnabled("enrichment", currentUser) && features.enrichment;
 
   const lastImportedDateReadable = lastImported
     ? format(lastImported, "d MMMM yyyy, h:mm a")
@@ -221,7 +227,7 @@ export function DataSourceDashboard({
       <Tabs defaultValue="settings" className="gap-6">
         <TabsList>
           <TabsTrigger value="settings">Settings</TabsTrigger>
-          {features.enrichment && (
+          {showEnrichment && (
             <TabsTrigger value="enrichment">Enrichment</TabsTrigger>
           )}
         </TabsList>
@@ -262,7 +268,7 @@ export function DataSourceDashboard({
           </div>
         </TabsContent>
 
-        {features.enrichment && (
+        {showEnrichment && (
           <TabsContent value="enrichment">
             <DataSourceEnrichmentDashboard dataSource={dataSource} />
           </TabsContent>

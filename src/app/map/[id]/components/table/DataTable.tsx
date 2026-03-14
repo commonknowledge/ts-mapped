@@ -42,7 +42,7 @@ interface DataTableProps {
   columns: ColumnDef[];
   data: DataRecord[];
   recordCount?: {
-    count: number;
+    total: number;
     matched: number;
   };
 
@@ -154,8 +154,8 @@ export function DataTable({
             <div className="flex flex-row gap-2">
               <p className="font-bold whitespace-nowrap">{title}</p>
               {recordCount && <span>{recordCount?.matched}</span>}
-              {recordCount && recordCount.count !== recordCount.matched && (
-                <span>{`(${recordCount.count})`}</span>
+              {recordCount && recordCount.total !== recordCount.matched && (
+                <span>{`(${recordCount.total})`}</span>
               )}
             </div>
           )}

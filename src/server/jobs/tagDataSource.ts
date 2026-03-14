@@ -91,7 +91,7 @@ const tagDataSource = async (args: object | null): Promise<boolean> => {
     let count = 0;
     const total = (
       await countDataRecordsForDataSource(dataSourceId, null, null)
-    ).count;
+    ).total;
     const records = streamDataRecordsByDataSource(
       dataSourceId,
       dataSourceView?.filter,

@@ -324,6 +324,11 @@ export function DataSourceEnrichmentDashboard({
               )}
             </tbody>
           </table>
+          {data && data.count.total > records.length && (
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Showing {records.length} of {data.count.total} records
+            </p>
+          )}
         </div>
       )}
 

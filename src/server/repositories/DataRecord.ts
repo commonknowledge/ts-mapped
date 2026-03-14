@@ -22,7 +22,7 @@ export async function countDataRecordsForDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
-): Promise<{ count: number; matched: number }> {
+): Promise<{ total: number; matched: number }> {
   const result = await db
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
@@ -41,7 +41,7 @@ export async function countDataRecordsForDataSource(
     ])
     .executeTakeFirst();
   return {
-    count: Number(result?.count) || 0,
+    total: Number(result?.count) || 0,
     matched: Number(result?.matched) || 0,
   };
 }

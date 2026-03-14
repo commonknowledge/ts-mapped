@@ -70,7 +70,7 @@ const ensureOrganisationMap = async (orgId: string): Promise<Map> => {
     null,
     null,
   );
-  if (!electionResultsDataCount.count) {
+  if (!electionResultsDataCount.total) {
     await importDataSource({ dataSourceId: electionResultsDataSource.id });
   }
 
