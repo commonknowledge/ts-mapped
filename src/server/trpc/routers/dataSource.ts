@@ -37,6 +37,7 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
+import { canReadDataSource } from "@/server/utils/auth";
 import { enrichmentColumnName } from "@/utils/dataRecord";
 import {
   dataSourceOwnerProcedure,
@@ -147,6 +148,26 @@ export const dataSourceRouter = router({
     .input(z.object({ dataRecordIds: z.array(z.string()).min(1).max(50) }))
     .query(async ({ ctx, input }) => {
       const { dataSource } = ctx;
+
+      // Validate that the user can read all data sources referenced by enrichments
+      const referencedDataSourceIds = dataSource.enrichments
+        .filter((e) => e.sourceType === EnrichmentSourceType.DataSource)
+        .map((e) => e.dataSourceId);
+
+      if (referencedDataSourceIds.length > 0) {
+        const referencedDataSources = await findDataSourcesByIds(
+          referencedDataSourceIds,
+        );
+        for (const ds of referencedDataSources) {
+          const hasAccess = await canReadDataSource(ds, ctx.user.id);
+          if (!hasAccess) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: `You do not have access to a referenced data source`,
+            });
+          }
+        }
+      }
       const existingColumnNames = new Set(
         (dataSource.columnDefs ?? []).map((col) => col.name),
       );

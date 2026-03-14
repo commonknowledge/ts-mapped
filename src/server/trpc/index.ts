@@ -3,6 +3,7 @@ import superjson from "superjson";
 import z, { ZodError } from "zod";
 import { getServerSession } from "@/auth";
 import { ADMIN_USER_EMAIL } from "@/constants";
+import { canReadDataSource } from "@/server/utils/auth";
 import {
   hasPasswordHashSerializer,
   serverDataSourceSerializer,
@@ -10,10 +11,7 @@ import {
 import { findDataSourceById } from "../repositories/DataSource";
 import { findMapById } from "../repositories/Map";
 import { findOrganisationForUser } from "../repositories/Organisation";
-import {
-  findPublishedPublicMapByDataSourceId,
-  findPublishedPublicMapByMapId,
-} from "../repositories/PublicMap";
+import { findPublishedPublicMapByMapId } from "../repositories/PublicMap";
 import { findUserById } from "../repositories/User";
 
 export async function createContext() {
@@ -113,33 +111,17 @@ export const dataSourceReadProcedure = publicProcedure
         message: "Data source not found",
       });
 
-    if (dataSource.public) {
-      return next({ ctx: { dataSource } });
-    }
-
-    const publicMap = await findPublishedPublicMapByDataSourceId(dataSource.id);
-    if (publicMap) {
-      return next({ ctx: { dataSource } });
-    }
-
-    if (!ctx.user) {
+    const hasAccess = await canReadDataSource(dataSource, ctx.user?.id);
+    if (!hasAccess) {
       throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You must be logged in to perform this action.",
+        code: ctx.user ? "NOT_FOUND" : "UNAUTHORIZED",
+        message: ctx.user
+          ? "Organisation not found"
+          : "You must be logged in to perform this action.",
       });
     }
 
-    const organisation = await findOrganisationForUser(
-      dataSource.organisationId,
-      ctx.user.id,
-    );
-    if (!organisation)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Organisation not found",
-      });
-
-    return next({ ctx: { organisation, dataSource } });
+    return next({ ctx: { dataSource } });
   });
 
 export const dataSourceOwnerProcedure = protectedProcedure

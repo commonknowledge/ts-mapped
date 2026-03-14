@@ -522,7 +522,9 @@ describe("Mailchimp adaptor tests", () => {
     }
 
     const originalJson = { ...originalRecord.json };
-    const originalKeys = Object.keys(originalJson).filter(k => k.startsWith("address_"));
+    const originalKeys = Object.keys(originalJson).filter((k) =>
+      k.startsWith("address_"),
+    );
     expect(originalKeys.length).toBeGreaterThan(0);
 
     // Add a new enrichment column via updateRecords
