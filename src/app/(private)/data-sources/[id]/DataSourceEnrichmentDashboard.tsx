@@ -7,11 +7,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { DataSourceFeatures } from "@/features";
-import {
-  ColumnType,
-  type Enrichment,
-  JobStatus,
-} from "@/server/models/DataSource";
+import { ColumnType, JobStatus } from "@/server/models/DataSource";
 import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
@@ -162,26 +158,17 @@ export function DataSourceEnrichmentDashboard({
 
   const displayEnrichmentProgress = enrichmentCount > 0 || enriching;
 
-  // Map enrichment column names to their enrichment info so we can
-  // decorate columns that already exist in columnDefs after import.
-  const enrichmentByColumnName = new Map(
-    enrichments.map((e, i) => [
-      enrichmentColumnName(e.name),
-      { enrichmentIndex: i, enrichment: e },
-    ]),
-  );
-
-  const decoratedExisting = existingColumns.map((col) => {
-    const info = enrichmentByColumnName.get(col.name);
-    return info ? { ...col, ...info } : col;
-  });
-
   const columns: {
     name: string;
     type: ColumnType;
-    enrichmentIndex?: number;
-    enrichment?: Enrichment;
-  }[] = [...decoratedExisting, ...newEnrichmentColumns];
+  }[] = [];
+  const seenColumnNames = new Set<string>();
+  for (const col of [...existingColumns, ...newEnrichmentColumns]) {
+    if (!seenColumnNames.has(col.name)) {
+      seenColumnNames.add(col.name);
+      columns.push(col);
+    }
+  }
 
   const handleDeleteColumn = () => {
     if (!deleteColumn) return;
