@@ -28,7 +28,7 @@ export const DataSourceFeatures: Record<
     autoEnrich: false,
     autoImport: false,
     columnDeletion: false,
-    enrichment: false,
+    enrichment: true,
     syncToCrm: false,
   },
   [DataSourceType.GoogleSheets]: {

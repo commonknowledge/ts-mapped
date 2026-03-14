@@ -312,6 +312,15 @@ export function streamDataRecordsByDataSource(
     .stream();
 }
 
+export function streamOrderedDataRecordsByDataSource(dataSourceId: string) {
+  return db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .selectAll()
+    .orderBy(sql`"external_id"::int`, "asc")
+    .stream();
+}
+
 export async function findDataRecordByDataSourceAndAreaCode(
   dataSourceId: string,
   areaSetCode: string,
