@@ -317,7 +317,7 @@ export function streamOrderedDataRecordsByDataSource(dataSourceId: string) {
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
     .selectAll()
-    .orderBy(sql`"external_id"::int`, "asc")
+    .orderBy("externalId", "asc")
     .stream();
 }
 
