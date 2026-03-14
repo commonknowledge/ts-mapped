@@ -540,7 +540,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     const fieldNames = new Set<string>();
     for (const record of enrichedRecords) {
       for (const column of record.columns) {
-        const fieldName = column.def.name;
+        const fieldName = column.def.externalName;
         if (!fieldName.startsWith("address_")) {
           fieldNames.add(fieldName);
         }
@@ -607,7 +607,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       for (const record of recordBatch) {
         const mergeFields: Record<string, unknown> = {};
         for (const column of record.columns) {
-          const fieldName = column.def.name;
+          const fieldName = column.def.externalName;
           const tag = nameToTagMap.get(fieldName);
           if (tag) {
             mergeFields[tag] = column.value;

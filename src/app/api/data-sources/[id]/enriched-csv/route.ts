@@ -10,7 +10,10 @@ import { enrichmentColumnName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { NextRequest } from "next/server";
 
-function sanitizeFilenameForHeader(filename: string): { ascii: string; rfc5987: string } {
+function sanitizeFilenameForHeader(filename: string): {
+  ascii: string;
+  rfc5987: string;
+} {
   // Remove CR/LF and other control characters
   let safe = filename.replace(/[\r\n]+/g, " ").replace(/[\x00-\x1F\x7F]/g, " ");
   // Replace double quotes to avoid breaking the header value
@@ -69,12 +72,29 @@ export async function GET(
   );
 
   const encoder = new TextEncoder();
-  let headerWritten = false;
-  let allColumns: string[] = [];
+  // Build a stable column order from columnDefs + enrichments, deduped
+  const seenColumns = new Set<string>();
+  const allColumns: string[] = [];
+  for (const col of dataSource.columnDefs ?? []) {
+    if (!seenColumns.has(col.name)) {
+      seenColumns.add(col.name);
+      allColumns.push(col.name);
+    }
+  }
+  for (const colName of enrichmentColNames) {
+    if (!seenColumns.has(colName)) {
+      seenColumns.add(colName);
+      allColumns.push(colName);
+    }
+  }
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
+        // Write header row
+        const headerCsv = stringify([allColumns]);
+        controller.enqueue(encoder.encode(headerCsv));
+
         const recordStream = streamOrderedDataRecordsByDataSource(
           dataSource.id,
         );
@@ -90,16 +110,7 @@ export async function GET(
           // Build the full row: original columns + enrichment columns
           const rowData: Record<string, unknown> = { ...record.json };
           for (const col of enrichedRecord.columns) {
-            rowData[col.def.name] = col.value;
-          }
-
-          // Write header row on the first record
-          if (!headerWritten) {
-            const originalColumns = Object.keys(record.json);
-            allColumns = [...originalColumns, ...enrichmentColNames];
-            const headerCsv = stringify([allColumns]);
-            controller.enqueue(encoder.encode(headerCsv));
-            headerWritten = true;
+            rowData[col.def.externalName] = col.value;
           }
 
           // Write data row using column order from header
@@ -115,13 +126,6 @@ export async function GET(
           row = await recordStream.next();
         }
 
-        // Handle empty data source
-        if (!headerWritten) {
-          const enrichmentHeaders = enrichmentColNames;
-          const headerCsv = stringify([enrichmentHeaders]);
-          controller.enqueue(encoder.encode(headerCsv));
-        }
-
         controller.close();
       } catch (error) {
         controller.error(error);
@@ -130,7 +134,8 @@ export async function GET(
   });
 
   const rawFilename = `${dataSource.name} - enriched.csv`;
-  const { ascii: safeFilename, rfc5987 } = sanitizeFilenameForHeader(rawFilename);
+  const { ascii: safeFilename, rfc5987 } =
+    sanitizeFilenameForHeader(rawFilename);
   return new NextResponse(stream, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",

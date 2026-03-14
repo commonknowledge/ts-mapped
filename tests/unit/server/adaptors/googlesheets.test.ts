@@ -321,7 +321,10 @@ describe("Google Sheets adaptor tests", () => {
         externalRecord: allRecords[0],
         columns: [
           {
-            def: { name: "Mapped: Test Field", type: ColumnType.String },
+            def: {
+              externalName: "Mapped: Test Field",
+              type: ColumnType.String,
+            },
             value: newValue,
           },
         ],
@@ -358,7 +361,7 @@ describe("Google Sheets adaptor tests", () => {
         externalRecord: allRecords[0],
         columns: [
           {
-            def: { name: uniqueColumnName, type: ColumnType.String },
+            def: { externalName: uniqueColumnName, type: ColumnType.String },
             value: "new-column-value",
           },
         ],
@@ -397,7 +400,7 @@ describe("Google Sheets adaptor tests", () => {
         externalRecord: allRecords[0],
         columns: [
           {
-            def: { name: columnName, type: ColumnType.String },
+            def: { externalName: columnName, type: ColumnType.String },
             value: "to-be-deleted",
           },
         ],
@@ -453,7 +456,7 @@ describe("Google Sheets adaptor tests", () => {
       externalRecord: record,
       columns: [
         {
-          def: { name: "BatchTestField", type: ColumnType.String },
+          def: { externalName: "BatchTestField", type: ColumnType.String },
           value: newValue,
         },
       ],

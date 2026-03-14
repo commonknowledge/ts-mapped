@@ -514,7 +514,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
     for (const batch of batches) {
       for (const record of batch) {
         for (const column of record.columns) {
-          newFields.set(column.def.name, column.def.type);
+          newFields.set(column.def.externalName, column.def.type);
         }
       }
     }
@@ -532,7 +532,7 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       const airtableRecords = batch.map((record) => {
         const fields: Record<string, unknown> = {};
         for (const column of record.columns) {
-          fields[column.def.name] = column.value;
+          fields[column.def.externalName] = column.value;
         }
         return {
           id: record.externalRecord.externalId,

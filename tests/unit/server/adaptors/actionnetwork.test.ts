@@ -144,7 +144,10 @@ test("updateRecords attempts to update records", async () => {
       externalRecord: firstRecord,
       columns: [
         {
-          def: { name: "test_custom_field", type: ColumnType.String },
+          def: {
+            externalName: "Mapped: test_custom_field",
+            type: ColumnType.String,
+          },
           value: newValue,
         },
       ],
