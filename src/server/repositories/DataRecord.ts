@@ -201,9 +201,13 @@ export function findDataRecordById(id: string) {
     .executeTakeFirst();
 }
 
-export function findDataRecordByExternalId(externalId: string) {
+export function findDataRecordByExternalId(
+  dataSourceId: string,
+  externalId: string,
+) {
   return db
     .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
     .where("externalId", "=", externalId)
     .selectAll()
     .executeTakeFirst();
