@@ -343,8 +343,9 @@ export const dataSourceRouter = router({
           .map((e) => e.dataSourceId);
 
         if (referencedDataSourceIds.length > 0) {
-          const referencedDataSources =
-            await findDataSourcesByIds(referencedDataSourceIds);
+          const referencedDataSources = await findDataSourcesByIds(
+            referencedDataSourceIds,
+          );
           for (const ds of referencedDataSources) {
             const hasAccess = await canReadDataSource(ds, ctx.user.id);
             if (!hasAccess) {
