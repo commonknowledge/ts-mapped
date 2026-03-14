@@ -10,6 +10,26 @@ import { enrichmentColumnName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
 import type { NextRequest } from "next/server";
 
+function sanitizeFilenameForHeader(filename: string): { ascii: string; rfc5987: string } {
+  // Remove CR/LF and other control characters
+  let safe = filename.replace(/[\r\n]+/g, " ").replace(/[\x00-\x1F\x7F]/g, " ");
+  // Replace double quotes to avoid breaking the header value
+  safe = safe.replace(/"/g, "'");
+  // Collapse multiple spaces
+  safe = safe.replace(/\s+/g, " ").trim();
+
+  // ASCII-only fallback for legacy user agents
+  let ascii = safe.replace(/[^\x20-\x7E]+/g, "");
+  if (!ascii) {
+    ascii = "download.csv";
+  }
+
+  // RFC 5987 encoding for full UTF-8 filename
+  const rfc5987 = "UTF-8''" + encodeURIComponent(safe);
+
+  return { ascii, rfc5987 };
+}
+
 export async function GET(
   _request: NextRequest,
   args: { params: Promise<{ id: string }> },
@@ -109,11 +129,12 @@ export async function GET(
     },
   });
 
-  const filename = `${dataSource.name} - enriched.csv`;
+  const rawFilename = `${dataSource.name} - enriched.csv`;
+  const { ascii: safeFilename, rfc5987 } = sanitizeFilenameForHeader(rawFilename);
   return new NextResponse(stream, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `attachment; filename="${safeFilename}"; filename*=${rfc5987}`,
     },
   });
 }
