@@ -219,7 +219,10 @@ describe("Airtable adaptor tests", () => {
         externalRecord: all[0],
         columns: [
           {
-            def: { name: "Mapped: Test Field", type: ColumnType.String },
+            def: {
+              externalName: "Mapped: Test Field",
+              type: ColumnType.String,
+            },
             value: newValue,
           },
         ],

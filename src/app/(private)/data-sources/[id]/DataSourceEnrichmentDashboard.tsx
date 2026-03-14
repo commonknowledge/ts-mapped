@@ -2,12 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { HelpCircle, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { Download, HelpCircle, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { DataSourceFeatures } from "@/features";
-import { ColumnType, JobStatus } from "@/server/models/DataSource";
+import {
+  ColumnType,
+  DataSourceType,
+  JobStatus,
+} from "@/server/models/DataSource";
 import { type RouterOutputs, useTRPC } from "@/services/trpc/react";
 import {
   AlertDialog,
@@ -30,9 +34,12 @@ export function DataSourceEnrichmentDashboard({
 }: {
   dataSource: RouterOutputs["dataSource"]["byId"];
 }) {
-  const [enriching, setEnriching] = useState(isEnriching(dataSource));
+  const isCSV = dataSource.config.type === DataSourceType.CSV;
+  const [enriching, setEnriching] = useState(
+    isCSV ? false : isEnriching(dataSource),
+  );
   const [lastEnriched, setLastEnriched] = useState(
-    dataSource.enrichmentInfo?.lastCompleted || null,
+    isCSV ? null : dataSource.enrichmentInfo?.lastCompleted || null,
   );
   const [enrichmentCount, setEnrichmentCount] = useState(0);
 
@@ -119,6 +126,7 @@ export function DataSourceEnrichmentDashboard({
     trpc.dataSource.events.subscriptionOptions(
       { dataSourceId: dataSource.id },
       {
+        enabled: !isCSV,
         onData: (dataSourceEvent) => {
           if (dataSourceEvent.event === "EnrichmentStarted") {
             setEnriching(true);
@@ -182,23 +190,42 @@ export function DataSourceEnrichmentDashboard({
     <div className="p-4 mx-auto w-full">
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm text-muted-foreground">
-          {displayEnrichmentProgress && (
+          {!isCSV && displayEnrichmentProgress && (
             <p>Enrichment count: {enrichmentCount}</p>
           )}
-          {lastEnriched && (
+          {!isCSV && lastEnriched && (
             <p>Last enriched: {new Date(lastEnriched).toLocaleString()}</p>
           )}
         </div>
         <div className="flex items-center gap-2">
           <EnrichmentColumnDialog dataSource={dataSource} />
-          <Button
-            type="button"
-            onClick={onClickEnrichRecords}
-            disabled={enriching}
-          >
-            <RefreshCw className={enriching ? "animate-spin" : ""} />
-            {enriching ? "Enriching…" : "Enrich records"}
-          </Button>
+          {isCSV ? (
+            dataSource.enrichments.length === 0 ? (
+              <Button disabled>
+                <Download />
+                Download enriched CSV
+              </Button>
+            ) : (
+              <Button asChild>
+                <a
+                  href={`/api/data-sources/${dataSource.id}/enriched-csv`}
+                  download
+                >
+                  <Download />
+                  Download enriched CSV
+                </a>
+              </Button>
+            )
+          ) : (
+            <Button
+              type="button"
+              onClick={onClickEnrichRecords}
+              disabled={enriching || dataSource.enrichments.length === 0}
+            >
+              <RefreshCw className={enriching ? "animate-spin" : ""} />
+              {enriching ? "Enriching…" : "Enrich records"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -236,8 +263,15 @@ export function DataSourceEnrichmentDashboard({
                               </span>
                             </TooltipTrigger>
                             <TooltipContent side="bottom" className="max-w-56">
-                              Click <strong>&quot;Enrich records&quot;</strong>{" "}
-                              to save this column to all records.
+                              {isCSV ? (
+                                "Download the enriched CSV to get this column for all records."
+                              ) : (
+                                <>
+                                  Click{" "}
+                                  <strong>&quot;Enrich records&quot;</strong> to
+                                  save this column to all records.
+                                </>
+                              )}
                             </TooltipContent>
                           </Tooltip>
                         )}
@@ -284,7 +318,7 @@ export function DataSourceEnrichmentDashboard({
                       <td
                         key={col.name}
                         className={`border border-gray-200 px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate ${
-                          showPreview
+                          !isCSV && showPreview
                             ? "italic text-muted-foreground border-l-2 border-l-amber-300 bg-amber-50/40"
                             : ""
                         }`}
@@ -342,8 +376,8 @@ export function DataSourceEnrichmentDashboard({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove enrichment column?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the &quot;{deleteColumn}&quot; column and its
-              data from all records.
+              This will remove the &quot;{deleteColumn}&quot; column
+              {isCSV ? "" : " and its data from all records"}.
             </AlertDialogDescription>
             {deleteColumn &&
               !DataSourceFeatures[dataSource.config.type].columnDeletion &&

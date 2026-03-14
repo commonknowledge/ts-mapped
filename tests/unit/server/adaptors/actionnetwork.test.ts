@@ -144,7 +144,10 @@ test("updateRecords attempts to update records", async () => {
       externalRecord: firstRecord,
       columns: [
         {
-          def: { name: "test_custom_field", type: ColumnType.String },
+          def: {
+            externalName: "Mapped: test_custom_field",
+            type: ColumnType.String,
+          },
           value: newValue,
         },
       ],
@@ -157,7 +160,7 @@ test("updateRecords attempts to update records", async () => {
     firstRecord.externalId,
   ]);
 
-  expect(updatedRecords[0].json["test_custom_field"]).toBe(newValue);
+  expect(updatedRecords[0].json["Mapped: test_custom_field"]).toBe(newValue);
 });
 
 test("tagRecords attempts to tag records", async () => {

@@ -13,6 +13,7 @@ import type { EnrichedRecord } from "../models/DataRecord";
 import type { GeocodeResult } from "../models/shared";
 import type {
   AreaEnrichment,
+  ColumnDef,
   DataSource,
   DataSourceEnrichment,
   DataSourceUpdate,
@@ -43,7 +44,7 @@ export const enrichRecord = async (
     if (enrichedColumn) {
       enrichedColumns.push({
         def: {
-          name: enrichmentColumnName(enrichment.name),
+          externalName: enrichmentColumnName(enrichment.name),
           type: enrichedColumn.def.type,
         },
         value: enrichedColumn.value,
@@ -57,11 +58,16 @@ export const enrichRecord = async (
   return { externalRecord: record, columns: enrichedColumns };
 };
 
+interface EnrichedColumn {
+  def: ColumnDef;
+  value: unknown;
+}
+
 export const getEnrichedColumn = async (
   record: ExternalRecord,
   recordGeocodeResult: GeocodeResult,
   enrichment: Enrichment,
-): Promise<EnrichedRecord["columns"][0] | null> => {
+): Promise<EnrichedColumn | null> => {
   try {
     if (enrichment.sourceType === "Area") {
       return await getAreaEnrichedColumn(recordGeocodeResult, enrichment);
@@ -81,7 +87,7 @@ export const getEnrichedColumn = async (
 const getAreaEnrichedColumn = async (
   recordGeocodeResult: GeocodeResult,
   enrichment: AreaEnrichment,
-): Promise<EnrichedRecord["columns"][0]> => {
+): Promise<EnrichedColumn> => {
   const areaSet = await findAreaSetByCode(enrichment.areaSetCode);
   if (!areaSet) {
     throw new Error(
@@ -115,7 +121,7 @@ const getAreaEnrichedColumn = async (
 const getDataSourceEnrichedColumn = async (
   recordGeocodeResult: GeocodeResult,
   { dataSourceId, dataSourceColumn }: DataSourceEnrichment,
-): Promise<EnrichedRecord["columns"][0]> => {
+): Promise<EnrichedColumn> => {
   // TODO: security
   const dataSource = await findDataSourceById(dataSourceId);
 

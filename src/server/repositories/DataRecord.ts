@@ -312,6 +312,15 @@ export function streamDataRecordsByDataSource(
     .stream();
 }
 
+export function streamOrderedDataRecordsByDataSource(dataSourceId: string) {
+  return db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .selectAll()
+    .orderBy("externalId", "asc")
+    .stream();
+}
+
 export async function findDataRecordByDataSourceAndAreaCode(
   dataSourceId: string,
   areaSetCode: string,
@@ -407,7 +416,7 @@ export async function updateDataRecordJsonWithEnrichment(
 
     const enrichmentData: Record<string, unknown> = {};
     for (const column of record.columns) {
-      enrichmentData[column.def.name] = column.value;
+      enrichmentData[column.def.externalName] = column.value;
     }
 
     await sql`
