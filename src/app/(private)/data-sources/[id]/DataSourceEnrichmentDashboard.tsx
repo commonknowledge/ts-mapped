@@ -200,20 +200,27 @@ export function DataSourceEnrichmentDashboard({
         <div className="flex items-center gap-2">
           <EnrichmentColumnDialog dataSource={dataSource} />
           {isCSV ? (
-            <Button asChild disabled={dataSource.enrichments.length === 0}>
-              <a
-                href={`/api/data-sources/${dataSource.id}/enriched-csv`}
-                download
-              >
+            dataSource.enrichments.length === 0 ? (
+              <Button disabled>
                 <Download />
                 Download enriched CSV
-              </a>
-            </Button>
+              </Button>
+            ) : (
+              <Button asChild>
+                <a
+                  href={`/api/data-sources/${dataSource.id}/enriched-csv`}
+                  download
+                >
+                  <Download />
+                  Download enriched CSV
+                </a>
+              </Button>
+            )
           ) : (
             <Button
               type="button"
               onClick={onClickEnrichRecords}
-              disabled={enriching}
+              disabled={enriching || dataSource.enrichments.length === 0}
             >
               <RefreshCw className={enriching ? "animate-spin" : ""} />
               {enriching ? "Enriching…" : "Enrich records"}
@@ -268,7 +275,7 @@ export function DataSourceEnrichmentDashboard({
                             </TooltipContent>
                           </Tooltip>
                         )}
-                        {!isCSV && col.name.startsWith(ENRICHMENT_COLUMN_PREFIX) && (
+                        {col.name.startsWith(ENRICHMENT_COLUMN_PREFIX) && (
                           <button
                             type="button"
                             onClick={() => setDeleteColumn(col.name)}

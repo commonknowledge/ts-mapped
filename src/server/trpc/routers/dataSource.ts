@@ -9,6 +9,7 @@ import {
 } from "@/server/mapping/enrich";
 import {
   ColumnType,
+  DataSourceType,
   EnrichmentSourceType,
   GeocodingType,
   columnMetadataSchema,
@@ -488,7 +489,11 @@ export const dataSourceRouter = router({
       );
 
       // Enqueue background job for expensive cleanup (external source + record JSON)
-      if (input.externalColumnNames.length > 0) {
+      // CSV data sources don't need background cleanup — just removing the config is enough
+      if (
+        input.externalColumnNames.length > 0 &&
+        ctx.dataSource.config.type !== DataSourceType.CSV
+      ) {
         await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
           dataSourceId: ctx.dataSource.id,
           externalColumnNames: input.externalColumnNames,
