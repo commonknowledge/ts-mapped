@@ -430,7 +430,7 @@ export const dataSourceRouter = router({
         `Updated ${ctx.dataSource.config.type} data source config: ${ctx.dataSource.id}`,
       );
 
-      // If enrichments were removed, clean up column metadata and enqueue background job
+      // If enrichments were removed, synchronously remove their columns and enqueue background cleanup job
       if (input.enrichments !== undefined) {
         const oldNames = new Set(
           (ctx.dataSource.enrichments ?? []).map((e) => e.name),
