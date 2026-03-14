@@ -24,9 +24,7 @@ export const enrichRecord = async (
   record: ExternalRecord,
   dataSource: DataSource,
 ): Promise<EnrichedRecord> => {
-  logger.info(
-    `Enriching record ${record.externalId}: ${JSON.stringify(record.json)}`,
-  );
+  logger.info(`Enriching record ${record.externalId}`);
   const geocodeResult = await geocodeRecord(record, dataSource.geocodingConfig);
   if (!geocodeResult) {
     logger.warn(
