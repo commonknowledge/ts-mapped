@@ -318,7 +318,7 @@ export function DataSourceEnrichmentDashboard({
                       <td
                         key={col.name}
                         className={`border border-gray-200 px-3 py-1.5 whitespace-nowrap max-w-[300px] truncate ${
-                          showPreview
+                          !isCSV && showPreview
                             ? "italic text-muted-foreground border-l-2 border-l-amber-300 bg-amber-50/40"
                             : ""
                         }`}
@@ -376,8 +376,8 @@ export function DataSourceEnrichmentDashboard({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove enrichment column?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the &quot;{deleteColumn}&quot; column and its
-              data from all records.
+              This will remove the &quot;{deleteColumn}&quot; column
+              {isCSV ? "" : " and its data from all records"}.
             </AlertDialogDescription>
             {deleteColumn &&
               !DataSourceFeatures[dataSource.config.type].columnDeletion &&

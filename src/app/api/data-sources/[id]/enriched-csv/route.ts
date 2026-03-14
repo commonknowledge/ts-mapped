@@ -1,7 +1,7 @@
 import { stringify } from "csv-stringify/sync";
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/auth";
-import { enrichRecord } from "@/server/mapping/enrich";
+import { getEnrichedColumn } from "@/server/mapping/enrich";
 import { DataSourceType } from "@/server/models/DataSource";
 import { streamOrderedDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
@@ -102,16 +102,25 @@ export async function GET(
 
         while (row.value) {
           const record: DataRecord = row.value;
-          const enrichedRecord = await enrichRecord(
-            { externalId: record.externalId, json: record.json },
-            dataSource,
-          );
+
+          const enrichedValues: Record<string, unknown> = {};
+          for (const enrichment of dataSource.enrichments) {
+            const colName = enrichmentColumnName(enrichment.name);
+            const col = record.geocodeResult
+              ? await getEnrichedColumn(
+                  { externalId: record.externalId, json: record.json },
+                  record.geocodeResult,
+                  enrichment,
+                )
+              : null;
+            enrichedValues[colName] = col?.value ?? null;
+          }
 
           // Build the full row: original columns + enrichment columns
-          const rowData: Record<string, unknown> = { ...record.json };
-          for (const col of enrichedRecord.columns) {
-            rowData[col.def.externalName] = col.value;
-          }
+          const rowData: Record<string, unknown> = {
+            ...record.json,
+            ...enrichedValues,
+          };
 
           // Write data row using column order from header
           const values = allColumns.map((col) => {
