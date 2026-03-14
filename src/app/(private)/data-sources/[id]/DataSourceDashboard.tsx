@@ -13,11 +13,14 @@ import {
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useCurrentUser } from "@/atoms/sessionAtoms";
 import DataSourceBadge from "@/components/DataSourceBadge";
 import DataSourceRecordTypeIcon from "@/components/DataSourceRecordTypeIcon";
 import DefinitionList from "@/components/DefinitionList";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { Link } from "@/components/Link";
+import { DataSourceFeatures } from "@/features";
+import { useFeatureFlagEnabled } from "@/hooks";
 import { DataSourceConfigLabels } from "@/labels";
 import { JobStatus } from "@/server/models/DataSource";
 import { useTRPC } from "@/services/trpc/react";
@@ -30,8 +33,10 @@ import {
 } from "@/shadcn/ui/breadcrumb";
 import { Button } from "@/shadcn/ui/button";
 import { Separator } from "@/shadcn/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shadcn/ui/tabs";
 import ColumnMetadataForm from "./components/ColumnMetadataForm";
 import ConfigurationForm from "./components/ConfigurationForm";
+import { DataSourceEnrichmentDashboard } from "./DataSourceEnrichmentDashboard";
 import type { RouterOutputs } from "@/services/trpc/react";
 
 export function DataSourceDashboard({
@@ -40,10 +45,14 @@ export function DataSourceDashboard({
   dataSource: NonNullable<RouterOutputs["dataSource"]["byId"]>;
 }) {
   const [importing, setImporting] = useState(isImporting(dataSource));
-  const [importError, setImportError] = useState("");
   const [lastImported, setLastImported] = useState(
     dataSource.importInfo?.lastCompleted || null,
   );
+
+  const currentUser = useCurrentUser();
+  const features = DataSourceFeatures[dataSource.config.type];
+  const showEnrichment =
+    useFeatureFlagEnabled("enrichment", currentUser) && features.enrichment;
 
   const lastImportedDateReadable = lastImported
     ? format(lastImported, "d MMMM yyyy, h:mm a")
@@ -71,7 +80,6 @@ export function DataSourceDashboard({
       onError: (error) => {
         console.error(`Could not schedule import job: ${error}`);
         const errorMessage = error.message || "Could not schedule import job.";
-        setImportError(errorMessage);
         setImporting(false);
         toast.error(errorMessage);
       },
@@ -91,7 +99,7 @@ export function DataSourceDashboard({
           }
           if (dataSourceEvent.event === "ImportFailed") {
             setImporting(false);
-            setImportError("Failed to import this data source.");
+            toast.error("Failed to import this data source.");
           }
           if (dataSourceEvent.event === "ImportComplete") {
             setImporting(false);
@@ -104,7 +112,6 @@ export function DataSourceDashboard({
 
   const onClickImportRecords = useCallback(async () => {
     setImporting(true);
-    setImportError("");
     setRecordCount(0);
 
     enqueueImportDataSourceJob({
@@ -176,11 +183,6 @@ export function DataSourceDashboard({
         </div>
 
         <div className="flex flex-row items-start gap-2">
-          {importError && (
-            <div>
-              <span className="text-xs text-red-500">{importError}</span>
-            </div>
-          )}
           <Button
             type="button"
             variant="outline"
@@ -222,39 +224,56 @@ export function DataSourceDashboard({
         </Alert>
       )}
 
-      <div className="grid grid-cols-2 gap-20 pb-10">
-        <div className="flex flex-col gap-6">
-          <h2 className="font-medium text-xl">About this data source</h2>
-          <DefinitionList
-            items={
-              lastImported
-                ? [
-                    ...mappedInformation,
-                    {
-                      label: "Last imported",
-                      value: `${lastImportedDateReadable} (${lastImportedFormattedFromNow})`,
-                    },
-                  ]
-                : mappedInformation
-            }
-          />
-          <ColumnMetadataForm dataSource={dataSource} />
-        </div>
+      <Tabs defaultValue="settings" className="gap-6">
+        <TabsList>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+          {showEnrichment && (
+            <TabsTrigger value="enrichment">Enrichment</TabsTrigger>
+          )}
+        </TabsList>
 
-        <div className="flex flex-col gap-6">
-          <h2 className="font-medium text-xl">Configuration</h2>
-          <ConfigurationForm
-            dataSource={dataSource}
-            onAutoImportChange={setAutoImportEnabled}
-            webhookStatus={webhookStatus}
-          />
-          <Separator />
-          <h2 className="font-medium text-xl">Danger zone</h2>
-          <div>
-            <DeleteDataSourceButton dataSource={dataSource} />
+        <TabsContent value="settings">
+          <div className="grid grid-cols-2 gap-20 pb-10">
+            <div className="flex flex-col gap-6">
+              <h2 className="font-medium text-xl">About this data source</h2>
+              <DefinitionList
+                items={
+                  lastImported
+                    ? [
+                        ...mappedInformation,
+                        {
+                          label: "Last imported",
+                          value: `${lastImportedDateReadable} (${lastImportedFormattedFromNow})`,
+                        },
+                      ]
+                    : mappedInformation
+                }
+              />
+              <ColumnMetadataForm dataSource={dataSource} />
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <h2 className="font-medium text-xl">Configuration</h2>
+              <ConfigurationForm
+                dataSource={dataSource}
+                onAutoImportChange={setAutoImportEnabled}
+                webhookStatus={webhookStatus}
+              />
+              <Separator />
+              <h2 className="font-medium text-xl">Danger zone</h2>
+              <div>
+                <DeleteDataSourceButton dataSource={dataSource} />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+
+        {showEnrichment && (
+          <TabsContent value="enrichment">
+            <DataSourceEnrichmentDashboard dataSource={dataSource} />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }

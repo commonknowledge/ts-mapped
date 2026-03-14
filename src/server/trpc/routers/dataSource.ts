@@ -1,7 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
+import {
+  getEnrichedColumn,
+  removeEnrichmentColumnsFromDataSource,
+} from "@/server/mapping/enrich";
 import {
   ColumnType,
   EnrichmentSourceType,
@@ -17,6 +22,7 @@ import {
 import {
   applyFilterAndSearch,
   findDataRecordsByDataSource,
+  findDataRecordsByIds,
 } from "@/server/repositories/DataRecord";
 import {
   createDataSource,
@@ -31,6 +37,8 @@ import { db } from "@/server/services/database";
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { enqueue } from "@/server/services/queue";
+import { canReadDataSource } from "@/server/utils/auth";
+import { enrichmentColumnName } from "@/utils/dataRecord";
 import {
   dataSourceOwnerProcedure,
   dataSourceReadProcedure,
@@ -135,6 +143,66 @@ export const dataSourceRouter = router({
       recordCount: Number(recordCount?.count) || 0,
     };
   }),
+
+  enrichmentPreview: dataSourceOwnerProcedure
+    .input(z.object({ dataRecordIds: z.array(z.string()).min(1).max(50) }))
+    .query(async ({ ctx, input }) => {
+      const { dataSource } = ctx;
+
+      // Validate that the user can read all data sources referenced by enrichments
+      const referencedDataSourceIds = dataSource.enrichments
+        .filter((e) => e.sourceType === EnrichmentSourceType.DataSource)
+        .map((e) => e.dataSourceId);
+
+      if (referencedDataSourceIds.length > 0) {
+        const referencedDataSources = await findDataSourcesByIds(
+          referencedDataSourceIds,
+        );
+        for (const ds of referencedDataSources) {
+          const hasAccess = await canReadDataSource(ds, ctx.user.id);
+          if (!hasAccess) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: `You do not have access to a referenced data source`,
+            });
+          }
+        }
+      }
+      const existingColumnNames = new Set(
+        (dataSource.columnDefs ?? []).map((col) => col.name),
+      );
+      const newEnrichments = dataSource.enrichments.filter(
+        (e) => !existingColumnNames.has(enrichmentColumnName(e.name)),
+      );
+      if (newEnrichments.length === 0) {
+        return {};
+      }
+
+      const records = await findDataRecordsByIds(
+        input.dataRecordIds,
+        dataSource.id,
+      );
+
+      const result: Record<string, Record<string, unknown>> = {};
+      for (const record of records) {
+        if (!record.geocodeResult) {
+          result[record.id] = {};
+          continue;
+        }
+        const enrichedValues: Record<string, unknown> = {};
+        for (const enrichment of newEnrichments) {
+          const colName = enrichmentColumnName(enrichment.name);
+          const col = await getEnrichedColumn(
+            { externalId: record.externalId, json: record.json },
+            record.geocodeResult,
+            enrichment,
+          );
+          enrichedValues[colName] = col?.value ?? null;
+        }
+        result[record.id] = enrichedValues;
+      }
+      return result;
+    }),
 
   byIdWithRecords: dataSourceReadProcedure
     .input(
@@ -268,6 +336,28 @@ export const dataSourceRouter = router({
   updateConfig: dataSourceOwnerProcedure
     .input(dataSourceSchema.partial())
     .mutation(async ({ ctx, input }) => {
+      // Validate that the user can read all data sources referenced by enrichments
+      if (input.enrichments) {
+        const referencedDataSourceIds = input.enrichments
+          .filter((e) => e.sourceType === EnrichmentSourceType.DataSource)
+          .map((e) => e.dataSourceId);
+
+        if (referencedDataSourceIds.length > 0) {
+          const referencedDataSources = await findDataSourcesByIds(
+            referencedDataSourceIds,
+          );
+          for (const ds of referencedDataSources) {
+            const hasAccess = await canReadDataSource(ds, ctx.user.id);
+            if (!hasAccess) {
+              throw new TRPCError({
+                code: "FORBIDDEN",
+                message: `You do not have access to a referenced data source`,
+              });
+            }
+          }
+        }
+      }
+
       const adaptor = getDataSourceAdaptor(ctx.dataSource);
 
       const update = {
@@ -341,16 +431,67 @@ export const dataSourceRouter = router({
         `Updated ${ctx.dataSource.config.type} data source config: ${ctx.dataSource.id}`,
       );
 
+      // If enrichments were removed, synchronously remove their columns and enqueue background cleanup job
+      if (input.enrichments !== undefined) {
+        const oldNames = new Set(
+          (ctx.dataSource.enrichments ?? []).map((e) => e.name),
+        );
+        const newNames = new Set(input.enrichments.map((e) => e.name));
+        const removedNames = [...oldNames].filter(
+          (name) => !newNames.has(name),
+        );
+        if (removedNames.length > 0) {
+          const externalColumnNames = removedNames.map(enrichmentColumnName);
+          // Synchronously remove columnDefs (enrichments already updated above)
+          await removeEnrichmentColumnsFromDataSource(
+            ctx.dataSource.id,
+            externalColumnNames,
+          );
+          await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
+            dataSourceId: ctx.dataSource.id,
+            externalColumnNames,
+          });
+        }
+      }
+
       // Only trigger import if config fields changed (not just name)
       const configFieldsChanged =
         input.columnRoles !== undefined ||
-        input.enrichments !== undefined ||
         input.geocodingConfig !== undefined ||
         input.dateFormat !== undefined;
 
       if (configFieldsChanged) {
         await enqueue("importDataSource", ctx.dataSource.id, {
           dataSourceId: ctx.dataSource.id,
+        });
+      }
+
+      return true;
+    }),
+
+  deleteEnrichmentColumns: dataSourceOwnerProcedure
+    .input(z.object({ externalColumnNames: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      for (const externalColumnName of input.externalColumnNames) {
+        if (!externalColumnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Column "${externalColumnName}" is not an enrichment column`,
+          });
+        }
+      }
+
+      // Synchronously remove enrichment metadata (enrichments + columnDefs)
+      await removeEnrichmentColumnsFromDataSource(
+        ctx.dataSource.id,
+        input.externalColumnNames,
+      );
+
+      // Enqueue background job for expensive cleanup (external source + record JSON)
+      if (input.externalColumnNames.length > 0) {
+        await enqueue("removeEnrichmentColumns", ctx.dataSource.id, {
+          dataSourceId: ctx.dataSource.id,
+          externalColumnNames: input.externalColumnNames,
         });
       }
 

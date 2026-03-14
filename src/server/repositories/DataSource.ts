@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import { DataSourceType, JobStatus } from "@/server/models/DataSource";
 import { db } from "@/server/services/database";
 import type {
+  ColumnDef,
   DataSourceUpdate,
   JobInfo,
   NewDataSource,
@@ -152,6 +153,29 @@ export async function updateDataSource(
     .updateTable("dataSource")
     .set(updateWith)
     .where("id", "=", id)
+    .execute();
+}
+
+export async function updateColumnDefsWithEnrichment(
+  dataSourceId: string,
+  enrichedColumnDefs: ColumnDef[],
+) {
+  const dataSource = await findDataSourceById(dataSourceId);
+  if (!dataSource) return;
+
+  const existingNames = new Set(
+    (dataSource.columnDefs ?? []).map((c) => c.name),
+  );
+  const newDefs = enrichedColumnDefs.filter(
+    (def) => !existingNames.has(def.name),
+  );
+  if (newDefs.length === 0) return;
+
+  const updatedColumnDefs = [...(dataSource.columnDefs ?? []), ...newDefs];
+  await db
+    .updateTable("dataSource")
+    .set({ columnDefs: JSON.stringify(updatedColumnDefs) as never })
+    .where("id", "=", dataSourceId)
     .execute();
 }
 

@@ -1,4 +1,4 @@
-import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 export interface DataSourceAdaptor {
@@ -13,4 +13,5 @@ export interface DataSourceAdaptor {
   toggleWebhook(enable: boolean): Promise<void>;
   updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void>;
   tagRecords(records: TaggedRecord[]): Promise<void>;
+  deleteColumn(columnName: string): Promise<void>;
 }

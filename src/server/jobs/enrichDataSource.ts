@@ -1,10 +1,15 @@
 import { DATA_SOURCE_JOB_BATCH_SIZE } from "@/constants";
 import { getDataSourceAdaptor } from "@/server/adaptors";
 import { enrichRecord } from "@/server/mapping/enrich";
-import { findDataSourceById } from "@/server/repositories/DataSource";
+import { updateDataRecordJsonWithEnrichment } from "@/server/repositories/DataRecord";
+import {
+  findDataSourceById,
+  updateColumnDefsWithEnrichment,
+} from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
 import { getPubSub } from "@/server/services/pubsub";
 import { batchAsync } from "@/server/utils";
+import type { ColumnDef } from "@/server/models/DataSource";
 import type { DataSource } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
 
@@ -43,10 +48,19 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
     const total = await adaptor.getRecordCount();
     const records = adaptor.fetchAll();
     const batches = batchAsync(records, DATA_SOURCE_JOB_BATCH_SIZE);
+    const allEnrichedColumnDefs = new Map<string, ColumnDef>();
 
     for await (const batch of batches) {
       const enrichedRecords = await enrichBatch(batch, dataSource);
       await adaptor.updateRecords(enrichedRecords);
+      await updateDataRecordJsonWithEnrichment(enrichedRecords, dataSource.id);
+
+      for (const record of enrichedRecords) {
+        for (const col of record.columns) {
+          allEnrichedColumnDefs.set(col.def.name, col.def);
+        }
+      }
+
       count += batch.length;
       if (total) {
         const percentComplete = Math.floor((count * 100) / total);
@@ -63,6 +77,11 @@ const enrichDataSource = async (args: object | null): Promise<boolean> => {
         count,
       });
     }
+
+    await updateColumnDefsWithEnrichment(
+      dataSource.id,
+      Array.from(allEnrichedColumnDefs.values()),
+    );
 
     pubsub.publish("dataSourceEvent", {
       event: "EnrichmentComplete",

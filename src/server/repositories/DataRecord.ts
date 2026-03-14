@@ -8,7 +8,7 @@ import {
 import { FilterOperator, FilterType } from "@/server/models/MapView";
 import { db } from "@/server/services/database";
 import type { Point } from "../models/shared";
-import type { NewDataRecord } from "@/server/models/DataRecord";
+import type { EnrichedRecord, NewDataRecord } from "@/server/models/DataRecord";
 import type { RecordFilterInput, SortInput } from "@/server/models/MapView";
 import type { Database } from "@/server/services/database";
 import type {
@@ -22,7 +22,7 @@ export async function countDataRecordsForDataSource(
   dataSourceId: string,
   filter: RecordFilterInput | null | undefined,
   search: string | null | undefined,
-): Promise<{ count: number; matched: number }> {
+): Promise<{ total: number; matched: number }> {
   const result = await db
     .selectFrom("dataRecord")
     .where("dataSourceId", "=", dataSourceId)
@@ -41,7 +41,7 @@ export async function countDataRecordsForDataSource(
     ])
     .executeTakeFirst();
   return {
-    count: Number(result?.count) || 0,
+    total: Number(result?.count) || 0,
     matched: Number(result?.matched) || 0,
   };
 }
@@ -199,6 +199,27 @@ export function findDataRecordById(id: string) {
     .where("id", "=", id)
     .selectAll()
     .executeTakeFirst();
+}
+
+export function findDataRecordByExternalId(
+  dataSourceId: string,
+  externalId: string,
+) {
+  return db
+    .selectFrom("dataRecord")
+    .where("dataSourceId", "=", dataSourceId)
+    .where("externalId", "=", externalId)
+    .selectAll()
+    .executeTakeFirst();
+}
+
+export function findDataRecordsByIds(ids: string[], dataSourceId: string) {
+  return db
+    .selectFrom("dataRecord")
+    .where("id", "in", ids)
+    .where("dataSourceId", "=", dataSourceId)
+    .selectAll()
+    .execute();
 }
 
 export async function findDataRecordsByDataSource(
@@ -376,6 +397,27 @@ export const markDataRecordsAsDirty = async (
     )
     .execute();
 };
+
+export async function updateDataRecordJsonWithEnrichment(
+  enrichedRecords: EnrichedRecord[],
+  dataSourceId: string,
+) {
+  for (const record of enrichedRecords) {
+    if (record.columns.length === 0) continue;
+
+    const enrichmentData: Record<string, unknown> = {};
+    for (const column of record.columns) {
+      enrichmentData[column.def.name] = column.value;
+    }
+
+    await sql`
+      UPDATE data_record
+      SET json = json || ${JSON.stringify(enrichmentData)}::jsonb
+      WHERE external_id = ${record.externalRecord.externalId}
+      AND data_source_id = ${dataSourceId}
+    `.execute(db);
+  }
+}
 
 export const deleteByDataSourceId = async (dataSourceId: string) =>
   db

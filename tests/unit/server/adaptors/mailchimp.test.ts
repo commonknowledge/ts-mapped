@@ -1,4 +1,5 @@
 import { describe, expect, inject, test } from "vitest";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import { MailchimpAdaptor } from "@/server/adaptors/mailchimp";
 import { ColumnType } from "@/server/models/DataSource";
 import logger from "@/server/services/logger";
@@ -211,7 +212,7 @@ describe("Mailchimp adaptor tests", () => {
     expect(ngrokWebhooks.length).toBe(0);
   });
 
-  test("updateRecords updates member merge fields", async () => {
+  test("updateRecords creates merge field and deleteColumn removes it", async () => {
     const adaptor = new MailchimpAdaptor(
       "test-data-source",
       credentials.mailchimp.apiKey,
@@ -229,39 +230,57 @@ describe("Mailchimp adaptor tests", () => {
       throw new Error("No members in Mailchimp list");
     }
 
+    // Generate a unique merge field tag using current date (max 10 chars)
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const fieldName = `Mapped: T${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
     const testValue = "test-value-" + Date.now();
     const enrichedRecords = [
       {
         externalRecord: all[0],
         columns: [
           {
-            def: { name: "MPD_V3_TST", type: ColumnType.String },
+            def: { name: fieldName, type: ColumnType.String },
             value: testValue,
           },
         ],
       },
     ];
 
+    // updateRecords will auto-create the merge field if it doesn't exist
     await adaptor.updateRecords(enrichedRecords);
 
-    // Wait a moment for Mailchimp batch processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Look up the tag that Mailchimp assigned to this field
+    adaptor["cachedMergeFields"] = null;
+    let mergeFields = await adaptor.getMergeFields();
+    const field = mergeFields.find((f) => f.name === fieldName);
+    expect(field).toBeDefined();
 
+    // Wait for Mailchimp batch processing to complete
     while (true) {
-      // Fetch the updated record
       const updatedRecords = await adaptor.fetchByExternalId([
         all[0].externalId,
       ]);
       expect(updatedRecords.length).toBe(1);
 
       try {
-        expect(updatedRecords[0].json.MPD_V3_TST).toBe(testValue);
+        // After the tag-to-name translation fix, fetched records use field names, not tags
+        expect(updatedRecords[0].json[fieldName]).toBe(testValue);
         break;
       } catch {
         logger.warn("Mailchimp member not updated yet, sleeping for 5 seconds");
         await sleep(5000);
       }
     }
+
+    // Delete the merge field using deleteColumn
+    await adaptor.deleteColumn(fieldName);
+
+    // Verify the merge field is gone
+    adaptor["cachedMergeFields"] = null;
+    mergeFields = await adaptor.getMergeFields();
+    expect(mergeFields.find((f) => f.name === fieldName)).toBeUndefined();
   });
 
   test("batch size limits are respected", async () => {
@@ -389,5 +408,320 @@ describe("Mailchimp adaptor tests", () => {
         await sleep(5000);
       }
     }
+  });
+
+  test("deleteColumn does not throw for non-existent field", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    await expect(
+      adaptor.deleteColumn("Mapped: NonExistent_" + Date.now()),
+    ).resolves.not.toThrow();
+  });
+
+  test("deleteColumn rejects non-enrichment columns", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    await expect(adaptor.deleteColumn("NotPrefixed")).rejects.toThrow(
+      `Refusing to delete column "NotPrefixed": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+    );
+  });
+
+  test("merge field tags are valid, duplicates are prevented, and deletion works", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    // Get a member to update
+    const all = [];
+    for await (const rec of adaptor.fetchAll()) {
+      all.push(rec);
+      break;
+    }
+
+    if (all.length === 0) {
+      throw new Error("No members in Mailchimp list");
+    }
+
+    const suffix = Date.now().toString().slice(-4);
+    const fieldName = `${ENRICHMENT_COLUMN_PREFIX}Tg${suffix}`;
+
+    const enrichedRecords = [
+      {
+        externalRecord: all[0],
+        columns: [
+          {
+            def: { name: fieldName, type: ColumnType.String },
+            value: "tag-test",
+          },
+        ],
+      },
+    ];
+
+    // 1. Create the merge field via updateRecords
+    await adaptor.updateRecords(enrichedRecords);
+
+    adaptor["cachedMergeFields"] = null;
+    let mergeFields = await adaptor.getMergeFields();
+    let field = mergeFields.find((f) => f.name === fieldName);
+
+    expect(field).toBeDefined();
+    // Verify tag format: uppercase letters, digits, underscores only, max 10 chars
+    expect(field?.tag).toMatch(/^[A-Z0-9_]{1,10}$/);
+    // Verify the name is preserved as-is
+    expect(field?.name).toBe(fieldName);
+
+    const originalTag = field?.tag;
+    const fieldCountBefore = mergeFields.filter(
+      (f) => f.name === fieldName,
+    ).length;
+    expect(fieldCountBefore).toBe(1);
+
+    // 2. Call updateRecords again with the same field — should NOT create a duplicate
+    await adaptor.updateRecords(enrichedRecords);
+
+    adaptor["cachedMergeFields"] = null;
+    mergeFields = await adaptor.getMergeFields();
+    const fieldCountAfter = mergeFields.filter(
+      (f) => f.name === fieldName,
+    ).length;
+    expect(fieldCountAfter).toBe(1);
+
+    // Tag should be unchanged
+    field = mergeFields.find((f) => f.name === fieldName);
+    expect(field?.tag).toBe(originalTag);
+
+    // 3. Delete the merge field and verify it's gone
+    await adaptor.deleteColumn(fieldName);
+
+    adaptor["cachedMergeFields"] = null;
+    mergeFields = await adaptor.getMergeFields();
+    expect(mergeFields.find((f) => f.name === fieldName)).toBeUndefined();
+  });
+
+  test("existing merge fields are not wiped when updateRecords is called", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    // Fetch the first record and snapshot its existing fields
+    const originalRecord = await adaptor.fetchFirst();
+    if (!originalRecord) {
+      throw new Error("No members in Mailchimp list");
+    }
+
+    const originalJson = { ...originalRecord.json };
+    const originalKeys = Object.keys(originalJson).filter((k) =>
+      k.startsWith("address_"),
+    );
+    expect(originalKeys.length).toBeGreaterThan(0);
+
+    // Add a new enrichment column via updateRecords
+    const suffix = Date.now().toString().slice(-4);
+    const fieldName = `${ENRICHMENT_COLUMN_PREFIX}Keep${suffix}`;
+    const testValue = "keep-test-" + Date.now();
+
+    await adaptor.updateRecords([
+      {
+        externalRecord: originalRecord,
+        columns: [
+          {
+            def: { name: fieldName, type: ColumnType.String },
+            value: testValue,
+          },
+        ],
+      },
+    ]);
+
+    // Look up the tag Mailchimp assigned to the new field
+    adaptor["cachedMergeFields"] = null;
+    const mergeFields = await adaptor.getMergeFields();
+    const newField = mergeFields.find((f) => f.name === fieldName);
+    expect(newField).toBeDefined();
+    const newTag = newField?.tag ?? "";
+    expect(newTag).not.toBe("");
+
+    // Wait for the batch to process, then re-fetch the same record
+    let refetched = null;
+    while (true) {
+      [refetched] = await adaptor.fetchByExternalId([
+        originalRecord.externalId,
+      ]);
+
+      try {
+        // After the tag-to-name translation fix, fetched records use field names, not tags
+        expect(refetched.json[fieldName]).toBe(testValue);
+
+        break;
+      } catch {
+        logger.warn("Mailchimp member not updated yet, sleeping for 5 seconds");
+        await sleep(5000);
+      }
+    }
+
+    // Every field that existed before should still be present and unchanged
+    for (const key of originalKeys) {
+      expect(refetched.json).toHaveProperty(key);
+      expect(refetched.json[key]).toEqual(originalJson[key]);
+    }
+
+    // Clean up
+    await adaptor.deleteColumn(fieldName);
+  });
+
+  test("fetched records use merge field names, not tags, as JSON keys", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    // Get a member to update
+    const all = [];
+    for await (const rec of adaptor.fetchAll()) {
+      all.push(rec);
+      break;
+    }
+
+    if (all.length === 0) {
+      throw new Error("No members in Mailchimp list");
+    }
+
+    const suffix = Date.now().toString().slice(-4);
+    const fieldName = `${ENRICHMENT_COLUMN_PREFIX}Name${suffix}`;
+    const testValue = "name-translation-test-" + Date.now();
+
+    // Create a merge field via updateRecords
+    await adaptor.updateRecords([
+      {
+        externalRecord: all[0],
+        columns: [
+          {
+            def: { name: fieldName, type: ColumnType.String },
+            value: testValue,
+          },
+        ],
+      },
+    ]);
+
+    // Get the tag assigned by Mailchimp (e.g. "M_NAME1234")
+    adaptor["cachedMergeFields"] = null;
+    const mergeFields = await adaptor.getMergeFields();
+    const field = mergeFields.find((f) => f.name === fieldName);
+    expect(field).toBeDefined();
+    const fieldTag = field?.tag ?? "";
+    expect(fieldTag).not.toBe("");
+    // The tag and name should be different
+    expect(fieldTag).not.toBe(fieldName);
+
+    // Wait for batch to process, then re-fetch
+    while (true) {
+      const [refetched] = await adaptor.fetchByExternalId([all[0].externalId]);
+
+      try {
+        // The record JSON should use the human-readable field name, not the tag
+        expect(refetched.json[fieldName]).toBe(testValue);
+        // The raw tag should NOT appear as a key
+        expect(refetched.json).not.toHaveProperty(fieldTag);
+        break;
+      } catch {
+        logger.warn("Mailchimp member not updated yet, sleeping for 5 seconds");
+        await sleep(5000);
+      }
+    }
+
+    // Verify same behaviour for fetchFirst
+    const first = await adaptor.fetchFirst();
+    if (first && first.externalId === all[0].externalId) {
+      expect(first.json[fieldName]).toBe(testValue);
+      expect(first.json).not.toHaveProperty(fieldTag);
+    }
+
+    // Clean up
+    await adaptor.deleteColumn(fieldName);
+  });
+
+  test("tag collision assigns a suffixed tag when different names produce the same base tag", async () => {
+    const adaptor = new MailchimpAdaptor(
+      "test-data-source",
+      credentials.mailchimp.apiKey,
+      credentials.mailchimp.listId,
+    );
+
+    // Get a member to update
+    const all = [];
+    for await (const rec of adaptor.fetchAll()) {
+      all.push(rec);
+      break;
+    }
+
+    if (all.length === 0) {
+      throw new Error("No members in Mailchimp list");
+    }
+
+    // Two different names that produce the same base tag
+    // "Mapped: Ab C" → M_AB_C and "Mapped: Ab-C" → M_AB_C
+    const fieldName1 = `${ENRICHMENT_COLUMN_PREFIX}Ab C`;
+    const fieldName2 = `${ENRICHMENT_COLUMN_PREFIX}Ab-C`;
+
+    const enrichedRecords = [
+      {
+        externalRecord: all[0],
+        columns: [
+          {
+            def: { name: fieldName1, type: ColumnType.String },
+            value: "val1",
+          },
+          {
+            def: { name: fieldName2, type: ColumnType.String },
+            value: "val2",
+          },
+        ],
+      },
+    ];
+
+    // updateRecords should succeed — the second field gets a suffixed tag
+    await adaptor.updateRecords(enrichedRecords);
+
+    adaptor["cachedMergeFields"] = null;
+    const mergeFields = await adaptor.getMergeFields();
+
+    const field1 = mergeFields.find((f) => f.name === fieldName1);
+    const field2 = mergeFields.find((f) => f.name === fieldName2);
+
+    expect(field1).toBeDefined();
+    expect(field2).toBeDefined();
+
+    // Both should have valid tags
+    expect(field1?.tag).toMatch(/^[A-Z0-9_]{1,10}$/);
+    expect(field2?.tag).toMatch(/^[A-Z0-9_]{1,10}$/);
+
+    // The tags must be different
+    expect(field1?.tag).not.toBe(field2?.tag);
+
+    // One should be the base tag, the other should have a numeric suffix
+    const tags = [field1?.tag, field2?.tag].sort();
+    expect(tags[0]).toBe("M_AB_C");
+    expect(tags[1]).toMatch(/^M_AB_C_\d+$/);
+
+    // Clean up
+    await adaptor.deleteColumn(fieldName1);
+    await adaptor.deleteColumn(fieldName2);
+
+    adaptor["cachedMergeFields"] = null;
+    const remaining = await adaptor.getMergeFields();
+    expect(remaining.find((f) => f.name === fieldName1)).toBeUndefined();
+    expect(remaining.find((f) => f.name === fieldName2)).toBeUndefined();
   });
 }, 30000);

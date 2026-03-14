@@ -105,6 +105,7 @@ export enum AreaPropertyType {
 export const areaPropertyTypes = Object.values(AreaPropertyType);
 
 const areaEnrichmentSchema = z.object({
+  name: z.string().nonempty(),
   sourceType: z.literal(EnrichmentSourceType.Area),
   areaSetCode: z.nativeEnum(AreaSetCode),
   areaProperty: z.nativeEnum(AreaPropertyType),
@@ -113,6 +114,7 @@ const areaEnrichmentSchema = z.object({
 export type AreaEnrichment = z.infer<typeof areaEnrichmentSchema>;
 
 const dataSourceEnrichmentSchema = z.object({
+  name: z.string().nonempty(),
   sourceType: z.literal(EnrichmentSourceType.DataSource),
   dataSourceId: z.string().nonempty(),
   dataSourceColumn: z.string().nonempty(),

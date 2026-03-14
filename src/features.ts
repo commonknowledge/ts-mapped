@@ -5,6 +5,7 @@ export const DataSourceFeatures: Record<
   {
     autoEnrich: boolean;
     autoImport: boolean;
+    columnDeletion: boolean;
     enrichment: boolean;
     syncToCrm: boolean;
   }
@@ -12,31 +13,36 @@ export const DataSourceFeatures: Record<
   [DataSourceType.ActionNetwork]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: false,
+    columnDeletion: false,
+    enrichment: true,
     syncToCrm: true,
   },
   [DataSourceType.Airtable]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: false,
+    columnDeletion: false,
+    enrichment: true,
     syncToCrm: true,
   },
   [DataSourceType.CSV]: {
     autoEnrich: false,
     autoImport: false,
+    columnDeletion: false,
     enrichment: false,
     syncToCrm: false,
   },
   [DataSourceType.GoogleSheets]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: false,
+    columnDeletion: true,
+    enrichment: true,
     syncToCrm: true,
   },
   [DataSourceType.Mailchimp]: {
     autoEnrich: true,
     autoImport: true,
-    enrichment: false,
+    columnDeletion: true,
+    enrichment: true,
     syncToCrm: true,
   },
 };

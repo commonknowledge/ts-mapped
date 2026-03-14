@@ -3,6 +3,7 @@ import { join } from "path";
 import readline from "readline";
 import { Readable } from "stream";
 import { parse } from "csv-parse";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import logger from "@/server/services/logger";
 import { getAbsoluteUrl } from "@/utils/appUrl";
 import { getBaseDir } from "../utils";
@@ -113,6 +114,15 @@ export class CSVAdaptor implements DataSourceAdaptor {
   }
 
   tagRecords(): Promise<void> {
+    throw new Error("CSVs are not updatable.");
+  }
+
+  deleteColumn(columnName: string): Promise<void> {
+    if (!columnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+      throw new Error(
+        `Refusing to delete column "${columnName}": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+      );
+    }
     throw new Error("CSVs are not updatable.");
   }
 }

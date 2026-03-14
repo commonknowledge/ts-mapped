@@ -3,11 +3,9 @@ import { getServerSession } from "@/auth";
 import { MARKER_MATCHED_COLUMN } from "@/constants";
 import { streamDataRecordsByDataSource } from "@/server/repositories/DataRecord";
 import { findDataSourceById } from "@/server/repositories/DataSource";
-import { findOrganisationUser } from "@/server/repositories/OrganisationUser";
-import { findPublishedPublicMapByDataSourceId } from "@/server/repositories/PublicMap";
+import { canReadDataSource } from "@/server/utils/auth";
 import { buildName } from "@/utils/dataRecord";
 import type { DataRecord } from "@/server/models/DataRecord";
-import type { DataSource } from "@/server/models/DataSource";
 import type { RecordFilterInput } from "@/server/models/MapView";
 import type { MarkerFeatureWithoutDataSourceId } from "@/types";
 import type { NextRequest } from "next/server";
@@ -92,30 +90,4 @@ export async function GET(
   });
 }
 
-const checkAccess = async (
-  dataSource: DataSource,
-  userId: string | undefined | null,
-): Promise<boolean> => {
-  if (dataSource.public) {
-    return true;
-  }
-
-  const publicMap = await findPublishedPublicMapByDataSourceId(dataSource.id);
-  if (publicMap) {
-    return true;
-  }
-
-  if (!userId) {
-    return false;
-  }
-
-  const organisationUser = await findOrganisationUser(
-    dataSource.organisationId,
-    userId,
-  );
-  if (organisationUser) {
-    return true;
-  }
-
-  return false;
-};
+const checkAccess = canReadDataSource;

@@ -2,31 +2,29 @@ import { ColumnType } from "@/server/models/DataSource";
 import { findAreaByCode } from "@/server/repositories/Area";
 import { findAreaSetByCode } from "@/server/repositories/AreaSet";
 import { findDataRecordByDataSourceAndAreaCode } from "@/server/repositories/DataRecord";
-import { findDataSourceById } from "@/server/repositories/DataSource";
+import {
+  findDataSourceById,
+  updateDataSource,
+} from "@/server/repositories/DataSource";
 import logger from "@/server/services/logger";
+import { enrichmentColumnName } from "@/utils/dataRecord";
 import { geocodeRecord } from "./geocode";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { GeocodeResult } from "../models/shared";
-import type { ColumnDef } from "@/server/models/DataSource";
 import type {
   AreaEnrichment,
   DataSource,
   DataSourceEnrichment,
+  DataSourceUpdate,
   Enrichment,
 } from "@/server/models/DataSource";
 import type { ExternalRecord } from "@/types";
-
-export interface EnrichedRecord {
-  externalRecord: ExternalRecord;
-  columns: {
-    def: ColumnDef;
-    value: unknown;
-  }[];
-}
 
 export const enrichRecord = async (
   record: ExternalRecord,
   dataSource: DataSource,
 ): Promise<EnrichedRecord> => {
+  logger.info(`Enriching record ${record.externalId}`);
   const geocodeResult = await geocodeRecord(record, dataSource.geocodingConfig);
   if (!geocodeResult) {
     logger.warn(
@@ -45,7 +43,7 @@ export const enrichRecord = async (
     if (enrichedColumn) {
       enrichedColumns.push({
         def: {
-          name: `Mapped: ${enrichedColumn.def.name}`,
+          name: enrichmentColumnName(enrichment.name),
           type: enrichedColumn.def.type,
         },
         value: enrichedColumn.value,
@@ -59,7 +57,7 @@ export const enrichRecord = async (
   return { externalRecord: record, columns: enrichedColumns };
 };
 
-const getEnrichedColumn = async (
+export const getEnrichedColumn = async (
   record: ExternalRecord,
   recordGeocodeResult: GeocodeResult,
   enrichment: Enrichment,
@@ -170,4 +168,40 @@ const getDataSourceEnrichedColumn = async (
     },
     value: matchedRecord.json[dataSourceColumn],
   };
+};
+
+/**
+ * Synchronously removes enrichment columns from a data source's metadata:
+ * - Filters matching entries out of `enrichments`
+ * - Filters matching entries out of `columnDefs`
+ *
+ * The expensive work (stripping values from data_record.json and deleting
+ * columns from the external source) is left to the background job.
+ */
+export const removeEnrichmentColumnsFromDataSource = async (
+  dataSourceId: string,
+  externalColumnNames: string[],
+) => {
+  if (externalColumnNames.length === 0) return;
+
+  const dataSource = await findDataSourceById(dataSourceId);
+  if (!dataSource) return;
+
+  const namesToRemove = new Set(externalColumnNames);
+
+  const remainingEnrichments = (dataSource.enrichments ?? []).filter(
+    (e) => !namesToRemove.has(enrichmentColumnName(e.name)),
+  );
+  const remainingColumnDefs = (dataSource.columnDefs ?? []).filter(
+    (col) => !namesToRemove.has(col.name),
+  );
+
+  await updateDataSource(dataSourceId, {
+    enrichments: remainingEnrichments,
+    columnDefs: remainingColumnDefs,
+  } as DataSourceUpdate);
+
+  logger.info(
+    `Removed enrichment column metadata [${externalColumnNames.join(", ")}] from data source ${dataSourceId}`,
+  );
 };

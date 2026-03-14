@@ -1,11 +1,14 @@
 import crypto from "crypto";
 import z from "zod";
-import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
+import {
+  DATA_RECORDS_JOB_BATCH_SIZE,
+  ENRICHMENT_COLUMN_PREFIX,
+} from "@/constants";
 import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface MergeField {
@@ -144,7 +147,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       return this.cachedMergeFields;
     }
 
-    const url = `${this.getListUrl()}/merge-fields`;
+    const url = `${this.getListUrl()}/merge-fields?count=1000`;
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
@@ -180,6 +183,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
   private transformMemberData(
     member: Record<string, unknown>,
+    tagToNameMap: Map<string, string>,
   ): Record<string, unknown> {
     const data: Record<string, unknown> = {
       email_address: member.email_address,
@@ -195,14 +199,15 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       list_id: member.list_id,
     };
 
-    // Add merge field data
+    // Add merge field data, translating tags back to field names
     if (member.merge_fields) {
-      for (const [key, value] of Object.entries(member.merge_fields)) {
-        if (key === "ADDRESS" && value && typeof value === "object") {
+      for (const [tag, value] of Object.entries(member.merge_fields)) {
+        if (tag === "ADDRESS" && value && typeof value === "object") {
           // Flatten ADDRESS merge field
           Object.assign(data, this.flattenAddress(value));
         } else {
-          data[key] = value;
+          const fieldName = tagToNameMap.get(tag) ?? tag;
+          data[fieldName] = value;
         }
       }
     }
@@ -217,7 +222,17 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     return data;
   }
 
+  private async getTagToNameMap(): Promise<Map<string, string>> {
+    const mergeFields = await this.getMergeFields();
+    const map = new Map<string, string>();
+    for (const field of mergeFields) {
+      map.set(field.tag, field.name);
+    }
+    return map;
+  }
+
   async *fetchAll(): AsyncGenerator<ExternalRecord> {
+    const tagToNameMap = await this.getTagToNameMap();
     let offset = 0;
     const count = 1000; // Mailchimp's maximum
 
@@ -240,7 +255,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       for (const member of members) {
         yield {
           externalId: member.id,
-          json: this.transformMemberData(member),
+          json: this.transformMemberData(member, tagToNameMap),
         };
       }
 
@@ -254,6 +269,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
 
   async fetchFirst(): Promise<ExternalRecord | null> {
     try {
+      const tagToNameMap = await this.getTagToNameMap();
       const url = `${this.getListUrl()}/members?count=1`;
       const response = await fetch(url, {
         headers: this.getHeaders(),
@@ -273,7 +289,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
         const member = members[0];
         return {
           externalId: member.id,
-          json: this.transformMemberData(member),
+          json: this.transformMemberData(member, tagToNameMap),
         };
       }
     } catch (error) {
@@ -292,6 +308,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       throw new Error("Cannot fetch more than 100 records at once.");
     }
 
+    const tagToNameMap = await this.getTagToNameMap();
     const records: ExternalRecord[] = [];
 
     // Mailchimp doesn't support batch fetching by ID, so we fetch individually
@@ -306,7 +323,7 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
           const member = (await response.json()) as { id: string };
           records.push({
             externalId: member.id,
-            json: this.transformMemberData(member),
+            json: this.transformMemberData(member, tagToNameMap),
           });
         } else if (response.status === 404) {
           // Member not found, skip
@@ -483,43 +500,125 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
     }
   }
 
+  private nameToTag(name: string): string {
+    let base = name;
+    if (base.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+      base = "M_" + base.slice(ENRICHMENT_COLUMN_PREFIX.length);
+    }
+    let tag = base
+      .toUpperCase()
+      .replace(/[^A-Z0-9_]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
+    if (tag.length > 10) {
+      tag = tag.substring(0, 10).replace(/_$/, "");
+    }
+    return tag || "FIELD";
+  }
+
+  private uniqueTag(name: string, existingTags: Set<string>): string {
+    const base = this.nameToTag(name);
+    if (!existingTags.has(base)) {
+      return base;
+    }
+    for (let i = 1; i < 100; i++) {
+      const suffix = `_${i}`;
+      const maxBaseLen = 10 - suffix.length;
+      const candidate =
+        base.substring(0, maxBaseLen).replace(/_$/, "") + suffix;
+      if (!existingTags.has(candidate)) {
+        return candidate;
+      }
+    }
+    throw new Error(`Could not generate unique tag for "${name}"`);
+  }
+
+  private async ensureMergeFieldsExist(
+    enrichedRecords: EnrichedRecord[],
+  ): Promise<void> {
+    // Collect all unique merge field names from the enriched records
+    const fieldNames = new Set<string>();
+    for (const record of enrichedRecords) {
+      for (const column of record.columns) {
+        const fieldName = column.def.name;
+        if (!fieldName.startsWith("address_")) {
+          fieldNames.add(fieldName);
+        }
+      }
+    }
+
+    if (fieldNames.size === 0) return;
+
+    const existingFields = await this.getMergeFields();
+    const existingTags = new Set(existingFields.map((f) => f.tag));
+    const existingNames = new Set(existingFields.map((f) => f.name));
+
+    for (const fieldName of fieldNames) {
+      if (existingNames.has(fieldName)) continue;
+
+      const tag = this.uniqueTag(fieldName, existingTags);
+
+      const url = `${this.getListUrl()}/merge-fields`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          tag,
+          name: fieldName,
+          type: "text",
+        }),
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw Error(
+          `Bad create merge field response: ${response.status}, ${responseText}`,
+        );
+      }
+
+      existingTags.add(tag);
+      existingNames.add(fieldName);
+
+      logger.info(
+        `Created Mailchimp merge field "${fieldName}" (tag: ${tag}) for data source ${this.dataSourceId}`,
+      );
+    }
+
+    // Invalidate cache since we may have created new fields
+    this.cachedMergeFields = null;
+  }
+
   async updateRecords(enrichedRecords: EnrichedRecord[]): Promise<void> {
+    // Ensure all required merge fields exist before updating records
+    await this.ensureMergeFieldsExist(enrichedRecords);
+
+    // Build a name-to-tag mapping from existing merge fields
+    const mergeFieldList = await this.getMergeFields();
+    const nameToTagMap = new Map<string, string>();
+    for (const field of mergeFieldList) {
+      nameToTagMap.set(field.name, field.tag);
+    }
+
     // Mailchimp allows batch operations with up to 500 operations
     const batches = batch(enrichedRecords, 500);
 
     for (const recordBatch of batches) {
-      const operations = recordBatch.map((record) => {
+      const operations = [];
+      for (const record of recordBatch) {
         const mergeFields: Record<string, unknown> = {};
-
         for (const column of record.columns) {
           const fieldName = column.def.name;
-
-          // Handle ADDRESS fields specially - reconstruct the address object
-          if (fieldName.startsWith("address_")) {
-            // We'll handle address fields in a separate pass
-            continue;
-          }
-
-          mergeFields[fieldName] = column.value;
-        }
-
-        // Reconstruct ADDRESS merge field if we have address components
-        const addressFields = record.columns.filter((col) =>
-          col.def.name.startsWith("address_"),
-        );
-
-        if (addressFields.length > 0) {
-          const address: Record<string, unknown> = {};
-          for (const addressField of addressFields) {
-            const addressKey = addressField.def.name.replace("address_", "");
-            address[addressKey] = addressField.value;
-          }
-          if (Object.keys(address).length > 0) {
-            mergeFields["ADDRESS"] = address;
+          const tag = nameToTagMap.get(fieldName);
+          if (tag) {
+            mergeFields[tag] = column.value;
+          } else {
+            logger.warn(
+              `No merge field tag found for "${fieldName}" on data source ${this.dataSourceId}`,
+            );
           }
         }
 
-        return {
+        operations.push({
           method: "PATCH",
           path: `/lists/${this.listId}/members/${record.externalRecord.externalId}`,
           params: {
@@ -528,8 +627,8 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
           body: JSON.stringify({
             merge_fields: mergeFields,
           }),
-        };
-      });
+        });
+      }
 
       const batchUrl = `${this.getBaseUrl()}/batches`;
       const response = await fetch(batchUrl, {
@@ -556,5 +655,40 @@ export class MailchimpAdaptor implements DataSourceAdaptor {
       // You might want to implement polling to check batch status
       // For now, we'll just log the batch ID
     }
+  }
+
+  async deleteColumn(columnName: string): Promise<void> {
+    if (!columnName.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+      throw new Error(
+        `Refusing to delete column "${columnName}": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+      );
+    }
+
+    const mergeFields = await this.getMergeFields();
+    const field = mergeFields.find(
+      (f) => f.name === columnName || f.tag === columnName,
+    );
+    if (!field) {
+      logger.info(
+        `Mailchimp merge field "${columnName}" not found, skipping deletion`,
+      );
+      return;
+    }
+
+    const url = `${this.getListUrl()}/merge-fields/${field.merge_id}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw Error(
+        `Bad delete merge field response: ${response.status}, ${responseText}`,
+      );
+    }
+
+    // Invalidate cached merge fields
+    this.cachedMergeFields = null;
   }
 }

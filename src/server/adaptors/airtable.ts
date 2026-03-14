@@ -1,5 +1,8 @@
 import z from "zod";
-import { DATA_RECORDS_JOB_BATCH_SIZE } from "@/constants";
+import {
+  DATA_RECORDS_JOB_BATCH_SIZE,
+  ENRICHMENT_COLUMN_PREFIX,
+} from "@/constants";
 import { ColumnType } from "@/server/models/DataSource";
 import {
   findAirtableWebhookById,
@@ -9,7 +12,7 @@ import logger from "@/server/services/logger";
 import { getPublicUrl } from "@/server/services/urls";
 import { batch } from "@/server/utils";
 import type { DataSourceAdaptor } from "./abstract";
-import type { EnrichedRecord } from "@/server/mapping/enrich";
+import type { EnrichedRecord } from "../models/DataRecord";
 import type { ExternalRecord, TaggedRecord } from "@/types";
 
 interface Webhook {
@@ -611,6 +614,15 @@ export class AirtableAdaptor implements DataSourceAdaptor {
       }
       logger.debug(`Airtable PATCH response: ${response.status}`);
     }
+  }
+
+  deleteColumn(column: string): Promise<void> {
+    if (!column.startsWith(ENRICHMENT_COLUMN_PREFIX)) {
+      throw new Error(
+        `Refusing to delete column "${column}": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+      );
+    }
+    throw new Error("Airtable does not support deleting fields.");
   }
 }
 

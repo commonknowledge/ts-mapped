@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, inject, test } from "vitest";
+import { ENRICHMENT_COLUMN_PREFIX } from "@/constants";
 import {
   GoogleSheetsAdaptor,
   escapeSheetNameForFormula,
@@ -351,7 +352,7 @@ describe("Google Sheets adaptor tests", () => {
 
     if (allRecords.length === 0) throw new Error("No records in sheet");
 
-    const uniqueColumnName = "NewTestField_" + Date.now();
+    const uniqueColumnName = "Mapped: NewTestField_" + Date.now();
     const enrichedRecords = [
       {
         externalRecord: allRecords[0],
@@ -370,7 +371,64 @@ describe("Google Sheets adaptor tests", () => {
     const updatedRecord = await adaptor.fetchByExternalId(["2"]);
     expect(updatedRecord[0].json[uniqueColumnName]).toBe("new-column-value");
 
-    await adaptor.deleteColumn(uniqueColumnName, 2);
+    await adaptor.deleteColumn(uniqueColumnName);
+  });
+
+  test("deleteColumn removes a column", async () => {
+    const adaptor = new GoogleSheetsAdaptor(
+      uuid,
+      credentials.googlesheets.spreadsheetId,
+      credentials.googlesheets.sheetName,
+      credentials.googlesheets.oAuthCredentials,
+    );
+
+    // First, create a column by updating a record
+    const allRecords = [];
+    for await (const rec of adaptor.fetchAll()) {
+      allRecords.push(rec);
+      break;
+    }
+
+    if (allRecords.length === 0) throw new Error("No records in sheet");
+
+    const columnName = "Mapped: DeleteTest_" + Date.now();
+    await adaptor.updateRecords([
+      {
+        externalRecord: allRecords[0],
+        columns: [
+          {
+            def: { name: columnName, type: ColumnType.String },
+            value: "to-be-deleted",
+          },
+        ],
+      },
+    ]);
+
+    // Verify the column exists
+    let updatedRecord = await adaptor.fetchByExternalId([
+      allRecords[0].externalId,
+    ]);
+    expect(updatedRecord[0].json[columnName]).toBe("to-be-deleted");
+
+    // Delete the column
+    await adaptor.deleteColumn(columnName);
+
+    // Verify the column is gone
+    updatedRecord = await adaptor.fetchByExternalId([allRecords[0].externalId]);
+    expect(updatedRecord[0].json[columnName]).toBeFalsy();
+  });
+
+  test("deleteColumn rejects non-enrichment columns", async () => {
+    const adaptor = new GoogleSheetsAdaptor(
+      uuid,
+      credentials.googlesheets.spreadsheetId,
+      credentials.googlesheets.sheetName,
+      credentials.googlesheets.oAuthCredentials,
+    );
+
+    await expect(adaptor.deleteColumn("NotPrefixed")).rejects.toThrow(
+      `Refusing to delete column "NotPrefixed": only enrichment columns (prefixed with "${ENRICHMENT_COLUMN_PREFIX}") can be deleted.`,
+    );
   });
 
   test("updateRecords handles multiple records in batches", async () => {
