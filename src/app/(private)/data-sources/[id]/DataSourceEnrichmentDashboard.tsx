@@ -247,8 +247,9 @@ export function DataSourceEnrichmentDashboard({
                             onClick={() => setDeleteColumn(col.name)}
                             className="text-gray-400 hover:text-destructive transition-colors"
                             title="Remove enrichment column"
+                            aria-label={`Remove enrichment column ${col.name}`}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                           </button>
                         )}
                       </span>
