@@ -336,6 +336,27 @@ export const dataSourceRouter = router({
   updateConfig: dataSourceOwnerProcedure
     .input(dataSourceSchema.partial())
     .mutation(async ({ ctx, input }) => {
+      // Validate that the user can read all data sources referenced by enrichments
+      if (input.enrichments) {
+        const referencedDataSourceIds = input.enrichments
+          .filter((e) => e.sourceType === EnrichmentSourceType.DataSource)
+          .map((e) => e.dataSourceId);
+
+        if (referencedDataSourceIds.length > 0) {
+          const referencedDataSources =
+            await findDataSourcesByIds(referencedDataSourceIds);
+          for (const ds of referencedDataSources) {
+            const hasAccess = await canReadDataSource(ds, ctx.user.id);
+            if (!hasAccess) {
+              throw new TRPCError({
+                code: "FORBIDDEN",
+                message: `You do not have access to a referenced data source`,
+              });
+            }
+          }
+        }
+      }
+
       const adaptor = getDataSourceAdaptor(ctx.dataSource);
 
       const update = {
